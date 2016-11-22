@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ParameterSymbol SynthesizedParameter(TypeSymbol type, string name, MethodSymbol container = null, int ordinal = 0)
         {
-            return new SynthesizedParameterSymbol(container, type, ordinal, RefKind.None, name);
+            return SynthesizedParameterSymbol.Create(container, type, ordinal, RefKind.None, name);
         }
 
         public BoundBinaryOperator Binary(BinaryOperatorKind kind, TypeSymbol type, BoundExpression left, BoundExpression right)

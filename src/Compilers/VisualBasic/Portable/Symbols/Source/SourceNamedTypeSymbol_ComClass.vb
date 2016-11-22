@@ -1264,9 +1264,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+                Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
                     Get
-                        Return ClonedFrom.CountOfCustomModifiersPrecedingByRef
+                        Return ClonedFrom.RefCustomModifiers
                     End Get
                 End Property
 
@@ -1412,6 +1412,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+                    Get
+                        Return _clonedFrom.RefCustomModifiers
+                    End Get
+                End Property
+
                 Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                     Get
                         Throw ExceptionUtilities.Unreachable
@@ -1543,12 +1549,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
 
                         Return _clonedFrom.IsCallerFilePath
-                    End Get
-                End Property
-
-                Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
-                    Get
-                        Return _clonedFrom.CountOfCustomModifiersPrecedingByRef
                     End Get
                 End Property
 
@@ -1808,9 +1808,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+                Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
                     Get
-                        Return _clonedFrom.CountOfCustomModifiersPrecedingByRef
+                        Return _clonedFrom.RefCustomModifiers
                     End Get
                 End Property
 

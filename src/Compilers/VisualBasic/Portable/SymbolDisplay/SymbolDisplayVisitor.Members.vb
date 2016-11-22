@@ -70,6 +70,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddSpace()
             End If
 
+            If symbol.ReturnsByRef AndAlso format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef) Then
+                AddKeyword(SyntaxKind.ByRefKeyword)
+                AddCustomModifiersIfRequired(symbol.RefCustomModifiers)
+                AddSpace()
+            End If
+
             If format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeMemberKeyword) Then
                 If IsWithEventsProperty(symbol) Then
                     AddKeyword(SyntaxKind.WithEventsKeyword)
@@ -97,29 +103,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Dim vbProperty = TryCast(symbol, PropertySymbol)
-            Dim countOfCustomModifiersPrecedingByRef As UShort = If(vbProperty Is Nothing, 0US, vbProperty.CountOfCustomModifiersPrecedingByRef)
-
-            If symbol.ReturnsByRef AndAlso format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef) Then
-                AddSpace()
-                AddKeyword(SyntaxKind.ByRefKeyword)
-
-                If countOfCustomModifiersPrecedingByRef > 0 Then
-                    AddCustomModifiersIfRequired(symbol.TypeCustomModifiers.Take(countOfCustomModifiersPrecedingByRef).AsImmutable())
-                End If
-            End If
-
             If format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType) Then
                 AddSpace()
                 AddKeyword(SyntaxKind.AsKeyword)
                 AddSpace()
                 symbol.Type.Accept(Me.NotFirstVisitor)
 
-                If symbol.ReturnsByRef AndAlso countOfCustomModifiersPrecedingByRef > 0 Then
-                    AddCustomModifiersIfRequired(symbol.TypeCustomModifiers.Skip(countOfCustomModifiersPrecedingByRef).AsImmutable())
-                Else
-                    AddCustomModifiersIfRequired(symbol.TypeCustomModifiers)
-                End If
+                AddCustomModifiersIfRequired(symbol.TypeCustomModifiers)
             End If
         End Sub
 
@@ -191,6 +181,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             AddAccessibilityIfRequired(symbol)
             AddMemberModifiersIfRequired(symbol)
+
+            If symbol.ReturnsByRef AndAlso format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef) Then
+                AddKeyword(SyntaxKind.ByRefKeyword)
+                AddCustomModifiersIfRequired(symbol.RefCustomModifiers)
+                AddSpace()
+            End If
+
             AddMethodKind(symbol)
             AddMethodName(symbol)
             AddMethodGenericParameters(symbol)
@@ -384,18 +381,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub AddMethodReturnType(method As IMethodSymbol)
-            Dim vbMethod = TryCast(method, MethodSymbol)
-            Dim countOfCustomModifiersPrecedingByRef As UShort = If(vbMethod Is Nothing, 0US, vbMethod.CountOfCustomModifiersPrecedingByRef)
-
-            If method.ReturnsByRef AndAlso format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef) Then
-                AddSpace()
-                AddKeyword(SyntaxKind.ByRefKeyword)
-
-                If countOfCustomModifiersPrecedingByRef > 0 Then
-                    AddCustomModifiersIfRequired(method.ReturnTypeCustomModifiers.Take(countOfCustomModifiersPrecedingByRef).AsImmutable())
-                End If
-            End If
-
             If format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType) Then
                 Select Case method.MethodKind
                     Case MethodKind.Constructor,
@@ -409,11 +394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                 End Select
 
-                If method.ReturnsByRef AndAlso countOfCustomModifiersPrecedingByRef > 0 Then
-                    AddCustomModifiersIfRequired(method.ReturnTypeCustomModifiers.Skip(countOfCustomModifiersPrecedingByRef).AsImmutable())
-                Else
-                    AddCustomModifiersIfRequired(method.ReturnTypeCustomModifiers)
-                End If
+                AddCustomModifiersIfRequired(method.ReturnTypeCustomModifiers)
             End If
         End Sub
 
@@ -485,8 +466,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub VisitParameter(symbol As IParameterSymbol)
-            Dim vbParameter = TryCast(symbol, ParameterSymbol)
-            Dim countOfCustomModifiersPrecedingByRef As UShort = If(vbParameter Is Nothing, 0US, vbParameter.CountOfCustomModifiersPrecedingByRef)
 
             If format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets) Then
                 If symbol.IsOptional Then
@@ -499,9 +478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddKeyword(SyntaxKind.ByRefKeyword)
                     AddSpace()
 
-                    If countOfCustomModifiersPrecedingByRef > 0 Then
-                        AddCustomModifiersIfRequired(symbol.CustomModifiers.Take(countOfCustomModifiersPrecedingByRef).AsImmutable(), leadingSpace:=False, trailingSpace:=True)
-                    End If
+                    AddCustomModifiersIfRequired(symbol.RefCustomModifiers, leadingSpace:=False, trailingSpace:=True)
                 End If
 
                 If symbol.IsParams Then
@@ -522,12 +499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 symbol.Type.Accept(Me.NotFirstVisitor())
-
-                If symbol.RefKind <> RefKind.None AndAlso IsExplicitByRefParameter(symbol) AndAlso countOfCustomModifiersPrecedingByRef > 0 Then
-                    AddCustomModifiersIfRequired(symbol.CustomModifiers.Skip(countOfCustomModifiersPrecedingByRef).AsImmutable())
-                Else
-                    AddCustomModifiersIfRequired(symbol.CustomModifiers)
-                End If
+                AddCustomModifiersIfRequired(symbol.CustomModifiers)
             End If
 
             If format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) AndAlso symbol.HasExplicitDefaultValue Then

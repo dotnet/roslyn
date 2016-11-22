@@ -1,20 +1,18 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
-using System.IO;
+using System.ComponentModel.Composition;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared;
+using Microsoft.CodeAnalysis.Editor.Tags;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Shared
 {
@@ -30,9 +28,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
         }
     }
 
-    [ExportWorkspaceService(typeof(IImageMonikerService), layer: ServiceLayer.Host), Shared]
+    [ExportImageMonikerService(Name = Name)]
+    [Order(Before = DefaultImageMonikerService.Name)]
     internal class VisualStudioImageMonikerService : ForegroundThreadAffinitizedObject, IImageMonikerService
     {
+        public const string Name = nameof(VisualStudioImageMonikerService);
+
         private readonly IVsImageService2 _imageService;
 
         // We have to keep the image handles around to keep the compound glyph alive.
@@ -44,10 +45,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
             _imageService = (IVsImageService2)serviceProvider.GetService(typeof(SVsImageService));
         }
 
-        public ImageMoniker GetImageMoniker(Glyph glyph)
+        public bool TryGetImageMoniker(ImmutableArray<string> tags, out ImageMoniker imageMoniker)
         {
             this.AssertIsForeground();
 
+            imageMoniker = GetImageMoniker(tags);
+            return !imageMoniker.IsNullImage();
+        }
+
+        private ImageMoniker GetImageMoniker(ImmutableArray<string> tags)
+        {
+            var glyph = tags.GetGlyph();
             switch (glyph)
             {
                 case Glyph.AddReference:

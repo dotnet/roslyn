@@ -94,11 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        ushort Cci.ISignature.CountOfCustomModifiersPrecedingByRef
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
         {
             get
             {
-                return UnderlyingMethod.CountOfCustomModifiersPrecedingByRef;
+                return UnderlyingMethod.RefCustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 

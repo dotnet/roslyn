@@ -150,7 +150,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Dim index = GetInsertionIndex(
                 declarationList, declaration, options, availableIndices,
-                VisualBasicDeclarationComparer.Instance, after, before)
+                VisualBasicDeclarationComparer.WithoutNamesInstance,
+                VisualBasicDeclarationComparer.WithNamesInstance,
+                after, before)
 
             If availableIndices IsNot Nothing Then
                 availableIndices.Insert(index, True)

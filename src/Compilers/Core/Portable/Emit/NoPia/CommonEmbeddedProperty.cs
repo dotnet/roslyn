@@ -150,11 +150,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            ushort Cci.ISignature.CountOfCustomModifiersPrecedingByRef
+            ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
             {
                 get
                 {
-                    return UnderlyingPropertySignature.CountOfCustomModifiersPrecedingByRef;
+                    return UnderlyingPropertySignature.RefCustomModifiers;
                 }
             }
 

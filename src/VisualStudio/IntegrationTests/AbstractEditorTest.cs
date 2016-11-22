@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.Test.Utilities;
@@ -8,6 +11,7 @@ using Roslyn.VisualStudio.Test.Utilities.Common;
 using Roslyn.VisualStudio.Test.Utilities.Input;
 using Roslyn.VisualStudio.Test.Utilities.OutOfProcess;
 using Xunit;
+using Microsoft.CodeAnalysis.CodeFixes;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
@@ -16,11 +20,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected readonly VisualStudioWorkspace_OutOfProc VisualStudioWorkspaceOutOfProc;
         protected readonly Editor_OutOfProc Editor;
 
+        protected readonly string ProjectName = "TestProj";
+
         protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
             : base(instanceFactory)
         {
             VisualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
-            VisualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ClassLibrary, LanguageName);
+            VisualStudio.Instance.SolutionExplorer.AddProject(ProjectName, WellKnownProjectTemplates.ClassLibrary, LanguageName);
 
             VisualStudioWorkspaceOutOfProc = VisualStudio.Instance.VisualStudioWorkspace;
             VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
@@ -62,6 +68,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
         }
 
+        protected void AddFile(string fileName, string contents = null, bool open = false)
+        {
+            VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, fileName, contents, open);
+        }
+
         protected void SendKeys(params object[] keys)
         {
             Editor.SendKeys(keys);
@@ -96,6 +107,16 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             ExecuteCommand(WellKnownCommandNames.ListMembers);
             WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+        }
+
+        protected void InvokeCodeActionList()
+        {
+            WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
+            WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
+
+            Editor.ShowLightBulb();
+            Editor.WaitForLightBulbSession();
+            WaitForAsyncOperations(FeatureAttribute.LightBulb);
         }
 
         protected void ExecuteCommand(string commandName)
@@ -232,6 +253,73 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void VerifyCompletionListIsActive(bool expected)
         {
             Assert.Equal(expected, Editor.IsCompletionActive());
+        }
+
+        protected void VerifyFileContents(string fileName, string expectedContents)
+        {
+            var actualContents = VisualStudio.Instance.SolutionExplorer.GetFileContents(ProjectName, fileName);
+            Assert.Equal(expectedContents, actualContents);
+        }
+
+        public void VerifyCodeActionsNotShowing()
+        {
+            if (Editor.IsLightBulbSessionExpanded())
+            { 
+                throw new InvalidOperationException("Expected no light bulb session, but one was found.");
+            }
+        }
+
+        public void VerifyCodeAction(
+            string expectedItem,
+            bool applyFix = false, 
+            bool verifyNotShowing = false, 
+            bool ensureExpectedItemsAreOrdered = false, 
+            FixAllScope? fixAllScope = null)
+        {
+            VerifyCodeActions(new[] { expectedItem }, expectedItem, verifyNotShowing, ensureExpectedItemsAreOrdered, fixAllScope);
+        }
+
+        public void VerifyCodeActions(
+            IEnumerable<string> expectedItems, 
+            string applyFix = null, 
+            bool verifyNotShowing = false, 
+            bool ensureExpectedItemsAreOrdered = false, 
+            FixAllScope? fixAllScope = null)
+        {
+            Editor.ShowLightBulb();
+            Editor.WaitForLightBulbSession();
+
+            if (verifyNotShowing)
+            {
+                VerifyCodeActionsNotShowing();
+                return;
+            }
+
+            var actions = Editor.GetLightBulbActions();
+
+            if (expectedItems != null && expectedItems.Any())
+            {
+                if (ensureExpectedItemsAreOrdered)
+                {
+                    TestUtilities.ThrowIfExpectedItemNotFoundInOrder(
+                        actions,
+                        expectedItems);
+                }
+                else
+                {
+                    TestUtilities.ThrowIfExpectedItemNotFound(
+                        actions,
+                        expectedItems);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(applyFix) || fixAllScope.HasValue)
+            {
+                Editor.ApplyLightBulbAction(applyFix, fixAllScope);
+
+                // wait for action to complete
+                WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            }
         }
     }
 }

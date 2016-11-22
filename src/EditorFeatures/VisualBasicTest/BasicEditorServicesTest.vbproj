@@ -34,10 +34,6 @@
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
-      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
-      <Name>VisualStudioEditor</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
       <Project>{3973b09a-4fbf-44a5-8359-3d22ceb71f71}</Project>
       <Name>CSharpFeatures</Name>
@@ -209,8 +205,8 @@
     <Compile Include="CodeLens\VisualBasicCodeLensTests.vb" />
     <Compile Include="Completion\CompletionServiceTests.vb" />
     <Compile Include="Diagnostics\AddImport\AddImportTests_NuGet.vb" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.vb" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests_FixAllTests.vb" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.vb" />
+    <Compile Include="ImplementInterface\ImplementInterfaceTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\Iterator\IteratorTests.vb" />
     <Compile Include="CommentSelection\VisualBasicCommentSelectionTests.vb" />
     <Compile Include="Completion\CompletionProviders\AbstractContextTests.vb" />
@@ -249,10 +245,10 @@
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests.vb" />
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests_Dialog.vb" />
     <Compile Include="Diagnostics\GenerateVariable\GenerateVariableTests.vb" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassCommandHandlerTests.vb" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests.vb" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceCommandHandlerTests.vb" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests.vb" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassCommandHandlerTests.vb" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests.vb" />
+    <Compile Include="ImplementInterface\ImplementInterfaceCommandHandlerTests.vb" />
+    <Compile Include="ImplementInterface\ImplementInterfaceTests.vb" />
     <Compile Include="Diagnostics\InsertMissingCast\InsertMissingCastTests.vb" />
     <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.vb" />
     <Compile Include="Diagnostics\MoveToTopOfFile\MoveToTopOfFileTests.vb" />
