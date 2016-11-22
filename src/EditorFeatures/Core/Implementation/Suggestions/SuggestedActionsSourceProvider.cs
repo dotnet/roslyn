@@ -27,9 +27,11 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tags;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
+    using Microsoft.CodeAnalysis.Shared.Utilities;
     using CodeFixGroupKey = Tuple<DiagnosticData, CodeActionPriority>;
 
     [Export(typeof(ISuggestedActionsSourceProvider))]
@@ -54,6 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public readonly IAsynchronousOperationListener OperationListener;
         public readonly IWaitIndicator WaitIndicator;
 
+        public readonly ImmutableArray<Lazy<IImageMonikerService, OrderableMetadata>> ImageMonikerServices;
+
         [ImportingConstructor]
         public SuggestedActionsSourceProvider(
             ICodeRefactoringService codeRefactoringService,
@@ -61,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
+            [ImportMany] IEnumerable<Lazy<IImageMonikerService, OrderableMetadata>> imageMonikerServices)
         {
             _codeRefactoringService = codeRefactoringService;
             _diagnosticService = diagnosticService;
@@ -69,6 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             EditHandler = editHandler;
             WaitIndicator = waitIndicator;
             OperationListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LightBulb);
+
+            ImageMonikerServices = ExtensionOrderer.Order(imageMonikerServices).ToImmutableArray();
         }
 
         public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)

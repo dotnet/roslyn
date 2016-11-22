@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 this.SymbolResult = symbolResult;
             }
 
-            protected abstract Glyph? GetGlyph(Document document);
+            protected abstract ImmutableArray<string> GetTags(Document document);
             protected abstract bool CheckForExistingImport(Project project);
 
             public override bool Equals(object obj)
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     cacheResult: true);
 
                 return new SymbolReferenceCodeAction(
-                    description, GetGlyph(document), GetPriority(document),
+                    description, GetTags(document), GetPriority(document),
                     getOperation,
                     this.GetIsApplicableCheck(document.Project));
             }

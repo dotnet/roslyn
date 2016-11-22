@@ -376,6 +376,7 @@
     <Compile Include="PatternMatching\PatternMatchKind.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
+    <Compile Include="Tags\WellKnownTags.cs" />
     <Compile Include="Workspace\Solution\Checksum.cs" />
     <Compile Include="Execution\RemotableData.cs" />
     <Compile Include="Execution\PinnedRemotableDataScope.cs" />
