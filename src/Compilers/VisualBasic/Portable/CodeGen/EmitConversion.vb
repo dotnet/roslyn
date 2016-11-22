@@ -168,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                     Else
                         ' boxing itself is CLR-widening, so no need to emit unused boxing
-                        EmitExpression(conversion.Operand, used)
+                        EmitExpression(conversion.Operand, used:=True)
                         If used Then
                             EmitBox(typeFrom, conversion.Operand.Syntax)
                         End If
