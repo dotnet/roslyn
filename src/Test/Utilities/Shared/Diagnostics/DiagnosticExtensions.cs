@@ -98,19 +98,19 @@ namespace Microsoft.CodeAnalysis
             var diagnostics = c.GetDiagnostics();
             diagnostics.Verify(expected);
 
-            var unreferencedAssemblyDiagnosticIds = c.UnreferencedAssemblyIdentityDiagnosticCodes;
             foreach (var diagnostic in diagnostics)
             {
                 // If this is a diagnostic about a missing assembly, make sure that we can get back
                 // an AssemblyIdentity when we query the compiler.  If it's not a diagnostic about
                 // a missing assembly, make sure we get no results back.
-                var assemblyIds = c.GetUnreferencedAssemblyIdentities(diagnostic);
-                if (unreferencedAssemblyDiagnosticIds.Contains(diagnostic.Code))
+                if (c.IsUnreferencedAssemblyIdentityDiagnosticCode(diagnostic.Code))
                 {
+                    var assemblyIds = c.GetUnreferencedAssemblyIdentities(diagnostic);
                     Assert.True(assemblyIds.Length > 0);
                 }
                 else
                 {
+                    var assemblyIds = c.GetUnreferencedAssemblyIdentities(diagnostic);
                     Assert.True(assemblyIds.Length == 0);
                 }
             }

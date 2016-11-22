@@ -2680,7 +2680,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(diagnostic));
             }
 
-            if (!UnreferencedAssemblyIdentityDiagnosticCodes.Contains(diagnostic.Code))
+            if (!IsUnreferencedAssemblyIdentityDiagnosticCode(diagnostic.Code))
             {
                 return ImmutableArray<AssemblyIdentity>.Empty;
             }
@@ -2698,6 +2698,6 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-        internal abstract ImmutableArray<int> UnreferencedAssemblyIdentityDiagnosticCodes { get; }
+        internal abstract bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code);
     }
 }
