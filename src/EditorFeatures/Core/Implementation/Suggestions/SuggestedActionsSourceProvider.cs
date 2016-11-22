@@ -18,20 +18,20 @@ using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tags;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Editor.Tags;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    using Microsoft.CodeAnalysis.Shared.Utilities;
     using CodeFixGroupKey = Tuple<DiagnosticData, CodeActionPriority>;
 
     [Export(typeof(ISuggestedActionsSourceProvider))]
