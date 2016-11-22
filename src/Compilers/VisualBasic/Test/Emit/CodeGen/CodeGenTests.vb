@@ -13581,7 +13581,7 @@ End Class
         End Sub
 
 
-        <Fact>
+        <Fact, WorkItem(9703, "https://github.com/dotnet/roslyn/issues/9703")>
         Public Sub IgnoredConversion()
             CompileAndVerify(
                 <compilation>
