@@ -226,6 +226,7 @@
     <Compile Include="ProjectSystemShim\LegacyProject\CSharpReferencesTests.cs" />
     <Compile Include="ProjectSystemShim\CPS\SourceFileHandlingTests.cs" />
     <Compile Include="ProjectSystemShim\LegacyProject\SourceFileHandlingTests.cs" />
+    <Compile Include="ProjectSystemShim\TempPECompilerServiceTests.cs" />
     <Content Include="Debugging\ProximityExpressionsGetterTestFile.cs" />
     <Compile Include="Debugging\ProximityExpressionsGetterTests.cs" />
     <Compile Include="Debugging\ProximityExpressionsGetterTests.Lines.cs" />
