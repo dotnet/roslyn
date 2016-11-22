@@ -388,15 +388,9 @@
     <Field Name="RefKind" Type="RefKind" Null="NotApplicable"/>
   </Node>
 
-  <Node Name="BoundLocalDeconstructionDeclaration" Base="BoundStatement">
-    <Field Name="Assignment" Type="BoundDeconstructionAssignmentOperator" Null="disallow"/>
-  </Node>
-
   <Node Name="BoundDeconstructionAssignmentOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
-    <Field Name="IsDeclaration" Type="bool"/>
 
     <!-- Various assignable expressions, in a flat structure (no nesting) -->
     <Field Name="LeftVariables" Type="ImmutableArray&lt;BoundExpression&gt;" Null="disallow"/>

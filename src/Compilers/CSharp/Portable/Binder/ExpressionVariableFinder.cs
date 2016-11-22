@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
         {
-            if (node.IsDeconstructionDeclaration())
+            if (node.Left.IsKind(SyntaxKind.TupleExpression) || node.Left.IsKind(SyntaxKind.DeclarationExpression))
             {
                 CollectVariablesFromDeconstruction(node.Left, node);
             }
@@ -304,7 +304,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(declaration.Kind());
+                    Visit(declaration);
+                    break;
             }
         }
 
@@ -334,6 +335,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     }
+                case SyntaxKind.DiscardedDesignation:
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(designation.Kind());
             }

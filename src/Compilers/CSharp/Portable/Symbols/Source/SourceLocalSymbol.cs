@@ -658,8 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case SyntaxKind.SimpleAssignmentExpression:
                         var assignment = (AssignmentExpressionSyntax)_deconstruction;
-                        Debug.Assert(assignment.IsDeconstructionDeclaration());
-                        _nodeBinder.BindDeconstructionDeclaration(assignment, assignment.Left, assignment.Right, diagnostics);
+                        _nodeBinder.BindDeconstruction(assignment, assignment.Left, assignment.Right, diagnostics, isDeclaration: true);
                         break;
 
                     case SyntaxKind.ForEachVariableStatement:

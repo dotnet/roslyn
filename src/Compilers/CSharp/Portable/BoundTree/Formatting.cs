@@ -120,6 +120,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal partial class BoundDiscardedExpression
+    {
+        public override object Display
+        {
+            get { return (object)this.Type ?? "_"; }
+        }
+    }
+
     internal partial class DeconstructionVariablePendingInference
     {
         public override object Display
