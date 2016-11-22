@@ -6718,7 +6718,7 @@ class Class : IInterface
 
     public int Prop => throw new NotImplementedException();
     
-}", options: Option(ImplementTypeOptions.Keep_properties_events_and_methods_grouped_when_implementing_types, false));
+}", options: Option(ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd));
         }
 
         [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]

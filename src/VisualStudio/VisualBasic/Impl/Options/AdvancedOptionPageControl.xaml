@@ -95,13 +95,23 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_AllowMovingDeclaration}" />
                 </StackPanel>
             </GroupBox>
+
             <GroupBox x:Uid="Implement_Interface_or_Abstract_Class_GroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Implement_Interface_or_Abstract_Class}">
-                <StackPanel>
-                    <CheckBox x:Name="Keep_properties_events_and_methods_grouped_when_implementing_types"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Keep_properties_events_and_methods_grouped_when_implementing_types}" />
+
+                <StackPanel Margin="0, -5, 0, 5">
+                    <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_When_inserting_properties_events_and_methods_place_them}"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <RadioButton  GroupName="Insertion_behavior"
+                                              x:Name="with_other_members_of_the_same_kind"
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_with_other_members_of_the_same_kind}"/>
+                        <RadioButton  GroupName="Insertion_behavior"
+                                              x:Name="at_the_end"
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_at_the_end}"/>
+                    </StackPanel>
                 </StackPanel>
             </GroupBox>
+            
         </StackPanel>
     </ScrollViewer>
 </options:AbstractOptionPageControl>

@@ -245,6 +245,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to at the end.
+        /// </summary>
+        internal static string at_the_end {
+            get {
+                return ResourceManager.GetString("at_the_end", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Base Types.
         /// </summary>
         internal static string Base_Types {
@@ -1039,15 +1048,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Invalid_access {
             get {
                 return ResourceManager.GetString("Invalid_access", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Keep properties, events and methods grouped when implementing types.
-        /// </summary>
-        internal static string Keep_properties_events_and_methods_grouped_when_implementing_types {
-            get {
-                return ResourceManager.GetString("Keep_properties_events_and_methods_grouped_when_implementing_types", resourceCulture);
             }
         }
         
@@ -2139,6 +2139,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Visual_Studio_has_suspended_some_advanced_features_to_improve_performance {
             get {
                 return ResourceManager.GetString("Visual_Studio_has_suspended_some_advanced_features_to_improve_performance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When inserting properties, events and methods, place them:.
+        /// </summary>
+        internal static string When_inserting_properties_events_and_methods_place_them {
+            get {
+                return ResourceManager.GetString("When_inserting_properties_events_and_methods_place_them", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to with other members of the same kind.
+        /// </summary>
+        internal static string with_other_members_of_the_same_kind {
+            get {
+                return ResourceManager.GetString("with_other_members_of_the_same_kind", resourceCulture);
             }
         }
         

@@ -5,7 +5,8 @@
     "System.Linq.Parallel": "4.0.1",
     "System.ObjectModel": "4.0.10",
     "System.Text.RegularExpressions": "4.1.0",
-    "System.Threading.Tasks.Parallel": "4.0.1"
+    "System.Threading.Tasks.Parallel": "4.0.1",
+	"System.Threading.Thread": "4.0.0"
   },
   "frameworks": {
     "netstandard1.3": {
