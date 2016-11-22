@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CodeFixes;
 using Roslyn.VisualStudio.Test.Utilities.Common;
 using Roslyn.VisualStudio.Test.Utilities.InProcess;
+using System.Collections.Generic;
 
 namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
 {
@@ -60,6 +62,36 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
             return _inProc.GetCurrentSignature();
         }
 
+        public void ShowLightBulb()
+        {
+            _inProc.ShowLightBulb();
+        }
+
+        public void WaitForLightBulbSession()
+        {
+            _inProc.WaitForLightBulbSession();
+        }
+
+        public void DismissLightBulbSession()
+        {
+            _inProc.DismissLightBulbSession();
+        }
+
+        public bool IsLightBulbSessionExpanded()
+        {
+            return _inProc.IsLightBulbSessionExpanded();
+        }
+
+        public string[] GetLightBulbActions()
+        {
+            return _inProc.GetLightBulbActions();
+        }
+
+        public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope)
+        {
+            _inProc.ApplyLightBulbAction(action, fixAllScope);
+        }
+
         public bool IsCaretOnScreen() => _inProc.IsCaretOnScreen();
 
         /// <summary>
@@ -72,6 +104,11 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
             Activate();
             VisualStudioInstance.SendKeys.Send(keys);
             VisualStudioInstance.WaitForApplicationIdle();
+        }
+
+        public void MessageBox(string message)
+        {
+            _inProc.MessageBox(message);
         }
     }
 }

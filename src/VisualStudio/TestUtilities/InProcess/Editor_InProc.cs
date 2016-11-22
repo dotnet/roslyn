@@ -9,6 +9,11 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.VisualStudio.Test.Utilities.Common;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 
 namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 {
@@ -23,7 +28,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
             return new Editor_InProc();
         }
 
-        private static ITextView GetActiveTextView()
+        private static IWpfTextView GetActiveTextView()
         {
             return GetActiveTextViewHost().TextView;
         }
@@ -55,7 +60,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
             return (IWpfTextViewHost)wpfTextViewHost;
         }
 
-        private static void ExecuteOnActiveView(Action<ITextView> action)
+        private static void ExecuteOnActiveView(Action<IWpfTextView> action)
         {
             InvokeOnUIThread(() =>
             {
@@ -64,7 +69,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
             });
         }
 
-        private static T ExecuteOnActiveView<T>(Func<ITextView, T> action)
+        private static T ExecuteOnActiveView<T>(Func<IWpfTextView, T> action)
         {
             return InvokeOnUIThread(() =>
             {
@@ -248,6 +253,193 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
                     && caret.Right <= advancedView.ViewportRight
                     && caret.Top >= advancedView.ViewportTop
                     && caret.Bottom <= advancedView.ViewportBottom;
+            });
+        }
+
+        public void ShowLightBulb()
+        {
+            InvokeOnUIThread(() => GetDTE().ExecuteCommand("View.ShowSmartTag"));
+        }
+
+        public void WaitForLightBulbSession()
+        {
+            ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModel().GetService<ILightBulbBroker>();
+                LightBulbHelper.WaitForLightBulbSession(broker, view);
+            });
+        }
+
+        public void DismissLightBulbSession()
+        {
+            ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModel().GetService<ILightBulbBroker>();
+                broker.DismissSession(view);
+            });
+        }
+
+        public bool IsLightBulbSessionExpanded()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModel().GetService<ILightBulbBroker>();
+
+                if (!broker.IsLightBulbSessionActive(view))
+                {
+                    return false;
+                }
+
+                var session = broker.GetSession(view);
+                if (session == null || !session.IsExpanded)
+                {
+                    return false;
+                }
+
+                return true;
+            });
+        }
+
+        public string[] GetLightBulbActions()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModel().GetService<ILightBulbBroker>();
+                return GetLightBulbActions(broker, view).Select(a => a.DisplayText).ToArray();
+            });
+        }
+
+        private IEnumerable<ISuggestedAction> GetLightBulbActions(ILightBulbBroker broker, IWpfTextView view)
+        {
+            if (!broker.IsLightBulbSessionActive(view))
+            {
+                var bufferType = view.TextBuffer.ContentType.DisplayName;
+                throw new Exception(string.Format("No light bulb session in View!  Buffer content type={0}", bufferType));
+            }
+
+            var activeSession = broker.GetSession(view);
+            if (activeSession == null || !activeSession.IsExpanded)
+            {
+                var bufferType = view.TextBuffer.ContentType.DisplayName;
+                throw new InvalidOperationException(string.Format("No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={0}", bufferType));
+            }
+
+            IEnumerable<SuggestedActionSet> actionSets;
+            if (activeSession.TryGetSuggestedActionSets(out actionSets) != QuerySuggestedActionCompletionStatus.Completed)
+            {
+                actionSets = Array.Empty<SuggestedActionSet>();
+            }
+
+            return SelectActions(actionSets);
+        }
+
+        public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope)
+        {
+            ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModel().GetService<ILightBulbBroker>();
+
+                var actions = GetLightBulbActions(broker, view).ToArray();
+                var action = actions.FirstOrDefault(a => a.DisplayText == actionName);
+
+                if (action == null)
+                {
+                    var sb = new StringBuilder();
+                    foreach (var item in actions)
+                    {
+                        sb.AppendLine("Actual ISuggestedAction: " + item.DisplayText);
+                    }
+
+                    var bufferType = view.TextBuffer.ContentType.DisplayName;
+                    throw new InvalidOperationException(
+                        string.Format("ISuggestedAction {0} not found.  Buffer content type={1}\r\nActions: {2}", actionName, bufferType, sb.ToString()));
+                }
+
+                if (fixAllScope != null)
+                {
+                    if (!action.HasActionSets)
+                    {
+                        throw new InvalidOperationException($"Suggested action '{action.DisplayText}' does not support FixAllOccurrences.");
+                    }
+
+                    var actionSetsForAction = HostWaitHelper.PumpingWaitResult(action.GetActionSetsAsync(CancellationToken.None));
+                    action = GetFixAllSuggestedAction(actionSetsForAction, fixAllScope.Value);
+                    if (action == null)
+                    {
+                        throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope.ToString()} code fix for suggested action '{action.DisplayText}'.");
+                    }
+
+                    if (string.IsNullOrEmpty(actionName))
+                    {
+                        return;
+                    }
+
+                    // Dismiss the lightbulb session as we not invoking the original code fix.
+                    broker.DismissSession(view);
+                }
+
+                action.Invoke(CancellationToken.None);
+            });
+        }
+
+        private IEnumerable<ISuggestedAction> SelectActions(IEnumerable<SuggestedActionSet> actionSets)
+        {
+            var actions = new List<ISuggestedAction>();
+
+            if (actionSets != null)
+            {
+                foreach (var actionSet in actionSets)
+                {
+                    if (actionSet.Actions != null)
+                    {
+                        foreach (var action in actionSet.Actions)
+                        {
+                            actions.Add(action);
+                            actions.AddRange(SelectActions(HostWaitHelper.PumpingWaitResult(action.GetActionSetsAsync(CancellationToken.None))));
+                        }
+                    }
+                }
+            }
+
+            return actions;
+        }
+
+        private static FixAllSuggestedAction GetFixAllSuggestedAction(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
+        {
+            foreach (var actionSet in actionSets)
+            {
+                foreach (var action in actionSet.Actions)
+                {
+                    var fixAllSuggestedAction = action as FixAllSuggestedAction;
+                    if (fixAllSuggestedAction != null)
+                    {
+                        var fixAllCodeAction = fixAllSuggestedAction.CodeAction as FixSomeCodeAction;
+                        if (fixAllCodeAction?.FixAllState?.Scope == fixAllScope)
+                        {
+                            return fixAllSuggestedAction;
+                        }
+                    }
+
+                    if (action.HasActionSets)
+                    {
+                        var nestedActionSets = HostWaitHelper.PumpingWaitResult(action.GetActionSetsAsync(CancellationToken.None));
+                        fixAllSuggestedAction = GetFixAllSuggestedAction(nestedActionSets, fixAllScope);
+                        if (fixAllSuggestedAction != null)
+                        {
+                            return fixAllSuggestedAction;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public void MessageBox(string message)
+        {
+            ExecuteOnActiveView(view =>
+            {
+                System.Windows.MessageBox.Show(message);
             });
         }
     }
