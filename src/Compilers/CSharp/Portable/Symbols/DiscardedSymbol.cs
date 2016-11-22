@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override void Accept(CSharpSymbolVisitor visitor) => visitor.VisitDiscarded(this);
         public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor) => visitor.VisitDiscarded(this);
 
-        // PROTOTYPE(wildcards): need to figure out the correct behavior for the following methods.
+        // Need to figure out the correct behavior for the following methods.
+        // Tracked by https://github.com/dotnet/roslyn/issues/15449
         //public override string GetDocumentationCommentId() => TODO;
         //public override string GetDocumentationCommentXml(CultureInfo preferredCulture, bool expandIncludes, CancellationToken cancellationToken) => TODO;
     }

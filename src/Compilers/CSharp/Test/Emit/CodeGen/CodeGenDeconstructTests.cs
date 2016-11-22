@@ -4753,18 +4753,18 @@ class C
             Assert.Null(model.GetDeclaredSymbol(discard1));
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
             Assert.Equal("int _", declaration1.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
 
             var discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
             var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
             Assert.Equal("var _", declaration2.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+            //Assert.Equal("", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
 
             var discard3 = GetDiscardDesignations(tree).ElementAt(2);
             var declaration3 = (DeclarationExpressionSyntax)discard3.Parent.Parent;
             Assert.Equal("var (_, z)", declaration3.ToString());
-            //Assert.Equal("", model.GetTypeInfo(var_2).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+            //Assert.Equal("", model.GetTypeInfo(var_2).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
         }
 
         [Fact]
@@ -4836,7 +4836,7 @@ class C
             var model = comp.GetSemanticModel(tree);
 
             var discard = GetDiscardIdentifiers(tree).First();
-            var symbol = (IDiscardedSymbol)model.GetSymbolInfo(discard).Symbol; // PROTOTYPE(wildcards): returns null
+            var symbol = (IDiscardedSymbol)model.GetSymbolInfo(discard).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
             //Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
         }
 
@@ -4909,7 +4909,6 @@ class C
 ";
 
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
-            // PROTOTYPE(wildcards) parsing error for now, until we do mixing
             comp.VerifyDiagnostics(
                 // (7,10): error CS1031: Type expected
                 //         (i, var x) = (1, 2);
@@ -4979,7 +4978,7 @@ class C
             Assert.Null(model.GetDeclaredSymbol(discard1));
             var tuple1 = (DeclarationExpressionSyntax)discard1.Parent.Parent;
             Assert.Equal("var (_, x)", tuple1.ToString());
-            //Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(tuple1).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix null type
+            //Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(tuple1).Type.ToTestDisplayString()); // fix null type  https://github.com/dotnet/roslyn/issues/15450
         }
 
         [Fact]
@@ -5036,11 +5035,11 @@ class C
             Assert.Null(model.GetDeclaredSymbol(discard1));
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent.Parent;
             Assert.Equal("var (_, x)", declaration1.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
 
             var discard3 = GetDiscardIdentifiers(tree).First();
             Assert.Equal("(_, var x)", discard3.Parent.Parent.ToString());
-            var symbol3 = (IDiscardedSymbol)model.GetSymbolInfo(discard3).Symbol; // PROTOTYPE(wildcards): returns null
+            var symbol3 = (IDiscardedSymbol)model.GetSymbolInfo(discard3).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
             //Assert.Equal("System.Int32", symbol3.Type.ToTestDisplayString());
         }
 
@@ -5075,9 +5074,6 @@ class C
                 //         foreach ((_, _) in new[] { (1, "hello") }) { System.Console.Write("2"); }
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "foreach").WithArguments("(int, string)", "(_, _)").WithLocation(6, 9)
                 );
-            // PROTOTYPE(wildcards) Parsing only underscores in foreach doesn't work presently
-            // We need at least one declaration expression to confirm it is a d-declaration
-            // TODO: This should parse, but report an error if a local called underscore exists.
         }
 
         [Fact]
@@ -5403,7 +5399,7 @@ System.Console.Write($""{x3}"");
                 Assert.Equal("var (_, x3)", nestedDeclaration.ToString());
                 Assert.Null(model.GetDeclaredSymbol(nestedDeclaration));
                 Assert.Null(model.GetDeclaredSymbol(discard2));
-                //Assert.Equal("", model.GetTypeInfo(nestedDeclaration).Type.ToString()); // PROTOTYPE(wildcards) null
+                //Assert.Equal("", model.GetTypeInfo(nestedDeclaration).Type.ToString()); //  https://github.com/dotnet/roslyn/issues/15450
 
                 var tuple = (TupleExpressionSyntax)discard2.Parent.Parent.Parent.Parent;
                 Assert.Equal("(var _, var (_, x3))", tuple.ToString());
@@ -5443,17 +5439,17 @@ class C
             Assert.Null(model.GetDeclaredSymbol(discard1));
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
             Assert.Equal("var _", declaration1.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
 
             var discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
             var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
             Assert.Equal("int _", declaration2.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+            //Assert.Equal("", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
 
             var discard3 = GetDiscardIdentifiers(tree).First();
             Assert.Null(model.GetDeclaredSymbol(discard3));
-            //Assert.Equal("System.Int32", model.GetTypeInfo(discard3).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+            //Assert.Equal("System.Int32", model.GetTypeInfo(discard3).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
         }
 
         [Fact]
@@ -5488,7 +5484,7 @@ class C
             //Assert.Null(model.GetDeclaredSymbol(discard1));
             //var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
             //Assert.Equal("var _", declaration1.ToString());
-            ////Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+            ////Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
         }
 
         [Fact]
