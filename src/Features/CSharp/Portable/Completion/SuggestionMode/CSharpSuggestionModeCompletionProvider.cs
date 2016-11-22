@@ -78,6 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                             return CreateSuggestionModeItem(CSharpFeaturesResources.interface_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
                     }
                 }
+                else if (tree.IsPossibleDeconstructionDesignation(position, cancellationToken))
+                {
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.designation_name,
+                        CSharpFeaturesResources.Autoselect_disabled_due_to_possible_deconstruction_declaration);
+                }
             }
 
             return null;
