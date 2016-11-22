@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -173,8 +174,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             where TDeclaration : SyntaxNode
         {
             var index = GetInsertionIndex(
-                declarationList, declaration, options, availableIndices, 
-                CSharpDeclarationComparer.Instance, after, before);
+                declarationList, declaration, options, availableIndices,
+                CSharpDeclarationComparer.WithoutNamesInstance,
+                CSharpDeclarationComparer.WithNamesInstance,
+                after, before);
+
             if (availableIndices != null)
             {
                 availableIndices.Insert(index, true);

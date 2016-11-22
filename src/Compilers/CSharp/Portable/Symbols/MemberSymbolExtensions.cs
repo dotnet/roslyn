@@ -168,12 +168,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int count = 0;
 
-            count += method.ReturnTypeCustomModifiers.Length;
+            count += method.ReturnTypeCustomModifiers.Length + method.RefCustomModifiers.Length;
             count += method.ReturnType.CustomModifierCount();
 
             foreach (ParameterSymbol param in method.Parameters)
             {
-                count += param.CustomModifiers.Length;
+                count += param.CustomModifiers.Length + param.RefCustomModifiers.Length;
                 count += param.Type.CustomModifierCount();
             }
 
@@ -214,12 +214,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int count = 0;
 
-            count += property.TypeCustomModifiers.Length;
+            count += property.TypeCustomModifiers.Length + property.RefCustomModifiers.Length;
             count += property.Type.CustomModifierCount();
 
             foreach (ParameterSymbol param in property.Parameters)
             {
-                count += param.CustomModifiers.Length;
+                count += param.CustomModifiers.Length + param.RefCustomModifiers.Length;
                 count += param.Type.CustomModifierCount();
             }
 

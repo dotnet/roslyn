@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Protected Overrides Function GetMemberComparer() As IComparer(Of SyntaxNode)
-            Return VisualBasicDeclarationComparer.Instance
+            Return VisualBasicDeclarationComparer.WithoutNamesInstance
         End Function
 
         Protected Overrides Function GetAvailableInsertionIndices(destination As SyntaxNode, cancellationToken As CancellationToken) As IList(Of Boolean)

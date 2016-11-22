@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return _underlyingMethod.ReturnValueCustomModifiers; }
         }
 
-        ushort Cci.ISignature.CountOfCustomModifiersPrecedingByRef
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
         {
-            get { return _underlyingMethod.CountOfCustomModifiersPrecedingByRef; }
+            get { return _underlyingMethod.RefCustomModifiers; }
         }
 
         bool Cci.ISignature.ReturnValueIsByRef

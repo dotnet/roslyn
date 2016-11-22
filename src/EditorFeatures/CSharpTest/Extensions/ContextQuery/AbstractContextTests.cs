@@ -137,5 +137,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
 @"  }
 }";
         }
+
+        protected string AddInsideClass(string text)
+        {
+            return
+@"class C
+{
+    " + text +
+@"}";
+        }
     }
 }

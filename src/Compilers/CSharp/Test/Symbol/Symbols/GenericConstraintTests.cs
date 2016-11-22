@@ -6333,11 +6333,13 @@ class B2 : A<dynamic>, I
                     metadata.GetGenericParamPropsOrThrow(tp.Handle, out name, out flags);
                     Assert.Equal(GenericParameterAttributes.DefaultConstructorConstraint, flags & GenericParameterAttributes.DefaultConstructorConstraint);
 
-                    var constraints = metadata.GetGenericParamConstraintsOrThrow(tp.Handle);
-                    Assert.Equal(1, constraints.Length);
+                    var metadataReader = metadata.MetadataReader;
+                    var constraints = metadataReader.GetGenericParameter(tp.Handle).GetConstraints();
+                    Assert.Equal(1, constraints.Count);
 
                     var tokenDecoder = new MetadataDecoder((PEModuleSymbol)module, typeI);
-                    TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(constraints[0]);
+                    var constraintTypeHandle = metadataReader.GetGenericParameterConstraint(constraints[0]).Type;
+                    TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(constraintTypeHandle);
                     Assert.Equal(SpecialType.System_ValueType, typeSymbol.SpecialType);
                 };
 

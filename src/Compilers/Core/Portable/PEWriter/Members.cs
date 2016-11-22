@@ -777,9 +777,17 @@ namespace Microsoft.Cci
         ImmutableArray<IParameterTypeInformation> GetParameters(EmitContext context);
 
         /// <summary>
-        /// Returns the list of custom modifiers, if any, associated with the returned value. 
+        /// Returns the list of custom modifiers, if any, associated with the return type. 
         /// </summary>
         ImmutableArray<ICustomModifier> ReturnValueCustomModifiers
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Returns the list of custom modifiers, if any, associated with the ref modifier. 
+        /// </summary>
+        ImmutableArray<ICustomModifier> RefCustomModifiers
         {
             get;
         }
@@ -788,11 +796,6 @@ namespace Microsoft.Cci
         /// True if the return value is passed by reference (using a managed pointer).
         /// </summary>
         bool ReturnValueIsByRef { get; }
-
-        /// <summary>
-        /// In order to avoid breaking interop scenarios, we need to support such signatures. 
-        /// </summary>
-        ushort CountOfCustomModifiersPrecedingByRef { get; }
 
         /// <summary>
         /// The return type of the method or type of the property.
