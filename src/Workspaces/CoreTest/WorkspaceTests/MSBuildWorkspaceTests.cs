@@ -2257,6 +2257,50 @@ class C1
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestLoadTextSync()
+        {
+            var files = GetAnalyzerReferenceSolutionFiles();
+
+            CreateFiles(files);
+
+            using (var ws = new AdhocWorkspace(DesktopMefHostServices.DefaultServices))
+            {
+                var projectFullPath = Path.Combine(this.SolutionDirectory.Path, @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj");
+
+                var loader = new MSBuildProjectLoader(ws);
+                var infos = loader.LoadProjectInfoAsync(projectFullPath).Result;
+
+                var doc = infos[0].Documents[0];
+                var tav = doc.TextLoader.LoadTextAndVersionSynchronously(ws, doc.Id, CancellationToken.None);
+
+                var adoc = infos[0].AdditionalDocuments.First(a => a.Name == "XamlFile.xaml");
+                var atav = adoc.TextLoader.LoadTextAndVersionSynchronously(ws, adoc.Id, CancellationToken.None);
+                Assert.Contains("Window", atav.Text.ToString(), StringComparison.Ordinal);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestGetTextSynchronously()
+        {
+            var files = GetAnalyzerReferenceSolutionFiles();
+
+            CreateFiles(files);
+
+            using (var ws = MSBuildWorkspace.Create())
+            {
+                var projectFullPath = Path.Combine(this.SolutionDirectory.Path, @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj");
+                var proj = ws.OpenProjectAsync(projectFullPath).Result;
+
+                var doc = proj.Documents.First();
+                var text = doc.State.GetTextSynchronously(CancellationToken.None);
+
+                var adoc = proj.AdditionalDocuments.First(a => a.Name == "XamlFile.xaml");
+                var atext = adoc.State.GetTextSynchronously(CancellationToken.None);
+                Assert.Contains("Window", atext.ToString(), StringComparison.Ordinal);
+            }
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
         public void TestCSharpExternAlias()
         {

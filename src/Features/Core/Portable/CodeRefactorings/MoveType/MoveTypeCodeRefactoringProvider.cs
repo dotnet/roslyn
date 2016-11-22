@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return;
             }
 
-            var generatedCodeRecognitionService = workspace.Services.GetService<IGeneratedCodeRecognitionService>();
-            if (generatedCodeRecognitionService.IsGeneratedCode(document))
+            if (document.IsGeneratedCode())
             {
                 return;
             }

@@ -2358,30 +2358,6 @@ namespace Microsoft.CodeAnalysis
             flags = row.Attributes;
         }
 
-        /// <summary>
-        /// Returns an array of tokens for type constraints. Null reference if none.
-        /// </summary>
-        /// <param name="genericParam"></param>
-        /// <returns>
-        /// An array of tokens for type constraints. Null reference if none.
-        /// </returns>
-        internal EntityHandle[] GetGenericParamConstraintsOrThrow(GenericParameterHandle genericParam)
-        {
-            var constraints = MetadataReader.GetGenericParameter(genericParam).GetConstraints();
-            if (constraints.Count != 0)
-            {
-                var constraintTypes = new EntityHandle[constraints.Count];
-                for (int i = 0; i < constraintTypes.Length; i++)
-                {
-                    constraintTypes[i] = MetadataReader.GetGenericParameterConstraint(constraints[i]).Type;
-                }
-
-                return constraintTypes;
-            }
-
-            return null;
-        }
-
         #endregion
 
         #region MethodDef helpers

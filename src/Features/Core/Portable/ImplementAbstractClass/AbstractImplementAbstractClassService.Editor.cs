@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -39,15 +40,19 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     unimplementedMembers,
                     cancellationToken);
 
-                var result = await CodeGenerator.AddMemberDeclarationsAsync(
+                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var insertionBehavior = options.GetOption(ImplementTypeOptions.InsertionBehavior);
+                var groupMembers = insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+
+                return await CodeGenerator.AddMemberDeclarationsAsync(
                     _document.Project.Solution,
                     _state.ClassType,
                     memberDefinitions,
-                    new CodeGenerationOptions(_state.Location.GetLocation()),
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-                return result;
+                    new CodeGenerationOptions(
+                        _state.Location.GetLocation(),
+                        autoInsertionLocation: groupMembers, 
+                        sortMembers: groupMembers),
+                    cancellationToken).ConfigureAwait(false);
             }
 
             private IList<ISymbol> GenerateMembers(

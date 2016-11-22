@@ -7307,5 +7307,61 @@ class C
 }",
 parseOptions: TestOptions.Regular);
         }
+
+        [WorkItem(15315, "https://github.com/dotnet/roslyn/issues/15315")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInferBooleanTypeBasedOnName1()
+        {
+            await TestAsync(
+@"class Class
+{
+    void Method(int i)
+    {
+        var v = [|IsPrime|](i);
+    }
+}",
+@"using System;
+
+class Class
+{
+    void Method(int i)
+    {
+        var v = IsPrime(i);
+    }
+
+    private bool IsPrime(int i)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(15315, "https://github.com/dotnet/roslyn/issues/15315")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInferBooleanTypeBasedOnName2()
+        {
+            await TestAsync(
+@"class Class
+{
+    void Method(int i)
+    {
+        var v = [|Issue|](i);
+    }
+}",
+@"using System;
+
+class Class
+{
+    void Method(int i)
+    {
+        var v = Issue(i);
+    }
+
+    private object Issue(int i)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
     }
 }

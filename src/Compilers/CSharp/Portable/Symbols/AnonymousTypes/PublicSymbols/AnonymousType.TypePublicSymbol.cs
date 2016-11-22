@@ -111,12 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+            public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
             {
-                get
-                {
-                    return ImmutableArray<ImmutableArray<CustomModifier>>.Empty;
-                }
+                return GetEmptyTypeArgumentCustomModifiers(ordinal);
             }
 
             public override ImmutableArray<Symbol> GetMembers(string name)

@@ -83,8 +83,13 @@ Microsoft.CodeAnalysis.Emit.EmitOptions.WithInstrumentationKinds(System.Collecti
 Microsoft.CodeAnalysis.Emit.InstrumentationKind
 Microsoft.CodeAnalysis.Emit.InstrumentationKind.None = 0 -> Microsoft.CodeAnalysis.Emit.InstrumentationKind
 Microsoft.CodeAnalysis.Emit.InstrumentationKind.TestCoverage = 1 -> Microsoft.CodeAnalysis.Emit.InstrumentationKind
+Microsoft.CodeAnalysis.IArrayTypeSymbol.IsSZArray.get -> bool
+Microsoft.CodeAnalysis.IArrayTypeSymbol.LowerBounds.get -> System.Collections.Immutable.ImmutableArray<int>
+Microsoft.CodeAnalysis.IArrayTypeSymbol.Sizes.get -> System.Collections.Immutable.ImmutableArray<int>
 Microsoft.CodeAnalysis.IFieldSymbol.CorrespondingTupleField.get -> Microsoft.CodeAnalysis.IFieldSymbol
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnsByRef.get -> bool
+Microsoft.CodeAnalysis.INamedTypeSymbol.GetTypeArgumentCustomModifiers(int ordinal) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier>
+Microsoft.CodeAnalysis.INamedTypeSymbol.IsComImport.get -> bool
 Microsoft.CodeAnalysis.INamedTypeSymbol.TupleElements.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IFieldSymbol>
 Microsoft.CodeAnalysis.INamedTypeSymbol.TupleUnderlyingType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.IOperation

@@ -22,7 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
     {
         public static string ReorderHeader => ServicesVSResources.Reorder;
         public static string SpecificationHeader => ServicesVSResources.Specification;
-        public static string StyleHeader => ServicesVSResources.Style;
+        public static string RequiredStyleHeader => ServicesVSResources.Required_Style;
+        public static string ExplanatoryText => ServicesVSResources.For_a_given_symbol_only_the_topmost_rule_with_a_matching_Specification_will_be_applied_Violation_of_that_rules_Required_Style_will_be_reported_at_the_chosen_Severity_level;
 
         private NamingStyleOptionPageViewModel _viewModel;
         private readonly string _languageName;

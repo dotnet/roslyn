@@ -2,6 +2,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -47,6 +49,12 @@ namespace Microsoft.CodeAnalysis
         bool IsImplicitClass { get; }
 
         /// <summary>
+        /// Specifies that the class or interface is imported from another module.  See
+        /// <see cref="TypeAttributes.Import"/> and <see cref="ComImportAttribute"/>
+        /// </summary>
+        bool IsComImport { get; }
+
+        /// <summary>
         /// Returns collection of names of members declared within this type.
         /// </summary>
         IEnumerable<string> MemberNames { get; }
@@ -63,6 +71,13 @@ namespace Microsoft.CodeAnalysis
         /// then the type parameter itself is consider the type argument.
         /// </summary>
         ImmutableArray<ITypeSymbol> TypeArguments { get; }
+
+        /// <summary>
+        /// Returns custom modifiers for the type argument that has been substituted for the type parameter. 
+        /// The modifiers correspond to the type argument at the same ordinal within the <see cref="TypeArguments"/>
+        /// array.
+        /// </summary>
+        ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal);
 
         /// <summary>
         /// Get the original definition of this type symbol. If this symbol is derived from another

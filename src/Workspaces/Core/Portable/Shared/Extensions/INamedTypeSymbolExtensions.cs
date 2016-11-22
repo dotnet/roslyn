@@ -196,8 +196,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedMembersInThis(
-    this INamedTypeSymbol classOrStructType,
-    IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
+            this INamedTypeSymbol classOrStructType,
+            IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
             CancellationToken cancellationToken)
         {
             return classOrStructType.GetAllUnimplementedMembers(
@@ -232,21 +232,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 cancellationToken: cancellationToken);
         }
 
-        public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedMembers(
-            this INamedTypeSymbol classOrStructType,
-            IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
-            Func<INamedTypeSymbol, ISymbol, ImmutableArray<ISymbol>> interfaceMemberGetter,
-            CancellationToken cancellationToken)
-        {
-            return classOrStructType.GetAllUnimplementedMembers(
-                interfacesOrAbstractClasses,
-                IsImplemented,
-                ImplementationExists,
-                interfaceMemberGetter,
-                allowReimplementation: false,
-                cancellationToken: cancellationToken);
-        }
-
         public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedExplicitMembers(
             this INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> interfaces,
@@ -257,21 +242,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 IsExplicitlyImplemented,
                 ImplementationExists,
                 GetMembers,
-                allowReimplementation: false,
-                cancellationToken: cancellationToken);
-        }
-
-        public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedExplicitMembers(
-            this INamedTypeSymbol classOrStructType,
-            IEnumerable<INamedTypeSymbol> interfaces,
-            Func<INamedTypeSymbol, ISymbol, ImmutableArray<ISymbol>> interfaceMemberGetter,
-            CancellationToken cancellationToken)
-        {
-            return classOrStructType.GetAllUnimplementedMembers(
-                interfaces,
-                IsExplicitlyImplemented,
-                ImplementationExists,
-                interfaceMemberGetter,
                 allowReimplementation: false,
                 cancellationToken: cancellationToken);
         }

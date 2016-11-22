@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!isAccessor)
             {
-                AddTypeArguments(symbol.TypeArguments, default(ImmutableArray<ImmutableArray<CustomModifier>>));
+                AddTypeArguments(symbol.TypeArguments, null);
                 AddParameters(symbol);
                 AddTypeParameterConstraints(symbol);
             }

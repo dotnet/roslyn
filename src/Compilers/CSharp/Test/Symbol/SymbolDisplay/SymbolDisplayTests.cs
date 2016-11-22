@@ -5109,6 +5109,11 @@ class C
                 }
             }
 
+            public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
             public TypeKind TypeKind
             {
                 get
@@ -5228,6 +5233,9 @@ class C
             {
                 throw new NotImplementedException();
             }
+
+            public bool IsComImport => throw new NotImplementedException();
+
             #endregion
         }
 

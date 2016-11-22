@@ -269,9 +269,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             {
                 var typeInference = document.Project.LanguageServices.GetService<ITypeInferenceService>();
                 var inferredType = typeInference.InferType(
-                    document.SemanticModel, this.SimpleNameOrMemberAccessExpressionOpt,
-                    objectAsDefault: true,
-                    cancellationToken: cancellationToken);
+                    document.SemanticModel, this.SimpleNameOrMemberAccessExpressionOpt, objectAsDefault: true,
+                    nameOpt: this.IdentifierToken.ValueText, cancellationToken: cancellationToken);
+
                 var compilation = document.SemanticModel.Compilation;
                 inferredType = inferredType.SpecialType == SpecialType.System_Void
                     ? compilation.ObjectType

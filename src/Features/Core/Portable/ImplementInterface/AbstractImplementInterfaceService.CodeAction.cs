@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -168,11 +169,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             }
 
             public virtual async Task<Document> GetUpdatedDocumentAsync(
-                    Document document,
-                    IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers,
-                    INamedTypeSymbol classOrStructType,
-                    SyntaxNode classOrStructDecl,
-                    CancellationToken cancellationToken)
+                Document document,
+                IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers,
+                INamedTypeSymbol classOrStructType,
+                SyntaxNode classOrStructDecl,
+                CancellationToken cancellationToken)
             {
                 var result = document;
                 var compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -182,9 +183,16 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     unimplementedMembers,
                     cancellationToken);
 
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var insertionBehavior = options.GetOption(ImplementTypeOptions.InsertionBehavior);
+                var groupMembers = insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+
                 result = await CodeGenerator.AddMemberDeclarationsAsync(
                     result.Project.Solution, classOrStructType, memberDefinitions,
-                    new CodeGenerationOptions(contextLocation: classOrStructDecl.GetLocation()),
+                    new CodeGenerationOptions(
+                        contextLocation: classOrStructDecl.GetLocation(),
+                        autoInsertionLocation: groupMembers,
+                        sortMembers: groupMembers),
                     cancellationToken).ConfigureAwait(false);
 
                 return result;

@@ -117,6 +117,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool AutoInsertionLocation { get; }
 
         /// <summary>
+        /// If <see cref="AutoInsertionLocation"/> is <code>false</code>, determines if members will be
+        /// sorted before being added to the end of the list of members.
+        /// </summary>
+        public bool SortMembers { get; }
+
+        /// <summary>
         /// True if the code generator should attempt to reuse the syntax of the constituent entities, such as members, access modifier tokens, etc. while attempting to generate code.
         /// If any of the member symbols have zero declaring syntax references (non-source symbols) OR two or more declaring syntax references (partial definitions), then syntax is not reused.
         /// If false, then the code generator will always synthesize a new syntax node and ignore the declaring syntax references.
@@ -139,6 +145,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool generateMethodBodies = true,
             bool generateDocumentationComments = false,
             bool autoInsertionLocation = true,
+            bool sortMembers = true,
             bool reuseSyntax = false,
             ParseOptions parseOptions = null)
         {
@@ -159,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.GenerateMethodBodies = generateMethodBodies;
             this.GenerateDocumentationComments = generateDocumentationComments;
             this.AutoInsertionLocation = autoInsertionLocation;
+            this.SortMembers = sortMembers;
             this.ReuseSyntax = reuseSyntax;
 
             this.ParseOptions = parseOptions ?? this.BestLocation?.SourceTree.Options;
