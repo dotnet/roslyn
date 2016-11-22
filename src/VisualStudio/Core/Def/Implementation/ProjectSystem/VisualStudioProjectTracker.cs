@@ -354,6 +354,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
+            // Filter out the projects that have been removed from the tracker.
+            projects = projects.Where(p => this.ContainsProject(p));
+
             using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
                 foreach (var hostState in _workspaceHosts)
