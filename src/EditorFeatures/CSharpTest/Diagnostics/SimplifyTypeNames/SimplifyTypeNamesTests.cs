@@ -3770,17 +3770,17 @@ class Program
             await TestAsync(code, expected, index, options: PreferIntrinsicTypeEverywhere);
         }
 
-        private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhere =>
-            Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error)
-            .With(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError, GetLanguage());
+        private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhere => OptionsSet(
+            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error),
+            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError, GetLanguage()));
 
-        private IDictionary<OptionKey, object> PreferIntrinsicTypeInDeclaration =>
-            Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error)
-            .With(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithNone, GetLanguage());
+        private IDictionary<OptionKey, object> PreferIntrinsicTypeInDeclaration => OptionsSet(
+            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error),
+            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithNone, GetLanguage()));
 
-        private IDictionary<OptionKey, object> PreferIntrinsicTypeInMemberAccess =>
-            Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption.Error)
-            .With(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithNone, GetLanguage());
+        private IDictionary<OptionKey, object> PreferIntrinsicTypeInMemberAccess => OptionsSet(
+            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption.Error),
+            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithNone, GetLanguage()));
 
         private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
         private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);

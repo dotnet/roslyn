@@ -73,10 +73,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static ISymbol GetOverriddenMember(ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IMethodSymbol method) => (ISymbol)method.OverriddenMethod,
-                (IPropertySymbol property) => property.OverriddenProperty,
-                (IEventSymbol @event) => @event.OverriddenEvent);
+            switch (symbol)
+            {
+                case IMethodSymbol method: return method.OverriddenMethod;
+                case IPropertySymbol property: return property.OverriddenProperty;
+                case IEventSymbol @event: return @event.OverriddenEvent;
+            }
+
+            return null;
         }
 
         private static bool ImplementationExists(INamedTypeSymbol classOrStructType, ISymbol member)
@@ -168,10 +172,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             CancellationToken cancellationToken)
         {
             var implementation = classOrStructType.FindImplementationForInterfaceMember(member);
-            return implementation.TypeSwitch(
-                (IEventSymbol @event) => @event.ExplicitInterfaceImplementations.Length > 0,
-                (IMethodSymbol method) => method.ExplicitInterfaceImplementations.Length > 0,
-                (IPropertySymbol property) => property.ExplicitInterfaceImplementations.Length > 0);
+            switch (implementation)
+            {
+                case IEventSymbol @event: return @event.ExplicitInterfaceImplementations.Length > 0;
+                case IMethodSymbol method: return method.ExplicitInterfaceImplementations.Length > 0;
+                case IPropertySymbol property: return property.ExplicitInterfaceImplementations.Length > 0;
+                default: return false;
+            }
         }
 
         public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedMembers(

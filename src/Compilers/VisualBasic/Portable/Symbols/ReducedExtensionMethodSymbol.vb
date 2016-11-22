@@ -489,6 +489,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return _curriedFromMethod.CountOfCustomModifiersPrecedingByRef
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property Syntax As SyntaxNode
             Get
                 Return _curriedFromMethod.Syntax

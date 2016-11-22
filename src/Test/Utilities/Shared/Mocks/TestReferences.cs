@@ -1347,6 +1347,23 @@ public static class TestReferences
                     }
                 }
             }
+
+            public static class GenericMethodWithModifiers
+            {
+                private static PortableExecutableReference s_dll;
+                public static PortableExecutableReference dll
+                {
+                    get
+                    {
+                        if (s_dll == null)
+                        {
+                            s_dll = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.CustomModifiers.GenericMethodWithModifiers).GetReference(display: "GenericMethodWithModifiers.dll");
+                        }
+
+                        return s_dll;
+                    }
+                }
+            }
         }
 
         public static class Cyclic

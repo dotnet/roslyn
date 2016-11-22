@@ -39,18 +39,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         /// </summary>
         private void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans)
         {
-            node.TypeSwitch(
-                (YieldStatementSyntax statement) =>
-                {
+            switch (node)
+            {
+                case YieldStatementSyntax statement:
                     spans.Add(
                         TextSpan.FromBounds(
                             statement.YieldKeyword.SpanStart,
                             statement.ReturnOrBreakKeyword.Span.End));
 
                     spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
-                },
-                _ =>
-                {
+                    break;
+                default:
                     foreach (var child in node.ChildNodes())
                     {
                         // Only recurse if we have anything to do
@@ -59,7 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                             HighlightRelatedKeywords(child, spans);
                         }
                     }
-                });
+                    break;
+            }
         }
     }
 }

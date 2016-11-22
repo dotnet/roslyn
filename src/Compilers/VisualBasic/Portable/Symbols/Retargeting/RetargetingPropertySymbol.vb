@@ -243,6 +243,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return _underlyingProperty.CountOfCustomModifiersPrecedingByRef
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
             Get
                 Return _underlyingProperty.CallingConvention

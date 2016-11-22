@@ -952,6 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         method.RefKind,
                         translator.Retarget(method.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                         translator.RetargetModifiers(method.ReturnTypeCustomModifiers, out modifiersHaveChanged),
+                        method.CountOfCustomModifiersPrecedingByRef,
                         ImmutableArray<MethodSymbol>.Empty);
 
                     foreach (var retargetedMember in retargetedType.GetMembers(method.Name))
@@ -1006,6 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     property.RefKind,
                     Retarget(property.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                     RetargetModifiers(property.TypeCustomModifiers, out modifiersHaveChanged),
+                    property.CountOfCustomModifiersPrecedingByRef,
                     property.IsStatic,
                     ImmutableArray<PropertySymbol>.Empty);
 

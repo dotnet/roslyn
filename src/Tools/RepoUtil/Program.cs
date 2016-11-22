@@ -12,7 +12,7 @@ namespace RepoUtil
     {
         private sealed class ParsedArgs
         {
-            internal string RepoDataPath { get; set; }
+            internal string RepoUtilDataPath { get; set; }
             internal string SourcesPath { get; set; }
             internal string[] RemainingArgs { get; set; }
         }
@@ -25,7 +25,9 @@ namespace RepoUtil
             try
             {
                 if (Run(args))
+                {
                     result = 0;
+                }
             }
             catch (ConflictingPackagesException ex)
             {
@@ -55,9 +57,17 @@ namespace RepoUtil
                 return false;
             }
 
-            var repoConfig = RepoConfig.ReadFrom(parsedArgs.RepoDataPath);
+            var repoConfig = RepoConfig.ReadFrom(parsedArgs.RepoUtilDataPath);
             var command = func(repoConfig, parsedArgs.SourcesPath);
-            return command.Run(Console.Out, parsedArgs.RemainingArgs);
+            if (command.Run(Console.Out, parsedArgs.RemainingArgs))
+            {
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"RepoUtil config read from: {parsedArgs.RepoUtilDataPath}");
+                return false;
+            }
         }
 
         private static bool TryParseCommandLine(string[] args, out ParsedArgs parsedArgs, out CreateCommand func)
@@ -67,8 +77,6 @@ namespace RepoUtil
 
             // Setup the default values
             var binariesPath = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(AppContext.BaseDirectory))));
-            parsedArgs.SourcesPath = Path.GetDirectoryName(binariesPath);
-            parsedArgs.RepoDataPath = Path.Combine(AppContext.BaseDirectory, "RepoData.json");
 
             var index = 0;
             if (!TryParseCommon(args, ref index, parsedArgs))
@@ -81,10 +89,22 @@ namespace RepoUtil
                 return false;
             }
 
+            parsedArgs.SourcesPath = parsedArgs.SourcesPath ?? GetDirectoryName(AppContext.BaseDirectory, 5);
+            parsedArgs.RepoUtilDataPath = parsedArgs.RepoUtilDataPath ?? Path.Combine(parsedArgs.SourcesPath, @"build\config\RepoUtilData.json");
             parsedArgs.RemainingArgs = index >= args.Length
                 ? Array.Empty<string>()
                 : args.Skip(index).ToArray();
             return true;
+        }
+
+        private static string GetDirectoryName(string path, int depth)
+        {
+            for (var i = 0; i < depth; i++)
+            {
+                path = Path.GetDirectoryName(path);
+            }
+
+            return path;
         }
 
         private static bool TryParseCommon(string[] args, ref int index, ParsedArgs parsedArgs)
@@ -110,6 +130,20 @@ namespace RepoUtil
                             else
                             {
                                 Console.WriteLine($"The -sourcesPath switch needs a value");
+                                return false;
+                            }
+                            break;
+                        }
+                    case "-config":
+                        {
+                            if (index < args.Length)
+                            {
+                                parsedArgs.RepoUtilDataPath = args[index];
+                                index++;
+                            }
+                            else
+                            {
+                                Console.WriteLine($"The -config switch needs a value");
                                 return false;
                             }
                             break;

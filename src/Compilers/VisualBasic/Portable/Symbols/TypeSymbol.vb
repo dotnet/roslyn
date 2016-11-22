@@ -411,6 +411,12 @@ Done:
             End Get
         End Property
 
+        Public Overridable ReadOnly Property TupleElements As ImmutableArray(Of FieldSymbol)
+            Get
+                Return Nothing
+            End Get
+        End Property
+
         Public Overridable ReadOnly Property TupleElementTypes() As ImmutableArray(Of TypeSymbol)
             Get
                 Return Nothing

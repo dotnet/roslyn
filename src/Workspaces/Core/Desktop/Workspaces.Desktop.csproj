@@ -111,7 +111,6 @@
     <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoader.CSharpProjectFile.cs" />
     <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoaderFactory.cs" />
     <Compile Include="Workspace\MSBuild\MSBuildWorkspace.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\BuildTargets.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\DocumentFileInfo.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFile.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFileLoader.cs" />

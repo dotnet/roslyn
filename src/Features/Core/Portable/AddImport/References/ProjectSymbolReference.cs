@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
 
@@ -71,14 +72,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return newProject.Solution;
             }
 
-            protected override string TryGetDescription(Project project, SyntaxNode node, SemanticModel semanticModel)
+            protected override string TryGetDescription(
+                Document document, SyntaxNode node, 
+                SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                var description = base.TryGetDescription(project, node, semanticModel);
+                var description = base.TryGetDescription(document, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
                     return null;
                 }
 
+                var project = document.Project;
                 return project.Id == _project.Id
                     ? description
                     : string.Format(FeaturesResources.Add_reference_to_0, _project.Name);

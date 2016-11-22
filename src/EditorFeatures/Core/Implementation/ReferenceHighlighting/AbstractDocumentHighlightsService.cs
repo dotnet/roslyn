@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             IImmutableSet<Document> documentToSearch,
             CancellationToken cancellationToken)
         {
-            var spanSet = new HashSet<ValueTuple<Document, TextSpan>>();
+            var spanSet = new HashSet<DocumentSpan>();
             var tagMap = new MultiDictionary<Document, HighlightSpan>();
             bool addAllDefinitions = true;
 
@@ -252,17 +252,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             return true;
         }
 
-        private async Task AddLocationSpan(Location location, Solution solution, HashSet<ValueTuple<Document, TextSpan>> spanSet, MultiDictionary<Document, HighlightSpan> tagList, HighlightSpanKind kind, CancellationToken cancellationToken)
+        private async Task AddLocationSpan(Location location, Solution solution, HashSet<DocumentSpan> spanSet, MultiDictionary<Document, HighlightSpan> tagList, HighlightSpanKind kind, CancellationToken cancellationToken)
         {
             var span = await GetLocationSpanAsync(solution, location, cancellationToken).ConfigureAwait(false);
             if (span != null && !spanSet.Contains(span.Value))
             {
                 spanSet.Add(span.Value);
-                tagList.Add(span.Value.Item1, new HighlightSpan(span.Value.Item2, kind));
+                tagList.Add(span.Value.Document, new HighlightSpan(span.Value.SourceSpan, kind));
             }
         }
 
-        private async Task<ValueTuple<Document, TextSpan>?> GetLocationSpanAsync(
+        private async Task<DocumentSpan?> GetLocationSpanAsync(
             Solution solution, Location location, CancellationToken cancellationToken)
         {
             try
@@ -281,8 +281,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                         var token = root.FindToken(location.SourceSpan.Start, findInsideTrivia: true);
 
                         return syntaxFacts.IsGenericName(token.Parent) || syntaxFacts.IsIndexerMemberCRef(token.Parent)
-                            ? ValueTuple.Create(document, token.Span)
-                            : ValueTuple.Create(document, location.SourceSpan);
+                            ? new DocumentSpan(document, token.Span)
+                            : new DocumentSpan(document, location.SourceSpan);
                     }
                 }
             }

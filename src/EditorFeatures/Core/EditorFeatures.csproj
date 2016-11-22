@@ -108,6 +108,9 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FindUsages\FindUsagesContext.cs" />
+    <Compile Include="FindUsages\FindUsagesHelpers.cs" />
+    <Compile Include="FindUsages\IFindUsagesContext.cs" />
     <Compile Include="Implementation\NavigateTo\AbstractNavigateToItemDisplay.cs" />
     <Compile Include="CommandArgs.cs" />
     <Compile Include="CommandHandlers\AbstractCompletionCommandHandler.cs" />
@@ -254,12 +257,9 @@
     <Compile Include="Implementation\Diagnostics\DiagnosticsSuggestionTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\SuggestionAdornmentManagerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\SuggestionTag.cs" />
-    <Compile Include="Implementation\FindReferences\AbstractFindReferencesService.ProgressAdapter.cs" />
-    <Compile Include="Implementation\FindReferences\FindReferencesContext.cs" />
-    <Compile Include="Implementation\FindReferences\IFindReferencesNavigableItemResultProvider.cs" />
-    <Compile Include="Implementation\GoToDefinition\INavigableDefinitionProvider.cs" />
-    <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
-    <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
+    <Compile Include="FindReferences\AbstractFindReferencesService.ProgressAdapter.cs" />
+    <Compile Include="GoToImplementation\AbstractGoToImplementationService.cs" />
+    <Compile Include="GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ClassificationTags.cs" />
@@ -280,7 +280,7 @@
     <Compile Include="Implementation\Preview\PreviewReferenceHighlightingTaggerProvider.cs" />
     <Compile Include="Implementation\Suggestions\FixAllSuggestedAction.FixAllCodeAction.cs" />
     <Compile Include="Implementation\Suggestions\FixMultipleOccurrencesService.cs" />
-    <Compile Include="Implementation\GoToImplementation\GoToImplementationCommandHandler.cs" />
+    <Compile Include="GoToImplementation\GoToImplementationCommandHandler.cs" />
     <Compile Include="Implementation\TodoComment\ITodoListProvider.cs" />
     <Compile Include="Implementation\TodoComment\TodoItem.cs" />
     <Compile Include="Implementation\TodoComment\TodoItemsUpdatedArgs.cs" />
@@ -377,9 +377,9 @@
     <Compile Include="Implementation\EndConstructGeneration\IEndConstructGenerationService.cs" />
     <Compile Include="Implementation\ExtractInterface\AbstractExtractInterfaceCommandHandler.cs" />
     <Compile Include="Implementation\ExtractMethod\AbstractExtractMethodCommandHandler.cs" />
-    <Compile Include="Implementation\FindReferences\AbstractFindReferencesService.cs" />
-    <Compile Include="Implementation\FindReferences\FindReferencesCommandHandler.cs" />
-    <Compile Include="Implementation\FindReferences\IFindReferencesService.cs" />
+    <Compile Include="FindReferences\AbstractFindReferencesService.cs" />
+    <Compile Include="FindReferences\FindReferencesCommandHandler.cs" />
+    <Compile Include="FindReferences\IFindReferencesService.cs" />
     <Compile Include="Implementation\ForegroundNotification\ForegroundNotificationService.cs" />
     <Compile Include="Implementation\Formatting\FormatCommandHandler.cs" />
     <Compile Include="Implementation\Formatting\FormatCommandHandler.ReturnKey.cs" />
@@ -390,10 +390,10 @@
     <Compile Include="Implementation\Formatting\Indentation\AbstractSmartTokenFormatterCommandHandler.cs" />
     <Compile Include="Implementation\Formatting\Indentation\ISmartTokenFormatter.cs" />
     <Compile Include="Implementation\Formatting\Indentation\WhitespaceExtensions.cs" />
-    <Compile Include="Implementation\GoToDefinition\AbstractGoToDefinitionService.cs" />
-    <Compile Include="Implementation\GoToDefinition\GoToDefinitionCommandHandler.cs" />
-    <Compile Include="Implementation\GoToDefinition\GoToDefinitionHelpers.cs" />
-    <Compile Include="Implementation\GoToDefinition\IGoToDefinitionService.cs" />
+    <Compile Include="GoToDefinition\AbstractGoToDefinitionService.cs" />
+    <Compile Include="GoToDefinition\GoToDefinitionCommandHandler.cs" />
+    <Compile Include="GoToDefinition\GoToDefinitionHelpers.cs" />
+    <Compile Include="GoToDefinition\IGoToDefinitionService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\CurrentWorkingDirectoryDiscoveryService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\FileSystemCompletionHelper.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\ICurrentWorkingDirectoryDiscoveryService.cs" />

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Determines if unrecognized projects are skipped when solutions or projects are opened.
         /// 
-        /// An project is unrecognized if it either has 
+        /// A project is unrecognized if it either has 
         ///   a) an invalid file path, 
         ///   b) a non-existent project file,
         ///   c) has an unrecognized file extension or 
@@ -205,6 +205,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.TryGetLoaderFromProjectPath(projectFilePath, ReportMode.Throw, out var loader);
 
             var loadedProjects = new LoadState(projectPathToProjectIdMap);
+
             var id = await this.LoadProjectAsync(fullPath, loader, this.LoadMetadataForReferencedProjects, loadedProjects, cancellationToken).ConfigureAwait(false);
 
             var result = loadedProjects.Projects.Reverse().ToImmutableArray();
@@ -309,25 +310,29 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Debug.Assert(loader != null);
 
             var projectId = loadedProjects.GetOrCreateProjectId(projectFilePath);
-
             var projectName = Path.GetFileNameWithoutExtension(projectFilePath);
 
             var projectFile = await loader.LoadProjectFileAsync(projectFilePath, _properties, cancellationToken).ConfigureAwait(false);
+            if (projectFile.ErrorMessage != null)
+            {
+                ReportFailure(ReportMode.Log, GetMsbuildFailedMessage(projectFilePath, projectFile.ErrorMessage));
+
+                // if we failed during load there won't be any project file info, so bail early with empty project.
+                loadedProjects.Add(CreateEmptyProjectInfo(projectId, projectFilePath, loader.Language));
+                return projectId;
+            }
+
             var projectFileInfo = await projectFile.GetProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
+            if (projectFileInfo.ErrorMessage != null)
+            {
+                ReportFailure(ReportMode.Log, GetMsbuildFailedMessage(projectFilePath, projectFileInfo.ErrorMessage));
+            }
 
             var projectDirectory = Path.GetDirectoryName(projectFilePath);
             var outputFilePath = projectFileInfo.OutputFilePath;
             var outputDirectory = Path.GetDirectoryName(outputFilePath);
 
-            VersionStamp version;
-            if (!string.IsNullOrEmpty(projectFilePath) && File.Exists(projectFilePath))
-            {
-                version = VersionStamp.Create(File.GetLastWriteTimeUtc(projectFilePath));
-            }
-            else
-            {
-                version = VersionStamp.Create();
-            }
+            var version = GetProjectVersion(projectFilePath);
 
             // translate information from command line args
             var commandLineParser = _workspace.Services.GetLanguageServices(loader.Language).GetService<ICommandLineParserService>();
@@ -403,13 +408,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var assemblyName = commandLineArgs.CompilationName;
             if (string.IsNullOrWhiteSpace(assemblyName))
             {
-                assemblyName = Path.GetFileNameWithoutExtension(projectFilePath);
-
-                // if this is still unreasonable, use a fixed name.
-                if (string.IsNullOrWhiteSpace(assemblyName))
-                {
-                    assemblyName = "assembly";
-                }
+                assemblyName = GetAssemblyNameFromProjectPath(projectFilePath);
             }
 
             // make sure that doc-comments at least get parsed.
@@ -448,6 +447,70 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     hostObjectType: null));
 
             return projectId;
+        }
+
+        private static string GetMsbuildFailedMessage(string projectFilePath, string message)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                return string.Format(WorkspaceDesktopResources.Msbuild_failed_when_processing_the_file_0, projectFilePath);
+            }
+            else
+            {
+                return string.Format(WorkspaceDesktopResources.Msbuild_failed_when_processing_the_file_0_with_message_1, projectFilePath, message);
+            }
+        }
+
+        private static VersionStamp GetProjectVersion(string projectFilePath)
+        {
+            if (!string.IsNullOrEmpty(projectFilePath) && File.Exists(projectFilePath))
+            {
+                return VersionStamp.Create(File.GetLastWriteTimeUtc(projectFilePath));
+            }
+            else
+            {
+                return VersionStamp.Create();
+            }
+        }
+
+        private ProjectInfo CreateEmptyProjectInfo(ProjectId projectId, string projectFilePath, string language)
+        {
+            var languageService = _workspace.Services.GetLanguageServices(language);
+            var parseOptions = languageService.GetService<ISyntaxTreeFactoryService>().GetDefaultParseOptions();
+            var compilationOptions = languageService.GetService<ICompilationFactoryService>().GetDefaultCompilationOptions();
+            var projectName = Path.GetFileNameWithoutExtension(projectFilePath);
+            var version = GetProjectVersion(projectFilePath);
+
+            return ProjectInfo.Create(
+                projectId,
+                version,
+                projectName,
+                assemblyName: GetAssemblyNameFromProjectPath(projectFilePath),
+                language: language,
+                filePath: projectFilePath,
+                outputFilePath: string.Empty,
+                compilationOptions: compilationOptions,
+                parseOptions: parseOptions,
+                documents: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
+                projectReferences: SpecializedCollections.EmptyEnumerable<ProjectReference>(),
+                metadataReferences: SpecializedCollections.EmptyEnumerable<MetadataReference>(),
+                analyzerReferences: SpecializedCollections.EmptyEnumerable<AnalyzerReference>(),
+                additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
+                isSubmission: false,
+                hostObjectType: null);
+        }
+
+        private static string GetAssemblyNameFromProjectPath(string projectFilePath)
+        {
+            var assemblyName = Path.GetFileNameWithoutExtension(projectFilePath);
+
+            // if this is still unreasonable, use a fixed name.
+            if (string.IsNullOrWhiteSpace(assemblyName))
+            {
+                assemblyName = "assembly";
+            }
+
+            return assemblyName;
         }
 
         private static readonly char[] s_directorySplitChars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };

@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol destinationMethod,
             out TypeSymbol returnType,
             out ImmutableArray<CustomModifier> returnTypeCustomModifiers,
+            out ushort countOfCustomModifiersPrecedingByRef,
             out ImmutableArray<ParameterSymbol> parameters,
             bool alsoCopyParamsModifier) // Last since always named.
         {
@@ -27,8 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Assert: none of the method's type parameters have been substituted
             Debug.Assert((object)sourceMethod == sourceMethod.ConstructedFrom);
 
-            returnTypeCustomModifiers = sourceMethod.ReturnTypeCustomModifiers;
-
             // For the most part, we will copy custom modifiers by copying types.
             // The only time when this fails is when the type refers to a type parameter
             // owned by the overridden method.  We need to replace all such references
@@ -36,6 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we can perform this mapping positionally, because the method signatures
             // have already been compared.
             MethodSymbol constructedSourceMethod = sourceMethod.ConstructIfGeneric(destinationMethod.TypeArguments);
+
+            returnTypeCustomModifiers = constructedSourceMethod.ReturnTypeCustomModifiers;
+            countOfCustomModifiersPrecedingByRef = destinationMethod.ReturnsByRef ? constructedSourceMethod.CountOfCustomModifiersPrecedingByRef : (ushort)0;
 
             parameters = CopyParameterCustomModifiers(constructedSourceMethod.Parameters, destinationMethod.Parameters, alsoCopyParamsModifier);
 

@@ -1,0 +1,12 @@
+﻿{
+    "dependencies": {
+        "System.Collections.Immutable": "1.2.0",
+        "System.Reflection.Metadata": "1.4.1-beta-24430-01",
+        "Microsoft.VisualStudio.Debugger.Engine": "14.3.25422",
+    },
+    "frameworks": {
+        "netstandard1.3": {
+            "imports": "portable-net45+win8"
+        }
+    }
+}

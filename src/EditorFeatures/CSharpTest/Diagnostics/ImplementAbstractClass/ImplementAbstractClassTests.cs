@@ -1257,8 +1257,8 @@ class T : A
         }
     }
 }", options: OptionsSet(
-    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
-    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1296,8 +1296,8 @@ class T : A
         }
     }
 }", options: OptionsSet(
-    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
-    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1356,8 +1356,8 @@ class T : A
         }
     }
 }", options: OptionsSet(
-    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, true, NotificationOption.None),
-    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, true, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1395,8 +1395,8 @@ class T : A
         }
     }
 }", options: OptionsSet(
-    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, true, NotificationOption.None),
-    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, true, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1426,8 +1426,8 @@ class T : A
         get => throw new NotImplementedException();
         }
     }", options: OptionsSet(
-    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedProperties, false, NotificationOption.None),
-    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, true, NotificationOption.None)));
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, false, NotificationOption.None),
+    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, true, NotificationOption.None)));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]

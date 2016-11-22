@@ -2471,7 +2471,7 @@ class D : X$$
     {
         int[] a = n$$ew int[0];
     }
-}");
+}", MainDescription("int[]"));
         }
 
         [WorkItem(539240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")]

@@ -14,17 +14,20 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(InvokeDelegateWithConditionalAccessCodeFixProvider)), Shared]
-    internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : CodeFixProvider
+    internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId);
 
-        public override FixAllProvider GetFixAllProvider()
-            => new InvokeDelegateWithConditionalAccessFixAllProvider(this);
+        // Filter out the diagnostics we created for the faded out code.  We don't want
+        // to try to fix those as well as the normal diagnostics we created.
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -34,49 +37,40 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             return SpecializedTasks.EmptyTask;
         }
 
-        private Task<Document> FixAsync(
-            Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            return FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
-        }
-
-        private async Task<Document> FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(root, editor, diagnostic, cancellationToken);
+                AddEdits(editor, diagnostic, cancellationToken);
             }
 
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
+            return SpecializedTasks.EmptyTask;
         }
 
         private void AddEdits(
-            SyntaxNode root, SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
+            SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             if (diagnostic.Properties[Constants.Kind] == Constants.VariableAndIfStatementForm)
             {
-                HandleVariableAndIfStatementForm(root, editor, diagnostic, cancellationToken);
+                HandleVariableAndIfStatementForm(editor, diagnostic, cancellationToken);
             }
             else
             {
                 Debug.Assert(diagnostic.Properties[Constants.Kind] == Constants.SingleIfStatementForm);
-                HandleSingleIfStatementForm(root, editor, diagnostic, cancellationToken);
+                HandleSingleIfStatementForm(editor, diagnostic, cancellationToken);
             }
         }
 
         private void HandleSingleIfStatementForm(
-            SyntaxNode root,
             SyntaxEditor editor,
             Diagnostic diagnostic,
             CancellationToken cancellationToken)
         {
+            var root = editor.OriginalRoot;
+
             var ifStatementLocation = diagnostic.AdditionalLocations[0];
             var expressionStatementLocation = diagnostic.AdditionalLocations[1];
 
@@ -108,8 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
         }
 
         private static void HandleVariableAndIfStatementForm(
-            SyntaxNode root, SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
+            SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
+            var root = editor.OriginalRoot;
+
             var localDeclarationLocation = diagnostic.AdditionalLocations[0];
             var ifStatementLocation = diagnostic.AdditionalLocations[1];
             var expressionStatementLocation = diagnostic.AdditionalLocations[2];

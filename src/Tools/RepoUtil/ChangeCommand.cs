@@ -177,23 +177,7 @@ namespace RepoUtil
         private void ChangeAllCore(ImmutableDictionary<NuGetPackage, NuGetPackage> changeMap)
         {
             ChangeProjectJsonFiles(changeMap);
-
-            // Calculate the new set of packages based on the changed information.
-            var list = new List<NuGetPackage>();
-            foreach (var cur in _repoData.FloatingBuildPackages)
-            {
-                NuGetPackage newPackage;
-                if (changeMap.TryGetValue(cur, out newPackage))
-                {
-                    list.Add(newPackage);
-                }
-                else
-                {
-                    list.Add(cur);
-                }
-            }
-
-            ChangeGeneratedFiles(list);
+            ChangeGeneratedFiles();
         }
 
         private void ChangeProjectJsonFiles(ImmutableDictionary<NuGetPackage, NuGetPackage> changeMap)
@@ -208,7 +192,7 @@ namespace RepoUtil
             }
         }
 
-        private void ChangeGeneratedFiles(IEnumerable<NuGetPackage> floatingPackages)
+        private void ChangeGeneratedFiles()
         {
             var msbuildData = _repoData.RepoConfig.MSBuildGenerateData;
             if (msbuildData.HasValue)

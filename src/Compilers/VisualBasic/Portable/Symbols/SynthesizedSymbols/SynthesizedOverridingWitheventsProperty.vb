@@ -212,6 +212,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+            Get
+                Return _baseProperty.CountOfCustomModifiersPrecedingByRef
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
                 ' since it is IsImplicitlyDeclared

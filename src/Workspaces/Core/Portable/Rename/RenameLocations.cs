@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 mergedLocations.AddRange(renameMethodGroupReferences
                     ? result.Locations
-                    : result.Locations.Where(x => !x.IsMethodGroupReference));
+                    : result.Locations.Where(x => x.CandidateReason != CandidateReason.MemberGroup));
 
                 mergedImplicitLocations.AddRange(result.ImplicitLocations);
                 mergedReferencedSymbols.AddRange(result.ReferencedSymbols);
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Rename
             _mergedResult = new SearchResult(mergedLocations, mergedImplicitLocations, mergedReferencedSymbols);
         }
 
-        public ISet<RenameLocation> Locations { get { return _mergedResult.Locations; } }
+        public ISet<RenameLocation> Locations => _mergedResult.Locations;
         public SymbolAndProjectId SymbolAndProjectId => _symbolAndProjectId;
         public ISymbol Symbol => _symbolAndProjectId.Symbol;
         public Solution Solution { get { return _solution; } }

@@ -128,6 +128,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override ushort CountOfCustomModifiersPrecedingByRef
+        {
+            get
+            {
+                return _underlyingMethod.CountOfCustomModifiersPrecedingByRef;
+            }
+        }
+
         public override ImmutableArray<TypeSymbol> TypeArguments
         {
             get

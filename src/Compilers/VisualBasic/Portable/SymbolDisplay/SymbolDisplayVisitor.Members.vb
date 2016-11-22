@@ -97,13 +97,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
+            Dim vbProperty = TryCast(symbol, PropertySymbol)
+            Dim countOfCustomModifiersPrecedingByRef As UShort = If(vbProperty Is Nothing, 0US, vbProperty.CountOfCustomModifiersPrecedingByRef)
+
+            If symbol.ReturnsByRef AndAlso format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef) Then
+                AddSpace()
+                AddKeyword(SyntaxKind.ByRefKeyword)
+
+                If countOfCustomModifiersPrecedingByRef > 0 Then
+                    AddCustomModifiersIfRequired(symbol.TypeCustomModifiers.Take(countOfCustomModifiersPrecedingByRef).AsImmutable())
+                End If
+            End If
+
             If format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType) Then
                 AddSpace()
                 AddKeyword(SyntaxKind.AsKeyword)
                 AddSpace()
                 symbol.Type.Accept(Me.NotFirstVisitor)
 
-                AddCustomModifiersIfRequired(symbol.TypeCustomModifiers)
+                If symbol.ReturnsByRef AndAlso countOfCustomModifiersPrecedingByRef > 0 Then
+                    AddCustomModifiersIfRequired(symbol.TypeCustomModifiers.Skip(countOfCustomModifiersPrecedingByRef).AsImmutable())
+                Else
+                    AddCustomModifiersIfRequired(symbol.TypeCustomModifiers)
+                End If
             End If
         End Sub
 
@@ -368,6 +384,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub AddMethodReturnType(method As IMethodSymbol)
+            Dim vbMethod = TryCast(method, MethodSymbol)
+            Dim countOfCustomModifiersPrecedingByRef As UShort = If(vbMethod Is Nothing, 0US, vbMethod.CountOfCustomModifiersPrecedingByRef)
+
+            If method.ReturnsByRef AndAlso format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef) Then
+                AddSpace()
+                AddKeyword(SyntaxKind.ByRefKeyword)
+
+                If countOfCustomModifiersPrecedingByRef > 0 Then
+                    AddCustomModifiersIfRequired(method.ReturnTypeCustomModifiers.Take(countOfCustomModifiersPrecedingByRef).AsImmutable())
+                End If
+            End If
+
             If format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType) Then
                 Select Case method.MethodKind
                     Case MethodKind.Constructor,
@@ -381,7 +409,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                 End Select
 
-                AddCustomModifiersIfRequired(method.ReturnTypeCustomModifiers)
+                If method.ReturnsByRef AndAlso countOfCustomModifiersPrecedingByRef > 0 Then
+                    AddCustomModifiersIfRequired(method.ReturnTypeCustomModifiers.Skip(countOfCustomModifiersPrecedingByRef).AsImmutable())
+                Else
+                    AddCustomModifiersIfRequired(method.ReturnTypeCustomModifiers)
+                End If
             End If
         End Sub
 
@@ -454,6 +486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Sub VisitParameter(symbol As IParameterSymbol)
             Dim vbParameter = TryCast(symbol, ParameterSymbol)
+            Dim countOfCustomModifiersPrecedingByRef As UShort = If(vbParameter Is Nothing, 0US, vbParameter.CountOfCustomModifiersPrecedingByRef)
 
             If format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets) Then
                 If symbol.IsOptional Then
@@ -466,8 +499,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddKeyword(SyntaxKind.ByRefKeyword)
                     AddSpace()
 
-                    If vbParameter IsNot Nothing AndAlso vbParameter.CountOfCustomModifiersPrecedingByRef > 0 Then
-                        AddCustomModifiersIfRequired(symbol.CustomModifiers.Take(vbParameter.CountOfCustomModifiersPrecedingByRef).AsImmutable(), leadingSpace:=False, trailingSpace:=True)
+                    If countOfCustomModifiersPrecedingByRef > 0 Then
+                        AddCustomModifiersIfRequired(symbol.CustomModifiers.Take(countOfCustomModifiersPrecedingByRef).AsImmutable(), leadingSpace:=False, trailingSpace:=True)
                     End If
                 End If
 
@@ -490,12 +523,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 symbol.Type.Accept(Me.NotFirstVisitor())
 
-                If vbParameter IsNot Nothing Then
-                    If vbParameter.IsByRef AndAlso IsExplicitByRefParameter(symbol) AndAlso vbParameter.CountOfCustomModifiersPrecedingByRef > 0 Then
-                        AddCustomModifiersIfRequired(symbol.CustomModifiers.Skip(vbParameter.CountOfCustomModifiersPrecedingByRef).AsImmutable())
-                    Else
-                        AddCustomModifiersIfRequired(symbol.CustomModifiers)
-                    End If
+                If symbol.RefKind <> RefKind.None AndAlso IsExplicitByRefParameter(symbol) AndAlso countOfCustomModifiersPrecedingByRef > 0 Then
+                    AddCustomModifiersIfRequired(symbol.CustomModifiers.Skip(countOfCustomModifiersPrecedingByRef).AsImmutable())
+                Else
+                    AddCustomModifiersIfRequired(symbol.CustomModifiers)
                 End If
             End If
 

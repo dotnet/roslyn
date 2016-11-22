@@ -550,7 +550,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return null;
                 }
 
-                var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.Parent);
+                var expression =
+                    syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.Parent, allowImplicitTarget: true) ??
+                    syntaxFacts.GetTargetOfMemberBinding(nameNode.Parent);    
                 if (expression == null)
                 {
                     return null;

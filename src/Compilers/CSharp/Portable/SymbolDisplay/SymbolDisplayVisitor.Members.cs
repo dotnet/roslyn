@@ -65,10 +65,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddRefIfRequired();
                 }
 
+                ushort countOfCustomModifiersPrecedingByRef = 0;
+                var property = symbol as PropertySymbol;
+                if ((object)property != null)
+                {
+                    countOfCustomModifiersPrecedingByRef = property.CountOfCustomModifiersPrecedingByRef;
+                }
+
+                ImmutableArray<CustomModifier> typeCustomModifiers = symbol.TypeCustomModifiers;
+                if (countOfCustomModifiersPrecedingByRef > 0)
+                {
+                    AddCustomModifiersIfRequired(ImmutableArray.Create(typeCustomModifiers, 0, countOfCustomModifiersPrecedingByRef), leadingSpace: false, trailingSpace: true);
+                }
+
                 symbol.Type.Accept(this.NotFirstVisitor);
                 AddSpace();
 
-                AddCustomModifiersIfRequired(symbol.TypeCustomModifiers);
+                if (countOfCustomModifiersPrecedingByRef == 0)
+                {
+                    AddCustomModifiersIfRequired(typeCustomModifiers);
+                }
+                else if (countOfCustomModifiersPrecedingByRef < typeCustomModifiers.Length)
+                {
+                    AddCustomModifiersIfRequired(ImmutableArray.Create(typeCustomModifiers, countOfCustomModifiersPrecedingByRef,
+                                                                       typeCustomModifiers.Length - countOfCustomModifiersPrecedingByRef));
+                }
             }
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeContainingType) &&
@@ -236,16 +257,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AddRefIfRequired();
                             }
 
+                            ushort countOfCustomModifiersPrecedingByRef = 0;
+                            ImmutableArray<CustomModifier> returnTypeCustomModifiers = symbol.ReturnTypeCustomModifiers;
+
                             if (symbol.ReturnsVoid)
                             {
                                 AddKeyword(SyntaxKind.VoidKeyword);
                             }
                             else if (symbol.ReturnType != null)
                             {
+                                var method = symbol as MethodSymbol;
+                                if ((object)method != null)
+                                {
+                                    countOfCustomModifiersPrecedingByRef = method.CountOfCustomModifiersPrecedingByRef;
+                                }
+
+                                if (countOfCustomModifiersPrecedingByRef > 0)
+                                {
+                                    AddCustomModifiersIfRequired(ImmutableArray.Create(returnTypeCustomModifiers, 0, countOfCustomModifiersPrecedingByRef), leadingSpace: false, trailingSpace: true);
+                                }
+
                                 symbol.ReturnType.Accept(this.NotFirstVisitor);
                             }
+
                             AddSpace();
-                            AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers);
+
+                            if (countOfCustomModifiersPrecedingByRef == 0)
+                            {
+                                AddCustomModifiersIfRequired(returnTypeCustomModifiers); 
+                            }
+                            else if (countOfCustomModifiersPrecedingByRef < returnTypeCustomModifiers.Length)
+                            {
+                                AddCustomModifiersIfRequired(ImmutableArray.Create(returnTypeCustomModifiers, countOfCustomModifiersPrecedingByRef,
+                                                                                   returnTypeCustomModifiers.Length - countOfCustomModifiersPrecedingByRef));
+                            }
+
                             break;
                     }
                 }
