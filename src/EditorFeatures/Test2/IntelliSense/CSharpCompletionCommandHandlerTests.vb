@@ -470,7 +470,6 @@ class Variable
                 Await state.AssertSelectedCompletionItem(displayText:="bool", isSoftSelected:=True)
                 state.SendReturn()
                 Assert.Contains("(var a, va a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
-                ' TODO REVIEW Not sure why the close paren disappears
             End Using
         End Function
 
@@ -526,7 +525,7 @@ class Variable
 
                 state.SendTypeChars(", var as")
                 state.SendBackspace()
-                Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True) ' TODO REVIEW this uses an insert, dunno why
+                Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
 
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()

@@ -1154,9 +1154,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (leftToken.IsKind(SyntaxKind.CloseParenToken))
             {
                 if (leftToken.Parent.IsKind(
-                    SyntaxKind.ParenthesizedExpression,
-                    SyntaxKind.TupleExpression,
-                    SyntaxKind.TupleType))
+                        SyntaxKind.ParenthesizedExpression,
+                        SyntaxKind.TupleExpression,
+                        SyntaxKind.TupleType))
                 {
                     var possibleCommaOrParen = FindTokenOnLeftOfNode(leftToken.Parent);
                     if (IsPossibleTupleOpenParenOrComma(possibleCommaOrParen))
@@ -1283,12 +1283,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // foreach (var ((x, $$), y)
             if (leftToken.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
             {
-                var outter = UnwrapPossibleTuple(leftToken.Parent);
-                if (outter.Parent.IsKind(SyntaxKind.ForEachStatement))
+                var outer = UnwrapPossibleTuple(leftToken.Parent);
+                if (outer.Parent.IsKind(SyntaxKind.ForEachStatement))
                 {
-                    var @foreach = (ForEachStatementSyntax)outter.Parent;
+                    var @foreach = (ForEachStatementSyntax)outer.Parent;
 
-                    if (@foreach.Expression == outter &&
+                    if (@foreach.Expression == outer &&
                         @foreach.Type.IsKind(SyntaxKind.IdentifierName) &&
                         ((IdentifierNameSyntax)@foreach.Type).Identifier.ValueText == "var")
                     {
