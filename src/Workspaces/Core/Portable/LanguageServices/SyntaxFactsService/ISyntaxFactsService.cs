@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsInvocationExpression(SyntaxNode node);
         bool IsExpressionOfInvocationExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node);
+        SeparatedSyntaxList<TSyntaxNode> GetArgumentsOfInvocationExpression<TSyntaxNode>(SyntaxNode node) where TSyntaxNode : SyntaxNode;
 
         SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
 
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString);
-        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression);
+
         bool IsUsingDirectiveName(SyntaxNode node);
         bool IsIdentifierName(SyntaxNode node);
         bool IsGenericName(SyntaxNode node);

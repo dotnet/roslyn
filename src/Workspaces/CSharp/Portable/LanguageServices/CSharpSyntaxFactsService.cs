@@ -1690,11 +1690,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsVerbatimStringLiteral(SyntaxToken token)
             => token.IsVerbatimStringLiteral();
 
-        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
-        {
-            return ((invocationExpression as InvocationExpressionSyntax)?.ArgumentList.Arguments).Value;
-        }
-
         public bool IsDocumentationComment(SyntaxNode node)
         {
             return SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
@@ -1858,6 +1853,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node)
             => ((InvocationExpressionSyntax)node).Expression;
+
+        public SeparatedSyntaxList<TSyntaxNode> GetArgumentsOfInvocationExpression<TSyntaxNode>(SyntaxNode node)
+            where TSyntaxNode : SyntaxNode
+        {
+            return (SeparatedSyntaxList<TSyntaxNode>)(SeparatedSyntaxList<SyntaxNode>)((node as InvocationExpressionSyntax)?.ArgumentList.Arguments).Value;
+        }
 
         public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
             => ((AwaitExpressionSyntax)node).Expression;
