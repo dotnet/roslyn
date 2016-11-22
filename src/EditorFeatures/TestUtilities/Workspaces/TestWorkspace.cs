@@ -222,9 +222,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             base.OnParseOptionsChanged(projectId, parseOptions);
         }
 
-        public new void OnDocumentRemoved(DocumentId documentId)
+        public void OnDocumentRemoved(DocumentId documentId, bool closeDocument = false)
         {
-            if (this.IsDocumentOpen(documentId))
+            if (closeDocument && this.IsDocumentOpen(documentId))
             {
                 this.CloseDocument(documentId);
             }
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var hostProject = this.GetTestProject(documentId.ProjectId);
             var hostDocument = this.GetTestDocument(documentId);
             hostProject.RemoveDocument(hostDocument);
-            this.OnDocumentRemoved(documentId);
+            this.OnDocumentRemoved(documentId, closeDocument: true);
         }
 
         protected override void ApplyAdditionalDocumentTextChanged(DocumentId document, SourceText newText)
