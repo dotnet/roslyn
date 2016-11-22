@@ -15488,5 +15488,36 @@ class Program
                 expectedOutput: "0");
         }
 
+        [Fact, WorkItem(9703, "https://github.com/dotnet/roslyn/issues/9703")]
+        public void IgnoredConversion()
+        {
+            string source = @"
+using System;
+
+public class Form1 {
+    public class BadCompiler {
+        public DateTime? Value {get; set;}
+    }
+
+    private BadCompiler TestObj = new BadCompiler();
+
+    public void IPE() {
+        object o;
+        o = TestObj.Value;
+    }
+}";
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("Form1.IPE", @"
+{
+    // Code size       13 (0xd)
+    .maxstack  1
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      ""Form1.BadCompiler Form1.TestObj""
+    IL_0006:  callvirt   ""System.DateTime? Form1.BadCompiler.Value.get""
+    IL_000b:  pop
+    IL_000c:  ret
+}");
+        }
+
     }
 }
