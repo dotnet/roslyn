@@ -304,6 +304,7 @@
     <Compile Include="CodeActions\Annotations\SuppressDiagnosticsAnnotation.cs" />
     <Compile Include="CodeActions\CodeActionPriority.cs" />
     <Compile Include="CodeActions\Operations\PreviewOperation.cs" />
+    <Compile Include="CodeActions\Operations\RenameDocumentOperation.cs" />
     <Compile Include="CodeCleanup\AbstractCodeCleanerService.cs" />
     <Compile Include="CodeCleanup\CodeCleaner.cs" />
     <Compile Include="CodeCleanup\ICodeCleanerService.cs" />
