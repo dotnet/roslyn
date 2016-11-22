@@ -14,31 +14,28 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public struct CommandLineReference : IEquatable<CommandLineReference>
     {
-        private readonly string _reference;
-        private readonly MetadataReferenceProperties _properties;
-
-        internal CommandLineReference(string reference, MetadataReferenceProperties properties)
+        internal CommandLineReference(string reference, MetadataReferenceProperties properties, bool isDefaultCoreLibReference = false)
         {
             Debug.Assert(!string.IsNullOrEmpty(reference));
-            _reference = reference;
-            _properties = properties;
+            Reference = reference;
+            Properties = properties;
+            IsDefaultCoreLibReference = isDefaultCoreLibReference;
         }
 
         /// <summary>
         /// Metadata file path or an assembly display name.
         /// </summary>
-        public string Reference
-        {
-            get { return _reference; }
-        }
+        public string Reference { get; }
 
         /// <summary>
         /// Metadata reference properties.
         /// </summary>
-        public MetadataReferenceProperties Properties
-        {
-            get { return _properties; }
-        }
+        public MetadataReferenceProperties Properties { get; }
+
+        /// <summary>
+        /// Flag indicating if this is an implicitly added core libary reference.
+        /// </summary>
+        internal bool IsDefaultCoreLibReference { get; }
 
         public override bool Equals(object obj)
         {
@@ -47,13 +44,13 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(CommandLineReference other)
         {
-            return _reference == other._reference
-                && _properties.Equals(other._properties);
+            return Reference == other.Reference
+                && Properties.Equals(other.Properties);
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_reference, _properties.GetHashCode());
+            return Hash.Combine(Reference, Properties.GetHashCode());
         }
     }
 }
