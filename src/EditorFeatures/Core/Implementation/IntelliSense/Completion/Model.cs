@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             bool dismissIfEmpty)
         {
             Contract.ThrowIfFalse(originalList.Items.Length != 0, "Must have at least one item.");
-            Contract.ThrowIfNull(selectedItem);
 
             this.TriggerDocument = triggerDocument;
             _disconnectedBufferGraph = disconnectedBufferGraph;

@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // we do want it through, it would be easy to get again simply by asking the model
             // computation to remove all filtering.
 
-            if (model.IsUnique)
+            if (model.IsUnique && model.SelectedItem != null)
             {
                 // We had a unique item in the list.  Commit it and dismiss this session.
                 this.CommitOnNonTypeChar(model.SelectedItem, model);

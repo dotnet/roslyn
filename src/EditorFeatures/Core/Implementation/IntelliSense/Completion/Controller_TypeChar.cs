@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // TODO(cyrusn): Find a way to allow the user to cancel out of this.
             var model = sessionOpt.WaitForModel();
-            if (model == null || model.IsSoftSelection)
+            if (model == null || model.IsSoftSelection || model.SelectedItem == null)
             {
                 return false;
             }

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             CreateCompletionListBuilder(selectedItem, suggestionModeItem, suggestionMode);
             CreateNormalCompletionListItems(completionItems);
 
-            var selectedCompletionItem = GetVSCompletion(selectedItem);
+            var selectedCompletionItem = selectedItem != null ? GetVSCompletion(selectedItem) : null;
             VsCompletionSet.SelectionStatus = new CompletionSelectionStatus(
                 selectedCompletionItem, 
                 isSelected: !isSoftSelected, isUnique: selectedCompletionItem != null);

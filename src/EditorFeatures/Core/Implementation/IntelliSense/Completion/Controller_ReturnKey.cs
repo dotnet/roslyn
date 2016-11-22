@@ -67,6 +67,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // more than one line of text.
             sendThrough = !_isDebugger || _isImmediateWindow;
 
+            // If the user used completion filters to empty the list, just dismiss
+            if (model.SelectedItem == null)
+            {
+                committed = false;
+                return;
+            }
+
             if (model.IsSoftSelection)
             {
                 // If the completion list is soft selected, then don't commit on enter.
