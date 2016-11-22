@@ -916,6 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool DeriveUseSiteDiagnosticFromParameter(ref DiagnosticInfo result, ParameterSymbol param)
         {
             return DeriveUseSiteDiagnosticFromType(ref result, param.Type) ||
+                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.RefCustomModifiers) ||
                    DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.CustomModifiers);
         }
 
@@ -984,6 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var parameter in parameters)
             {
                 if (parameter.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
+                    GetUnificationUseSiteDiagnosticRecursive(ref result, parameter.RefCustomModifiers, owner, ref checkedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, parameter.CustomModifiers, owner, ref checkedTypes))
                 {
                     return true;

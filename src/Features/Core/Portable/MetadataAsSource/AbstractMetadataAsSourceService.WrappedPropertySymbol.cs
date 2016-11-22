@@ -107,6 +107,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
+            public ImmutableArray<CustomModifier> RefCustomModifiers
+            {
+                get
+                {
+                    return _symbol.RefCustomModifiers;
+                }
+            }
+
             public ImmutableArray<CustomModifier> TypeCustomModifiers
             {
                 get

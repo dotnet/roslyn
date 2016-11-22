@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public MustOverride Overrides ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
 
-        Friend MustOverride Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+        Public MustOverride Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get

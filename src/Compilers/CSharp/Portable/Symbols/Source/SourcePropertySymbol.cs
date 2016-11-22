@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SyntaxReference _syntaxRef;
         private readonly Location _location;
         private readonly DeclarationModifiers _modifiers;
-        private readonly ImmutableArray<CustomModifier> _typeCustomModifiers;
-        private readonly ushort _countOfCustomModifiersPrecedingByRef;
+        private readonly CustomModifiersTuple _customModifiers;
         private readonly SourcePropertyAccessorSymbol _getMethod;
         private readonly SourcePropertyAccessorSymbol _setMethod;
         private readonly SynthesizedBackingFieldSymbol _backingField;
@@ -192,8 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             PropertySymbol explicitlyImplementedProperty = null;
-            _typeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
-            _countOfCustomModifiersPrecedingByRef = 0;
+            _customModifiers = CustomModifiersTuple.Empty;
 
             // The runtime will not treat the accessors of this property as overrides or implementations
             // of those of another property unless both the signatures and the custom modifiers match.
@@ -238,8 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)overriddenOrImplementedProperty != null)
                 {
-                    _typeCustomModifiers = overriddenOrImplementedProperty.TypeCustomModifiers;
-                    _countOfCustomModifiersPrecedingByRef = _refKind != RefKind.None ? overriddenOrImplementedProperty.CountOfCustomModifiersPrecedingByRef : (ushort)0;
+                    _customModifiers = CustomModifiersTuple.Create(overriddenOrImplementedProperty.TypeCustomModifiers,
+                                                                   _refKind != RefKind.None ? overriddenOrImplementedProperty.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty);
 
                     TypeSymbol overriddenPropertyType = overriddenOrImplementedProperty.Type;
 
@@ -611,12 +609,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> TypeCustomModifiers
         {
-            get { return _typeCustomModifiers; }
+            get { return _customModifiers.TypeCustomModifiers; }
         }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
-            get { return _countOfCustomModifiersPrecedingByRef; }
+            get { return _customModifiers.RefCustomModifiers; }
         }
 
         public override Accessibility DeclaredAccessibility
@@ -1055,7 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (Type.ContainsDynamic())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, TypeCustomModifiers.Length, _refKind));
+                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, TypeCustomModifiers.Length + RefCustomModifiers.Length, _refKind));
             }
 
             if (Type.ContainsTupleNames())

@@ -30,6 +30,11 @@ namespace Microsoft.Cci
             get { return null; }
         }
 
+        public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers
+        {
+            get { return _containingMethod.RefCustomModifiers; }
+        }
+
         public ImmutableArray<Cci.ICustomModifier> CustomModifiers
         {
             get { return _containingMethod.ReturnValueCustomModifiers; }
@@ -62,11 +67,6 @@ namespace Microsoft.Cci
         public bool IsByReference
         {
             get { return _containingMethod.ReturnValueIsByRef; }
-        }
-
-        public ushort CountOfCustomModifiersPrecedingByRef
-        {
-            get { return 0; }
         }
 
         public bool IsMarshalledExplicitly
