@@ -2,14 +2,16 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ImplementInterface
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.ImplementInterface
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
     Partial Public Class ImplementInterfaceTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New ImplementInterfaceCodeFixProvider)
+            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
+                Nothing, New VisualBasicImplementInterfaceCodeFixProvider)
         End Function
 
         <WorkItem(540085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540085")>
@@ -160,19 +162,21 @@ Interface I
 End Interface
 Class C
     Implements I
+
+    Private Property M As Integer
+        Get
+            Return 5
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+
     Private Property I_M As Integer Implements I.M
         Get
             Throw New NotImplementedException()
         End Get
         Set(value As Integer)
             Throw New NotImplementedException()
-        End Set
-    End Property
-    Private Property M As Integer
-        Get
-            Return 5
-        End Get
-        Set(value As Integer)
         End Set
     End Property
 End Class")
@@ -933,14 +937,7 @@ End Class",
 Imports System.Collections.Generic
 Class A
     Implements IReadOnlyList(Of Integer)
-
     Private field As Integer()
-
-    Public ReadOnly Property Count As Integer Implements IReadOnlyCollection(Of Integer).Count
-        Get
-            Return DirectCast(field, IReadOnlyList(Of Integer)).Count
-        End Get
-    End Property
 
     Default Public ReadOnly Property Item(index As Integer) As Integer Implements IReadOnlyList(Of Integer).Item
         Get
@@ -948,9 +945,16 @@ Class A
         End Get
     End Property
 
+    Public ReadOnly Property Count As Integer Implements IReadOnlyCollection(Of Integer).Count
+        Get
+            Return DirectCast(field, IReadOnlyList(Of Integer)).Count
+        End Get
+    End Property
+
     Public Function GetEnumerator() As IEnumerator(Of Integer) Implements IEnumerable(Of Integer).GetEnumerator
         Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
     End Function
+
     Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
         Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
     End Function
@@ -972,15 +976,15 @@ Imports System.Collections.Generic
 Class A
     Implements IReadOnlyList(Of Integer)
 
-    Public ReadOnly Property Count As Integer Implements IReadOnlyCollection(Of Integer).Count
-        Get
-            Return DirectCast(field, IReadOnlyList(Of Integer)).Count
-        End Get
-    End Property
-
     Default Public ReadOnly Property Item(index As Integer) As Integer Implements IReadOnlyList(Of Integer).Item
         Get
             Return DirectCast(field, IReadOnlyList(Of Integer))(index)
+        End Get
+    End Property
+
+    Public ReadOnly Property Count As Integer Implements IReadOnlyCollection(Of Integer).Count
+        Get
+            Return DirectCast(field, IReadOnlyList(Of Integer)).Count
         End Get
     End Property
 
@@ -989,6 +993,7 @@ Class A
     Public Function GetEnumerator() As IEnumerator(Of Integer) Implements IEnumerable(Of Integer).GetEnumerator
         Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
     End Function
+
     Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
         Return DirectCast(field, IReadOnlyList(Of Integer)).GetEnumerator()
     End Function
@@ -3767,27 +3772,24 @@ compareTokens:=False)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestImplementInterfaceForIDisposableNonApplicable2() As Task
             Await TestAsync(
-<Text>Imports System
+"Imports System
 Class Program
     Implements [|IDisposable|]
 
     Public Sub Dispose(flag As Boolean)
     End Sub
-End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
-<Text>Imports System
+End Class",
+"Imports System
 Class Program
     Implements IDisposable
+
+    Public Sub Dispose(flag As Boolean)
+    End Sub
 
     Public Sub Dispose() Implements IDisposable.Dispose
         Throw New NotImplementedException()
     End Sub
-
-    Public Sub Dispose(flag As Boolean)
-    End Sub
-End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
-compareTokens:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -4071,14 +4073,14 @@ Interface I : Inherits IDisposable
 End Interface
 Class C : Implements I
 
-    Public Sub Dispose() Implements IDisposable.Dispose
-        Throw New NotImplementedException()
-    End Sub
-
     Public Sub F() Implements I.F
         Throw New NotImplementedException()
     End Sub
-End Class", index:=0, compareTokens:=False)
+
+    Public Sub Dispose() Implements IDisposable.Dispose
+        Throw New NotImplementedException()
+    End Sub
+End Class", index:=0)
         End Function
 
         <WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>
@@ -4173,10 +4175,6 @@ Class _
     C
     Implements I(Of System.Exception, System.AggregateException)
 
-    Public Function Equals(other As Integer) As Boolean Implements IEquatable(Of Integer).Equals
-        Throw New NotImplementedException()
-    End Function
-
     Public Function M(a As Dictionary(Of Exception, List(Of AggregateException)), b As Exception, c As AggregateException) As List(Of AggregateException) Implements I(Of Exception, AggregateException).M
         Throw New NotImplementedException()
     End Function
@@ -4184,12 +4182,48 @@ Class _
     Public Function M(Of TT, UU As TT)(a As Dictionary(Of TT, List(Of UU)), b As TT, c As UU) As List(Of UU) Implements I(Of Exception, AggregateException).M
         Throw New NotImplementedException()
     End Function
-{DisposePattern("Overridable ")}
+
+    Public Function Equals(other As Integer) As Boolean Implements IEquatable(Of Integer).Equals
+        Throw New NotImplementedException()
+    End Function
+
+#Region ""IDisposable Support""
+    Private disposedValue As Boolean ' To detect redundant calls
+
+    ' IDisposable
+    Protected Overridable Sub Dispose(disposing As Boolean)
+        If Not disposedValue Then
+            If disposing Then
+                ' TODO: dispose managed state (managed objects).
+            End If
+
+            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
+            ' TODO: set large fields to null.
+        End If
+        disposedValue = True
+    End Sub
+
+    ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
+    'Protected Overrides Sub Finalize()
+    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
+    '    Dispose(False)
+    '    MyBase.Finalize()
+    'End Sub
+
+    ' This code added by Visual Basic to correctly implement the disposable pattern.
+    Public Sub Dispose() Implements IDisposable.Dispose
+        ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
+        Dispose(True)
+        ' TODO: uncomment the following line if Finalize() is overridden above.
+        ' GC.SuppressFinalize(Me)
+    End Sub
+#End Region
 End Class
 
 Partial Class C
     Implements IDisposable
-End Class", index:=1, compareTokens:=False)
+End Class",
+ index:=1, compareTokens:=False)
         End Function
 
         <WorkItem(994328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")>
@@ -4218,10 +4252,6 @@ Partial Class C
     Implements I(Of System.Exception, System.AggregateException)
     Implements IDisposable
 
-    Public Function Equals(other As Integer) As Boolean Implements IEquatable(Of Integer).Equals
-        Throw New NotImplementedException()
-    End Function
-
     Public Function M(a As Dictionary(Of Exception, List(Of AggregateException)), b As Exception, c As AggregateException) As List(Of AggregateException) Implements I(Of Exception, AggregateException).M
         Throw New NotImplementedException()
     End Function
@@ -4229,13 +4259,49 @@ Partial Class C
     Public Function M(Of TT, UU As TT)(a As Dictionary(Of TT, List(Of UU)), b As TT, c As UU) As List(Of UU) Implements I(Of Exception, AggregateException).M
         Throw New NotImplementedException()
     End Function
-{DisposePattern("Overridable ")}
+
+    Public Function Equals(other As Integer) As Boolean Implements IEquatable(Of Integer).Equals
+        Throw New NotImplementedException()
+    End Function
+
+#Region ""IDisposable Support""
+    Private disposedValue As Boolean ' To detect redundant calls
+
+    ' IDisposable
+    Protected Overridable Sub Dispose(disposing As Boolean)
+        If Not disposedValue Then
+            If disposing Then
+                ' TODO: dispose managed state (managed objects).
+            End If
+
+            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
+            ' TODO: set large fields to null.
+        End If
+        disposedValue = True
+    End Sub
+
+    ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
+    'Protected Overrides Sub Finalize()
+    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
+    '    Dispose(False)
+    '    MyBase.Finalize()
+    'End Sub
+
+    ' This code added by Visual Basic to correctly implement the disposable pattern.
+    Public Sub Dispose() Implements IDisposable.Dispose
+        ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
+        Dispose(True)
+        ' TODO: uncomment the following line if Finalize() is overridden above.
+        ' GC.SuppressFinalize(Me)
+    End Sub
+#End Region
 End Class
 
 Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of Integer)
     Function M(a As System.Collections.Generic.Dictionary(Of T, System.Collections.Generic.List(Of U)), b As T, c As U) As System.Collections.Generic.List(Of U)
     Function M(Of TT, UU As TT)(a As System.Collections.Generic.Dictionary(Of TT, System.Collections.Generic.List(Of UU)), b As TT, c As UU) As System.Collections.Generic.List(Of UU)
-End Interface", index:=1, compareTokens:=False)
+End Interface",
+ index:=1)
         End Function
 
         Private Shared Function DisposePattern(disposeMethodModifiers As String, Optional simplifySystem As Boolean = True) As String
@@ -4337,16 +4403,7 @@ Imports System.Collections.Generic
 Class Program(Of T)
     Implements IList(Of Object)
     Private Shared innerList As List(Of Object) = New List(Of Object)
-    Public ReadOnly Property Count As Integer Implements ICollection(Of Object).Count
-        Get
-            Return DirectCast(innerList, IList(Of Object)).Count
-        End Get
-    End Property
-    Public ReadOnly Property IsReadOnly As Boolean Implements ICollection(Of Object).IsReadOnly
-        Get
-            Return DirectCast(innerList, IList(Of Object)).IsReadOnly
-        End Get
-    End Property
+
     Default Public Property Item(index As Integer) As Object Implements IList(Of Object).Item
         Get
             Return DirectCast(innerList, IList(Of Object))(index)
@@ -4355,33 +4412,55 @@ Class Program(Of T)
             DirectCast(innerList, IList(Of Object))(index) = value
         End Set
     End Property
-    Public Sub Add(item As Object) Implements ICollection(Of Object).Add
-        DirectCast(innerList, IList(Of Object)).Add(item)
-    End Sub
-    Public Sub Clear() Implements ICollection(Of Object).Clear
-        DirectCast(innerList, IList(Of Object)).Clear()
-    End Sub
-    Public Sub CopyTo(array() As Object, arrayIndex As Integer) Implements ICollection(Of Object).CopyTo
-        DirectCast(innerList, IList(Of Object)).CopyTo(array, arrayIndex)
-    End Sub
+
+    Public ReadOnly Property Count As Integer Implements ICollection(Of Object).Count
+        Get
+            Return DirectCast(innerList, IList(Of Object)).Count
+        End Get
+    End Property
+
+    Public ReadOnly Property IsReadOnly As Boolean Implements ICollection(Of Object).IsReadOnly
+        Get
+            Return DirectCast(innerList, IList(Of Object)).IsReadOnly
+        End Get
+    End Property
+
     Public Sub Insert(index As Integer, item As Object) Implements IList(Of Object).Insert
         DirectCast(innerList, IList(Of Object)).Insert(index, item)
     End Sub
+
     Public Sub RemoveAt(index As Integer) Implements IList(Of Object).RemoveAt
         DirectCast(innerList, IList(Of Object)).RemoveAt(index)
     End Sub
-    Public Function Contains(item As Object) As Boolean Implements ICollection(Of Object).Contains
-        Return DirectCast(innerList, IList(Of Object)).Contains(item)
-    End Function
-    Public Function GetEnumerator() As IEnumerator(Of Object) Implements IEnumerable(Of Object).GetEnumerator
-        Return DirectCast(innerList, IList(Of Object)).GetEnumerator()
-    End Function
+
+    Public Sub Add(item As Object) Implements ICollection(Of Object).Add
+        DirectCast(innerList, IList(Of Object)).Add(item)
+    End Sub
+
+    Public Sub Clear() Implements ICollection(Of Object).Clear
+        DirectCast(innerList, IList(Of Object)).Clear()
+    End Sub
+
+    Public Sub CopyTo(array() As Object, arrayIndex As Integer) Implements ICollection(Of Object).CopyTo
+        DirectCast(innerList, IList(Of Object)).CopyTo(array, arrayIndex)
+    End Sub
+
     Public Function IndexOf(item As Object) As Integer Implements IList(Of Object).IndexOf
         Return DirectCast(innerList, IList(Of Object)).IndexOf(item)
     End Function
+
+    Public Function Contains(item As Object) As Boolean Implements ICollection(Of Object).Contains
+        Return DirectCast(innerList, IList(Of Object)).Contains(item)
+    End Function
+
     Public Function Remove(item As Object) As Boolean Implements ICollection(Of Object).Remove
         Return DirectCast(innerList, IList(Of Object)).Remove(item)
     End Function
+
+    Public Function GetEnumerator() As IEnumerator(Of Object) Implements IEnumerable(Of Object).GetEnumerator
+        Return DirectCast(innerList, IList(Of Object)).GetEnumerator()
+    End Function
+
     Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
         Return DirectCast(innerList, IList(Of Object)).GetEnumerator()
     End Function
@@ -4409,8 +4488,8 @@ End Interface
 Public MustInherit Class C
     Implements IFace
 
-    Public MustOverride Sub IFace_M() Implements IFace.M
     Public MustOverride Sub M()
+    Public MustOverride Sub IFace_M() Implements IFace.M
 End Class",
 index:=1)
         End Function

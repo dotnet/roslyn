@@ -11,7 +11,7 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.ImplementInterface
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
     Public Class ImplementInterfaceCommandHandlerTests
 
         Private Async Function TestAsync(code As XElement, expectedText As XElement, nextHandler As Action(Of IWpfTextView, TestWorkspace), assertion As Action(Of String, String, IWpfTextView)) As Threading.Tasks.Task

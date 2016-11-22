@@ -6,22 +6,22 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementInterface;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementInterface
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
 {
     public partial class ImplementInterfaceTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new ImplementInterfaceCodeFixProvider());
-        }
+            => new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpImplementInterfaceCodeFixProvider());
 
         private static readonly Dictionary<OptionKey, object> AllOptionsOff =
             new Dictionary<OptionKey, object>
@@ -541,13 +541,13 @@ interface IInterface1
 
 class Class : IInterface1
 {
+    public void Method1(string i)
+    {
+    }
+
     public void Method1(int i)
     {
         throw new NotImplementedException();
-    }
-
-    public void Method1(string i)
-    {
     }
 }");
         }
@@ -930,6 +930,8 @@ interface I1
 
 class Test : I1
 {
+    int Prop { get; set; }
+
     int I1.Prop
     {
         get
@@ -942,8 +944,6 @@ class Test : I1
             throw new NotImplementedException();
         }
     }
-
-    int Prop { get; set; }
 }
 
 interface I1
@@ -1057,12 +1057,12 @@ interface @IInterface
 
 class Class : @IInterface
 {
+    string M();
+
     void IInterface.M()
     {
         throw new NotImplementedException();
     }
-
-    string M();
 }");
         }
 
@@ -1089,12 +1089,12 @@ interface @IInterface
 
 class Class : @IInterface
 {
+    string M();
+
     void IInterface.M()
     {
         throw new NotImplementedException();
     }
-
-    string M();
 }");
         }
 
@@ -1121,12 +1121,12 @@ interface @int
 
 class Class : @int
 {
+    string M();
+
     void @int.M()
     {
         throw new NotImplementedException();
     }
-
-    string M();
 }");
         }
 
@@ -1153,12 +1153,12 @@ interface @int
 
 class Class : @int
 {
+    string @bool();
+
     void @int.@bool()
     {
         throw new NotImplementedException();
     }
-
-    string @bool();
 }");
         }
 
@@ -6107,13 +6107,13 @@ class Program : [|IDisposable|]
 
 class Program : IDisposable
 {
+    public void Dispose(bool flag)
+    {
+    }
+
     public void Dispose()
     {
         throw new NotImplementedException();
-    }
-
-    public void Dispose(bool flag)
-    {
     }
 }", index: 0);
         }
@@ -6689,6 +6689,36 @@ class Class : IInterface<(int, string), int>
     }
 }",
 parseOptions: TestOptions.Regular, withScriptOption: true);
+        }
+
+        [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestWithGroupingOff1()
+        {
+            await TestAsync(
+@"interface IInterface
+{
+    int Prop { get; }
+}
+
+class Class : [|IInterface|]
+{
+    void M() { }
+}",
+@"using System;
+
+interface IInterface
+{
+    int Prop { get; }
+}
+
+class Class : IInterface
+{
+    void M() { }
+
+    public int Prop => throw new NotImplementedException();
+    
+}", options: Option(ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd));
         }
     }
 }

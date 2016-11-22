@@ -2,15 +2,16 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ImplementAbstractClass
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.ImplementAbstractClass
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.ImplementAbstractClass
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractClass
     Partial Public Class ImplementAbstractClassTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
             Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                Nothing, New ImplementAbstractClassCodeFixProvider)
+                Nothing, New VisualBasicImplementAbstractClassCodeFixProvider)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
@@ -517,46 +518,56 @@ End Class",
 Imports System.Globalization
 Class x
     Inherits EastAsianLunisolarCalendar
+
     Public Overrides ReadOnly Property Eras As Integer()
         Get
             Throw New NotImplementedException()
         End Get
     End Property
-    Friend Overrides ReadOnly Property CalEraInfo As EraInfo()
-        Get
-            Throw New NotImplementedException()
-        End Get
-    End Property
-    Friend Overrides ReadOnly Property MaxCalendarYear As Integer
-        Get
-            Throw New NotImplementedException()
-        End Get
-    End Property
-    Friend Overrides ReadOnly Property MaxDate As Date
-        Get
-            Throw New NotImplementedException()
-        End Get
-    End Property
+
     Friend Overrides ReadOnly Property MinCalendarYear As Integer
         Get
             Throw New NotImplementedException()
         End Get
     End Property
+
+    Friend Overrides ReadOnly Property MaxCalendarYear As Integer
+        Get
+            Throw New NotImplementedException()
+        End Get
+    End Property
+
+    Friend Overrides ReadOnly Property CalEraInfo As EraInfo()
+        Get
+            Throw New NotImplementedException()
+        End Get
+    End Property
+
     Friend Overrides ReadOnly Property MinDate As Date
         Get
             Throw New NotImplementedException()
         End Get
     End Property
+
+    Friend Overrides ReadOnly Property MaxDate As Date
+        Get
+            Throw New NotImplementedException()
+        End Get
+    End Property
+
     Public Overrides Function GetEra(time As Date) As Integer
         Throw New NotImplementedException()
     End Function
-    Friend Overrides Function GetGregorianYear(year As Integer, era As Integer) As Integer
+
+    Friend Overrides Function GetYearInfo(LunarYear As Integer, Index As Integer) As Integer
         Throw New NotImplementedException()
     End Function
+
     Friend Overrides Function GetYear(year As Integer, time As Date) As Integer
         Throw New NotImplementedException()
     End Function
-    Friend Overrides Function GetYearInfo(LunarYear As Integer, Index As Integer) As Integer
+
+    Friend Overrides Function GetGregorianYear(year As Integer, era As Integer) As Integer
         Throw New NotImplementedException()
     End Function
 End Class")

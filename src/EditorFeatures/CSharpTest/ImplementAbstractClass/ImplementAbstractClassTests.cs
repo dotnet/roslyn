@@ -3,25 +3,25 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementAbstractClass;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementAbstractClass
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 {
     public partial class ImplementAbstractClassTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                null, new ImplementAbstractClassCodeFixProvider());
-        }
+            => new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
+                null, new CSharpImplementAbstractClassCodeFixProvider());
+
         private static readonly Dictionary<OptionKey, object> AllOptionsOff =
              new Dictionary<OptionKey, object>
              {
@@ -1035,7 +1035,7 @@ public class x : EastAsianLunisolarCalendar
         }
     }
 
-    internal override EraInfo[] CalEraInfo
+    internal override int MinCalendarYear
     {
         get
         {
@@ -1051,15 +1051,7 @@ public class x : EastAsianLunisolarCalendar
         }
     }
 
-    internal override DateTime MaxDate
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    internal override int MinCalendarYear
+    internal override EraInfo[] CalEraInfo
     {
         get
         {
@@ -1068,6 +1060,14 @@ public class x : EastAsianLunisolarCalendar
     }
 
     internal override DateTime MinDate
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal override DateTime MaxDate
     {
         get
         {
@@ -1487,6 +1487,35 @@ class T : A
         set => throw new NotImplementedException();
         }
     }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.TrueWithNoneEnforcement));
+        }
+
+        [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestWithGroupingOff1()
+        {
+            await TestAsync(
+@"abstract class Base
+{
+    public abstract int Prop { get; }
+}
+
+class [|Derived|] : Base
+{
+    void Foo() { }
+}",
+@"using System;
+
+abstract class Base
+{
+    public abstract int Prop { get; }
+}
+
+class Derived : Base
+{
+    void Foo() { }
+
+    public override int Prop => throw new NotImplementedException();
+}", options: Option(ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd));
         }
     }
 }
