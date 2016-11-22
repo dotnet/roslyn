@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             {
                 throw new ArgumentException(WorkspacesResources.Could_not_find_location_to_generation_symbol_into);
             }
-
+            
             var transformedDeclaration = declarationTransform(destinationDeclaration, options, availableIndices, cancellationToken);
 
             var destinationTree = destinationDeclaration.SyntaxTree;
@@ -344,7 +344,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 generateMethodBodies: options.GenerateMethodBodies,
                 generateDocumentationComments: options.GenerateDocumentationComments,
                 autoInsertionLocation: options.AutoInsertionLocation,
-                reuseSyntax: options.ReuseSyntax);
+                reuseSyntax: options.ReuseSyntax,
+                sortMembers: options.SortMembers);
             return options;
         }
 

@@ -67,6 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var declaration = GetDeclarationSyntaxWithoutMembers(namedType, destination, options);
 
+            if (namedType.IsComImport)
+            {
+                // If we're generating a ComImport type, then do not attempt to do any
+                // reordering of members.
+                options = options.With(autoInsertionLocation: false, sortMembers: false);
+            }
+
             // If we are generating members then make sure to exclude properties that cannot be generated.
             // Reason: Calling AddProperty on a propertysymbol that can't be generated (like one with params) causes
             // the getter and setter to get generated instead. Since the list of members is going to include

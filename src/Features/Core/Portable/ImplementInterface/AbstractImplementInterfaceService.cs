@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 yield break;
             }
 
-            if (state.UnimplementedMembers != null && state.UnimplementedMembers.Count > 0)
+            if (state.UnimplementedMembers.Length > 0)
             {
                 yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, state);
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
             }
 
-            if (state.UnimplementedExplicitMembers != null && state.UnimplementedExplicitMembers.Count > 0)
+            if (state.UnimplementedExplicitMembers.Length > 0)
             {
                 yield return ImplementInterfaceCodeAction.CreateImplementExplicitlyCodeAction(this, document, state);
 
