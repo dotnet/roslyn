@@ -333,6 +333,43 @@ class Class2 { }";
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveNestedTypePreserveModifiers()
+        {
+            var code =
+@"namespace N1
+{
+    abstract class Class1 
+    {
+        [||]class Class2 { }
+    }
+    
+}";
+
+            var codeAfterMove =
+@"namespace N1
+{
+    abstract partial class Class1
+    {
+
+    }
+}";
+
+            var expectedDocumentName = "Class2.cs";
+
+            var destinationDocumentText =
+@"namespace N1
+{
+    abstract partial class Class1 
+    {
+        class Class2
+        {
+        }
+    }
+}";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         [WorkItem(14004, "https://github.com/dotnet/roslyn/issues/14004")]
         public async Task MoveNestedTypeToNewFile_Attributes1()
         {

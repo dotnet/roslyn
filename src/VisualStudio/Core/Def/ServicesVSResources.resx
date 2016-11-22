@@ -798,8 +798,8 @@ Additional information: {1}</value>
   <data name="Specification" xml:space="preserve">
     <value>Specification</value>
   </data>
-  <data name="Style" xml:space="preserve">
-    <value>Style</value>
+  <data name="Required_Style" xml:space="preserve">
+    <value>Required Style</value>
   </data>
   <data name="This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule" xml:space="preserve">
     <value>This item cannot be deleted because it is used by an existing Naming Rule.</value>
@@ -828,7 +828,16 @@ Additional information: {1}</value>
   <data name="Implement_Interface_or_Abstract_Class" xml:space="preserve">
     <value>Implement Interface or Abstract Class</value>
   </data>
-  <data name="Keep_properties_events_and_methods_grouped_when_implementing_types" xml:space="preserve">
-    <value>Keep properties, events and methods grouped when implementing types</value>
+  <data name="For_a_given_symbol_only_the_topmost_rule_with_a_matching_Specification_will_be_applied_Violation_of_that_rules_Required_Style_will_be_reported_at_the_chosen_Severity_level" xml:space="preserve">
+    <value>For a given symbol, only the topmost rule with a matching 'Specification' will be applied. Violation of that rule's 'Required Style' will be reported at the chosen 'Severity' level.</value>
+  </data>
+  <data name="at_the_end" xml:space="preserve">
+    <value>at the end</value>
+  </data>
+  <data name="When_inserting_properties_events_and_methods_place_them" xml:space="preserve">
+    <value>When inserting properties, events and methods, place them:</value>
+  </data>
+  <data name="with_other_members_of_the_same_kind" xml:space="preserve">
+    <value>with other members of the same kind</value>
   </data>
 </root>
