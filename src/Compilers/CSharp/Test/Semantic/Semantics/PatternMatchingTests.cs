@@ -3530,25 +3530,25 @@ public class C
             Assert.Null(model.GetDeclaredSymbol(discard1));
             var declaration1 = (DeclarationPatternSyntax)discard1.Parent;
             Assert.Equal("int _", declaration1.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
 
             var discard2 = GetDiscardDesignations(tree).Skip(1).First();
             Assert.Null(model.GetDeclaredSymbol(discard2));
             var declaration2 = (DeclarationPatternSyntax)discard2.Parent;
             Assert.Equal("var _", declaration2.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+            //Assert.Equal("", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
 
             var discard3 = GetDiscardDesignations(tree).Skip(2).First();
             Assert.Null(model.GetDeclaredSymbol(discard3));
             var declaration3 = (DeclarationPatternSyntax)discard3.Parent;
             Assert.Equal("int _", declaration3.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration3).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+            //Assert.Equal("", model.GetTypeInfo(declaration3).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
 
             var discard4 = GetDiscardDesignations(tree).Skip(3).First();
             Assert.Null(model.GetDeclaredSymbol(discard4));
             var declaration4 = (DeclarationPatternSyntax)discard4.Parent;
             Assert.Equal("var _", declaration4.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration4).Type.ToTestDisplayString()); // PROTOTYPE(wildcards) fix
+            //Assert.Equal("", model.GetTypeInfo(declaration4).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
         }
 
         [Fact]
