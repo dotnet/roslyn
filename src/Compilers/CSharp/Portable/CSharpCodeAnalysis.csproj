@@ -173,6 +173,7 @@
     <Compile Include="BoundTree\DecisionTreeBuilder.cs" />
     <Compile Include="BoundTree\Expression.cs" />
     <Compile Include="BoundTree\DeconstructionVariablePendingInference.cs" />
+    <Compile Include="BoundTree\BoundDiscardedExpression.cs" />
     <Compile Include="BoundTree\OutVariablePendingInference.cs" />
     <Compile Include="BoundTree\OutDeconstructVarPendingInference.cs" />
     <Compile Include="BoundTree\PseudoVariableExpressions.cs" />

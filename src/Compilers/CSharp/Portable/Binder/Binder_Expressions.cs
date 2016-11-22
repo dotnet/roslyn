@@ -1142,6 +1142,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                if (node.IsKind(SyntaxKind.IdentifierName) && FallBackOnDiscard((IdentifierNameSyntax)node, diagnostics))
+                {
+                    return new BoundDiscardedExpression(node, type: null);
+                }
+
                 // Otherwise, the simple-name is undefined and a compile-time error occurs.
                 expression = BadExpression(node);
                 if (lookupResult.Error != null)
@@ -1164,6 +1169,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             lookupResult.Free();
             return expression;
+        }
+
+        /// <summary>
+        /// Is this is an _ identifier in a context where discards are allowed?
+        /// </summary>
+        private static bool FallBackOnDiscard(IdentifierNameSyntax node, DiagnosticBag diagnostics)
+        {
+            if (node.Identifier.ContextualKind() != SyntaxKind.UnderscoreToken)
+            {
+                return false;
+            }
+
+            CSharpSyntaxNode containingDeconstruction = node.GetContainingDeconstruction();
+            return containingDeconstruction != null || IsOutVarDiscardIdentifier(node);
+        }
+
+        private static bool IsOutVarDiscardIdentifier(SimpleNameSyntax node)
+        {
+            Debug.Assert(node.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
+
+            CSharpSyntaxNode parent = node.Parent;
+            return (parent?.Kind() == SyntaxKind.Argument &&
+                ((ArgumentSyntax)parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword);
         }
 
         private BoundExpression SynthesizeMethodGroupReceiver(CSharpSyntaxNode syntax, ArrayBuilder<Symbol> members)
@@ -2096,12 +2124,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindOutVariableArgument(DeclarationExpressionSyntax declarationExpression, DiagnosticBag diagnostics)
         {
             TypeSyntax typeSyntax = declarationExpression.Type;
-            var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
+            VariableDesignationSyntax designation = declarationExpression.Designation;
+            switch (designation.Kind())
+            {
+                case SyntaxKind.DiscardedDesignation:
+                    {
+                        bool isVar;
+                        bool isConst = false;
+                        AliasSymbol alias;
+                        TypeSymbol declType = BindVariableType(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
+                        Debug.Assert(isVar == ((object)declType == null));
+
+                        return new BoundDiscardedExpression((DiscardedDesignationSyntax)designation, declType);
+                    }
+                case SyntaxKind.SingleVariableDesignation:
+                    return BindOutVariableDeclarationArgument(declarationExpression, diagnostics);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(designation.Kind());
+            }
+        }
+
+        private BoundExpression BindOutVariableDeclarationArgument(
+             DeclarationExpressionSyntax declarationExpression,
+             DiagnosticBag diagnostics)
+        {
             bool isVar;
+            var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
+            TypeSyntax typeSyntax = declarationExpression.Type;
 
             // Is this a local?
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
-
             if ((object)localSymbol != null)
             {
                 if (InConstructorInitializer || InFieldInitializer)
@@ -2350,11 +2402,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
                     arguments[arg] = ((OutDeconstructVarPendingInference)argument).SetInferredType(parameterType, success: true);
                 }
-                else if (argument.Kind == BoundKind.DiscardedExpression && (object)argument.Type == null)
+                else if (argument.Kind == BoundKind.DiscardedExpression && !argument.HasExpressionType())
                 {
                     TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
                     Debug.Assert((object)parameterType != null);
-                    arguments[arg] = ((BoundDiscardedExpression)argument).Update(parameterType);
+                    arguments[arg] = ((BoundDiscardedExpression)argument).SetInferredType(parameterType);
                 }
             }
         }
@@ -6181,6 +6233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (index.Kind == BoundKind.OutVariablePendingInference)
             {
                 return ((OutVariablePendingInference)index).FailInference(this, diagnostics);
+            }
+            else if (index.Kind == BoundKind.DiscardedExpression && !index.HasExpressionType())
+            {
+                return ((BoundDiscardedExpression)index).FailInference(this, diagnostics);
             }
 
             var result =

@@ -640,7 +640,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 case BoundKind.ExpressionStatement:
                 case BoundKind.LocalDeclaration:
                 case BoundKind.MultipleLocalDeclarations:
-                case BoundKind.LocalDeconstructionDeclaration:
                     return compilation.GetSpecialType(SpecialType.System_Void);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(bodyOpt.Kind);
