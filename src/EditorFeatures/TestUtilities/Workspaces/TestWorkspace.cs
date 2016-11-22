@@ -224,6 +224,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public new void OnDocumentRemoved(DocumentId documentId)
         {
+            if (this.IsDocumentOpen(documentId))
+            {
+                this.CloseDocument(documentId);
+            }
+
             base.OnDocumentRemoved(documentId);
         }
 
@@ -299,7 +304,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         protected override void ApplyDocumentAdded(DocumentInfo info, SourceText text)
         {
             var hostProject = this.GetTestProject(info.Id.ProjectId);
-            var hostDocument = new TestHostDocument(text.ToString(), info.Name, info.SourceCodeKind, info.Id);
+            var hostDocument = new TestHostDocument(
+                text.ToString(), info.Name, info.SourceCodeKind, 
+                info.Id, folders: info.Folders);
             hostProject.AddDocument(hostDocument);
             this.OnDocumentAdded(hostDocument.ToDocumentInfo());
         }
