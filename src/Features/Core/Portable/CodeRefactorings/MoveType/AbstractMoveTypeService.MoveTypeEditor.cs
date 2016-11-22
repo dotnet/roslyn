@@ -217,7 +217,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     var symbol = (ITypeSymbol)State.SemanticDocument.SemanticModel.GetDeclaredSymbol(node, CancellationToken);
                     if (!semanticFacts.IsPartial(symbol, CancellationToken))
                     {
-                        documentEditor.SetModifiers(node, DeclarationModifiers.Partial);
+                        documentEditor.SetModifiers(node, 
+                            documentEditor.Generator.GetModifiers(node) | DeclarationModifiers.Partial);
                     }
 
                     if (removeAttributesAndComments)
