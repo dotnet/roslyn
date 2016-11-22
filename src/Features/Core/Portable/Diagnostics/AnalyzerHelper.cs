@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -118,9 +120,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return typeInfo.Assembly.GetName().Name;
         }
 
-        public static OptionSet GetOptionSet(this AnalyzerOptions analyzerOptions)
+        public static async Task<OptionSet> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            return (analyzerOptions as WorkspaceAnalyzerOptions)?.Workspace.Options;
+            var workspace = (analyzerOptions as WorkspaceAnalyzerOptions)?.Workspace;
+            if (workspace == null)
+            {
+                return null;
+            }
+
+            var documentId = workspace.CurrentSolution.GetDocumentId(syntaxTree);
+            if (documentId == null)
+            {
+                return workspace.Options;
+            }
+
+            var document = workspace.CurrentSolution.GetDocument(documentId);
+            if (document == null)
+            {
+                return workspace.Options;
+            }
+
+            var documentOptionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return documentOptionSet ?? workspace.Options;
         }
 
         internal static void OnAnalyzerException_NoTelemetryLogging(

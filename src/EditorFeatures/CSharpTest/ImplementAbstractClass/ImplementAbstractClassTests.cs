@@ -1515,7 +1515,7 @@ class Derived : Base
     void Foo() { }
 
     public override int Prop => throw new NotImplementedException();
-}", options: Option(ImplementTypeOptions.Keep_properties_events_and_methods_grouped_when_implementing_types, false));
+}", options: Option(ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd));
         }
     }
 }

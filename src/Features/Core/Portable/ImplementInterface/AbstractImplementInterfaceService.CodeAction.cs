@@ -184,7 +184,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     cancellationToken);
 
                 var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var groupMembers = options.GetOption(ImplementTypeOptions.Keep_properties_events_and_methods_grouped_when_implementing_types);
+                var insertionBehavior = options.GetOption(ImplementTypeOptions.InsertionBehavior);
+                var groupMembers = insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
                 result = await CodeGenerator.AddMemberDeclarationsAsync(
                     result.Project.Solution, classOrStructType, memberDefinitions,

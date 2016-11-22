@@ -46,7 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
             BindToOption(AllowMovingDeclaration, ExtractMethodOptions.AllowMovingDeclaration, LanguageNames.CSharp);
 
-            BindToOption(Keep_properties_events_and_methods_grouped_when_implementing_types, ImplementTypeOptions.Keep_properties_events_and_methods_grouped_when_implementing_types, LanguageNames.CSharp);
+            BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.CSharp);
+            BindToOption(at_the_end, ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd, LanguageNames.CSharp);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ImplementType
     internal class ImplementTypeOptionsProvider : IOptionProvider
     {
         private readonly IEnumerable<IOption> _options = ImmutableArray.Create<IOption>(
-                ImplementTypeOptions.Keep_properties_events_and_methods_grouped_when_implementing_types);
+            ImplementTypeOptions.InsertionBehavior);
 
         public IEnumerable<IOption> GetOptions() => _options;
     }

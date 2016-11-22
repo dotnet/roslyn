@@ -77,14 +77,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan, int minimumLength)
         {
-            snapshotSpan = base.AdjustSnapshotSpan(snapshotSpan, minimumLength);
-
-            // Cap a suggestion line length at two characters.
-            var span = snapshotSpan.Span;
-            snapshotSpan = new SnapshotSpan(snapshotSpan.Snapshot,
-                new Span(span.Start, Math.Min(span.Length, 2)));
-
-            return snapshotSpan;
+            // We always want suggestion tags to be two characters long.
+            return base.AdjustSnapshotSpan(snapshotSpan, minimumLength: 2, maximumLength: 2);
         }
     }
 }

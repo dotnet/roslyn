@@ -4,11 +4,20 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ImplementType
 {
+    internal enum ImplementTypeInsertionBehavior
+    {
+        WithOtherMembersOfTheSameKind = 0,
+        AtTheEnd = 1,
+    }
+
     internal static class ImplementTypeOptions
     {
-        public static readonly PerLanguageOption<bool> Keep_properties_events_and_methods_grouped_when_implementing_types = new PerLanguageOption<bool>(
-            nameof(ImplementTypeOptions), 
-            nameof(Keep_properties_events_and_methods_grouped_when_implementing_types), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.{nameof(Keep_properties_events_and_methods_grouped_when_implementing_types)}"));
+        public static readonly PerLanguageOption<ImplementTypeInsertionBehavior> InsertionBehavior = 
+            new PerLanguageOption<ImplementTypeInsertionBehavior>(
+                nameof(ImplementTypeOptions), 
+                nameof(InsertionBehavior), 
+                defaultValue: ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind,
+                storageLocations: new RoamingProfileStorageLocation(
+                    $"TextEditor.%LANGUAGE%.{nameof(ImplementTypeOptions)}.{nameof(InsertionBehavior)}"));
     }
 }

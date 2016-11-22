@@ -78,8 +78,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Implement_Interface_or_Abstract_Class As String =
             ServicesVSResources.Implement_Interface_or_Abstract_Class
 
-        Public ReadOnly Property Option_Keep_properties_events_and_methods_grouped_when_implementing_types As String =
-            ServicesVSResources.Keep_properties_events_and_methods_grouped_when_implementing_types
+        Public ReadOnly Property Option_When_inserting_properties_events_and_methods_place_them As String =
+            ServicesVSResources.When_inserting_properties_events_and_methods_place_them
+
+        Public ReadOnly Property Option_with_other_members_of_the_same_kind As String =
+            ServicesVSResources.with_other_members_of_the_same_kind
+
+        Public ReadOnly Property Option_at_the_end As String =
+            ServicesVSResources.at_the_end
 
         Public ReadOnly Property Option_GenerateXmlDocCommentsForTripleApostrophes As String
             Get
