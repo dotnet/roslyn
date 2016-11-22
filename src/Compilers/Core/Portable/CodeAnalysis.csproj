@@ -26,6 +26,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
+    <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerExecutionContext.cs" />
     <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
@@ -218,7 +219,6 @@
     <Compile Include="DiagnosticAnalyzer\AnalyzerTelemetry.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerActionCounts.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerExecutor.cs" />
-    <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerAndOptions.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerManager.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilationCompletedEvent.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilationEvent.cs" />

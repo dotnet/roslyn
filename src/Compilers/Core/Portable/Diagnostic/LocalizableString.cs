@@ -121,6 +121,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Flag indicating if any methods on this type can throw exceptions from public entrypoints.
+        /// </summary>
         internal virtual bool CanThrowExceptions => true;
     }
 }
