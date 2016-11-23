@@ -132,8 +132,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 }
                 else
                 {
-                    value = optionKey.Option.DefaultValue;
+                    value = null;
+                    return false;
                 }
+            }
+            else if (optionKey.Option.Type == typeof(bool) && value is int intValue)
+            {
+                // TypeScript used to store some booleans as integers. We now handle them properly for legacy sync scenarios.
+                value = intValue != 0;
+                return true;
+            }
+            else if (optionKey.Option.Type == typeof(bool) && value is long longValue)
+            {
+                // TypeScript used to store some booleans as integers. We now handle them properly for legacy sync scenarios.
+                value = longValue != 0;
+                return true;
+            }
+            else if (value != null && optionKey.Option.Type != value.GetType())
+            {
+                // We got something back different than we expected, so fail to deserialize
+                value = null;
+                return false;
             }
 
             return true;
