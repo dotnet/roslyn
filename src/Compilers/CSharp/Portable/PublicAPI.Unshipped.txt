@@ -127,10 +127,10 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax.Update(Microsoft.Code
 Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax.WithThrowKeyword(Microsoft.CodeAnalysis.SyntaxToken throwKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax.Name.get -> Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax.Identifier.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax name) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax.WithName(Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax name) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax.WithIdentifier(Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax.AddArguments(params Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax
@@ -255,6 +255,7 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.Accept<TResult>(Mi
 override Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.SingleVariableDesignationSyntax designationSyntax, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.ISymbol
+static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax declarationSyntax, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.ISymbol
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetForEachStatementInfo(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax forEachStatement) -> Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AccessorDeclaration(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AccessorDeclaration(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax body) -> Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax
@@ -296,7 +297,7 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SingleVariableDesignation(Mic
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ThrowExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ThrowExpression(Microsoft.CodeAnalysis.SyntaxToken throwKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TupleElement(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TupleElement(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax name) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TupleElement(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TupleExpression(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax> arguments = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TupleExpression(Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax> arguments, Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TupleType(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax> elements = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax

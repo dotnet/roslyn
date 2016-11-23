@@ -271,11 +271,11 @@
         <summary>Gets the type of the tuple element.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Name" Type="IdentifierNameSyntax" Optional="true">
+    <Field Name="Identifier" Type="SyntaxToken" Optional="true">
       <PropertyComment>
         <summary>Gets the name of the tuple element.</summary>
       </PropertyComment>
-      <Kind Name="IdentifierName"/>
+      <Kind Name="IdentifierToken"/>
     </Field>
   </Node>
   <Node Name="OmittedTypeArgumentSyntax" Base="TypeSyntax">

@@ -291,5 +291,253 @@ End Module
         End Function
 #End Region
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        Public Async Function TupleElementVsLocal_CS_01() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+static class Program
+{
+    static void Main()
+    {
+        (int elem1, int elem2) tuple;
+        int {|Definition:$$elem2|};
+
+        tuple = (5, 6);
+        tuple.elem2 = 23;
+        [|elem2|] = 10;
+
+        Console.WriteLine(tuple.elem2);
+        Console.WriteLine([|elem2|]);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        Public Async Function TupleElementVsLocal_CS_02() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+static class Program
+{
+    static void Main()
+    {
+        (int elem1, int elem2) tuple;
+        int {|Definition:elem2|};
+
+        tuple = (5, 6);
+        tuple.elem2 = 23;
+        [|elem2|] = 10;
+
+        Console.WriteLine(tuple.elem2);
+        Console.WriteLine([|$$elem2|]);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        Public Async Function TupleElementVsLocal_CS_03() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+static class Program
+{
+    static void Main()
+    {
+        (int elem1, int {|Definition:$$elem2|}) tuple;
+        int elem2;
+
+        tuple = (5, 6);
+        tuple.[|elem2|] = 23;
+        elem2 = 10;
+
+        Console.WriteLine(tuple.[|elem2|]);
+        Console.WriteLine(elem2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        Public Async Function TupleElementVsLocal_CS_04() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+static class Program
+{
+    static void Main()
+    {
+        (int elem1, int {|Definition:elem2|}) tuple;
+        int elem2;
+
+        tuple = (5, 6);
+        tuple.[|elem2|] = 23;
+        elem2 = 10;
+
+        Console.WriteLine(tuple.[|$$elem2|]);
+        Console.WriteLine(elem2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        Public Async Function TupleElementVsLocal_VB_01() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Imports System
+Module C
+
+    Sub Main()
+        Dim tuple As (elem1 As Integer, elem2 As Integer)
+        Dim {|Definition:$$elem2|} As Integer
+
+        tuple = (5, 6)
+        tuple.elem2 = 23
+        [|elem2|] = 10
+
+        Console.WriteLine(tuple.elem2)
+        Console.WriteLine([|elem2|])
+    End Sub
+End Module
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        Public Async Function TupleElementVsLocal_VB_02() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Imports System
+Module C
+
+    Sub Main()
+        Dim tuple As (elem1 As Integer, elem2 As Integer)
+        Dim {|Definition:elem2|} As Integer
+
+        tuple = (5, 6)
+        tuple.elem2 = 23
+        [|elem2|] = 10
+
+        Console.WriteLine(tuple.elem2)
+        Console.WriteLine([|$$elem2|])
+    End Sub
+End Module
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        Public Async Function TupleElementVsLocal_VB_03() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Imports System
+Module C
+
+    Sub Main()
+        Dim tuple As (elem1 As Integer, {|Definition:$$elem2|} As Integer)
+        Dim elem2 As Integer
+
+        tuple = (5, 6)
+        tuple.[|elem2|] = 23
+        elem2 = 10
+
+        Console.WriteLine(tuple.[|elem2|])
+        Console.WriteLine(elem2)
+    End Sub
+End Module
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        Public Async Function TupleElementVsLocal_VB_04() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Imports System
+Module C
+
+    Sub Main()
+        Dim tuple As (elem1 As Integer, {|Definition:elem2|} As Integer)
+        Dim elem2 As Integer
+
+        tuple = (5, 6)
+        tuple.[|elem2|] = 23
+        elem2 = 10
+
+        Console.WriteLine(tuple.[|$$elem2|])
+        Console.WriteLine(elem2)
+    End Sub
+End Module
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
     End Class
 End Namespace

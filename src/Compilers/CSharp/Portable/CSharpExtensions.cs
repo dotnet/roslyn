@@ -1234,6 +1234,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Given a tuple element syntax, get the corresponding symbol.
+        /// </summary>
+        public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, TupleElementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+        }
+
+        /// <summary>
         /// Given a labeled statement syntax, get the corresponding label symbol.
         /// </summary>
         public static ILabelSymbol GetDeclaredSymbol(this SemanticModel semanticModel, LabeledStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))

@@ -6647,11 +6647,11 @@ tryAgain:
         private TupleElementSyntax ParseTupleElement()
         {
             var type = ParseType();
-            IdentifierNameSyntax name = null;
+            SyntaxToken name = null;
 
-            if (CurrentToken.Kind == SyntaxKind.IdentifierToken)
+            if (IsTrueIdentifier())
             {
-                name = ParseIdentifierName();
+                name = this.ParseIdentifierToken();
             }
 
             return _syntaxFactory.TupleElement(type, name);
