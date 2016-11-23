@@ -3979,6 +3979,12 @@ tryAgain:
                                 attributes.Clear();
                                 modifiers.Clear();
                                 parameter = this.ParseParameter(attributes, modifiers, allowThisKeyword, allowDefaults, allowAttributes);
+                                if (parameter.IsMissing && this.IsPossibleParameter(allowThisKeyword))
+                                {
+                                    // ensure we always consume tokens
+                                    parameter = AddTrailingSkippedSyntax(parameter, this.EatToken());
+                                }
+
                                 nodes.Add(parameter);
                                 hasParams = modifiers.Any((int)SyntaxKind.ParamsKeyword);
                                 hasArgList = parameter.Identifier.Kind == SyntaxKind.ArgListKeyword;
@@ -8014,6 +8020,11 @@ tryAgain:
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var variable = ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureTuples, permitTupleDesignation: true);
             var @in = this.EatToken(SyntaxKind.InKeyword, ErrorCode.ERR_InExpected);
+            if (!IsValidForeachVariable(variable))
+            {
+                @in = this.AddError(@in, ErrorCode.ERR_BadForeachDecl);
+            }
+
             var expression = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var statement = this.ParseEmbeddedStatement(true);
@@ -8042,6 +8053,24 @@ tryAgain:
             }
 
             return _syntaxFactory.ForEachVariableStatement(@foreach, openParen, variable, @in, expression, closeParen, statement);
+        }
+
+        private bool IsValidForeachVariable(ExpressionSyntax variable)
+        {
+            switch (variable.Kind)
+            {
+                case SyntaxKind.DeclarationExpression:
+                    // e.g. `foreach (var (x, y) in e)`
+                    return true;
+                case SyntaxKind.TupleExpression:
+                    // e.g. `foreach ((var x, var y) in e)`
+                    return true;
+                case SyntaxKind.IdentifierName:
+                    // e.g. `foreach (_ in e)`
+                    return ((IdentifierNameSyntax)variable).Identifier.ContextualKind == SyntaxKind.UnderscoreToken;
+                default:
+                    return false;
+            }
         }
 
         private GotoStatementSyntax ParseGotoStatement()
@@ -10079,10 +10108,9 @@ tryAgain:
                             break;
                     }
 
-                    // NOTE: if we see "out" or ref" and part of cases 3,4,5,6 followed by EOF, we'll parse as a lambda.
                     if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken)
                     {
-                        return true;
+                        return foundRefOrOut;
                     }
 
                     // NOTE: advances CurrentToken
@@ -10091,38 +10119,22 @@ tryAgain:
                         return false;
                     }
 
-                    if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken)
+                    if (this.IsTrueIdentifier())
                     {
-                        return true;
+                        // eat the identifier
+                        this.EatToken();
                     }
-
-                    if (!this.IsTrueIdentifier())
-                    {
-                        return false;
-                    }
-
-                    // eat the identifier
-                    this.EatToken();
 
                     switch (this.CurrentToken.Kind)
                     {
                         case SyntaxKind.EndOfFileToken:
-                            return true;
+                            return foundRefOrOut;
 
                         case SyntaxKind.CommaToken:
-                            if (foundRefOrOut) return true;
                             continue;
 
                         case SyntaxKind.CloseParenToken:
-                            switch (this.PeekToken(1).Kind)
-                            {
-                                case SyntaxKind.EndOfFileToken:
-                                case SyntaxKind.EqualsGreaterThanToken:
-                                    return true;
-
-                                default:
-                                    return false;
-                            }
+                            return this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken;
 
                         default:
                             return false;
