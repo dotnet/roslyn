@@ -283,12 +283,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var diagnostics = newSemanticModel.GetDiagnostics(currentBlock.Span, cancellationToken);
 
             var diagnosticSpans = diagnostics.Where(d => d.Id == CS0165)
-                                                .Select(d => d.Location.SourceSpan)
-                                                .Distinct();
+                                             .Select(d => d.Location.SourceSpan)
+                                             .Distinct();
 
             var newReferenceSpans = rootWithoutInitializer.GetCurrentNodes<SyntaxNode>(references)
-                                                            .Select(n => n.Span)
-                                                            .Distinct();
+                                                          .Select(n => n.Span)
+                                                          .Distinct();
 
             return diagnosticSpans.Intersect(newReferenceSpans).Any();
         }
