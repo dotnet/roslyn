@@ -21,6 +21,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             actualErrors.Verify(expectedErrors);
         }
 
+        public static void ParseAndValidate(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
+        {
+            var parsedTree = ParseWithRoundTripCheck(text, options: options);
+            var actualErrors = parsedTree.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+        }
+
+        public static void ParseAndValidateFirst(string text, DiagnosticDescription expectedFirstError)
+        {
+            var parsedTree = ParseWithRoundTripCheck(text);
+            var actualErrors = parsedTree.GetDiagnostics();
+            actualErrors.Take(1).Verify(expectedFirstError);
+        }
+
         protected virtual SyntaxTree ParseTree(string text, CSharpParseOptions options) => SyntaxFactory.ParseSyntaxTree(text, options);
 
         public CompilationUnitSyntax ParseFile(string text, CSharpParseOptions parseOptions = null) =>

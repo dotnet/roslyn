@@ -5174,30 +5174,5 @@ class Program
         }
 
         #endregion
-
-        #region "Helpers"
-
-        public static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
-        {
-            var parsedTree = ParseWithRoundTripCheck(text);
-            var actualErrors = parsedTree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-        }
-
-        public static void ParseAndValidate(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
-        {
-            var parsedTree = ParseWithRoundTripCheck(text, options: options);
-            var actualErrors = parsedTree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-        }
-
-        public static void ParseAndValidateFirst(string text, DiagnosticDescription expectedFirstError)
-        {
-            var parsedTree = ParseWithRoundTripCheck(text);
-            var actualErrors = parsedTree.GetDiagnostics();
-            actualErrors.Take(1).Verify(expectedFirstError);
-        }
-
-        #endregion
     }
 }
