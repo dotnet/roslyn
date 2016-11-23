@@ -454,5 +454,20 @@ class C
 }",
 compareTokens: false);
         }
+
+        [WorkItem(15459, "https://github.com/dotnet/roslyn/issues/15459")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestMissingInNonTopLevelObjectInitializer()
+        {
+            await TestMissingAsync(
+@"class C {
+	int a;
+	C Add(int x) {
+		var c = Add([||]new int());
+		c.a = 1;
+		return c;
+	}
+}");
+        }
     }
 }
