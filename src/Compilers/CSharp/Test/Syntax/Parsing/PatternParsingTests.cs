@@ -292,5 +292,12 @@ class C
             SyntaxFactory.ParseExpression("A is B < C, D > [ ] E").GetDiagnostics().Verify();
             SyntaxFactory.ParseExpression("A < B > C").GetDiagnostics().Verify();
         }
+
+        [Fact]
+        public void QueryContextualPatternVariable()
+        {
+            SyntaxFactory.ParseExpression("from s in a where s is string where s.Length > 1 select s").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("M(out int? x)").GetDiagnostics().Verify();
+        }
     }
 }

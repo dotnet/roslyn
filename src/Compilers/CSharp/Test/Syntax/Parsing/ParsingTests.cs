@@ -6,12 +6,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Xunit;
 using System.Linq;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public abstract class ParsingTests : CSharpTestBase
     {
         private IEnumerator<SyntaxNodeOrToken> _treeEnumerator;
+
+        public static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            var parsedTree = ParseWithRoundTripCheck(text);
+            var actualErrors = parsedTree.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+        }
 
         protected virtual SyntaxTree ParseTree(string text, CSharpParseOptions options) => SyntaxFactory.ParseSyntaxTree(text, options);
 
