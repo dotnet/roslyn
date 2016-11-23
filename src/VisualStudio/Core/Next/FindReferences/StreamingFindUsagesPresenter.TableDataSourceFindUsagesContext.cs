@@ -566,8 +566,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 lock (_gate)
                 {
-                    RoslynDefinitionBucket bucket;
-                    if (!_definitionToBucket.TryGetValue(definition, out bucket))
+                    if (!_definitionToBucket.TryGetValue(definition, out var bucket))
                     {
                         bucket = new RoslynDefinitionBucket(Presenter, this, definition);
                         _definitionToBucket.Add(definition, bucket);

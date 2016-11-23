@@ -244,8 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
                 var newArgumentList = GetNewArgumentList(oldArgumentList, argumentCount);
 
                 var newCtorInitializer = SyntaxFactory.ConstructorInitializer(newCtorInitializerKind, ctorInitializer.ColonToken, thisOrBaseKeyword, newArgumentList);
-                SemanticModel speculativeModel;
-                if (document.SemanticModel.TryGetSpeculativeSemanticModel(ctorInitializer.Span.Start, newCtorInitializer, out speculativeModel))
+                if (document.SemanticModel.TryGetSpeculativeSemanticModel(ctorInitializer.Span.Start, newCtorInitializer, out var speculativeModel))
                 {
                     var symbolInfo = speculativeModel.GetSymbolInfo(newCtorInitializer, cancellationToken);
                     return GenerateConstructorHelpers.GetDelegatingConstructor(

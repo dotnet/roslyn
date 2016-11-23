@@ -86,8 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
                 return string.Empty;
             }
 
-            XElement xml;
-            if (!TryParseDocCommentXml(documentationCommentXml, out xml))
+            if (!TryParseDocCommentXml(documentationCommentXml, out var xml))
             {
                 // If we failed to parse, maybe it was because the XML fragment represents multiple elements.
                 // Try surrounding with <doc></doc> and parse again.

@@ -116,13 +116,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             // mark it as running
                             _running = source.Task;
-
                             // okay, there must be at least one item in the map
-
                             // see whether we have work item for the document
-                            WorkItem workItem;
-                            CancellationTokenSource documentCancellation;
-                            Contract.ThrowIfFalse(GetNextWorkItem(out workItem, out documentCancellation));
+                            Contract.ThrowIfFalse(GetNextWorkItem(out var workItem, out var documentCancellation));
 
                             var solution = _processor.CurrentSolution;
 

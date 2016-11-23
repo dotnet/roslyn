@@ -107,8 +107,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         public ImmutableArray<DiagnosticData> GetResultOrEmpty(ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> map, DocumentId key)
         {
             // this is just a helper method.
-            ImmutableArray<DiagnosticData> diagnostics;
-            if (map.TryGetValue(key, out diagnostics))
+            if (map.TryGetValue(key, out var diagnostics))
             {
                 Contract.ThrowIfFalse(DocumentIds.Contains(key));
                 return diagnostics;

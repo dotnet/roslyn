@@ -127,8 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private bool ShouldClearTrackingSession(ITextChange change)
             {
                 AssertIsForeground();
-                ISyntaxFactsService syntaxFactsService;
-                if (!TryGetSyntaxFactsService(out syntaxFactsService))
+                if (!TryGetSyntaxFactsService(out var syntaxFactsService))
                 {
                     return true;
                 }
@@ -159,9 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 var change = eventArgs.Changes.Single();
                 var beforeText = eventArgs.Before.AsText();
-
-                ISyntaxFactsService syntaxFactsService;
-                if (!TryGetSyntaxFactsService(out syntaxFactsService))
+                if (!TryGetSyntaxFactsService(out var syntaxFactsService))
                 {
                     return;
                 }
@@ -272,9 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     return false;
                 }
 
-                ISyntaxFactsService syntaxFactsService;
-                IRenameTrackingLanguageHeuristicsService languageHeuristicsService;
-                return TryGetSyntaxFactsService(out syntaxFactsService) && TryGetLanguageHeuristicsService(out languageHeuristicsService) &&
+                return TryGetSyntaxFactsService(out var syntaxFactsService) && TryGetLanguageHeuristicsService(out var languageHeuristicsService) &&
                     trackingSession.CanInvokeRename(syntaxFactsService, languageHeuristicsService, isSmartTagCheck, waitForResult, cancellationToken);
             }
 
@@ -294,8 +289,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         return SpecializedCollections.EmptyEnumerable<Diagnostic>();
                     }
 
-                    TrackingSession trackingSession;
-                    if (CanInvokeRename(out trackingSession, waitForResult: true, cancellationToken: cancellationToken))
+                    if (CanInvokeRename(out var trackingSession, waitForResult: true, cancellationToken: cancellationToken))
                     {
                         SnapshotSpan snapshotSpan = trackingSession.TrackingSpan.GetSpan(Buffer.CurrentSnapshot);
                         var textSpan = snapshotSpan.Span.ToTextSpan();

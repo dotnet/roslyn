@@ -52,9 +52,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
 
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            TInvocationExpressionSyntax invocation;
-            ISymbol invocationSymbol;
-            if (TryFindInvocation(context.Span, root, semanticModel, formatMethods, syntaxFactsService, context.CancellationToken, out invocation, out invocationSymbol) &&
+            if (TryFindInvocation(context.Span, root, semanticModel, formatMethods, syntaxFactsService, context.CancellationToken, out var invocation, out var invocationSymbol) &&
                 IsArgumentListCorrect(syntaxFactsService.GetArgumentsOfInvocationExpression(invocation), invocationSymbol, formatMethods, semanticModel, syntaxFactsService, context.CancellationToken))
             {
                 context.RegisterRefactoring(
@@ -186,9 +184,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     var literalExpression = syntaxFactsService.GetExpressionOfInterpolation(interpolationSyntaxNode) as TLiteralExpressionSyntax;
                     if (literalExpression != null && syntaxFactsService.IsNumericLiteralExpression(literalExpression))
                     {
-                        int index;
-
-                        if (int.TryParse(literalExpression.GetFirstToken().ValueText, out index))
+                        if (int.TryParse(literalExpression.GetFirstToken().ValueText, out var index))
                         {
                             if (index >= 0 && index < expandedArguments.Length)
                             {

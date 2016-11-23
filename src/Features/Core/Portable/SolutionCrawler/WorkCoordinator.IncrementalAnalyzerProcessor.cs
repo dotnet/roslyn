@@ -262,8 +262,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return null;
                     }
 
-                    SyntaxNode memberNode;
-                    if (!memberPath.TryResolve(root, out memberNode))
+                    if (!memberPath.TryResolve(root, out SyntaxNode memberNode))
                     {
                         return null;
                     }
@@ -334,8 +333,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         lock (_analyzerMap)
                         {
-                            ImmutableArray<ValueTuple<IIncrementalAnalyzer, bool>> analyzers;
-                            if (!_analyzerMap.TryGetValue(workspace, out analyzers))
+                            if (!_analyzerMap.TryGetValue(workspace, out var analyzers))
                             {
                                 // Sort list so BaseDiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
                                 analyzers = _analyzerProviders.Select(p => ValueTuple.Create(p.Value.CreateIncrementalAnalyzer(workspace), p.Metadata.HighPriorityForActiveFile))

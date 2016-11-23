@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            Workspace workspace;
-            if (!Workspace.TryGetWorkspace(buffer.AsTextContainer(), out workspace))
+            if (!Workspace.TryGetWorkspace(buffer.AsTextContainer(), out var workspace))
             {
                 return null;
             }

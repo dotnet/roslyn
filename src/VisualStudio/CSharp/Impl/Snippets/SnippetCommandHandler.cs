@@ -53,8 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return nextHandler();
             }
 
-            Workspace workspace;
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
+            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
             {
                 return nextHandler();
             }
@@ -69,8 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         protected override AbstractSnippetExpansionClient GetSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer)
         {
-            AbstractSnippetExpansionClient expansionClient;
-            if (!textView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out expansionClient))
+            if (!textView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient expansionClient))
             {
                 expansionClient = new SnippetExpansionClient(Guids.CSharpLanguageServiceId, textView, subjectBuffer, EditorAdaptersFactoryService);
                 textView.Properties.AddProperty(typeof(AbstractSnippetExpansionClient), expansionClient);
@@ -81,9 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         protected override void InvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, Action nextHandler, bool surroundWith = false)
         {
-            IVsExpansionManager expansionManager;
-
-            if (!TryGetExpansionManager(out expansionManager))
+            if (!TryGetExpansionManager(out var expansionManager))
             {
                 nextHandler();
                 return;

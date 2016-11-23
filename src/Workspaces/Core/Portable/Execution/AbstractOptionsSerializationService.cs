@@ -310,8 +310,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public override object GetOption(OptionKey optionKey)
             {
-                object value;
-                Contract.ThrowIfFalse(_values.TryGetValue(optionKey, out value));
+                Contract.ThrowIfFalse(_values.TryGetValue(optionKey, out var value));
 
                 return value;
             }

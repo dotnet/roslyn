@@ -69,9 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             _textView = cursorDocument.GetTextView();
             _subjectBuffer = cursorDocument.GetTextBuffer();
 
-            IList<Text.TextSpan> selectionSpanList;
-
-            if (cursorDocument.AnnotatedSpans.TryGetValue("Selection", out selectionSpanList))
+            if (cursorDocument.AnnotatedSpans.TryGetValue("Selection", out var selectionSpanList))
             {
                 var firstSpan = selectionSpanList.First();
                 var lastSpan = selectionSpanList.Last();
