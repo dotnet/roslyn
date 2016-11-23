@@ -22,29 +22,25 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             IntegrationTestServiceCommands.Initialize(this);
 
             var shell = (IVsShell)GetService(typeof(SVsShell));
-            object installDirectoryObject;
-            if (ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_InstallDirectory, out installDirectoryObject)))
+            if (ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_InstallDirectory, out var installDirectoryObject)))
             {
-                string installDirectory = installDirectoryObject as string;
-
-                if (installDirectory != null)
+                if (installDirectoryObject is string installDirectory)
                 {
                     if (!File.Exists(Path.Combine(installDirectory, @"PublicAssemblies\Microsoft.VisualStudio.CodingConventions.dll")))
                     {
-                        AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+                        AppDomain.CurrentDomain.AssemblyResolve += ResolveAssemblyForCurrentDomain;
                     }
                 }
             }
         }
 
-        private System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        private Assembly ResolveAssemblyForCurrentDomain(object sender, ResolveEventArgs args)
         {
             if (args.Name.StartsWith("Microsoft.VisualStudio.CodingConventions"))
             {
                 // Load the one in our package
                 var thisPackage = Path.GetDirectoryName(typeof(IntegrationTestServicePackage).Assembly.Location);
                 var assembly = Path.Combine(thisPackage, "Microsoft.VisualStudio.CodingConventions.dll");
-
                 return Assembly.LoadFile(assembly);
             }
 

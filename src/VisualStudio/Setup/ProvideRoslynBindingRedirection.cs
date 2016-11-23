@@ -20,8 +20,7 @@ namespace Roslyn.VisualStudio.Setup
             // ProvideBindingRedirectionAttribute is sealed, so we can't inherit from it to provide defaults.
             // Instead, we'll do more of an aggregation pattern here.
             // Note that PublicKeyToken, NewVersion and OldVersionUpperBound are read from the actual assembly version of the dll.
-            _redirectionAttribute = new ProvideBindingRedirectionAttribute
-            {
+            _redirectionAttribute = new ProvideBindingRedirectionAttribute {
                 AssemblyName = Path.GetFileNameWithoutExtension(fileName),
                 OldVersionLowerBound = "0.0.0.0",
                 CodeBase = fileName,
@@ -33,15 +32,12 @@ namespace Roslyn.VisualStudio.Setup
             _redirectionAttribute.Register(context);
 
             // Opt into overriding the devenv.exe.config binding redirect
-            using (var key = context.CreateKey(@"RuntimeConfiguration\dependentAssembly\bindingRedirection\" + _redirectionAttribute.Guid.ToString("B").ToUpperInvariant()))
+            using (var key = context.CreateKey($@"RuntimeConfiguration\dependentAssembly\bindingRedirection\{_redirectionAttribute.Guid.ToString("B").ToUpperInvariant()}"))
             {
                 key.SetValue("isPkgDefOverrideEnabled", true);
             }
         }
 
-        public override void Unregister(RegistrationContext context)
-        {
-            _redirectionAttribute.Unregister(context);
-        }
+        public override void Unregister(RegistrationContext context) => _redirectionAttribute.Unregister(context);
     }
 }

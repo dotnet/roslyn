@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
@@ -13,19 +14,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
     internal sealed class IntegrationTestServiceCommands : IDisposable
     {
-        public const int CmdIdStartIntegrationTestService = 0x0100;
-        public const int CmdIdStopIntegrationTestService = 0x0101;
+        #region VSCT Identifiers
+        public const int menuidIntegrationTestService = 0x5001;
 
-        public static readonly Guid GrpIdIntegrationTestServiceCommands = new Guid("82A24540-AEBC-4883-A717-5317F0C0DAE9");
+        public const int grpidTestWindowRunTopLevelMenu = 0x0110;
+        public const int grpidIntegrationTestService = 0x5101;
 
-        private static readonly BinaryServerFormatterSinkProvider DefaultSinkProvider = new BinaryServerFormatterSinkProvider()
-        {
+        public const int cmdidStartIntegrationTestService = 0x5201;
+        public const int cmdidStopIntegrationTestService = 0x5204;
+
+        public static readonly Guid guidTestWindowCmdSet = new Guid("1E198C22-5980-4E7E-92F3-F73168D1FB63");
+        #endregion
+
+        private static readonly BinaryServerFormatterSinkProvider DefaultSinkProvider = new BinaryServerFormatterSinkProvider() {
             TypeFilterLevel = TypeFilterLevel.Full
         };
 
         private readonly Package _package;
-        private readonly MenuCommand _startServiceMenuCmd;
-        private readonly MenuCommand _stopServiceMenuCmd;
+
+        private readonly MenuCommand _startMenuCmd;
+        private readonly MenuCommand _stopMenuCmd;
 
         private IntegrationService _service;
         private IpcServerChannel _serviceChannel;
@@ -33,85 +41,78 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
         private IntegrationTestServiceCommands(Package package)
         {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
+            _package = package ?? throw new ArgumentNullException(nameof(package));
 
-            _package = package;
+            var menuCommandService = ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
 
-            var commandService = ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-            if (commandService != null)
+            if (menuCommandService != null)
             {
-                var startServiceMenuCmdId = new CommandID(GrpIdIntegrationTestServiceCommands, CmdIdStartIntegrationTestService);
-                _startServiceMenuCmd = new MenuCommand(StartServiceCallback, startServiceMenuCmdId) {
+                var startMenuCmdId = new CommandID(guidTestWindowCmdSet, cmdidStartIntegrationTestService);
+                _startMenuCmd = new MenuCommand(StartServiceCallback, startMenuCmdId) {
                     Enabled = true,
-                    Supported = true,
                     Visible = true
                 };
-                commandService.AddCommand(_startServiceMenuCmd);
+                menuCommandService.AddCommand(_startMenuCmd);
 
-                var stopServiceMenuCmdId = new CommandID(GrpIdIntegrationTestServiceCommands, CmdIdStopIntegrationTestService);
-                _stopServiceMenuCmd = new MenuCommand(StopServiceCallback, stopServiceMenuCmdId) {
+                var stopMenuCmdId = new CommandID(guidTestWindowCmdSet, cmdidStopIntegrationTestService);
+                _stopMenuCmd = new MenuCommand(StopServiceCallback, stopMenuCmdId) {
                     Enabled = false,
-                    Supported = true,
                     Visible = false
                 };
-                commandService.AddCommand(_stopServiceMenuCmd);
+                menuCommandService.AddCommand(_stopMenuCmd);
             }
-
         }
 
         public static IntegrationTestServiceCommands Instance { get; private set; }
 
-        private IServiceProvider ServiceProvider
-            => _package;
+        private IServiceProvider ServiceProvider => _package;
 
         public static void Initialize(Package package)
         {
             Instance = new IntegrationTestServiceCommands(package);
         }
 
-        public void Dispose()
-        {
-            StopServiceCallback(this, EventArgs.Empty);
-        }
+        public void Dispose() => StopServiceCallback(this, EventArgs.Empty);
 
         /// <summary>
         /// Starts the IPC server for the Integration Test service.
         /// </summary>
         private void StartServiceCallback(object sender, EventArgs e)
         {
-            if (_startServiceMenuCmd.Enabled)
+            if (_startMenuCmd.Enabled)
             {
                 _service = new IntegrationService();
 
                 _serviceChannel = new IpcServerChannel(
-                    name: null,
+                    name: $"Microsoft.VisualStudio.IntegrationTest.ServiceChannel_{Process.GetCurrentProcess().Id}",
                     portName: _service.PortName,
-                    sinkProvider: DefaultSinkProvider);
+                    sinkProvider: DefaultSinkProvider
+                );
 
                 var serviceType = typeof(IntegrationService);
                 _marshalledService = RemotingServices.Marshal(_service, serviceType.FullName, serviceType);
 
                 _serviceChannel.StartListening(null);
 
-                SwapAvailableCommands(_startServiceMenuCmd, _stopServiceMenuCmd);
+                SwapAvailableCommands(_startMenuCmd, _stopMenuCmd);
             }
         }
 
         /// <summary>Stops the IPC server for the Integration Test service.</summary>
         private void StopServiceCallback(object sender, EventArgs e)
         {
-            if (_stopServiceMenuCmd.Enabled)
+            if (_stopMenuCmd.Enabled)
             {
-                _serviceChannel?.StopListening(null);
+                if (_serviceChannel != null)
+                {
+                    _serviceChannel.StopListening(null);
+                    _serviceChannel = null;
+                }
 
                 _marshalledService = null;
-                _serviceChannel = null;
                 _service = null;
 
-                SwapAvailableCommands(_stopServiceMenuCmd, _startServiceMenuCmd);
+                SwapAvailableCommands(_stopMenuCmd, _startMenuCmd);
             }
         }
 

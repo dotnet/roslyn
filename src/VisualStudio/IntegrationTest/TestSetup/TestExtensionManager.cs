@@ -8,36 +8,31 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
-    /// <summary>
-    /// This class causes a crash if an exception is encountered inside lightbulb extension points such as code fixes and code refactorings.
-    /// </summary>
+    /// <summary>This class causes a crash if an exception is encountered inside lightbulb extension points such as code fixes and code refactorings.</summary>
     /// <remarks>
     /// This class is exported as a workspace service with layer: <see cref="ServiceLayer.Host"/>. This ensures that TestExtensionManager
-    /// is preferred over EditorLayerExtensionManager (which has layer: <see cref="ServiceLayer.Editor"/>) when running VS integration tests./>
+    /// is preferred over EditorLayerExtensionManager (which has layer: <see cref="ServiceLayer.Editor"/>) when running VS integration tests.
     /// </remarks>
     [Shared, ExportWorkspaceServiceFactory(typeof(IExtensionManager), ServiceLayer.Host)]
     internal class TestExtensionManager : IWorkspaceServiceFactory
     {
-        private readonly TestExtensionErrorHandler errorHandler;
+        private readonly TestExtensionErrorHandler _errorHandler;
 
         [ImportingConstructor]
         public TestExtensionManager([Import]TestExtensionErrorHandler errorHandler)
         {
-            this.errorHandler = errorHandler;
+            _errorHandler = errorHandler;
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new ExtensionManager(errorHandler);
-        }
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices) => new ExtensionManager(_errorHandler);
 
         private class ExtensionManager : AbstractExtensionManager
         {
-            private readonly TestExtensionErrorHandler errorHandler;
+            private readonly TestExtensionErrorHandler _errorHandler;
 
             public ExtensionManager(TestExtensionErrorHandler errorHandler)
             {
-                this.errorHandler = errorHandler;
+                _errorHandler = errorHandler;
             }
 
             public override bool CanHandleException(object provider, Exception exception)
@@ -49,10 +44,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                 return true;
             }
 
-            public override void HandleException(object provider, Exception exception)
-            {
-                errorHandler.HandleError(provider, exception);
-            }
+            public override void HandleException(object provider, Exception exception) => _errorHandler.HandleError(provider, exception);
         }
     }
 }
