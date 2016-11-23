@@ -182,11 +182,11 @@ commitPullList.each { isPr ->
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
-// Open Integration Tests
+// Integration Tests
 commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "open-vsi", isPr)
+  def jobName = Utilities.getFullJobName(projectName, "integration", isPr)
   def myJob = job(jobName) {
-    description('open integration tests')
+    description('integration tests')
     steps {
       batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
@@ -196,7 +196,7 @@ set TMP=%TEMP%
   }
 
   def triggerPhraseOnly = false
-  def triggerPhraseExtra = "open-vsi"
+  def triggerPhraseExtra = "integration"
   Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-rc')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
