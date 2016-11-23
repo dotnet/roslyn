@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.CodeStyle;
+using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -28,6 +30,10 @@ namespace Microsoft.CodeAnalysis.Options
                 else if (type == typeof(bool))
                 {
                     return bool.Parse(s);
+                }
+                else if (type == typeof(CodeStyleOption<bool>))
+                {
+                    return ParseEditorConfigCodeStyleOption(s);
                 }
                 else
                 {

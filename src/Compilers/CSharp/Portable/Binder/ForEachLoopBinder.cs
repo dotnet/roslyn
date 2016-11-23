@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         break;
                     }
+                case SyntaxKind.IdentifierName:
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(declaration.Kind());
             }
@@ -134,6 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     }
+                case SyntaxKind.DiscardedDesignation:
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(designation.Kind());
             }

@@ -921,7 +921,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If the expression is untyped because it is a lambda, anonymous method, method group or null
             // then we never want to report the error "you need a ref on that thing". Rather, we want to
             // say that you can't convert "null" to "ref int".
-            if (!argument.HasExpressionType() && argument.Kind != BoundKind.OutDeconstructVarPendingInference && argument.Kind != BoundKind.OutVariablePendingInference)
+            if (!argument.HasExpressionType() &&
+                argument.Kind != BoundKind.OutDeconstructVarPendingInference &&
+                argument.Kind != BoundKind.OutVariablePendingInference &&
+                argument.Kind != BoundKind.DiscardedExpression)
             {
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 // The argument and parameter type might match, but may not have same in/out modifiers
@@ -970,6 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(argument.Kind != BoundKind.OutDeconstructVarPendingInference);
                 Debug.Assert(argument.Kind != BoundKind.OutVariablePendingInference);
+                Debug.Assert(argument.Kind != BoundKind.DiscardedExpression || argument.HasExpressionType());
                 Debug.Assert(argument.Display != null);
 
                 if (arguments.IsExtensionMethodThisArgument(arg))

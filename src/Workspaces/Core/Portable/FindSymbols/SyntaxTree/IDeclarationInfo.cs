@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -8,6 +10,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal interface IDeclarationInfo
     {
-        IReadOnlyList<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
+        ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
     }
 }

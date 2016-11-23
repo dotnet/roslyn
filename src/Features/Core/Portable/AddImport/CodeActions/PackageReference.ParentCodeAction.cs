@@ -120,7 +120,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                     var installOperation = new InstallPackageDirectlyCodeActionOperation(
                         reference._installerService, document, reference._source, 
-                        reference._packageName, versionOpt, isLocal);
+                        reference._packageName, versionOpt, 
+                        includePrerelease: false, isLocal: isLocal);
 
                     return new InstallPackageAndAddImportData(
                         oldDocument, newDocument, installOperation);

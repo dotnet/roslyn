@@ -488,6 +488,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Description.
+        /// </summary>
+        internal static string Description {
+            get {
+                return ResourceManager.GetString("Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Deselect All.
         /// </summary>
         internal static string Deselect_All {
@@ -738,6 +747,17 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string First_word_upper {
             get {
                 return ResourceManager.GetString("First_word_upper", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For a given symbol, only the topmost rule with a matching &apos;Specification&apos; will be applied. Violation of that rule&apos;s &apos;Required Style&apos; will be reported at the chosen &apos;Severity&apos; level..
+        /// </summary>
+        internal static string For_a_given_symbol_only_the_topmost_rule_with_a_matching_Specification_will_be_applied_Violation_of_that_rules_Required_Style_will_be_reported_at_the_chosen_Severity_level {
+            get {
+                return ResourceManager.GetString("For_a_given_symbol_only_the_topmost_rule_with_a_matching_Specification_will_be_ap" +
+                        "plied_Violation_of_that_rules_Required_Style_will_be_reported_at_the_chosen_Seve" +
+                        "rity_level", resourceCulture);
             }
         }
         
@@ -1438,6 +1458,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Preference.
+        /// </summary>
+        internal static string Preference {
+            get {
+                return ResourceManager.GetString("Preference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Preview method signature:.
         /// </summary>
         internal static string Preview_method_signature_colon {
@@ -1615,6 +1644,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Required Style.
+        /// </summary>
+        internal static string Required_Style {
+            get {
+                return ResourceManager.GetString("Required_Style", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Required Suffix:.
         /// </summary>
         internal static string Required_Suffix_colon {
@@ -1773,15 +1811,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Specification {
             get {
                 return ResourceManager.GetString("Specification", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Style.
-        /// </summary>
-        internal static string Style {
-            get {
-                return ResourceManager.GetString("Style", resourceCulture);
             }
         }
         

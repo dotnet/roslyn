@@ -2105,6 +2105,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_ImplicitlyTypedVariableAssignedBadValue" xml:space="preserve">
     <value>Cannot assign {0} to an implicitly-typed variable</value>
   </data>
+  <data name="ERR_MixedDeconstructionDisallowed" xml:space="preserve">
+    <value>Cannot reference {0} in a deconstruction declaration</value>
+  </data>
   <data name="ERR_ImplicitlyTypedVariableWithNoInitializer" xml:space="preserve">
     <value>Implicitly-typed variables must be initialized</value>
   </data>
@@ -4908,6 +4911,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable" xml:space="preserve">
     <value>Cannot infer the type of implicitly-typed deconstruction variable '{0}'.</value>
+  </data>
+  <data name="ERR_DiscardTypeInferenceFailed" xml:space="preserve">
+    <value>Cannot infer the type of implicitly-typed discard.</value>
   </data>
   <data name="ERR_DeconstructWrongCardinality" xml:space="preserve">
     <value>Cannot deconstruct a tuple of '{0}' elements into '{1}' variables.</value>

@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -34,23 +34,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        [Conditional("DEBUG")]
-        private void AssertDeconstructionIsAssignment(ExpressionSyntax expression)
+        private static bool ContainsDeclarations(ExpressionSyntax expression)
         {
             switch (expression.Kind())
             {
                 case SyntaxKind.DeclarationExpression:
-                    Debug.Assert(false);
-                    break;
+                    return true;
                 case SyntaxKind.TupleExpression:
                     var tuple = (TupleExpressionSyntax)expression;
-                    foreach (var arg in tuple.Arguments)
-                    {
-                        AssertDeconstructionIsAssignment(arg.Expression);
-                    }
-                    break;
+                    return tuple.Arguments.Any(a => ContainsDeclarations(a.Expression));
                 default:
-                    return;
+                    return false;
             }
         }
 
@@ -312,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if ((object)pending.Type == null)
                             {
                                 Error(diagnostics, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, pending.Syntax, "_");
-                                variables[i] = new DeconstructionVariable(pending.Update(CreateErrorType("var")), pending.Syntax);
+                                variables[i] = new DeconstructionVariable(pending.FailInference(this, diagnostics), pending.Syntax);
                             }
                             break;
                     }
@@ -656,9 +650,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Prepares locals (or fields in global statement) and lvalue expressions corresponding to the variables of the declaration.
-        /// The locals/fields/lvalues are kept in a tree which captures the nesting of variables.
-        /// Each local or field is either a simple local or field access (when its type is known) or a deconstruction variable pending inference.
+        /// Returns bound variables in a tree.
+        /// For variables that are being declared, it makes locals (or fields in global statement).
+        /// If the type is unknown, a deconstruction variable pending inference is used instead (which will be replaced with a local or field later).
+        /// For expressions that don't declare variables, simply binds them and verify they are assignable to.
+        ///
         /// The caller is responsible for releasing the nested ArrayBuilders.
         /// </summary>
         private DeconstructionVariable BindDeconstructionVariables(
@@ -684,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(isVar == ((object)declType == null));
                         if (component.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation && !isVar)
                         {
-                            // An explicit is not allowed with a parenthesized designation
+                            // An explicit type is not allowed with a parenthesized designation
                             Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, component.Designation);
                         }
 
@@ -774,6 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)declType != null)
                 {
+                    CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, designation);
                     return new BoundLocal(designation, localSymbol, constantValueOpt: null, type: declType, hasErrors: hasErrors);
                 }
 
@@ -795,6 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)declType != null)
             {
                 TypeSymbol fieldType = field.GetFieldType(this.FieldsBeingBound);
+                Debug.Assert(declType == fieldType);
                 return new BoundFieldAccess(designation,
                                             receiver,
                                             field,

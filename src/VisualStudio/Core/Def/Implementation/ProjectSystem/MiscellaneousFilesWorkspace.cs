@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
         private readonly IVsTextManager _textManager;
 
-        private readonly RoslynDocumentProvider _documentProvider;
+        private readonly DocumentProvider _documentProvider;
 
         private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new Dictionary<Guid, LanguageInformation>();
 
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             ((IVsRunningDocumentTable)_runningDocumentTable).AdviseRunningDocTableEvents(this, out _runningDocumentTableEventsCookie);
 
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
-            _documentProvider = new RoslynDocumentProvider(this, serviceProvider);
+            _documentProvider = new DocumentProvider(this, serviceProvider, documentTrackingService: null);
             saveEventsService.StartSendingSaveEvents();
         }
 
