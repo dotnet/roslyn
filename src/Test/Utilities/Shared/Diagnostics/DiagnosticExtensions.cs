@@ -97,7 +97,14 @@ namespace Microsoft.CodeAnalysis
         {
             var diagnostics = c.GetDiagnostics();
             diagnostics.Verify(expected);
+            VerifyAssemblyIds(c, diagnostics);
 
+            return c;
+        }
+
+        private static void VerifyAssemblyIds<TCompilation>(
+            TCompilation c, ImmutableArray<Diagnostic> diagnostics) where TCompilation : Compilation
+        {
             foreach (var diagnostic in diagnostics)
             {
                 // If this is a diagnostic about a missing assembly, make sure that we can get back
@@ -107,6 +114,12 @@ namespace Microsoft.CodeAnalysis
                 {
                     var assemblyIds = c.GetUnreferencedAssemblyIdentities(diagnostic);
                     Assert.True(assemblyIds.Length > 0);
+
+                    var diagnosticMessage = diagnostic.GetMessage();
+                    foreach (var id in assemblyIds)
+                    {
+                        Assert.Contains(id.GetDisplayName(), diagnosticMessage);
+                    }
                 }
                 else
                 {
@@ -114,8 +127,6 @@ namespace Microsoft.CodeAnalysis
                     Assert.True(assemblyIds.Length == 0);
                 }
             }
-
-            return c;
         }
 
         public static void VerifyAnalyzerOccurrenceCount<TCompilation>(
