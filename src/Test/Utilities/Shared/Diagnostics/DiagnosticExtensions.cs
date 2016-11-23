@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
                 if (c.IsUnreferencedAssemblyIdentityDiagnosticCode(diagnostic.Code))
                 {
                     var assemblyIds = c.GetUnreferencedAssemblyIdentities(diagnostic);
-                    Assert.True(assemblyIds.Length > 0);
+                    Assert.False(assemblyIds.IsEmpty);
 
                     var diagnosticMessage = diagnostic.GetMessage();
                     foreach (var id in assemblyIds)
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     var assemblyIds = c.GetUnreferencedAssemblyIdentities(diagnostic);
-                    Assert.True(assemblyIds.Length == 0);
+                    Assert.True(assemblyIds.IsEmpty);
                 }
             }
         }
