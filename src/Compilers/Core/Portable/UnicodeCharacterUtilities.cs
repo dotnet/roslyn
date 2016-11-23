@@ -10,6 +10,20 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal static partial class UnicodeCharacterUtilities
     {
+        public static UnicodeCategory GetUnicodeCategory(char ch)
+        {
+            switch(ch)
+            {
+                case '\u2028':
+                    // U+2028 "LINE SEPARATOR" should be classified by CharUnicodeInfo.GetUnicodeCategory as
+                    // UnicodeCategory.LineSeparator but due to a bug is incorrectly categorized as
+                    // UnicodeCategory.Format. See https://github.com/dotnet/coreclr/issues/3542
+                    return UnicodeCategory.LineSeparator;
+                default:
+                    return CharUnicodeInfo.GetUnicodeCategory(ch);
+            }
+        }
+
         public static bool IsIdentifierStartCharacter(char ch)
         {
             // identifier-start-character:
@@ -37,7 +51,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            return IsLetterChar(CharUnicodeInfo.GetUnicodeCategory(ch));
+            return IsLetterChar(GetUnicodeCategory(ch));
         }
 
         /// <summary>
@@ -75,7 +89,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            UnicodeCategory cat = CharUnicodeInfo.GetUnicodeCategory(ch);
+            UnicodeCategory cat = GetUnicodeCategory(ch);
             return IsLetterChar(cat)
                 || IsDecimalDigitChar(cat)
                 || IsConnectingChar(cat)
@@ -172,7 +186,7 @@ namespace Microsoft.CodeAnalysis
         {
             // There are no FormattingChars in ASCII range
 
-            return ch > 127 && IsFormattingChar(CharUnicodeInfo.GetUnicodeCategory(ch));
+            return ch > 127 && IsFormattingChar(GetUnicodeCategory(ch));
         }
 
         /// <summary>

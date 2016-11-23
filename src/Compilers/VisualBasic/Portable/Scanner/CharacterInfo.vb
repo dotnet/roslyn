@@ -16,6 +16,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Partial Public Class SyntaxFacts
 
+        Friend Shared Function GetUnicodeCategory(ch As Char) As UnicodeCategory
+            If ch = ChrW(&H2028) Then
+                ' U+2028 "LINE SEPARATOR" should be classified by CharUnicodeInfo.GetUnicodeCategory as
+                ' UnicodeCategory.LineSeparator but due to a bug Is incorrectly categorized as
+                ' UnicodeCategory.Format. See https://github.com/dotnet/coreclr/issues/3542
+                Return UnicodeCategory.LineSeparator
+            End If
+
+            Return CharUnicodeInfo.GetUnicodeCategory(ch)
+        End Function
+
         '/*****************************************************************************/
         '// MakeFullWidth - Converts a half-width to full-width character
         Friend Shared Function MakeFullWidth(c As Char) As Char
@@ -64,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
 
                 Case Else
-                    Return CharUnicodeInfo.GetUnicodeCategory(ch) = UnicodeCategory.SpaceSeparator
+                    Return GetUnicodeCategory(ch) = UnicodeCategory.SpaceSeparator
             End Select
         End Function
 
@@ -229,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             c As Char
         ) As Boolean
             'TODO: make easy cases fast (or check if they already are)
-            Dim CharacterProperties As UnicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c)
+            Dim CharacterProperties As UnicodeCategory = GetUnicodeCategory(c)
 
             Return IsPropAlpha(CharacterProperties) OrElse
             IsPropLetterDigit(CharacterProperties) OrElse
@@ -371,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function IsWideIdentifierCharacter(c As Char) As Boolean
-            Dim CharacterProperties As UnicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c)
+            Dim CharacterProperties As UnicodeCategory = GetUnicodeCategory(c)
 
             Return IsPropAlphaNumeric(CharacterProperties) OrElse
                 IsPropLetterDigit(CharacterProperties) OrElse
@@ -464,11 +475,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function IsConnectorPunctuation(c As Char) As Boolean
-            Return CharUnicodeInfo.GetUnicodeCategory(c) = UnicodeCategory.ConnectorPunctuation
+            Return GetUnicodeCategory(c) = UnicodeCategory.ConnectorPunctuation
         End Function
 
         Friend Shared Function IsSpaceSeparator(c As Char) As Boolean
-            Return CharUnicodeInfo.GetUnicodeCategory(c) = UnicodeCategory.SpaceSeparator
+            Return GetUnicodeCategory(c) = UnicodeCategory.SpaceSeparator
         End Function
 
         Friend Shared Function IsPropOtherFormat(CharacterProperties As UnicodeCategory) As Boolean

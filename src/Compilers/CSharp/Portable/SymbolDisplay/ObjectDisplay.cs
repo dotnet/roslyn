@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            switch (CharUnicodeInfo.GetUnicodeCategory(c))
+            switch (UnicodeCharacterUtilities.GetUnicodeCategory(c))
             {
                 case UnicodeCategory.Control:
                 case UnicodeCategory.OtherNotAssigned:
