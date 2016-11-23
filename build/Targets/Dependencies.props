@@ -43,7 +43,7 @@
     <SystemIdentityModelTokensJwtVersion>5.0.0</SystemIdentityModelTokensJwtVersion>
     <SystemIOVersion>4.3.0</SystemIOVersion>
     <SystemIOCompressionVersion>4.3.0</SystemIOCompressionVersion>
-    <SystemIOCompressionZipFileVersion>4.3.0</SystemIOCompressionZipFileVersion>
+    <SystemIOCompressionZipFileVersion>4.0.1</SystemIOCompressionZipFileVersion>
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
     <SystemIOFileSystemDriveInfoVersion>4.3.0</SystemIOFileSystemDriveInfoVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
