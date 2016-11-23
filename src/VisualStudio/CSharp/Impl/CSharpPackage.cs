@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.CodeAnalysis.Host;
 
 // NOTE(DustinCa): The EditorFactory registration is in VisualStudioComponents\CSharpPackageRegistration.pkgdef.
 // The reason for this is because the ProvideEditorLogicalView does not allow a name value to specified in addition to
@@ -74,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 base.Initialize();
 
-                this.RegisterService<ICSharpTempPECompilerService>(() => new TempPECompilerService(this.Workspace));
+                this.RegisterService<ICSharpTempPECompilerService>(() => new TempPECompilerService(this.Workspace.Services.GetService<IMetadataService>()));
 
                 RegisterObjectBrowserLibraryManager();
             }

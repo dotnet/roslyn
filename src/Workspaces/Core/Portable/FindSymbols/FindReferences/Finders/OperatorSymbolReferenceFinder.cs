@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             PredefinedOperator op,
             SyntaxToken token)
         {
-            PredefinedOperator actualOperator;
-            return syntaxFacts.TryGetPredefinedOperator(token, out actualOperator) && actualOperator == op;
+            return syntaxFacts.TryGetPredefinedOperator(token, out var actualOperator) && actualOperator == op;
         }
     }
 }

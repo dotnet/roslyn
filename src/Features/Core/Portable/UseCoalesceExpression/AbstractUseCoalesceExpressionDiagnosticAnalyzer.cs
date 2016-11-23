@@ -36,7 +36,14 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
 
-            var optionSet = context.Options.GetOptionSet();
+            var syntaxTree = context.Node.SyntaxTree;
+            var cancellationTokan = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationTokan).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
             var option = optionSet.GetOption(CodeStyleOptions.PreferCoalesceExpression, conditionalExpression.Language);
             if (!option.Value)
             {
@@ -44,10 +51,8 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             var syntaxFacts = this.GetSyntaxFactsService();
-
-            SyntaxNode conditionNode, whenTrueNodeHigh, whenFalseNodeHigh;
             syntaxFacts.GetPartsOfConditionalExpression(
-                conditionalExpression, out conditionNode, out whenTrueNodeHigh, out whenFalseNodeHigh);
+                conditionalExpression, out var conditionNode, out var whenTrueNodeHigh, out var whenFalseNodeHigh);
 
             conditionNode = syntaxFacts.WalkDownParentheses(conditionNode);
             var whenTrueNodeLow = syntaxFacts.WalkDownParentheses(whenTrueNodeHigh);
@@ -66,9 +71,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 return;
             }
 
-            SyntaxNode conditionLeftHigh;
-            SyntaxNode conditionRightHigh;
-            syntaxFacts.GetPartsOfBinaryExpression(condition, out conditionLeftHigh, out conditionRightHigh);
+            syntaxFacts.GetPartsOfBinaryExpression(condition, out var conditionLeftHigh, out var conditionRightHigh);
 
             var conditionLeftLow = syntaxFacts.WalkDownParentheses(conditionLeftHigh);
             var conditionRightLow = syntaxFacts.WalkDownParentheses(conditionRightHigh);

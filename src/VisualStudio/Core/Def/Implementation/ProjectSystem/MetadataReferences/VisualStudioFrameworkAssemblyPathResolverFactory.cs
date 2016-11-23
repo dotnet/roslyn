@@ -46,8 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // Codebase specifies where the assembly is on disk.  However, it's in 
                     // full URI format (i.e. file://c:/...). This will allow us to get the 
                     // actual local in the normal path format.
-                    Uri uri;
-                    if (Uri.TryCreate(assembly.CodeBase, UriKind.RelativeOrAbsolute, out uri) &&
+                    if (Uri.TryCreate(assembly.CodeBase, UriKind.RelativeOrAbsolute, out var uri) &&
                         this.CanResolveType(assembly, fullyQualifiedTypeName))
                     {
                         return uri.LocalPath;
@@ -106,10 +105,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return null;
                 }
 
-                IVsHierarchy hierarchy;
-                string targetMoniker;
-                if (!_workspace.TryGetHierarchy(projectId, out hierarchy) ||
-                    !hierarchy.TryGetProperty((__VSHPROPID)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out targetMoniker) ||
+                if (!_workspace.TryGetHierarchy(projectId, out var hierarchy) ||
+                    !hierarchy.TryGetProperty((__VSHPROPID)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out string targetMoniker) ||
                     targetMoniker == null)
                 {
                     return null;

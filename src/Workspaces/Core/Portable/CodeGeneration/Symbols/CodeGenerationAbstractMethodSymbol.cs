@@ -127,6 +127,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
+        public ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                return ImmutableArray.Create<CustomModifier>();
+            }
+        }
+
         public virtual ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
         {
             get

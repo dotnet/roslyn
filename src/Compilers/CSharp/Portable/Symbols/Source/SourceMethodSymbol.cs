@@ -602,11 +602,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
-                return 0;
+                return ImmutableArray<CustomModifier>.Empty;
             }
         }
 
@@ -962,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ReturnType.ContainsDynamic())
             {
                 var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length, this.RefKind));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
 
             if (ReturnType.ContainsTupleNames())

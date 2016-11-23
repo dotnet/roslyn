@@ -93,7 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             get { return _backgroundCompiler != null; }
         }
 
-        public TestHostDocument DocumentWithCursor { get { return Documents.Single(d => d.CursorPosition.HasValue && !d.IsLinkFile); } }
+        public TestHostDocument DocumentWithCursor 
+            => Documents.Single(d => d.CursorPosition.HasValue && !d.IsLinkFile);
 
         protected override void OnDocumentTextChanged(Document document)
         {
@@ -221,8 +222,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             base.OnParseOptionsChanged(projectId, parseOptions);
         }
 
-        public new void OnDocumentRemoved(DocumentId documentId)
+        public void OnDocumentRemoved(DocumentId documentId, bool closeDocument = false)
         {
+            if (closeDocument && this.IsDocumentOpen(documentId))
+            {
+                this.CloseDocument(documentId);
+            }
+
             base.OnDocumentRemoved(documentId);
         }
 
@@ -298,7 +304,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         protected override void ApplyDocumentAdded(DocumentInfo info, SourceText text)
         {
             var hostProject = this.GetTestProject(info.Id.ProjectId);
-            var hostDocument = new TestHostDocument(text.ToString(), info.Name, info.SourceCodeKind, info.Id);
+            var hostDocument = new TestHostDocument(
+                text.ToString(), info.Name, info.SourceCodeKind, 
+                info.Id, folders: info.Folders);
             hostProject.AddDocument(hostDocument);
             this.OnDocumentAdded(hostDocument.ToDocumentInfo());
         }
@@ -308,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var hostProject = this.GetTestProject(documentId.ProjectId);
             var hostDocument = this.GetTestDocument(documentId);
             hostProject.RemoveDocument(hostDocument);
-            this.OnDocumentRemoved(documentId);
+            this.OnDocumentRemoved(documentId, closeDocument: true);
         }
 
         protected override void ApplyAdditionalDocumentTextChanged(DocumentId document, SourceText newText)

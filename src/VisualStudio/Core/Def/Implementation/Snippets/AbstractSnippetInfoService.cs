@@ -170,8 +170,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         private void PopulateSnippetCacheOnForeground(IVsExpansionManager expansionManager)
         {
             AssertIsForeground();
-
-            IVsExpansionEnumeration expansionEnumerator = null;
             expansionManager.EnumerateExpansions(
                 _languageGuidForSnippets,
                 fShortCutOnly: 0,
@@ -179,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 iCountTypes: 0,
                 fIncludeNULLType: 1,
                 fIncludeDuplicates: 1, // Allows snippets with the same title but different shortcuts
-                pEnum: out expansionEnumerator);
+                pEnum: out var expansionEnumerator);
 
             PopulateSnippetCacheFromExpansionEnumeration(expansionEnumerator);
         }

@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _returnsByRef As Boolean
         Private ReadOnly _type As TypeSymbol
         Private ReadOnly _typeCustomModifiers As ImmutableArray(Of CustomModifier)
-        Private ReadOnly _countOfCustomModifiersPrecedingByRef As UShort
+        Private ReadOnly _refCustomModifiers As ImmutableArray(Of CustomModifier)
         Private ReadOnly _isOverrides As Boolean
         Private ReadOnly _isWithEvents As Boolean
 
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        returnsByRef As Boolean,
                        [type] As TypeSymbol,
                        typeCustomModifiers As ImmutableArray(Of CustomModifier),
-                       countOfCustomModifiersPrecedingByRef As UShort,
+                       refCustomModifiers As ImmutableArray(Of CustomModifier),
                        Optional isOverrides As Boolean = False,
                        Optional isWithEvents As Boolean = False)
             _name = name
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _returnsByRef = returnsByRef
             _type = [type]
             _typeCustomModifiers = typeCustomModifiers
-            _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef
+            _refCustomModifiers = refCustomModifiers
             _isOverrides = isOverrides
             _isWithEvents = isWithEvents
         End Sub
@@ -106,9 +106,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return _countOfCustomModifiersPrecedingByRef
+                Return _refCustomModifiers
             End Get
         End Property
 

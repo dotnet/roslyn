@@ -1265,9 +1265,9 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+        Public NotOverridable Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return 0
+                Return ImmutableArray(Of CustomModifier).Empty
             End Get
         End Property
 
@@ -1430,7 +1430,7 @@ lReportErrorOnTwoTokens:
             Return Me.GetAttributesBag().Attributes
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             ' Emit synthesized STAThreadAttribute for this method if both the following requirements are met:
@@ -1798,7 +1798,7 @@ lReportErrorOnTwoTokens:
                (methodImpl.IsAsync OrElse methodImpl.IsIterator) AndAlso
                Not methodImpl.ContainingType.IsInterfaceType() Then
 
-                Dim location As location = methodImpl.NonMergedLocation
+                Dim location As Location = methodImpl.NonMergedLocation
 
                 If location IsNot Nothing Then
                     Binder.ReportDiagnostic(diagnostics, location, ERRID.ERR_DllImportOnResumableMethod)
@@ -2094,6 +2094,7 @@ lReportErrorOnTwoTokens:
                         fakeParamsBuilder.Add(New SignatureOnlyParameterSymbol(
                                                 param.Type.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
                                                 ImmutableArray(Of CustomModifier).Empty,
+                                                ImmutableArray(Of CustomModifier).Empty,
                                                 defaultConstantValue:=Nothing,
                                                 isParamArray:=False,
                                                 isByRef:=param.IsByRef,
@@ -2109,7 +2110,7 @@ lReportErrorOnTwoTokens:
                                                                             returnsByRef:=False,
                                                                             returnType:=retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
                                                                             returnTypeCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
-                                                                            countOfCustomModifiersPrecedingByRef:=0,
+                                                                            refCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
                                                                             explicitInterfaceImplementations:=ImmutableArray(Of MethodSymbol).Empty,
                                                                             isOverrides:=True))
                 End If
@@ -2166,7 +2167,7 @@ lReportErrorOnTwoTokens:
         End Sub
 
         Private Function CreateBinderForMethodDeclaration(sourceModule As SourceModuleSymbol) As Binder
-            Dim binder As binder = BinderBuilder.CreateBinderForMethodDeclaration(sourceModule, Me.SyntaxTree, Me)
+            Dim binder As Binder = BinderBuilder.CreateBinderForMethodDeclaration(sourceModule, Me.SyntaxTree, Me)
 
             ' Constraint checking for parameter and return types must be delayed
             ' until the parameter and return type fields have been set since
@@ -2179,7 +2180,7 @@ lReportErrorOnTwoTokens:
                                              diagBag As DiagnosticBag) As ImmutableArray(Of ParameterSymbol)
 
             Dim decl = Me.DeclarationSyntax
-            Dim binder As binder = CreateBinderForMethodDeclaration(sourceModule)
+            Dim binder As Binder = CreateBinderForMethodDeclaration(sourceModule)
 
             Dim paramList As ParameterListSyntax
 
@@ -2222,7 +2223,7 @@ lReportErrorOnTwoTokens:
         Private Function GetReturnType(sourceModule As SourceModuleSymbol,
                                        ByRef errorLocation As SyntaxNodeOrToken,
                                        diagBag As DiagnosticBag) As TypeSymbol
-            Dim binder As binder = CreateBinderForMethodDeclaration(sourceModule)
+            Dim binder As Binder = CreateBinderForMethodDeclaration(sourceModule)
 
             Select Case MethodKind
                 Case MethodKind.Constructor,
@@ -2285,13 +2286,13 @@ lReportErrorOnTwoTokens:
 
                         Dim restrictedType As TypeSymbol = Nothing
                         If retType.IsRestrictedArrayType(restrictedType) Then
-                            binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_RestrictedType1, restrictedType)
+                            Binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_RestrictedType1, restrictedType)
                         End If
 
                         If Not (Me.IsAsync AndAlso Me.IsIterator) Then
                             If Me.IsSub Then
                                 If Me.IsIterator Then
-                                    binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadIteratorReturn)
+                                    Binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadIteratorReturn)
                                 End If
 
                             Else
@@ -2300,7 +2301,7 @@ lReportErrorOnTwoTokens:
 
                                     If Not retType.OriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)) AndAlso
                                        Not retType.Equals(compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)) Then
-                                        binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadAsyncReturn)
+                                        Binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadAsyncReturn)
                                     End If
                                 End If
 
@@ -2311,7 +2312,7 @@ lReportErrorOnTwoTokens:
                                         originalRetTypeDef.SpecialType <> SpecialType.System_Collections_Generic_IEnumerator_T AndAlso
                                         retType.SpecialType <> SpecialType.System_Collections_IEnumerable AndAlso
                                         retType.SpecialType <> SpecialType.System_Collections_IEnumerator Then
-                                        binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadIteratorReturn)
+                                        Binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadIteratorReturn)
                                     End If
                                 End If
                             End If

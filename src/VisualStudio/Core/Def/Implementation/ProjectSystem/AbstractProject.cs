@@ -367,10 +367,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public IVisualStudioHostDocument GetDocumentOrAdditionalDocument(DocumentId id)
         {
-            IVisualStudioHostDocument doc;
             lock (_gate)
             {
-                _documents.TryGetValue(id, out doc);
+                _documents.TryGetValue(id, out var doc);
                 if (doc == null)
                 {
                     _additionalDocuments.TryGetValue(id, out doc);
@@ -408,8 +407,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                IVisualStudioHostDocument document;
-                _documentMonikers.TryGetValue(filePath, out document);
+                _documentMonikers.TryGetValue(filePath, out var document);
                 return document;
             }
         }
@@ -560,8 +558,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         protected int AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(string filePath, MetadataReferenceProperties properties)
         {
             // If this file is coming from a project, then we should convert it to a project reference instead
-            AbstractProject project;
-            if (this.CanConvertToProjectReferences && ProjectTracker.TryGetProjectByBinPath(filePath, out project))
+            if (this.CanConvertToProjectReferences && ProjectTracker.TryGetProjectByBinPath(filePath, out var project))
             {
                 var projectReference = new ProjectReference(project.Id, properties.Aliases, properties.EmbedInteropTypes);
                 if (CanAddProjectReference(projectReference))
@@ -622,8 +619,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         protected void RemoveMetadataReference(string filePath)
         {
             // Is this a reference we converted to a project reference?
-            ProjectReference projectReference;
-            if (TryGetMetadataFileNameToConvertedProjectReference(filePath, out projectReference))
+            if (TryGetMetadataFileNameToConvertedProjectReference(filePath, out var projectReference))
             {
                 // We converted this, so remove the project reference instead
                 RemoveProjectReference(projectReference);
@@ -684,9 +680,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AssertIsForeground();
 
             VisualStudioMetadataReference reference = (VisualStudioMetadataReference)sender;
-
-            CancellationTokenSource delayTaskCancellationTokenSource;
-            if (ChangedReferencesPendingUpdate.TryGetValue(reference, out delayTaskCancellationTokenSource))
+            if (ChangedReferencesPendingUpdate.TryGetValue(reference, out var delayTaskCancellationTokenSource))
             {
                 delayTaskCancellationTokenSource.Cancel();
             }
@@ -1163,8 +1157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void UndoProjectReferenceConversionForDisappearingOutputPath(string binPath)
         {
-            ProjectReference projectReference;
-            if (TryGetMetadataFileNameToConvertedProjectReference(binPath, out projectReference))
+            if (TryGetMetadataFileNameToConvertedProjectReference(binPath, out var projectReference))
             {
                 // We converted this, so convert it back to a metadata reference
                 RemoveProjectReference(projectReference);
@@ -1183,11 +1176,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         protected void UpdateMetadataReferenceAliases(string file, ImmutableArray<string> aliases)
         {
             file = FileUtilities.NormalizeAbsolutePath(file);
-
             // Have we converted these to project references?
-            ProjectReference convertedProjectReference;
 
-            if (TryGetMetadataFileNameToConvertedProjectReference(file, out convertedProjectReference))
+            if (TryGetMetadataFileNameToConvertedProjectReference(file, out var convertedProjectReference))
             {
                 var project = ProjectTracker.GetProject(convertedProjectReference.ProjectId);
                 UpdateProjectReferenceAliases(project, aliases);
@@ -1304,8 +1295,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             else
             {
                 var messageArguments = new string[] { ruleSetFile.FilePath, ruleSetFile.GetException().Message };
-                DiagnosticData diagnostic;
-                if (DiagnosticData.TryCreate(_errorReadingRulesetRule, messageArguments, this.Id, this.Workspace, out diagnostic))
+                if (DiagnosticData.TryCreate(_errorReadingRulesetRule, messageArguments, this.Id, this.Workspace, out var diagnostic))
                 {
                     this.HostDiagnosticUpdateSource.UpdateDiagnosticsForProject(this.Id, RuleSetErrorId, SpecializedCollections.SingletonEnumerable(diagnostic));
                 }
@@ -1472,8 +1462,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public IReadOnlyList<string> GetFolderNamesFromHierarchy(uint documentItemID)
         {
-            object parentObj;
-            if (documentItemID != (uint)VSConstants.VSITEMID.Nil && Hierarchy.GetProperty(documentItemID, (int)VsHierarchyPropID.Parent, out parentObj) == VSConstants.S_OK)
+            if (documentItemID != (uint)VSConstants.VSITEMID.Nil && Hierarchy.GetProperty(documentItemID, (int)VsHierarchyPropID.Parent, out var parentObj) == VSConstants.S_OK)
             {
                 var parentID = UnboxVSItemId(parentObj);
                 if (parentID != (uint)VSConstants.VSITEMID.Nil && parentID != (uint)VSConstants.VSITEMID.Root)
@@ -1489,9 +1478,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             // note: use of tmpFolders is assuming this API is called on UI thread only.
             _tmpFolders.Clear();
-
-            IReadOnlyList<string> names;
-            if (!_folderNameMap.TryGetValue(folderItemID, out names))
+            if (!_folderNameMap.TryGetValue(folderItemID, out var names))
             {
                 ComputeFolderNames(folderItemID, _tmpFolders, Hierarchy);
                 names = _tmpFolders.ToImmutableArray();
@@ -1524,8 +1511,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private static void ComputeFolderNames(uint folderItemID, List<string> names, IVsHierarchy hierarchy)
         {
-            object nameObj;
-            if (hierarchy.GetProperty((uint)folderItemID, (int)VsHierarchyPropID.Name, out nameObj) == VSConstants.S_OK)
+            if (hierarchy.GetProperty((uint)folderItemID, (int)VsHierarchyPropID.Name, out var nameObj) == VSConstants.S_OK)
             {
                 // For 'Shared' projects, IVSHierarchy returns a hierarchy item with < character in its name (i.e. <SharedProjectName>)
                 // as a child of the root item. There is no such item in the 'visual' hierarchy in solution explorer and no such folder
@@ -1540,8 +1526,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            object parentObj;
-            if (hierarchy.GetProperty((uint)folderItemID, (int)VsHierarchyPropID.Parent, out parentObj) == VSConstants.S_OK)
+            if (hierarchy.GetProperty((uint)folderItemID, (int)VsHierarchyPropID.Parent, out var parentObj) == VSConstants.S_OK)
             {
                 var parentID = UnboxVSItemId(parentObj);
                 if (parentID != (uint)VSConstants.VSITEMID.Nil && parentID != (uint)VSConstants.VSITEMID.Root)

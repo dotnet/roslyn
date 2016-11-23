@@ -9,8 +9,7 @@ namespace Roslyn.Utilities
     {
         public static TValue GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)
         {
-            TValue value;
-            if (dictionary.TryGetValue(key, out value))
+            if (dictionary.TryGetValue(key, out var value))
             {
                 return value;
             }

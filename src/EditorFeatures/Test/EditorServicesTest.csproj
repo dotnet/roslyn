@@ -137,10 +137,6 @@
       <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
       <Name>ServiceHub</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
-      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
-      <Name>VisualStudioEditor</Name>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
@@ -249,6 +245,7 @@
     <Compile Include="Utilities\SymbolEquivalenceComparerTests.cs" />
     <Compile Include="Workspaces\ProjectCacheHostServiceFactoryTests.cs" />
     <Compile Include="Workspaces\TextFactoryTests.cs" />
+    <Compile Include="Workspaces\WorkspaceTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

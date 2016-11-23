@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeInfo.GetIdentifierInfoAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
                 foreach (var value in values)
                 {
                     if (!info.ProbablyContainsIdentifier(value))
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeInfo.GetContextInfoAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsPredefinedType(predefinedType);
             }, cancellationToken);
         }
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             return await FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeInfo.GetContextInfoAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsPredefinedOperator(op);
             }, cancellationToken).ConfigureAwait(false);
         }
@@ -343,11 +343,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(
                     symbol, aliasSymbol.Name, document, findParentNode, cancellationToken).ConfigureAwait(false);
                 allAliasReferences.AddRange(aliasReferences);
-
                 // the alias may reference an attribute and the alias name may end with an "Attribute" suffix. In this case search for the
                 // shortened name as well (e.g. using FooAttribute = MyNamespace.FooAttribute; [Foo] class C1 {})
-                string simpleName;
-                if (TryGetNameWithoutAttributeSuffix(aliasSymbol.Name, syntaxFactsService, out simpleName))
+                if (TryGetNameWithoutAttributeSuffix(aliasSymbol.Name, syntaxFactsService, out var simpleName))
                 {
                     aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(
                         symbol, simpleName, document, cancellationToken).ConfigureAwait(false);
@@ -371,11 +369,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(aliasSymbol.Name, document, symbolsMatch, cancellationToken).ConfigureAwait(false);
                 allAliasReferences.AddRange(aliasReferences);
-
                 // the alias may reference an attribute and the alias name may end with an "Attribute" suffix. In this case search for the
                 // shortened name as well (e.g. using FooAttribute = MyNamespace.FooAttribute; [Foo] class C1 {})
-                string simpleName;
-                if (TryGetNameWithoutAttributeSuffix(aliasSymbol.Name, syntaxFactsService, out simpleName))
+                if (TryGetNameWithoutAttributeSuffix(aliasSymbol.Name, syntaxFactsService, out var simpleName))
                 {
                     aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(simpleName, document, symbolsMatch, cancellationToken).ConfigureAwait(false);
                     allAliasReferences.AddRange(aliasReferences);
@@ -389,7 +385,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeInfo.GetContextInfoAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsForEachStatement;
             }, cancellationToken);
         }
@@ -399,7 +395,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Document document,
             CancellationToken cancellationToken)
         {
-            var syntaxTreeInfo = await SyntaxTreeInfo.GetContextInfoAsync(document, cancellationToken).ConfigureAwait(false);
+            var syntaxTreeInfo = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
             if (syntaxTreeInfo.ContainsForEachStatement)
             {
                 var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();

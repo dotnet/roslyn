@@ -96,20 +96,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SyntaxNode root,
             SourceText content, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
         {
-            if (text.Length > 0)
-            {
-                using (var positions = SharedPools.BigDefault<List<int>>().GetPooledObject())
-                {
-                    if (SyntaxTreeIdentifierInfo.TryGetIdentifierLocations(document, version, text, positions.Object, cancellationToken))
-                    {
-                        return GetTokensFromText(root, positions.Object, text, candidate, cancellationToken);
-                    }
-                }
-
-                return GetTokensFromText(syntaxFacts, root, content, text, candidate, cancellationToken);
-            }
-
-            return ImmutableArray<SyntaxToken>.Empty;
+            return text.Length > 0
+                ? GetTokensFromText(syntaxFacts, root, content, text, candidate, cancellationToken)
+                : ImmutableArray<SyntaxToken>.Empty;
         }
 
         private static ImmutableArray<SyntaxToken> GetTokensFromText(
@@ -213,8 +202,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (s_gate.DisposableRead())
             {
-                Entry entry;
-                if (s_cache.TryGetValue(model, out entry))
+                if (s_cache.TryGetValue(model, out var entry))
                 {
                     return entry;
                 }
@@ -245,8 +233,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (s_gate.DisposableWrite())
             {
-                Entry entry;
-                if (!s_cache.TryGetValue(model, out entry))
+                if (!s_cache.TryGetValue(model, out var entry))
                 {
                     return;
                 }

@@ -65,31 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddRefIfRequired();
                 }
 
-                ushort countOfCustomModifiersPrecedingByRef = 0;
-                var property = symbol as PropertySymbol;
-                if ((object)property != null)
-                {
-                    countOfCustomModifiersPrecedingByRef = property.CountOfCustomModifiersPrecedingByRef;
-                }
-
-                ImmutableArray<CustomModifier> typeCustomModifiers = symbol.TypeCustomModifiers;
-                if (countOfCustomModifiersPrecedingByRef > 0)
-                {
-                    AddCustomModifiersIfRequired(ImmutableArray.Create(typeCustomModifiers, 0, countOfCustomModifiersPrecedingByRef), leadingSpace: false, trailingSpace: true);
-                }
+                AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
 
                 symbol.Type.Accept(this.NotFirstVisitor);
                 AddSpace();
 
-                if (countOfCustomModifiersPrecedingByRef == 0)
-                {
-                    AddCustomModifiersIfRequired(typeCustomModifiers);
-                }
-                else if (countOfCustomModifiersPrecedingByRef < typeCustomModifiers.Length)
-                {
-                    AddCustomModifiersIfRequired(ImmutableArray.Create(typeCustomModifiers, countOfCustomModifiersPrecedingByRef,
-                                                                       typeCustomModifiers.Length - countOfCustomModifiersPrecedingByRef));
-                }
+                AddCustomModifiersIfRequired(symbol.TypeCustomModifiers);
             }
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeContainingType) &&
@@ -257,8 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AddRefIfRequired();
                             }
 
-                            ushort countOfCustomModifiersPrecedingByRef = 0;
-                            ImmutableArray<CustomModifier> returnTypeCustomModifiers = symbol.ReturnTypeCustomModifiers;
+                            AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
 
                             if (symbol.ReturnsVoid)
                             {
@@ -266,32 +246,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (symbol.ReturnType != null)
                             {
-                                var method = symbol as MethodSymbol;
-                                if ((object)method != null)
-                                {
-                                    countOfCustomModifiersPrecedingByRef = method.CountOfCustomModifiersPrecedingByRef;
-                                }
-
-                                if (countOfCustomModifiersPrecedingByRef > 0)
-                                {
-                                    AddCustomModifiersIfRequired(ImmutableArray.Create(returnTypeCustomModifiers, 0, countOfCustomModifiersPrecedingByRef), leadingSpace: false, trailingSpace: true);
-                                }
-
                                 symbol.ReturnType.Accept(this.NotFirstVisitor);
                             }
 
                             AddSpace();
-
-                            if (countOfCustomModifiersPrecedingByRef == 0)
-                            {
-                                AddCustomModifiersIfRequired(returnTypeCustomModifiers); 
-                            }
-                            else if (countOfCustomModifiersPrecedingByRef < returnTypeCustomModifiers.Length)
-                            {
-                                AddCustomModifiersIfRequired(ImmutableArray.Create(returnTypeCustomModifiers, countOfCustomModifiersPrecedingByRef,
-                                                                                   returnTypeCustomModifiers.Length - countOfCustomModifiersPrecedingByRef));
-                            }
-
+                            AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers); 
                             break;
                     }
                 }
@@ -459,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!isAccessor)
             {
-                AddTypeArguments(symbol.TypeArguments, default(ImmutableArray<ImmutableArray<CustomModifier>>));
+                AddTypeArguments(symbol.TypeArguments);
                 AddParameters(symbol);
                 AddTypeParameterConstraints(symbol);
             }
@@ -506,6 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (includeType)
             {
                 AddRefKindIfRequired(symbol.RefKind);
+                AddCustomModifiersIfRequired(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
 
                 if (symbol.IsParams && format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
                 {
@@ -513,30 +473,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSpace();
                 }
 
-                ushort countOfCustomModifiersPrecedingByRef = 0;
-                var parameter = symbol as ParameterSymbol;
-                if ((object)parameter != null)
-                {
-                    countOfCustomModifiersPrecedingByRef = parameter.CountOfCustomModifiersPrecedingByRef;
-                }
-
-                if (countOfCustomModifiersPrecedingByRef > 0)
-                {
-                    AddCustomModifiersIfRequired(ImmutableArray.Create(symbol.CustomModifiers, 0, countOfCustomModifiersPrecedingByRef), leadingSpace: false, trailingSpace: true);
-                }
-
                 symbol.Type.Accept(this.NotFirstVisitor);
-
-                if (countOfCustomModifiersPrecedingByRef == 0)
-                {
-                    AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
-                }
-                else if (countOfCustomModifiersPrecedingByRef < symbol.CustomModifiers.Length)
-                {
-                    AddCustomModifiersIfRequired(ImmutableArray.Create(symbol.CustomModifiers, countOfCustomModifiersPrecedingByRef,
-                                                                       symbol.CustomModifiers.Length - countOfCustomModifiersPrecedingByRef),
-                                                 leadingSpace: true, trailingSpace: false);
-                }
+                AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
             }
 
             if (includeName && includeType)

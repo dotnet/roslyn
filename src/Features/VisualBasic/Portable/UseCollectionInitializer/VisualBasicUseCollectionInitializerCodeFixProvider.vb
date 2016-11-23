@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseCollectionInitializer), [Shared]>
     Friend Class VisualBasicUseCollectionInitializerCodeFixProvider
         Inherits AbstractUseCollectionInitializerCodeFixProvider(Of
+            SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
             ObjectCreationExpressionSyntax,

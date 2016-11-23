@@ -25,14 +25,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             }
 
             protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
-            {
-                if (State.IsInConditionalAccessExpression)
-                {
-                    return _methodSymbol.ReturnType.RemoveNullableIfPresent();
-                }
-
-                return _methodSymbol.ReturnType;
-            }
+                => _methodSymbol.ReturnType;
 
             protected override IList<ITypeParameterSymbol> DetermineTypeParametersWorker(CancellationToken cancellationToken)
             {

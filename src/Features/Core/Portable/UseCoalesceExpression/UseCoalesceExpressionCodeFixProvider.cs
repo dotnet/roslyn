@@ -46,17 +46,14 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 var conditionalExpression = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
                 var conditionalPartHigh = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
                 var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
-
-                SyntaxNode condition, whenTrue, whenFalse;
                 syntaxFacts.GetPartsOfConditionalExpression(
-                    conditionalExpression, out condition, out whenTrue, out whenFalse);
+                    conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
 
                 var conditionalPartLow = syntaxFacts.WalkDownParentheses(conditionalPartHigh);
                 editor.ReplaceNode(conditionalExpression,
                     (c, g) => {
-                        SyntaxNode currentCondition, currentWhenTrue, currentWhenFalse;
                         syntaxFacts.GetPartsOfConditionalExpression(
-                            c, out currentCondition, out currentWhenTrue, out currentWhenFalse);
+                            c, out var currentCondition, out var currentWhenTrue, out var currentWhenFalse);
 
                         return whenPart == whenTrue
                             ? g.CoalesceExpression(conditionalPartLow, syntaxFacts.WalkDownParentheses(currentWhenTrue))

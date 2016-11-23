@@ -134,11 +134,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
 
         ''' <summary>
-        ''' In order to avoid breaking interop scenarios, we need to support signatures
-        ''' with modifiers preceding ByRef.
-        ''' Should be 0 for non-ref returns.
+        ''' Custom modifiers associated with the ref modifier, or an empty array if there are none.
         ''' </summary>
-        Friend MustOverride ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+        Public MustOverride ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
 
         ''' <summary>
         ''' Returns the list of attributes, if any, associated with the return type.
@@ -597,17 +595,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Check return type custom modifiers.
-            Dim paramsErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.ReturnTypeCustomModifiers)
+            Dim refModifiersErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.RefCustomModifiers)
 
-            If paramsErrorInfo IsNot Nothing Then
-                If paramsErrorInfo.Code = ERRID.ERR_UnsupportedMethod1 Then
-                    Return paramsErrorInfo
-                End If
-
-                If errorInfo Is Nothing Then
-                    errorInfo = paramsErrorInfo
-                End If
+            If refModifiersErrorInfo IsNot Nothing AndAlso refModifiersErrorInfo.Code = ERRID.ERR_UnsupportedMethod1 Then
+                Return refModifiersErrorInfo
             End If
+
+            Dim typeModifiersErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.ReturnTypeCustomModifiers)
+
+            If typeModifiersErrorInfo IsNot Nothing AndAlso typeModifiersErrorInfo.Code = ERRID.ERR_UnsupportedMethod1 Then
+                Return typeModifiersErrorInfo
+            End If
+
+            errorInfo = If(errorInfo, If(refModifiersErrorInfo, typeModifiersErrorInfo))
 
             ' Check parameters.
             Dim result = MergeUseSiteErrorInfo(errorInfo, DeriveUseSiteErrorInfoFromParameters(Me.Parameters))
@@ -617,9 +617,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If result Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
                 Dim unificationCheckedTypes As HashSet(Of TypeSymbol) = Nothing
                 result = If(Me.ReturnType.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
+                         If(GetUnificationUseSiteDiagnosticRecursive(Me.RefCustomModifiers, Me, unificationCheckedTypes),
                          If(GetUnificationUseSiteDiagnosticRecursive(Me.ReturnTypeCustomModifiers, Me, unificationCheckedTypes),
                          If(GetUnificationUseSiteDiagnosticRecursive(Me.Parameters, Me, unificationCheckedTypes),
-                            GetUnificationUseSiteDiagnosticRecursive(Me.TypeParameters, Me, unificationCheckedTypes))))
+                            GetUnificationUseSiteDiagnosticRecursive(Me.TypeParameters, Me, unificationCheckedTypes)))))
             End If
 
             Return result
@@ -977,6 +978,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IMethodSymbol_HidesBaseMethodsByName As Boolean Implements IMethodSymbol.HidesBaseMethodsByName
             Get
                 Return True
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbol_RefCustomModifiers As ImmutableArray(Of CustomModifier) Implements IMethodSymbol.RefCustomModifiers
+            Get
+                Return Me.RefCustomModifiers
             End Get
         End Property
 

@@ -1325,8 +1325,8 @@ Friend Class Customer
         Me.x = x
         Me.y = y
     End Sub
-    Public Property Age As Date
     Public Property Name As String
+    Public Property Age As Date
 End Class",
 index:=1)
         End Function
@@ -1354,8 +1354,8 @@ Friend Class Customer
         Me.x = x
         Me.y = y
     End Sub
-    Public Property Age As Date
     Public Property Name As Object
+    Public Property Age As Date
 End Class",
 index:=1)
         End Function
@@ -1383,8 +1383,8 @@ Friend Class Customer
         Me.x = x
         Me.y = y
     End Sub
-    Public Property Age As Date
     Public Property Name As Object
+    Public Property Age As Date
 End Class",
 index:=1)
         End Function
@@ -1406,8 +1406,8 @@ Module Program
     End Sub
 End Module
 Friend Class Customer
-    Public Property Age As Date
     Public Property Name As String
+    Public Property Age As Date
 End Class",
 index:=1)
         End Function

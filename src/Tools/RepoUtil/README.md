@@ -4,6 +4,7 @@
 
 This is a tool used to manage the inputs and outputs of our repo.  In particular, it is used to manage our use of NuGet packages.  It helps to automate the otherwise tedious process of updating NuGet references by:
 
+- Ensuring consistency in NuGet package references
 - Fixing up project.json files
 - Generating helper files with specified package versions. Example [Dependencies.props](https://github.com/dotnet/roslyn/blob/master/build/Targets/Dependencies.props)
 
@@ -18,6 +19,31 @@ There are valid cases where a package is used at more than one version in the re
     "Microsoft.VSSDK.BuildTools": [ "14.3.25407", "15.0.25201-Dev15Preview2" ]
 }
 ```
+
+## Code generation
+
+This tool is also designed to generate helper files which attach strong names to the version numbers.  This allows MSBuild files to reference `$(SystemConsoleVersion)` instead of hard coding the current value of 4.0.0.
+
+The `verify` command will ensure that all generated files are consistent with the current state of project.json files in the repo.  Hence there is no danger of referencing an outdated version of a package using these files.
+
+The generated files are all listed under the `generate` section of the config file:
+
+``` json
+  "generate": {
+        "msbuild": {
+            "path": "build\\Targets\\Dependencies.props",
+            "values": [
+                "Microsoft.Dia.*",
+                "System.*",
+            ]
+        }
+    },
+```
+
+Each generated file kind has two properties:
+
+1. The path of the file to generate the contents to. 
+2. A collection of Regex.  Packages which match any of the regexes will have their values included in the generated file.
 
 ## Commands
 
@@ -69,3 +95,5 @@ An example of a normal package is System.Collections.Immutable.  This package ch
 ### consumes
 
 The `consumes` command produces a json file describing all of the NuGet packages consumed by the repo.  It essentially aggregates all of the project.json files and adds a bit of metadata on top of them. 
+# RepoUtil
+

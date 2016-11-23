@@ -42,8 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return null;
             }
 
-            SnapshotSpan subjectBufferEndSpan;
-            if (!TryGetSubjectBufferSpan(endSpanInSurfaceBuffer[0], out subjectBufferEndSpan))
+            if (!TryGetSubjectBufferSpan(endSpanInSurfaceBuffer[0], out var subjectBufferEndSpan))
             {
                 return null;
             }
@@ -59,8 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         public override int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction pFunc)
         {
-            string snippetFunctionName, param;
-            if (!TryGetSnippetFunctionInfo(xmlFunctionNode, out snippetFunctionName, out param))
+            if (!TryGetSnippetFunctionInfo(xmlFunctionNode, out var snippetFunctionName, out var param))
             {
                 pFunc = null;
                 return VSConstants.E_INVALIDARG;

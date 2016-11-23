@@ -238,9 +238,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var document = changedSolution.GetDocument(documentId);
-
-                    Document existingDocument;
-                    if (changedDocumentsMap.TryGetValue(documentId, out existingDocument))
+                    if (changedDocumentsMap.TryGetValue(documentId, out var existingDocument))
                     {
                         if (existingDocument != null)
                         {

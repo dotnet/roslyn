@@ -969,8 +969,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var typeName = SyntaxFactory.ParseTypeName(name);
             if (typeName is PredefinedTypeSyntax)
             {
-                PredefinedType predefinedType;
-                if (SyntaxFactsService.TryGetPredefinedType(((PredefinedTypeSyntax)typeName).Keyword, out predefinedType))
+                if (SyntaxFactsService.TryGetPredefinedType(((PredefinedTypeSyntax)typeName).Keyword, out var predefinedType))
                 {
                     var specialType = predefinedType.ToSpecialType();
                     return semanticModel.Compilation.GetSpecialType(specialType).GetEscapedFullName();

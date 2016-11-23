@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     interfaceMethod.RefKind,
                     interfaceMethod.ReturnType,
                     interfaceMethod.ReturnTypeCustomModifiers,
-                    interfaceMethod.CountOfCustomModifiersPrecedingByRef,
+                    interfaceMethod.RefCustomModifiers,
                     interfaceMethod.ExplicitInterfaceImplementations);
 
                 // Make sure that the corresponding accessor is a real implementation.
