@@ -74,7 +74,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _registration.Workspace.DocumentClosed += OnDocumentClosed;
                 }
 
-                // subscribe to option changed event
+                // subscribe to option changed event after all required fields are set
+                // otherwise, we can get null exception when running OnOptionChanged handler
                 _optionService.OptionChanged += OnOptionChanged;
             }
 
