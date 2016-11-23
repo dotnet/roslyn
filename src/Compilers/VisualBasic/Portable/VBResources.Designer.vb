@@ -11191,29 +11191,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Reference required to assembly &apos;{0}&apos; containing the base class &apos;{1}&apos;. Add one to your project..
-        '''</summary>
-        Friend ReadOnly Property ERR_UnreferencedAssemblyBase3() As String
-            Get
-                Return ResourceManager.GetString("ERR_UnreferencedAssemblyBase3", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Reference required to assembly &apos;{0}&apos; containing the definition for event &apos;{1}&apos;. Add one to your project..
         '''</summary>
         Friend ReadOnly Property ERR_UnreferencedAssemblyEvent3() As String
             Get
                 Return ResourceManager.GetString("ERR_UnreferencedAssemblyEvent3", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Reference required to assembly &apos;{0}&apos; containing the implemented interface &apos;{1}&apos;. Add one to your project..
-        '''</summary>
-        Friend ReadOnly Property ERR_UnreferencedAssemblyImplements3() As String
-            Get
-                Return ResourceManager.GetString("ERR_UnreferencedAssemblyImplements3", resourceCulture)
             End Get
         End Property
         
@@ -11227,29 +11209,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Reference required to module &apos;{0}&apos; containing the base class &apos;{1}&apos;. Add one to your project..
-        '''</summary>
-        Friend ReadOnly Property ERR_UnreferencedModuleBase3() As String
-            Get
-                Return ResourceManager.GetString("ERR_UnreferencedModuleBase3", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Reference required to module &apos;{0}&apos; containing the definition for event &apos;{1}&apos;. Add one to your project..
         '''</summary>
         Friend ReadOnly Property ERR_UnreferencedModuleEvent3() As String
             Get
                 Return ResourceManager.GetString("ERR_UnreferencedModuleEvent3", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Reference required to module &apos;{0}&apos; containing the implemented interface &apos;{1}&apos;. Add one to your project..
-        '''</summary>
-        Friend ReadOnly Property ERR_UnreferencedModuleImplements3() As String
-            Get
-                Return ResourceManager.GetString("ERR_UnreferencedModuleImplements3", resourceCulture)
             End Get
         End Property
         

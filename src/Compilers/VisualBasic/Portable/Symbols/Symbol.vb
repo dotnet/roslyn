@@ -1,19 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
-Imports System.Text
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports Display = Microsoft.CodeAnalysis.VisualBasic.SymbolDisplay
-Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -875,10 +869,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If errorInfo IsNot Nothing Then
                 Select Case errorInfo.Code
-                    Case ERRID.ERR_UnreferencedModuleBase3,
-                         ERRID.ERR_UnreferencedModuleImplements3
-                        errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnreferencedModule3, errorInfo.Arguments(0), errorInfo.Arguments(1))
-
                     Case ERRID.ERR_UnsupportedType1
 
                         Select Case Me.Kind
