@@ -79,7 +79,6 @@
     <Compile Include="Workspace\CommandLineProject.cs" />
     <Compile Include="Workspace\Esent\EsentLogger.cs" />
     <Compile Include="Workspace\Esent\EsentPersistentStorage.cs" />
-    <Compile Include="Workspace\Esent\EsentPersistentStorage_IdentifierTable.cs" />
     <Compile Include="Workspace\Esent\EsentStorage.AbstractTable.cs" />
     <Compile Include="Workspace\Esent\EsentStorage.AbstractTableAccessor.cs" />
     <Compile Include="Workspace\Esent\EsentStorage.cs" />
@@ -111,7 +110,6 @@
     <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoader.CSharpProjectFile.cs" />
     <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoaderFactory.cs" />
     <Compile Include="Workspace\MSBuild\MSBuildWorkspace.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\BuildTargets.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\DocumentFileInfo.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFile.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFileLoader.cs" />

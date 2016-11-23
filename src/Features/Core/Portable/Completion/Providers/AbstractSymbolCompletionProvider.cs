@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        protected abstract ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context);
+        protected abstract (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context);
         protected abstract CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, SyntaxContext context);
 
         /// <summary>
@@ -50,7 +50,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var q = from symbol in symbols
                     let texts = GetDisplayAndInsertionText(symbol, context)
                     group symbol by texts into g
-                    select this.CreateItem(g.Key.Item1, g.Key.Item2, g.ToList(), context, invalidProjectMap, totalProjects, preselect);
+                    select this.CreateItem(
+                        g.Key.displayText, g.Key.insertionText, g.ToList(), context, 
+                        invalidProjectMap, totalProjects, preselect);
 
             return q.ToList();
         }
@@ -68,7 +70,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var q = from symbol in symbols
                     let texts = GetDisplayAndInsertionText(symbol, originatingContextMap[symbol])
                     group symbol by texts into g
-                    select this.CreateItem(g.Key.Item1, g.Key.Item2, g.ToList(), originatingContextMap[g.First()], invalidProjectMap, totalProjects, preselect);
+                    select this.CreateItem(
+                        g.Key.displayText, g.Key.insertionText, g.ToList(),
+                        originatingContextMap[g.First()], invalidProjectMap, totalProjects, preselect);
 
             return q.ToList();
         }
@@ -184,9 +188,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Invalidate the cache if it's for a different position or a different set of Documents.
                 // It's fairly likely that we'll only have to check the first document, unless someone
                 // specially constructed a Solution with mismatched linked files.
-                Task<SyntaxContext> value;
                 if (s_cachedPosition != position ||
-                    !relatedDocuments.All((Document d) => s_cachedDocuments.TryGetValue(d, out value)))
+                    !relatedDocuments.All((Document d) => s_cachedDocuments.TryGetValue(d, out var value)))
                 {
                     s_cachedPosition = position;
                     foreach (var related in relatedDocuments)
@@ -211,9 +214,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
-
-            Dictionary<ISymbol, SyntaxContext> originatingContextMap = null;
-            var unionedSymbolsList = UnionSymbols(contextAndSymbolLists, out originatingContextMap);
+            var unionedSymbolsList = UnionSymbols(contextAndSymbolLists, out var originatingContextMap);
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(unionedSymbolsList, contextAndSymbolLists);
             var totalProjects = contextAndSymbolLists.Select(t => t.Item1.ProjectId).ToList();
 

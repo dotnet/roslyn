@@ -364,10 +364,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private LineColumnRule GetOverallLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, bool implicitLineBreak, SyntaxTrivia trivia2)
         {
             var defaultRule = GetLineColumnRuleBetween(trivia1, existingWhitespaceBetween, implicitLineBreak, trivia2);
-
-            SyntaxToken token1;
-            SyntaxToken token2;
-            GetTokensAtEdgeOfStructureTrivia(trivia1, trivia2, out token1, out token2);
+            GetTokensAtEdgeOfStructureTrivia(trivia1, trivia2, out var token1, out var token2);
 
             // if there are tokens, try formatting rules to see whether there is a user supplied one
             if (token1.RawKind == 0 || token2.RawKind == 0)
@@ -673,8 +670,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            int index = 0;
-            if (TryGetMatchingChangeIndex(changes, out index))
+            if (TryGetMatchingChangeIndex(changes, out var index))
             {
                 // already change exist at same position that contains only whitespace
                 var delta = GetLineColumnDelta(0, changes[index].NewText);

@@ -7,11 +7,10 @@
     <NuGetToolPath>$(ProjectDir)nuget.exe</NuGetToolPath>
     <ToolsetPackagesDir>$(ProjectDir)build\ToolsetPackages\</ToolsetPackagesDir>
     <ToolsetPackagesSemaphore>$(ToolsetPackagesDir)toolsetpackages.semaphore</ToolsetPackagesSemaphore>
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == ''">$(NUGET_PACKAGES)</NuGetPackageRoot> <!-- Respect environment variable if set -->
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and '$(OS)' == 'Windows_NT'">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and '$(OS)' != 'Windows_NT'">$(HOME)\.nuget\packages</NuGetPackageRoot>
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
     <ToolsetCompilerPackageVersion>2.0.0-rc2-61102-09</ToolsetCompilerPackageVersion>
+    <VSIXExpInstallerPackageName>RoslynTools.Microsoft.VSIXExpInstaller</VSIXExpInstallerPackageName>
+    <VSIXExpInstallerPackageVersion>0.2.1-beta</VSIXExpInstallerPackageVersion>
     <RoslynDiagnosticsNugetPackageVersion>1.2.0-beta2</RoslynDiagnosticsNugetPackageVersion>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\$(RoslynDiagnosticsNugetPackageVersion)\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <RoslynBuildUtilFilePath>$(NuGetPackageRoot)\Roslyn.Build.Util\0.9.4-portable\lib\dotnet\Roslyn.MSBuild.Util.dll</RoslynBuildUtilFilePath>
@@ -53,29 +52,21 @@
     <DebugType>pdbonly</DebugType>
     <UseSharedCompilation>true</UseSharedCompilation>
 
-    <!-- This is a really hacky way to detect whether we are on a legacy or a willow based VS install.
-         Basically, we check for a registry key that will only exist in legacy VS installs, and assume
-         we are a willow based installation if our VSVersion is 15.0 and the registry key doesn't exist. -->
-    <IsVSBeforeDev15Preview4 Condition="'$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\15.0@InstallDir)' != ''">true</IsVSBeforeDev15Preview4>
-    <IsVSBeforeDev15Preview4 Condition="'$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\15.0@InstallDir)' != ''">true</IsVSBeforeDev15Preview4>
-    <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
-    <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
+    <!-- Presently our code can build on machines with Dev14 or Dev15 but only successfully deploy 
+         in the Dev15 environment.  -->
     <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
     <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
+    <DeployExtension Condition="'$(IsDev15RC)' != 'true' or '$(VisualStudioVersion)' != '15.0'">false</DeployExtension>
+    <VisualStudioBuildToolsVersion>15.0.25907-RC2</VisualStudioBuildToolsVersion>
+
+    <!-- For the moment our Dev14 VSI suites must continue to use the Dev14 SDK. -->
+    <VisualStudioBuildToolsVersion Condition="'$(IsDev14VsiBuild)' == 'true'">14.3.25420</VisualStudioBuildToolsVersion>
   </PropertyGroup>
 
   <!-- Unix specific settings -->
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <!-- Point to the reference assemblies on unix -->
     <TargetFrameworkRootPath>$(MSBuildBinPath)\reference-assemblies\Framework</TargetFrameworkRootPath>
-
-    <!-- The /publicsign argument is required for the compiler, but the current MSBuild
-         build task can't be redirected and even if it could the new build task is not
-         built against the xplat MSBuild references so it can't be loaded properly. Providing
-         a response file works around the problem by directly adding the public sign argument
-         to all unix compilations. This shouldn't present a problem as it's impossible to
-         fully sign on unix at the moment anyway. Tracked by #7756. -->
-    <CompilerResponseFile>$(MSBuildThisFileDirectory)..\unix\extra_unix_args.rsp</CompilerResponseFile>
 
     <DebugType>portable</DebugType>
   </PropertyGroup>
@@ -187,30 +178,6 @@
     </When>
   </Choose>
 
-  <!-- Visual Studio specific properties -->
-  <Choose>
-    <When Condition="'$(VisualStudioVersion)' == '15.0' AND '$(IsVSBeforeDev15Preview4)' == 'true'">
-      <PropertyGroup>
-        <VisualStudioBuildToolsVersion>15.0.25201-dev15preview2</VisualStudioBuildToolsVersion>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(VisualStudioVersion)' == '15.0' AND '$(IsDev15RC)' == 'true'">
-      <PropertyGroup>
-        <VisualStudioBuildToolsVersion>15.0.25825-RC</VisualStudioBuildToolsVersion>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(VisualStudioVersion)' == '15.0'">
-      <PropertyGroup>
-        <VisualStudioBuildToolsVersion>15.0.25604-Preview4</VisualStudioBuildToolsVersion>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <VisualStudioBuildToolsVersion>14.3.25420</VisualStudioBuildToolsVersion>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
-
   <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
     <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
   </ItemGroup>
@@ -250,6 +217,6 @@
 
   <ImportGroup Label="WindowsImports" Condition="'$(OS)' != 'Windows_NT'">
     <!-- NuGet props aren't imported by default on *nix so we do that here -->
-    <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.props" Condition="'$(OS)' != 'Windows_NT'" />
+    <Import Project="$(MSBuildBinPath)\Microsoft.NuGet.props" Condition="'$(OS)' != 'Windows_NT'" />
   </ImportGroup>
 </Project>

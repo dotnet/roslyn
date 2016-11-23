@@ -1271,8 +1271,8 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
 
             Assert.True(tupleWithoutNames.IsTupleType)
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString())
-            Assert.True(tupleWithoutNames.TupleElementNames.IsDefault)
-            Assert.Equal({"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.True(tupleWithoutNames.TupleElements.All(Function(e) e.IsImplicitlyDeclared))
+            Assert.Equal({"System.Int32", "System.String"}, tupleWithoutNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
             Assert.Equal(CInt(SymbolKind.NamedType), CInt(tupleWithoutNames.Kind))
         End Sub
 
@@ -1287,8 +1287,8 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
 
             Assert.True(tupleWithNames.IsTupleType)
             Assert.Equal("(Alice As System.Int32, Bob As System.String)", tupleWithNames.ToTestDisplayString())
-            Assert.Equal({"Alice", "Bob"}, tupleWithNames.TupleElementNames)
-            Assert.Equal({"System.Int32", "System.String"}, tupleWithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal({"Alice", "Bob"}, tupleWithNames.TupleElements.SelectAsArray(Function(e) e.Name))
+            Assert.Equal({"System.Int32", "System.String"}, tupleWithNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind)
         End Sub
 

@@ -106,8 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
-            string text = null;
-            if (TryGetTextForContextualKeyword(token, document, syntaxFacts, out text) ||
+            if (TryGetTextForContextualKeyword(token, document, syntaxFacts, out var text) ||
                TryGetTextForKeyword(token, document, syntaxFacts, out text) ||
                TryGetTextForPreProcessor(token, document, syntaxFacts, out text) ||
                TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text) ||
@@ -134,8 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
             else
             {
-                var symbols = semanticModel.GetSymbols(token, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType: true, cancellationToken: cancellationToken);
-                symbol = symbols.FirstOrDefault();
+                symbol = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken)
+                                      .GetAnySymbol(includeType: true);
 
                 if (symbol == null)
                 {

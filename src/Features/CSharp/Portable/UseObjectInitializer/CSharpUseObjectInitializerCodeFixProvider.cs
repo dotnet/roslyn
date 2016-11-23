@@ -5,8 +5,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.UseObjectInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
@@ -14,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseObjectInitializer), Shared]
     internal class CSharpUseObjectInitializerCodeFixProvider :
         AbstractUseObjectInitializerCodeFixProvider<
+            SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
             ObjectCreationExpressionSyntax,
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
     {
         protected override ObjectCreationExpressionSyntax GetNewObjectCreation(
             ObjectCreationExpressionSyntax objectCreation,
-            ImmutableArray<Match<ExpressionStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax>> matches)
+            ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
         {
             var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
                                          .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
         }
 
         private SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
-            ImmutableArray<Match<ExpressionStatementSyntax, MemberAccessExpressionSyntax, ExpressionSyntax>> matches)
+            ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
         {
             var nodesAndTokens = new List<SyntaxNodeOrToken>();
             for (int i = 0; i < matches.Length; i++)

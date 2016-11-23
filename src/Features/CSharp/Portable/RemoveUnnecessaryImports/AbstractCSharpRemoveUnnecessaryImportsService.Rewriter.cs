@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
@@ -96,9 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     return compilationUnit;
                 }
 
-                SyntaxList<UsingDirectiveSyntax> finalUsings;
-                SyntaxTriviaList finalTrivia;
-                ProcessUsings(compilationUnit.Usings, usingsToRemove, out finalUsings, out finalTrivia);
+                ProcessUsings(compilationUnit.Usings, usingsToRemove, out var finalUsings, out var finalTrivia);
 
                 // If there was any left over trivia, then attach it to the next token that
                 // follows the usings.
@@ -132,9 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     return namespaceDeclaration;
                 }
 
-                SyntaxList<UsingDirectiveSyntax> finalUsings;
-                SyntaxTriviaList finalTrivia;
-                ProcessUsings(namespaceDeclaration.Usings, usingsToRemove, out finalUsings, out finalTrivia);
+                ProcessUsings(namespaceDeclaration.Usings, usingsToRemove, out var finalUsings, out var finalTrivia);
 
                 // If there was any left over trivia, then attach it to the next token that
                 // follows the usings.

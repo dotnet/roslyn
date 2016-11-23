@@ -12,7 +12,7 @@ using System.Xml.XPath;
 
 namespace BuildBoss
 {
-    internal sealed class ProjectCheckerUtil
+    internal sealed class ProjectCheckerUtil : ICheckerUtil
     {
         private readonly ProjectData _data;
         private readonly ProjectUtil _projectUtil;
@@ -28,7 +28,7 @@ namespace BuildBoss
             _solutionMap = solutionMap;
         }
 
-        internal bool CheckAll(TextWriter textWriter)
+        public bool Check(TextWriter textWriter)
         {
             var allGood = true;
             if (ProjectType == ProjectFileType.CSharp || ProjectType == ProjectFileType.Basic)

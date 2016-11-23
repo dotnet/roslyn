@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private async Task ProcessDocumentQueueAsync(
             Document document,
-            List<ValueTuple<SymbolAndProjectId, IReferenceFinder>> documentQueue,
+            List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)> documentQueue,
             ProgressWrapper wrapper)
         {
             await _progress.OnFindInDocumentStartedAsync(document).ConfigureAwait(false);
@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 #else
                 foreach (var symbolAndFinder in documentQueue)
                 {
-                    var symbol = symbolAndFinder.Item1;
-                    var finder = symbolAndFinder.Item2;
+                    var symbol = symbolAndFinder.symbolAndProjectId;
+                    var finder = symbolAndFinder.finder;
 
                     await ProcessDocumentAsync(document, symbol, finder, wrapper).ConfigureAwait(false);
                 }

@@ -117,15 +117,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-            Get
-                If IdentitySubstitutionOnMyTypeParameters Then
-                    Return CreateEmptyTypeArgumentsCustomModifiers()
-                End If
+        Public Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+            If IdentitySubstitutionOnMyTypeParameters Then
+                Return GetEmptyTypeArgumentCustomModifiers(ordinal)
+            End If
 
-                Return _substitution.GetTypeArgumentsCustomModifiersFor(_fullInstanceType)
-            End Get
-        End Property
+            Return _substitution.GetTypeArgumentsCustomModifiersFor(_fullInstanceType.TypeParameters(ordinal))
+        End Function
 
         Friend Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
             Get
@@ -273,11 +271,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
             If hasTypeArgumentsCustomModifiers Then
-                Dim modifiers = TypeArgumentsCustomModifiers
-                Dim otherModifiers = other.TypeArgumentsCustomModifiers
-
                 For i As Integer = 0 To count - 1 Step 1
-                    If Not modifiers(i).SequenceEqual(otherModifiers(i)) Then
+                    If Not GetTypeArgumentCustomModifiers(i).SequenceEqual(other.GetTypeArgumentCustomModifiers(i)) Then
                         Return False
                     End If
                 Next

@@ -37,9 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 
                 var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
                 var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
-
-                TypeDeclarationSyntax typeDeclaration;
-
                 if (IsLambdaExpression(semanticModel, position, token, typeInferrer, cancellationToken))
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.lambda_expression, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_lambda_declaration);
@@ -64,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.namespace_name, CSharpFeaturesResources.Autoselect_disabled_due_to_namespace_declaration);
                 }
-                else if (tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out typeDeclaration))
+                else if (tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out var typeDeclaration))
                 {
                     switch (typeDeclaration.Keyword.Kind())
                     {
@@ -77,6 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                         case SyntaxKind.InterfaceKeyword:
                             return CreateSuggestionModeItem(CSharpFeaturesResources.interface_name, CSharpFeaturesResources.Autoselect_disabled_due_to_type_declaration);
                     }
+                }
+                else if (tree.IsPossibleDeconstructionDesignation(position, cancellationToken))
+                {
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.designation_name,
+                        CSharpFeaturesResources.Autoselect_disabled_due_to_possible_deconstruction_declaration);
                 }
             }
 

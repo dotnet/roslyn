@@ -58,9 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             // The items selected in Solution Explorer should correspond to exactly one
             // IVsHierarchy, otherwise we shouldn't have even tried to show the dialog.
             Debug.Assert(_tracker.SelectedHierarchy != null);
-
-            EnvDTE.Project project = null;
-            if (_tracker.SelectedHierarchy.TryGetProject(out project))
+            if (_tracker.SelectedHierarchy.TryGetProject(out var project))
             {
                 var vsproject = project.Object as VSProject3;
 

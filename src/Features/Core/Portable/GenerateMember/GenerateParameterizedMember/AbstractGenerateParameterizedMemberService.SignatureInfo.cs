@@ -42,7 +42,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
             public ITypeSymbol DetermineReturnType(CancellationToken cancellationToken)
             {
-                return FixType(DetermineReturnTypeWorker(cancellationToken), cancellationToken);
+                var type = DetermineReturnTypeWorker(cancellationToken);
+                if (State.IsInConditionalAccessExpression)
+                {
+                    type = type.RemoveNullableIfPresent();
+                }
+
+                return FixType(type, cancellationToken);
             }
 
             protected abstract IList<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken);

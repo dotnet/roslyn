@@ -245,6 +245,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to at the end.
+        /// </summary>
+        internal static string at_the_end {
+            get {
+                return ResourceManager.GetString("at_the_end", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Base Types.
         /// </summary>
         internal static string Base_Types {
@@ -484,6 +493,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Default_ {
             get {
                 return ResourceManager.GetString("Default_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Description.
+        /// </summary>
+        internal static string Description {
+            get {
+                return ResourceManager.GetString("Description", resourceCulture);
             }
         }
         
@@ -742,6 +760,17 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to For a given symbol, only the topmost rule with a matching &apos;Specification&apos; will be applied. Violation of that rule&apos;s &apos;Required Style&apos; will be reported at the chosen &apos;Severity&apos; level..
+        /// </summary>
+        internal static string For_a_given_symbol_only_the_topmost_rule_with_a_matching_Specification_will_be_applied_Violation_of_that_rules_Required_Style_will_be_reported_at_the_chosen_Severity_level {
+            get {
+                return ResourceManager.GetString("For_a_given_symbol_only_the_topmost_rule_with_a_matching_Specification_will_be_ap" +
+                        "plied_Violation_of_that_rules_Required_Style_will_be_reported_at_the_chosen_Seve" +
+                        "rity_level", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to For accessors.
         /// </summary>
         internal static string For_accessors {
@@ -891,6 +920,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Illegal_characters_in_path {
             get {
                 return ResourceManager.GetString("Illegal_characters_in_path", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implement Interface or Abstract Class.
+        /// </summary>
+        internal static string Implement_Interface_or_Abstract_Class {
+            get {
+                return ResourceManager.GetString("Implement_Interface_or_Abstract_Class", resourceCulture);
             }
         }
         
@@ -1393,6 +1431,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer explicit tuple name.
+        /// </summary>
+        internal static string Prefer_explicit_tuple_name {
+            get {
+                return ResourceManager.GetString("Prefer_explicit_tuple_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer framework type.
         /// </summary>
         internal static string Prefer_framework_type {
@@ -1434,6 +1481,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_predefined_type {
             get {
                 return ResourceManager.GetString("Prefer_predefined_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Preference.
+        /// </summary>
+        internal static string Preference {
+            get {
+                return ResourceManager.GetString("Preference", resourceCulture);
             }
         }
         
@@ -1615,6 +1671,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Required Style.
+        /// </summary>
+        internal static string Required_Style {
+            get {
+                return ResourceManager.GetString("Required_Style", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Required Suffix:.
         /// </summary>
         internal static string Required_Suffix_colon {
@@ -1773,15 +1838,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Specification {
             get {
                 return ResourceManager.GetString("Specification", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Style.
-        /// </summary>
-        internal static string Style {
-            get {
-                return ResourceManager.GetString("Style", resourceCulture);
             }
         }
         
@@ -2083,6 +2139,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Visual_Studio_has_suspended_some_advanced_features_to_improve_performance {
             get {
                 return ResourceManager.GetString("Visual_Studio_has_suspended_some_advanced_features_to_improve_performance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When inserting properties, events and methods, place them:.
+        /// </summary>
+        internal static string When_inserting_properties_events_and_methods_place_them {
+            get {
+                return ResourceManager.GetString("When_inserting_properties_events_and_methods_place_them", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to with other members of the same kind.
+        /// </summary>
+        internal static string with_other_members_of_the_same_kind {
+            get {
+                return ResourceManager.GetString("with_other_members_of_the_same_kind", resourceCulture);
             }
         }
         

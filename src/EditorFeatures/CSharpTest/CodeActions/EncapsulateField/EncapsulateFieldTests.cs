@@ -5,10 +5,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EncapsulateField;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -18,9 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
     public class EncapsulateFieldTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new EncapsulateFieldRefactoringProvider();
-        }
+            => new EncapsulateFieldRefactoringProvider();
 
         private static readonly Dictionary<OptionKey, object> AllOptionsOff =
             new Dictionary<OptionKey, object>
@@ -173,8 +170,8 @@ class foo
 ";
             await TestAsync(text, expected, 
                 options: OptionsSet(
-                    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
-                    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
+                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]

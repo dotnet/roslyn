@@ -155,6 +155,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
+        }
+
         public sealed override ImmutableArray<TypeSymbol> TypeArguments
         {
             get { return ImmutableArray<TypeSymbol>.Empty; }

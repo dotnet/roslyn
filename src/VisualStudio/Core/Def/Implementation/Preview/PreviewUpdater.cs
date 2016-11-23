@@ -37,9 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var documentText = document.GetTextAsync().Result.ToString();
             if (TextView.TextBuffer.CurrentSnapshot.GetText() != documentText)
             {
-                SourceTextContainer container;
-                TextDocument documentBackedByTextBuffer;
-                UpdateBuffer(document, spanSource, out container, out documentBackedByTextBuffer);
+                UpdateBuffer(document, spanSource, out var container, out var documentBackedByTextBuffer);
             }
 
             // Picking a different span: no text change; update span anyway.

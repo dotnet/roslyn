@@ -1,10 +1,10 @@
 # BuildBoss
 
-This is a tool to validate the content of our solutions and project files.  The usage is very straight forward:
+This is a tool to validate the correctness of various build artifacts.  The usage is straight foward:
 
-> BuildBoss.exe <solution path>
+> BuildBoss.exe <solution / project / targets path / build log paths>
 
-## Content verified 
+## Solution / Project Content Verified 
 
 ### Central properties
 
@@ -31,4 +31,16 @@ Our build process depends on being able to correctly classify our projects.  Thi
 
 This could be done using MSBuild targets but the logic is hard to follow and complicates the build.  It's easier to verify here.
 
+## Target Content Verified
 
+This stage verifies the contents of our central targets files.  Namely the props and targets which contain the central logic for running our build.
+
+## Build Logs
+
+These are log files produced by the MSBuild Structured Logger Tool:
+
+> https://github.com/KirillOsenkov/MSBuildStructuredLog
+
+The log files produced by this tool contain much of the content of a diagnostic log but in well structured XML.  This makes it easy for tools to analyze.
+
+BuildBoss makes use of this log to ensure our build doesn't have any double writes.  That is the build does not write to the same output path twice.  Doing so means our build is incorrect and subject to flaws such as race conditions and incorrect deployments.

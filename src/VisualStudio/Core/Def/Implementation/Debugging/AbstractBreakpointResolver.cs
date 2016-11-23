@@ -89,9 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
 
         private async Task<IEnumerable<ISymbol>> ResolveMethodsAsync(CancellationToken cancellationToken)
         {
-            IList<NameAndArity> nameParts;
-            int? parameterCount;
-            this.ParseText(out nameParts, out parameterCount);
+            this.ParseText(out var nameParts, out var parameterCount);
 
             // Notes:  In C#, indexers can't be resolved by any name.  This is acceptable, because the old language
             //         service wasn't able to resolve them either.  In VB, parameterized properties will work in
@@ -147,12 +145,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
 
         private static bool MatchesName(INamespaceOrTypeSymbol typeOrNamespace, NameAndArity nameAndArity, IEqualityComparer<string> comparer)
         {
-            return typeOrNamespace.TypeSwitch(
-                (INamespaceSymbol namespaceSymbol) =>
-                    comparer.Equals(namespaceSymbol.Name, nameAndArity.Name) && nameAndArity.Arity == 0,
-                (INamedTypeSymbol typeSymbol) =>
-                    comparer.Equals(typeSymbol.Name, nameAndArity.Name) &&
-                    (nameAndArity.Arity == 0 || nameAndArity.Arity == typeSymbol.TypeArguments.Length));
+            switch (typeOrNamespace)
+            {
+                case INamespaceSymbol namespaceSymbol:
+                    return comparer.Equals(namespaceSymbol.Name, nameAndArity.Name) && nameAndArity.Arity == 0;
+                case INamedTypeSymbol typeSymbol:
+                    return comparer.Equals(typeSymbol.Name, nameAndArity.Name) &&
+                        (nameAndArity.Arity == 0 || nameAndArity.Arity == typeSymbol.TypeArguments.Length);
+                default:
+                    return false;
+            }
         }
 
         private static bool MatchesNames(INamedTypeSymbol type, NameAndArity[] names, IEqualityComparer<string> comparer)
@@ -240,9 +242,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
             // of parameters (but we don't actually validate the type or name of the supplied parameters).
             if (parameterCount != null)
             {
-                if (methodOrProperty.TypeSwitch(
-                        (IMethodSymbol method) => method.Parameters.Length != parameterCount,
-                        (IPropertySymbol property) => property.Parameters.Length != parameterCount))
+                var mismatch = IsMismatch(methodOrProperty, parameterCount);
+
+                if (mismatch)
                 {
                     return false;
                 }
@@ -265,13 +267,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
             return false;
         }
 
+        private static bool IsMismatch(ISymbol methodOrProperty, int? parameterCount)
+        {
+            switch (methodOrProperty)
+            {
+                case IMethodSymbol method: return method.Parameters.Length != parameterCount;
+                case IPropertySymbol property: return property.Parameters.Length != parameterCount;
+            }
+
+            return false;
+        }
+
         private static IEnumerable<INamedTypeSymbol> GetTypeMembersRecursive(INamespaceOrTypeSymbol container)
         {
-            return container.TypeSwitch(
-                (INamespaceSymbol namespaceSymbol) =>
-                    namespaceSymbol.GetMembers().SelectMany(n => GetTypeMembersRecursive(n)),
-                (INamedTypeSymbol typeSymbol) =>
-                    typeSymbol.GetTypeMembers().SelectMany(t => GetTypeMembersRecursive(t)).Concat(typeSymbol));
+            switch (container)
+            {
+                case INamespaceSymbol namespaceSymbol:
+                    return namespaceSymbol.GetMembers().SelectMany(n => GetTypeMembersRecursive(n));
+                case INamedTypeSymbol typeSymbol:
+                    return typeSymbol.GetTypeMembers().SelectMany(t => GetTypeMembersRecursive(t)).Concat(typeSymbol);
+                default:
+                    return null;
+            }
         }
     }
 }

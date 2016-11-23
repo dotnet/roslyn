@@ -37,14 +37,6 @@
       <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Dependencies\VisualStudioText\VisualStudioText.csproj">
-      <Project>{c25768b3-2fe1-4d6d-8c17-a6acd56f8389}</Project>
-      <Name>VisualStudioText</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Dependencies\VisualStudio\VisualStudio.csproj">
-      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
-      <Name>VisualStudio</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>

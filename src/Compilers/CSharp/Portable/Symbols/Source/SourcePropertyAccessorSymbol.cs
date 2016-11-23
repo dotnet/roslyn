@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourcePropertySymbol _property;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeSymbol _lazyReturnType;
-        private ImmutableArray<CustomModifier> _lazyReturnTypeCustomModifiers;
+        private CustomModifiersTuple _lazyCustomModifiers;
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
         private readonly string _name;
         private readonly bool _isAutoPropertyAccessor;
@@ -260,13 +260,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // event that we need to find the overridden accessor.
             _lazyParameters = ComputeParameters(diagnostics);
             _lazyReturnType = ComputeReturnType(diagnostics);
-            _lazyReturnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+            _lazyCustomModifiers = CustomModifiersTuple.Empty;
 
             if (_explicitInterfaceImplementations.Length > 0)
             {
                 Debug.Assert(_explicitInterfaceImplementations.Length == 1);
                 MethodSymbol implementedMethod = _explicitInterfaceImplementations[0];
-                CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, out _lazyReturnTypeCustomModifiers, out _lazyParameters, alsoCopyParamsModifier: false);
+                CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, 
+                                                              out _lazyCustomModifiers, 
+                                                              out _lazyParameters, alsoCopyParamsModifier: false);
             }
             else if (this.IsOverride)
             {
@@ -275,14 +277,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol overriddenMethod = this.OverriddenMethod;
                 if ((object)overriddenMethod != null)
                 {
-                    CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, out _lazyReturnTypeCustomModifiers, out _lazyParameters, alsoCopyParamsModifier: true);
+                    CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, 
+                                                                  out _lazyCustomModifiers, 
+                                                                  out _lazyParameters, alsoCopyParamsModifier: true);
                 }
             }
             else if (_lazyReturnType.SpecialType != SpecialType.System_Void)
             {
                 PropertySymbol associatedProperty = _property;
                 _lazyReturnType = CustomModifierUtils.CopyTypeCustomModifiers(associatedProperty.Type, _lazyReturnType, this.ContainingAssembly);
-                _lazyReturnTypeCustomModifiers = associatedProperty.TypeCustomModifiers;
+                _lazyCustomModifiers = CustomModifiersTuple.Create(associatedProperty.TypeCustomModifiers, associatedProperty.RefCustomModifiers);
             }
         }
 
@@ -377,7 +381,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 LazyMethodChecks();
-                return _lazyReturnTypeCustomModifiers;
+                return _lazyCustomModifiers.TypeCustomModifiers;
+            }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                LazyMethodChecks();
+                return _lazyCustomModifiers.RefCustomModifiers;
             }
         }
 

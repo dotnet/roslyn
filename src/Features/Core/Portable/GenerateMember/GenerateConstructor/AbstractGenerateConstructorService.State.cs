@@ -171,11 +171,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 SyntaxNode constructorInitializer,
                 CancellationToken cancellationToken)
             {
-                SyntaxToken token;
-                IList<TArgumentSyntax> arguments;
-                INamedTypeSymbol typeToGenerateIn;
                 if (!service.TryInitializeConstructorInitializerGeneration(document, constructorInitializer, cancellationToken,
-                    out token, out arguments, out typeToGenerateIn))
+                    out var token, out var arguments, out var typeToGenerateIn))
                 {
                     return false;
                 }
@@ -202,11 +199,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 SyntaxNode simpleName,
                 CancellationToken cancellationToken)
             {
-                SyntaxToken token;
-                INamedTypeSymbol typeToGenerateIn;
-                IMethodSymbol constructor;
                 if (service.TryInitializeClassDeclarationGenerationState(document, simpleName, cancellationToken,
-                    out token, out constructor, out typeToGenerateIn))
+                    out var token, out var constructor, out var typeToGenerateIn))
                 {
                     this.Token = token;
                     this.DelegatedConstructorOpt = constructor;
@@ -224,18 +218,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 SyntaxNode simpleName,
                 CancellationToken cancellationToken)
             {
-                SyntaxToken token;
-                IList<TArgumentSyntax> arguments;
-                IList<TAttributeArgumentSyntax> attributeArguments;
-                INamedTypeSymbol typeToGenerateIn;
                 if (service.TryInitializeSimpleNameGenerationState(document, simpleName, cancellationToken,
-                    out token, out arguments, out typeToGenerateIn))
+                    out var token, out var arguments, out var typeToGenerateIn))
                 {
                     this.Token = token;
                     this.Arguments = arguments;
                 }
                 else if (service.TryInitializeSimpleAttributeNameGenerationState(document, simpleName, cancellationToken,
-                    out token, out arguments, out attributeArguments, out typeToGenerateIn))
+                    out token, out arguments, out var attributeArguments, out typeToGenerateIn))
                 {
                     this.Token = token;
                     this.AttributeArguments = attributeArguments;

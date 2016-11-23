@@ -165,7 +165,6 @@
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptions.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptionsProvider.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
-    <Compile Include="IRoslynTelemetrySetup.cs" />
     <Compile Include="Packaging\Interop\SVsRemoteControlService.cs" />
     <Compile Include="Packaging\IPackageServicesProxy.cs" />
     <Compile Include="Storage\VisualStudioPersistentStorageLocationService.cs" />
@@ -214,10 +213,6 @@
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Dependencies\VisualStudio\VisualStudio.csproj">
-      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
-      <Name>VisualStudio</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
@@ -670,7 +665,6 @@
     <Compile Include="Implementation\Workspace\VisualStudioSymbolNavigationServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioTextUndoHistoryWorkspaceServiceFactory.cs" />
     <Compile Include="Progression\GraphNodeCreation.cs" />
-    <Compile Include="RoslynDocumentProvider.cs" />
     <Compile Include="Utilities\SpanExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

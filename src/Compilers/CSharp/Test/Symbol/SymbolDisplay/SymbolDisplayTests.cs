@@ -4734,11 +4734,11 @@ class C
         {
             public bool IsTupleType => true;
 
-            public ImmutableArray<string> TupleElementNames { get; set; }
+            public INamedTypeSymbol wrappedTuple { get; set; }
 
-            public ImmutableArray<ITypeSymbol> TupleElementTypes { get; set; }
+            public ImmutableArray<IFieldSymbol> TupleElements => wrappedTuple.TupleElements;
 
-            public INamedTypeSymbol TupleUnderlyingType { get; set; }
+            public INamedTypeSymbol TupleUnderlyingType => wrappedTuple.TupleUnderlyingType;
 
             public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null)
             {
@@ -5109,6 +5109,11 @@ class C
                 }
             }
 
+            public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
             public TypeKind TypeKind
             {
                 get
@@ -5228,6 +5233,9 @@ class C
             {
                 throw new NotImplementedException();
             }
+
+            public bool IsComImport => throw new NotImplementedException();
+
             #endregion
         }
 
@@ -5239,9 +5247,9 @@ class C
             ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
 
             var symbolWithNames = new FakeTupleTypeSymbol();
-            symbolWithNames.TupleElementTypes = ImmutableArray.Create(intType, stringType);
-            symbolWithNames.TupleElementNames = ImmutableArray.Create("Alice", "Bob");
-            symbolWithNames.TupleUnderlyingType = ((INamedTypeSymbol)comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2)).Construct(intType, stringType);
+            var types = ImmutableArray.Create(intType, stringType);
+            var names = ImmutableArray.Create("Alice", "Bob");
+            symbolWithNames.wrappedTuple = ((INamedTypeSymbol)comp.CreateTupleTypeSymbol(types, names));
 
             var descriptionWithNames = symbolWithNames.ToDisplayParts();
 
@@ -5259,8 +5267,8 @@ class C
                 SymbolDisplayPartKind.Punctuation);
 
             var symbolWithoutNames = new FakeTupleTypeSymbol();
-            symbolWithoutNames.TupleElementTypes = ImmutableArray.Create(intType, stringType);
-            symbolWithoutNames.TupleUnderlyingType = symbolWithNames.TupleUnderlyingType;
+            types = ImmutableArray.Create(intType, stringType);
+            symbolWithoutNames.wrappedTuple = ((INamedTypeSymbol)comp.CreateTupleTypeSymbol(types));
 
             var descriptionWithoutNames = symbolWithoutNames.ToDisplayParts();
 

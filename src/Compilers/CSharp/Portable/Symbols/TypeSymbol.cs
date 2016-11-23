@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If this symbol represents a tuple type, get the fields for the tuple's elements.
         /// Otherwise, returns default.
         /// </summary>
-        public virtual ImmutableArray<FieldSymbol> TupleDefaultElementFields => default(ImmutableArray<FieldSymbol>);
+        public virtual ImmutableArray<FieldSymbol> TupleElements => default(ImmutableArray<FieldSymbol>);
 
         /// <summary>
         /// Is this type a managed type (false for everything but enum, pointer, and
@@ -1034,6 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     interfaceMethod.RefKind,
                     interfaceMethod.ReturnType,
                     interfaceMethod.ReturnTypeCustomModifiers,
+                    interfaceMethod.RefCustomModifiers,
                     interfaceMethod.ExplicitInterfaceImplementations);
 
                 // Make sure that the corresponding accessor is a real implementation.

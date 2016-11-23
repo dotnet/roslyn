@@ -125,9 +125,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int referencedAssemblyIndex,
             ref MetadataTypeName emittedName)
         {
+            var assembly = moduleSymbol.GetReferencedAssemblySymbol(referencedAssemblyIndex);
+            if ((object)assembly == null)
+            {
+                return new UnsupportedMetadataTypeSymbol();
+            }
+
             try
             {
-                AssemblySymbol assembly = moduleSymbol.GetReferencedAssemblySymbols()[referencedAssemblyIndex];
                 return assembly.LookupTopLevelMetadataType(ref emittedName, digThroughForwardedTypes: true);
             }
             catch (Exception e) when (FatalError.Report(e)) // Trying to get more useful Watson dumps.

@@ -271,18 +271,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var ws = new AdhocWorkspace())
             {
                 ws.AddProject(projInfo);
-
-                SourceText currentText;
-                VersionStamp currentVersion;
-
                 var doc = ws.CurrentSolution.GetDocument(docInfo.Id);
-                Assert.Equal(false, doc.TryGetText(out currentText));
+                Assert.Equal(false, doc.TryGetText(out var currentText));
 
                 ws.OpenDocument(docInfo.Id);
 
                 doc = ws.CurrentSolution.GetDocument(docInfo.Id);
                 Assert.Equal(true, doc.TryGetText(out currentText));
-                Assert.Equal(true, doc.TryGetTextVersion(out currentVersion));
+                Assert.Equal(true, doc.TryGetTextVersion(out var currentVersion));
                 Assert.Same(text, currentText);
                 Assert.Equal(version, currentVersion);
 
@@ -311,18 +307,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var ws = new AdhocWorkspace())
             {
                 ws.AddProject(projInfo);
-
-                SourceText currentText;
-                VersionStamp currentVersion;
-
                 var doc = ws.CurrentSolution.GetAdditionalDocument(docInfo.Id);
-                Assert.Equal(false, doc.TryGetText(out currentText));
+                Assert.Equal(false, doc.TryGetText(out var currentText));
 
                 ws.OpenAdditionalDocument(docInfo.Id);
 
                 doc = ws.CurrentSolution.GetAdditionalDocument(docInfo.Id);
                 Assert.Equal(true, doc.TryGetText(out currentText));
-                Assert.Equal(true, doc.TryGetTextVersion(out currentVersion));
+                Assert.Equal(true, doc.TryGetTextVersion(out var currentVersion));
                 Assert.Same(text, currentText);
                 Assert.Equal(version, currentVersion);
 
@@ -370,13 +362,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var ws = new AdhocWorkspace())
             {
                 ws.AddProject(projInfo);
-
-                SourceText currentText;
-                VersionStamp currentVersion;
-
                 var doc = ws.CurrentSolution.GetDocument(docInfo.Id);
-                Assert.Equal(false, doc.TryGetText(out currentText));
-                Assert.Equal(false, doc.TryGetTextVersion(out currentVersion));
+                Assert.Equal(false, doc.TryGetText(out var currentText));
+                Assert.Equal(false, doc.TryGetTextVersion(out var currentVersion));
 
                 // cause text to load and show that TryGet now works for text and version
                 currentText = await doc.GetTextAsync();

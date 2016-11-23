@@ -214,8 +214,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                int id;
-                if (_dataMap.TryGetId(value, out id))
+                if (_dataMap.TryGetId(value, out var id))
                 {
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
@@ -474,10 +473,8 @@ namespace Roslyn.Utilities
 
             // get type of array
             var elementType = instance.GetType().GetElementType();
-
             // optimization for primitive type array
-            DataKind elementKind;
-            if (s_typeMap.TryGetValue(elementType, out elementKind))
+            if (s_typeMap.TryGetValue(elementType, out var elementKind))
             {
                 this.WritePrimitiveType(elementType, elementKind);
                 this.WritePrimitiveTypeArrayElements(elementType, elementKind, instance);
@@ -595,8 +592,7 @@ namespace Roslyn.Utilities
 
         private void WriteType(Type type)
         {
-            int id;
-            if (_dataMap.TryGetId(type, out id))
+            if (_dataMap.TryGetId(type, out var id))
             {
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
@@ -637,10 +633,8 @@ namespace Roslyn.Utilities
         private void WriteObject(object instance)
         {
             _cancellationToken.ThrowIfCancellationRequested();
-
             // write object ref if we already know this instance
-            int id;
-            if (_dataMap.TryGetId(instance, out id))
+            if (_dataMap.TryGetId(instance, out var id))
             {
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)

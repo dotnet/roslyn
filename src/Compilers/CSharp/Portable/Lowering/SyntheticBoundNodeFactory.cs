@@ -205,9 +205,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundHoistedFieldAccess(Syntax, field, field.Type);
         }
 
-        public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, bool isPublic = false)
+        public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, bool isPublic = false, bool isThis = false)
         {
-            var result = new StateMachineFieldSymbol(CurrentType, type, name, isPublic);
+            var result = new StateMachineFieldSymbol(CurrentType, type, name, isPublic, isThis);
             AddField(CurrentType, result);
             return result;
         }
@@ -423,6 +423,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(Syntax, locals, localFunctions, statements) { WasCompilerGenerated = true };
         }
 
+        public BoundStatementList StatementList()
+        {
+            return StatementList(ImmutableArray<BoundStatement>.Empty);
+        }
+
         public BoundStatementList StatementList(ImmutableArray<BoundStatement> statements)
         {
             return new BoundStatementList(Syntax, statements) { WasCompilerGenerated = true };
@@ -490,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ParameterSymbol SynthesizedParameter(TypeSymbol type, string name, MethodSymbol container = null, int ordinal = 0)
         {
-            return new SynthesizedParameterSymbol(container, type, ordinal, RefKind.None, name);
+            return SynthesizedParameterSymbol.Create(container, type, ordinal, RefKind.None, name);
         }
 
         public BoundBinaryOperator Binary(BinaryOperatorKind kind, TypeSymbol type, BoundExpression left, BoundExpression right)

@@ -55,8 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 return false;
             }
 
-            SyntaxNode accessorNode;
-            if (!CodeModelService.TryGetAccessorNode(parentNode, _kind, out accessorNode))
+            if (!CodeModelService.TryGetAccessorNode(parentNode, _kind, out var accessorNode))
             {
                 return false;
             }

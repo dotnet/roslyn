@@ -41,10 +41,6 @@
       <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
-      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
-      <Name>VisualStudioEditor</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
       <Project>{18f5fbb8-7570-4412-8cc7-0a86ff13b7ba}</Project>
       <Name>TextEditorFeatures</Name>

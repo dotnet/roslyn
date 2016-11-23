@@ -10,6 +10,10 @@
       "version": "14.0.249-master2E2DC10C",
       "suppressParent": "all"
     },
+    "Microsoft.VisualStudio.OLE.Interop": "7.10.6070",
+    "Microsoft.VisualStudio.Shell.Interop.10.0": "10.0.30319",
+    "Microsoft.VisualStudio.Shell.Interop.11.0": "11.0.61030",
+    "Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime": "12.1.30328",
     "Microsoft.VisualStudio.Shell.14.0": {
       "version": "14.3.25407",
       "suppressParent": "all"
@@ -78,8 +82,24 @@
       "version": "14.3.25407",
       "suppressParent": "all"
     },
+    "Microsoft.VisualStudio.TextManager.Interop.10.0": {
+      "version": "10.0.30319",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.TextManager.Interop.12.0": {
+      "version": "12.0.30110",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime": {
+      "version": "12.1.30328",
+      "suppressParent": "all"
+    },
+    "Microsoft.VisualStudio.Designer.Interfaces": {
+      "version": "1.1.4322",
+      "suppressParent": "all"
+    },
     "Microsoft.DiaSymReader": "1.1.0-beta1-60625-03",
-    "Roslyn.Microsoft.Build": "0.0.2",
+    "Microsoft.Build": "14.3.0",
     "NuGet.VisualStudio": {
       "version": "3.3.0",
       "suppressParent": "all"

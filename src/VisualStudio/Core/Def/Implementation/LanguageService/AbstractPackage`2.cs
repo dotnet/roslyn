@@ -48,15 +48,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _languageService.Setup();
                 return _languageService.ComAggregate;
             });
-
+            var shell = (IVsShell)this.GetService(typeof(SVsShell));
             // Okay, this is also a bit strange.  We need to get our Interop dll into our process,
             // but we're in the GAC.  Ask the base Roslyn Package to load, and it will take care of
             // it for us.
             // * NOTE * workspace should never be created before loading roslyn package since roslyn package
             //          installs a service roslyn visual studio workspace requires
-            IVsPackage setupPackage;
-            var shell = (IVsShell)this.GetService(typeof(SVsShell));
-            shell.LoadPackage(Guids.RoslynPackageId, out setupPackage);
+            shell.LoadPackage(Guids.RoslynPackageId, out var setupPackage);
 
             _miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
             if (_miscellaneousFilesWorkspace != null)

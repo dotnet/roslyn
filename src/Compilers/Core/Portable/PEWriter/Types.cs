@@ -93,9 +93,17 @@ namespace Microsoft.Cci
     internal interface IParameterTypeInformation : IParameterListEntry
     {
         /// <summary>
-        /// The list of custom modifiers, if any, associated with the parameter. Evaluate this property only if IsModified is true.
+        /// The list of custom modifiers, if any, associated with the parameter type. 
         /// </summary>
         ImmutableArray<ICustomModifier> CustomModifiers
+        {
+            get;
+        }
+
+        /// <summary>
+        /// The list of custom modifiers, if any, associated with the ref modifier. 
+        /// </summary>
+        ImmutableArray<ICustomModifier> RefCustomModifiers
         {
             get;
         }
@@ -104,13 +112,6 @@ namespace Microsoft.Cci
         /// True if the parameter is passed by reference (using a managed pointer).
         /// </summary>
         bool IsByReference { get; }
-
-        /// <summary>
-        /// The CLI spec says that custom modifiers must precede the ByRef type code in the encoding of a parameter.
-        /// Unfortunately, the managed C++ compiler emits them in the reverse order.  In order to avoid breaking
-        /// interop scenarios, we need to support such signatures. 
-        /// </summary>
-        ushort CountOfCustomModifiersPrecedingByRef { get; }
 
         /// <summary>
         /// The type of argument value that corresponds to this parameter.
@@ -364,7 +365,7 @@ namespace Microsoft.Cci
     internal interface IModifiedTypeReference : ITypeReference
     {
         /// <summary>
-        /// Returns the list of custom modifiers associated with the type reference. Evaluate this property only if IsModified is true.
+        /// Returns the list of custom modifiers associated with the type reference.
         /// </summary>
         ImmutableArray<ICustomModifier> CustomModifiers { get; }
 

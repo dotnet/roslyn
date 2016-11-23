@@ -78,11 +78,11 @@
     <Compile Include="..\..\..\Compilers\VisualBasic\Portable\Syntax\LambdaUtilities.vb">
       <Link>InternalUtilities\LambdaUtilities.vb</Link>
     </Compile>
-    <Compile Include="ChangeSignature\ChangeSignatureCodeRefactoringProvider.vb" />
+    <Compile Include="AddPackage\VisualBasicAddSpecificPackageCodeFixProvider.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.vb" />
     <Compile Include="ChangeSignature\UnifiedArgumentSyntax.vb" />
     <Compile Include="ChangeSignature\VisualBasicChangeSignatureService.vb" />
-    <Compile Include="CodeFixes\AddImport\VisualBasicAddImportCodeFixProvider.vb" />
+    <Compile Include="AddImport\VisualBasicAddImportCodeFixProvider.vb" />
     <Compile Include="CodeFixes\CorrectNextControlVariable\CorrectNextControlVariableCodeFixProvider.CodeAction.vb" />
     <Compile Include="CodeFixes\CorrectNextControlVariable\CorrectNextControlVariableCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateParameterizedMember\GenerateConversionCodeFixProvider.vb" />
@@ -102,8 +102,7 @@
     <Compile Include="CodeFixes\GenerateParameterizedMember\GenerateParameterizedMemberCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateType\GenerateTypeCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateVariable\GenerateVariableCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\ImplementAbstractClass\ImplementAbstractClassCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\ImplementInterface\ImplementInterfaceCodeFixProvider.vb" />
+    <Compile Include="ImplementAbstractClass\VisualBasicImplementAbstractClassCodeFixProvider.vb" />
     <Compile Include="CodeFixes\IncorrectExitContinue\IncorrectExitContinueCodeFixProvider.AddKeywordCodeAction.vb" />
     <Compile Include="CodeFixes\IncorrectExitContinue\IncorrectExitContinueCodeFixProvider.ReplaceKeywordCodeAction.vb" />
     <Compile Include="CodeFixes\IncorrectExitContinue\IncorrectExitContinueCodeFixProvider.ReplaceTokenKeywordCodeAction.vb" />
@@ -111,9 +110,9 @@
     <Compile Include="CodeFixes\IncorrectFunctionReturnType\IncorrectFunctionReturnTypeCodeFixProvider.vb" />
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.MoveToLineCodeAction.vb" />
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\NamingStyles\VisualBasicNamingStyleCodeFixProvider.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.AddOverloads.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
+    <Compile Include="ImplementInterface\VisualBasicImplementInterfaceCodeFixProvider.vb" />
     <Compile Include="Structure\Providers\CollectionInitializerStructureProvider.vb" />
     <Compile Include="Structure\Providers\ObjectCreationInitializerStructureProvider.vb" />
     <Compile Include="QualifyMemberAccess\VisualBasicQualifyMemberAccessCodeFixProvider.vb" />
@@ -128,8 +127,6 @@
     <Compile Include="CodeLens\VisualBasicDisplayInfoService.vb" />
     <Compile Include="ConvertToInterpolatedString\VisualBasicConvertConcatenationToInterpolatedStringRefactoringProvider.vb" />
     <Compile Include="ConvertToInterpolatedString\VisualBasicConvertPlaceholderToInterpolatedStringRefactoringProvider.vb" />
-    <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldRefactoringProvider.vb" />
-    <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.ReferenceRewriter.vb" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\InvertIf\InvertIfCodeRefactoringProvider.vb" />

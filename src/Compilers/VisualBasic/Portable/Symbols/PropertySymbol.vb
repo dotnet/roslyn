@@ -58,6 +58,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
 
         ''' <summary>
+        ''' Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        ''' </summary>
+        Public MustOverride ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+
+        ''' <summary>
         ''' Gets the parameters of this property. If this property has no parameters, returns
         ''' an empty list.
         ''' </summary>
@@ -339,17 +344,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Check return type custom modifiers.
-            Dim paramsErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.TypeCustomModifiers)
+            Dim refModifiersErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.RefCustomModifiers)
 
-            If paramsErrorInfo IsNot Nothing Then
-                If paramsErrorInfo.Code = ERRID.ERR_UnsupportedProperty1 Then
-                    Return paramsErrorInfo
-                End If
-
-                If errorInfo Is Nothing Then
-                    errorInfo = paramsErrorInfo
-                End If
+            If refModifiersErrorInfo IsNot Nothing AndAlso refModifiersErrorInfo.Code = ERRID.ERR_UnsupportedProperty1 Then
+                Return refModifiersErrorInfo
             End If
+
+            Dim typeModifiersErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.TypeCustomModifiers)
+
+            If typeModifiersErrorInfo IsNot Nothing AndAlso typeModifiersErrorInfo.Code = ERRID.ERR_UnsupportedProperty1 Then
+                Return typeModifiersErrorInfo
+            End If
+
+            errorInfo = If(errorInfo, If(refModifiersErrorInfo, typeModifiersErrorInfo))
 
             ' Check parameters.
             Dim result = MergeUseSiteErrorInfo(errorInfo, DeriveUseSiteErrorInfoFromParameters(Me.Parameters))
@@ -359,8 +366,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If result Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
                 Dim unificationCheckedTypes As HashSet(Of TypeSymbol) = Nothing
                 result = If(Me.Type.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
+                         If(GetUnificationUseSiteDiagnosticRecursive(Me.RefCustomModifiers, Me, unificationCheckedTypes),
                          If(GetUnificationUseSiteDiagnosticRecursive(Me.TypeCustomModifiers, Me, unificationCheckedTypes),
-                            GetUnificationUseSiteDiagnosticRecursive(Me.Parameters, Me, unificationCheckedTypes)))
+                            GetUnificationUseSiteDiagnosticRecursive(Me.Parameters, Me, unificationCheckedTypes))))
             End If
 
             Return result
@@ -491,6 +499,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IPropertySymbol_Type As ITypeSymbol Implements IPropertySymbol.Type
             Get
                 Return Me.Type
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_RefCustomModifiers As ImmutableArray(Of CustomModifier) Implements IPropertySymbol.RefCustomModifiers
+            Get
+                Return Me.RefCustomModifiers
             End Get
         End Property
 

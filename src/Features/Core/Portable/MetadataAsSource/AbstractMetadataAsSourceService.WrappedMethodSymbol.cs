@@ -191,6 +191,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 return _symbol.GetReturnTypeAttributes();
             }
 
+            public ImmutableArray<CustomModifier> RefCustomModifiers
+            {
+                get
+                {
+                    return _symbol.RefCustomModifiers;
+                }
+            }
+
             public ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
             {
                 get

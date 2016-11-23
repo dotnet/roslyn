@@ -8,9 +8,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences;
 using Microsoft.VisualStudio.PlatformUI;
 
@@ -18,15 +20,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 {
     internal partial class NamingStyleOptionPageControl : AbstractOptionPageControl
     {
+        public static string ReorderHeader => ServicesVSResources.Reorder;
+        public static string SpecificationHeader => ServicesVSResources.Specification;
+        public static string RequiredStyleHeader => ServicesVSResources.Required_Style;
+        public static string ExplanatoryText => ServicesVSResources.For_a_given_symbol_only_the_topmost_rule_with_a_matching_Specification_will_be_applied_Violation_of_that_rules_Required_Style_will_be_reported_at_the_chosen_Severity_level;
+
         private NamingStyleOptionPageViewModel _viewModel;
         private readonly string _languageName;
         private readonly INotificationService _notificationService;
 
-        private readonly ImmutableArray<EnforcementLevel> _notifications = ImmutableArray.Create(
-            new EnforcementLevel(DiagnosticSeverity.Hidden),
-            new EnforcementLevel(DiagnosticSeverity.Info),
-            new EnforcementLevel(DiagnosticSeverity.Warning),
-            new EnforcementLevel(DiagnosticSeverity.Error));
+        private readonly NotificationOptionViewModel[] _notifications = new[]
+        {
+            new NotificationOptionViewModel(NotificationOption.None, KnownMonikers.None),
+            new NotificationOptionViewModel(NotificationOption.Suggestion, KnownMonikers.StatusInformation),
+            new NotificationOptionViewModel(NotificationOption.Warning, KnownMonikers.StatusWarning),
+            new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
+        };
 
         internal NamingStyleOptionPageControl(IServiceProvider serviceProvider, INotificationService notificationService, string languageName)
             : base(serviceProvider)
@@ -137,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
                 var rule = new SerializableNamingRule()
                 {
-                    EnforcementLevel = item.SelectedNotificationPreference.Value,
+                    EnforcementLevel = item.SelectedNotificationPreference.Notification.Value,
                     NamingStyleID = item.SelectedStyle.ID,
                     SymbolSpecificationID = item.SelectedSpecification.ID
                 };

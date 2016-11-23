@@ -34,35 +34,34 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <param name="position">The character position within the document.</param>
         /// <param name="workspace">A workspace to provide context.</param>
         /// <param name="cancellationToken">A CancellationToken.</param>
-        public static Task<ISymbol> FindSymbolAtPositionAsync(
+        public static async Task<ISymbol> FindSymbolAtPositionAsync(
             SemanticModel semanticModel,
             int position,
             Workspace workspace,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return FindSymbolAtPositionAsync(semanticModel, position, workspace, bindLiteralsToUnderlyingType: false, cancellationToken: cancellationToken);
+            var semanticInfo = await GetSemanticInfoAtPositionAsync(
+                semanticModel, position, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return semanticInfo.GetAnySymbol(includeType: false);
         }
 
-        internal static async Task<ISymbol> FindSymbolAtPositionAsync(
+        internal static async Task<TokenSemanticInfo> GetSemanticInfoAtPositionAsync(
             SemanticModel semanticModel,
             int position,
             Workspace workspace,
-            bool bindLiteralsToUnderlyingType,
             CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
             var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
             var token = await syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
-            if (token != default(SyntaxToken))
+            if (token != default(SyntaxToken) &&
+                token.Span.IntersectsWith(position))
             {
-                if (token.Span.IntersectsWith(position))
-                {
-                    return semanticModel.GetSymbols(token, workspace, bindLiteralsToUnderlyingType, cancellationToken).FirstOrDefault();
-                }
+                return semanticModel.GetSemanticInfo(token, workspace, cancellationToken);
             }
 
-            return null;
+            return TokenSemanticInfo.Empty;
         }
 
         public static async Task<ISymbol> FindSymbolAtPositionAsync(
@@ -135,12 +134,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // then we have a retargeting scenario and want to take our usual path below as if it was a metadata reference
                 foreach (var sourceProject in solution.Projects)
                 {
-                    Compilation compilation;
 
                     // If our symbol is actually a "regular" source symbol, then we know the compilation is holding the symbol alive
                     // and thus TryGetCompilation is sufficient. For another example of this pattern, see Solution.GetProject(IAssemblySymbol)
                     // which we happen to call below.
-                    if (sourceProject.TryGetCompilation(out compilation))
+                    if (sourceProject.TryGetCompilation(out var compilation))
                     {
                         if (symbol.ContainingAssembly.Equals(compilation.Assembly))
                         {

@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private static Workspace GetWorkspace(SourceTextContainer textContainer)
         {
-            Workspace workspace;
-            Workspace.TryGetWorkspace(textContainer, out workspace);
+            Workspace.TryGetWorkspace(textContainer, out var workspace);
             return workspace;
         }
     }

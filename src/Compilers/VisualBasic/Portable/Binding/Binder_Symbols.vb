@@ -379,9 +379,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' When we bind generic type reference, we pass through here with symbols for 
                             ' the generic type definition, each type argument and for the final constructed 
                             ' symbol. To avoid reporting duplicate diagnostics in this scenario, report use
-                            ' site errors only on a definition.                            ' 
+                            ' site errors only on a definition.
                             If Not reportedAnError AndAlso Not suppressUseSiteError AndAlso
-                               Not typeSymbol.IsArrayType() AndAlso typeSymbol.IsDefinition Then
+                               Not typeSymbol.IsArrayType() AndAlso Not typeSymbol.IsTupleType AndAlso typeSymbol.IsDefinition Then
                                 ReportUseSiteError(diagBag, typeSyntax, typeSymbol)
                             End If
 

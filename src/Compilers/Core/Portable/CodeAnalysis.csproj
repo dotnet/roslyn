@@ -418,9 +418,6 @@
     <Compile Include="InternalUtilities\ThreadSafeFlagOperations.cs" />
     <Compile Include="InternalUtilities\ThreeState.cs" />
     <Compile Include="InternalUtilities\UICultureUtilities.cs" />
-    <Compile Include="InternalUtilities\ValueTuple.cs" />
-    <Compile Include="InternalUtilities\ValueTuple`2.cs" />
-    <Compile Include="InternalUtilities\ValueTuple`3.cs" />
     <Compile Include="InternalUtilities\WeakList.cs" />
     <Compile Include="InternalUtilities\WeakReferenceExtensions.cs" />
     <Compile Include="InternalUtilities\XmlUtilities.cs" />
@@ -607,6 +604,7 @@
     <Compile Include="Symbols\Attributes\WellKnownAttributeData.cs" />
     <Compile Include="Symbols\CommonAttributeDataExtensions.cs" />
     <Compile Include="Symbols\CustomModifier.cs" />
+    <Compile Include="Symbols\CustomModifiersTuple.cs" />
     <Compile Include="Symbols\IAliasSymbol.cs" />
     <Compile Include="Symbols\IArrayTypeSymbol.cs" />
     <Compile Include="Symbols\IAssemblySymbol.cs" />

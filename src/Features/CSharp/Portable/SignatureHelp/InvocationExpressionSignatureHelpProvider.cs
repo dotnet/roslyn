@@ -54,9 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            InvocationExpressionSyntax invocationExpression;
-            if (!TryGetInvocationExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out invocationExpression))
+            if (!TryGetInvocationExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var invocationExpression))
             {
                 return null;
             }
@@ -116,14 +114,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
         public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
-            InvocationExpressionSyntax expression;
             if (TryGetInvocationExpression(
                     root,
                     position,
                     syntaxFacts,
                     SignatureHelpTriggerReason.InvokeSignatureHelpCommand,
                     cancellationToken,
-                    out expression) &&
+                    out var expression) &&
                 currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
             {
                 return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position);

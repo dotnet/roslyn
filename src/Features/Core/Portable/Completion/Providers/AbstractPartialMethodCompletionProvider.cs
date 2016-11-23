@@ -41,10 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var cancellationToken = context.CancellationToken;
 
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-            DeclarationModifiers modifiers;
-            SyntaxToken token;
-            if (!IsPartialMethodCompletionContext(tree, position, cancellationToken, out modifiers, out token))
+            if (!IsPartialMethodCompletionContext(tree, position, cancellationToken, out var modifiers, out var token))
             {
                 return;
             }

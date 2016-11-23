@@ -313,8 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return false;
             }
 
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(document.GetTextAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).Container, out workspace))
+            if (Workspace.TryGetWorkspace(document.GetTextAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).Container, out var workspace))
             {
                 var newName = newFullyQualifiedName.Substring(newFullyQualifiedName.LastIndexOf('.') + 1);
                 var optionSet = document.Project.Solution.Workspace.Options;

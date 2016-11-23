@@ -22,9 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return PerformEdit(document =>
             {
-                Document newDocument;
                 var resultNode = CodeModelService.InsertAttribute(
-                    document, IsBatchOpen, insertionIndex, containerNode, attributeNode, CancellationToken.None, out newDocument);
+                    document, IsBatchOpen, insertionIndex, containerNode, attributeNode, CancellationToken.None, out var newDocument);
 
                 return Tuple.Create(resultNode, newDocument);
             });
@@ -34,9 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return PerformEdit(document =>
             {
-                Document newDocument;
                 var resultNode = CodeModelService.InsertAttributeArgument(
-                    document, IsBatchOpen, insertionIndex, containerNode, attributeArgumentNode, CancellationToken.None, out newDocument);
+                    document, IsBatchOpen, insertionIndex, containerNode, attributeArgumentNode, CancellationToken.None, out var newDocument);
 
                 return Tuple.Create(resultNode, newDocument);
             });
@@ -46,9 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return PerformEdit(document =>
             {
-                Document newDocument;
                 var resultNode = CodeModelService.InsertImport(
-                    document, IsBatchOpen, insertionIndex, containerNode, importNode, CancellationToken.None, out newDocument);
+                    document, IsBatchOpen, insertionIndex, containerNode, importNode, CancellationToken.None, out var newDocument);
 
                 return Tuple.Create(resultNode, newDocument);
             });
@@ -58,9 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return PerformEdit(document =>
             {
-                Document newDocument;
                 var resultNode = CodeModelService.InsertMember(
-                    document, IsBatchOpen, insertionIndex, containerNode, memberNode, CancellationToken.None, out newDocument);
+                    document, IsBatchOpen, insertionIndex, containerNode, memberNode, CancellationToken.None, out var newDocument);
 
                 return Tuple.Create(resultNode, newDocument);
             });
@@ -70,9 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return PerformEdit(document =>
             {
-                Document newDocument;
                 var resultNode = CodeModelService.InsertParameter(
-                    document, IsBatchOpen, insertionIndex, containerNode, parameterNode, CancellationToken.None, out newDocument);
+                    document, IsBatchOpen, insertionIndex, containerNode, parameterNode, CancellationToken.None, out var newDocument);
 
                 return Tuple.Create(resultNode, newDocument);
             });

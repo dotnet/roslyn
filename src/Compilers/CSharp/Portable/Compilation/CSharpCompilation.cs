@@ -849,13 +849,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap
-        {
-            get
-            {
-                return GetBoundReferenceManager().ReferenceDirectiveMap;
-            }
-        }
+        internal override IDictionary<(string path, string content), MetadataReference> ReferenceDirectiveMap
+            => GetBoundReferenceManager().ReferenceDirectiveMap;
 
         // for testing purposes
         internal IEnumerable<string> ExternAliases
@@ -916,7 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MetadataReference GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
         {
             MetadataReference reference;
-            return ReferenceDirectiveMap.TryGetValue(ValueTuple.Create(directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
+            return ReferenceDirectiveMap.TryGetValue((directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
         }
 
         /// <summary>
@@ -1527,6 +1522,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
             }
         }
+
+        internal override bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code)
+            => code == (int)ErrorCode.ERR_NoTypeDef;
 
         internal class EntryPoint
         {

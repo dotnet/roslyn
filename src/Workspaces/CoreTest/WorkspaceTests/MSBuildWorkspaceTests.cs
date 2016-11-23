@@ -1265,20 +1265,14 @@ class C1
             Workspace.TestHookStandaloneProjectsDoNotHoldReferences = true;
 
             var ws = MSBuildWorkspace.Create();
-
-            var diags = new List<WorkspaceDiagnostic>();
-            ws.WorkspaceFailed += (s, args) =>
-            {
-                diags.Add(args.Diagnostic);
-            };
-
             ws.SkipUnrecognizedProjects = true;
+
             var project = ws.OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
 
             Assert.Equal(1, project.Solution.ProjectIds.Count);
             Assert.Equal(0, project.ProjectReferences.Count());
             Assert.Equal(1, project.AllProjectReferences.Count());
-            Assert.Equal(2, diags.Count);
+            Assert.Equal(1, ws.Diagnostics.Count);
         }
 
         [Fact(Skip = "https://roslyn.codeplex.com/workitem/451"), Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -2263,6 +2257,50 @@ class C1
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestLoadTextSync()
+        {
+            var files = GetAnalyzerReferenceSolutionFiles();
+
+            CreateFiles(files);
+
+            using (var ws = new AdhocWorkspace(DesktopMefHostServices.DefaultServices))
+            {
+                var projectFullPath = Path.Combine(this.SolutionDirectory.Path, @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj");
+
+                var loader = new MSBuildProjectLoader(ws);
+                var infos = loader.LoadProjectInfoAsync(projectFullPath).Result;
+
+                var doc = infos[0].Documents[0];
+                var tav = doc.TextLoader.LoadTextAndVersionSynchronously(ws, doc.Id, CancellationToken.None);
+
+                var adoc = infos[0].AdditionalDocuments.First(a => a.Name == "XamlFile.xaml");
+                var atav = adoc.TextLoader.LoadTextAndVersionSynchronously(ws, adoc.Id, CancellationToken.None);
+                Assert.Contains("Window", atav.Text.ToString(), StringComparison.Ordinal);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestGetTextSynchronously()
+        {
+            var files = GetAnalyzerReferenceSolutionFiles();
+
+            CreateFiles(files);
+
+            using (var ws = MSBuildWorkspace.Create())
+            {
+                var projectFullPath = Path.Combine(this.SolutionDirectory.Path, @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj");
+                var proj = ws.OpenProjectAsync(projectFullPath).Result;
+
+                var doc = proj.Documents.First();
+                var text = doc.State.GetTextSynchronously(CancellationToken.None);
+
+                var adoc = proj.AdditionalDocuments.First(a => a.Name == "XamlFile.xaml");
+                var atext = adoc.State.GetTextSynchronously(CancellationToken.None);
+                Assert.Contains("Window", atext.ToString(), StringComparison.Ordinal);
+            }
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
         public void TestCSharpExternAlias()
         {
@@ -2914,6 +2952,65 @@ class C { }";
             var proj = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
             var docs = proj.Documents.ToList();
             Assert.Equal(3, docs.Count);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestOpenProject_BadElement()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_BadElement.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+            var proj = await ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
+
+            Assert.Equal(1, ws.Diagnostics.Count);
+            Assert.True(ws.Diagnostics[0].Message.StartsWith("Msbuild failed"));
+
+            Assert.Equal(0, proj.DocumentIds.Count);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestOpenProject_BadTaskImport()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_BadTasks.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+            var proj = await ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
+
+            Assert.Equal(1, ws.Diagnostics.Count);
+            Assert.True(ws.Diagnostics[0].Message.StartsWith("Msbuild failed"));
+
+            Assert.Equal(0, proj.DocumentIds.Count);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestOpenSolution_BadTaskImport()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_BadTasks.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+            var solution = await ws.OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln"));
+
+            Assert.Equal(1, ws.Diagnostics.Count);
+            Assert.True(ws.Diagnostics[0].Message.StartsWith("Msbuild failed"));
+
+            Assert.Equal(1, solution.ProjectIds.Count);
+            Assert.Equal(0, solution.Projects.First().DocumentIds.Count);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestOpenProject_MsbuildError()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_MsbuildError.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+            var proj = await ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
+
+            Assert.Equal(1, ws.Diagnostics.Count);
+            Assert.True(ws.Diagnostics[0].Message.StartsWith("Msbuild failed"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

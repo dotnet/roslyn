@@ -94,13 +94,17 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="AddPackage\AbstractAddPackageCodeFixProvider.cs" />
+    <Compile Include="AddPackage\AbstractAddSpecificPackageCodeFixProvider.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeActionOperation.cs" />
     <Compile Include="AddPackage\InstallWithPackageManagerCodeAction.cs" />
-    <Compile Include="AddMissingReference\InstallPackageParentCodeAction.cs" />
+    <Compile Include="AddPackage\InstallPackageParentCodeAction.cs" />
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="ConvertToInterpolatedString\AbstractConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
+    <Compile Include="EncapsulateField\EncapsulateFieldRefactoringProvider.cs" />
+    <Compile Include="ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
     <Compile Include="FeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -108,6 +112,8 @@
     </Compile>
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
+    <Compile Include="ImplementType\ImplementTypeOptions.cs" />
+    <Compile Include="ImplementType\ImplementTypeOptionsProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\IUnnecessaryImportsService.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
@@ -136,11 +142,13 @@
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableCodeFixProvider.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionCodeFixProvider.cs" />
     <Compile Include="UseCoalesceExpression\AbstractUseCoalesceExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="UseCollectionInitializer\ObjectCreationExpressionAnalyzer.cs" />
+    <Compile Include="UseExplicitTupleName\UseExplicitTupleNameCodeFixProvider.cs" />
     <Compile Include="UseNullPropagation\AbstractUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="UseNullPropagation\AbstractUseNullPropagationDiagnosticAnalyzer.cs" />
+    <Compile Include="UseObjectInitializer\ObjectCreationExpressionAnalyzer.cs" />
     <Compile Include="UseThrowExpression\AbstractUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />
-    <Compile Include="UseThrowExpression\UseThrowExpressionCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="Structure\BlockTypes.cs" />
     <Compile Include="CodeLens\CodeLensReferencesServiceFactory.cs" />
     <Compile Include="Structure\Syntax\BlockStructureExtensions.cs" />
@@ -302,13 +310,13 @@
     <Compile Include="DocumentationComments\CodeFixes\AbstractAddDocCommentNodesCodeFixProvider.cs" />
     <Compile Include="DocumentationComments\CodeFixes\AbstractRemoveDocCommentNodeCodeFixProvider.cs" />
     <Compile Include="DocumentSpan.cs" />
-    <Compile Include="FindReferences\DefinitionItem.cs" />
-    <Compile Include="FindReferences\DefinitionItem.DocumentLocationDefinitionItem.cs" />
-    <Compile Include="FindReferences\DefinitionItem.NonNavigatingDefinitionItem.cs" />
-    <Compile Include="FindReferences\DefinitionItem.SymbolDefinitionItem.cs" />
-    <Compile Include="FindReferences\DefinitionsAndReferences.cs" />
-    <Compile Include="FindReferences\IDefinitionsAndReferencesFactory.cs" />
-    <Compile Include="FindReferences\SourceReferenceItem.cs" />
+    <Compile Include="FindUsages\DefinitionItem.cs" />
+    <Compile Include="FindUsages\DefinitionItem.DocumentLocationDefinitionItem.cs" />
+    <Compile Include="FindUsages\DefinitionItem.NonNavigatingDefinitionItem.cs" />
+    <Compile Include="FindUsages\DefinitionItem.SymbolDefinitionItem.cs" />
+    <Compile Include="FindUsages\DefinitionsAndReferences.cs" />
+    <Compile Include="FindUsages\IDefinitionsAndReferencesFactory.cs" />
+    <Compile Include="FindUsages\SourceReferenceItem.cs" />
     <Compile Include="Diagnostics\EngineV2\InProcCodeAnalysisDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Diagnostics\EngineV2\ICodeAnalysisDiagnosticAnalyzerExecutor.cs" />
     <Compile Include="MakeMethodAsynchronous\AbstractMakeMethodAsynchronousCodeFixProvider.cs" />
@@ -451,11 +459,9 @@
     <Compile Include="EditAndContinue\RudeEditKind.cs" />
     <Compile Include="EditAndContinue\RudeEditDiagnosticDescriptors.cs" />
     <Compile Include="EditAndContinue\SessionReadOnlyReason.cs" />
-    <Compile Include="EncapsulateField\AbstractEncapsulateFieldCodeRefactoringProvider.cs" />
     <Compile Include="EncapsulateField\AbstractEncapsulateFieldService.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldCodeAction.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldResult.cs" />
-    <Compile Include="ExtractInterface\AbstractExtractInterfaceCodeRefactoringProvider.cs" />
     <Compile Include="ExtractInterface\AbstractExtractInterfaceService.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceCodeAction.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceOptionsResult.cs" />
@@ -683,6 +689,7 @@
     <Compile Include="UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
     <Compile Include="UseObjectInitializer\AbstractUseObjectInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="UseObjectInitializer\AbstractUseObjectInitializerCodeFixProvider.cs" />
+    <Compile Include="UseExplicitTupleName\UseExplicitTupleNameDiagnosticAnalyzer.cs" />
     <Compile Include="Workspace\BackgroundCompiler.cs" />
     <Compile Include="Workspace\BackgroundParser.cs" />
     <Compile Include="Workspace\ProjectCacheService.cs" />

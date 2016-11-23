@@ -188,6 +188,24 @@ Class Customer
     End Sub
 End Class"
 
+        Private Shared ReadOnly s_preferExplicitTupleName As String = "
+Class Customer
+    Public Sub New()
+//[
+        ' Prefer:
+        Dim customer As (name As String, age As Integer)
+        Dim name = customer.name
+        Dim age = customer.age
+
+        ' Over
+        Dim customer As (name As String, age As Integer)
+        Dim name = customer.Item1
+        Dim age = customer.Item2
+//]
+    End Sub
+end class
+"
+
         Private Shared ReadOnly s_preferCoalesceExpression As String = "
 Imports System
 
@@ -262,6 +280,7 @@ End Class"
             ' expression preferences
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, Me, optionSet, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferCollectionInitializer, ServicesVSResources.Prefer_collection_initializer, s_preferCollectionInitializer, s_preferCollectionInitializer, Me, optionSet, expressionPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferExplicitTupleNames, ServicesVSResources.Prefer_explicit_tuple_name, s_preferExplicitTupleName, s_preferExplicitTupleName, Me, optionSet, expressionPreferencesGroupTitle))
 
             ' nothing preferences
             Me.CodeStyleItems.Add(New SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, Me, optionSet, nothingPreferencesGroupTitle))

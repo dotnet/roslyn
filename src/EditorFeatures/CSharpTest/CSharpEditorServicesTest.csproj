@@ -127,10 +127,6 @@
       <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
       <Name>ServiceHub</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
-      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
-      <Name>VisualStudioEditor</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj">
       <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
       <Name>WorkspacesTestUtilities</Name>
@@ -145,8 +141,10 @@
     <AssemblyName>Roslyn.Services.Editor.CSharp.UnitTests</AssemblyName>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="PresentationCore" />
@@ -222,6 +220,8 @@
     <Compile Include="Diagnostics\NamingStyles\NamingStylesTests_OptionSets.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.cs" />
+    <Compile Include="Extensions\ContextQuery\IsPossibleDeconstructionDesignationTests.cs" />
+    <Compile Include="Extensions\ContextQuery\PossibleTupleContextTests.cs" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.cs" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />
@@ -275,10 +275,10 @@
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests_Dialog.cs" />
     <Compile Include="Diagnostics\GenerateVariable\GenerateVariableTests.cs" />
     <Compile Include="Diagnostics\HideBase\HideBaseTests.cs" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests.cs" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests.cs" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests.cs" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
+    <Compile Include="ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />
+    <Compile Include="ImplementInterface\ImplementInterfaceTests.cs" />
     <Compile Include="Diagnostics\Iterator\AddYieldTests.cs" />
     <Compile Include="Diagnostics\Iterator\ChangeToIEnumerableTests.cs" />
     <Compile Include="Diagnostics\MockDiagnosticAnalyzerTests.cs" />
@@ -336,6 +336,7 @@
     <Compile Include="UseCollectionInitializer\UseCollectionInitializerTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.cs" />
+    <Compile Include="UseExplicitTupleName\UseExplicitTupleNameTests.cs" />
     <Compile Include="UseNullPropagation\UseNullPropagationTests.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests_FixAllTests.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests.cs" />

@@ -1944,13 +1944,6 @@ namespace Microsoft.Cci
             this.AddCustomAttributesToTable(typeDefs, def => GetTypeDefinitionHandle(def));
             this.AddCustomAttributesToTable(GetParameterDefs(), def => GetParameterHandle(def));
 
-            // Attributes on interface implementation entries 5
-            foreach (ITypeDefinition typeDef in typeDefs)
-            {
-                var interfaceImpls = typeDef.Interfaces(Context);
-                this.AddCustomAttributesToTable(interfaceImpls);
-            }
-
             // TODO: attributes on member reference entries 6
             if (this.IsFullMetadata)
             {
@@ -1970,10 +1963,6 @@ namespace Microsoft.Cci
             // TODO: this.AddCustomAttributesToTable(assembly.Resources, 18);
 
             this.AddCustomAttributesToTable(sortedGenericParameters, TableIndex.GenericParam);
-            foreach (var param in sortedGenericParameters)
-            {
-                this.AddCustomAttributesToTable(param.GetConstraints(Context));
-            }
         }
 
         private void AddAssemblyAttributesToTable()
@@ -2069,6 +2058,16 @@ namespace Microsoft.Cci
                 {
                     AddCustomAttributeToTable(parentHandle, customAttribute);
                 }
+            }
+        }
+
+        private void AddCustomAttributesToTable(
+            EntityHandle handle,
+            ImmutableArray<ICustomAttribute> attributes)
+        {
+            foreach (var attr in attributes)
+            {
+                AddCustomAttributeToTable(handle, attr);
             }
         }
 
@@ -2368,7 +2367,9 @@ namespace Microsoft.Cci
             }
         }
 
-        private void PopulateGenericParameters(ImmutableArray<IGenericParameter> sortedGenericParameters)
+
+        private void PopulateGenericParameters(
+            ImmutableArray<IGenericParameter> sortedGenericParameters)
         {
             foreach (IGenericParameter genericParameter in sortedGenericParameters)
             {
@@ -2383,9 +2384,10 @@ namespace Microsoft.Cci
 
                 foreach (var refWithAttributes in genericParameter.GetConstraints(Context))
                 {
-                    metadata.AddGenericParameterConstraint(
+                    var genericConstraintHandle = metadata.AddGenericParameterConstraint(
                         genericParameter: genericParameterHandle,
                         constraint: GetTypeHandle(refWithAttributes.TypeRef));
+                    AddCustomAttributesToTable(genericConstraintHandle, refWithAttributes.Attributes);
                 }
             }
         }
@@ -2421,9 +2423,10 @@ namespace Microsoft.Cci
                 var typeDefHandle = GetTypeDefinitionHandle(typeDef);
                 foreach (var interfaceImpl in typeDef.Interfaces(Context))
                 {
-                    metadata.AddInterfaceImplementation(
+                    var handle = metadata.AddInterfaceImplementation(
                         type: typeDefHandle,
                         implementedInterface: GetTypeHandle(interfaceImpl.TypeRef));
+                    AddCustomAttributesToTable(handle, interfaceImpl.Attributes);
                 }
             }
         }
@@ -3224,32 +3227,25 @@ namespace Microsoft.Cci
 
         private void SerializeParameterInformation(ParameterTypeEncoder encoder, IParameterTypeInformation parameterTypeInformation)
         {
-            var modifiers = parameterTypeInformation.CustomModifiers;
-            ushort numberOfModifiersPrecedingByRef = parameterTypeInformation.CountOfCustomModifiersPrecedingByRef;
-            int numberOfRemainingModifiers = modifiers.Length - numberOfModifiersPrecedingByRef;
-
-            Debug.Assert(numberOfModifiersPrecedingByRef == 0 || parameterTypeInformation.IsByReference);
-
-            if (numberOfModifiersPrecedingByRef > 0)
-            {
-                SerializeCustomModifiers(encoder.CustomModifiers(), modifiers, 0, numberOfModifiersPrecedingByRef);
-            }
-
             var type = parameterTypeInformation.GetType(Context);
+
             if (module.IsPlatformType(type, PlatformType.SystemTypedReference))
             {
+                Debug.Assert(!parameterTypeInformation.IsByReference);
+                SerializeCustomModifiers(encoder.CustomModifiers(), parameterTypeInformation.CustomModifiers);
+
                 encoder.TypedReference();
-                return;
             }
-
-            var typeEncoder = encoder.Type(parameterTypeInformation.IsByReference);
-
-            if (numberOfRemainingModifiers > 0)
+            else
             {
-                SerializeCustomModifiers(typeEncoder.CustomModifiers(), modifiers, numberOfModifiersPrecedingByRef, numberOfRemainingModifiers);
-            }
+                Debug.Assert(parameterTypeInformation.RefCustomModifiers.Length == 0 || parameterTypeInformation.IsByReference);
+                SerializeCustomModifiers(encoder.CustomModifiers(), parameterTypeInformation.RefCustomModifiers);
 
-            SerializeTypeReference(typeEncoder, type);
+                var typeEncoder = encoder.Type(parameterTypeInformation.IsByReference);
+
+                SerializeCustomModifiers(typeEncoder.CustomModifiers(), parameterTypeInformation.CustomModifiers);
+                SerializeTypeReference(typeEncoder, type);
+            }
         }
 
         private void SerializeFieldSignature(IFieldReference fieldReference, BlobBuilder builder)
@@ -3589,22 +3585,30 @@ namespace Microsoft.Cci
             ParametersEncoder parametersEncoder;
 
             encoder.Parameters(declaredParameters.Length + varargParameters.Length, out returnTypeEncoder, out parametersEncoder);
-            if (signature.ReturnValueCustomModifiers.Length > 0)
-            {
-                SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), signature.ReturnValueCustomModifiers);
-            }
 
             if (module.IsPlatformType(returnType, PlatformType.SystemTypedReference))
             {
+                Debug.Assert(!signature.ReturnValueIsByRef);
+                SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), signature.ReturnValueCustomModifiers);
+
                 returnTypeEncoder.TypedReference();
             }
             else if (module.IsPlatformType(returnType, PlatformType.SystemVoid))
             {
+                Debug.Assert(!signature.ReturnValueIsByRef);
+                SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), signature.ReturnValueCustomModifiers);
+
                 returnTypeEncoder.Void();
             }
             else
             {
-                SerializeTypeReference(returnTypeEncoder.Type(signature.ReturnValueIsByRef), returnType);
+                Debug.Assert(signature.RefCustomModifiers.Length == 0 || signature.ReturnValueIsByRef);
+                SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), signature.RefCustomModifiers);
+
+                var typeEncoder = returnTypeEncoder.Type(signature.ReturnValueIsByRef);
+
+                SerializeCustomModifiers(typeEncoder.CustomModifiers(), signature.ReturnValueCustomModifiers);
+                SerializeTypeReference(typeEncoder, returnType);
             }
 
             foreach (IParameterTypeInformation parameter in declaredParameters)
@@ -3912,14 +3916,8 @@ namespace Microsoft.Cci
 
         private void SerializeCustomModifiers(CustomModifiersEncoder encoder, ImmutableArray<ICustomModifier> modifiers)
         {
-            SerializeCustomModifiers(encoder, modifiers, 0, modifiers.Length);
-        }
-
-        private void SerializeCustomModifiers(CustomModifiersEncoder encoder, ImmutableArray<ICustomModifier> modifiers, int start, int count)
-        {
-            for (int i = 0; i < count; i++)
+            foreach (var modifier in modifiers)
             {
-                var modifier = modifiers[start + i];
                 encoder = encoder.AddModifier(GetTypeHandle(modifier.GetModifier(Context)), modifier.IsOptional);
             }
         }
