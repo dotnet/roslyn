@@ -32,8 +32,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     continue;
                 }
-                var message = ErrorFacts.GetMessage(code, CultureInfo.InvariantCulture);
-                Assert.False(string.IsNullOrEmpty(message));
+
+                try
+                {
+                    var message = ErrorFacts.GetMessage(code, CultureInfo.InvariantCulture);
+                    Assert.False(string.IsNullOrEmpty(message));
+                }
+                catch (Exception)
+                {
+                    System.Console.WriteLine($"Failed on {code}");
+                    throw;
+                }
             }
         }
 

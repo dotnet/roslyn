@@ -248,11 +248,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddDynamicAnalysis(original, base.InstrumentUsingTargetCapture(original, usingTargetCapture));
         }
 
-        public override BoundStatement InstrumentLocalDeconstructionDeclaration(BoundLocalDeconstructionDeclaration original, BoundStatement rewritten)
-        {
-            return AddDynamicAnalysis(original, base.InstrumentLocalDeconstructionDeclaration(original, rewritten));
-        }
-
         private BoundStatement AddDynamicAnalysis(BoundStatement original, BoundStatement rewritten)
         {
             if (!original.WasCompilerGenerated)

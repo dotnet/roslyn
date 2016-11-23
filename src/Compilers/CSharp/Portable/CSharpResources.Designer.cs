@@ -3311,6 +3311,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot infer the type of implicitly-typed discard..
+        /// </summary>
+        internal static string ERR_DiscardTypeInferenceFailed {
+            get {
+                return ResourceManager.GetString("ERR_DiscardTypeInferenceFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The DllImport attribute cannot be applied to a method that is generic or contained in a generic type..
         /// </summary>
         internal static string ERR_DllImportOnGenericMethod {
@@ -6124,6 +6133,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_MissingTypeInSource {
             get {
                 return ResourceManager.GetString("ERR_MissingTypeInSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot reference {0} in a deconstruction declaration.
+        /// </summary>
+        internal static string ERR_MixedDeconstructionDisallowed {
+            get {
+                return ResourceManager.GetString("ERR_MixedDeconstructionDisallowed", resourceCulture);
             }
         }
         

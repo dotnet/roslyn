@@ -588,9 +588,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeSymbol BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)
         {
             Debug.Assert(
-                declarationNode.Kind() == SyntaxKind.SingleVariableDesignation ||
+                declarationNode is VariableDesignationSyntax ||
                 declarationNode.Kind() == SyntaxKind.VariableDeclaration ||
-                declarationNode.Kind() == SyntaxKind.DeclarationExpression);
+                declarationNode.Kind() == SyntaxKind.DeclarationExpression ||
+                declarationNode.Kind() == SyntaxKind.DiscardedDesignation);
 
             // If the type is "var" then suppress errors when binding it. "var" might be a legal type
             // or it might not; if it is not then we do not want to report an error. If it is, then
@@ -1712,7 +1713,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             var op1 = BindValue(node.Left, diagnostics, BindValueKind.Assignment); // , BIND_MEMBERSET);
             var op2 = BindValue(node.Right, diagnostics, BindValueKind.RValue); // , BIND_RVALUEREQUIRED);
 
+            if (op1.Kind == BoundKind.DiscardedExpression)
+            {
+                op1 = InferTypeForDiscard((BoundDiscardedExpression)op1, op2, diagnostics);
+            }
+
             return BindAssignment(node, op1, op2, diagnostics);
+        }
+
+        private BoundExpression InferTypeForDiscard(BoundDiscardedExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
+        {
+            if (op2.Type == null)
+            {
+                return op1.FailInference(this, diagnostics);
+            }
+            else
+            {
+                return op1.SetInferredType(op2.Type);
+            }
         }
 
         private BoundAssignmentOperator BindAssignment(SyntaxNode node, BoundExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
@@ -1845,6 +1863,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.OutVariablePendingInference:
                 case BoundKind.OutDeconstructVarPendingInference:
                     Debug.Assert(valueKind == BindValueKind.RefOrOut);
+                    return expr;
+
+                case BoundKind.DiscardedExpression:
+                    Debug.Assert(valueKind == BindValueKind.Assignment || valueKind == BindValueKind.RefOrOut);
                     return expr;
             }
 

@@ -36,30 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitLocalDeconstructionDeclaration(BoundLocalDeconstructionDeclaration node)
-        {
-            var syntax = node.Syntax;
-            var loweredExpression = VisitUnusedExpression(node.Assignment);
-
-            if (loweredExpression == null)
-            {
-                // NOTE: not using a BoundNoOpStatement, since we don't want a nop to be emitted.
-                // CONSIDER: could use a BoundNoOpStatement (DevDiv #12943).
-                return BoundStatementList.Synthesized(syntax);
-            }
-            else
-            {
-                BoundStatement result = new BoundExpressionStatement(loweredExpression.Syntax, loweredExpression, node.HasErrors);
-                result.WasCompilerGenerated = node.WasCompilerGenerated;
-                if (this.Instrument && !node.WasCompilerGenerated)
-                {
-                    result = _instrumenter.InstrumentLocalDeconstructionDeclaration(node, result);
-                }
-
-                return result;
-            }
-        }
-
         private BoundExpression VisitUnusedExpression(BoundExpression expression)
         {
             if (expression.HasErrors)
