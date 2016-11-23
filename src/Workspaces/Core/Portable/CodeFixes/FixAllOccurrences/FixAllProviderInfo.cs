@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Roslyn.Utilities;
 
@@ -13,14 +14,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal abstract class FixAllProviderInfo
     {
         public readonly FixAllProvider FixAllProvider;
-        public readonly IEnumerable<FixAllScope> SupportedScopes;
+        public readonly ImmutableArray<FixAllScope> SupportedScopes;
 
         private FixAllProviderInfo(
             FixAllProvider fixAllProvider,
-            IEnumerable<FixAllScope> supportedScopes)
+            ImmutableArray<FixAllScope> supportedScopes)
         {
-            this.FixAllProvider = fixAllProvider;
-            this.SupportedScopes = supportedScopes;
+            FixAllProvider = fixAllProvider;
+            SupportedScopes = supportedScopes;
         }
 
         /// <summary>
@@ -54,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return null;
             }
 
-            var scopes = fixAllProvider.GetSupportedFixAllScopes();
-            if (scopes == null || scopes.IsEmpty())
+            var scopes = fixAllProvider.GetSupportedFixAllScopes().ToImmutableArrayOrEmpty();
+            if (scopes.IsEmpty)
             {
                 return null;
             }
@@ -74,8 +75,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return null;
             }
 
-            var scopes = fixAllProvider.GetSupportedFixAllScopes();
-            if (scopes == null || scopes.IsEmpty())
+            var scopes = fixAllProvider.GetSupportedFixAllScopes().ToImmutableArrayOrEmpty();
+            if (scopes.IsEmpty)
             {
                 return null;
             }
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             public CodeFixerFixAllProviderInfo(
                 FixAllProvider fixAllProvider,
                 IEnumerable<string> supportedDiagnosticIds,
-                IEnumerable<FixAllScope> supportedScopes)
+                ImmutableArray<FixAllScope> supportedScopes)
                 : base(fixAllProvider, supportedScopes)
             {
                 _supportedDiagnosticIds = supportedDiagnosticIds;
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             public SuppressionFixerFixAllProviderInfo(
                 FixAllProvider fixAllProvider,
                 ISuppressionFixProvider suppressionFixer,
-                IEnumerable<FixAllScope> supportedScopes)
+                ImmutableArray<FixAllScope> supportedScopes)
                 : base(fixAllProvider, supportedScopes)
             {
                 _canBeSuppressedOrUnsuppressed = suppressionFixer.CanBeSuppressedOrUnsuppressed;
