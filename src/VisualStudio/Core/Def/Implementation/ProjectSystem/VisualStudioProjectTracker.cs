@@ -354,7 +354,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            // Filter out the projects that have been removed from the tracker.
+            // StartPushingToWorkspaceAndNotifyOfOpenDocuments might be invoked from a background thread,
+            // and hence StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground scheduled to be executed later on the foreground task scheduler.
+            // By the time it gets scheduled, we might have removed some project(s) from the tracker on the UI thread.
+            // So, we filter out the projects that have been removed from the tracker.
             projects = projects.Where(p => this.ContainsProject(p));
 
             using (Dispatcher.CurrentDispatcher.DisableProcessing())
