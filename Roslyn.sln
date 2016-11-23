@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.25920.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "src\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -297,11 +297,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessWatchdog", "src\Tool
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeployCompilerGeneratorToolsRuntime", "src\Tools\Source\CompilerGeneratorTools\DeployCompilerGeneratorToolsRuntime\DeployCompilerGeneratorToolsRuntime.csproj", "{6DA08F12-32F2-4DD9-BBAD-982EB71A2C9B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioTestSetup", "src\VisualStudio\TestSetup\VisualStudioTestSetup.csproj", "{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IntegrationTest", "IntegrationTest", "{CC126D03-7EAC-493F-B187-DCDEE1EF6A70}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioIntegrationTests", "src\VisualStudio\IntegrationTests\VisualStudioIntegrationTests.csproj", "{E5A55C16-A5B9-4874-9043-A5266DC02F58}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioIntegrationTestSetup", "src\VisualStudio\IntegrationTest\TestSetup\VisualStudioIntegrationTestSetup.csproj", "{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioTestUtilities", "src\VisualStudio\TestUtilities\VisualStudioTestUtilities.csproj", "{3BED15FD-D608-4573-B432-1569C1026F6D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioIntegrationTests", "src\VisualStudio\IntegrationTest\IntegrationTests\VisualStudioIntegrationTests.csproj", "{E5A55C16-A5B9-4874-9043-A5266DC02F58}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioIntegrationTestUtilities", "src\VisualStudio\IntegrationTest\TestUtilities\VisualStudioIntegrationTestUtilities.csproj", "{3BED15FD-D608-4573-B432-1569C1026F6D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonCoreClrRuntime", "src\Tools\CommonCoreClrRuntime\CommonCoreClrRuntime.csproj", "{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB}"
 EndProject
@@ -3373,9 +3375,10 @@ Global
 		{23683607-168A-4189-955E-908F0E80E60D} = {CAD2965A-19AB-489F-BE2E-7649957F914A}
 		{1553DE60-A2B0-4FAF-B1B8-C0A7313781CC} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{6DA08F12-32F2-4DD9-BBAD-982EB71A2C9B} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
-		{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2} = {8DBA5174-B0AA-4561-82B1-A46607697753}
-		{E5A55C16-A5B9-4874-9043-A5266DC02F58} = {8DBA5174-B0AA-4561-82B1-A46607697753}
-		{3BED15FD-D608-4573-B432-1569C1026F6D} = {8DBA5174-B0AA-4561-82B1-A46607697753}
+		{CC126D03-7EAC-493F-B187-DCDEE1EF6A70} = {8DBA5174-B0AA-4561-82B1-A46607697753}
+		{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2} = {CC126D03-7EAC-493F-B187-DCDEE1EF6A70}
+		{E5A55C16-A5B9-4874-9043-A5266DC02F58} = {CC126D03-7EAC-493F-B187-DCDEE1EF6A70}
+		{3BED15FD-D608-4573-B432-1569C1026F6D} = {CC126D03-7EAC-493F-B187-DCDEE1EF6A70}
 		{1B665337-9D6A-451A-AEAC-F7BF1AF95FFB} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{DA0D2A70-A2F9-4654-A99A-3227EDF54FF1} = {DD13507E-D5AF-4B61-B11A-D55D6F4A73A5}
 		{366BBCDC-B05F-4677-9B5B-78BA816A1484} = {EE97CB90-33BB-4F3A-9B3D-69375DEC6AC6}
