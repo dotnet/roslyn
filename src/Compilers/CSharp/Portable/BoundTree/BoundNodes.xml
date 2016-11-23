@@ -388,15 +388,9 @@
     <Field Name="RefKind" Type="RefKind" Null="NotApplicable"/>
   </Node>
 
-  <Node Name="BoundLocalDeconstructionDeclaration" Base="BoundStatement">
-    <Field Name="Assignment" Type="BoundDeconstructionAssignmentOperator" Null="disallow"/>
-  </Node>
-
   <Node Name="BoundDeconstructionAssignmentOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
-    <Field Name="IsDeclaration" Type="bool"/>
 
     <!-- Various assignable expressions, in a flat structure (no nesting) -->
     <Field Name="LeftVariables" Type="ImmutableArray&lt;BoundExpression&gt;" Null="disallow"/>
@@ -1568,9 +1562,9 @@
 
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">
     <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
-         a field that is a member of the script class. -->
-    <Field Name="Variable" Type="Symbol" Null="disallow"/>
-    <!-- VariableAccess is an access to the declared symbol, suitable for use
+         a field that is a member of the script class. Variable is null if `_` is used. -->
+    <Field Name="Variable" Type="Symbol" Null="allow"/>
+    <!-- VariableAccess is an access to the declared variable, suitable for use
          in the lowered form in either an lvalue or rvalue position. We maintain it separately
          from the Symbol to facilitate lowerings in which the variable is no longer a simple
          variable access (e.g. in the expression evaluator). It is expected to be logically side-effect
@@ -1588,6 +1582,13 @@
   </Node>
 
   <Node Name="BoundWildcardPattern" Base="BoundPattern">
+  </Node>
+
+  <Node Name="BoundDiscardedExpression" Base="BoundExpression">
+    <!-- A discarded value, when a designator uses `_`. When the type is given as `var, its Type
+         is null before type inference, and it is replaced by a BoundDiscardedExpression with a non-null
+         type after inference. -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
   </Node>
 
   <Node Name="BoundThrowExpression" Base="BoundExpression">

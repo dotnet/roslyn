@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         break;
                     }
+                case SyntaxKind.IdentifierName:
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(declaration.Kind());
             }
@@ -134,6 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     }
+                case SyntaxKind.DiscardedDesignation:
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(designation.Kind());
             }
@@ -162,12 +166,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ExpressionSyntax variables = ((ForEachVariableStatementSyntax)_syntax).Variable;
             var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, inferredType ?? CreateErrorType("var"));
-            BoundDeconstructionAssignmentOperator deconstruction = BindDeconstructionDeclaration(
+            BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
                                                                     variables,
                                                                     variables,
                                                                     right: null,
                                                                     diagnostics: diagnostics,
+                                                                    isDeclaration: true,
                                                                     rightPlaceholder: valuePlaceholder);
+
             return new BoundExpressionStatement(_syntax, deconstruction);
         }
 
@@ -228,11 +234,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var variables = node.Variable;
                         var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
-                        BoundDeconstructionAssignmentOperator deconstruction = BindDeconstructionDeclaration(
+                        BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
                                                                                 variables,
                                                                                 variables,
                                                                                 right: null,
                                                                                 diagnostics: diagnostics,
+                                                                                isDeclaration: true,
                                                                                 rightPlaceholder: valuePlaceholder);
 
                         deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder);

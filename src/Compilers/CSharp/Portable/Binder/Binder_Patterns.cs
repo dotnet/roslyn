@@ -250,7 +250,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(operand != null && operandType != (object)null);
 
             var typeSyntax = node.Type;
-            var identifier = node.Identifier;
 
             bool isVar;
             AliasSymbol aliasOpt;
@@ -277,6 +276,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                    isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
             }
 
+            switch (node.Designation.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    break;
+                case SyntaxKind.DiscardedDesignation:
+                    return new BoundDeclarationPattern(node, null, boundDeclType, isVar, hasErrors);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Designation.Kind());
+            }
+
+            var designation = (SingleVariableDesignationSyntax)node.Designation;
+            var identifier = designation.Identifier;
             SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
 
             if (localSymbol != (object)null)
@@ -302,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We should have the right binder in the chain for a script or interactive, so we use the field for the pattern.
                 Debug.Assert(node.SyntaxTree.Options.Kind != SourceCodeKind.Regular);
-                GlobalExpressionVariable expressionVariableField = LookupDeclaredField(node);
+                GlobalExpressionVariable expressionVariableField = LookupDeclaredField(designation);
                 DiagnosticBag tempDiagnostics = DiagnosticBag.GetInstance();
                 expressionVariableField.SetType(declType, tempDiagnostics);
                 tempDiagnostics.Free();
