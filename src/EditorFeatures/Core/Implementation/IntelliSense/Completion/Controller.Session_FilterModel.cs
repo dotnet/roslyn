@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 if (filterReason == CompletionFilterReason.BackspaceOrDelete &&
                     trigger.Kind == CompletionTriggerKind.Deletion)
                 {
-                    return item.FilterText.GetCaseInsensitivePrefixLength(filterText) > 0;
+                    return item.FilterText.GetCaseInsensitivePrefixLength(filterText) >= Math.Min(item.FilterText.Length, filterText.Length);
                 }
 
                 // If the user hasn't typed anything, and this item was preselected, or was in the
