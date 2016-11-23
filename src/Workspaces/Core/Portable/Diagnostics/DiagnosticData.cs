@@ -407,6 +407,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                 .WhereNotNull()
                                                 .ToReadOnlyCollection();
 
+            var properties = GetProperties(document, diagnostic);
+
             return new DiagnosticData(
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
@@ -417,7 +419,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
                 diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
-                diagnostic.Properties,
+                properties,
                 document.Project.Solution.Workspace,
                 document.Project.Id,
                 location,
@@ -426,6 +428,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
                 helpLink: diagnostic.Descriptor.HelpLinkUri,
                 isSuppressed: diagnostic.IsSuppressed);
+        }
+
+        private static ImmutableDictionary<string, string> GetProperties(
+            Document document, Diagnostic diagnostic)
+        {
+            var properties = diagnostic.Properties;
+            var service = document.GetLanguageService<IDiagnosticPropertiesService>();
+            var additionalProperties = service?.GetAdditionalProperties(diagnostic);
+
+            return additionalProperties == null
+                ? properties
+                : properties.AddRange(additionalProperties);
+            throw new NotImplementedException();
         }
 
         public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, out DiagnosticData diagnosticData, CancellationToken cancellationToken = default(CancellationToken))

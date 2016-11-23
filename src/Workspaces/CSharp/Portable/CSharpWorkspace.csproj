@@ -95,6 +95,7 @@
     <Compile Include="CodeStyle\TypeStyle\TypeStyle.cs" />
     <Compile Include="CodeStyle\TypeStyle\TypeStyleHelper.cs" />
     <Compile Include="Composition\CSharpWorkspaceFeatures.cs" />
+    <Compile Include="Diagnostics\CSharpDiagnosticPropertiesService.cs" />
     <Compile Include="Execution\CSharpOptionsSerializationService.cs" />
     <Compile Include="Extensions\ArrowExpressionClauseSyntaxExtensions.cs" />
     <Compile Include="Extensions\AssignmentExpressionSyntaxExtensions.cs" />
