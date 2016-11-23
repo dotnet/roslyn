@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var pending = (BoundDiscardedExpression)expression;
                         if ((object)pending.Type == null)
                         {
-                            return pending.Update(type);
+                            return pending.SetInferredType(type);
                         }
                     }
                     break;
@@ -751,13 +751,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundDiscardedExpression(designation, declType);
         }
 
-        private BoundDiscardedExpression BindDiscardedExpression(
-            DiscardedDesignationSyntax designation,
-            TypeSymbol declType)
-        {
-            return new BoundDiscardedExpression(designation, declType);
-        }
-
         /// <summary>
         /// In embedded statements, returns a BoundLocal when the type was explicit.
         /// In global statements, returns a BoundFieldAccess when the type was explicit.
@@ -780,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)declType != null)
                 {
-                    CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
+                    CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, designation);
                     return new BoundLocal(designation, localSymbol, constantValueOpt: null, type: declType, hasErrors: hasErrors);
                 }
 

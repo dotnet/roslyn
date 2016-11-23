@@ -1250,10 +1250,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         }
                 }
-                else if (argument.Kind == BoundKind.DiscardedExpression && argument.Type == null)
-                {
-                    newArguments[i] = ((BoundDiscardedExpression)argument).Update(CreateErrorType("var"));
-                }
             }
 
             return newArguments.ToImmutableAndFree();

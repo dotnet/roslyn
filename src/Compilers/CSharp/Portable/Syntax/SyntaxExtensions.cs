@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if the expression is composed only of nested tuple and declaration expressions.
+        /// Returns true if the expression on the left-hand-side of an assignment causes the assignment to be a deconstruction.
         /// </summary>
         internal static bool IsDeconstructionLeft(this ExpressionSyntax node)
         {
@@ -216,10 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.TupleExpression:
                     return true;
                 case SyntaxKind.DeclarationExpression:
-                    return true;
-                case SyntaxKind.IdentifierName:
-                    // Underscore is the only expression that is not clearly a declaration that we tolerate for now
-                    return node.RawContextualKind == (int)SyntaxKind.UnderscoreToken;
+                    return ((DeclarationExpressionSyntax)node).Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation;
                 default:
                     return false;
             }
