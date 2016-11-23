@@ -1048,7 +1048,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return GetExternalSymbolFullName(symbol)
         End Function
 
-        Public Overrides Function IsAutoProperty(node As SyntaxNode) As Boolean
+        Public Overrides Function IsExpressionBodiedProperty(node As SyntaxNode) As Boolean
             Return False
         End Function
 

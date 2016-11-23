@@ -146,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         SyntaxNode SetAccess(SyntaxNode node, EnvDTE.vsCMAccess access);
         EnvDTE.vsCMElement GetElementKind(SyntaxNode node);
 
-        bool IsAutoProperty(SyntaxNode node);
+        bool IsExpressionBodiedProperty(SyntaxNode node);
         bool IsAccessorNode(SyntaxNode node);
         MethodKind GetAccessorKind(SyntaxNode node);
 
