@@ -5343,6 +5343,13 @@ tryAgain:
             return false;
         }
 
+        private bool IsTrueIdentifier(SyntaxToken token)
+        {
+            return
+                token.Kind == SyntaxKind.IdentifierToken &&
+                !(this.IsInQuery && IsTokenQueryContextualKeyword(token));
+        }
+
         private IdentifierNameSyntax ParseIdentifierName()
         {
             if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.IdentifierName)
@@ -5574,7 +5581,7 @@ tryAgain:
             // then assume it is unless we see specific tokens following it.
             switch (this.CurrentToken.Kind)
             {
-                case SyntaxKind.IdentifierToken:
+                case SyntaxKind.IdentifierToken when IsTrueIdentifier():
                     // C#7: In certain contexts, we treat *identifier* as a disambiguating token. Those
                     // contexts are where the sequence of tokens being disambiguated is immediately preceded by one
                     // of the keywords is, case, or out, or arises while parsing the first element of a tuple literal
@@ -6322,7 +6329,7 @@ tryAgain:
             var tupleElementType = ScanType(out lastTokenOfType);
             if (tupleElementType != ScanTypeFlags.NotType)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                if (IsTrueIdentifier())
                 {
                     lastTokenOfType = this.EatToken();
                 }
@@ -6340,7 +6347,7 @@ tryAgain:
                             return ScanTypeFlags.NotType;
                         }
 
-                        if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                        if (IsTrueIdentifier())
                         {
                             lastTokenOfType = this.EatToken();
                         }
@@ -6449,8 +6456,6 @@ tryAgain:
             ParseTypeMode mode,
             bool expectSizes)
         {
-            // PROTOTYPE(wildcards): the following condition does not appear to be correct.
-            // The problem could be exhibited parsing the statement `M(out int? x);`
             var isOrAs = mode == ParseTypeMode.AsExpression || mode == ParseTypeMode.AfterIsOrCase;
             NameOptions nameOptions;
             switch (mode)
@@ -6478,7 +6483,7 @@ tryAgain:
             var type = this.ParseUnderlyingType(parentIsParameter: mode == ParseTypeMode.Parameter, options: nameOptions);
 
             if (this.CurrentToken.Kind == SyntaxKind.QuestionToken &&
-                (mode != ParseTypeMode.AfterIsOrCase || this.PeekToken(1).Kind != SyntaxKind.IdentifierToken))
+                (mode != ParseTypeMode.AfterIsOrCase || !IsTrueIdentifier(this.PeekToken(1))))
             {
                 var resetPoint = this.GetResetPoint();
                 try
@@ -6687,7 +6692,7 @@ tryAgain:
             var type = ParseType();
             IdentifierNameSyntax name = null;
 
-            if (CurrentToken.Kind == SyntaxKind.IdentifierToken)
+            if (this.IsTrueIdentifier())
             {
                 name = ParseIdentifierName();
             }
@@ -6716,7 +6721,7 @@ tryAgain:
 
                 return _syntaxFactory.PredefinedType(token);
             }
-            else if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+            else if (IsTrueIdentifier())
             {
                 return this.ParseQualifiedName(options);
             }
@@ -7305,9 +7310,9 @@ tryAgain:
         /// false if it definitely can't be,
         /// null if we need to scan further to find out.
         /// </returns>
-        private static bool? IsPossibleTypedIdentifierStart(SyntaxToken current, SyntaxToken next, bool allowThisKeyword)
+        private bool? IsPossibleTypedIdentifierStart(SyntaxToken current, SyntaxToken next, bool allowThisKeyword)
         {
-            if (current.Kind == SyntaxKind.IdentifierToken)
+            if (IsTrueIdentifier(current))
             {
                 switch (next.Kind)
                 {
@@ -7333,7 +7338,7 @@ tryAgain:
                         }
 
                     case SyntaxKind.IdentifierToken:
-                        return true;
+                        return IsTrueIdentifier(next);
 
                     case SyntaxKind.ThisKeyword:
                         return allowThisKeyword;
@@ -9534,7 +9539,7 @@ tryAgain:
         {
             switch (this.CurrentToken.Kind)
             {
-                case SyntaxKind.IdentifierToken:
+                case SyntaxKind.IdentifierToken when IsTrueIdentifier():
                     this.EatToken(); // eat the identifier
                     return true;
                 case SyntaxKind.OpenParenToken:
@@ -10040,8 +10045,7 @@ tryAgain:
             }
 
             //  case 2:  ( x ) =>
-            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken
-                && (!this.IsInQuery || !IsTokenQueryContextualKeyword(this.PeekToken(1)))
+            if (IsTrueIdentifier(this.PeekToken(1))
                 && this.PeekToken(2).Kind == SyntaxKind.CloseParenToken
                 && this.PeekToken(3).Kind == SyntaxKind.EqualsGreaterThanToken)
             {
