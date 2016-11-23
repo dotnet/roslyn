@@ -2,7 +2,7 @@
 
 using System;
 using System.Threading.Tasks;
-using Roslyn.VisualStudio.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp

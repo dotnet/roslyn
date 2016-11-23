@@ -4,7 +4,7 @@ using System;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Roslyn.Utilities;
 
-namespace Roslyn.VisualStudio.Test.Utilities.Common
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
 {
     [Serializable]
     public class Parameter : IEquatable<Parameter>

@@ -2,15 +2,14 @@
 
 using System;
 using System.ComponentModel.Design;
-using System.Diagnostics;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Runtime.Serialization.Formatters;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Shell;
-using Roslyn.VisualStudio.Test.Utilities;
 
-namespace Roslyn.VisualStudio.Test.Setup
+namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
     internal sealed class IntegrationTestServiceCommands : IDisposable
     {

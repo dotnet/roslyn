@@ -3,7 +3,7 @@
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 
-namespace Roslyn.VisualStudio.Test.Utilities.InProcess
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class CSharpInteractiveWindow_InProc : InteractiveWindow_InProc
     {

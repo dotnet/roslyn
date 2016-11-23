@@ -2,7 +2,7 @@
 
 using System;
 using System.Threading;
-using Roslyn.VisualStudio.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {

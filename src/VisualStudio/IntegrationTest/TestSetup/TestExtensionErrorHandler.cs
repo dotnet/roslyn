@@ -4,7 +4,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Text;
 
-namespace Roslyn.VisualStudio.Test.Setup
+namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
     /// <summary>
     /// This class causes a crash if an exception is encountered by the editor.

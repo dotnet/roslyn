@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Roslyn.VisualStudio.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests

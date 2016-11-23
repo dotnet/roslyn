@@ -8,10 +8,8 @@ using Microsoft.CodeAnalysis;
 using System.Threading;
 using EnvDTE80;
 using System.Text.RegularExpressions;
-using Microsoft.VisualStudio.Language.Intellisense;
-using System.Text;
 
-namespace Roslyn.VisualStudio.Test.Utilities.InProcess
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class SolutionExplorer_InProc : InProcComponent
     {

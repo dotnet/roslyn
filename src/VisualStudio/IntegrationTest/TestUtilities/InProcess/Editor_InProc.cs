@@ -8,14 +8,14 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.VisualStudio.Test.Utilities.Common;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 
-namespace Roslyn.VisualStudio.Test.Utilities.InProcess
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class Editor_InProc : InProcComponent
     {

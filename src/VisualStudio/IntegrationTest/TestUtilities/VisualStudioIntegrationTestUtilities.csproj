@@ -17,7 +17,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
   </PropertyGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

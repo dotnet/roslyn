@@ -2,9 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using Roslyn.VisualStudio.Test.Utilities.Interop;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 
-namespace Roslyn.VisualStudio.Test.Utilities.Input
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 {
     public class SendKeys
     {

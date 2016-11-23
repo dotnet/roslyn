@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Hosting.Diagnostics.Waiters;
 
-namespace Roslyn.VisualStudio.Test.Utilities.InProcess
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class VisualStudioWorkspace_InProc : InProcComponent
     {

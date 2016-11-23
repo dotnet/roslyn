@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Roslyn.VisualStudio.Test.Utilities.InProcess;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
-namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
     /// <summary>
     /// Base class for all components that run outside of the Visual Studio process.

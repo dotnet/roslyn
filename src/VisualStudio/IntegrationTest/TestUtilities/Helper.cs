@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Roslyn.VisualStudio.Test.Utilities
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class Helper
     {

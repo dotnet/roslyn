@@ -11,16 +11,15 @@ using System.Text;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.Win32;
 using Roslyn.Utilities;
-using Roslyn.VisualStudio.Test.Utilities.Input;
-using Roslyn.VisualStudio.Test.Utilities.Interop;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 
 using Process = System.Diagnostics.Process;
 
-namespace Roslyn.VisualStudio.Test.Utilities
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     /// <summary>
     /// Provides some helper functions used by the other classes in the project.

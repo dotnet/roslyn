@@ -1,5 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Roslyn.VisualStudio.Test.Utilities" GeneratedClassName="Settings">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Microsoft.VisualStudio.IntegrationTest.Utilities" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
     <Setting Name="VsProductVersion" Type="System.String" Scope="User">

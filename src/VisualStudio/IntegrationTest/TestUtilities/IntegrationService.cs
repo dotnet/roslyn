@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Remoting;
 
-namespace Roslyn.VisualStudio.Test.Utilities
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     /// <summary>
     /// Provides a means of executing code in the Visual Studio host process.

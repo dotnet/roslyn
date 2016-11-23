@@ -4,7 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.InteractiveWindow;
 
-namespace Roslyn.VisualStudio.Test.Utilities.InProcess
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     /// <summary>
     /// Provides a means of accessing the <see cref="IInteractiveWindow"/> service in the Visual Studio host.

@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Roslyn.VisualStudio.Test.Utilities.InProcess;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
-namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
     /// <summary>
     /// Provides a means of interacting with the interactive window in the Visual Studio host.

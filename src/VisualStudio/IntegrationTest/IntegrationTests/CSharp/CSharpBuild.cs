@@ -2,7 +2,7 @@
 
 using System;
 using Microsoft.CodeAnalysis;
-using Roslyn.VisualStudio.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp

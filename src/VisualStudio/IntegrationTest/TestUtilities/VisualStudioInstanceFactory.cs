@@ -8,9 +8,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Setup.Configuration;
-using Roslyn.VisualStudio.Test.Utilities.Interop;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 
-namespace Roslyn.VisualStudio.Test.Utilities
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public sealed class VisualStudioInstanceFactory : IDisposable
     {

@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Roslyn.VisualStudio.Test.Utilities.Common
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
 {
     internal static class Comparison
     {

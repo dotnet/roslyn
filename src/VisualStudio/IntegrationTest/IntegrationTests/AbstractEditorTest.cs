@@ -4,14 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.Test.Utilities;
-using Roslyn.VisualStudio.Test.Utilities.Common;
-using Roslyn.VisualStudio.Test.Utilities.Input;
-using Roslyn.VisualStudio.Test.Utilities.OutOfProcess;
-using Xunit;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {

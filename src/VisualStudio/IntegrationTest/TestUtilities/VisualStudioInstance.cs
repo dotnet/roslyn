@@ -7,12 +7,11 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Threading.Tasks;
 using System.Windows.Automation;
-using Microsoft.VisualStudio;
-using Roslyn.VisualStudio.Test.Utilities.InProcess;
-using Roslyn.VisualStudio.Test.Utilities.Input;
-using Roslyn.VisualStudio.Test.Utilities.OutOfProcess;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 
-namespace Roslyn.VisualStudio.Test.Utilities
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public class VisualStudioInstance
     {

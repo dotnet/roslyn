@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Roslyn.VisualStudio.Test.Utilities
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     /// <summary>
     /// Represents a wrapper of <see cref="VisualStudioInstance"/> that is given to a specific test. This should

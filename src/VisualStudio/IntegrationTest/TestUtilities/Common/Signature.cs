@@ -6,7 +6,7 @@ using System.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Roslyn.Utilities;
 
-namespace Roslyn.VisualStudio.Test.Utilities.Common
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
 {
     [Serializable]
     public class Signature : IEquatable<Signature>

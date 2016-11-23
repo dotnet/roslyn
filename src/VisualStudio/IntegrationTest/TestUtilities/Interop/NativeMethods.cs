@@ -6,7 +6,7 @@ using System.Text;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Setup.Configuration;
 
-namespace Roslyn.VisualStudio.Test.Utilities.Interop
+namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
 {
     internal static class NativeMethods
     {

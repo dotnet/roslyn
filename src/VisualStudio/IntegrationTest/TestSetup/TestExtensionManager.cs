@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Roslyn.VisualStudio.Test.Setup
+namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
     /// <summary>
     /// This class causes a crash if an exception is encountered inside lightbulb extension points such as code fixes and code refactorings.
