@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -24,15 +25,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         protected BatchSimplificationFixAllProvider() { }
 
-        public override async Task AddDocumentFixesAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction> addFix, 
+        protected override async Task AddDocumentFixesAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes, 
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
             var changedDocument = await AddSimplifierAnnotationsAsync(
                 document, diagnostics, fixAllState, cancellationToken).ConfigureAwait(false);
             var title = GetFixAllTitle(fixAllState);
-            var codeAction = new MyCodeAction(title, (c) => Task.FromResult(changedDocument));
-            addFix(codeAction);
+            var codeAction = new MyCodeAction(title, c => Task.FromResult(changedDocument));
+            fixes.Add((diagnostics.First(), codeAction));
         }
 
         /// <summary>
