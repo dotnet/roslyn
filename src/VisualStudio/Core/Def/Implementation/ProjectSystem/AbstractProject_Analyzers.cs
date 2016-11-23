@@ -70,8 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RemoveAnalyzerReference(string analyzerAssemblyFullPath)
         {
-            VisualStudioAnalyzer analyzer;
-            if (!TryGetAnalyzer(analyzerAssemblyFullPath, out analyzer))
+            if (!TryGetAnalyzer(analyzerAssemblyFullPath, out var analyzer))
             {
                 return;
             }

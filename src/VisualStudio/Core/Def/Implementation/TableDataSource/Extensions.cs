@@ -73,8 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return ImmutableArray<ITrackingPoint>.Empty;
             }
 
-            SourceText text;
-            if (!document.TryGetText(out text))
+            if (!document.TryGetText(out var text))
             {
                 return ImmutableArray<ITrackingPoint>.Empty;
             }

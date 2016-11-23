@@ -134,12 +134,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 SyntaxNode propertyDeclaration,
                 CancellationToken cancellationToken)
             {
-                SyntaxToken identifierToken;
-                IPropertySymbol propertySymbol;
-                INamedTypeSymbol typeToGenerateIn;
                 if (!service.TryInitializeExplicitInterfaceState(
                     document, propertyDeclaration, cancellationToken,
-                    out identifierToken, out propertySymbol, out typeToGenerateIn))
+                    out var identifierToken, out var propertySymbol, out var typeToGenerateIn))
                 {
                     return false;
                 }
@@ -182,13 +179,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 TSimpleNameSyntax simpleName,
                 CancellationToken cancellationToken)
             {
-                SyntaxToken identifierToken;
-                TExpressionSyntax simpleNameOrMemberAccessExpression;
-                bool isInExecutableBlock;
-                bool isInConditionalAccessExpression;
                 if (!service.TryInitializeIdentifierNameState(
                     document, simpleName, cancellationToken,
-                    out identifierToken, out simpleNameOrMemberAccessExpression, out isInExecutableBlock, out isInConditionalAccessExpression))
+                    out var identifierToken, out var simpleNameOrMemberAccessExpression, out var isInExecutableBlock, out var isInConditionalAccessExpression))
                 {
                     return false;
                 }
@@ -239,10 +232,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // to generate a method here.  Determine where the user wants to generate the method
                 // into, and if it's valid then proceed.
                 cancellationToken.ThrowIfCancellationRequested();
-                INamedTypeSymbol typeToGenerateIn;
-                bool isStatic;
                 if (!service.TryDetermineTypeToGenerateIn(document, this.ContainingType, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken,
-                    out typeToGenerateIn, out isStatic))
+                    out var typeToGenerateIn, out var isStatic))
                 {
                     return false;
                 }

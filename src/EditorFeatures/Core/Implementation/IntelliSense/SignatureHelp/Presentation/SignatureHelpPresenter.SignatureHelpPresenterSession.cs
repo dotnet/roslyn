@@ -160,8 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     return;
                 }
 
-                SignatureHelpItem helpItem;
-                Contract.ThrowIfFalse(_signatureMap.TryGetKey((Signature)eventArgs.NewSelectedSignature, out helpItem));
+                Contract.ThrowIfFalse(_signatureMap.TryGetKey((Signature)eventArgs.NewSelectedSignature, out var helpItem));
 
                 var helpItemSelected = this.ItemSelected;
                 if (helpItemSelected != null && helpItem != null)

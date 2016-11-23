@@ -92,10 +92,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
 
                 this.SimpleName = (TSimpleNameSyntax)node;
-                string name;
-                int arity;
                 var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                syntaxFacts.GetNameAndArityOfSimpleName(this.SimpleName, out name, out arity);
+                syntaxFacts.GetNameAndArityOfSimpleName(this.SimpleName, out var name, out var arity);
 
                 this.Name = name;
                 this.NameIsVerbatim = syntaxFacts.IsVerbatimIdentifier(this.SimpleName.GetFirstToken());
@@ -103,11 +101,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     return false;
                 }
-
                 // We only support simple names or dotted names.  i.e. "(some + expr).Foo" is not a
                 // valid place to generate a type for Foo.
-                GenerateTypeServiceStateOptions generateTypeServiceStateOptions;
-                if (!service.TryInitializeState(document, this.SimpleName, cancellationToken, out generateTypeServiceStateOptions))
+                if (!service.TryInitializeState(document, this.SimpleName, cancellationToken, out var generateTypeServiceStateOptions))
                 {
                     return false;
                 }
@@ -402,8 +398,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     // If it's a dotted name, then perhaps it's a namespace.  i.e. the user wrote
                     // "new Foo.Bar.Baz()".  In this case we want to generate a namespace for
                     // "Foo.Bar".
-                    IList<string> nameParts;
-                    if (service.TryGetNameParts(leftSide, out nameParts))
+                    if (service.TryGetNameParts(leftSide, out var nameParts))
                     {
                         this.NamespaceToGenerateInOpt = string.Join(".", nameParts);
                         return true;

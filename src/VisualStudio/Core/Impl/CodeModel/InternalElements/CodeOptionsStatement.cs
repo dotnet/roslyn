@@ -68,8 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 return false;
             }
 
-            SyntaxNode optionNode;
-            if (!CodeModelService.TryGetOptionNode(parentNode, _name, _ordinal, out optionNode))
+            if (!CodeModelService.TryGetOptionNode(parentNode, _name, _ordinal, out var optionNode))
             {
                 return false;
             }

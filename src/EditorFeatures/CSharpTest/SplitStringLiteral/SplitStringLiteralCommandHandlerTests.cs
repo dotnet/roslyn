@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 
                 if (expectedOutputMarkup != null)
                 {
-                    string expectedOutput;
-                    IList<TextSpan> expectedSpans;
-                    MarkupTestFile.GetSpans(expectedOutputMarkup, out expectedOutput, out expectedSpans);
+                    MarkupTestFile.GetSpans(expectedOutputMarkup, out var expectedOutput, out IList<TextSpan> expectedSpans);
 
                     Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
                     Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);

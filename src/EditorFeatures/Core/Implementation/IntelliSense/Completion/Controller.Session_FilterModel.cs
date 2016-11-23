@@ -514,8 +514,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     if (matches)
                     {
                         // if the specific filter is enabled then it is not filtered out
-                        bool enabled;
-                        if (filterState.TryGetValue(filter, out enabled) && enabled)
+                        if (filterState.TryGetValue(filter, out var enabled) && enabled)
                         {
                             return false;
                         }

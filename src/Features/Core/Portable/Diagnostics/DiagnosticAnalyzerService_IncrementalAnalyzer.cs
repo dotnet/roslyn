@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void ShutdownAnalyzerFrom(Workspace workspace)
         {
             // this should be only called once analyzer associated with the workspace is done.
-            BaseDiagnosticIncrementalAnalyzer analyzer;
-            if (_map.TryGetValue(workspace, out analyzer))
+            if (_map.TryGetValue(workspace, out var analyzer))
             {
                 analyzer.Shutdown();
             }

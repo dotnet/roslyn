@@ -138,8 +138,7 @@ namespace Roslyn.Utilities
         public bool TryResolve<TNode>(SyntaxNode root, out TNode node)
             where TNode : SyntaxNode
         {
-            SyntaxNodeOrToken nodeOrToken;
-            if (TryResolve(root, out nodeOrToken) &&
+            if (TryResolve(root, out var nodeOrToken) &&
                 nodeOrToken.IsNode &&
                 nodeOrToken.AsNode() is TNode)
             {

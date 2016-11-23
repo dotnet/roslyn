@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
             lock (_gate)
             {
-                object value;
-
-                if (!_values.TryGetValue(optionKey, out value))
+                if (!_values.TryGetValue(optionKey, out var value))
                 {
                     value = _service != null ? _service.GetOption(optionKey) : optionKey.Option.DefaultValue;
                     _values = _values.Add(optionKey, value);

@@ -62,10 +62,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var indentation = _context.GetBaseIndentation(_tokenStream.GetToken(pairIndex + 1));
 
                 var previousToken = _tokenStream.GetToken(pairIndex);
-
-                bool multipleLines;
-                int tokenLength;
-                _tokenStream.GetTokenLength(previousToken, out tokenLength, out multipleLines);
+                _tokenStream.GetTokenLength(previousToken, out var tokenLength, out var multipleLines);
 
                 // get end column of previous token
                 var endColumnOfPreviousToken = multipleLines ? tokenLength : _tokenStream.GetCurrentColumn(previousToken) + tokenLength;

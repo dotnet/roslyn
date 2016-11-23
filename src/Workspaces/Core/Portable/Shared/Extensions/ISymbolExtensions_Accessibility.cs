@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             IAssemblySymbol within,
             ITypeSymbol throughTypeOpt = null)
         {
-            bool failedThroughTypeCheck;
-            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck);
+            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out var failedThroughTypeCheck);
         }
 
         /// <summary>
@@ -50,8 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             INamedTypeSymbol within,
             ITypeSymbol throughTypeOpt = null)
         {
-            bool failedThroughTypeCheck;
-            return IsSymbolAccessible(symbol, within, throughTypeOpt, out failedThroughTypeCheck);
+            return IsSymbolAccessible(symbol, within, throughTypeOpt, out var failedThroughTypeCheck);
         }
 
         /// <summary>
