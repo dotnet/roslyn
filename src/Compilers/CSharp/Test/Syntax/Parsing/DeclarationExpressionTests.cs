@@ -682,8 +682,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void NewForeach_08()
         {
-            // PROTOTYPE(wildcards): SHOULD BE some kind of syntax error here
-            UsingStatement("foreach (x in e) {}");
+            UsingStatement("foreach (x in e) {}",
+                // (1,12): error CS0230: Type and identifier are both required in a foreach statement
+                // foreach (x in e) {}
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(1, 12)
+                );
             N(SyntaxKind.ForEachVariableStatement);
             {
                 N(SyntaxKind.ForEachKeyword);
@@ -737,8 +740,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void NewForeach_10()
         {
-            // PROTOTYPE(wildcards): SHOULD BE some kind of syntax error here
-            UsingStatement("foreach (a.b in e) {}");
+            UsingStatement("foreach (a.b in e) {}",
+                // (1,14): error CS0230: Type and identifier are both required in a foreach statement
+                // foreach (a.b in e) {}
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(1, 14)
+                );
             N(SyntaxKind.ForEachVariableStatement);
             {
                 N(SyntaxKind.ForEachKeyword);

@@ -1873,6 +1873,9 @@ public class Test
                 // (6,16): error CS1515: 'in' expected
                 //     foreach(int; i < 5; i++)
                 Diagnostic(ErrorCode.ERR_InExpected, ";").WithLocation(6, 16),
+                // (6,16): error CS0230: Type and identifier are both required in a foreach statement
+                //     foreach(int; i < 5; i++)
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, ";").WithLocation(6, 16),
                 // (6,16): error CS1525: Invalid expression term ';'
                 //     foreach(int; i < 5; i++)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 16),
