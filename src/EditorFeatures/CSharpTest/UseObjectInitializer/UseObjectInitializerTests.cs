@@ -50,6 +50,101 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue1Async()
+        {
+            await TestAsync(
+@"class C
+{
+    int i;
+
+    void M()
+    {
+        var c = [||]new C();
+        c.i = 1;
+        c.i = c.i + 1;
+    }
+}",
+@"class C
+{
+    int i;
+
+    void M()
+    {
+        var c = new C()
+        {
+            i = 1
+        };
+        c.i = c.i + 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue2Async()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    int i;
+
+    void M()
+    {
+        var c = [||]new C();
+        c.i = c.i + 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue3Async()
+        {
+            await TestAsync(
+@"class C
+{
+    int i;
+
+    void M()
+    {
+        C c;
+        c = [||]new C();
+        c.i = 1;
+        c.i = c.i + 1;
+    }
+}",
+@"class C
+{
+    int i;
+
+    void M()
+    {
+        C c;
+        c = new C()
+        {
+            i = 1
+        };
+        c.i = c.i + 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue4Async()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    int i;
+
+    void M()
+    {
+        C c;
+        c = [||]new C();
+        c.i = c.i + 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestOnAssignmentExpression()
         {
             await TestAsync(
@@ -210,7 +305,83 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-        public async Task TestFixAllInDocument()
+        public async Task TestFixAllInDocument1()
+        {
+            await TestAsync(
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var v = {|FixAllInDocument:new|} C(() => {
+            var v2 = new C();
+            v2.i = 1;
+        });
+        v.j = 2;
+    }
+}",
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var v = new C(() => {
+            var v2 = new C()
+            {
+                i = 1
+            };
+        })
+        {
+            j = 2
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestFixAllInDocument2()
+        {
+            await TestAsync(
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var v = {|FixAllInDocument:new|} C();
+        v.j = () => {
+            var v2 = new C();
+            v2.i = 1;
+        };
+    }
+}",
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var v = new C()
+        {
+            j = () => {
+                var v2 = new C()
+                {
+                    i = 1
+                };
+            }
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestFixAllInDocument3()
         {
             await TestAsync(
 @"class C

@@ -48,9 +48,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         }
 
         public static string Option_ExtractMethod
-        {
-            get { return CSharpVSResources.Extract_Method; }
-        }
+            => CSharpVSResources.Extract_Method;
+
+        public static string Option_Implement_Interface_or_Abstract_Class
+            => ServicesVSResources.Implement_Interface_or_Abstract_Class;
+
+        public static string Option_When_inserting_properties_events_and_methods_place_them
+            => ServicesVSResources.When_inserting_properties_events_and_methods_place_them;
+
+        public static string Option_with_other_members_of_the_same_kind
+            => ServicesVSResources.with_other_members_of_the_same_kind;
+
+        public static string Option_at_the_end
+            => ServicesVSResources.at_the_end;
 
         public static string Option_GenerateXmlDocCommentsForTripleSlash
         {
@@ -98,6 +108,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Show_outlining_for_comments_and_preprocessor_regions
             => ServicesVSResources.Show_outlining_for_comments_and_preprocessor_regions;
+
+        public static string Option_Collapse_regions_when_collapsing_to_definitions
+            => ServicesVSResources.Collapse_regions_when_collapsing_to_definitions;
 
         public static string Option_Block_Structure_Guides
             => ServicesVSResources.Block_Structure_Guides;

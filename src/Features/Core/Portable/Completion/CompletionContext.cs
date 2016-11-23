@@ -85,27 +85,12 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            if (provider == null)
-            {
-                throw new ArgumentNullException(nameof(provider));
-            }
-
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            if (options == null)
-            {
-                throw new ArgumentException(nameof(options));
-            }
-
-            this.Provider = provider;
-            this.Document = document;
+            this.Provider = provider ?? throw new ArgumentNullException(nameof(provider));
+            this.Document = document ?? throw new ArgumentNullException(nameof(document));
             this.Position = position;
             this.CompletionListSpan = defaultSpan;
             this.Trigger = trigger;
-            this.Options = options;
+            this.Options = options ?? throw new ArgumentException(nameof(options));
             this.CancellationToken = cancellationToken;
             _items = new List<CompletionItem>();
         }

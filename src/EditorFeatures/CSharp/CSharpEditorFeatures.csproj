@@ -61,8 +61,9 @@
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomaticCompletion\AutomaticLineEnderCommandHandler.cs" />
@@ -84,7 +85,7 @@
     <Compile Include="BraceMatching\CSharpDirectiveTriviaBraceMatcher.cs" />
     <Compile Include="BraceMatching\StringLiteralBraceMatcher.cs" />
     <Compile Include="CallHierarchy\CallHierarchyCommandHandler.cs" />
-    <Compile Include="ChangeSignature\ChangeSignatureCommandHandler.cs" />
+    <Compile Include="ChangeSignature\CSharpChangeSignatureCommandHandler.cs" />
     <Compile Include="Classification\CSharpEditorClassificationService.cs" />
     <Compile Include="CommentSelection\CSharpCommentUncommentService.cs" />
     <Compile Include="ContentType\ContentTypeDefinitions.cs" />
@@ -110,6 +111,7 @@
     <Compile Include="ExtractInterface\ExtractInterfaceCommandHandler.cs" />
     <Compile Include="ExtractMethod\ExtractMethodCommandHandler.cs" />
     <Compile Include="FindReferences\CSharpFindReferencesService.cs" />
+    <Compile Include="FindUsages\CSharpFindUsagesService.cs" />
     <Compile Include="Formatting\CSharpEditorFormattingService.cs" />
     <Compile Include="Formatting\Indentation\CSharpIndentationService.cs" />
     <Compile Include="Formatting\Indentation\CSharpIndentationService.Indenter.cs" />
@@ -118,7 +120,6 @@
     <Compile Include="Formatting\Indentation\WhitespaceExtensions.cs" />
     <Compile Include="Formatting\CSharpEditorFormattingService.PasteFormattingRule.cs" />
     <Compile Include="GoToDefinition\CSharpGoToDefinitionService.cs" />
-    <Compile Include="GoToImplementation\CSharpGoToImplementationService.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AbstractAsyncHighlighter.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AsyncAnonymousMethodHighlighter.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AsyncMethodHighlighter.cs" />

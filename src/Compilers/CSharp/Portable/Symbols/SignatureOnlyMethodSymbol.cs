@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RefKind _refKind;
         private readonly TypeSymbol _returnType;
         private readonly ImmutableArray<CustomModifier> _returnTypeCustomModifiers;
+        private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
 
         public SignatureOnlyMethodSymbol(
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             TypeSymbol returnType,
             ImmutableArray<CustomModifier> returnTypeCustomModifiers,
+            ImmutableArray<CustomModifier> refCustomModifiers,
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations)
         {
             _callingConvention = callingConvention;
@@ -42,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _refKind = refKind;
             _returnType = returnType;
             _returnTypeCustomModifiers = returnTypeCustomModifiers;
+            _refCustomModifiers = refCustomModifiers;
             _parameters = parameters;
             _explicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
             _containingType = containingType;
@@ -66,6 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TypeSymbol ReturnType { get { return _returnType; } }
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers { get { return _returnTypeCustomModifiers; } }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 
         public override ImmutableArray<ParameterSymbol> Parameters { get { return _parameters; } }
 

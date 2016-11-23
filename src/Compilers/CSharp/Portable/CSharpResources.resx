@@ -2105,6 +2105,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_ImplicitlyTypedVariableAssignedBadValue" xml:space="preserve">
     <value>Cannot assign {0} to an implicitly-typed variable</value>
   </data>
+  <data name="ERR_MixedDeconstructionDisallowed" xml:space="preserve">
+    <value>Cannot reference {0} in a deconstruction declaration</value>
+  </data>
   <data name="ERR_ImplicitlyTypedVariableWithNoInitializer" xml:space="preserve">
     <value>Implicitly-typed variables must be initialized</value>
   </data>
@@ -4063,7 +4066,7 @@ To embed interop type information for both assemblies, use /link for references 
 To remove the warning, you can use /reference instead (set the Embed Interop Types property to False). In this case, a primary interop assembly (PIA) provides interop type information.</value>
   </data>
   <data name="ERR_GenericsUsedAcrossAssemblies" xml:space="preserve">
-    <value>Type '{0}' from assembly '{1}' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.</value>
+    <value>Type '{0}' from assembly '{1}' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.</value>
   </data>
   <data name="ERR_NoCanonicalView" xml:space="preserve">
     <value>Cannot find the interop type that matches the embedded interop type '{0}'. Are you missing an assembly reference?</value>
@@ -4411,7 +4414,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                                generation but may be used by analyzers for producing
                                errors or warnings.
  /embed                        Embed all source files in the PDB.
- /embed:&lt;file list&gt;            Embed specfic files the PDB
+ /embed:&lt;file list&gt;            Embed specific files in the PDB
 
                         - RESOURCES -
  /win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -4908,6 +4911,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable" xml:space="preserve">
     <value>Cannot infer the type of implicitly-typed deconstruction variable '{0}'.</value>
+  </data>
+  <data name="ERR_DiscardTypeInferenceFailed" xml:space="preserve">
+    <value>Cannot infer the type of implicitly-typed discard.</value>
   </data>
   <data name="ERR_DeconstructWrongCardinality" xml:space="preserve">
     <value>Cannot deconstruct a tuple of '{0}' elements into '{1}' variables.</value>

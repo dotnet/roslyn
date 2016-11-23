@@ -893,22 +893,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<Microsoft.Cci.ITypeReference>.GetInstance();
             Debug.Assert(((Cci.ITypeReference)this).AsGenericTypeInstanceReference != null);
 
-            var modifiers = default(ImmutableArray<ImmutableArray<CustomModifier>>);
-
-            if (this.HasTypeArgumentsCustomModifiers)
-            {
-                modifiers = this.TypeArgumentsCustomModifiers;
-            }
-
+            bool hasModifiers = this.HasTypeArgumentsCustomModifiers;
             var arguments = this.TypeArgumentsNoUseSiteDiagnostics;
 
             for (int i = 0; i < arguments.Length; i++)
             {
                 var arg = moduleBeingBuilt.Translate(arguments[i], syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
 
-                if (!modifiers.IsDefault && !modifiers[i].IsDefaultOrEmpty)
+                if (hasModifiers)
                 {
-                    arg = new Cci.ModifiedTypeReference(arg, modifiers[i].As<Cci.ICustomModifier>());
+                    var modifiers = this.GetTypeArgumentCustomModifiers(i);
+
+                    if (!modifiers.IsDefaultOrEmpty)
+                    {
+                        arg = new Cci.ModifiedTypeReference(arg, modifiers.As<Cci.ICustomModifier>());
+                    }
                 }
 
                 builder.Add(arg);

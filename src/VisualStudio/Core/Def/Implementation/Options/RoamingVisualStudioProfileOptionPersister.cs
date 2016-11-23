@@ -64,13 +64,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             lock (_optionsToMonitorForChangesGate)
             {
-                List<OptionKey> optionsToRefresh;
-                if (_optionsToMonitorForChanges.TryGetValue(args.PropertyName, out optionsToRefresh))
+                if (_optionsToMonitorForChanges.TryGetValue(args.PropertyName, out var optionsToRefresh))
                 {
                     foreach (var optionToRefresh in optionsToRefresh)
                     {
-                        object optionValue;
-                        if (TryFetch(optionToRefresh, out optionValue))
+                        if (TryFetch(optionToRefresh, out var optionValue))
                         {
                             _globalOptionService.RefreshOption(optionToRefresh, optionValue);
                         }

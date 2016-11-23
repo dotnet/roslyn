@@ -69,6 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _containingType.TypeSubstitution.SubstituteCustomModifiers(OriginalDefinition.Type, OriginalDefinition.TypeCustomModifiers); }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return _containingType.TypeSubstitution.SubstituteCustomModifiers(OriginalDefinition.RefCustomModifiers); }
+        }
+
         public override ImmutableArray<ParameterSymbol> Parameters
         {
             get

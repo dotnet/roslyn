@@ -547,13 +547,13 @@ Inner i;
 
             using (var writerStream = new MemoryStream())
             {
-                using (var writer = new StreamObjectWriter(writerStream))
+                using (var writer = new ObjectWriter(writerStream))
                 {
                     info.WriteTo(writer);
                 }
 
                 using (var readerStream = new MemoryStream(writerStream.ToArray()))
-                using (var reader = new StreamObjectReader(readerStream))
+                using (var reader = new ObjectReader(readerStream))
                 {
                     var readInfo = SymbolTreeInfo.ReadSymbolTreeInfo_ForTestingPurposesOnly(reader);
 

@@ -104,11 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             var expr = SyntaxFactory.GetStandaloneExpression(expression);
-
-            ExpressionSyntax qualifier;
-            string name;
-            int arity;
-            DecomposeName(expr, out qualifier, out name, out arity);
+            DecomposeName(expr, out var qualifier, out var name, out var arity);
 
             INamespaceOrTypeSymbol symbol = null;
             if (qualifier != null)
@@ -235,9 +231,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 else if (current is DeclarationExpressionSyntax)
                 {
                     var decl = (DeclarationExpressionSyntax)current;
-                    var component = decl.VariableComponent as TypedVariableComponentSyntax;
-                    var name = component?.Designation as SingleVariableDesignationSyntax;
-                    if (name == null) break;
+                    var name = decl.Designation as SingleVariableDesignationSyntax;
+                    if (name == null)
+                    {
+                        break;
+                    }
+
                     return name.Identifier.ValueText.ToCamelCase();
                 }
                 else

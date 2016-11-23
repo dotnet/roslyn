@@ -182,8 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             CancellationToken cancellationToken,
             out ExpressionSyntax result)
         {
-            Tuple<SyntaxKind, SyntaxKind> tuple;
-            if (s_binaryMap.TryGetValue(expression.Kind(), out tuple))
+            if (s_binaryMap.TryGetValue(expression.Kind(), out var tuple))
             {
                 var binaryExpression = (BinaryExpressionSyntax)expression;
                 var expressionType = tuple.Item1;
@@ -221,8 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
         private ExpressionSyntax Negate(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            ExpressionSyntax result;
-            if (TryNegateBinaryComparisonExpression(expression, semanticModel, cancellationToken, out result))
+            if (TryNegateBinaryComparisonExpression(expression, semanticModel, cancellationToken, out var result))
             {
                 return result;
             }

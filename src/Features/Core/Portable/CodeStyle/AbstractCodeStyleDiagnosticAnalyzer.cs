@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected readonly string DescriptorId;
 
         /// <summary>
+        /// Diagnostic descriptor that for analysis results that we don't want any treatment for.
+        /// </summary>
+        protected readonly DiagnosticDescriptor HiddenDescriptor;
+
+        /// <summary>
         /// Diagnostic descriptor for code you want to fade out *and* want to have a smart-tag
         /// appear for.  This is the common descriptor for code that is being faded out
         /// </summary>
@@ -31,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private readonly LocalizableString _localizableTitle;
         private readonly LocalizableString _localizableMessage;
-        private readonly DiagnosticDescriptor _descriptor;
 
         protected AbstractCodeStyleDiagnosticAnalyzer(
             string descriptorId, LocalizableString title, LocalizableString message = null)
@@ -40,31 +44,46 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _localizableTitle = title;
             _localizableMessage = message ?? title;
 
-            _descriptor = CreateDescriptor(descriptorId, DiagnosticSeverity.Hidden);
-            UnnecessaryWithSuggestionDescriptor = CreateDescriptor(
-                descriptorId, DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
-            UnnecessaryWithoutSuggestionDescriptor = CreateDescriptor(descriptorId + "WithoutSuggestion",
+            HiddenDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Hidden);
+
+            UnnecessaryWithSuggestionDescriptor = CreateDescriptorWithId(
+                descriptorId, _localizableTitle, _localizableMessage, 
                 DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
+
+            UnnecessaryWithoutSuggestionDescriptor = CreateDescriptorWithId(
+                descriptorId + "WithoutSuggestion",
+                _localizableTitle, _localizableMessage, 
+                DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
+
             SupportedDiagnostics = ImmutableArray.Create(
-                _descriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);
+                HiddenDescriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
-        protected DiagnosticDescriptor CreateDescriptor(string id, DiagnosticSeverity severity, params string[] customTags)
-            => CreateDescriptor(id, _localizableTitle, severity, customTags);
+        protected DiagnosticDescriptor CreateDescriptorWithSeverity(DiagnosticSeverity severity, params string[] customTags)
+            => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessage, severity, customTags);
 
-        protected DiagnosticDescriptor CreateDescriptor(string id, LocalizableString title, DiagnosticSeverity severity, params string[] customTags)
-            => CreateDescriptor(id, title, title, severity, customTags);
+        protected DiagnosticDescriptor CreateDescriptorWithTitle(LocalizableString title, DiagnosticSeverity severity, params string[] customTags)
+            => CreateDescriptorWithId(DescriptorId, title, title, severity, customTags);
 
-        protected DiagnosticDescriptor CreateDescriptor(string id, LocalizableString title, LocalizableString message, DiagnosticSeverity severity, params string[] customTags)
+        private DiagnosticDescriptor CreateDescriptorWithId(string id, LocalizableString title, LocalizableString message, DiagnosticSeverity severity, params string[] customTags)
             => new DiagnosticDescriptor(
-                id,
-                title,
-                message,
+                id, title, message,
                 DiagnosticCategory.Style,
                 severity,
                 isEnabledByDefault: true,
                 customTags: customTags);
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            // Code style analyzers should not run on generated code.
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+
+            InitializeWorker(context);
+        }
+
+        protected abstract void InitializeWorker(AnalysisContext context);
     }
 }

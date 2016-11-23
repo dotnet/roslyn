@@ -87,9 +87,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         /// implemented this feature yet.
         /// </summary>
         [ExportOption]
-        public static readonly PerLanguageOption<bool> RefactoringVerification = new PerLanguageOption<bool>(nameof(FeatureOnOffOptions), nameof(RefactoringVerification), defaultValue: false);
+        public static readonly PerLanguageOption<bool> RefactoringVerification = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(RefactoringVerification), defaultValue: false);
 
         [ExportOption]
-        public static readonly PerLanguageOption<bool> StreamingFindReferences = new PerLanguageOption<bool>(nameof(FeatureOnOffOptions), nameof(StreamingFindReferences), defaultValue: true);
+        public static readonly PerLanguageOption<bool> StreamingFindReferences = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(StreamingFindReferences), defaultValue: true);
+
+        [ExportOption]
+        public static readonly PerLanguageOption<bool> StreamingGoToImplementation = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(StreamingGoToImplementation), defaultValue: true);
     }
 }

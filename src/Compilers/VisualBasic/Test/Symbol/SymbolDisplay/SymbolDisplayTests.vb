@@ -4818,7 +4818,7 @@ End Class"
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions:=SymbolDisplayMemberOptions.IncludeType,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source, references:={ValueTupleRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source, references:={SystemRuntimeFacadeRef, ValueTupleRef})
             comp.VerifyDiagnostics()
             Dim symbol = comp.GetMember("C.f")
 
@@ -4856,7 +4856,7 @@ End Class"
             Dim format = New SymbolDisplayFormat(
                 memberOptions:=SymbolDisplayMemberOptions.IncludeType,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
-            Dim comp = CreateCSharpCompilation(GetUniqueName(), source, referencedAssemblies:={MscorlibRef, ValueTupleRef})
+            Dim comp = CreateCSharpCompilation(GetUniqueName(), source, referencedAssemblies:={MscorlibRef, SystemRuntimeFacadeRef, ValueTupleRef})
             comp.VerifyDiagnostics()
             Dim type = comp.GlobalNamespace.GetTypeMembers("C").Single()
             Verify(
@@ -4945,7 +4945,9 @@ public class C
             If comp.Language = "C#" Then
                 Verify(
                     SymbolDisplay.ToDisplayParts(method, formatWithRef),
-                    "F(Integer) As Integer",
+                    "ByRef F(Integer) As Integer",
+                    SymbolDisplayPartKind.Keyword,
+                    SymbolDisplayPartKind.Space,
                     SymbolDisplayPartKind.MethodName,
                     SymbolDisplayPartKind.Punctuation,
                     SymbolDisplayPartKind.Keyword,
@@ -4957,7 +4959,9 @@ public class C
             Else
                 Verify(
                     SymbolDisplay.ToDisplayParts(method, formatWithRef),
-                    "F(ByRef Integer) As Integer",
+                    "ByRef F(ByRef Integer) As Integer",
+                    SymbolDisplayPartKind.Keyword,
+                    SymbolDisplayPartKind.Space,
                     SymbolDisplayPartKind.MethodName,
                     SymbolDisplayPartKind.Punctuation,
                     SymbolDisplayPartKind.Keyword,
@@ -4973,7 +4977,9 @@ public class C
             ' Property with IncludeRef.
             Verify(
                 SymbolDisplay.ToDisplayParts([property], formatWithRef),
-                "ReadOnly P As Integer",
+                "ReadOnly ByRef P As Integer",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.PropertyName,
@@ -4987,7 +4993,9 @@ public class C
             If comp.Language = "C#" Then
                 Verify(
                     SymbolDisplay.ToDisplayParts(indexer, formatWithRef),
-                    "ReadOnly this[](Integer) As Integer",
+                    "ReadOnly ByRef this[](Integer) As Integer",
+                    SymbolDisplayPartKind.Keyword,
+                    SymbolDisplayPartKind.Space,
                     SymbolDisplayPartKind.Keyword,
                     SymbolDisplayPartKind.Space,
                     SymbolDisplayPartKind.PropertyName,
@@ -5001,7 +5009,9 @@ public class C
             Else
                 Verify(
                     SymbolDisplay.ToDisplayParts(indexer, formatWithRef),
-                    "ReadOnly Item(Integer) As Integer",
+                    "ReadOnly ByRef Item(Integer) As Integer",
+                    SymbolDisplayPartKind.Keyword,
+                    SymbolDisplayPartKind.Space,
                     SymbolDisplayPartKind.Keyword,
                     SymbolDisplayPartKind.Space,
                     SymbolDisplayPartKind.PropertyName,
@@ -5017,7 +5027,9 @@ public class C
             ' Delegate with IncludeRef.
             Verify(
                 SymbolDisplay.ToDisplayParts([delegate], formatWithRef),
-                "Function D() As Integer",
+                "ByRef Function D() As Integer",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.DelegateName,

@@ -496,15 +496,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Camel Case.
-        /// </summary>
-        internal static string Camel_Case {
-            get {
-                return ResourceManager.GetString("Camel_Case", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to can&apos;t not construct final tree.
         /// </summary>
         internal static string can_t_not_construct_final_tree {
@@ -2012,6 +2003,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Null check can be simplified.
+        /// </summary>
+        internal static string Null_check_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Null_check_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Object initialization can be simplified.
         /// </summary>
         internal static string Object_initialization_can_be_simplified {
@@ -2118,6 +2118,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string plus_additional_0_1 {
             get {
                 return ResourceManager.GetString("plus_additional_0_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer explicitly provided tuple element name.
+        /// </summary>
+        internal static string Prefer_explicitly_provided_tuple_element_name {
+            get {
+                return ResourceManager.GetString("Prefer_explicitly_provided_tuple_element_name", resourceCulture);
             }
         }
         
@@ -2413,6 +2422,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Simplify collection initialization.
+        /// </summary>
+        internal static string Simplify_collection_initialization {
+            get {
+                return ResourceManager.GetString("Simplify_collection_initialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Simplify Member Access.
         /// </summary>
         internal static string Simplify_Member_Access {
@@ -2427,6 +2445,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Simplify_Names {
             get {
                 return ResourceManager.GetString("Simplify_Names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Simplify object initialization.
+        /// </summary>
+        internal static string Simplify_object_initialization {
+            get {
+                return ResourceManager.GetString("Simplify_object_initialization", resourceCulture);
             }
         }
         
@@ -3047,6 +3074,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use explicitly provided tuple name.
+        /// </summary>
+        internal static string Use_explicitly_provided_tuple_name {
+            get {
+                return ResourceManager.GetString("Use_explicitly_provided_tuple_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use expression body for accessors.
         /// </summary>
         internal static string Use_expression_body_for_accessors {
@@ -3161,6 +3197,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string User_Diagnostic_Analyzer_Failure {
             get {
                 return ResourceManager.GetString("User_Diagnostic_Analyzer_Failure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable declaration can be inlined.
+        /// </summary>
+        internal static string Variable_declaration_can_be_inlined {
+            get {
+                return ResourceManager.GetString("Variable_declaration_can_be_inlined", resourceCulture);
             }
         }
         

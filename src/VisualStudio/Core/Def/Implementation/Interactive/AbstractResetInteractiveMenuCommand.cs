@@ -57,9 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
 
             resetInteractiveFromProjectCommand.BeforeQueryStatus += (_, __) =>
             {
-                EnvDTE.Project project;
-                FrameworkName frameworkName;
-                GetActiveProject(out project, out frameworkName);
+                GetActiveProject(out var project, out var frameworkName);
                 var available = ResetInteractiveCommand != null
                     && project != null && project.Kind == ProjectKind
                     && frameworkName != null && frameworkName.Identifier == ".NETFramework";
@@ -82,14 +80,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
 
             try
             {
-                uint itemid;
-                IVsMultiItemSelect multiItemSelect;
-
                 Marshal.ThrowExceptionForHR(
                     _monitorSelection.GetCurrentSelection(
                         out hierarchyPointer,
-                        out itemid,
-                        out multiItemSelect,
+                        out var itemid,
+                        out var multiItemSelect,
                         out selectionContainerPointer));
 
                 if (itemid != (uint)VSConstants.VSITEMID.Root)
@@ -103,15 +98,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                     return false;
                 }
 
-                object extensibilityObject;
-                object targetFrameworkVersion;
-                object targetFrameworkMonikerObject;
                 Marshal.ThrowExceptionForHR(
-                    hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_ExtObject, out extensibilityObject));
+                    hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_ExtObject, out var extensibilityObject));
                 Marshal.ThrowExceptionForHR(
-                    hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID3.VSHPROPID_TargetFrameworkVersion, out targetFrameworkVersion));
+                    hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID3.VSHPROPID_TargetFrameworkVersion, out var targetFrameworkVersion));
                 Marshal.ThrowExceptionForHR(
-                    hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out targetFrameworkMonikerObject));
+                    hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out var targetFrameworkMonikerObject));
 
                 string targetFrameworkMoniker = targetFrameworkMonikerObject as string;
                 frameworkName = new System.Runtime.Versioning.FrameworkName(targetFrameworkMoniker);

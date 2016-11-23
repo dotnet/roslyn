@@ -48,6 +48,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task InlineInNestedCall()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|int|] i;
+        if (Foo(int.TryParse(v, out i)))
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (Foo(int.TryParse(v, out int i)))
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task InlineVariableWithConstructor1()
         {
             await TestAsync(
@@ -184,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         {
         }
     }
-}", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+}", options: new UseImplicitTypeTests().ImplicitTypeEverywhere());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -209,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         {
         }
     }
-}", options: UseImplicitTypeTests.ImplicitTypeButKeepIntrinsics());
+}", options: new UseImplicitTypeTests().ImplicitTypeButKeepIntrinsics());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -543,7 +568,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M2(out string s)
     {
     }
-}", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+}", options: new UseImplicitTypeTests().ImplicitTypeEverywhere());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -584,7 +609,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M2(out string s)
     {
     }
-}", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+}", options: new UseImplicitTypeTests().ImplicitTypeEverywhere());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -617,7 +642,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M2<T>(out T i)
     {
     }
-}", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+}", options: new UseImplicitTypeTests().ImplicitTypeEverywhere());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -896,6 +921,65 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
     }
 }", compareTokens: false);
+        }
+
+        [WorkItem(15336, "https://github.com/dotnet/roslyn/issues/15336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotMissingIfCapturedInLambdaAndNotUsedAfterwards()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        string [|s|];  
+        Bar(() => Baz(out s));
+    }
+
+    void Baz(out string s) { }
+
+    void Bar(Action a) { }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        Bar(() => Baz(out string s));
+    }
+
+    void Baz(out string s) { }
+
+    void Bar(Action a) { }
+}");
+        }
+
+        [WorkItem(15336, "https://github.com/dotnet/roslyn/issues/15336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingIfCapturedInLambdaAndUsedAfterwards()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        string [|s|];  
+        Bar(() => Baz(out s));
+        Console.WriteLine(s);
+    }
+
+    void Baz(out string s) { }
+
+    void Bar(Action a) { }
+}");
         }
     }
 }

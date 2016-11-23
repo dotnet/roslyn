@@ -28,15 +28,21 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
         public bool OpenFileOnly(Workspace workspace) => false;
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IfStatement);
-        }
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IfStatement);
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
-            var options = syntaxContext.Options.GetOptionSet();
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall);
+            var options = syntaxContext.Options;
+            var syntaxTree = syntaxContext.Node.SyntaxTree;
+            var cancellationToken = syntaxContext.CancellationToken;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+            
+            var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall);
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
@@ -173,7 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 additionalLocations, properties));
 
             // Put a diagnostic with the appropriate severity on the expression-statement itself.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(CreateDescriptor(this.DescriptorId, severity),
+            syntaxContext.ReportDiagnostic(Diagnostic.Create(
+                CreateDescriptorWithSeverity(severity),
                 expressionStatement.GetLocation(),
                 additionalLocations, properties));
 

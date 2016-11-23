@@ -5,6 +5,8 @@ using Xunit;
 using System.Linq;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -163,7 +165,13 @@ class C
             comp.VerifyDiagnostics(
                 // (6,11): error CS0518: Predefined type 'System.String' is not defined or imported
                 //         D<(int x, int y)> d = o => { };
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int x, int y)").WithArguments("System.String").WithLocation(6, 11)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int x, int y)").WithArguments("System.String").WithLocation(6, 11),
+                // (6,11): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
+                //         D<(int x, int y)> d = o => { };
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int x, int y)").WithArguments("System.ValueType", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(6, 11),
+                // (7,11): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
+                //         d((0, 0));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(0, 0)").WithArguments("System.ValueType", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(7, 11)
                 );
         }
 
@@ -193,7 +201,14 @@ class C
             comp.VerifyDiagnostics(
                 // (4,12): error CS0518: Predefined type 'System.String' is not defined or imported
                 //     static (int x, int y) M() => (0, 0);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int x, int y)").WithArguments("System.String").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int x, int y)").WithArguments("System.String").WithLocation(4, 12),
+                // (4,12): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //     static (int x, int y) M() => (0, 0);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int x, int y)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(4, 12),
+                // (4,34): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //     static (int x, int y) M() => (0, 0);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(0, 0)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(4, 34)
+                );
         }
 
         [Fact]
@@ -841,6 +856,206 @@ public struct S
                 // (8,6): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     [TupleElementNames(new string[] { null, null })]
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, "TupleElementNames(new string[] { null, null })").WithLocation(8, 6));
+        }
+
+        [Fact]
+        [WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")]
+        public void AttributesOnTypeConstraints()
+        {
+            var src = @"
+public interface I1<T> {}
+
+public interface I2<T>
+    where T : I1<(int a, int b)> {}
+public interface I3<T>
+    where T : I1<(int c, int d)> {}";
+
+            Action<PEAssembly> validator = assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+
+                Action<TypeDefinition, string[]> verifyTupleConstraint = (def, tupleNames) =>
+                {
+                    var typeParams = def.GetGenericParameters();
+                    Assert.Equal(1, typeParams.Count);
+                    var typeParam = reader.GetGenericParameter(typeParams[0]);
+                    var constraintHandles = typeParam.GetConstraints();
+                    Assert.Equal(1, constraintHandles.Count);
+                    var constraint = reader.GetGenericParameterConstraint(constraintHandles[0]);
+
+                    var attributes = constraint.GetCustomAttributes();
+                    Assert.Equal(1, attributes.Count);
+                    var attr = reader.GetCustomAttribute(attributes.Single());
+
+                    // Verify that the attribute contains an array of matching tuple names
+                    var argsReader = reader.GetBlobReader(attr.Value);
+                    // Prolog
+                    Assert.Equal(1, argsReader.ReadUInt16());
+                    // Array size
+                    Assert.Equal(tupleNames.Length, argsReader.ReadInt32());
+
+                    foreach (var name in tupleNames)
+                    {
+                        Assert.Equal(name, argsReader.ReadSerializedString());
+                    }
+                };
+
+                foreach (var typeHandle in reader.TypeDefinitions)
+                {
+                    var def = reader.GetTypeDefinition(typeHandle);
+                    var name = reader.GetString(def.Name);
+                    switch (name)
+                    {
+                        case "I1`1":
+                        case "<Module>":
+                            continue;
+
+                        case "I2`1":
+                            verifyTupleConstraint(def, new[] { "a", "b" });
+                            break;
+
+                        case "I3`1":
+                            verifyTupleConstraint(def, new[] { "c", "d" });
+                            break;
+
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(name);
+                    }
+                }
+            };
+
+            void symbolValidator(ModuleSymbol m)
+            {
+                foreach (var t in m.GlobalNamespace.GetTypeMembers())
+                {
+                    switch(t.Name)
+                    {
+                        case "I1":
+                        case "<Module>":
+                            continue;
+
+                        case "I2":
+                            verifyTupleImpls(t, new[] { "a", "b" });
+                            break;
+
+                        case "I3":
+                            verifyTupleImpls(t, new[] { "c", "d" });
+                            break;
+                    }
+                }
+                void verifyTupleImpls(NamedTypeSymbol t, string[] tupleNames)
+                {
+                    var typeParam = t.TypeParameters.Single();
+                    var constraint = (NamedTypeSymbol)typeParam.ConstraintTypes.Single();
+                    var typeArg = constraint.TypeArguments.Single();
+                    Assert.True(typeArg.IsTupleType);
+                    Assert.Equal(tupleNames, typeArg.TupleElementNames);
+                }
+            }
+
+            CompileAndVerify(src,
+                additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                assemblyValidator: validator,
+                symbolValidator: symbolValidator);
+        }
+
+        [Fact]
+        [WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")]
+        public void AttributesOnInterfaceImplementations()
+        {
+            var src = @"
+public interface I1<T> {}
+
+public interface I2 : I1<(int a, int b)> {}
+public interface I3 : I1<(int c, int d)> {}";
+
+            Action<PEAssembly> validator = (assembly) =>
+            {
+                var reader = assembly.GetMetadataReader();
+
+                Action<TypeDefinition, string[]> verifyTupleImpls = (def, tupleNames) =>
+                {
+                    var interfaceImpls = def.GetInterfaceImplementations();
+                    Assert.Equal(1, interfaceImpls.Count);
+                    var interfaceImpl = reader.GetInterfaceImplementation(interfaceImpls.Single());
+
+                    var attributes = interfaceImpl.GetCustomAttributes();
+                    Assert.Equal(1, attributes.Count);
+                    var attr = reader.GetCustomAttribute(attributes.Single());
+
+                    // Verify that the attribute contains an array of matching tuple names
+                    var argsReader = reader.GetBlobReader(attr.Value);
+                    // Prolog
+                    Assert.Equal(1, argsReader.ReadUInt16());
+                    // Array size
+                    Assert.Equal(tupleNames.Length, argsReader.ReadInt32());
+
+                    foreach (var name in tupleNames)
+                    {
+                        Assert.Equal(name, argsReader.ReadSerializedString());
+                    }
+                };
+
+                foreach (var typeHandle in reader.TypeDefinitions)
+                {
+                    var def = reader.GetTypeDefinition(typeHandle);
+                    var name = reader.GetString(def.Name);
+                    switch (name)
+                    {
+                        case "I1`1":
+                        case "<Module>":
+                            continue;
+
+                        case "I2":
+                            verifyTupleImpls(def, new[] { "a", "b" });
+                            break;
+
+                        case "I3":
+                            verifyTupleImpls(def, new[] { "c", "d" });
+                            break;
+
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(name);
+                    }
+                }
+            };
+
+            void symbolValidator(ModuleSymbol m)
+            {
+                foreach (var t in m.GlobalNamespace.GetTypeMembers())
+                {
+                    switch (t.Name)
+                    {
+                        case "I1":
+                        case "<Module>":
+                            continue;
+
+                        case "I2":
+                            VerifyTupleImpls(t, new[] { "a", "b" });
+                            break;
+
+                        case "I3":
+                            VerifyTupleImpls(t, new[] { "c", "d" });
+                            break;
+
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(t.Name);
+                    }
+                }
+
+                void VerifyTupleImpls(NamedTypeSymbol t, string[] tupleNames)
+                {
+                    var interfaceImpl = t.Interfaces.Single();
+                    var typeArg = interfaceImpl.TypeArguments.Single();
+                    Assert.True(typeArg.IsTupleType);
+                    Assert.Equal(tupleNames, typeArg.TupleElementNames);
+                }
+            }
+
+            CompileAndVerify(src,
+                additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                assemblyValidator: validator,
+                symbolValidator: symbolValidator);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -53,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 Stream stream, int sessionId, ISet<Checksum> checksums, CancellationToken cancellationToken)
             {
                 var results = new List<ValueTuple<Checksum, object>>();
-                using (var reader = new StreamObjectReader(stream))
+
+                using (var reader = new ObjectReader(stream))
                 {
                     var responseSessionId = reader.ReadInt32();
                     Contract.ThrowIfFalse(sessionId == responseSessionId);

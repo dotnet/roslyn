@@ -12,7 +12,7 @@ namespace RepoUtil
 {
     internal sealed class RepoData
     {
-        internal string SourcesPath { get; }
+        internal string SourcesDirectory { get; }
         internal RepoConfig RepoConfig { get; }
         internal ImmutableArray<NuGetFeed> NuGetFeeds { get; }
         internal ImmutableArray<NuGetPackage> FloatingBuildPackages { get; }
@@ -21,9 +21,9 @@ namespace RepoUtil
         internal ImmutableArray<NuGetPackage> FixedPackages => RepoConfig.FixedPackages;
         internal ImmutableArray<NuGetPackage> AllPackages { get; }
 
-        private RepoData(RepoConfig config, string sourcesPath, IEnumerable<NuGetFeed> nugetFeeds, IEnumerable<NuGetPackage> floatingPackages)
+        private RepoData(RepoConfig config, string sourcesDir, IEnumerable<NuGetFeed> nugetFeeds, IEnumerable<NuGetPackage> floatingPackages)
         {
-            SourcesPath = sourcesPath;
+            SourcesDirectory = sourcesDir;
             RepoConfig = config;
             NuGetFeeds = nugetFeeds.ToImmutableArray();
             FloatingToolsetPackages = floatingPackages
@@ -37,7 +37,10 @@ namespace RepoUtil
             FloatingPackages = floatingPackages
                 .OrderBy(x => x.Name)
                 .ToImmutableArray();
-            AllPackages = Combine(FloatingBuildPackages, FloatingToolsetPackages, FixedPackages);
+            AllPackages = Combine(
+                FloatingBuildPackages,
+                FloatingToolsetPackages,
+                FixedPackages.Select(x => x).ToImmutableArray());
         }
 
         private static ImmutableArray<NuGetPackage> Combine(params ImmutableArray<NuGetPackage>[] args)
@@ -53,10 +56,10 @@ namespace RepoUtil
         /// state of the repo and add in the current data.  If any conflicting package definitions are detected this method 
         /// will throw.
         /// </summary>
-        internal static RepoData Create(RepoConfig config, string sourcesPath)
+        internal static RepoData Create(RepoConfig config, string sourcesDir)
         {
             List<NuGetPackageConflict> conflicts;
-            var repoData = Create(config, sourcesPath, out conflicts);
+            var repoData = Create(config, sourcesDir, out conflicts);
             if (conflicts?.Count > 0)
             {
                 throw new ConflictingPackagesException(conflicts);
@@ -65,10 +68,10 @@ namespace RepoUtil
             return repoData;
         }
 
-        internal static RepoData Create(RepoConfig config, string sourcesPath, out List<NuGetPackageConflict> conflicts)
+        internal static RepoData Create(RepoConfig config, string sourcesDir, out List<NuGetPackageConflict> conflicts)
         {
             var nugetFeeds = new List<NuGetFeed>();
-            foreach (var nugetConfig in NuGetConfigUtil.GetNuGetConfigFiles(sourcesPath))
+            foreach (var nugetConfig in NuGetConfigUtil.GetNuGetConfigFiles(sourcesDir))
             {
                 var nugetFeed = NuGetConfigUtil.GetNuGetFeeds(nugetConfig);
                 nugetFeeds.AddRange(nugetFeed);
@@ -76,16 +79,16 @@ namespace RepoUtil
 
             conflicts = null;
 
-            var fixedPackageSet = new HashSet<NuGetPackage>(config.FixedPackages);
+            var fixedPackageSet = new HashSet<NuGetPackage>(config.FixedPackages, default(Constants.IgnoreGenerateNameComparer));
             var floatingPackageMap = new Dictionary<string, NuGetPackageSource>(Constants.NugetPackageNameComparer);
-            foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(sourcesPath))
+            foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(sourcesDir))
             {
                 if (config.ProjectJsonExcludes.Any(x => x.IsMatch(filePath)))
                 {
                     continue;
                 }
 
-                var fileName = FileName.FromFullPath(sourcesPath, filePath);
+                var fileName = FileName.FromFullPath(sourcesDir, filePath);
                 foreach (var package in ProjectJsonUtil.GetDependencies(filePath))
                 {
                     if (fixedPackageSet.Contains(package))
@@ -113,7 +116,7 @@ namespace RepoUtil
                 }
             }
 
-            return new RepoData(config, sourcesPath, nugetFeeds, floatingPackageMap.Values.Select(x => x.NuGetPackage));
+            return new RepoData(config, sourcesDir, nugetFeeds, floatingPackageMap.Values.Select(x => x.NuGetPackage));
         }
     }
 }

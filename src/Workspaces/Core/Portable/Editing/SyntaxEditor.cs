@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.Editing
     public class SyntaxEditor
     {
         private readonly SyntaxGenerator _generator;
-        private readonly SyntaxNode _root;
         private readonly List<Change> _changes;
 
         /// <summary>
@@ -20,17 +19,12 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxEditor(SyntaxNode root, Workspace workspace)
         {
-            if (root == null)
-            {
-                throw new ArgumentNullException(nameof(root));
-            }
-
             if (workspace == null)
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            _root = root;
+            OriginalRoot = root ?? throw new ArgumentNullException(nameof(root));
             _generator = SyntaxGenerator.GetGenerator(workspace, root.Language);
             _changes = new List<Change>();
         }
@@ -38,10 +32,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// The <see cref="SyntaxNode"/> that was specified when the <see cref="SyntaxEditor"/> was constructed.
         /// </summary>
-        public SyntaxNode OriginalRoot
-        {
-            get { return _root; }
-        }
+        public SyntaxNode OriginalRoot { get; }
 
         /// <summary>
         /// A <see cref="SyntaxGenerator"/> to use to create and change <see cref="SyntaxNode"/>'s.
@@ -57,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public SyntaxNode GetChangedRoot()
         {
             var nodes = Enumerable.Distinct(_changes.Select(c => c.Node));
-            var newRoot = _root.TrackNodes(nodes);
+            var newRoot = OriginalRoot.TrackNodes(nodes);
 
             foreach (var change in _changes)
             {
@@ -176,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private void CheckNodeInTree(SyntaxNode node)
         {
-            if (!_root.Contains(node))
+            if (!OriginalRoot.Contains(node))
             {
                 throw new ArgumentException(Microsoft.CodeAnalysis.WorkspacesResources.The_node_is_not_part_of_the_tree, nameof(node));
             }

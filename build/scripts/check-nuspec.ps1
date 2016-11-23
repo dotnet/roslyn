@@ -8,7 +8,7 @@ $ErrorActionPreference="Stop"
 try
 {
     write-host "Verifying contents of Micrsoft.Net.Compilers.nuspec"
-    $deploymentPath = join-path $binariesPath "Deployment\Toolset"
+    $deploymentPath = join-path $binariesPath "Exes\Toolset"
     [xml]$x = gc (join-path $sourcePath "src\NuGet\Microsoft.Net.Compilers.nuspec")
     $nuspecAssemblies = 
         $x.package.files.file | 

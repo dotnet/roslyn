@@ -871,6 +871,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return Signature.ReturnParam.RefCustomModifiers
+            End Get
+        End Property
+
         Public Overrides Function GetReturnTypeAttributes() As ImmutableArray(Of VisualBasicAttributeData)
             Return Signature.ReturnParam.GetAttributes()
         End Function
@@ -917,7 +923,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim signatureHeader As SignatureHeader
                 Dim mrEx As BadImageFormatException = Nothing
             Dim paramInfo() As ParamInfo(Of TypeSymbol) =
-                    (New MetadataDecoder(moduleSymbol, Me)).GetSignatureForMethod(_handle, signatureHeader, mrEx, allowByRefReturn:=True)
+                    (New MetadataDecoder(moduleSymbol, Me)).GetSignatureForMethod(_handle, signatureHeader, mrEx)
 
             ' If method is not generic, let's assign empty list for type parameters
             If Not signatureHeader.IsGeneric() AndAlso

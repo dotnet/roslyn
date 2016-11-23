@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
@@ -12,7 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class BlockSyntaxStructureProvider : AbstractSyntaxNodeStructureProvider<BlockSyntax>
     {
         protected override void CollectBlockSpans(
-            BlockSyntax node, ArrayBuilder<BlockSpan> spans, CancellationToken cancellationToken)
+            BlockSyntax node,
+            ArrayBuilder<BlockSpan> spans,
+            OptionSet options,
+            CancellationToken cancellationToken)
         {
             var parentKind = node.Parent.Kind();
 
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             {
                 case SyntaxKind.ForStatement: return BlockTypes.Loop;
                 case SyntaxKind.ForEachStatement: return BlockTypes.Loop;
-                case SyntaxKind.ForEachComponentStatement: return BlockTypes.Loop;
+                case SyntaxKind.ForEachVariableStatement: return BlockTypes.Loop;
                 case SyntaxKind.WhileStatement: return BlockTypes.Loop;
                 case SyntaxKind.DoStatement: return BlockTypes.Loop;
 

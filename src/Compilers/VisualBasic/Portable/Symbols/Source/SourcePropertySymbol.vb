@@ -316,6 +316,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
                 EnsureSignature()
@@ -729,6 +735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         fakeParamsBuilder.Add(New SignatureOnlyParameterSymbol(
                                                 param.Type,
                                                 ImmutableArray(Of CustomModifier).Empty,
+                                                ImmutableArray(Of CustomModifier).Empty,
                                                 defaultConstantValue:=Nothing,
                                                 isParamArray:=False,
                                                 isByRef:=param.IsByRef,
@@ -743,6 +750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                             returnsByRef:=False,
                                                                             [type]:=retType,
                                                                             typeCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
+                                                                            refCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
                                                                             isOverrides:=True, isWithEvents:=Me.IsWithEvents))
                 End If
 
@@ -1040,15 +1048,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return _lazyDocComment
         End Function
-
-        Private Sub CopyPropertyCustomModifiers(propertyWithCustomModifiers As PropertySymbol, ByRef type As TypeSymbol, ByRef typeCustomModifiers As ImmutableArray(Of CustomModifier))
-            Debug.Assert(propertyWithCustomModifiers IsNot Nothing)
-            typeCustomModifiers = propertyWithCustomModifiers.TypeCustomModifiers
-            Dim overriddenPropertyType As TypeSymbol = propertyWithCustomModifiers.Type
-            If type.IsSameTypeIgnoringAll(overriddenPropertyType) Then
-                type = overriddenPropertyType
-            End If
-        End Sub
 
         Private Shared Function DecodeModifiers(modifiers As SyntaxTokenList,
                                                 container As SourceMemberContainerTypeSymbol,

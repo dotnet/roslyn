@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Maps values of #r references to resolved metadata references.
         /// </summary>
-        internal abstract IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap { get; }
+        internal abstract IDictionary<(string path, string content), MetadataReference> ReferenceDirectiveMap { get; }
 
         /// <summary>
         /// All metadata references -- references passed to the compilation
@@ -876,6 +876,14 @@ namespace Microsoft.CodeAnalysis
                 if (elementNames.Length != cardinality)
                 {
                     throw new ArgumentException(CodeAnalysisResources.TupleElementNameCountMismatch, nameof(elementNames));
+                }
+
+                for (int i = 0; i < elementNames.Length; i++)
+                {
+                    if (elementNames[i] == "")
+                    {
+                        throw new ArgumentException(CodeAnalysisResources.TupleElementNameEmpty, $"{nameof(elementNames)}[{i}]");
+                    }
                 }
 
                 if (elementNames.All(n => n == null))
@@ -2660,5 +2668,36 @@ namespace Microsoft.CodeAnalysis
         }
         
         internal abstract bool IsIOperationFeatureEnabled();
+
+        /// <summary>
+        /// Given a <see cref="Diagnostic"/> reporting unreferenced <see cref="AssemblyIdentity"/>s, returns
+        /// the actual <see cref="AssemblyIdentity"/> instances that were not referenced.
+        /// </summary>
+        public ImmutableArray<AssemblyIdentity> GetUnreferencedAssemblyIdentities(Diagnostic diagnostic)
+        {
+            if (diagnostic == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostic));
+            }
+
+            if (!IsUnreferencedAssemblyIdentityDiagnosticCode(diagnostic.Code))
+            {
+                return ImmutableArray<AssemblyIdentity>.Empty;
+            }
+
+            var builder = ArrayBuilder<AssemblyIdentity>.GetInstance();
+
+            foreach (var argument in diagnostic.Arguments)
+            {
+                if (argument is AssemblyIdentity id)
+                {
+                    builder.Add(id);
+                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        internal abstract bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code);
     }
 }

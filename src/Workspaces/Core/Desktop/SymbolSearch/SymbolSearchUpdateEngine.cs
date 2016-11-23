@@ -74,8 +74,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity)
         {
-            IAddReferenceDatabaseWrapper databaseWrapper;
-            if (!_sourceToDatabase.TryGetValue(source, out databaseWrapper))
+            if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
             {
                 // Don't have a database to search.  
                 return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
@@ -112,8 +111,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
             string source, string assemblyName)
         {
-            IAddReferenceDatabaseWrapper databaseWrapper;
-            if (!_sourceToDatabase.TryGetValue(source, out databaseWrapper))
+            if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
             {
                 // Don't have a database to search.  
                 return SpecializedTasks.EmptyImmutableArray<PackageWithAssemblyResult>();
@@ -124,12 +122,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             var database = databaseWrapper.Database;
             var index = database.Index;
             var stringStore = database.StringStore;
-
-            Range range;
-            int[] matches;
-            int startIndex, count;
-            if (stringStore.TryFindString(assemblyName, out range) &&
-                index.TryGetMatchesInRange(range, out matches, out startIndex, out count))
+            if (stringStore.TryFindString(assemblyName, out var range) &&
+                index.TryGetMatchesInRange(range, out var matches, out var startIndex, out var count))
             {
                 for (var i = startIndex; i < (startIndex + count); i++)
                 {
@@ -152,8 +146,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             string name, int arity)
         {
             // Our reference assembly data is stored in the nuget.org DB.
-            IAddReferenceDatabaseWrapper databaseWrapper;
-            if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out databaseWrapper))
+            if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out var databaseWrapper))
             {
                 // Don't have a database to search.  
                 return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
@@ -221,10 +214,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
         private int GetRank(Symbol symbol)
         {
-            Symbol rankingSymbol;
-            int rank;
-            if (!TryGetRankingSymbol(symbol, out rankingSymbol) ||
-                !int.TryParse(rankingSymbol.Name.ToString(), out rank))
+            if (!TryGetRankingSymbol(symbol, out var rankingSymbol) ||
+                !int.TryParse(rankingSymbol.Name.ToString(), out var rank))
             {
                 return 0;
             }

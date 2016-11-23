@@ -29,7 +29,7 @@ namespace MSBuildToolset
                 .ToArray();
 
             var nugetExeDir = Path.GetDirectoryName(nugetExePath);
-            string msbuildPath = Path.Combine(AppContext.BaseDirectory, "MSBuild.exe");
+            string msbuildPath = Path.Combine(AppContext.BaseDirectory, "MSBuild.dll");
             string entryPointTargetPath = Path.Combine(nugetExeDir,
                 "build/Targets/GetProjectsReferencingProjectJsonFilesEntryPoint.targets");
             string afterBuildsTargetPath = Path.Combine(nugetExeDir,

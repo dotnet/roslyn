@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
@@ -223,11 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                .WithStatement(ReplaceStatementIfNeeded(node.Statement));
                 }
 
-                public override SyntaxNode VisitForEachComponentStatement(ForEachComponentStatementSyntax node)
+                public override SyntaxNode VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
                 {
                     if (node != this.ContainerOfStatementsOrFieldToReplace)
                     {
-                        return base.VisitForEachComponentStatement(node);
+                        return base.VisitForEachVariableStatement(node);
                     }
 
                     return node.WithExpression(VisitNode(node.Expression))

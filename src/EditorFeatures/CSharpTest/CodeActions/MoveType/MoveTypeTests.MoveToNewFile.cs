@@ -130,6 +130,7 @@ class Class2 { }";
 
             var codeAfterMove =
 @"// Banner Text
+using System;
 
 class Class2 { }";
 
@@ -322,6 +323,43 @@ class Class2 { }";
 @"namespace N1
 {
     partial class Class1 
+    {
+        class Class2
+        {
+        }
+    }
+}";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveNestedTypePreserveModifiers()
+        {
+            var code =
+@"namespace N1
+{
+    abstract class Class1 
+    {
+        [||]class Class2 { }
+    }
+    
+}";
+
+            var codeAfterMove =
+@"namespace N1
+{
+    abstract partial class Class1
+    {
+
+    }
+}";
+
+            var expectedDocumentName = "Class2.cs";
+
+            var destinationDocumentText =
+@"namespace N1
+{
+    abstract partial class Class1 
     {
         class Class2
         {
@@ -706,6 +744,44 @@ namespace OuterN1.N1
         }
     }
 }";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveTypeUsings1()
+        {
+            var code =
+@"
+// Only used by inner type.
+using System;
+
+// Unused by both types.
+using System.Collections;
+
+class Outer { 
+    [||]class Inner {
+        DateTime d;
+    }
+}";
+            var codeAfterMove = @"
+// Unused by both types.
+using System.Collections;
+
+partial class Outer {
+}";
+
+            var expectedDocumentName = "Inner.cs";
+            var destinationDocumentText =
+@"
+// Only used by inner type.
+using System;
+
+partial class Outer {
+    class Inner { 
+        DateTime d;
+    }
+}";
+
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
     }

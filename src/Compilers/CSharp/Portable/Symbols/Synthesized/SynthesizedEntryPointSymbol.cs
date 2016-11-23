@@ -138,6 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
+        }
+
         public override ImmutableArray<TypeSymbol> TypeArguments
         {
             get { return ImmutableArray<TypeSymbol>.Empty; }
@@ -424,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(containingType.IsSubmissionClass);
                 Debug.Assert(returnType.SpecialType != SpecialType.System_Void);
-                _parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedParameterSymbol(this, submissionArrayType, 0, RefKind.None, "submissionArray"));
+                _parameters = ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this, submissionArrayType, 0, RefKind.None, "submissionArray"));
             }
 
             public override string Name

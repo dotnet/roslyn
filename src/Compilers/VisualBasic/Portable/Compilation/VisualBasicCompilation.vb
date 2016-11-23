@@ -1191,7 +1191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ReferenceDirectiveMap As IDictionary(Of ValueTuple(Of String, String), MetadataReference)
+        Friend Overrides ReadOnly Property ReferenceDirectiveMap As IDictionary(Of (path As String, content As String), MetadataReference)
             Get
                 Return GetBoundReferenceManager().ReferenceDirectiveMap
             End Get
@@ -2702,6 +2702,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return If(IOperationFeatureFlag Is Nothing, False, options.Features.ContainsKey(IOperationFeatureFlag))
         End Function
+
+        Friend Overrides Function IsUnreferencedAssemblyIdentityDiagnosticCode(code As Integer) As Boolean
+            Select Case code
+                Case ERRID.ERR_UnreferencedAssemblyEvent3,
+                     ERRID.ERR_UnreferencedAssembly3
+                    Return True
+
+                Case Else
+                    Return False
+            End Select
+        End Function
+
 #End Region
 
         Private Class SymbolSearcher

@@ -134,6 +134,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                return ImmutableArray<CustomModifier>.Empty; // Same as base, but this is clear and explicit.
+            }
+        }
+
         public sealed override ImmutableArray<ParameterSymbol> Parameters
         {
             get

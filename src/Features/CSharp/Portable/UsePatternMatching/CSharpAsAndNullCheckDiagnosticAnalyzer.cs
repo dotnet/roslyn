@@ -31,15 +31,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         {
         }
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IfStatement);
-        }
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IfStatement);
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
-            var options = syntaxContext.Options.GetOptionSet();
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck);
+            var options = syntaxContext.Options;
+            var syntaxTree = syntaxContext.Node.SyntaxTree;
+            var cancellationToken = syntaxContext.CancellationToken;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
+            var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck);
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
@@ -132,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // Put a diagnostic with the appropriate severity on the declaration-statement itself.
             syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptor(this.DescriptorId, severity),
+                CreateDescriptorWithSeverity(severity),
                 localDeclarationStatement.GetLocation(),
                 additionalLocations));
         }

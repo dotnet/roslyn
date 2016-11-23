@@ -276,8 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             Dictionary<TextSpan, string> textSpanToTextCache,
             int? endPoint = null)
         {
-            string currentSnapshotText;
-            if (!textSpanToTextCache.TryGetValue(originalSpan, out currentSnapshotText))
+            if (!textSpanToTextCache.TryGetValue(originalSpan, out var currentSnapshotText))
             {
                 var viewSpan = GetViewBufferSpan(originalSpan);
                 currentSnapshotText = GetCurrentTextInSnapshot(viewSpan, textSnapshot, endPoint);

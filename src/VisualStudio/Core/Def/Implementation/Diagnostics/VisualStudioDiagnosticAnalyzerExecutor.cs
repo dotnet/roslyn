@@ -107,10 +107,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             //       it is not part of snapshot and can't save option to solution since we can't use language
             //       specific option without loading related language specific dlls
             var options = solution.Options;
-
             // we have cached options
-            ValueTuple<OptionSet, CustomAsset> value;
-            if (_lastOptionSetPerLanguage.TryGetValue(language, out value) && value.Item1 == options)
+            if (_lastOptionSetPerLanguage.TryGetValue(language, out var value) && value.Item1 == options)
             {
                 return value.Item2;
             }
@@ -140,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             // handling of cancellation and exception
             var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-            using (var reader = new StreamObjectReader(stream))
+            using (var reader = new ObjectReader(stream))
             {
                 return DiagnosticResultSerializer.Deserialize(reader, analyzerMap, project, version, cancellationToken);
             }

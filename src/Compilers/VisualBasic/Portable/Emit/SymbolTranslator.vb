@@ -209,8 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' but if it does happen we should make it a failure.
             ' NOTE: declaredBase could be null for interfaces
             Dim declaredBase = namedTypeSymbol.BaseTypeNoUseSiteDiagnostics
-            If declaredBase Is Nothing OrElse
-                    (declaredBase.SpecialType <> SpecialType.System_ValueType AndAlso Not declaredBase.IsErrorType()) Then
+            If declaredBase Is Nothing OrElse declaredBase.SpecialType <> SpecialType.System_ValueType Then
                 ' Try to decrease noise by not complaining about the same type over and over again.
                 If (_reportedErrorTypesMap.Add(namedTypeSymbol)) Then
                     diagnostics.Add(New VBDiagnostic(

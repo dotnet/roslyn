@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2335,6 +2336,171 @@ namespace System
 
             var failingCompilation = CreateCompilationWithMscorlib(source, new MetadataReference[] { csharpAssemblyReference, ilAssemblyReference });
             return failingCompilation;
+        }
+
+        [Fact]
+        [WorkItem(14267, "https://github.com/dotnet/roslyn/issues/14267")]
+        public void MissingTypeKindBasisTypes()
+        {
+            var source1 = @"
+public struct A {}
+
+public enum B {}
+
+public class C {}
+public delegate void D();
+
+public interface I1 {}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, references: new[] { MinCorlibRef });
+            compilation1.VerifyEmitDiagnostics();
+
+            Assert.Equal(TypeKind.Struct, compilation1.GetTypeByMetadataName("A").TypeKind);
+            Assert.Equal(TypeKind.Enum, compilation1.GetTypeByMetadataName("B").TypeKind);
+            Assert.Equal(TypeKind.Class, compilation1.GetTypeByMetadataName("C").TypeKind);
+            Assert.Equal(TypeKind.Delegate, compilation1.GetTypeByMetadataName("D").TypeKind);
+            Assert.Equal(TypeKind.Interface, compilation1.GetTypeByMetadataName("I1").TypeKind);
+
+            var source2 = @"
+interface I2
+{
+    I1 M(A a, B b, C c, D d); 
+}
+";
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MinCorlibRef });
+
+            compilation2.VerifyEmitDiagnostics();
+            CompileAndVerify(compilation2);
+
+            Assert.Equal(TypeKind.Struct, compilation2.GetTypeByMetadataName("A").TypeKind);
+            Assert.Equal(TypeKind.Enum, compilation2.GetTypeByMetadataName("B").TypeKind);
+            Assert.Equal(TypeKind.Class, compilation2.GetTypeByMetadataName("C").TypeKind);
+            Assert.Equal(TypeKind.Delegate, compilation2.GetTypeByMetadataName("D").TypeKind);
+            Assert.Equal(TypeKind.Interface, compilation2.GetTypeByMetadataName("I1").TypeKind);
+
+            var compilation3 = CreateCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MinCorlibRef });
+
+            compilation3.VerifyEmitDiagnostics();
+            CompileAndVerify(compilation3);
+
+            Assert.Equal(TypeKind.Struct, compilation3.GetTypeByMetadataName("A").TypeKind);
+            Assert.Equal(TypeKind.Enum, compilation3.GetTypeByMetadataName("B").TypeKind);
+            Assert.Equal(TypeKind.Class, compilation3.GetTypeByMetadataName("C").TypeKind);
+            Assert.Equal(TypeKind.Delegate, compilation3.GetTypeByMetadataName("D").TypeKind);
+            Assert.Equal(TypeKind.Interface, compilation3.GetTypeByMetadataName("I1").TypeKind);
+
+            var compilation4 = CreateCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference() });
+
+            compilation4.VerifyDiagnostics(
+                // (4,10): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
+                //     I1 M(A a, B b, C c, D d); 
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A").WithArguments("System.ValueType", "mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2").WithLocation(4, 10),
+                // (4,15): error CS0012: The type 'Enum' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
+                //     I1 M(A a, B b, C c, D d); 
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "B").WithArguments("System.Enum", "mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2").WithLocation(4, 15),
+                // (4,25): error CS0012: The type 'MulticastDelegate' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
+                //     I1 M(A a, B b, C c, D d); 
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("System.MulticastDelegate", "mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2").WithLocation(4, 25)
+                );
+
+            var a = compilation4.GetTypeByMetadataName("A");
+            var b = compilation4.GetTypeByMetadataName("B");
+            var c = compilation4.GetTypeByMetadataName("C");
+            var d = compilation4.GetTypeByMetadataName("D");
+            var i1 = compilation4.GetTypeByMetadataName("I1");
+            Assert.Equal(TypeKind.Class, a.TypeKind);
+            Assert.NotNull(a.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Class, b.TypeKind);
+            Assert.NotNull(b.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Class, c.TypeKind);
+            Assert.Null(c.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Class, d.TypeKind);
+            Assert.NotNull(d.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Interface, i1.TypeKind);
+            Assert.Null(i1.GetUseSiteDiagnostic());
+
+            var compilation5 = CreateCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference() });
+
+            compilation5.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
+                );
+            CompileAndVerify(compilation5);
+
+            Assert.Equal(TypeKind.Struct, compilation5.GetTypeByMetadataName("A").TypeKind);
+            Assert.Equal(TypeKind.Enum, compilation5.GetTypeByMetadataName("B").TypeKind);
+            Assert.Equal(TypeKind.Class, compilation5.GetTypeByMetadataName("C").TypeKind);
+            Assert.Equal(TypeKind.Delegate, compilation5.GetTypeByMetadataName("D").TypeKind);
+            Assert.Equal(TypeKind.Interface, compilation5.GetTypeByMetadataName("I1").TypeKind);
+
+            var compilation6 = CreateCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MscorlibRef });
+
+            compilation6.VerifyDiagnostics(
+                // (4,10): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
+                //     I1 M(A a, B b, C c, D d); 
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A").WithArguments("System.ValueType", "mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2").WithLocation(4, 10),
+                // (4,15): error CS0012: The type 'Enum' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
+                //     I1 M(A a, B b, C c, D d); 
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "B").WithArguments("System.Enum", "mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2").WithLocation(4, 15),
+                // (4,25): error CS0012: The type 'MulticastDelegate' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
+                //     I1 M(A a, B b, C c, D d); 
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("System.MulticastDelegate", "mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2").WithLocation(4, 25)
+                );
+
+            a = compilation6.GetTypeByMetadataName("A");
+            b = compilation6.GetTypeByMetadataName("B");
+            c = compilation6.GetTypeByMetadataName("C");
+            d = compilation6.GetTypeByMetadataName("D");
+            i1 = compilation6.GetTypeByMetadataName("I1");
+            Assert.Equal(TypeKind.Class, a.TypeKind);
+            Assert.NotNull(a.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Class, b.TypeKind);
+            Assert.NotNull(b.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Class, c.TypeKind);
+            Assert.Null(c.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Class, d.TypeKind);
+            Assert.NotNull(d.GetUseSiteDiagnostic());
+            Assert.Equal(TypeKind.Interface, i1.TypeKind);
+            Assert.Null(i1.GetUseSiteDiagnostic());
+
+            var compilation7 = CreateCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MscorlibRef });
+
+            compilation7.VerifyEmitDiagnostics();
+            CompileAndVerify(compilation7);
+
+            Assert.Equal(TypeKind.Struct, compilation7.GetTypeByMetadataName("A").TypeKind);
+            Assert.Equal(TypeKind.Enum, compilation7.GetTypeByMetadataName("B").TypeKind);
+            Assert.Equal(TypeKind.Class, compilation7.GetTypeByMetadataName("C").TypeKind);
+            Assert.Equal(TypeKind.Delegate, compilation7.GetTypeByMetadataName("D").TypeKind);
+            Assert.Equal(TypeKind.Interface, compilation7.GetTypeByMetadataName("I1").TypeKind);
+        }
+
+        [Fact, WorkItem(15435, "https://github.com/dotnet/roslyn/issues/15435")]
+        public void TestGettingAssemblyIdsFromDiagnostic1()
+        {
+            var text = @"
+class C : CSharpErrors.ClassMethods
+{
+    public override UnavailableClass ReturnType1() { return null; }
+    public override UnavailableClass[] ReturnType2() { return null; }
+}";
+
+            var compilation = CompileWithMissingReference(text);
+            var diagnostics = compilation.GetDiagnostics();
+            Assert.True(diagnostics.Any(d => d.Code == (int)ErrorCode.ERR_NoTypeDef));
+
+            foreach (var diagnostic in diagnostics)
+            {
+                if (diagnostic.Code == (int)ErrorCode.ERR_NoTypeDef)
+                {
+                    var actualAssemblyId = compilation.GetUnreferencedAssemblyIdentities(diagnostic).Single();
+                    AssemblyIdentity expectedAssemblyId;
+                    AssemblyIdentity.TryParseDisplayName("Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", out expectedAssemblyId);
+
+                    Assert.Equal(actualAssemblyId, expectedAssemblyId);
+                }
+            }
         }
     }
 }

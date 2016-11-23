@@ -68,31 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Return the type syntax of an out declaration argument expression.
-        /// </summary>
-        internal static TypeSyntax Type(this DeclarationExpressionSyntax self)
-        {
-            var component = (TypedVariableComponentSyntax)self.VariableComponent;
-            return component.Type;
-        }
-
-        /// <summary>
-        /// Return the variable designation of an out declaration argument expression.
-        /// </summary>
-        internal static SingleVariableDesignationSyntax VariableDesignation(this DeclarationExpressionSyntax self)
-        {
-            var component = (TypedVariableComponentSyntax)self.VariableComponent;
-            return (SingleVariableDesignationSyntax)component.Designation;
-        }
-
-        /// <summary>
         /// Return the identifier of an out declaration argument expression.
         /// </summary>
         internal static SyntaxToken Identifier(this DeclarationExpressionSyntax self)
         {
-            var component = (TypedVariableComponentSyntax)self.VariableComponent;
-            var designation = (SingleVariableDesignationSyntax)component.Designation;
-            return designation.Identifier;
+            return ((SingleVariableDesignationSyntax)self.Designation).Identifier;
         }
 
         /// <summary>
@@ -226,6 +206,57 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expression;
         }
 
+        /// <summary>
+        /// Is this expression composed only of declaration expressions and discards nested in tuple expressions?
+        /// </summary>
+        private static bool IsDeconstructionDeclarationLeft(this ExpressionSyntax self)
+        {
+            switch (self.Kind())
+            {
+                case SyntaxKind.DeclarationExpression:
+                    return true;
+                case SyntaxKind.TupleExpression:
+                    var tuple = (TupleExpressionSyntax)self;
+                    return tuple.Arguments.All(a => IsDeconstructionDeclarationLeft(a.Expression));
+                case SyntaxKind.IdentifierName:
+                    // Underscore is the only expression that is not clearly a declaration that we tolerate for now
+                    var identifier = (IdentifierNameSyntax)self;
+                    return identifier.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the expression is composed only of nested tuple, declaration expressions and discards.
+        /// </summary>
+        internal static bool IsDeconstructionDeclarationLeft(this Syntax.InternalSyntax.ExpressionSyntax node)
+        {
+            switch (node.Kind)
+            {
+                case SyntaxKind.TupleExpression:
+                    var arguments = ((Syntax.InternalSyntax.TupleExpressionSyntax)node).Arguments;
+                    for (int i = 0; i < arguments.Count; i++)
+                    {
+                        if (!IsDeconstructionDeclarationLeft(arguments[i].Expression)) return false;
+                    }
+
+                    return true;
+                case SyntaxKind.DeclarationExpression:
+                    return true;
+                case SyntaxKind.IdentifierName:
+                    // Underscore is the only expression that is not clearly a declaration that we tolerate for now
+                    return node.RawContextualKind == (int)SyntaxKind.UnderscoreToken;
+                default:
+                    return false;
+            }
+        }
+
+        internal static bool IsDeconstructionDeclaration(this AssignmentExpressionSyntax self)
+        {
+            return self.Left.IsDeconstructionDeclarationLeft();
+        }
+
         private static bool IsInContextWhichNeedsDynamicAttribute(CSharpSyntaxNode node)
         {
             Debug.Assert(node != null);
@@ -328,6 +359,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                 block,
                 default(ArrowExpressionClauseSyntax),
                 semicolonToken);
+        }
+
+        /// <summary>
+        /// If this declaration or identifier is part of a deconstruction, find the deconstruction.
+        /// If found, returns either an assignment expression or a foreach variable statement.
+        /// Returns null otherwise.
+        /// </summary>
+        internal static CSharpSyntaxNode GetContainingDeconstruction(this ExpressionSyntax expr)
+        {
+            var kind = expr.Kind();
+            if (kind != SyntaxKind.TupleExpression && kind != SyntaxKind.DeclarationExpression && kind != SyntaxKind.IdentifierName)
+            {
+                return null;
+            }
+
+            while (true)
+            {
+                Debug.Assert(expr.Kind() == SyntaxKind.TupleExpression || expr.Kind() == SyntaxKind.DeclarationExpression || expr.Kind() == SyntaxKind.IdentifierName);
+                var parent = expr.Parent;
+                if (parent == null) { return null; }
+
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.Argument:
+                        if (parent.Parent?.Kind() == SyntaxKind.TupleExpression)
+                        {
+                            expr = (TupleExpressionSyntax)parent.Parent;
+                            continue;
+                        }
+                        return null;
+                    case SyntaxKind.SimpleAssignmentExpression:
+                        if ((object)((AssignmentExpressionSyntax)parent).Left == expr)
+                        {
+                            return parent;
+                        }
+                        return null;
+                    case SyntaxKind.ForEachVariableStatement:
+                        if ((object)((ForEachVariableStatementSyntax)parent).Variable == expr)
+                        {
+                            return parent;
+                        }
+                        return null;
+                    default:
+                        return null;
+                }
+            }
         }
     }
 }

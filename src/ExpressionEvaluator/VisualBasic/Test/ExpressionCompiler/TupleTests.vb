@@ -26,8 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         Dim o As (Integer, Integer)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef}, options:=TestOptions.DebugDll)
-            WithRuntimeInstance(comp,
+            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
                     Dim errorMessage As String = Nothing
@@ -125,8 +125,8 @@ End Class"
         (int A, int B) o = (1, 2);
     }
 }"
-            Dim comp = CreateCSharpCompilation(source, referencedAssemblies:={MscorlibRef, ValueTupleRef})
-            WithRuntimeInstance(comp,
+            Dim comp = CreateCSharpCompilation(source, referencedAssemblies:={MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef})
+            WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
                     Dim testData = New CompilationTestData()
@@ -173,8 +173,8 @@ class C
         const A<(int, int A)>.B<(object B, object)>[] c = null;
     }
 }"
-            Dim comp = CreateCSharpCompilation(source, referencedAssemblies:={MscorlibRef, ValueTupleRef})
-            WithRuntimeInstance(comp,
+            Dim comp = CreateCSharpCompilation(source, referencedAssemblies:={MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef})
+            WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
                     Dim testData = New CompilationTestData()
@@ -213,7 +213,7 @@ class C
         Dim x = (1, 2, 3, 4, 5, 6, 7, 8)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 {MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef},
                 Sub(runtime)
@@ -250,7 +250,7 @@ End Class"
         Dim x = (1, 2, Three:=3, Four:=4, 5, 6, 7, Eight:=8)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 {MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef},
                 Sub(runtime)
@@ -345,8 +345,8 @@ End Class"
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef}, options:=TestOptions.DebugDll)
-            WithRuntimeInstance(comp,
+            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
                     Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
@@ -404,7 +404,7 @@ End Class"
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 {MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef},
                 Sub(runtime)

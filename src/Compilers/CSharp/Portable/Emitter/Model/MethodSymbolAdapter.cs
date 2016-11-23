@@ -214,6 +214,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
+        {
+            get
+            {
+                return this.RefCustomModifiers.As<Cci.ICustomModifier>();
+            }
+        }
+
         bool Cci.ISignature.ReturnValueIsByRef
         {
             get

@@ -19,7 +19,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 Dim commonSyntaxToken = Await tree.GetTouchingTokenAsync(cursorPosition, Nothing)
 
                 Dim semanticModel = Await document.GetSemanticModelAsync()
-                Dim symbol = semanticModel.GetSymbols(commonSyntaxToken, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType:=False, cancellationToken:=Nothing).First()
+                Dim symbol = semanticModel.GetSemanticInfo(commonSyntaxToken, document.Project.Solution.Workspace, Nothing).
+                                           GetAnySymbol(includeType:=False)
                 Dim namedTypeSymbol = semanticModel.GetEnclosingNamedType(cursorPosition, CancellationToken.None)
 
                 Dim actualVisible = symbol.IsAccessibleWithin(namedTypeSymbol)

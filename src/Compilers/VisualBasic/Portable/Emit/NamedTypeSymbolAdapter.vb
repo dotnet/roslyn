@@ -857,19 +857,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Debug.Assert((DirectCast(Me, ITypeReference)).AsGenericTypeInstanceReference IsNot Nothing)
 
-            Dim modifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier)) = Nothing
-
-            If Me.HasTypeArgumentsCustomModifiers Then
-                modifiers = Me.TypeArgumentsCustomModifiers
-            End If
+            Dim hasModifiers = Me.HasTypeArgumentsCustomModifiers
 
             Dim builder = ArrayBuilder(Of ITypeReference).GetInstance()
             Dim arguments = Me.TypeArgumentsNoUseSiteDiagnostics
             For i As Integer = 0 To arguments.Length - 1
                 Dim arg = moduleBeingBuilt.Translate(arguments(i), syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
 
-                If Not modifiers.IsDefault AndAlso Not modifiers(i).IsDefaultOrEmpty Then
-                    arg = New Cci.ModifiedTypeReference(arg, modifiers(i).As(Of Cci.ICustomModifier))
+                If hasModifiers Then
+                    Dim modifiers = Me.GetTypeArgumentCustomModifiers(i)
+                    If Not modifiers.IsDefaultOrEmpty Then
+                        arg = New Cci.ModifiedTypeReference(arg, modifiers.As(Of Cci.ICustomModifier))
+                    End If
                 End If
 
                 builder.Add(arg)

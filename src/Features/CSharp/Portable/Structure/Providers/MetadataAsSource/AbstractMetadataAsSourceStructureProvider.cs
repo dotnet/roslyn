@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -12,7 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource
         where TSyntaxNode : SyntaxNode
     {
         protected override void CollectBlockSpans(
-            TSyntaxNode node, ArrayBuilder<BlockSpan> spans, CancellationToken cancellationToken)
+            TSyntaxNode node,
+            ArrayBuilder<BlockSpan> spans,
+            OptionSet options,
+            CancellationToken cancellationToken)
         {
             var startToken = node.GetFirstToken();
             var endToken = GetEndToken(node);

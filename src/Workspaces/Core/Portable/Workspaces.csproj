@@ -13,6 +13,8 @@
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ServiceablePackage>true</ServiceablePackage>
+    <!-- Temporary workaround for CLR bug, VSO #290723. Please remove the below line once this bug is fixed. -->
+    <SkipApplyOptimizations>true</SkipApplyOptimizations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -165,15 +167,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\TextChangeRangeExtensions.cs">
       <Link>InternalUtilities\TextChangeRangeExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ValueTuple.cs">
-      <Link>InternalUtilities\ValueTuple.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ValueTuple`2.cs">
-      <Link>InternalUtilities\ValueTuple`2.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ValueTuple`3.cs">
-      <Link>InternalUtilities\ValueTuple`3.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\WeakReferenceExtensions.cs">
       <Link>InternalUtilities\WeakReferenceExtensions.cs</Link>
     </Compile>
@@ -189,14 +182,26 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinder.cs">
       <Link>Serialization\ObjectBinder.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectData.cs">
-      <Link>Serialization\ObjectData.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs">
       <Link>Serialization\ObjectReader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReaderData.cs">
+      <Link>Serialization\ObjectReaderData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReaderWriterBase.cs">
+      <Link>Serialization\ObjectReaderWriterBase.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs">
       <Link>Serialization\ObjectWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectWriterData.cs">
+      <Link>Serialization\ObjectWriterData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\RecordingObjectBinder.cs">
+      <Link>Serialization\RecordingObjectBinder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\SimpleRecordingObjectBinder.cs">
+      <Link>Serialization\SimpleRecordingObjectBinder.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs">
       <Link>InternalUtilities\FileUtilities.cs</Link>
@@ -256,10 +261,12 @@
     <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.UnitTests.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
@@ -268,6 +275,7 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
@@ -276,18 +284,11 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectReader.cs">
-      <Link>Serialization\StreamObjectReader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.cs">
-      <Link>Serialization\StreamObjectWriter.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\TypeKey.cs">
-      <Link>Serialization\TypeKey.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>InternalUtilities\UnicodeCharacterUtilities.cs</Link>
     </Compile>
+    <Compile Include="AddImports\AbstractAddImportsService.cs" />
+    <Compile Include="AddImports\IAddImportsService.cs" />
     <Compile Include="CaseCorrection\AbstractCaseCorrectionService.cs" />
     <Compile Include="CaseCorrection\CaseCorrector.cs" />
     <Compile Include="CaseCorrection\ICaseCorrectionService.cs" />
@@ -303,6 +304,7 @@
     <Compile Include="CodeActions\Annotations\SuppressDiagnosticsAnnotation.cs" />
     <Compile Include="CodeActions\CodeActionPriority.cs" />
     <Compile Include="CodeActions\Operations\PreviewOperation.cs" />
+    <Compile Include="CodeActions\Operations\RenameDocumentOperation.cs" />
     <Compile Include="CodeCleanup\AbstractCodeCleanerService.cs" />
     <Compile Include="CodeCleanup\CodeCleaner.cs" />
     <Compile Include="CodeCleanup\ICodeCleanerService.cs" />
@@ -314,7 +316,7 @@
     <Compile Include="CodeCleanup\Providers\SimplificationCodeCleanupProvider.cs" />
     <Compile Include="CodeFixes\CodeFixContext.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\BatchSimplificationFixAllProvider.cs" />
-    <Compile Include="CodeFixes\FixAllOccurrences\DocumentBasedFixAllProvider.cs" />
+    <Compile Include="CodeFixes\SyntaxEditorBasedCodeFixProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.FixAllDiagnosticProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllProviderInfo.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.FixMultipleDiagnosticProvider.cs" />
@@ -328,6 +330,7 @@
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllScope.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllProvider.cs" />
     <Compile Include="CodeFixes\CodeFix.cs" />
+    <Compile Include="CodeFixes\SyntaxEditorBasedCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerationService.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerationService_FindDeclaration.cs" />
     <Compile Include="CodeGeneration\AbstractFlagsEnumGenerator.cs" />
@@ -338,6 +341,7 @@
     <Compile Include="CodeGeneration\CodeGenerationOptions.cs" />
     <Compile Include="CodeGeneration\CodeGenerationSymbolFactory.cs" />
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
+    <Compile Include="CodeStyle\CodeStyleHelpers.cs" />
     <Compile Include="CodeStyle\CodeStyleOptions.cs" />
     <Compile Include="CodeStyle\NotificationOption.cs" />
     <Compile Include="CodeStyle\CodeStyleOption.cs" />
@@ -358,6 +362,14 @@
     <Compile Include="Execution\SolutionAsset.cs" />
     <Compile Include="Execution\WellKnownSynchronizationKinds.cs" />
     <Compile Include="Experiments\IExperimentationService.cs" />
+    <Compile Include="LanguageServices\TypeInferenceService\AbstractTypeInferenceService.AbstractTypeInferrer.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex_Persistence.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex_Forwarders.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex_Create.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.ContextInfo.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.DeclarationInfo.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.IdentifierInfo.cs" />
     <Compile Include="PatternMatching\PatternMatch.cs" />
     <Compile Include="PatternMatching\PatternMatcher.cs" />
     <Compile Include="PatternMatching\PatternMatcher.Segment.cs" />
@@ -366,6 +378,7 @@
     <Compile Include="PatternMatching\PatternMatchKind.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
+    <Compile Include="Tags\WellKnownTags.cs" />
     <Compile Include="Workspace\Solution\Checksum.cs" />
     <Compile Include="Execution\RemotableData.cs" />
     <Compile Include="Execution\PinnedRemotableDataScope.cs" />
@@ -392,7 +405,6 @@
     <Compile Include="FindSymbols\SymbolFinderOptions.cs" />
     <Compile Include="FindSymbols\SymbolFinder_Remote.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.FirstEntityHandleProvider.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
     <Compile Include="Options\EditorConfigStorageLocation.cs" />
     <Compile Include="Options\GlobalOptionService.cs" />
@@ -527,8 +539,6 @@
     <Compile Include="SolutionCrawler\WellKnownSolutionCrawlerAnalyzers.cs" />
     <Compile Include="Utilities\ArraySlice.cs" />
     <Compile Include="Utilities\BKTree.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeDeclarationInfo.cs" />
     <Compile Include="Formatting\FormattingOptionsProvider.cs" />
     <Compile Include="LanguageServices\TypeInferenceService\AbstractTypeInferenceService.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileMergeSessionResult.cs" />
@@ -641,11 +651,6 @@
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.Node.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Serialization.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractPersistableState.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\ISyntaxTreeInfoPersistentStorage.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeContextInfo.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIdentifierInfo.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIdentifierInfo_Set.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeInfo.cs" />
     <Compile Include="Formatting\AbstractSyntaxFormattingService.cs" />
     <Compile Include="Formatting\BottomUpBaseIndentationFinder.cs" />
     <Compile Include="Formatting\Context\FormattingContext.AnchorData.cs" />
@@ -1084,7 +1089,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json">
-      <SubType></SubType>
+      <SubType>
+      </SubType>
     </None>
     <Compile Include="Utilities\BKTree.Builder.cs" />
     <Compile Include="SymbolKey\SymbolKey.SymbolKeyReader.cs" />

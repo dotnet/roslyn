@@ -39,12 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             ReportInferenceFailure(diagnosticsOpt);
                         }
-                        else if (localSymbol.ContainingSymbol.Kind == SymbolKind.Method &&
-                                 ((MethodSymbol)localSymbol.ContainingSymbol).IsAsync &&
-                                 type.IsRestrictedType())
+                        else
                         {
-                            var declaration = (TypedVariableComponentSyntax)((DeclarationExpressionSyntax)this.Syntax).VariableComponent;
-                            Binder.Error(diagnosticsOpt, ErrorCode.ERR_BadSpecialByRefLocal, declaration.Type, type);
+                            TypeSyntax typeSyntax = ((DeclarationExpressionSyntax)Syntax).Type;
+                            Binder.CheckRestrictedTypeInAsync(localSymbol.ContainingSymbol, type, diagnosticsOpt, typeSyntax);
                         }
                     }
 
@@ -76,10 +74,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportInferenceFailure(DiagnosticBag diagnostics)
         {
-            var declaration = (DeclarationExpressionSyntax)this.Syntax;
+            var designation = (SingleVariableDesignationSyntax)((DeclarationExpressionSyntax)this.Syntax).Designation;
             Binder.Error(
-                diagnostics, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, declaration.Identifier(),
-                declaration.Identifier().ValueText);
+                diagnostics, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, designation.Identifier,
+                designation.Identifier.ValueText);
         }
 
         public BoundExpression FailInference(Binder binder, DiagnosticBag diagnosticsOpt)

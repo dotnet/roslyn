@@ -222,6 +222,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _overriddenAccessor.ReturnTypeCustomModifiers;
             }
         }
+        
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                return _overriddenAccessor.RefCustomModifiers;
+            }
+        }
 
         public override Symbol AssociatedSymbol
         {

@@ -1,42 +1,26 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
-    internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase :
+        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private readonly string _diagnosticId;
-        private readonly LocalizableString _title;
-        private readonly LocalizableString _message;
-
-        public CSharpTypeStyleDiagnosticAnalyzerBase(string diagnosticId, LocalizableString title, LocalizableString message)
+        protected CSharpTypeStyleDiagnosticAnalyzerBase(
+            string diagnosticId, LocalizableString title, LocalizableString message)
+            : base(diagnosticId, title, message)
         {
-            _diagnosticId = diagnosticId;
-            _title = title;
-            _message = message;
         }
-
-        private DiagnosticDescriptor CreateDiagnosticDescriptor(DiagnosticSeverity severity) =>
-            new DiagnosticDescriptor(
-                _diagnosticId,
-                _title,
-                _message,
-                DiagnosticCategory.Style,
-                severity,
-                isEnabledByDefault: true);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(CreateDiagnosticDescriptor(DiagnosticSeverity.Hidden));
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -51,19 +35,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                      wherePossibleOption == NotificationOption.Warning || wherePossibleOption == NotificationOption.Error);
         }
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(HandleVariableDeclaration, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement);
-        }
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(
+                HandleVariableDeclaration, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement);
 
         protected abstract bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken);
         protected abstract bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan);
-        protected abstract bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, EqualsValueClauseSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
+        protected abstract bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
 
-        protected static ExpressionSyntax GetInitializerExpression(EqualsValueClauseSyntax initializer) =>
-            initializer.Value is CheckedExpressionSyntax
-                ? ((CheckedExpressionSyntax)initializer.Value).Expression.WalkDownParentheses()
-                : initializer.Value.WalkDownParentheses();
+        protected static ExpressionSyntax GetInitializerExpression(ExpressionSyntax initializer) =>
+            initializer is CheckedExpressionSyntax
+                ? ((CheckedExpressionSyntax)initializer).Expression.WalkDownParentheses()
+                : initializer.WalkDownParentheses();
 
         private void HandleVariableDeclaration(SyntaxNodeAnalysisContext context)
         {
@@ -71,9 +54,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             State state = null;
             var shouldAnalyze = false;
             var declarationStatement = context.Node;
-            var optionSet = context.Options.GetOptionSet();
-            var semanticModel = context.SemanticModel;
+            var options = context.Options;
+            var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+            
+            var semanticModel = context.SemanticModel;
 
             if (declarationStatement.IsKind(SyntaxKind.VariableDeclaration))
             {
@@ -105,13 +95,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             if (shouldAnalyze)
             {
                 Debug.Assert(state != null, "analyzing a declaration and state is null.");
-
-                TextSpan diagnosticSpan;
-
-                if (TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken, out diagnosticSpan))
+                if (TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken, out var diagnosticSpan))
                 {
                     // The severity preference is not Hidden, as indicated by shouldAnalyze.
-                    var descriptor = CreateDiagnosticDescriptor(state.GetDiagnosticSeverityPreference());
+                    var descriptor = CreateDescriptorWithSeverity(state.GetDiagnosticSeverityPreference());
                     context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, diagnosticSpan));
                 }
             }

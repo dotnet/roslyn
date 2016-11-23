@@ -455,8 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             while (node != root && node != null)
             {
-                SyntaxNode body;
-                if (LambdaUtilities.IsLambdaBodyStatementOrExpression(node, out body))
+                if (LambdaUtilities.IsLambdaBodyStatementOrExpression(node, out var body))
                 {
                     return body;
                 }
@@ -926,9 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 Debug.Assert(node.Parent.IsKind(SyntaxKind.AccessorList));
                 Debug.Assert(node.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration) || node.Parent.Parent.IsKind(SyntaxKind.IndexerDeclaration));
-
-                EditKind parentEdit;
-                return editMap.TryGetValue(node.Parent, out parentEdit) && parentEdit == editKind &&
+                return editMap.TryGetValue(node.Parent, out var parentEdit) && parentEdit == editKind &&
                        editMap.TryGetValue(node.Parent.Parent, out parentEdit) && parentEdit == EditKind.Update;
             }
 
@@ -1345,20 +1342,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.GroupClause:
                     return ((GroupClauseSyntax)node).GroupKeyword.Span;
 
-                case SyntaxKind.ForEachComponentStatement:
-                    return ((ForEachComponentStatementSyntax)node).VariableComponent.Span;
+                case SyntaxKind.ForEachVariableStatement:
+                    return ((ForEachVariableStatementSyntax)node).Variable.Span;
 
                 case SyntaxKind.IsPatternExpression:
-                case SyntaxKind.DeconstructionDeclarationStatement:
-                case SyntaxKind.ParenthesizedVariableComponent:
-                case SyntaxKind.TypedVariableComponent:
                 case SyntaxKind.TupleType:
                 case SyntaxKind.TupleExpression:
                 case SyntaxKind.DeclarationExpression:
                 case SyntaxKind.RefType:
                 case SyntaxKind.RefExpression:
                 case SyntaxKind.DeclarationPattern:
-                case SyntaxKind.VariableComponentAssignment:
+                case SyntaxKind.SimpleAssignmentExpression:
                     return node.Span;
 
                 default:
@@ -1607,12 +1601,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.IsPatternExpression:
                     return CSharpFeaturesResources.is_pattern;
 
-                case SyntaxKind.DeconstructionDeclarationStatement:
-                case SyntaxKind.ForEachComponentStatement:
-                case SyntaxKind.ParenthesizedVariableComponent:
-                case SyntaxKind.TypedVariableComponent:
-                case SyntaxKind.VariableComponentAssignment:
+                case SyntaxKind.ForEachVariableStatement:
                     return CSharpFeaturesResources.deconstruction;
+
+                case SyntaxKind.SimpleAssignmentExpression:
+                    if (((AssignmentExpressionSyntax)node).IsDeconstruction())
+                    {
+                        return CSharpFeaturesResources.deconstruction;
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(node.Kind());
+                    }
 
                 case SyntaxKind.TupleType:
                 case SyntaxKind.TupleExpression:
@@ -3106,11 +3106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (n.Kind())
             {
                 case SyntaxKind.IsPatternExpression:
-                case SyntaxKind.DeconstructionDeclarationStatement:
-                case SyntaxKind.VariableComponentAssignment:
-                case SyntaxKind.ForEachComponentStatement:
-                case SyntaxKind.ParenthesizedVariableComponent:
-                case SyntaxKind.TypedVariableComponent:
+                case SyntaxKind.ForEachVariableStatement:
                 case SyntaxKind.TupleType:
                 case SyntaxKind.TupleExpression:
                 case SyntaxKind.LocalFunctionStatement:
@@ -3119,7 +3115,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.RefExpression:
                 case SyntaxKind.DeclarationPattern:
                     return true;
-
+                case SyntaxKind.SimpleAssignmentExpression:
+                    return ((AssignmentExpressionSyntax)n).IsDeconstruction();
                 default:
                     return false;
             }

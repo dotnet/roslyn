@@ -18,12 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public AdditionalTextDocument(TextDocumentState document)
         {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            _document = document;
+            _document = document ?? throw new ArgumentNullException(nameof(document));
         }
 
         /// <summary>
@@ -36,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public override SourceText GetText(CancellationToken cancellationToken = default(CancellationToken))
         {
-            var text = _document.GetText(cancellationToken);
+            var text = _document.GetTextSynchronously(cancellationToken);
             return text;
         }
     }

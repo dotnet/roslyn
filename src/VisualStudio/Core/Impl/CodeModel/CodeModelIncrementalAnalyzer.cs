@@ -88,8 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     return;
                 }
 
-                ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> fileCodeModelHandle;
-                if (!codeModelProvider.ProjectCodeModel.TryGetCachedFileCodeModel(filename, out fileCodeModelHandle))
+                if (!codeModelProvider.ProjectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
                 {
                     return;
                 }

@@ -33,7 +33,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private readonly IComEventSink _textManagerEvents2Sink;
 
-        private readonly IBidirectionalMap<string, Guid> _languageMap;
+        /// <summary>
+        /// The mapping between language names and Visual Studio language service GUIDs.
+        /// </summary>
+        /// <remarks>
+        /// This is a map between string and <see cref="Tuple{Guid}"/> rather than just to <see cref="Guid"/>
+        /// to avoid a bunch of JIT during startup. Generics of value types like <see cref="Guid"/> will have to JIT
+        /// but the ngen image will exist for the basic map between two reference types, since those are reused.</remarks>
+        private readonly IBidirectionalMap<string, Tuple<Guid>> _languageMap;
 
         /// <remarks>
         /// We make sure this code is from the UI by asking for all serializers on the UI thread in <see cref="HACK_AbstractCreateServicesOnUiThread"/>.
@@ -48,16 +55,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _optionService = optionService;
 
             // TODO: make this configurable
-            _languageMap = BidirectionalMap<string, Guid>.Empty.Add(LanguageNames.CSharp, Guids.CSharpLanguageServiceId)
-                                                               .Add(LanguageNames.VisualBasic, Guids.VisualBasicLanguageServiceId)
-                                                               .Add("TypeScript", new Guid("4a0dddb5-7a95-4fbf-97cc-616d07737a77"))
-                                                               .Add("F#", new Guid("BC6DD5A5-D4D6-4dab-A00D-A51242DBAF1B"))
-                                                               .Add("Xaml", new Guid("CD53C9A1-6BC2-412B-BE36-CC715ED8DD41"));
+            _languageMap = BidirectionalMap<string, Tuple<Guid>>.Empty.Add(LanguageNames.CSharp, Tuple.Create(Guids.CSharpLanguageServiceId))
+                                                               .Add(LanguageNames.VisualBasic, Tuple.Create(Guids.VisualBasicLanguageServiceId))
+                                                               .Add("TypeScript", Tuple.Create(new Guid("4a0dddb5-7a95-4fbf-97cc-616d07737a77")))
+                                                               .Add("F#", Tuple.Create(new Guid("BC6DD5A5-D4D6-4dab-A00D-A51242DBAF1B")))
+                                                               .Add("Xaml", Tuple.Create(new Guid("CD53C9A1-6BC2-412B-BE36-CC715ED8DD41")));
 
             foreach (var languageGuid in _languageMap.Values)
             {
                 var languagePreferences = new LANGPREFERENCES3[1];
-                languagePreferences[0].guidLang = languageGuid;
+                languagePreferences[0].guidLang = languageGuid.Item1;
 
                 // The function can potentially fail if that language service isn't installed
                 if (ErrorHandler.Succeeded(_textManager.GetUserPreferences4(pViewPrefs: null, pLangPrefs: languagePreferences, pColorPrefs: null)))
@@ -98,9 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private void RefreshLanguageSettings(LANGPREFERENCES3[] langPrefs)
         {
             this.AssertIsForeground();
-
-            string languageName;
-            if (_languageMap.TryGetKey(langPrefs[0].guidLang, out languageName))
+            if (_languageMap.TryGetKey(Tuple.Create(langPrefs[0].guidLang), out var languageName))
             {
                 foreach (var option in _supportedOptions)
                 {
@@ -238,16 +243,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 return false;
             }
 
-            Guid languageServiceGuid;
-
-            if (!_languageMap.TryGetValue(optionKey.Language, out languageServiceGuid))
+            if (!_languageMap.TryGetValue(optionKey.Language, out var languageServiceGuid))
             {
                 value = null;
                 return false;
             }
 
             var languagePreferences = new LANGPREFERENCES3[1];
-            languagePreferences[0].guidLang = languageServiceGuid;
+            languagePreferences[0].guidLang = languageServiceGuid.Item1;
             Marshal.ThrowExceptionForHR(_textManager.GetUserPreferences4(null, languagePreferences, null));
 
             SetValueForOption(optionKey.Option, ref languagePreferences[0], value);

@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Options;
@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace) =>
             new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpUseExplicitTypeDiagnosticAnalyzer(), new UseExplicitTypeCodeFixProvider());
+                new CSharpUseExplicitTypeDiagnosticAnalyzer(),
+                new UseExplicitTypeCodeFixProvider());
 
         private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
         private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
@@ -33,30 +34,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
         private readonly CodeStyleOption<bool> offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
 
         // specify all options explicitly to override defaults.
-        private IDictionary<OptionKey, object> ExplicitTypeEverywhere() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
+        private IDictionary<OptionKey, object> ExplicitTypeEverywhere() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo));
 
-        private IDictionary<OptionKey, object> ExplicitTypeExceptWhereApparent() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
+        private IDictionary<OptionKey, object> ExplicitTypeExceptWhereApparent() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo));
 
-        private IDictionary<OptionKey, object> ExplicitTypeForBuiltInTypesOnly() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
+        private IDictionary<OptionKey, object> ExplicitTypeForBuiltInTypesOnly() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo));
 
-        private IDictionary<OptionKey, object> ExplicitTypeEnforcements() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithWarning)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithError)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo);
+        private IDictionary<OptionKey, object> ExplicitTypeEnforcements() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithWarning),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithError),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo));
 
-        private IDictionary<OptionKey, object> ExplicitTypeNoneEnforcement() =>
-            Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithNone)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithNone)
-            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithNone);
+        private IDictionary<OptionKey, object> ExplicitTypeNoneEnforcement() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithNone),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithNone),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithNone));
 
         private IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
@@ -234,6 +235,63 @@ class Program
     void Method()
     {
         [|dynamic|] x = 1;
+    }
+}", options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task NotOnForEachVarWithAnonymousType()
+        {
+            await TestMissingAsync(
+@"using System;
+using System.Linq;
+
+class Program
+{
+    void Method()
+    {
+        var values = Enumerable.Range(1, 5).Select(i => new { Value = i });
+
+        foreach ([|var|] value in values)
+        {
+            Console.WriteLine(value.Value);
+        }
+    }
+}", options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task OnForEachVarWithExplicitType()
+        {
+            await TestAsync(
+@"using System;
+using System.Linq;
+
+class Program
+{
+    void Method()
+    {
+        var values = Enumerable.Range(1, 5);
+
+        foreach ([|var|] value in values)
+        {
+            Console.WriteLine(value.Value);
+        }
+    }
+}",
+@"using System;
+using System.Linq;
+
+class Program
+{
+    void Method()
+    {
+        var values = Enumerable.Range(1, 5);
+
+        foreach (int value in values)
+        {
+            Console.WriteLine(value.Value);
+        }
     }
 }", options: ExplicitTypeEverywhere());
         }

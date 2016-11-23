@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -140,6 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             string source,
             string packageName,
             string versionOpt,
+            bool includePrerelease,
             CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
@@ -159,7 +161,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
                         workspace, documentId, cancellationToken);
 
-                    return TryInstallAndAddUndoAction(source, packageName, versionOpt, dte, dteProject, undoManager);
+                    return TryInstallAndAddUndoAction(
+                        source, packageName, versionOpt, includePrerelease, dte, dteProject, undoManager);
                 }
             }
 
@@ -170,6 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             string source,
             string packageName,
             string versionOpt,
+            bool includePrerelease,
             EnvDTE.DTE dte,
             EnvDTE.Project dteProject)
         {
@@ -178,7 +182,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 if (!_packageServices.IsPackageInstalled(dteProject, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0, packageName);
-                    _packageServices.InstallPackage(source, dteProject, packageName, versionOpt, ignoreDependencies: false);
+
+                    if (versionOpt == null)
+                    {
+                        _packageServices.InstallLatestPackage(
+                            source, dteProject, packageName, includePrerelease, ignoreDependencies: false);
+                    }
+                    else
+                    {
+                        _packageServices.InstallPackage(
+                            source, dteProject, packageName, versionOpt, ignoreDependencies: false);
+                    }
 
                     var installedVersion = GetInstalledVersion(packageName, dteProject);
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0_completed,
@@ -373,10 +387,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private void ProcessProjectChange(Solution solution, ProjectId projectId)
         {
             this.AssertIsForeground();
-
             // Remove anything we have associated with this project.
-            Dictionary<string, string> installedPackages;
-            _projectToInstalledPackageAndVersion.TryRemove(projectId, out installedPackages);
+            _projectToInstalledPackageAndVersion.TryRemove(projectId, out var installedPackages);
 
             if (!solution.ContainsProject(projectId))
             {
@@ -410,9 +422,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         public bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName)
         {
             ThisCanBeCalledOnAnyThread();
-
-            Dictionary<string, string> installedPackages;
-            return _projectToInstalledPackageAndVersion.TryGetValue(projectId, out installedPackages) &&
+            return _projectToInstalledPackageAndVersion.TryGetValue(projectId, out var installedPackages) &&
                 installedPackages.ContainsKey(packageName);
         }
 
@@ -475,8 +485,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var installedPackageAndVersion = kvp.Value;
                 if (installedPackageAndVersion != null)
                 {
-                    string installedVersion;
-                    if (installedPackageAndVersion.TryGetValue(packageName, out installedVersion) && installedVersion == version)
+                    if (installedPackageAndVersion.TryGetValue(packageName, out var installedVersion) && installedVersion == version)
                     {
                         var project = solution.GetProject(kvp.Key);
                         if (project != null)
@@ -500,9 +509,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return;
             }
 
-            IVsPackage nugetPackage;
             var nugetGuid = new Guid("5fcc8577-4feb-4d04-ad72-d6c629b083cc");
-            shell.LoadPackage(ref nugetGuid, out nugetPackage);
+            shell.LoadPackage(ref nugetGuid, out var nugetPackage);
             if (nugetPackage == null)
             {
                 return;
@@ -586,6 +594,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             public void InstallPackage(string source, EnvDTE.Project project, string packageId, string version, bool ignoreDependencies)
             {
                 _packageInstaller.InstallPackage(source, project, packageId, version, ignoreDependencies);
+            }
+
+            public void InstallLatestPackage(string source, EnvDTE.Project project, string packageId, bool includePrerelease, bool ignoreDependencies)
+            {
+                // Use reflection until the 3.5.0 version of NuGet.VisualStudio is released
+                // publicly.  Then we call into this method directly.
+                var installLatestPackageInfo = _packageInstaller.GetType().GetMethod(
+                    nameof(InstallLatestPackage), BindingFlags.Public | BindingFlags.Instance);
+
+                if (installLatestPackageInfo != null)
+                {
+                    installLatestPackageInfo.Invoke(_packageInstaller,
+                        new object[] { source, project, packageId, includePrerelease, ignoreDependencies });
+                }
             }
 
             public event EventHandler SourcesChanged

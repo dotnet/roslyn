@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 ITextSnapshot snapshot,
                 BlockSpan blockSpan) :
                 base(textEditorFactoryService,
-                    projectionBufferFactoryService,
-                    editorOptionsFactoryService,
-                    snapshot, blockSpan)
+                     projectionBufferFactoryService,
+                     editorOptionsFactoryService,
+                     snapshot, blockSpan)
             {
                 Parent = parent;
                 Level = parent == null ? 0 : parent.Level + 1;
@@ -87,21 +87,20 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             /// </summary>
             public bool Equals(RoslynBlockTag tag)
             {
-                return tag != null &&
-                       this.IsCollapsible == tag.IsCollapsible &&
-                       this.Level == tag.Level &&
-                       this.Type == tag.Type &&
-                       EqualityComparer<object>.Default.Equals(this.CollapsedForm, tag.CollapsedForm) &&
-                       this.StatementSpan == tag.StatementSpan &&
-                       this.Span == tag.Span;
+                return base.Equals(tag) &&
+                       IsCollapsible == tag.IsCollapsible &&
+                       Level == tag.Level &&
+                       Type == tag.Type &&
+                       StatementSpan == tag.StatementSpan &&
+                       Span == tag.Span;
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(this.IsCollapsible,
+                return Hash.Combine(base.GetHashCode(),
+                       Hash.Combine(this.IsCollapsible,
                        Hash.Combine(this.Level,
                        Hash.Combine(this.Type, 
-                       Hash.Combine(this.CollapsedForm,
                        Hash.Combine(this.StatementSpan.GetHashCode(), this.Span.GetHashCode())))));
             }
         }

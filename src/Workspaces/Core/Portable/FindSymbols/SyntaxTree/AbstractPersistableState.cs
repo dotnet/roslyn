@@ -53,10 +53,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return null;
                 }
 
-                using (var reader = new StreamObjectReader(stream))
+                using (var reader = new ObjectReader(stream))
                 {
-                    VersionStamp persistVersion;
-                    if (TryReadVersion(reader, formatVersion, out persistVersion) &&
+                    if (TryReadVersion(reader, formatVersion, out var persistVersion) &&
                         document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion))
                     {
                         return readFrom(reader, syntaxVersion);
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // attempt to load from persisted state
             using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
                 data.WriteVersion(writer, formatVersion);
                 data.WriteTo(writer);
@@ -100,10 +99,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (stream != null)
                 {
-                    using (var reader = new StreamObjectReader(stream))
+                    using (var reader = new ObjectReader(stream))
                     {
-                        VersionStamp persistVersion;
-                        return TryReadVersion(reader, formatVersion, out persistVersion) &&
+                        return TryReadVersion(reader, formatVersion, out var persistVersion) &&
                                document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion);
                     }
                 }

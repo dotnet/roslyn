@@ -18,10 +18,6 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
-      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
-      <Name>VisualStudioEditor</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
@@ -87,13 +83,15 @@
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
     <!-- Eventually a bunch of these unit tests should move into Roslyn.Services.Implementation.UnitTests
          and this should be removed. -->
     <InternalsVisibleToTest Include="RoslynETAHost" />
@@ -106,6 +104,13 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FindUsages\AbstractFindUsagesService.cs" />
+    <Compile Include="FindUsages\FindUsagesHelpers.cs" />
+    <Compile Include="FindUsages\FindUsagesContext.cs" />
+    <Compile Include="FindUsages\IFindUsagesContext.cs" />
+    <Compile Include="FindUsages\IFindUsagesService.cs" />
+    <Compile Include="FindUsages\SimpleFindUsagesContext.cs" />
+    <Compile Include="Tags\ExportImageMonikerServiceAttribute.cs" />
     <Compile Include="Implementation\NavigateTo\AbstractNavigateToItemDisplay.cs" />
     <Compile Include="CommandArgs.cs" />
     <Compile Include="CommandHandlers\AbstractCompletionCommandHandler.cs" />
@@ -252,12 +257,8 @@
     <Compile Include="Implementation\Diagnostics\DiagnosticsSuggestionTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\SuggestionAdornmentManagerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\SuggestionTag.cs" />
-    <Compile Include="Implementation\FindReferences\AbstractFindReferencesService.ProgressAdapter.cs" />
-    <Compile Include="Implementation\FindReferences\FindReferencesContext.cs" />
-    <Compile Include="Implementation\FindReferences\IFindReferencesNavigableItemResultProvider.cs" />
-    <Compile Include="Implementation\GoToDefinition\INavigableDefinitionProvider.cs" />
-    <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
-    <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
+    <Compile Include="FindUsages\AbstractFindUsagesService.ProgressAdapter.cs" />
+    <Compile Include="GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ClassificationTags.cs" />
@@ -278,7 +279,7 @@
     <Compile Include="Implementation\Preview\PreviewReferenceHighlightingTaggerProvider.cs" />
     <Compile Include="Implementation\Suggestions\FixAllSuggestedAction.FixAllCodeAction.cs" />
     <Compile Include="Implementation\Suggestions\FixMultipleOccurrencesService.cs" />
-    <Compile Include="Implementation\GoToImplementation\GoToImplementationCommandHandler.cs" />
+    <Compile Include="GoToImplementation\GoToImplementationCommandHandler.cs" />
     <Compile Include="Implementation\TodoComment\ITodoListProvider.cs" />
     <Compile Include="Implementation\TodoComment\TodoItem.cs" />
     <Compile Include="Implementation\TodoComment\TodoItemsUpdatedArgs.cs" />
@@ -375,9 +376,9 @@
     <Compile Include="Implementation\EndConstructGeneration\IEndConstructGenerationService.cs" />
     <Compile Include="Implementation\ExtractInterface\AbstractExtractInterfaceCommandHandler.cs" />
     <Compile Include="Implementation\ExtractMethod\AbstractExtractMethodCommandHandler.cs" />
-    <Compile Include="Implementation\FindReferences\AbstractFindReferencesService.cs" />
-    <Compile Include="Implementation\FindReferences\FindReferencesCommandHandler.cs" />
-    <Compile Include="Implementation\FindReferences\IFindReferencesService.cs" />
+    <Compile Include="FindReferences\AbstractFindReferencesService.cs" />
+    <Compile Include="FindReferences\FindReferencesCommandHandler.cs" />
+    <Compile Include="FindReferences\IFindReferencesService.cs" />
     <Compile Include="Implementation\ForegroundNotification\ForegroundNotificationService.cs" />
     <Compile Include="Implementation\Formatting\FormatCommandHandler.cs" />
     <Compile Include="Implementation\Formatting\FormatCommandHandler.ReturnKey.cs" />
@@ -388,10 +389,10 @@
     <Compile Include="Implementation\Formatting\Indentation\AbstractSmartTokenFormatterCommandHandler.cs" />
     <Compile Include="Implementation\Formatting\Indentation\ISmartTokenFormatter.cs" />
     <Compile Include="Implementation\Formatting\Indentation\WhitespaceExtensions.cs" />
-    <Compile Include="Implementation\GoToDefinition\AbstractGoToDefinitionService.cs" />
-    <Compile Include="Implementation\GoToDefinition\GoToDefinitionCommandHandler.cs" />
-    <Compile Include="Implementation\GoToDefinition\GoToDefinitionHelpers.cs" />
-    <Compile Include="Implementation\GoToDefinition\IGoToDefinitionService.cs" />
+    <Compile Include="GoToDefinition\AbstractGoToDefinitionService.cs" />
+    <Compile Include="GoToDefinition\GoToDefinitionCommandHandler.cs" />
+    <Compile Include="GoToDefinition\GoToDefinitionHelpers.cs" />
+    <Compile Include="GoToDefinition\IGoToDefinitionService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\CurrentWorkingDirectoryDiscoveryService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\FileSystemCompletionHelper.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\ICurrentWorkingDirectoryDiscoveryService.cs" />
@@ -623,8 +624,8 @@
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
-    <Compile Include="Shared\IImageMonikerService.cs" />
-    <Compile Include="Shared\DefaultImageMonikerService.cs" />
+    <Compile Include="Tags\IImageMonikerService.cs" />
+    <Compile Include="Tags\DefaultImageMonikerService.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.EditorFormatMapChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.ViewSpanChangedEventSource.cs" />
     <Compile Include="Shared\Utilities\SynchronizationContextTaskScheduler.cs" />

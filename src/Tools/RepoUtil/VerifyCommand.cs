@@ -14,13 +14,15 @@ namespace RepoUtil
     /// </summary>
     internal sealed class VerifyCommand : ICommand
     {
-        private readonly string _sourcesPath;
+        private readonly string _sourcesDirectory;
+        private readonly string _generateDirectory;
         private readonly RepoConfig _repoConfig;
 
-        internal VerifyCommand(RepoConfig repoConfig, string sourcesPath)
+        internal VerifyCommand(RepoConfig repoConfig, string sourcesDir, string generateDir)
         {
             _repoConfig = repoConfig;
-            _sourcesPath = sourcesPath;
+            _sourcesDirectory = sourcesDir;
+            _generateDirectory = generateDir;
         }
 
         public bool Run(TextWriter writer, string[] args)
@@ -46,7 +48,7 @@ namespace RepoUtil
             writer.WriteLine($"Verifying project.json contents");
 
             List<NuGetPackageConflict> conflicts;
-            repoData = RepoData.Create(_repoConfig, _sourcesPath, out conflicts);
+            repoData = RepoData.Create(_repoConfig, _sourcesDirectory, out conflicts);
             if (conflicts?.Count > 0)
             { 
                 foreach (var conflict in conflicts)
@@ -72,16 +74,16 @@ namespace RepoUtil
         {
             writer.WriteLine($"Verifying RepoData.json");
             var packages = ProjectJsonUtil
-                .GetProjectJsonFiles(_sourcesPath)
+                .GetProjectJsonFiles(_sourcesDirectory)
                 .SelectMany(x => ProjectJsonUtil.GetDependencies(x));
-            var set = new HashSet<NuGetPackage>(packages);
+            var set = new HashSet<NuGetPackage>(packages, default(Constants.IgnoreGenerateNameComparer));
             var allGood = true;
 
-            foreach (var package in _repoConfig.FixedPackages)
+            foreach (var fixedPackage in _repoConfig.FixedPackages)
             {
-                if (!set.Contains(package))
+                if (!set.Contains(fixedPackage))
                 {
-                    writer.WriteLine($"Error: Fixed package {package.Name} - {package.Version} is not used anywhere");
+                    writer.WriteLine($"Error: Fixed package {fixedPackage.Name} - {fixedPackage.Version} is not used anywhere");
                     allGood = false;
                 }
             }
@@ -99,7 +101,7 @@ namespace RepoUtil
                 var packages = GenerateUtil.GetFilteredPackages(data, repoData);
 
                 // Need to verify the contents of the generated file are correct.
-                var fileName = new FileName(_sourcesPath, data.RelativeFileName);
+                var fileName = new FileName(_generateDirectory, data.RelativeFilePath);
                 var actualContent = File.ReadAllText(fileName.FullPath, GenerateUtil.Encoding);
                 var expectedContent = GenerateUtil.GenerateMSBuildContent(packages);
                 if (actualContent != expectedContent)

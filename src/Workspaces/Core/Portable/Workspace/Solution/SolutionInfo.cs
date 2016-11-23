@@ -106,12 +106,7 @@ namespace Microsoft.CodeAnalysis
 
             public SolutionAttributes(SolutionId id, VersionStamp version, string filePath)
             {
-                if (id == null)
-                {
-                    throw new ArgumentNullException(nameof(id));
-                }
-
-                Id = id;
+                Id = id ?? throw new ArgumentNullException(nameof(id));
                 Version = version;
                 FilePath = filePath;
             }

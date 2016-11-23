@@ -35,6 +35,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub New()
         End Sub
 
+        Public ReadOnly Property IsCaseSensitive As Boolean Implements ISyntaxFactsService.IsCaseSensitive
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public Function SupportsIndexingInitializer(options As ParseOptions) As Boolean Implements ISyntaxFactsService.SupportsIndexingInitializer
+            Return False
+        End Function
+
         Public Function IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
             Return token.Kind = SyntaxKind.AwaitKeyword
         End Function
@@ -180,12 +190,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbGenericName = TryCast(genericName, GenericNameSyntax)
             Return If(vbGenericName IsNot Nothing, vbGenericName.Identifier, Nothing)
         End Function
-
-        Public ReadOnly Property IsCaseSensitive As Boolean Implements ISyntaxFactsService.IsCaseSensitive
-            Get
-                Return False
-            End Get
-        End Property
 
         Public Function IsUsingDirectiveName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingDirectiveName
             Return node.IsParentKind(SyntaxKind.SimpleImportsClause) AndAlso
@@ -456,8 +460,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Public Function GetExpressionOfMemberAccessExpression(node As SyntaxNode) As Microsoft.CodeAnalysis.SyntaxNode Implements ISyntaxFactsService.GetExpressionOfMemberAccessExpression
-            Return TryCast(node, MemberAccessExpressionSyntax)?.GetExpressionOfMemberAccessExpression()
+        Public Function GetExpressionOfMemberAccessExpression(node As SyntaxNode, Optional allowImplicitTarget As Boolean = False) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfMemberAccessExpression
+            Return TryCast(node, MemberAccessExpressionSyntax)?.GetExpressionOfMemberAccessExpression(allowImplicitTarget)
+        End Function
+
+        Public Function GetTargetOfMemberBinding(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetTargetOfMemberBinding
+            ' Member bindings are a C# concept.
+            Return Nothing
         End Function
 
         Public Function GetExpressionOfConditionalAccessExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfConditionalAccessExpression

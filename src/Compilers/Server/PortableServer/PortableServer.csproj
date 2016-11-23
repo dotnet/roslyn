@@ -19,7 +19,7 @@
     <RuntimeIndentifier>x64</RuntimeIndentifier>
     <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
     <NoStdLib>true</NoStdLib>
-    <RoslynProjectType>ExeCoreClr</RoslynProjectType>
+    <RoslynProjectType>ExeNonDeployment</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Tools\CommonNetCoreReferences\CommonNetCoreReferences.csproj">

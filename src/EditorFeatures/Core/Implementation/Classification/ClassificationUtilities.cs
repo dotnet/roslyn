@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         public static List<ClassifiedSpan> GetOrCreateClassifiedSpanList()
         {
-            List<ClassifiedSpan> result;
-            return s_spanCache.TryDequeue(out result)
+            return s_spanCache.TryDequeue(out var result)
                 ? result
                 : new List<ClassifiedSpan>();
         }

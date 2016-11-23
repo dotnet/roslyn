@@ -114,7 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             boundExpression.WasCompilerGenerated = true;
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
-            Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutVariablePendingInference || e.Kind == BoundKind.OutDeconstructVarPendingInference));
+            Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutVariablePendingInference ||
+                                        e.Kind == BoundKind.OutDeconstructVarPendingInference ||
+                                        e.Kind == BoundKind.DiscardedExpression && !e.HasExpressionType()));
             analyzedArguments.Arguments.AddRange(args);
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
@@ -336,7 +338,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(arguments.Arguments[i].Kind != BoundKind.OutDeconstructVarPendingInference);
 
-                if (arguments.Arguments[i].Kind == BoundKind.OutVariablePendingInference)
+                if (arguments.Arguments[i].Kind == BoundKind.OutVariablePendingInference ||
+                    arguments.Arguments[i].Kind == BoundKind.DiscardedExpression && !arguments.Arguments[i].HasExpressionType())
                 {
                     var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Arguments.Count);
                     builder.AddRange(arguments.Arguments);
@@ -348,6 +351,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (argument.Kind == BoundKind.OutVariablePendingInference)
                         {
                             builder[i] = ((OutVariablePendingInference)argument).FailInference(this, diagnostics);
+                        }
+                        else if (argument.Kind == BoundKind.DiscardedExpression && !argument.HasExpressionType())
+                        {
+                            builder[i] = ((BoundDiscardedExpression)argument).FailInference(this, diagnostics);
                         }
 
                         i++;
@@ -1148,8 +1155,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
         {
-            // Since the purpose is to bind any unbound lambdas, we return early if there are none.
-            if (!analyzedArguments.Arguments.Any(e => e.Kind == BoundKind.UnboundLambda || e.Kind == BoundKind.OutVariablePendingInference || e.Kind == BoundKind.OutDeconstructVarPendingInference))
+            // Since the purpose is to bind any unbound arguments, we return early if there are none.
+            if (!analyzedArguments.Arguments.Any(e => (object)e.Type == null))
             {
                 return analyzedArguments.Arguments.ToImmutable();
             }
@@ -1160,56 +1167,88 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < argumentCount; i++)
             {
                 var argument = newArguments[i];
-                if (argument.Kind == BoundKind.UnboundLambda)
+                if ((object)argument.Type != null)
                 {
-                    // bind the argument against each applicable parameter
-                    var unboundArgument = (UnboundLambda)argument;
-                    foreach (var parameterList in parameterListList)
-                    {
-                        var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
-                        if (parameterType?.Kind == SymbolKind.NamedType)
-                        {
-                            var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType);
-                        }
-                    }
-
-                    // replace the unbound lambda with its best inferred bound version
-                    newArguments[i] = unboundArgument.BindForErrorRecovery();
+                    continue;
                 }
-                else if (argument.Kind == BoundKind.OutVariablePendingInference)
+
+                switch (argument.Kind)
                 {
-                    // See if all applicable applicable parameters have the same type
-                    TypeSymbol candidateType = null;
-                    foreach (var parameterList in parameterListList)
-                    {
-                        var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
-                        if ((object)parameterType != null)
+                    case BoundKind.UnboundLambda:
                         {
-                            if ((object)candidateType == null)
+                            // bind the argument against each applicable parameter
+                            var unboundArgument = (UnboundLambda)argument;
+                            foreach (var parameterList in parameterListList)
                             {
-                                candidateType = parameterType;
+                                var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
+                                if (parameterType?.Kind == SymbolKind.NamedType)
+                                {
+                                    var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType);
+                                }
                             }
-                            else if (!candidateType.Equals(parameterType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+
+                            // replace the unbound lambda with its best inferred bound version
+                            newArguments[i] = unboundArgument.BindForErrorRecovery();
+                            break;
+                        }
+                    case BoundKind.OutVariablePendingInference:
+                    case BoundKind.DiscardedExpression:
+                        {
+                            if (argument.HasExpressionType())
                             {
-                                // type mismatch
-                                candidateType = null;
                                 break;
                             }
-                        }
-                    }
 
-                    if ((object)candidateType == null)
-                    {
-                        newArguments[i] = ((OutVariablePendingInference)argument).FailInference(this, null);
-                    }
-                    else
-                    {
-                        newArguments[i] = ((OutVariablePendingInference)argument).SetInferredType(candidateType, null);
-                    }
-                }
-                else if (argument.Kind == BoundKind.OutDeconstructVarPendingInference)
-                {
-                    newArguments[i] = ((OutDeconstructVarPendingInference)argument).FailInference(this);
+                            // See if all applicable applicable parameters have the same type
+                            TypeSymbol candidateType = null;
+                            foreach (var parameterList in parameterListList)
+                            {
+                                var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
+                                if ((object)parameterType != null)
+                                {
+                                    if ((object)candidateType == null)
+                                    {
+                                        candidateType = parameterType;
+                                    }
+                                    else if (!candidateType.Equals(parameterType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+                                    {
+                                        // type mismatch
+                                        candidateType = null;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (argument.Kind == BoundKind.OutVariablePendingInference)
+                            {
+                                if ((object)candidateType == null)
+                                {
+                                    newArguments[i] = ((OutVariablePendingInference)argument).FailInference(this, null);
+                                }
+                                else
+                                {
+                                    newArguments[i] = ((OutVariablePendingInference)argument).SetInferredType(candidateType, null);
+                                }
+                            }
+                            else if (argument.Kind == BoundKind.DiscardedExpression)
+                            {
+                                if ((object)candidateType == null)
+                                {
+                                    newArguments[i] = ((BoundDiscardedExpression)argument).FailInference(this, null);
+                                }
+                                else
+                                {
+                                    newArguments[i] = ((BoundDiscardedExpression)argument).SetInferredType(candidateType);
+                                }
+                            }
+
+                            break;
+                        }
+                    case BoundKind.OutDeconstructVarPendingInference:
+                        {
+                            newArguments[i] = ((OutDeconstructVarPendingInference)argument).FailInference(this);
+                            break;
+                        }
                 }
             }
 

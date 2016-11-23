@@ -51,6 +51,7 @@ try
 }
 catch
 {
-  Write-Host "Error: $($_.Exception.Message)"
-  Exit 1
+  Write-Error $_.Exception.Message
+  # Return an empty string and let the caller fallback or handle this as appropriate
+  return ""
 }

@@ -283,7 +283,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return ((ContinueStatementSyntax)statement).ContinueKeyword;
                 case SyntaxKind.ExpressionStatement:
                 case SyntaxKind.LocalDeclarationStatement:
-                case SyntaxKind.DeconstructionDeclarationStatement:
                     return statement.GetFirstToken();
                 case SyntaxKind.DoStatement:
                     return ((DoStatementSyntax)statement).DoKeyword;
@@ -292,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.FixedStatement:
                     return ((FixedStatementSyntax)statement).FixedKeyword;
                 case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     return ((CommonForEachStatementSyntax)statement).OpenParenToken.GetNextToken();
                 case SyntaxKind.ForStatement:
                     return ((ForStatementSyntax)statement).OpenParenToken.GetNextToken();
@@ -346,8 +345,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return ((ContinueStatementSyntax)statement).SemicolonToken;
                 case SyntaxKind.LocalDeclarationStatement:
                     return ((LocalDeclarationStatementSyntax)statement).SemicolonToken;
-                case SyntaxKind.DeconstructionDeclarationStatement:
-                    return ((DeconstructionDeclarationStatementSyntax)statement).SemicolonToken;
                 case SyntaxKind.DoStatement:
                     return ((DoStatementSyntax)statement).SemicolonToken;
                 case SyntaxKind.EmptyStatement:
@@ -357,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.FixedStatement:
                     return GetFirstExcludedToken(((FixedStatementSyntax)statement).Statement);
                 case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     return GetFirstExcludedToken(((CommonForEachStatementSyntax)statement).Statement);
                 case SyntaxKind.ForStatement:
                     return GetFirstExcludedToken(((ForStatementSyntax)statement).Statement);

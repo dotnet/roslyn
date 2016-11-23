@@ -34,14 +34,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         private async Task LoadSolutionFromMSBuildAsync(
-            IDeferredProjectWorkspaceService deferredProjectWorkspaceService,
             CancellationToken cancellationToken)
         {
             AssertIsForeground();
             InitializeOutputPane();
 
             // Continue on the UI thread for these operations, since we are touching the VisualStudioWorkspace, etc.
-            await PopulateWorkspaceFromDeferredProjectInfoAsync(deferredProjectWorkspaceService, cancellationToken).ConfigureAwait(true);
+            await PopulateWorkspaceFromDeferredProjectInfoAsync(cancellationToken).ConfigureAwait(true);
         }
 
         [Conditional("DEBUG")]
@@ -104,7 +103,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         private async Task PopulateWorkspaceFromDeferredProjectInfoAsync(
-            IDeferredProjectWorkspaceService deferredProjectWorkspaceService,
             CancellationToken cancellationToken)
         {
             // NOTE: We need to check cancellationToken after each await, in case the user has
@@ -127,6 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (solutionConfig != null)
             {
                 // Capture the context so that we come back on the UI thread, and do the actual project creation there.
+                var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
                 projectInfos = await deferredProjectWorkspaceService.GetDeferredProjectInfoForConfigurationAsync(
                     $"{solutionConfig.Name}|{solutionConfig.PlatformName}",
                     cancellationToken).ConfigureAwait(true);
@@ -139,11 +138,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             OutputToOutputWindow($"Creating projects - start");
             start = DateTimeOffset.UtcNow;
             var targetPathsToProjectPaths = BuildTargetPathMap(projectInfos);
+            var analyzerAssemblyLoader = _workspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
             foreach (var projectFilename in projectInfos.Keys)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 GetOrCreateProjectFromArgumentsAndReferences(
                     workspaceProjectContextFactory,
+                    analyzerAssemblyLoader,
                     projectFilename,
                     projectInfos,
                     targetPathsToProjectPaths);
@@ -185,6 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private AbstractProject GetOrCreateProjectFromArgumentsAndReferences(
             IWorkspaceProjectContextFactory workspaceProjectContextFactory,
+            IAnalyzerAssemblyLoader analyzerAssemblyLoader,
             string projectFilename,
             IReadOnlyDictionary<string, DeferredProjectInformation> allProjectInfos,
             IReadOnlyDictionary<string, string> targetPathsToProjectPaths)
@@ -195,8 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            DeferredProjectInformation projectInfo;
-            if (!allProjectInfos.TryGetValue(projectFilename, out projectInfo))
+            if (!allProjectInfos.TryGetValue(projectFilename, out var projectInfo))
             {
                 // This could happen if we were called recursively about a dangling P2P reference
                 // that isn't actually in the solution.
@@ -219,11 +220,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var projectId = File.Exists(projectFilename)
                 ? GetOrCreateProjectIdForPath(projectFilename, projectName)
                 : GetOrCreateProjectIdForPath(projectName, projectName);
-
             // See if we've already created this project and we're now in a recursive call to
             // hook up a P2P ref.
-            AbstractProject project;
-            if (_projectMap.TryGetValue(projectId, out project))
+            if (_projectMap.TryGetValue(projectId, out var project))
             {
                 return project;
             }
@@ -263,6 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 hierarchy: null,
                 binOutputPath: outputPath);
 
+            project = (AbstractProject)projectContext;
             projectContext.SetOptions(projectInfo.CommandLineArguments.Join(" "));
 
             foreach (var sourceFile in commandLineArguments.SourceFiles)
@@ -287,6 +287,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     referencedProject = GetOrCreateProjectFromArgumentsAndReferences(
                         workspaceProjectContextFactory,
+                        analyzerAssemblyLoader,
                         projectReferencePath,
                         allProjectInfos,
                         targetPathsToProjectPaths);
@@ -322,22 +323,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            foreach (var reference in commandLineArguments.MetadataReferences)
+            foreach (var reference in commandLineArguments.ResolveMetadataReferences(project.CurrentCompilationOptions.MetadataReferenceResolver))
             {
-                string possibleProjectReference;
-                if (targetPathsToProjectPaths.TryGetValue(reference.Reference, out possibleProjectReference) &&
+                // Some references may fail to be resolved - if they are, we'll still pass them
+                // through, in case they come into existence later (they may be built by other 
+                // parts of the build system).
+                var unresolvedReference = reference as UnresolvedMetadataReference;
+                var path = unresolvedReference == null
+                    ? ((PortableExecutableReference)reference).FilePath
+                    : unresolvedReference.Reference;
+                if (targetPathsToProjectPaths.TryGetValue(path, out var possibleProjectReference) &&
                     addedProjectReferences.Contains(possibleProjectReference))
                 {
                     // We already added a P2P reference for this, we don't need to add the file reference too.
                     continue;
                 }
 
-                projectContext.AddMetadataReference(reference.Reference, reference.Properties);
+                projectContext.AddMetadataReference(path, reference.Properties);
             }
 
-            foreach (var reference in commandLineArguments.AnalyzerReferences)
+            foreach (var reference in commandLineArguments.ResolveAnalyzerReferences(analyzerAssemblyLoader))
             {
-                var path = reference.FilePath;
+                var path = reference.FullPath;
                 if (!PathUtilities.IsAbsolute(path))
                 {
                     path = PathUtilities.CombineAbsoluteAndRelativePaths(

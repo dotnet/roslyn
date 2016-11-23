@@ -28,12 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         public ApplyChangesOperation(Solution changedSolution)
         {
-            if (changedSolution == null)
-            {
-                throw new ArgumentNullException(nameof(changedSolution));
-            }
-
-            ChangedSolution = changedSolution;
+            ChangedSolution = changedSolution ?? throw new ArgumentNullException(nameof(changedSolution));
         }
 
         internal override bool ApplyDuringTests => true;

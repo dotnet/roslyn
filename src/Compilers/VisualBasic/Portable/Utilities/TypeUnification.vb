@@ -129,13 +129,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim nt1Arguments = nt1.TypeArgumentsNoUseSiteDiagnostics
                     Dim nt2Arguments = nt2.TypeArgumentsNoUseSiteDiagnostics
 
-                    Dim nt1ArgumentsCustomModifiers = If(nt1.HasTypeArgumentsCustomModifiers, nt1.TypeArgumentsCustomModifiers, Nothing)
-                    Dim nt2ArgumentsCustomModifiers = If(nt2.HasTypeArgumentsCustomModifiers, nt2.TypeArgumentsCustomModifiers, Nothing)
+                    Dim nt1HasModifiers = nt1.HasTypeArgumentsCustomModifiers
+                    Dim nt2HasModifiers = nt2.HasTypeArgumentsCustomModifiers
 
                     For i As Integer = 0 To arity - 1
                         If Not CanUnifyHelper(containingGenericType,
-                                              New TypeWithModifiers(nt1Arguments(i), If(nt1ArgumentsCustomModifiers.IsDefault, Nothing, nt1ArgumentsCustomModifiers(i))),
-                                              New TypeWithModifiers(nt2Arguments(i), If(nt2ArgumentsCustomModifiers.IsDefault, Nothing, nt2ArgumentsCustomModifiers(i))),
+                                              New TypeWithModifiers(nt1Arguments(i), If(nt1HasModifiers, nt1.GetTypeArgumentCustomModifiers(i), Nothing)),
+                                              New TypeWithModifiers(nt2Arguments(i), If(nt2HasModifiers, nt2.GetTypeArgumentCustomModifiers(i), Nothing)),
                                               substitution) Then
                             Return False
                         End If
@@ -243,8 +243,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SymbolKind.NamedType, SymbolKind.ErrorType
                     Dim namedType As NamedTypeSymbol = DirectCast(type, NamedTypeSymbol)
                     While namedType IsNot Nothing
-                        For Each typeArg In namedType.TypeArgumentsNoUseSiteDiagnostics
-                            If Contains(typeArg, typeParam) Then
+                        Dim typeParts = If(namedType.IsTupleType, namedType.TupleElementTypes, namedType.TypeArgumentsNoUseSiteDiagnostics)
+                        For Each typePart In typeParts
+                            If Contains(typePart, typeParam) Then
                                 Return True
                             End If
                         Next

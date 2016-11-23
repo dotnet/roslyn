@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
     {
         protected AbstractUseNullPropagationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseNullPropagationDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_null_propagation), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Use_null_propagation), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
@@ -38,10 +39,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         protected abstract bool IsNotEquals(TBinaryExpressionSyntax condition);
         protected abstract bool ShouldAnalyze(ParseOptions options);
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
-        }
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
@@ -51,7 +50,14 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            var optionSet = context.Options.GetOptionSet();
+            var syntaxTree = conditionalExpression.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
             var option = optionSet.GetOption(CodeStyleOptions.PreferNullPropagation, conditionalExpression.Language);
             if (!option.Value)
             {
@@ -59,10 +65,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             }
 
             var syntaxFacts = this.GetSyntaxFactsService();
-
-            SyntaxNode conditionNode, whenTrueNode, whenFalseNode;
             syntaxFacts.GetPartsOfConditionalExpression(
-                conditionalExpression, out conditionNode, out whenTrueNode, out whenFalseNode);
+                conditionalExpression, out var conditionNode, out var whenTrueNode, out var whenFalseNode);
 
             conditionNode = syntaxFacts.WalkDownParentheses(conditionNode);
 
@@ -79,9 +83,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            SyntaxNode conditionLeft;
-            SyntaxNode conditionRight;
-            syntaxFacts.GetPartsOfBinaryExpression(condition, out conditionLeft, out conditionRight);
+            syntaxFacts.GetPartsOfBinaryExpression(condition, out var conditionLeft, out var conditionRight);
 
             var conditionLeftIsNull = syntaxFacts.IsNullLiteralExpression(conditionLeft);
             var conditionRightIsNull = syntaxFacts.IsNullLiteralExpression(conditionRight);
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 whenPartToCheck.GetLocation());
 
             context.ReportDiagnostic(Diagnostic.Create(
-                this.CreateDescriptor(this.DescriptorId, option.Notification.Value),
+                this.CreateDescriptorWithSeverity(option.Notification.Value),
                 conditionalExpression.GetLocation(),
                 locations));
         }

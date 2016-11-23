@@ -40,16 +40,18 @@
     <InternalsVisibleTo Include="MonoDevelop.CSharpBinding" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddImports\CSharpAddImportsService.cs" />
     <Compile Include="CaseCorrection\CSharpCaseCorrectionService.cs" />
     <Compile Include="Classification\ClassificationHelpers.cs" />
     <Compile Include="Classification\Classifiers\AbstractSyntaxClassifier.cs" />
@@ -95,8 +97,10 @@
     <Compile Include="Composition\CSharpWorkspaceFeatures.cs" />
     <Compile Include="Execution\CSharpOptionsSerializationService.cs" />
     <Compile Include="Extensions\ArrowExpressionClauseSyntaxExtensions.cs" />
+    <Compile Include="Extensions\AssignmentExpressionSyntaxExtensions.cs" />
     <Compile Include="Extensions\BlockSyntaxExtensions.cs" />
     <Compile Include="Extensions\SemanticModelExtensions.cs" />
+    <Compile Include="Formatting\CSharpFormattingOptions.Parsers.cs" />
     <Compile Include="LanguageServices\CSharpCommandLineParserService.cs" />
     <Compile Include="CSharpWorkspaceResources.Designer.cs">
       <AutoGen>True</AutoGen>

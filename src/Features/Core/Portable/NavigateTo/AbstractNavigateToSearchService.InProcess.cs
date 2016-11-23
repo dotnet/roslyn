@@ -19,18 +19,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
             Project project, string searchPattern, CancellationToken cancellationToken)
         {
-            return FindNavigableDeclaredSymbolInfos(
+            return FindNavigableDeclaredSymbolInfosAsync(
                 project, searchDocument: null, pattern: searchPattern, cancellationToken: cancellationToken);
         }
 
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentInCurrentProcessAsync(
             Document document, string searchPattern, CancellationToken cancellationToken)
         {
-            return FindNavigableDeclaredSymbolInfos(
+            return FindNavigableDeclaredSymbolInfosAsync(
                 document.Project, document, searchPattern, cancellationToken);
         }
 
-        private static async Task<ImmutableArray<INavigateToSearchResult>> FindNavigableDeclaredSymbolInfos(
+        private static async Task<ImmutableArray<INavigateToSearchResult>> FindNavigableDeclaredSymbolInfosAsync(
             Project project, Document searchDocument, string pattern, CancellationToken cancellationToken)
         {
             var containsDots = pattern.IndexOf('.') >= 0;
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     }
 
                     cancellationToken.ThrowIfCancellationRequested();
-                    var declarationInfo = await document.GetDeclarationInfoAsync(cancellationToken).ConfigureAwait(false);
+                    var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
 
                     foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
                     {

@@ -75,6 +75,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
+        Public ReadOnly Property Option_Implement_Interface_or_Abstract_Class As String =
+            ServicesVSResources.Implement_Interface_or_Abstract_Class
+
+        Public ReadOnly Property Option_When_inserting_properties_events_and_methods_place_them As String =
+            ServicesVSResources.When_inserting_properties_events_and_methods_place_them
+
+        Public ReadOnly Property Option_with_other_members_of_the_same_kind As String =
+            ServicesVSResources.with_other_members_of_the_same_kind
+
+        Public ReadOnly Property Option_at_the_end As String =
+            ServicesVSResources.at_the_end
+
         Public ReadOnly Property Option_GenerateXmlDocCommentsForTripleApostrophes As String
             Get
                 Return BasicVSResources.Generate_XML_documentation_comments_for
@@ -133,6 +145,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Show_outlining_for_comments_and_preprocessor_regions As String =
             ServicesVSResources.Show_outlining_for_comments_and_preprocessor_regions
+
+        Public ReadOnly Property Option_Collapse_regions_when_collapsing_to_definitions As String =
+            ServicesVSResources.Collapse_regions_when_collapsing_to_definitions
 
         Public ReadOnly Property Option_Block_Structure_Guides As String =
             ServicesVSResources.Block_Structure_Guides

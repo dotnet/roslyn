@@ -17,10 +17,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 Dim startPos = nodeSpan.Start
                 Dim endPos = startPos + trivia.ToString().TrimEnd().Length
 
-                spans.AddIfNotNull(CreateRegion(
-                    span:=TextSpan.FromBounds(startPos, endPos),
+                Dim span = TextSpan.FromBounds(startPos, endPos)
+                spans.AddIfNotNull(CreateBlockSpan(
+                    span:=span, hintSpan:=span,
                     bannerText:=Ellipsis, autoCollapse:=True,
-                    type:=BlockTypes.PreprocessorRegion, isCollapsible:=True))
+                    type:=BlockTypes.PreprocessorRegion,
+                    isCollapsible:=True, isDefaultCollapsed:=False))
             End If
         End Sub
     End Class

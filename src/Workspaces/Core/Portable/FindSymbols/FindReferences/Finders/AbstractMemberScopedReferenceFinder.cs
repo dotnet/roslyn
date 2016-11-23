@@ -75,13 +75,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             for (var current = symbol; current != null; current = current.ContainingSymbol)
             {
-                if (current is IFieldSymbol || current is IPropertySymbol)
+                if (current is IPropertySymbol)
                 {
                     return current;
                 }
 
+                // If this is an initializer for a property's backing field, then we want to 
+                // search for results within the property itself.
+                if (current is IFieldSymbol field)
+                {
+                    if (field.IsImplicitlyDeclared &&
+                        field.AssociatedSymbol?.Kind == SymbolKind.Property)
+                    {
+                        return field.AssociatedSymbol;
+                    }
+                    else
+                    {
+                        return field;
+                    }
+                }
+
                 var method = current as IMethodSymbol;
-                if (method != null && (method.MethodKind != MethodKind.AnonymousFunction && method.MethodKind != MethodKind.LocalFunction))
+                if (method != null && 
+                    method.MethodKind != MethodKind.AnonymousFunction && 
+                    method.MethodKind != MethodKind.LocalFunction)
                 {
                     return method;
                 }
