@@ -2706,8 +2706,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function IsUnreferencedAssemblyIdentityDiagnosticCode(code As Integer) As Boolean
             Select Case code
                 Case ERRID.ERR_UnreferencedAssemblyEvent3,
-                     ERRID.ERR_UnreferencedModuleBase3,
-                     ERRID.ERR_UnreferencedModuleImplements3,
                      ERRID.ERR_UnreferencedAssembly3
                     Return True
 

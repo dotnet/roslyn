@@ -2476,7 +2476,7 @@ interface I2
             Assert.Equal(TypeKind.Interface, compilation7.GetTypeByMetadataName("I1").TypeKind);
         }
 
-        [Fact]
+        [Fact, WorkItem(15435, "https://github.com/dotnet/roslyn/issues/15435")]
         public void TestGettingAssemblyIdsFromDiagnostic1()
         {
             var text = @"
@@ -2490,7 +2490,7 @@ class C : CSharpErrors.ClassMethods
             var diagnostics = compilation.GetDiagnostics();
             Assert.True(diagnostics.Any(d => d.Code == (int)ErrorCode.ERR_NoTypeDef));
 
-            foreach (var diagnostic in compilation.GetDiagnostics())
+            foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic.Code == (int)ErrorCode.ERR_NoTypeDef)
                 {
