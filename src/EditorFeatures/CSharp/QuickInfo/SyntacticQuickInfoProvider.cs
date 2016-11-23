@@ -98,10 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
 
         private static void MarkInterestedSpanNearbyScopeBlock(SyntaxNode block, SyntaxToken openBrace, ref int spanStart, ref int spanEnd)
         {
-            SyntaxTrivia nearbyComment;
-
             var searchListAbove = openBrace.LeadingTrivia.Reverse();
-            if (TryFindFurthestNearbyComment(ref searchListAbove, out nearbyComment))
+            if (TryFindFurthestNearbyComment(ref searchListAbove, out var nearbyComment))
             {
                 spanStart = nearbyComment.SpanStart;
                 return;

@@ -80,9 +80,7 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetSyntaxVersion(out VersionStamp version)
         {
             version = default(VersionStamp);
-
-            VersionStamp textVersion;
-            if (!this.TryGetTextVersion(out textVersion))
+            if (!this.TryGetTextVersion(out var textVersion))
             {
                 return false;
             }
@@ -155,10 +153,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return _syntaxTreeResultTask;
             }
-
             // check to see if we already have the tree before actually going async
-            SyntaxTree tree;
-            if (TryGetSyntaxTree(out tree))
+            if (TryGetSyntaxTree(out var tree))
             {
                 // stash a completed result task for this value for the next request (to reduce extraneous allocations of tasks)
                 // don't use the actual async task because it depends on a specific cancellation token
@@ -189,8 +185,7 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetSyntaxRoot(out SyntaxNode root)
         {
             root = null;
-            SyntaxTree tree;
-            return this.TryGetSyntaxTree(out tree) && tree.TryGetRoot(out root) && root != null;
+            return this.TryGetSyntaxTree(out var tree) && tree.TryGetRoot(out root) && root != null;
         }
 
         /// <summary>
@@ -246,8 +241,7 @@ namespace Microsoft.CodeAnalysis
                     return null;
                 }
 
-                SemanticModel semanticModel;
-                if (this.TryGetSemanticModel(out semanticModel))
+                if (this.TryGetSemanticModel(out var semanticModel))
                 {
                     return semanticModel;
                 }
@@ -330,10 +324,7 @@ namespace Microsoft.CodeAnalysis
 
                     // first try to see if text already knows its changes
                     IList<TextChange> textChanges = null;
-
-                    SourceText text;
-                    SourceText oldText;
-                    if (this.TryGetText(out text) && oldDocument.TryGetText(out oldText))
+                    if (this.TryGetText(out var text) && oldDocument.TryGetText(out var oldText))
                     {
                         if (text == oldText)
                         {

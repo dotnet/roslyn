@@ -202,8 +202,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (s_gate.DisposableRead())
             {
-                Entry entry;
-                if (s_cache.TryGetValue(model, out entry))
+                if (s_cache.TryGetValue(model, out var entry))
                 {
                     return entry;
                 }
@@ -234,8 +233,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (s_gate.DisposableWrite())
             {
-                Entry entry;
-                if (!s_cache.TryGetValue(model, out entry))
+                if (!s_cache.TryGetValue(model, out var entry))
                 {
                     return;
                 }

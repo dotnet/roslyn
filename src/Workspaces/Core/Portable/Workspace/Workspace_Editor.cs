@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis
 
         private static void RemoveIfEmpty<TKey, TValue>(IDictionary<TKey, ISet<TValue>> dictionary, TKey key)
         {
-            ISet<TValue> values;
-            if (dictionary.TryGetValue(key, out values))
+            if (dictionary.TryGetValue(key, out var values))
             {
                 if (values.Count == 0)
                 {
@@ -103,19 +102,14 @@ namespace Microsoft.CodeAnalysis
         private DocumentId ClearOpenDocument_NoLock(DocumentId documentId)
         {
             _stateLock.AssertHasLock();
-
-            ISet<DocumentId> openDocIds;
-
-            if (_projectToOpenDocumentsMap.TryGetValue(documentId.ProjectId, out openDocIds) && openDocIds != null)
+            if (_projectToOpenDocumentsMap.TryGetValue(documentId.ProjectId, out var openDocIds) && openDocIds != null)
             {
                 openDocIds.Remove(documentId);
             }
 
             RemoveIfEmpty(_projectToOpenDocumentsMap, documentId.ProjectId);
-
             // Stop tracking the buffer or update the documentId associated with the buffer.
-            TextTracker tracker;
-            if (_textTrackers.TryGetValue(documentId, out tracker))
+            if (_textTrackers.TryGetValue(documentId, out var tracker))
             {
                 tracker.Disconnect();
                 _textTrackers.Remove(documentId);
@@ -217,8 +211,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (projectId != null)
                 {
-                    ISet<DocumentId> documentIds;
-                    if (_projectToOpenDocumentsMap.TryGetValue(projectId, out documentIds))
+                    if (_projectToOpenDocumentsMap.TryGetValue(projectId, out var documentIds))
                     {
                         return documentIds;
                     }
@@ -249,8 +242,7 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableArray<DocumentId> GetRelatedDocumentIds_NoLock(SourceTextContainer container)
         {
-            DocumentId documentId;
-            if (!_bufferToDocumentInCurrentContextMap.TryGetValue(container, out documentId))
+            if (!_bufferToDocumentInCurrentContextMap.TryGetValue(container, out var documentId))
             {
                 // it is not an opened file
                 return ImmutableArray<DocumentId>.Empty;
@@ -308,8 +300,7 @@ namespace Microsoft.CodeAnalysis
 
         private DocumentId GetDocumentIdInCurrentContext_NoLock(SourceTextContainer container)
         {
-            DocumentId docId;
-            bool foundValue = _bufferToDocumentInCurrentContextMap.TryGetValue(container, out docId);
+            bool foundValue = _bufferToDocumentInCurrentContextMap.TryGetValue(container, out var docId);
 
             if (foundValue)
             {
@@ -391,10 +382,7 @@ namespace Microsoft.CodeAnalysis
         private ISet<DocumentId> GetProjectOpenDocuments_NoLock(ProjectId project)
         {
             _stateLock.AssertHasLock();
-
-            ISet<DocumentId> openDocs;
-
-            _projectToOpenDocumentsMap.TryGetValue(project, out openDocs);
+            _projectToOpenDocumentsMap.TryGetValue(project, out var openDocs);
             return openDocs;
         }
 
@@ -415,11 +403,8 @@ namespace Microsoft.CodeAnalysis
 
                 var newText = textContainer.CurrentText;
                 Solution currentSolution;
-
-                SourceText oldText;
-                VersionStamp version;
-                if (oldDocument.TryGetText(out oldText) &&
-                    oldDocument.TryGetTextVersion(out version))
+                if (oldDocument.TryGetText(out var oldText) &&
+                    oldDocument.TryGetTextVersion(out var version))
                 {
                     // Optimize the case where we've already got the previous text and version.
                     var newTextAndVersion = GetProperTextAndVersion(oldText, newText, version, oldDocumentState.FilePath);
@@ -665,11 +650,9 @@ namespace Microsoft.CodeAnalysis
         private SourceText GetOpenDocumentText(Solution solution, DocumentId documentId)
         {
             CheckDocumentIsOpen(documentId);
-
-            // text should always be preserved, so TryGetText will succeed.
-            SourceText text;
             var doc = solution.GetDocument(documentId);
-            doc.TryGetText(out text);
+            // text should always be preserved, so TryGetText will succeed.
+            doc.TryGetText(out var text);
             return text;
         }
 

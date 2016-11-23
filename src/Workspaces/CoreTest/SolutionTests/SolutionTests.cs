@@ -516,9 +516,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddDocument(did, "foo.cs", text);
 
             var document = sol.GetDocument(did);
-
-            SyntaxNode root;
-            Assert.Equal(false, document.TryGetSyntaxRoot(out root));
+            Assert.Equal(false, document.TryGetSyntaxRoot(out var root));
 
             root = await document.GetSyntaxRootAsync();
             Assert.NotNull(root);
@@ -571,11 +569,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var doc2 = sol2.GetDocument(did);
             var tree2 = doc2.GetSyntaxTreeAsync().Result;
             var root2 = tree2.GetRoot();
-
             // text should not be available yet (it should be defer created from the node)
             // and getting the document or root should not cause it to be created.
-            SourceText text2;
-            Assert.Equal(false, tree2.TryGetText(out text2));
+            Assert.Equal(false, tree2.TryGetText(out var text2));
 
             text2 = tree2.GetText();
             Assert.NotNull(text2);
@@ -1398,13 +1394,7 @@ public class C : A {
         [Fact]
         public void TestProjectCompletenessWithMultipleProjects()
         {
-            Project csBrokenProject;
-            Project vbNormalProject;
-            Project dependsOnBrokenProject;
-            Project dependsOnVbNormalProject;
-            Project transitivelyDependsOnBrokenProjects;
-            Project transitivelyDependsOnNormalProjects;
-            GetMultipleProjects(out csBrokenProject, out vbNormalProject, out dependsOnBrokenProject, out dependsOnVbNormalProject, out transitivelyDependsOnBrokenProjects, out transitivelyDependsOnNormalProjects);
+            GetMultipleProjects(out var csBrokenProject, out var vbNormalProject, out var dependsOnBrokenProject, out var dependsOnVbNormalProject, out var transitivelyDependsOnBrokenProjects, out var transitivelyDependsOnNormalProjects);
 
             // check flag for a broken project itself
             Assert.False(csBrokenProject.HasSuccessfullyLoadedAsync().Result);

@@ -105,9 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private void RefreshLanguageSettings(LANGPREFERENCES3[] langPrefs)
         {
             this.AssertIsForeground();
-
-            string languageName;
-            if (_languageMap.TryGetKey(Tuple.Create(langPrefs[0].guidLang), out languageName))
+            if (_languageMap.TryGetKey(Tuple.Create(langPrefs[0].guidLang), out var languageName))
             {
                 foreach (var option in _supportedOptions)
                 {
@@ -245,9 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 return false;
             }
 
-            Tuple<Guid> languageServiceGuid;
-
-            if (!_languageMap.TryGetValue(optionKey.Language, out languageServiceGuid))
+            if (!_languageMap.TryGetValue(optionKey.Language, out var languageServiceGuid))
             {
                 value = null;
                 return false;

@@ -167,8 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 foreach (var d in _workspace.GetOpenDocumentIds())
                 {
                     var document = _baseSolution.GetDocument(d);
-                    SourceText text;
-                    Contract.ThrowIfFalse(document.TryGetText(out text));
+                    Contract.ThrowIfFalse(document.TryGetText(out var text));
                     Contract.ThrowIfNull(text);
 
                     var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
@@ -673,9 +672,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         internal bool TryGetContainingEditableSpan(SnapshotPoint point, out SnapshotSpan editableSpan)
         {
             editableSpan = default(SnapshotSpan);
-
-            OpenTextBufferManager bufferManager;
-            if (!_openTextBuffers.TryGetValue(point.Snapshot.TextBuffer, out bufferManager))
+            if (!_openTextBuffers.TryGetValue(point.Snapshot.TextBuffer, out var bufferManager))
             {
                 return false;
             }

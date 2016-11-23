@@ -387,10 +387,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private void ProcessProjectChange(Solution solution, ProjectId projectId)
         {
             this.AssertIsForeground();
-
             // Remove anything we have associated with this project.
-            Dictionary<string, string> installedPackages;
-            _projectToInstalledPackageAndVersion.TryRemove(projectId, out installedPackages);
+            _projectToInstalledPackageAndVersion.TryRemove(projectId, out var installedPackages);
 
             if (!solution.ContainsProject(projectId))
             {
@@ -424,9 +422,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         public bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName)
         {
             ThisCanBeCalledOnAnyThread();
-
-            Dictionary<string, string> installedPackages;
-            return _projectToInstalledPackageAndVersion.TryGetValue(projectId, out installedPackages) &&
+            return _projectToInstalledPackageAndVersion.TryGetValue(projectId, out var installedPackages) &&
                 installedPackages.ContainsKey(packageName);
         }
 
@@ -489,8 +485,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var installedPackageAndVersion = kvp.Value;
                 if (installedPackageAndVersion != null)
                 {
-                    string installedVersion;
-                    if (installedPackageAndVersion.TryGetValue(packageName, out installedVersion) && installedVersion == version)
+                    if (installedPackageAndVersion.TryGetValue(packageName, out var installedVersion) && installedVersion == version)
                     {
                         var project = solution.GetProject(kvp.Key);
                         if (project != null)
@@ -514,9 +509,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return;
             }
 
-            IVsPackage nugetPackage;
             var nugetGuid = new Guid("5fcc8577-4feb-4d04-ad72-d6c629b083cc");
-            shell.LoadPackage(ref nugetGuid, out nugetPackage);
+            shell.LoadPackage(ref nugetGuid, out var nugetPackage);
             if (nugetPackage == null)
             {
                 return;

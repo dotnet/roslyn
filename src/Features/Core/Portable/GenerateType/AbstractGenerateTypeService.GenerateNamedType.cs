@@ -115,9 +115,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private void AddMembers(IList<ISymbol> members, GenerateTypeOptionsResult options = null)
             {
                 AddProperties(members);
-
-                IList<TArgumentSyntax> argumentList;
-                if (!_service.TryGetArgumentList(_state.ObjectCreationExpressionOpt, out argumentList))
+                if (!_service.TryGetArgumentList(_state.ObjectCreationExpressionOpt, out var argumentList))
                 {
                     return;
                 }
@@ -175,8 +173,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var typeInference = _document.Project.LanguageServices.GetService<ITypeInferenceService>();
                 foreach (var property in _state.PropertiesToGenerate)
                 {
-                    IPropertySymbol generatedProperty;
-                    if (_service.TryGenerateProperty(property, _document.SemanticModel, typeInference, _cancellationToken, out generatedProperty))
+                    if (_service.TryGenerateProperty(property, _document.SemanticModel, typeInference, _cancellationToken, out var generatedProperty))
                     {
                         members.Add(generatedProperty);
                     }

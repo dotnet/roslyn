@@ -89,9 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
 
         private async Task<IEnumerable<ISymbol>> ResolveMethodsAsync(CancellationToken cancellationToken)
         {
-            IList<NameAndArity> nameParts;
-            int? parameterCount;
-            this.ParseText(out nameParts, out parameterCount);
+            this.ParseText(out var nameParts, out var parameterCount);
 
             // Notes:  In C#, indexers can't be resolved by any name.  This is acceptable, because the old language
             //         service wasn't able to resolve them either.  In VB, parameterized properties will work in

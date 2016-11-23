@@ -91,8 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         project.CurrentProjectAnalyzersContains(conflict.AnalyzerFilePath2))
                     {
                         var messageArguments = new string[] { conflict.AnalyzerFilePath1, conflict.AnalyzerFilePath2, conflict.Identity.ToString() };
-                        DiagnosticData diagnostic;
-                        if (DiagnosticData.TryCreate(_analyzerDependencyConflictRule, messageArguments, project.Id, _workspace, out diagnostic))
+                        if (DiagnosticData.TryCreate(_analyzerDependencyConflictRule, messageArguments, project.Id, _workspace, out var diagnostic))
                         {
                             builder.Add(diagnostic);
                         }
@@ -104,8 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     if (project.CurrentProjectAnalyzersContains(missingDependency.AnalyzerPath))
                     {
                         var messageArguments = new string[] { missingDependency.AnalyzerPath, missingDependency.DependencyIdentity.ToString() };
-                        DiagnosticData diagnostic;
-                        if (DiagnosticData.TryCreate(_missingAnalyzerReferenceRule, messageArguments, project.Id, _workspace, out diagnostic))
+                        if (DiagnosticData.TryCreate(_missingAnalyzerReferenceRule, messageArguments, project.Id, _workspace, out var diagnostic))
                         {
                             builder.Add(diagnostic);
                         }
@@ -192,8 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private static void AddAssemblyIdentity(List<AssemblyIdentity> list, string dllName)
         {
-            AssemblyIdentity identity;
-            if (!AssemblyIdentity.TryParseDisplayName(dllName, out identity))
+            if (!AssemblyIdentity.TryParseDisplayName(dllName, out var identity))
             {
                 return;
             }
@@ -206,9 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             public AssemblyIdentity ApplyBindingRedirects(AssemblyIdentity originalIdentity)
             {
                 string redirectedAssemblyName = AppDomain.CurrentDomain.ApplyPolicy(originalIdentity.ToString());
-
-                AssemblyIdentity redirectedAssemblyIdentity;
-                if (AssemblyIdentity.TryParseDisplayName(redirectedAssemblyName, out redirectedAssemblyIdentity))
+                if (AssemblyIdentity.TryParseDisplayName(redirectedAssemblyName, out var redirectedAssemblyIdentity))
                 {
                     return redirectedAssemblyIdentity;
                 }

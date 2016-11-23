@@ -60,9 +60,7 @@ namespace Roslyn.Utilities
         public bool Enqueue(T value)
         {
             var result = true;
-
-            LinkedListNode<T> node;
-            if (_map.TryGetValue(value, out node))
+            if (_map.TryGetValue(value, out var node))
             {
                 // Already had this in the list.  Return 'false'.  
                 result = false;
@@ -92,14 +90,12 @@ namespace Roslyn.Utilities
 
         public bool Contains(T value)
         {
-            LinkedListNode<T> node;
-            return _map.TryGetValue(value, out node);
+            return _map.TryGetValue(value, out var node);
         }
 
         public void Remove(T value)
         {
-            LinkedListNode<T> node;
-            _map.TryGetValue(value, out node);
+            _map.TryGetValue(value, out var node);
             if (_map.Remove(value))
             {
                 _list.Remove(node);

@@ -129,13 +129,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 }
 
                 var position = textView.GetCaretPoint(subjectBuffer).Value.Position;
-                int plusEqualTokenEndPosition;
-
                 var solutionWithEventHandler = CreateSolutionWithEventHandler(
                     document,
                     eventHandlerMethodName,
                     position,
-                    out plusEqualTokenEndPosition,
+                    out var plusEqualTokenEndPosition,
                     cancellationToken);
 
                 if (solutionWithEventHandler == null)

@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
@@ -156,8 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // If this is being added through a public call to Workspace.AddDocument (say, ApplyChanges) then we might
                 // already have a document ID that we should be using here.
-                DocumentId id = null;
-                _documentIdHints.TryGetValue(filePath, out id);
+                _documentIdHints.TryGetValue(filePath, out var id);
 
                 document = new StandardTextDocument(
                     this,
@@ -218,9 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void NewBufferOpened_NoLock(uint docCookie, ITextBuffer textBuffer, DocumentKey documentKey, bool isCurrentContext)
         {
-            StandardTextDocument document;
-
-            if (_documentMap.TryGetValue(documentKey, out document))
+            if (_documentMap.TryGetValue(documentKey, out var document))
             {
                 document.ProcessOpen(textBuffer, isCurrentContext);
                 AddCookieOpenDocumentPair_NoLock(docCookie, documentKey);
@@ -264,8 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             foreach (var documentKey in documentKeys)
             {
-                StandardTextDocument document;
-                if (_documentMap.TryGetValue(documentKey, out document))
+                if (_documentMap.TryGetValue(documentKey, out var document))
                 {
                     CancelPendingDocumentInitializationTask_NoLock(document);
                 }
@@ -283,8 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private void CancelPendingDocumentInitializationTask_NoLock(IVisualStudioHostDocument document)
         {
             // Remove pending initialization task for the document, if any, and dispose the cancellation token source.
-            TaskAndTokenSource taskAndTokenSource;
-            if (_pendingDocumentInitializationTasks.TryGetValue(document.Id, out taskAndTokenSource))
+            if (_pendingDocumentInitializationTasks.TryGetValue(document.Id, out var taskAndTokenSource))
             {
                 taskAndTokenSource.CancellationTokenSource.Cancel();
                 taskAndTokenSource.CancellationTokenSource.Dispose();
@@ -311,8 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
-            uint docCookie;
-            if (_runningDocumentTable.TryGetCookieForInitializedDocument(document.Key.Moniker, out docCookie))
+            if (_runningDocumentTable.TryGetCookieForInitializedDocument(document.Key.Moniker, out var docCookie))
             {
                 TryProcessOpenForDocCookie(docCookie, cancellationToken);
             }
@@ -336,10 +329,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private void TryProcessOpenForDocCookie_NoLock(uint docCookie)
         {
             string moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
-
-            IVsHierarchy hierarchy;
-            uint itemid;
-            _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out hierarchy, out itemid);
+            _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out var itemid);
 
             var shimTextBuffer = _runningDocumentTable.GetDocumentData(docCookie) as IVsTextBuffer;
 
@@ -445,9 +435,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private IList<DocumentId> GetDocumentIdsFromDocCookie_NoLock(uint docCookie)
         {
             AssertIsForeground();
-
-            List<DocumentKey> documentKeys;
-            if (!_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out documentKeys))
+            if (!_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out var documentKeys))
             {
                 return SpecializedCollections.EmptyList<DocumentId>();
             }
@@ -481,8 +469,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void CloseDocuments_NoLock(uint docCookie, string monikerToKeep)
         {
-            List<DocumentKey> documentKeys;
-            if (!_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out documentKeys))
+            if (!_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out var documentKeys))
             {
                 // Handle non-Roslyn document close.
                 if (this._documentTrackingServiceOpt != null && _docCookiesToNonRoslynDocumentBuffers.TryGetValue(docCookie, out ITextBuffer textBuffer))
@@ -555,8 +542,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             lock (_gate)
             {
-                List<DocumentKey> documentKeys;
-                if (_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out documentKeys))
+                if (_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out var documentKeys))
                 {
                     foreach (var documentKey in documentKeys)
                     {
@@ -612,8 +598,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             List<StandardTextDocument> documents;
             lock (_gate)
             {
-                List<DocumentKey> documentKeys;
-                if (!_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out documentKeys))
+                if (!_docCookiesToOpenDocumentKeys.TryGetValue(docCookie, out var documentKeys))
                 {
                     return;
                 }
@@ -692,8 +677,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void AddCookieOpenDocumentPair_NoLock(uint foundCookie, DocumentKey documentKey)
         {
-            List<DocumentKey> documentKeys;
-            if (_docCookiesToOpenDocumentKeys.TryGetValue(foundCookie, out documentKeys))
+            if (_docCookiesToOpenDocumentKeys.TryGetValue(foundCookie, out var documentKeys))
             {
                 if (!documentKeys.Contains(documentKey))
                 {
@@ -709,12 +693,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private void OnDocumentLoadCompleted(IVsTextBuffer shimTextBuffer, DocumentKey documentKeyOpt, string moniker)
         {
             AssertIsForeground();
-
             // This is called when IVsTextBufferDataEvents.OnLoadComplete() has been triggered for a
             // newly-created buffer.
-
-            uint docCookie;
-            if (!_runningDocumentTable.TryGetCookieForInitializedDocument(moniker, out docCookie))
+            if (!_runningDocumentTable.TryGetCookieForInitializedDocument(moniker, out var docCookie))
             {
                 return;
             }
@@ -739,10 +720,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private bool IsCurrentContext(uint docCookie, DocumentKey documentKey)
         {
             AssertIsForeground();
-
-            IVsHierarchy hierarchy;
-            uint itemid;
-            _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out hierarchy, out itemid);
+            _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out var itemid);
 
             // If it belongs to a Shared Code or ASP.NET 5 project, then find the correct host project
             var hostProject = LinkedFileUtilities.GetContextHostProject(hierarchy, _projectContainer);

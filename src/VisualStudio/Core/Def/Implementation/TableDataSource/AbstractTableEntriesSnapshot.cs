@@ -142,9 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             var trackingPoint = _trackingPoints[index];
-
-            SourceText text;
-            if (!document.TryGetText(out text))
+            if (!document.TryGetText(out var text))
             {
                 return LinePosition.Zero;
             }
@@ -204,8 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private string Combine(string path1, string path2)
         {
-            string result;
-            if (FilePathUtilities.TryCombine(path1, path2, out result))
+            if (FilePathUtilities.TryCombine(path1, path2, out var result))
             {
                 return result;
             }
