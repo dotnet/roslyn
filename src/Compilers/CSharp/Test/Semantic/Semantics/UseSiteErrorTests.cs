@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2351,7 +2352,7 @@ public delegate void D();
 
 public interface I1 {}
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, references: new [] { MinCorlibRef });
+            var compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, references: new[] { MinCorlibRef });
             compilation1.VerifyEmitDiagnostics();
 
             Assert.Equal(TypeKind.Struct, compilation1.GetTypeByMetadataName("A").TypeKind);
@@ -2388,7 +2389,7 @@ interface I2
             Assert.Equal(TypeKind.Class, compilation3.GetTypeByMetadataName("C").TypeKind);
             Assert.Equal(TypeKind.Delegate, compilation3.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation3.GetTypeByMetadataName("I1").TypeKind);
-            
+
             var compilation4 = CreateCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference() });
 
             compilation4.VerifyDiagnostics(
@@ -2473,6 +2474,30 @@ interface I2
             Assert.Equal(TypeKind.Class, compilation7.GetTypeByMetadataName("C").TypeKind);
             Assert.Equal(TypeKind.Delegate, compilation7.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation7.GetTypeByMetadataName("I1").TypeKind);
+        }
+
+        [Fact]
+        public void TestGettingAssemblyIdsFromDiagnostic1()
+        {
+            var text = @"
+class C : CSharpErrors.ClassMethods
+{
+    public override UnavailableClass ReturnType1() { return null; }
+    public override UnavailableClass[] ReturnType2() { return null; }
+}";
+
+            var compilation = CompileWithMissingReference(text);
+            foreach (var diagnostic in compilation.GetDiagnostics())
+            {
+                if (diagnostic.Code == (int)ErrorCode.ERR_NoTypeDef)
+                {
+                    var actualAssemblyId = compilation.GetUnreferencedAssemblyIdentities(diagnostic).Single();
+                    AssemblyIdentity expectedAssemblyId;
+                    AssemblyIdentity.TryParseDisplayName("Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", out expectedAssemblyId);
+
+                    Assert.True(actualAssemblyId.Equals(expectedAssemblyId));
+                }
+            }
         }
     }
 }
