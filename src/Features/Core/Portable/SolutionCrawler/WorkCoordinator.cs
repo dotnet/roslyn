@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 _listener = listener;
                 _optionService = _registration.GetService<IOptionService>();
-                _optionService.OptionChanged += OnOptionChanged;
 
                 // event and worker queues
                 _shutdownNotificationSource = new CancellationTokenSource();
@@ -74,6 +73,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _registration.Workspace.DocumentOpened += OnDocumentOpened;
                     _registration.Workspace.DocumentClosed += OnDocumentClosed;
                 }
+
+                // subscribe to option changed event
+                _optionService.OptionChanged += OnOptionChanged;
             }
 
             public int CorrelationId
