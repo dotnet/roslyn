@@ -34,6 +34,7 @@
                 "Microsoft.CodeAnalysis.Analyzers",
                 "Microsoft.VisualBasic",
                 "Microsoft.Composition",
+                "MicroBuild.*",
                 "ManagedEsent",
                 "Microsoft.CodeAnalysis.Elfie",
                 "xunit",

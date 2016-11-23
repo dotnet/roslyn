@@ -63,8 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var rewriter = new Expander(semanticModel, expandInsideNode, false, cancellationToken);
 
                 var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent, semanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
-                SyntaxToken rewrittenTokenWithElasticTrivia;
-                if (TryAddLeadingElasticTriviaIfNecessary(rewrittenToken, token, out rewrittenTokenWithElasticTrivia))
+                if (TryAddLeadingElasticTriviaIfNecessary(rewrittenToken, token, out var rewrittenTokenWithElasticTrivia))
                 {
                     return rewrittenTokenWithElasticTrivia;
                 }
@@ -114,9 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             var firstRewrittenToken = rewrittenNode.GetFirstToken(true, false, true, true);
             var firstOriginalToken = originalNode.GetFirstToken(true, false, true, true);
-
-            SyntaxToken rewrittenTokenWithLeadingElasticTrivia;
-            if (TryAddLeadingElasticTriviaIfNecessary(firstRewrittenToken, firstOriginalToken, out rewrittenTokenWithLeadingElasticTrivia))
+            if (TryAddLeadingElasticTriviaIfNecessary(firstRewrittenToken, firstOriginalToken, out var rewrittenTokenWithLeadingElasticTrivia))
             {
                 return rewrittenNode.ReplaceToken(firstRewrittenToken, rewrittenTokenWithLeadingElasticTrivia);
             }

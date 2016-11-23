@@ -87,8 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         private IVsReportExternalErrors GetExternalErrorReporter(ProjectId projectId, string languageName)
         {
-            string errorCodePrefix;
-            if (!_projectLangaugeToErrorCodePrefixMap.TryGetValue(languageName, out errorCodePrefix))
+            if (!_projectLangaugeToErrorCodePrefixMap.TryGetValue(languageName, out var errorCodePrefix))
             {
                 throw new NotSupportedException(nameof(languageName));
             }

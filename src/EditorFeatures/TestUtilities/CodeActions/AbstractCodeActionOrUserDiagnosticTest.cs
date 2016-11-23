@@ -343,9 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             object fixProviderData,
             CodeActionPriority? priority)
         {
-            string expected;
-            IDictionary<string, IList<TextSpan>> spanMap;
-            MarkupTestFile.GetSpans(expectedMarkup.NormalizeLineEndings(), out expected, out spanMap);
+            MarkupTestFile.GetSpans(expectedMarkup.NormalizeLineEndings(), out var expected, out IDictionary<string, IList<TextSpan>> spanMap);
 
             var conflictSpans = spanMap.GetOrAdd("Conflict", _ => new List<TextSpan>());
             var renameSpans = spanMap.GetOrAdd("Rename", _ => new List<TextSpan>());

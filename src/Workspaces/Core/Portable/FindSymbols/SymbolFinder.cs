@@ -134,12 +134,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // then we have a retargeting scenario and want to take our usual path below as if it was a metadata reference
                 foreach (var sourceProject in solution.Projects)
                 {
-                    Compilation compilation;
 
                     // If our symbol is actually a "regular" source symbol, then we know the compilation is holding the symbol alive
                     // and thus TryGetCompilation is sufficient. For another example of this pattern, see Solution.GetProject(IAssemblySymbol)
                     // which we happen to call below.
-                    if (sourceProject.TryGetCompilation(out compilation))
+                    if (sourceProject.TryGetCompilation(out var compilation))
                     {
                         if (symbol.ContainingAssembly.Equals(compilation.Assembly))
                         {

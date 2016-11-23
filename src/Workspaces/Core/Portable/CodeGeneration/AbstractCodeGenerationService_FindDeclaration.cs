@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken)
         {
-            IList<bool> availableIndices;
-            return CanAddTo(destination, solution, cancellationToken, out availableIndices);
+            return CanAddTo(destination, solution, cancellationToken, out var availableIndices);
         }
 
         private bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken,

@@ -111,8 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return conversion;
             }
 
-            bool discarded;
-            var speculatedExpressionOuterType = GetOuterCastType(speculatedExpression, speculationAnalyzer.SpeculativeSemanticModel, out discarded) ?? typeInfo.ConvertedType;
+            var speculatedExpressionOuterType = GetOuterCastType(speculatedExpression, speculationAnalyzer.SpeculativeSemanticModel, out var discarded) ?? typeInfo.ConvertedType;
             if (speculatedExpressionOuterType == null)
             {
                 return default(Conversion);
@@ -354,9 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var expressionToCastType = semanticModel.ClassifyConversion(cast.SpanStart, cast.Expression, castType, isExplicitInSource: true);
-
-            bool parentIsOrAsExpression;
-            var outerType = GetOuterCastType(cast, semanticModel, out parentIsOrAsExpression) ?? castTypeInfo.ConvertedType;
+            var outerType = GetOuterCastType(cast, semanticModel, out var parentIsOrAsExpression) ?? castTypeInfo.ConvertedType;
 
             // Simple case: If the conversion from the inner expression to the cast type is identity,
             // the cast can be removed.
@@ -366,8 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // Cast removal causes warning CS0252 (Possible unintended reference comparison).
                 //      object x = string.Intern("Hi!");
                 //      (object)x == "Hi!"
-                ExpressionSyntax other;
-                if (IsRequiredCastForReferenceEqualityComparison(outerType, cast, semanticModel, out other))
+                if (IsRequiredCastForReferenceEqualityComparison(outerType, cast, semanticModel, out var other))
                 {
                     var otherToOuterType = semanticModel.ClassifyConversion(other, outerType);
                     if (otherToOuterType.IsImplicit && otherToOuterType.IsReference)
@@ -440,15 +436,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     return false;
                 }
-
                 // Required explicit cast for reference comparison.
                 // Cast removal causes warning CS0252 (Possible unintended reference comparison).
                 //      object x = string.Intern("Hi!");
                 //      x == (object)"Hi!"
-                ExpressionSyntax other;
                 if (expressionToCastType.IsImplicit && expressionToCastType.IsReference &&
                     castToOuterType.IsIdentity &&
-                    IsRequiredCastForReferenceEqualityComparison(outerType, cast, semanticModel, out other))
+                    IsRequiredCastForReferenceEqualityComparison(outerType, cast, semanticModel, out var other))
                 {
                     return false;
                 }

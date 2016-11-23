@@ -178,9 +178,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static async Task<SemanticModel> GetPartialSemanticModelAsync(this Document document, CancellationToken cancellationToken)
         {
-            Compilation compilation;
-
-            if (document.Project.TryGetCompilation(out compilation))
+            if (document.Project.TryGetCompilation(out var compilation))
             {
                 // We already have a compilation, so at this point it's fastest to just get a SemanticModel
                 return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

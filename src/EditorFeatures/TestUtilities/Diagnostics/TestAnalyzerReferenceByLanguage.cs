@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
         {
-            ImmutableArray<DiagnosticAnalyzer> analyzers;
-            if (_analyzersMap.TryGetValue(language, out analyzers))
+            if (_analyzersMap.TryGetValue(language, out var analyzers))
             {
                 return analyzers;
             }

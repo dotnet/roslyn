@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Dictionary<Project, Dictionary<Document, List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>> projectMap,
             ProgressWrapper wrapper)
         {
-            Dictionary<Document, List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>> map;
-            if (!projectMap.TryGetValue(project, out map))
+            if (!projectMap.TryGetValue(project, out var map))
             {
                 // No files in this project to process.  We can bail here.  We'll have cached our
                 // compilation if there are any projects left to process that depend on us.

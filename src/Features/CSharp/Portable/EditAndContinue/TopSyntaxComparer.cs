@@ -60,8 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             // Leaves are labeled statements that don't have a labeled child.
             // We also return true for non-labeled statements.
-            bool isLeaf;
-            Label label = Classify(node.Kind(), out isLeaf, ignoreVariableDeclarations: false);
+            Label label = Classify(node.Kind(), out var isLeaf, ignoreVariableDeclarations: false);
 
             // ignored should always be reported as leaves
             Debug.Assert(label != Label.Ignored || isLeaf);
@@ -307,15 +306,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal static Label GetLabel(SyntaxKind kind)
         {
-            bool isLeaf;
-            return Classify(kind, out isLeaf, ignoreVariableDeclarations: false);
+            return Classify(kind, out var isLeaf, ignoreVariableDeclarations: false);
         }
 
         // internal for testing
         internal static bool HasLabel(SyntaxKind kind, bool ignoreVariableDeclarations)
         {
-            bool isLeaf;
-            return Classify(kind, out isLeaf, ignoreVariableDeclarations) != Label.Ignored;
+            return Classify(kind, out var isLeaf, ignoreVariableDeclarations) != Label.Ignored;
         }
 
         protected internal override int LabelCount

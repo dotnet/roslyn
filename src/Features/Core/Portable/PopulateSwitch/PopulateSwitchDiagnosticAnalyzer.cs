@@ -42,10 +42,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var switchOperation = (ISwitchStatement)context.Operation;
             var switchBlock = switchOperation.Syntax;
             var tree = switchBlock.SyntaxTree;
-
-            bool missingCases;
-            bool missingDefaultCase;
-            if (SwitchIsIncomplete(switchOperation, out missingCases, out missingDefaultCase) &&
+            if (SwitchIsIncomplete(switchOperation, out var missingCases, out var missingDefaultCase) &&
                 !tree.OverlapsHiddenPosition(switchBlock.Span, context.CancellationToken))
             {
                 Debug.Assert(missingCases || missingDefaultCase);

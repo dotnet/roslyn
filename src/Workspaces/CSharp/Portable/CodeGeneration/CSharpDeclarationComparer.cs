@@ -167,8 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static int Compare(ConstructorDeclarationSyntax x, ConstructorDeclarationSyntax y)
         {
-            int result;
-            if (EqualStaticness(x.Modifiers, y.Modifiers, out result) &&
+            if (EqualStaticness(x.Modifiers, y.Modifiers, out var result) &&
                 EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
             {
                 EqualParameterCount(x.ParameterList, y.ParameterList, out result);
@@ -193,21 +192,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static int Compare(ConversionOperatorDeclarationSyntax x, ConversionOperatorDeclarationSyntax y)
         {
-            int result;
             if (x.ImplicitOrExplicitKeyword.Kind() != y.ImplicitOrExplicitKeyword.Kind())
             {
                 return x.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword ? -1 : 1;
             }
 
-            EqualParameterCount(x.ParameterList, y.ParameterList, out result);
+            EqualParameterCount(x.ParameterList, y.ParameterList, out var result);
 
             return result;
         }
 
         private static int Compare(OperatorDeclarationSyntax x, OperatorDeclarationSyntax y)
         {
-            int result;
-            if (EqualOperatorPrecedence(x.OperatorToken, y.OperatorToken, out result))
+            if (EqualOperatorPrecedence(x.OperatorToken, y.OperatorToken, out var result))
             {
                 EqualParameterCount(x.ParameterList, y.ParameterList, out result);
             }
@@ -231,8 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static int Compare(IndexerDeclarationSyntax x, IndexerDeclarationSyntax y)
         {
-            int result;
-            if (EqualStaticness(x.Modifiers, y.Modifiers, out result) &&
+            if (EqualStaticness(x.Modifiers, y.Modifiers, out var result) &&
                 EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
             {
                 EqualParameterCount(x.ParameterList, y.ParameterList, out result);
@@ -414,10 +410,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (NeitherNull(x, y, out comparisonResult))
             {
-                int xPrecedence = 0;
-                int yPrecedence = 0;
-                s_operatorPrecedenceMap.TryGetValue(x.Kind(), out xPrecedence);
-                s_operatorPrecedenceMap.TryGetValue(y.Kind(), out yPrecedence);
+                s_operatorPrecedenceMap.TryGetValue(x.Kind(), out var xPrecedence);
+                s_operatorPrecedenceMap.TryGetValue(y.Kind(), out var yPrecedence);
 
                 comparisonResult = xPrecedence - yPrecedence;
             }

@@ -254,14 +254,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsPredefinedType(SyntaxToken token)
         {
-            PredefinedType actualType;
-            return TryGetPredefinedType(token, out actualType) && actualType != PredefinedType.None;
+            return TryGetPredefinedType(token, out var actualType) && actualType != PredefinedType.None;
         }
 
         public bool IsPredefinedType(SyntaxToken token, PredefinedType type)
         {
-            PredefinedType actualType;
-            return TryGetPredefinedType(token, out actualType) && actualType == type;
+            return TryGetPredefinedType(token, out var actualType) && actualType == type;
         }
 
         public bool TryGetPredefinedType(SyntaxToken token, out PredefinedType type)
@@ -313,14 +311,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsPredefinedOperator(SyntaxToken token)
         {
-            PredefinedOperator actualOperator;
-            return TryGetPredefinedOperator(token, out actualOperator) && actualOperator != PredefinedOperator.None;
+            return TryGetPredefinedOperator(token, out var actualOperator) && actualOperator != PredefinedOperator.None;
         }
 
         public bool IsPredefinedOperator(SyntaxToken token, PredefinedOperator op)
         {
-            PredefinedOperator actualOperator;
-            return TryGetPredefinedOperator(token, out actualOperator) && actualOperator == op;
+            return TryGetPredefinedOperator(token, out var actualOperator) && actualOperator == op;
         }
 
         public bool TryGetPredefinedOperator(SyntaxToken token, out PredefinedOperator op)
@@ -670,8 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node)
         {
-            SyntaxNode unused;
-            return IsObjectInitializerNamedAssignmentIdentifier(node, out unused);
+            return IsObjectInitializerNamedAssignmentIdentifier(node, out var unused);
         }
 
         public bool IsObjectInitializerNamedAssignmentIdentifier(
@@ -996,8 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var currentName = name;
                 foreach (var aliasMap in aliasMaps)
                 {
-                    string mappedName;
-                    if (aliasMap.TryGetValue(currentName, out mappedName))
+                    if (aliasMap.TryGetValue(currentName, out var mappedName))
                     {
                         // Looks like this could be an alias.  Also include the name the alias points to
                         builder.Add(mappedName);
@@ -1383,8 +1377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Contract.Requires(root.SyntaxTree == node.SyntaxTree);
 
             int currentId = 0;
-            SyntaxNode currentNode;
-            Contract.ThrowIfFalse(TryGetMethodLevelMember(root, (n, i) => n == node, ref currentId, out currentNode));
+            Contract.ThrowIfFalse(TryGetMethodLevelMember(root, (n, i) => n == node, ref currentId, out var currentNode));
 
             Contract.ThrowIfFalse(currentId >= 0);
             CheckMemberId(root, node, currentId);
@@ -1394,8 +1387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetMethodLevelMember(SyntaxNode root, int memberId)
         {
             int currentId = 0;
-            SyntaxNode currentNode;
-            if (!TryGetMethodLevelMember(root, (n, i) => i == memberId, ref currentId, out currentNode))
+            if (!TryGetMethodLevelMember(root, (n, i) => i == memberId, ref currentId, out var currentNode))
             {
                 return null;
             }

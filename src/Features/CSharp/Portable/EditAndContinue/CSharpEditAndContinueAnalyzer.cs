@@ -455,8 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             while (node != root && node != null)
             {
-                SyntaxNode body;
-                if (LambdaUtilities.IsLambdaBodyStatementOrExpression(node, out body))
+                if (LambdaUtilities.IsLambdaBodyStatementOrExpression(node, out var body))
                 {
                     return body;
                 }
@@ -926,9 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 Debug.Assert(node.Parent.IsKind(SyntaxKind.AccessorList));
                 Debug.Assert(node.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration) || node.Parent.Parent.IsKind(SyntaxKind.IndexerDeclaration));
-
-                EditKind parentEdit;
-                return editMap.TryGetValue(node.Parent, out parentEdit) && parentEdit == editKind &&
+                return editMap.TryGetValue(node.Parent, out var parentEdit) && parentEdit == editKind &&
                        editMap.TryGetValue(node.Parent.Parent, out parentEdit) && parentEdit == EditKind.Update;
             }
 

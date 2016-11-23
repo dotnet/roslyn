@@ -96,8 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
             public ImmutableArray<TodoItem> GetItems_TestingOnly(DocumentId documentId)
             {
-                CacheEntry entry;
-                if (this.DataCache.TryGetValue(documentId, out entry) && entry.HasCachedData)
+                if (this.DataCache.TryGetValue(documentId, out var entry) && entry.HasCachedData)
                 {
                     return entry.Data.Items;
                 }

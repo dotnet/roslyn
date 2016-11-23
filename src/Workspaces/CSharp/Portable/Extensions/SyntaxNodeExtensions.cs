@@ -561,8 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this TSyntaxNode node)
             where TSyntaxNode : SyntaxNode
         {
-            IEnumerable<SyntaxTrivia> blankLines;
-            node.GetNodeWithoutLeadingBlankLines(out blankLines);
+            node.GetNodeWithoutLeadingBlankLines(out var blankLines);
             return blankLines;
         }
 
@@ -570,8 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this TSyntaxNode node)
             where TSyntaxNode : SyntaxNode
         {
-            IEnumerable<SyntaxTrivia> blankLines;
-            return node.GetNodeWithoutLeadingBlankLines(out blankLines);
+            return node.GetNodeWithoutLeadingBlankLines(out var blankLines);
         }
 
         public static TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(
@@ -592,8 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this TSyntaxNode node)
             where TSyntaxNode : SyntaxNode
         {
-            IEnumerable<SyntaxTrivia> leadingTrivia;
-            node.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(out leadingTrivia);
+            node.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(out var leadingTrivia);
             return leadingTrivia;
         }
 
@@ -601,8 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this TSyntaxNode node)
             where TSyntaxNode : SyntaxNode
         {
-            IEnumerable<SyntaxTrivia> strippedTrivia;
-            return node.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(out strippedTrivia);
+            return node.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(out var strippedTrivia);
         }
 
         public static TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(
