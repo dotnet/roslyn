@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // try again after a delay
-                await Task.Delay(RetryDelay).ConfigureAwait(false);
+                await Task.Delay(RetryDelay, cancellationToken).ConfigureAwait(false);
             }
         }
 
