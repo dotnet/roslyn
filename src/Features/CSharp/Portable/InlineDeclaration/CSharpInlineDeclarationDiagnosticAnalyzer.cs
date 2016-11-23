@@ -291,27 +291,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                                                             .Distinct();
 
             return diagnosticSpans.Intersect(newReferenceSpans).Any();
-
-            // var annotation = new SyntaxAnnotation();
-            // var declaratorWithoutInitializer = rootWithoutInitializer.GetAnnotatedNodes(annotation)
-            //                                                         .Single();
-            // var currentLocalSymbol = (ILocalSymbol)newSemanticModel.GetDeclaredSymbol(declaratorWithoutInitializer);
-#if false
-            foreach (var oldReference in references)
-            {
-                var currentReference = rootWithoutInitializer.GetCurrentNode(oldReference);
-                var diagnostics = semanticModel.GetDiagnostics()
-
-                var dataFlowAnalysis = newSemanticModel.AnalyzeDataFlow(currentReference);
-
-                if (!dataFlowAnalysis.AlwaysAssigned.Contains(currentLocalSymbol))
-                {
-                    // We found a reference to the variable that isn't definitely assigned.
-                    // Don't offer this refactoring.
-                    return true;
-                }
-            }
-#endif
         }
 
         private SyntaxNode GetOutArgumentScope(SyntaxNode argumentExpression)
