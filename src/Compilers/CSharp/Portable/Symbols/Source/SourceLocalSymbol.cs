@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     switch (_deconstruction.Kind())
                     {
                         case SyntaxKind.SimpleAssignmentExpression:
-                            return ((AssignmentExpressionSyntax)_deconstruction).Right;
+                            return _deconstruction;
 
                         case SyntaxKind.ForEachVariableStatement:
                             // There is no forbidden zone for a foreach statement, because the

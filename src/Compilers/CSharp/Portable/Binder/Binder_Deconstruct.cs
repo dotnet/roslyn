@@ -690,6 +690,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance(component.Arguments.Count);
                         foreach (var arg in component.Arguments)
                         {
+                            if (arg.NameColon != null)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_TupleElementNamesInDeconstruction, arg.NameColon);
+                            }
+
                             builder.Add(BindDeconstructionVariables(arg.Expression, diagnostics, ref declaration, ref expression));
                         }
 
