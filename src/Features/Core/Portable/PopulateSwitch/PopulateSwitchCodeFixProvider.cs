@@ -214,7 +214,9 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             SyntaxEditor editor, 
             CancellationToken cancellationToken)
         {
-            // If the user is performing a fix-all, then fix up all the issues we see.
+            // If the user is performing a fix-all, then fix up all the issues we see. i.e.
+            // add missing cases and missing 'default' cases for any switches we reported an
+            // issue on.
             return FixWithEditorAsync(document, editor, diagnostics, 
                 addCases: true, addDefaultCase: true, 
                 cancellationToken: cancellationToken);
