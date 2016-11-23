@@ -704,7 +704,7 @@ End Class
                     Dim expectedAssemblyId As AssemblyIdentity = Nothing
                     AssemblyIdentity.TryParseDisplayName("Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", expectedAssemblyId)
 
-                    Assert.True(actualAssemblyId.Equals(expectedAssemblyId))
+                    Assert.Equal(actualAssemblyId, expectedAssemblyId)
                 End If
             Next
         End Sub

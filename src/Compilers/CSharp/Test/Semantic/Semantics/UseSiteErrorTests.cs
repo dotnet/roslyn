@@ -2498,7 +2498,7 @@ class C : CSharpErrors.ClassMethods
                     AssemblyIdentity expectedAssemblyId;
                     AssemblyIdentity.TryParseDisplayName("Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", out expectedAssemblyId);
 
-                    Assert.Equal(actualAssemblyId, expectedAssemblyId));
+                    Assert.Equal(actualAssemblyId, expectedAssemblyId);
                 }
             }
         }
