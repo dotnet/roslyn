@@ -4858,9 +4858,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (7,10): error CS8184: Cannot reference _ in a deconstruction declaration
+                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (_, var x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionDisallowed, "_").WithArguments("_").WithLocation(7, 10)
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(_, var x)").WithLocation(7, 9)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -5097,12 +5097,12 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (11,30): error CS8184: Cannot reference _ in a deconstruction declaration
-                //             foreach ((var y, _) in new[] { (1, "hello") }) { System.Console.Write("4"); } // error
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionDisallowed, "_").WithArguments("_").WithLocation(11, 30),
                 // (11,30): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //             foreach ((var y, _) in new[] { (1, "hello") }) { System.Console.Write("4"); } // error
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "_").WithArguments("string", "int").WithLocation(11, 30),
+                // (11,22): error CS8186: A foreach loop must declare its iteration variables.
+                //             foreach ((var y, _) in new[] { (1, "hello") }) { System.Console.Write("4"); } // error
+                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(var y, _)").WithLocation(11, 22),
                 // (10,17): warning CS0168: The variable '_' is declared but never used
                 //             int _;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "_").WithArguments("_").WithLocation(10, 17)
