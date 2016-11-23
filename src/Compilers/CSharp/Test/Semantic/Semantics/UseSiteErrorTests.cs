@@ -2487,6 +2487,9 @@ class C : CSharpErrors.ClassMethods
 }";
 
             var compilation = CompileWithMissingReference(text);
+            var diagnostics = compilation.GetDiagnostics();
+            Assert.True(diagnostics.Any(d => d.Code == (int)ErrorCode.ERR_NoTypeDef));
+
             foreach (var diagnostic in compilation.GetDiagnostics())
             {
                 if (diagnostic.Code == (int)ErrorCode.ERR_NoTypeDef)
