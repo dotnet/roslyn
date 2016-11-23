@@ -153,10 +153,12 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // we are under cancellation, we don't care what the exception is.
                 // due to the way we do cancellation (forcefully closing connection in the middle of reading/writing)
-                // various exception can be thrown.
+                // various exceptions can be thrown. for example, if we close our own named pipe stream in the middle of
+                // object reader/writer using it, we could get invalid operation exception or invalid cast exception.
                 return true;
             }
 
+            // unexpected exception case. crash VS
             return FatalError.Report(ex);
         }
 
