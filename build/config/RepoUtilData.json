@@ -18,7 +18,8 @@
         "Microsoft.Build.Tasks.Core": {
           "generateName": "Microsoft.Build.Tasks.Core.14",
           "version": "14.3.0"
-        }
+        },
+        "Newtonsoft.Json": "8.0.3"
     },
 
     "toolsetPackages": [
