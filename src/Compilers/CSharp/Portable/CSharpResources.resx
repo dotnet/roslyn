@@ -4990,4 +4990,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_MustDeclareForeachIteration" xml:space="preserve">
     <value>A foreach loop must declare its iteration variables.</value>
   </data>
+  <data name="ERR_TupleElementNamesInDeconstruction" xml:space="preserve">
+    <value>Tuple element names are not permitted on the left of a deconstruction.</value>
+  </data>
 </root>

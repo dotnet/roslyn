@@ -1434,9 +1434,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MixedDeconstructionUnsupported = 8184,
         ERR_DeclarationExpressionNotPermitted = 8185,
         ERR_MustDeclareForeachIteration = 8186,
+        ERR_TupleElementNamesInDeconstruction = 8187,
         #endregion stragglers for C# 7
 
-        // Available  = 8187-8195
+        // Available  = 8188-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
