@@ -5581,14 +5581,15 @@ tryAgain:
             // then assume it is unless we see specific tokens following it.
             switch (this.CurrentToken.Kind)
             {
-                case SyntaxKind.IdentifierToken when IsTrueIdentifier():
+                case SyntaxKind.IdentifierToken:
                     // C#7: In certain contexts, we treat *identifier* as a disambiguating token. Those
                     // contexts are where the sequence of tokens being disambiguated is immediately preceded by one
                     // of the keywords is, case, or out, or arises while parsing the first element of a tuple literal
                     // (in which case the tokens are preceded by `(` and the identifier is followed by a `,`) or a
                     // subsequent element of a tuple literal.
-                    if ((options & NameOptions.AfterIsOrCaseOrOutOrTupleComma) != 0 ||
-                        (options & NameOptions.FirstElementOfPossibleTupleLiteral) != 0 && this.PeekToken(1).Kind == SyntaxKind.CommaToken)
+                    if (IsTrueIdentifier() &&
+                        ((options & NameOptions.AfterIsOrCaseOrOutOrTupleComma) != 0 ||
+                         (options & NameOptions.FirstElementOfPossibleTupleLiteral) != 0 && this.PeekToken(1).Kind == SyntaxKind.CommaToken))
                     {
                         // we allow 'G<T,U> x' as a pattern-matching operation and a declaration pattern in a tuple.
                         return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
