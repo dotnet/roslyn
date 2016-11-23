@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -68,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             RegisterMiscellaneousFilesWorkspaceInformation(_miscellaneousFilesWorkspace);
 
             this.Workspace = this.CreateWorkspace();
-            if (this.Workspace != null)
+            if (IsInIdeMode(this.Workspace))
             {
                 // make sure solution crawler start once everything has been setup.
                 // this also should be started before any of workspace events start firing
@@ -132,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _miscellaneousFilesWorkspace.StopSolutionCrawler();
             }
 
-            if (this.Workspace != null)
+            if (IsInIdeMode(this.Workspace))
             {
                 this.Workspace.StopSolutionCrawler();
 
@@ -150,6 +151,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         protected abstract string RoslynLanguageName { get; }
+
+        private bool IsInIdeMode(Workspace workspace)
+        {
+            return workspace != null && !IsInCommandLineMode();
+        }
+
+        private bool IsInCommandLineMode()
+        {
+            var shell = (IVsShell)this.GetService(typeof(SVsShell));
+
+            object result;
+            if (ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out result)))
+            {
+                return (bool)result;
+            }
+
+            return false;
+        }
 
         private void EnableRemoteHostClientService()
         {
