@@ -1,12 +1,11 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
-    <id>Roslyn.VisualStudio.Test.Utilities</id>
-    <description>Utility methods used to run Roslyn Visual Studio integration tests.</description>
+    <id>Microsoft.VisualStudio.IntegrationTest.Utilities</id>
+    <description>Utility methods used to run Visual Studio integration tests.</description>
     <dependencies>
       <dependency id="Microsoft.VisualStudio.LanguageServices" version="$version$" />
     </dependencies>
-    
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
@@ -17,7 +16,7 @@
     <tags>$tags$</tags>
   </metadata>
   <files>
-    <file src="Dlls\VisualStudioTestUtilities\Roslyn.VisualStudio.Test.Utilities.dll" target="lib\net46" />
-    <file src="Vsix\VisualStudioTestSetup\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" target="lib\net46" />
+    <file src="Dlls\VisualStudioIntegrationTestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.dll" target="lib\net46" />
+    <file src="Dlls\VisualStudioIntegrationTestUtilities\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" target="lib\net46" />
   </files>
 </package>
