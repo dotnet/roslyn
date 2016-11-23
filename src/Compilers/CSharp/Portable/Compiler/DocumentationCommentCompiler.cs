@@ -132,7 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbol.Kind == SymbolKind.Field ||
                 symbol.Kind == SymbolKind.Method ||
                 symbol.Kind == SymbolKind.NamedType ||
-                symbol.Kind == SymbolKind.Property);
+                symbol.Kind == SymbolKind.Property ||
+                symbol.Kind == SymbolKind.Namespace);
 
             CSharpCompilation compilation = symbol.DeclaringCompilation;
             Debug.Assert(compilation != null);
@@ -166,40 +167,47 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (symbol.IsGlobalNamespace)
+            if (!_isForSingleSymbol)
             {
-                Debug.Assert(_assemblyName != null);
-
-                WriteLine("<?xml version=\"1.0\"?>");
-                WriteLine("<doc>");
-                Indent();
-
-                if (!_compilation.Options.OutputKind.IsNetModule())
+                if (symbol.IsGlobalNamespace)
                 {
-                    WriteLine("<assembly>");
+                    Debug.Assert(_assemblyName != null);
+
+                    WriteLine("<?xml version=\"1.0\"?>");
+                    WriteLine("<doc>");
                     Indent();
-                    WriteLine("<name>{0}</name>", _assemblyName);
-                    Unindent();
-                    WriteLine("</assembly>");
+
+                    if (!_compilation.Options.OutputKind.IsNetModule())
+                    {
+                        WriteLine("<assembly>");
+                        Indent();
+                        WriteLine("<name>{0}</name>", _assemblyName);
+                        Unindent();
+                        WriteLine("</assembly>");
+                    }
+
+                    WriteLine("<members>");
+                    Indent();
+                }
+            }
+
+            DefaultVisit(symbol);
+
+            if (!_isForSingleSymbol)
+            {
+                foreach (var s in symbol.GetMembers())
+                {
+                    _cancellationToken.ThrowIfCancellationRequested();
+                    s.Accept(this);
                 }
 
-                WriteLine("<members>");
-                Indent();
-            }
-
-            Debug.Assert(!_isForSingleSymbol);
-            foreach (var s in symbol.GetMembers())
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-                s.Accept(this);
-            }
-
-            if (symbol.IsGlobalNamespace)
-            {
-                Unindent();
-                WriteLine("</members>");
-                Unindent();
-                WriteLine("</doc>");
+                if (symbol.IsGlobalNamespace)
+                {
+                    Unindent();
+                    WriteLine("</members>");
+                    Unindent();
+                    WriteLine("</doc>");
+                }
             }
         }
 
@@ -547,12 +555,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A symbol requires a documentation comment if it was explicitly declared and
         /// will be visible outside the current assembly (ignoring InternalsVisibleTo).
         /// Exception: accessors do not require doc comments.
+        /// Exception: namespaces do not require doc comments.
         /// </summary>
         private static bool RequiresDocumentationComment(Symbol symbol)
         {
             Debug.Assert((object)symbol != null);
 
-            if (symbol.IsImplicitlyDeclared || symbol.IsAccessor())
+            if (symbol.IsImplicitlyDeclared || symbol.IsAccessor() || symbol.Kind == SymbolKind.Namespace)
             {
                 return false;
             }

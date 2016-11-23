@@ -109,7 +109,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                              symbol.Kind = SymbolKind.Field OrElse
                              symbol.Kind = SymbolKind.Method OrElse
                              symbol.Kind = SymbolKind.NamedType OrElse
-                             symbol.Kind = SymbolKind.Property)
+                             symbol.Kind = SymbolKind.Property OrElse
+                             symbol.Kind = SymbolKind.Namespace)
 
                 Dim compilation As VisualBasicCompilation = symbol.DeclaringCompilation
                 Debug.Assert(compilation IsNot Nothing)
