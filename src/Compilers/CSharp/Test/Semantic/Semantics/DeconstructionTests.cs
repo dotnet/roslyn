@@ -1707,12 +1707,9 @@ class var { }
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,14): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                // (6,13): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 //         var (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(6, 14),
-                // (6,18): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
-                //         var (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x1, x2)").WithLocation(6, 13),
                 // (6,25): error CS0029: Cannot implicitly convert type 'int' to 'var'
                 //         var (x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "var").WithLocation(6, 25),
@@ -1742,12 +1739,9 @@ class D
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (7,14): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                // (7,13): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 //         var (x3, x4) = (3, 4);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x3").WithLocation(7, 14),
-                // (7,18): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
-                //         var (x3, x4) = (3, 4);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x4").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x3, x4)").WithLocation(7, 13),
                 // (7,25): error CS0029: Cannot implicitly convert type 'int' to 'D'
                 //         var (x3, x4) = (3, 4);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "D").WithLocation(7, 25),
