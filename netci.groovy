@@ -182,23 +182,28 @@ commitPullList.each { isPr ->
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
-// Integration Tests
+// VS Integration Tests
 commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "integration", isPr)
-  def myJob = job(jobName) {
-    description('integration tests')
-    steps {
-      batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+  ['debug', 'release'].each { configuration ->
+    ['vs-integration'].each { buildTarget ->
+      def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
+      def myJob = job(jobName) {
+        description("Windows ${configuration} tests on ${buildTarget}")
+        steps {
+          batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
 set TMP=%TEMP%
-.\\cibuild.cmd /debug /testVsi""")
+.\\cibuild.cmd ${(configuration == 'debug') ? '/debug' : '/release'} /testVsi""")
+        }
+      }
+
+      def triggerPhraseOnly = false
+      def triggerPhraseExtra = ""
+      Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-rc')
+      Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+      addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
   }
-
-  def triggerPhraseOnly = false
-  def triggerPhraseExtra = "integration"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-rc')
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
 JobReport.Report.generateJobReport(out)
