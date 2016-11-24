@@ -5635,20 +5635,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Free();
                     continue;
                 }
-                RefOmitMode allowRefOmittedArguments = RefOmitMode.None;
+                RefOmitMode refOmitMode = RefOmitMode.None;
                 if (actualArguments == null)
                 {
                     // Create a set of arguments for overload resolution of the
                     // extension methods that includes the "this" parameter.
                     actualArguments = AnalyzedArguments.GetInstance();
-                    allowRefOmittedArguments = RefOmitMode.First;
+                    refOmitMode = RefOmitMode.First;
                     CombineExtensionMethodArguments(left, analyzedArguments, actualArguments);
                 }
 
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance() ;
                 if (methodGroup.Receiver.IsExpressionOfComImportType())
                 {
-                    allowRefOmittedArguments = RefOmitMode.First;
+                    refOmitMode = RefOmitMode.First;
                 }
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 OverloadResolution.MethodInvocationOverloadResolution(methodGroup.Methods,
@@ -5657,7 +5657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     overloadResolutionResult,
                     ref useSiteDiagnostics,
                     isMethodGroupConversion,
-                    allowRefOmittedArguments);
+                    refOmitMode);
                 diagnostics.Add(expression, useSiteDiagnostics);
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
                 var result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, actualArguments, methodGroup.ResultKind, sealedDiagnostics);
