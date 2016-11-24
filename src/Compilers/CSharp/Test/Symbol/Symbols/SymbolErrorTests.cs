@@ -19419,13 +19419,16 @@ internal abstract event System.EventHandler E;";
         {
             var text = @"public static class Extensions
 {
-    public static void Test(this ref System.String s) { } //CS8201
+    public static void Test1(this ref System.String s) { } //CS8201
+    public static void Test2<T>(this ref T s) { } //CS8201
+    public static void Test3<T>(this ref T s) where T: struct { }
 }
 ";
             var reference = SystemCoreRef;
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new List<MetadataReference> { reference },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_RefExtensionMethodOnNonValueType, Line = 3, Column = 24 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_RefExtensionMethodOnNonValueType, Line = 3, Column = 24 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_RefExtensionMethodOnNonValueType, Line = 4, Column = 24 });
         }
     }
 }

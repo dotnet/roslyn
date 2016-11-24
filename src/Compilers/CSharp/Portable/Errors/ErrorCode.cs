@@ -655,7 +655,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // ERR_EOLExpected = 1099, // EE
         // ERR_NotSupportedinEE = 1100, // EE
         ERR_BadThisParam = 1100,
-        ERR_BadRefWithThis = 1101,
         ERR_BadOutWithThis = 1102,
         ERR_BadTypeforThis = 1103,
         ERR_BadParamModThis = 1104,
