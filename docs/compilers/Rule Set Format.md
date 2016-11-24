@@ -11,7 +11,7 @@ Sample
 The following demonstrates a small but complete example of a .ruleset file.
 
 ``` XML
-<RuleSet Name="Project WizBang Rules">
+<RuleSet Name="Project WizBang Rules"
          ToolsVersion="12.0">
   <Include Path="..\OtherRules.ruleset" 
            Action="Default" />
@@ -20,12 +20,12 @@ The following demonstrates a small but complete example of a .ruleset file.
     <Rule Id="CA1027" Action="Warning" />
     <Rule Id="CA1309" Action="Error" />
     <Rule Id="CA2217" Action="Warning" />
-  <Rules>
+  </Rules>
   <Rules AnalyzerId="System.Runtime.InteropServices.Analyzers"
          RuleNamespace="System.Runtime.InteropService.Analyzers">
     <Rule Id="CA1401" Action="None" />
     <Rule Id="CA2101" Action="Error" />
-  <Rules>
+  </Rules>
 </RuleSet>
 ```
 
