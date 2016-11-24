@@ -9,6 +9,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    using System;
+
     internal enum BetterResult
     {
         Left,
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             OverloadResolutionResult<MethodSymbol> result,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool isMethodGroupConversion = false,
-            bool allowRefOmittedArguments = false,
+            RefOmitMode allowRefOmittedArguments = RefOmitMode.None,
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true)
         {
@@ -114,7 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             ArrayBuilder<TypeSymbol> typeArguments = ArrayBuilder<TypeSymbol>.GetInstance();
-            MethodOrPropertyOverloadResolution(indexers, typeArguments, arguments, result, isMethodGroupConversion: false, allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics);
+            MethodOrPropertyOverloadResolution(indexers, typeArguments, arguments, result, isMethodGroupConversion: false,
+                allowRefOmittedArguments: allowRefOmittedArguments ? RefOmitMode.All : RefOmitMode.None,
+                useSiteDiagnostics: ref useSiteDiagnostics);
             typeArguments.Free();
         }
 
@@ -124,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments arguments,
             OverloadResolutionResult<TMember> result,
             bool isMethodGroupConversion,
-            bool allowRefOmittedArguments,
+            RefOmitMode allowRefOmittedArguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true)
@@ -203,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments arguments,
             bool completeResults,
             bool isMethodGroupConversion,
-            bool allowRefOmittedArguments,
+            RefOmitMode allowRefOmittedArguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true)
@@ -347,7 +351,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MemberAnalysisResult.UseSiteError();
             }
 
-            var effectiveParameters = GetEffectiveParametersInNormalForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, allowRefOmittedArguments: false);
+            var effectiveParameters = GetEffectiveParametersInNormalForm(constructor,
+                arguments.Arguments.Count,
+                argumentAnalysis.ArgsToParamsOpt,
+                arguments.RefKinds,
+                allowRefOmittedArguments: RefOmitMode.None);
 
             return IsApplicable(constructor, effectiveParameters, arguments, argumentAnalysis.ArgsToParamsOpt, isVararg: constructor.IsVararg, hasAnyRefOmittedArgument: false, ignoreOpenTypes: false, useSiteDiagnostics: ref useSiteDiagnostics);
         }
@@ -366,7 +374,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MemberAnalysisResult.UseSiteError();
             }
 
-            var effectiveParameters = GetEffectiveParametersInExpandedForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, allowRefOmittedArguments: false);
+            var effectiveParameters = GetEffectiveParametersInExpandedForm(constructor,
+                arguments.Arguments.Count,
+                argumentAnalysis.ArgsToParamsOpt,
+                arguments.RefKinds,
+                allowRefOmittedArguments: RefOmitMode.None);
 
             // A vararg ctor is never applicable in its expanded form because
             // it is never a params method.
@@ -384,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments arguments,
             bool completeResults,
             bool isMethodGroupConversion,
-            bool allowRefOmittedArguments,
+            RefOmitMode allowRefOmittedArguments,
             Dictionary<NamedTypeSymbol, ArrayBuilder<TMember>> containingTypeMapOpt,
             bool inferWithDynamic,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
@@ -2402,7 +2414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
-            bool allowRefOmittedArguments)
+            RefOmitMode allowRefOmittedArguments)
             where TMember : Symbol
         {
             bool discarded;
@@ -2414,7 +2426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
-            bool allowRefOmittedArguments,
+            RefOmitMode allowRefOmittedArguments,
             out bool hasAnyRefOmittedArgument) where TMember : Symbol
         {
             Debug.Assert(argumentRefKinds != null);
@@ -2450,7 +2462,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 types.Add(parameter.Type);
 
                 RefKind argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
-                RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
+                RefKind paramRefKind = GetEffectiveParameterRefKind(
+                    parameter,
+                    argRefKind,
+                    allowRefOmittedArguments.IsAllowed(arg),
+                    ref hasAnyRefOmittedArgument);
 
                 if (refs == null)
                 {
@@ -2492,7 +2508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
-            bool allowRefOmittedArguments) where TMember : Symbol
+            RefOmitMode allowRefOmittedArguments) where TMember : Symbol
         {
             bool discarded;
             return GetEffectiveParametersInExpandedForm(member, argumentCount, argToParamMap, argumentRefKinds, allowRefOmittedArguments, hasAnyRefOmittedArgument: out discarded);
@@ -2503,7 +2519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
-            bool allowRefOmittedArguments,
+            RefOmitMode allowRefOmittedArguments,
             out bool hasAnyRefOmittedArgument) where TMember : Symbol
         {
             Debug.Assert(argumentRefKinds != null);
@@ -2523,7 +2539,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 types.Add(parm == parameters.Length - 1 ? elementType : parameter.Type);
 
                 var argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
-                var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
+                var paramRefKind = GetEffectiveParameterRefKind(parameter,
+                    argRefKind,
+                    allowRefOmittedArguments.IsAllowed(arg),
+                    ref hasAnyRefOmittedArgument);
 
                 refs.Add(paramRefKind);
                 if (paramRefKind != RefKind.None)
@@ -2543,7 +2562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TypeSymbol> typeArguments,
             AnalyzedArguments arguments,
             bool isMethodGroupConversion,
-            bool allowRefOmittedArguments,
+            RefOmitMode allowRefOmittedArguments,
             bool inferWithDynamic,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool completeResults = false)
@@ -2586,7 +2605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 allowRefOmittedArguments,
                 out hasAnyRefOmittedArgument);
 
-            Debug.Assert(!hasAnyRefOmittedArgument || allowRefOmittedArguments);
+            Debug.Assert(!hasAnyRefOmittedArgument || allowRefOmittedArguments != RefOmitMode.None);
 
             // To determine parameter types we use the originalMember.
             EffectiveParameters constructedEffectiveParameters = GetEffectiveParametersInNormalForm(
@@ -2620,7 +2639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TMember leastOverriddenMember, // method or property
             ArrayBuilder<TypeSymbol> typeArguments,
             AnalyzedArguments arguments,
-            bool allowRefOmittedArguments,
+            RefOmitMode allowRefOmittedArguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
@@ -2650,7 +2669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 allowRefOmittedArguments,
                 out hasAnyRefOmittedArgument);
 
-            Debug.Assert(!hasAnyRefOmittedArgument || allowRefOmittedArguments);
+            Debug.Assert(!hasAnyRefOmittedArgument || allowRefOmittedArguments != RefOmitMode.None);
 
             // To determine parameter types we use the least derived member.
             EffectiveParameters constructedEffectiveParameters = GetEffectiveParametersInExpandedForm(
@@ -3013,4 +3032,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
     }
+
+#pragma warning disable RS0016 // Add public types and members to the declared API
+    internal enum RefOmitMode
+    {
+        None,
+        All,
+        First
+    }
+
+    internal static class RefOmitModeExtensions
+    {
+        public static bool IsAllowed(this RefOmitMode mode, int argument)
+        {
+            switch (mode)
+            {
+                case RefOmitMode.None:
+                    return false;
+                case RefOmitMode.All:
+                    return true;
+                case RefOmitMode.First:
+                    return argument == 0;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
+            }
+        }
+    }
+#pragma warning restore RS0016 // Add public types and members to the declared API
 }

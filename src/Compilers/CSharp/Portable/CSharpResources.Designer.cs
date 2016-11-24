@@ -7865,6 +7865,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A ref extension methods can only be defined on value types..
+        /// </summary>
+        internal static string ERR_RefExtensionMethodOnNonValueType {
+            get {
+                return ResourceManager.GetString("ERR_RefExtensionMethodOnNonValueType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A ref or out value must be an assignable variable.
         /// </summary>
         internal static string ERR_RefLvalueExpected {

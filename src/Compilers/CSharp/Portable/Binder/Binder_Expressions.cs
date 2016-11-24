@@ -5635,19 +5635,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Free();
                     continue;
                 }
-
+                RefOmitMode allowRefOmittedArguments = RefOmitMode.None;
                 if (actualArguments == null)
                 {
                     // Create a set of arguments for overload resolution of the
                     // extension methods that includes the "this" parameter.
                     actualArguments = AnalyzedArguments.GetInstance();
+                    allowRefOmittedArguments = RefOmitMode.First;
                     CombineExtensionMethodArguments(left, analyzedArguments, actualArguments);
                 }
 
-                var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-                bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
+                var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance() ;
+                if (methodGroup.Receiver.IsExpressionOfComImportType())
+                {
+                    allowRefOmittedArguments = RefOmitMode.First;
+                }
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                OverloadResolution.MethodInvocationOverloadResolution(methodGroup.Methods, methodGroup.TypeArguments, actualArguments, overloadResolutionResult, ref useSiteDiagnostics, isMethodGroupConversion, allowRefOmittedArguments);
+                OverloadResolution.MethodInvocationOverloadResolution(methodGroup.Methods,
+                    methodGroup.TypeArguments,
+                    actualArguments,
+                    overloadResolutionResult,
+                    ref useSiteDiagnostics,
+                    isMethodGroupConversion,
+                    allowRefOmittedArguments);
                 diagnostics.Add(expression, useSiteDiagnostics);
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
                 var result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, actualArguments, methodGroup.ResultKind, sealedDiagnostics);
@@ -6778,7 +6788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
                 OverloadResolution.MethodInvocationOverloadResolution(
                     methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments,
-                    result, ref useSiteDiagnostics, isMethodGroupConversion, allowRefOmittedArguments,
+                    result, ref useSiteDiagnostics, isMethodGroupConversion, allowRefOmittedArguments ? RefOmitMode.All : RefOmitMode.None,
                     inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm);
                 return new MethodGroupResolution(methodGroup, null, result, analyzedArguments, methodGroup.ResultKind, sealedDiagnostics);
             }
