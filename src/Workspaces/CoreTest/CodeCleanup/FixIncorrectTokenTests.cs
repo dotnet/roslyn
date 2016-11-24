@@ -782,10 +782,8 @@ End Module
         {
             codeWithMarker = FixLineEndings(codeWithMarker);
             expectedResult = FixLineEndings(expectedResult);
-
-            var codeWithoutMarker = default(string);
             var textSpans = (IList<TextSpan>)new List<TextSpan>();
-            MarkupTestFile.GetSpans(codeWithMarker, out codeWithoutMarker, out textSpans);
+            MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
             var codeCleanups = CodeCleaner.GetDefaultProviders(document).Where(p => p.Name == PredefinedCodeCleanupProviderNames.FixIncorrectTokens || p.Name == PredefinedCodeCleanupProviderNames.Format);

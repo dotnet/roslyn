@@ -54,9 +54,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             State state = null;
             var shouldAnalyze = false;
             var declarationStatement = context.Node;
-            var optionSet = context.Options.GetOptionSet();
-            var semanticModel = context.SemanticModel;
+            var options = context.Options;
+            var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+            
+            var semanticModel = context.SemanticModel;
 
             if (declarationStatement.IsKind(SyntaxKind.VariableDeclaration))
             {
@@ -88,10 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             if (shouldAnalyze)
             {
                 Debug.Assert(state != null, "analyzing a declaration and state is null.");
-
-                TextSpan diagnosticSpan;
-
-                if (TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken, out diagnosticSpan))
+                if (TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken, out var diagnosticSpan))
                 {
                     // The severity preference is not Hidden, as indicated by shouldAnalyze.
                     var descriptor = CreateDescriptorWithSeverity(state.GetDiagnosticSeverityPreference());

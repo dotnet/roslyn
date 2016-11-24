@@ -5233,6 +5233,9 @@ class C
             {
                 throw new NotImplementedException();
             }
+
+            public bool IsComImport => throw new NotImplementedException();
+
             #endregion
         }
 

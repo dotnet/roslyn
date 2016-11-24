@@ -87,11 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return InstrumentStatement(original, rewritten);
         }
 
-        public virtual BoundStatement InstrumentLocalDeconstructionDeclaration(BoundLocalDeconstructionDeclaration original, BoundStatement rewritten)
-        {
-            return InstrumentStatement(original, rewritten);
-        }
-
         public virtual BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
         {
             Debug.Assert(LocalRewriter.IsFieldOrPropertyInitializer(original));

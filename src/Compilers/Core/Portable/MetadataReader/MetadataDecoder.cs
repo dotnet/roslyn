@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis
         where TypeSymbol : class
     {
         internal bool IsByRef;
-        internal ushort CountOfCustomModifiersPrecedingByRef;
         internal TypeSymbol Type;
         internal ParameterHandle Handle; // may be nil
+        internal ImmutableArray<ModifierInfo<TypeSymbol>> RefCustomModifiers;
         internal ImmutableArray<ModifierInfo<TypeSymbol>> CustomModifiers;
     }
 
@@ -1101,29 +1101,8 @@ namespace Microsoft.CodeAnalysis
             if (typeCode == SignatureTypeCode.ByReference)
             {
                 info.IsByRef = true;
-
-                // The spec says that custom modifiers must precede SignatureTypeCode.ByReference, but the managed C++
-                // compiler emits them in the reverse order.  In order to avoid breaking interop scenarios, we need to
-                // support decoding (and later emitting) such signatures.
-                var additionalModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
-
-                if (!info.CustomModifiers.IsDefault)
-                {
-                    info.CountOfCustomModifiersPrecedingByRef = (ushort)info.CustomModifiers.Length;
-                    if (info.CountOfCustomModifiersPrecedingByRef != info.CustomModifiers.Length)
-                    {
-                        throw new UnsupportedSignatureContent();
-                    }
-
-                    if (!additionalModifiers.IsDefaultOrEmpty)
-                    {
-                        info.CustomModifiers = info.CustomModifiers.Concat(additionalModifiers);
-                    }
-                }
-                else
-                {
-                    info.CustomModifiers = additionalModifiers;
-                }
+                info.RefCustomModifiers = info.CustomModifiers; 
+                info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
             }
 
             info.Type = DecodeTypeOrThrow(ref signatureReader, typeCode, out refersToNoPiaLocalType);

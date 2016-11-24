@@ -335,10 +335,8 @@ namespace Roslyn.Utilities
             }
 
             var elementKind = (DataKind)_reader.ReadByte();
-
             // optimization for primitive type array
-            Type elementType;
-            if (s_reverseTypeMap.TryGetValue(elementKind, out elementType))
+            if (s_reverseTypeMap.TryGetValue(elementKind, out var elementType))
             {
                 return this.ReadPrimitiveTypeArrayElements(elementType, elementKind, length);
             }

@@ -285,18 +285,6 @@
   <data name="ERR_UnreferencedModuleEvent3" xml:space="preserve">
     <value>Reference required to module '{0}' containing the definition for event '{1}'. Add one to your project.</value>
   </data>
-  <data name="ERR_UnreferencedAssemblyBase3" xml:space="preserve">
-    <value>Reference required to assembly '{0}' containing the base class '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedModuleBase3" xml:space="preserve">
-    <value>Reference required to module '{0}' containing the base class '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedAssemblyImplements3" xml:space="preserve">
-    <value>Reference required to assembly '{0}' containing the implemented interface '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedModuleImplements3" xml:space="preserve">
-    <value>Reference required to module '{0}' containing the implemented interface '{1}'. Add one to your project.</value>
-  </data>
   <data name="ERR_LbExpectedEndIf" xml:space="preserve">
     <value>'#If' block must end with a matching '#End If'.</value>
   </data>

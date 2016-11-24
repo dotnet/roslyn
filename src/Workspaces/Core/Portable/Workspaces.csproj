@@ -304,6 +304,7 @@
     <Compile Include="CodeActions\Annotations\SuppressDiagnosticsAnnotation.cs" />
     <Compile Include="CodeActions\CodeActionPriority.cs" />
     <Compile Include="CodeActions\Operations\PreviewOperation.cs" />
+    <Compile Include="CodeActions\Operations\RenameDocumentOperation.cs" />
     <Compile Include="CodeCleanup\AbstractCodeCleanerService.cs" />
     <Compile Include="CodeCleanup\CodeCleaner.cs" />
     <Compile Include="CodeCleanup\ICodeCleanerService.cs" />
@@ -340,16 +341,20 @@
     <Compile Include="CodeGeneration\CodeGenerationOptions.cs" />
     <Compile Include="CodeGeneration\CodeGenerationSymbolFactory.cs" />
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
+    <Compile Include="CodeStyle\CodeStyleHelpers.cs" />
     <Compile Include="CodeStyle\CodeStyleOptions.cs" />
     <Compile Include="CodeStyle\NotificationOption.cs" />
     <Compile Include="CodeStyle\CodeStyleOption.cs" />
+    <Compile Include="Diagnostics\AbstractDiagnosticPropertiesService.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalysisResult.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalysisResultMap.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalysisResultBuilder.cs" />
     <Compile Include="Diagnostics\DiagnosticData.cs" />
     <Compile Include="Diagnostics\DiagnosticDataSerializer.cs" />
+    <Compile Include="Diagnostics\DiagnosticPropertyConstants.cs" />
     <Compile Include="Diagnostics\DiagnosticProvider.cs" />
     <Compile Include="Diagnostics\Extensions.cs" />
+    <Compile Include="Diagnostics\IDiagnosticPropertiesService.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptions.cs" />
     <Compile Include="Diagnostics\InternalRuntimeDiagnosticOptions.cs" />
     <Compile Include="Execution\AssetStorages.Storage.cs" />
@@ -376,6 +381,7 @@
     <Compile Include="PatternMatching\PatternMatchKind.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
+    <Compile Include="Tags\WellKnownTags.cs" />
     <Compile Include="Workspace\Solution\Checksum.cs" />
     <Compile Include="Execution\RemotableData.cs" />
     <Compile Include="Execution\PinnedRemotableDataScope.cs" />

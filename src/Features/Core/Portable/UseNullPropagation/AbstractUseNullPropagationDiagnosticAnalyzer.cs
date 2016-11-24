@@ -50,7 +50,14 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            var optionSet = context.Options.GetOptionSet();
+            var syntaxTree = conditionalExpression.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
             var option = optionSet.GetOption(CodeStyleOptions.PreferNullPropagation, conditionalExpression.Language);
             if (!option.Value)
             {
@@ -58,10 +65,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             }
 
             var syntaxFacts = this.GetSyntaxFactsService();
-
-            SyntaxNode conditionNode, whenTrueNode, whenFalseNode;
             syntaxFacts.GetPartsOfConditionalExpression(
-                conditionalExpression, out conditionNode, out whenTrueNode, out whenFalseNode);
+                conditionalExpression, out var conditionNode, out var whenTrueNode, out var whenFalseNode);
 
             conditionNode = syntaxFacts.WalkDownParentheses(conditionNode);
 
@@ -78,9 +83,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            SyntaxNode conditionLeft;
-            SyntaxNode conditionRight;
-            syntaxFacts.GetPartsOfBinaryExpression(condition, out conditionLeft, out conditionRight);
+            syntaxFacts.GetPartsOfBinaryExpression(condition, out var conditionLeft, out var conditionRight);
 
             var conditionLeftIsNull = syntaxFacts.IsNullLiteralExpression(conditionLeft);
             var conditionRightIsNull = syntaxFacts.IsNullLiteralExpression(conditionRight);
@@ -92,6 +95,19 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             }
 
             if (!conditionRightIsNull && !conditionLeftIsNull)
+            {
+                return;
+            }
+
+            // Needs to be of the forme:
+            //      x == null ? null : ...    or
+            //      x != null ? ...  : null;
+            if (isEquals && !syntaxFacts.IsNullLiteralExpression(whenTrueNode))
+            {
+                return;
+            }
+
+            if (isNotEquals && !syntaxFacts.IsNullLiteralExpression(whenFalseNode))
             {
                 return;
             }

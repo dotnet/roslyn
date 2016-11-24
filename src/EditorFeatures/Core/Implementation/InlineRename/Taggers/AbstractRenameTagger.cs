@@ -104,8 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var span = renameSpan.TrackingSpan.GetSpan(snapshot);
                     if (spans.OverlapsWith(span))
                     {
-                        TagSpan<T> tagSpan;
-                        if (TryCreateTagSpan(span, renameSpan.Type, out tagSpan))
+                        if (TryCreateTagSpan(span, renameSpan.Type, out var tagSpan))
                         {
                             yield return tagSpan;
                         }

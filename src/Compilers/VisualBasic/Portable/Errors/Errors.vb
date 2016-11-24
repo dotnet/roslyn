@@ -82,9 +82,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_UnreferencedAssemblyEvent3 = 30005
         ERR_UnreferencedModuleEvent3 = 30006
         ' ERR_UnreferencedAssemblyBase3 = 30007
-        ERR_UnreferencedModuleBase3 = 30008
+        ' ERR_UnreferencedModuleBase3 = 30008           - This has been superceded by ERR_UnreferencedModuleEvent3
         ' ERR_UnreferencedAssemblyImplements3 = 30009
-        ERR_UnreferencedModuleImplements3 = 30010
+        'ERR_UnreferencedModuleImplements3 = 30010      - This has been superceded by ERR_UnreferencedModuleEvent3
 
         'ERR_CodegenError = 30011
         ERR_LbExpectedEndIf = 30012

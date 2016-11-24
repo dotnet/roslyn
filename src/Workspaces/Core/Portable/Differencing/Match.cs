@@ -31,12 +31,8 @@ namespace Microsoft.CodeAnalysis.Differencing
             _comparer = comparer;
 
             int labelCount = comparer.LabelCount;
-
-            // Calculate chains (not including root node):
-            int count1, count2;
-            List<TNode>[] nodes1, nodes2;
-            CategorizeNodesByLabels(comparer, root1, labelCount, out nodes1, out count1);
-            CategorizeNodesByLabels(comparer, root2, labelCount, out nodes2, out count2);
+            CategorizeNodesByLabels(comparer, root1, labelCount, out var nodes1, out var count1);
+            CategorizeNodesByLabels(comparer, root2, labelCount, out var nodes2, out var count2);
 
             _oneToTwo = new Dictionary<TNode, TNode>();
             _twoToOne = new Dictionary<TNode, TNode>();
@@ -312,9 +308,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         internal bool Contains(TNode node1, TNode node2)
         {
             Debug.Assert(_comparer.TreesEqual(node2, _root2));
-
-            TNode partner2;
-            return TryGetPartnerInTree2(node1, out partner2) && node2.Equals(partner2);
+            return TryGetPartnerInTree2(node1, out var partner2) && node2.Equals(partner2);
         }
 
         public TreeComparer<TNode> Comparer

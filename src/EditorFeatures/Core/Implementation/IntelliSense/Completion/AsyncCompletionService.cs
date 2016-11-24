@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         public bool WaitForComputation(ITextView textView, ITextBuffer subjectBuffer)
         {
-            Controller controller;
-            if (!TryGetController(textView, subjectBuffer, out controller))
+            if (!TryGetController(textView, subjectBuffer, out var controller))
             {
                 return false;
             }
@@ -111,8 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private ImmutableHashSet<char> GetAllAutoBraceCompletionChars(IContentType bufferContentType)
         {
-            ImmutableHashSet<char> set;
-            if (!_autoBraceCompletionCharSet.TryGetValue(bufferContentType, out set))
+            if (!_autoBraceCompletionCharSet.TryGetValue(bufferContentType, out var set))
             {
                 var builder = ImmutableHashSet.CreateBuilder<char>();
                 foreach (var completion in _autoBraceCompletionChars)

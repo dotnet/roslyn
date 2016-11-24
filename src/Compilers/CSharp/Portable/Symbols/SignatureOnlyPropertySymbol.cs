@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RefKind _refKind;
         private readonly TypeSymbol _type;
         private readonly ImmutableArray<CustomModifier> _typeCustomModifiers;
-        private readonly ushort _countOfCustomModifiersPrecedingByRef;
+        private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
         private readonly bool _isStatic;
         private readonly ImmutableArray<PropertySymbol> _explicitInterfaceImplementations;
 
@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             TypeSymbol type,
             ImmutableArray<CustomModifier> typeCustomModifiers,
-            ushort countOfCustomModifiersPrecedingByRef,
+            ImmutableArray<CustomModifier> refCustomModifiers,
             bool isStatic,
             ImmutableArray<PropertySymbol> explicitInterfaceImplementations)
         {
             _refKind = refKind;
             _type = type;
             _typeCustomModifiers = typeCustomModifiers;
-            _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef;
+            _refCustomModifiers = refCustomModifiers;
             _isStatic = isStatic;
             _parameters = parameters;
             _explicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> TypeCustomModifiers { get { return _typeCustomModifiers; } }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef { get { return _countOfCustomModifiersPrecedingByRef; } }
+        public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return _refCustomModifiers; } }
 
         public override bool IsStatic { get { return _isStatic; } }
 

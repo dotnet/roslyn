@@ -24,13 +24,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterFirstExplicitArgument()
         {
-            await VerifyNotBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (int x, i $$"));
+            // The right-hand-side parses like a possible deconstruction or tuple type
+            await VerifyBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (int x, i $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterFirstImplicitArgument()
         {
-            await VerifyNotBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (x, i $$"));
+            // The right-hand-side parses like a possible deconstruction or tuple type
+            await VerifyBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (x, i $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -46,7 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     }
 }
 ";
-            await VerifyNotBuilderAsync(markup);
+            // The right-hand-side parses like a possible deconstruction or tuple type
+            await VerifyBuilderAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -62,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     }
 }
 ";
-            await VerifyNotBuilderAsync(markup);
+            // Could be a deconstruction expression
+            await VerifyBuilderAsync(markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -726,9 +730,7 @@ class C {
 
         private async Task VerifyWorkerAsync(string markup, bool isBuilder)
         {
-            string code;
-            int position;
-            MarkupTestFile.GetPosition(markup, out code, out position);
+            MarkupTestFile.GetPosition(markup, out var code, out int position);
 
             using (var workspaceFixture = new CSharpTestWorkspaceFixture())
             {

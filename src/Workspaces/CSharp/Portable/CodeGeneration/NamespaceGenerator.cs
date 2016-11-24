@@ -59,10 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CancellationToken cancellationToken)
         {
             options = options ?? CodeGenerationOptions.Default;
-
-            string name;
-            INamespaceSymbol innermostNamespace;
-            GetNameAndInnermostNamespace(@namespace, options, out name, out innermostNamespace);
+            GetNameAndInnermostNamespace(@namespace, options, out var name, out var innermostNamespace);
 
             var declaration = GetDeclarationSyntaxWithoutMembers(@namespace, innermostNamespace, name, options);
 

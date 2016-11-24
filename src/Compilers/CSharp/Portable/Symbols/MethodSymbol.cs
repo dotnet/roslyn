@@ -275,16 +275,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations { get; }
 
         /// <summary>
-        /// Returns the list of custom modifiers, if any, associated with the returned value. 
+        /// Returns the list of custom modifiers, if any, associated with the return type. 
         /// </summary>
         public abstract ImmutableArray<CustomModifier> ReturnTypeCustomModifiers { get; }
 
         /// <summary>
-        /// In order to avoid breaking interop scenarios, we need to support signatures
-        /// with modifiers preceding ByRef.
-        /// Should be 0 for non-ref returns.
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
         /// </summary>
-        internal abstract ushort CountOfCustomModifiersPrecedingByRef { get; }
+        public abstract ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
         /// Gets the attributes on method's return type.
@@ -872,6 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check return type, custom modifiers, parameters
             if (DeriveUseSiteDiagnosticFromType(ref result, this.ReturnType) ||
+                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers) ||
                 DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.ReturnTypeCustomModifiers) ||
                 DeriveUseSiteDiagnosticFromParameters(ref result, this.Parameters))
             {
@@ -885,6 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
 
                 if (this.ReturnType.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
+                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.RefCustomModifiers, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.ReturnTypeCustomModifiers, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.Parameters, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.TypeParameters, this, ref unificationCheckedTypes))
@@ -1149,6 +1149,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return this.ReturnTypeCustomModifiers;
+            }
+        }
+
+        ImmutableArray<CustomModifier> IMethodSymbol.RefCustomModifiers
+        {
+            get
+            {
+                return this.RefCustomModifiers;
             }
         }
 

@@ -63,7 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var updatedCondition = SyntaxFactory.IsPatternExpression(
                 asExpression.Left, SyntaxFactory.DeclarationPattern(
                     ((TypeSyntax)asExpression.Right).WithoutTrivia(),
-                    localDeclaration.Declaration.Variables[0].Identifier.WithoutTrivia()));
+                    SyntaxFactory.SingleVariableDesignation(
+                        localDeclaration.Declaration.Variables[0].Identifier.WithoutTrivia())));
 
             var trivia = localDeclaration.GetLeadingTrivia().Concat(localDeclaration.GetTrailingTrivia())
                                          .Where(t => t.IsSingleOrMultiLineComment())

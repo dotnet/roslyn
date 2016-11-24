@@ -293,5 +293,37 @@ class C
     }
 }");
         }
+
+        [WorkItem(15505, "https://github.com/dotnet/roslyn/issues/15505")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestOtherValueIsNotNull1()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        var v = [||]o == null ? 0 : o.ToString();
+    }
+}");
+        }
+
+        [WorkItem(15505, "https://github.com/dotnet/roslyn/issues/15505")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestOtherValueIsNotNull2()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        var v = [||]o != null ? o.ToString() : 0;
+    }
+}");
+        }
     }
 }

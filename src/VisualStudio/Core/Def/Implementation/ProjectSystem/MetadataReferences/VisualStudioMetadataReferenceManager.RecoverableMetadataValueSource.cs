@@ -36,8 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public override AssemblyMetadata GetValue(CancellationToken cancellationToken)
             {
-                AssemblyMetadata value;
-                if (_weakValue.TryGetTarget(out value))
+                if (_weakValue.TryGetTarget(out var value))
                 {
                     return value;
                 }

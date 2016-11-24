@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var placeholders = ArrayBuilder<BoundValuePlaceholderBase>.GetInstance();
 
             // evaluate left-hand-side side-effects
-            ImmutableArray<BoundExpression> lhsTargets = LeftHandSideSideEffects(node.LeftVariables, temps, stores);
+            ImmutableArray<BoundExpression> lhsTargets = GetAssignmentTargetsAndSideEffects(node.LeftVariables, temps, stores);
 
             // get or make right-hand-side values
             BoundExpression loweredRight = VisitExpression(node.Right);
@@ -102,6 +102,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             int numAssignments = node.AssignmentSteps.Length;
             for (int i = 0; i < numAssignments; i++)
             {
+                if (lhsTargets[i].Kind == BoundKind.DiscardedExpression)
+                {
+                    // skip assignment step for discards
+                    continue;
+                }
+
                 var assignmentInfo = node.AssignmentSteps[i];
                 AddPlaceholderReplacement(assignmentInfo.OutputPlaceholder, lhsTargets[i]);
 
@@ -123,18 +129,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Makes an expression that constructs the return value for the deconstruction.
-        /// For d-declarations, that is simply void.
-        /// For d-assignments, that is a series of tuple constructions, that are chained with the help of placeholders.
+        /// Makes an expression that constructs the return value for the deconstruction:
+        /// a series of tuple constructions, that are chained with the help of placeholders.
         /// The placeholders that are set are added to the list for later clearing.
         /// </summary>
         private BoundExpression MakeReturnValue(BoundDeconstructionAssignmentOperator node, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
         {
-            if (node.IsDeclaration)
-            {
-                return new BoundVoid(node.Syntax, node.Type);
-            }
-
             BoundExpression loweredConstruction = null;
             foreach (var constructionInfo in node.ConstructionStepsOpt)
             {
@@ -152,16 +152,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Adds the side effects to stores and returns temporaries (as a flat list) to access them.
         /// </summary>
-        private ImmutableArray<BoundExpression> LeftHandSideSideEffects(ImmutableArray<BoundExpression> variables, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores)
+        private ImmutableArray<BoundExpression> GetAssignmentTargetsAndSideEffects(ImmutableArray<BoundExpression> variables, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores)
         {
-            var lhsReceivers = ArrayBuilder<BoundExpression>.GetInstance(variables.Length);
+            var assignmentTargets = ArrayBuilder<BoundExpression>.GetInstance(variables.Length);
 
             foreach (var variable in variables)
             {
-                lhsReceivers.Add(TransformCompoundAssignmentLHS(variable, stores, temps, isDynamicAssignment: variable.Type.IsDynamic()));
+                if (variable.Kind == BoundKind.DiscardedExpression)
+                {
+                    assignmentTargets.Add(variable);
+                }
+                else
+                {
+                    assignmentTargets.Add(TransformCompoundAssignmentLHS(variable, stores, temps, isDynamicAssignment: variable.Type.IsDynamic()));
+                }
             }
 
-            return lhsReceivers.ToImmutableAndFree();
+            return assignmentTargets.ToImmutableAndFree();
         }
 
         private void AccessTupleFields(BoundDeconstructionAssignmentOperator node, BoundDeconstructionDeconstructStep deconstruction, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders)

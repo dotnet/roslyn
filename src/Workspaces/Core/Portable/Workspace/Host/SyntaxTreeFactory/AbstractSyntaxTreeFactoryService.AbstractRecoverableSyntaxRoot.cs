@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             internal bool TryGetText(out SourceText text)
             {
-                TextAndVersion textAndVersion;
-                if (this.TextSource.TryGetValue(out textAndVersion))
+                if (this.TextSource.TryGetValue(out var textAndVersion))
                 {
                     text = textAndVersion.Text;
                     return true;
@@ -90,8 +89,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             public RecoverableSyntaxRoot<TRoot> WithSyntaxTree(IRecoverableSyntaxTree<TRoot> containingTree)
             {
-                TRoot root;
-                if (this.TryGetValue(out root))
+                if (this.TryGetValue(out var root))
                 {
                     var result = new RecoverableSyntaxRoot<TRoot>(_service, root, containingTree);
                     result._storage = _storage;

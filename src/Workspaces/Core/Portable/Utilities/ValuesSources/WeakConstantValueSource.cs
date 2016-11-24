@@ -22,8 +22,7 @@ namespace Roslyn.Utilities
         {
             if (_weakValue != null)
             {
-                T value;
-                if (_weakValue.TryGetTarget(out value))
+                if (_weakValue.TryGetTarget(out var value))
                 {
                     return value;
                 }

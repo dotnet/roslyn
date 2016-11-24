@@ -103,9 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             // Inherits statements
             foreach (var child in CodeModelService.GetInheritsNodes(node))
             {
-                string childName;
-                int ordinal;
-                CodeModelService.GetInheritsNamespaceAndOrdinal(node, child, out childName, out ordinal);
+                CodeModelService.GetInheritsNamespaceAndOrdinal(node, child, out var childName, out var ordinal);
                 if (childName == name)
                 {
                     element = FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(child);
@@ -116,9 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             // Implements statements
             foreach (var child in CodeModelService.GetImplementsNodes(node))
             {
-                string childName;
-                int ordinal;
-                CodeModelService.GetImplementsNamespaceAndOrdinal(node, child, out childName, out ordinal);
+                CodeModelService.GetImplementsNamespaceAndOrdinal(node, child, out var childName, out var ordinal);
                 if (childName == name)
                 {
                     element = FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(child);

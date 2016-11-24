@@ -21,8 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
                 var projectItem = item as ProjectItem;
                 if (projectItem != null)
                 {
-                    string filePath;
-                    if (projectItem.TryGetFullPath(out filePath) && comparer.Compare(filePath, itemFilePath) == 0)
+                    if (projectItem.TryGetFullPath(out var filePath) && comparer.Compare(filePath, itemFilePath) == 0)
                     {
                         return projectItem;
                     }

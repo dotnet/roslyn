@@ -4,8 +4,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 {
@@ -24,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
+        private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
+
         public CSharpInlineDeclarationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineDeclarationDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Inline_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
@@ -48,8 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // out-vars are not supported prior to C# 7.0.
                 return;
             }
-
-            var optionSet = context.Options.GetOptionSet();
+            var options = context.Options;
+            var syntaxTree = context.Node.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+            
             var option = optionSet.GetOption(CodeStyleOptions.PreferInlinedVariableDeclaration, argumentNode.Language);
             if (!option.Value)
             {
@@ -98,7 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var semanticModel = context.SemanticModel;
-            var cancellationToken = context.CancellationToken;
             var outSymbol = semanticModel.GetSymbolInfo(argumentExpression, cancellationToken).Symbol;
             if (outSymbol?.Kind != SymbolKind.Local)
             {
@@ -157,9 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             // Find the scope that the out-declaration variable will live in after we
             // rewrite things.
-            var outArgumentScope = containingStatement.Parent is BlockSyntax
-                ? (BlockSyntax)containingStatement.Parent
-                : containingStatement;
+            var outArgumentScope = GetOutArgumentScope(argumentExpression);
 
             // Make sure that variable is not accessed outside of that scope.
             var dataFlow = semanticModel.AnalyzeDataFlow(outArgumentScope);
@@ -176,6 +184,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // Make sure the variable isn't ever acessed before the usage in this out-var.
             if (IsAccessed(semanticModel, outSymbol, enclosingBlockOfLocalStatement, 
                            localStatement, argumentNode, cancellationToken))
+            {
+                return;
+            }
+
+            // See if inlining this variable would make it so that some variables were no
+            // longer definitely assigned.
+            if (WouldCauseDefiniteAssignmentErrors(
+                    semanticModel, localDeclarator, enclosingBlockOfLocalStatement, 
+                    outSymbol, cancellationToken))
             {
                 return;
             }
@@ -198,6 +215,115 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 CreateDescriptorWithSeverity(option.Notification.Value),
                 reportNode.GetLocation(),
                 additionalLocations: allLocations));
+        }
+
+        private bool WouldCauseDefiniteAssignmentErrors(
+            SemanticModel semanticModel, VariableDeclaratorSyntax localDeclarator, 
+            BlockSyntax enclosingBlock, ISymbol outSymbol, CancellationToken cancellationToken)
+        {
+            // See if we have something like:
+            //
+            //      int i = 0;
+            //      if (Foo() || Bar(out i))
+            //      {
+            //          Console.WriteLine(i);
+            //      }
+            //
+            // In this case, inlining the 'i' would cause it to longer be definitely
+            // assigned in the WriteLine invocation.
+
+            if (localDeclarator.Initializer == null)
+            {
+                // Don't need to examine this unless the variable has an initializer.
+                return false;
+            }
+
+            // Find all the current read-references to the local.
+            var query = from t in enclosingBlock.DescendantTokens()
+                        where t.Kind() == SyntaxKind.IdentifierToken
+                        where t.ValueText == outSymbol.Name
+                        let id = t.Parent as IdentifierNameSyntax
+                        where id != null
+                        where !id.IsOnlyWrittenTo()
+                        let symbol = semanticModel.GetSymbolInfo(id).GetAnySymbol()
+                        where outSymbol.Equals(symbol)
+                        select id;
+
+            var references = query.ToImmutableArray<SyntaxNode>();
+
+            var root = semanticModel.SyntaxTree.GetCompilationUnitRoot(cancellationToken);
+
+            // Ensure we can track the references and the local variable as we make edits
+            // to the tree.
+            var rootWithTrackedNodes = root.TrackNodes(references.Concat(localDeclarator).Concat(enclosingBlock));
+
+            // Now, take the local variable and remove it's initializer.  Then go to all
+            // the locations where we read from it.  If they're definitely assigned, then
+            // that means the out-var did it's work and assigned the variable across all
+            // paths. If it's not definitely assigned, then we can't inline this variable.
+            var currentLocalDeclarator = rootWithTrackedNodes.GetCurrentNode(localDeclarator);
+            var rootWithoutInitializer = rootWithTrackedNodes.ReplaceNode(
+                currentLocalDeclarator,
+                currentLocalDeclarator.WithInitializer(null));
+
+            // Fork the compilation so we can do this analysis.
+            var newCompilation = semanticModel.Compilation.ReplaceSyntaxTree(
+                root.SyntaxTree, rootWithoutInitializer.SyntaxTree);
+            var newSemanticModel = newCompilation.GetSemanticModel(rootWithoutInitializer.SyntaxTree);
+
+            // NOTE: there is no current compiler API to determine if a variable is definitely
+            // assigned or not.  So, for now, we just get diagnostics for this block and see if
+            // we get any definite assigment errors where we have a reference to the symbol. If
+            // so, then we don't offer the fix.
+
+            var currentBlock = rootWithoutInitializer.GetCurrentNode(enclosingBlock);
+            var diagnostics = newSemanticModel.GetDiagnostics(currentBlock.Span, cancellationToken);
+
+            var diagnosticSpans = diagnostics.Where(d => d.Id == CS0165)
+                                             .Select(d => d.Location.SourceSpan)
+                                             .Distinct();
+
+            var newReferenceSpans = rootWithoutInitializer.GetCurrentNodes<SyntaxNode>(references)
+                                                          .Select(n => n.Span)
+                                                          .Distinct();
+
+            return diagnosticSpans.Intersect(newReferenceSpans).Any();
+        }
+
+        private SyntaxNode GetOutArgumentScope(SyntaxNode argumentExpression)
+        {
+            for (var current = argumentExpression; current != null; current = current.Parent)
+            {
+                if (current.Parent is LambdaExpressionSyntax lambda &&
+                    current == lambda.Body)
+                {
+                    // We were in a lambda.  The lambda body will be the new scope of the 
+                    // out var.
+                    return current;
+                }
+
+                if (current is StatementSyntax)
+                {
+                    // We hit a statement containing the out-argument.  Statements can have one of 
+                    // two forms.  They're either parented by a block, or by another statement 
+                    // (i.e. they're an embedded statement).  If we're parented by a block, then
+                    // that block will be the scope of the new out-var.
+                    //
+                    // However, if our containing statement is not parented by a block, then that
+                    // means we have something like:
+                    //
+                    //      if (x)
+                    //          if (Try(out y))
+                    //
+                    // In this case, there is a 'virtual' block scope surrounding the embedded 'if'
+                    // statement, and that will be the scope the out-var goes into.
+                    return current.IsParentKind(SyntaxKind.Block)
+                        ? current.Parent
+                        : current;
+                }
+            }
+
+            return null;
         }
 
         private bool IsAccessed(

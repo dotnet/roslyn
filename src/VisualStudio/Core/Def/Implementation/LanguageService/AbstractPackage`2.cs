@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -48,15 +49,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _languageService.Setup();
                 return _languageService.ComAggregate;
             });
-
+            var shell = (IVsShell)this.GetService(typeof(SVsShell));
             // Okay, this is also a bit strange.  We need to get our Interop dll into our process,
             // but we're in the GAC.  Ask the base Roslyn Package to load, and it will take care of
             // it for us.
             // * NOTE * workspace should never be created before loading roslyn package since roslyn package
             //          installs a service roslyn visual studio workspace requires
-            IVsPackage setupPackage;
-            var shell = (IVsShell)this.GetService(typeof(SVsShell));
-            shell.LoadPackage(Guids.RoslynPackageId, out setupPackage);
+            shell.LoadPackage(Guids.RoslynPackageId, out var setupPackage);
 
             _miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
             if (_miscellaneousFilesWorkspace != null)
@@ -68,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             RegisterMiscellaneousFilesWorkspaceInformation(_miscellaneousFilesWorkspace);
 
             this.Workspace = this.CreateWorkspace();
-            if (this.Workspace != null)
+            if (IsInIdeMode(this.Workspace))
             {
                 // make sure solution crawler start once everything has been setup.
                 // this also should be started before any of workspace events start firing
@@ -132,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _miscellaneousFilesWorkspace.StopSolutionCrawler();
             }
 
-            if (this.Workspace != null)
+            if (IsInIdeMode(this.Workspace))
             {
                 this.Workspace.StopSolutionCrawler();
 
@@ -150,6 +149,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         protected abstract string RoslynLanguageName { get; }
+
+        private bool IsInIdeMode(Workspace workspace)
+        {
+            return workspace != null && !IsInCommandLineMode();
+        }
+
+        private bool IsInCommandLineMode()
+        {
+            var shell = (IVsShell)this.GetService(typeof(SVsShell));
+
+            object result;
+            if (ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out result)))
+            {
+                return (bool)result;
+            }
+
+            return false;
+        }
 
         private void EnableRemoteHostClientService()
         {

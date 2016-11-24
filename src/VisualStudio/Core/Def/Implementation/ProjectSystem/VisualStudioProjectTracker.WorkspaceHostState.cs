@@ -119,12 +119,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     string solutionFilePath = null;
                     VersionStamp? version = default(VersionStamp?);
-
                     // Figure out the solution version
-                    string solutionDirectory;
-                    string solutionFileName;
-                    string userOptsFile;
-                    if (ErrorHandler.Succeeded(_tracker._vsSolution.GetSolutionInfo(out solutionDirectory, out solutionFileName, out userOptsFile)) && solutionFileName != null)
+                    if (ErrorHandler.Succeeded(_tracker._vsSolution.GetSolutionInfo(out var solutionDirectory, out var solutionFileName, out var userOptsFile)) && solutionFileName != null)
                     {
                         solutionFilePath = Path.Combine(solutionDirectory, solutionFileName);
                         if (File.Exists(solutionFilePath))

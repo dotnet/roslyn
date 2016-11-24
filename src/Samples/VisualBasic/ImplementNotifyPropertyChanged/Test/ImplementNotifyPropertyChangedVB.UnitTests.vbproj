@@ -40,14 +40,6 @@
       <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Dependencies\VisualStudioText\VisualStudioText.csproj">
-      <Project>{c25768b3-2fe1-4d6d-8c17-a6acd56f8389}</Project>
-      <Name>VisualStudioText</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Dependencies\VisualStudio\VisualStudio.csproj">
-      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
-      <Name>VisualStudio</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
       <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
       <Name>PdbUtilities</Name>

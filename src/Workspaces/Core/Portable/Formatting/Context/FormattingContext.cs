@@ -545,8 +545,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             AnchorData lastBaseAnchorData = null;
             while (tokenData.IndexInStream >= 0)
             {
-                AnchorData tempAnchorData;
-                if (_anchorBaseTokenMap.TryGetValue(tokenData.Token, out tempAnchorData))
+                if (_anchorBaseTokenMap.TryGetValue(tokenData.Token, out var tempAnchorData))
                 {
                     lastBaseAnchorData = tempAnchorData;
                 }

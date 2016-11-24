@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' </summary>
         Private ReadOnly _underlyingParameter As ParameterSymbol
 
-        Private _lazyCustomModifiers As ImmutableArray(Of CustomModifier)
+        Private _lazyCustomModifiers As CustomModifiersTuple
 
         ''' <summary>
         ''' Retargeted custom attributes
@@ -79,7 +79,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Public Overrides ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return RetargetingTranslator.RetargetModifiers(_underlyingParameter.CustomModifiers, _lazyCustomModifiers)
+                Return CustomModifiersTuple.TypeCustomModifiers
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return CustomModifiersTuple.RefCustomModifiers
+            End Get
+        End Property
+
+        Private ReadOnly Property CustomModifiersTuple As CustomModifiersTuple
+            Get
+                Return RetargetingTranslator.RetargetModifiers(_underlyingParameter.CustomModifiers, _underlyingParameter.RefCustomModifiers, _lazyCustomModifiers)
             End Get
         End Property
 
@@ -176,12 +188,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
             Get
                 Return _underlyingParameter.IsCallerFilePath
-            End Get
-        End Property
-
-        Friend NotOverridable Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
-            Get
-                Return _underlyingParameter.CountOfCustomModifiersPrecedingByRef
             End Get
         End Property
 

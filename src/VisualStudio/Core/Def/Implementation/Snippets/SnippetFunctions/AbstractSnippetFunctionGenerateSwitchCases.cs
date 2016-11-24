@@ -42,9 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
             // If the switch expression is invalid, still show the default case
             value = DefaultCase;
             hasCurrentValue = 1;
-
-            ITypeSymbol typeSymbol;
-            if (!TryGetEnumTypeSymbol(cancellationToken, out typeSymbol) || typeSymbol.TypeKind != TypeKind.Enum)
+            if (!TryGetEnumTypeSymbol(cancellationToken, out var typeSymbol) || typeSymbol.TypeKind != TypeKind.Enum)
             {
                 return VSConstants.S_OK;
             }
@@ -78,9 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
         private bool TryGetSimplifiedTypeName(string fullyQualifiedTypeName, string firstEnumMemberName, CancellationToken cancellationToken, out string simplifiedTypeName)
         {
             simplifiedTypeName = string.Empty;
-
-            Document document;
-            if (!TryGetDocument(out document))
+            if (!TryGetDocument(out var document))
             {
                 return false;
             }
@@ -93,8 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
                 return false;
             }
 
-            SnapshotSpan subjectBufferFieldSpan;
-            if (!snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan[0], out subjectBufferFieldSpan))
+            if (!snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan[0], out var subjectBufferFieldSpan))
             {
                 return false;
             }
