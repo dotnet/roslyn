@@ -99,6 +99,19 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
+            // Needs to be of the forme:
+            //      x == null ? null : ...    or
+            //      x != null ? ...  : null;
+            if (isEquals && !syntaxFacts.IsNullLiteralExpression(whenTrueNode))
+            {
+                return;
+            }
+
+            if (isNotEquals && !syntaxFacts.IsNullLiteralExpression(whenFalseNode))
+            {
+                return;
+            }
+
             var conditionPartToCheck = conditionRightIsNull ? conditionLeft : conditionRight;
             var whenPartToCheck = isEquals ? whenFalseNode : whenTrueNode;
 
