@@ -105,7 +105,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void InvokeCompletionList()
         {
-            ExecuteCommand(WellKnownCommandNames.ListMembers);
+            ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
             WaitForAsyncOperations(FeatureAttribute.CompletionSet);
         }
 

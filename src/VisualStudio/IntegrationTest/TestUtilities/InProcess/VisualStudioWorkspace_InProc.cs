@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             if (IsUseSuggestionModeOn() != value)
             {
-                ExecuteCommand(WellKnownCommandNames.ToggleCompletionMode);
+                ExecuteCommand(WellKnownCommandNames.Edit_ToggleCompletionMode);
             }
         }
 

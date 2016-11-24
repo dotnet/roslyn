@@ -14,11 +14,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public sealed class VisualStudioInstanceFactory : IDisposable
     {
-        internal static readonly string VsProductVersion = Settings.Default.VsProductVersion;
+        public static readonly string VsProductVersion = Settings.Default.VsProductVersion;
 
-        internal static readonly string VsProgId = $"VisualStudio.DTE.{VsProductVersion}";
+        public static readonly string VsProgId = $"VisualStudio.DTE.{VsProductVersion}";
 
-        internal static readonly string VsLaunchArgs = $"{(string.IsNullOrWhiteSpace(Settings.Default.VsRootSuffix) ? "/log" : $"/rootsuffix {Settings.Default.VsRootSuffix}")} /log";
+        public static readonly string VsLaunchArgs = $"{(string.IsNullOrWhiteSpace(Settings.Default.VsRootSuffix) ? "/log" : $"/rootsuffix {Settings.Default.VsRootSuffix}")} /log";
+
+        /// <summary>
+        /// The instance that has already been launched by this factory and can be reused.
+        /// </summary>
+        private VisualStudioInstance _currentlyRunningInstance;
+        private ImmutableHashSet<string> _supportedPackageIds;
+        private string _installationPath;
+        private bool _hasCurrentlyActiveContext;
 
         static VisualStudioInstanceFactory()
         {
@@ -35,7 +43,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // Depending on the manner in which the assembly was originally loaded, this may end up actually trying to load the assembly a second
             // time and it can fail if the standard assembly resolution logic fails. This ensures that we 'succeed' this secondary load by returning
             // the assembly that is already loaded.
-            AppDomain.CurrentDomain.AssemblyResolve += (sender, eventArgs) => { 
+            AppDomain.CurrentDomain.AssemblyResolve += (sender, eventArgs) => {
                 Debug.WriteLine($"'{eventArgs.RequestingAssembly}' is attempting to resolve '{eventArgs.Name}'");
                 var resolvedAssembly = AppDomain.CurrentDomain.GetAssemblies().Where((assembly) => assembly.FullName.Equals(eventArgs.Name)).SingleOrDefault();
 
@@ -47,14 +55,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 return resolvedAssembly;
             };
         }
-
-        /// <summary>
-        /// The instance that has already been launched by this factory and can be reused.
-        /// </summary>
-        private VisualStudioInstance _currentlyRunningInstance;
-        private ImmutableHashSet<string> _supportedPackageIds;
-        private string _installationPath;
-        private bool _hasCurrentlyActiveContext;
 
         /// <summary>
         /// Returns a <see cref="VisualStudioInstanceContext"/>, starting a new instance of Visual Studio if necessary.
@@ -144,8 +144,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var instanceEnumerator = setupConfiguration.EnumAllInstances();
             var instances = new ISetupInstance[3];
 
-            var instancesFetched = 0;
-            instanceEnumerator.Next(instances.Length, instances, out instancesFetched);
+            instanceEnumerator.Next(instances.Length, instances, out var instancesFetched);
 
             if (instancesFetched == 0)
             {

@@ -23,23 +23,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private Editor_InProc() { }
 
-        public static Editor_InProc Create()
-        {
-            return new Editor_InProc();
-        }
+        public static Editor_InProc Create() => new Editor_InProc();
 
-        private static IWpfTextView GetActiveTextView()
-        {
-            return GetActiveTextViewHost().TextView;
-        }
+        private static IWpfTextView GetActiveTextView() => GetActiveTextViewHost().TextView;
 
         private static IVsTextView GetActiveVsTextView()
         {
-            IVsTextView vsTextView = null;
-
             var vsTextManager = GetGlobalService<SVsTextManager, IVsTextManager>();
 
-            var hresult = vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out vsTextView);
+            var hresult = vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView);
             Marshal.ThrowExceptionForHR(hresult);
 
             return vsTextView;
@@ -53,261 +45,174 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             var activeVsTextView = (IVsUserData)GetActiveVsTextView();
 
-            object wpfTextViewHost;
-            var hresult = activeVsTextView.GetData(IWpfTextViewId, out wpfTextViewHost);
+            var hresult = activeVsTextView.GetData(IWpfTextViewId, out var wpfTextViewHost);
             Marshal.ThrowExceptionForHR(hresult);
 
             return (IWpfTextViewHost)wpfTextViewHost;
         }
 
-        private static void ExecuteOnActiveView(Action<IWpfTextView> action)
-        {
-            InvokeOnUIThread(() =>
+        private static void ExecuteOnActiveView(Action<IWpfTextView> action) => InvokeOnUIThread(() => {
+            var view = GetActiveTextView();
+            action(view);
+        });
+
+        private static T ExecuteOnActiveView<T>(Func<IWpfTextView, T> action) => InvokeOnUIThread(() => {
+            var view = GetActiveTextView();
+            return action(view);
+        });
+
+        public void Activate() => GetDTE().ActiveDocument.Activate();
+
+        public string GetText() => ExecuteOnActiveView(view => view.TextSnapshot.GetText());
+
+        public void SetText(string text) => ExecuteOnActiveView(view => {
+            var textSnapshot = view.TextSnapshot;
+            var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
+            view.TextBuffer.Replace(replacementSpan, text);
+        });
+
+        public string GetCurrentLineText() => ExecuteOnActiveView(view => {
+            var subjectBuffer = view.GetBufferContainingCaret();
+            var bufferPosition = view.Caret.Position.BufferPosition;
+            var line = bufferPosition.GetContainingLine();
+
+            return line.GetText();
+        });
+
+        public int GetCaretPosition() => ExecuteOnActiveView(view => {
+            var subjectBuffer = view.GetBufferContainingCaret();
+            var bufferPosition = view.Caret.Position.BufferPosition;
+
+            return bufferPosition.Position;
+        });
+
+        public string GetLineTextBeforeCaret() => ExecuteOnActiveView(view => {
+            var subjectBuffer = view.GetBufferContainingCaret();
+            var bufferPosition = view.Caret.Position.BufferPosition;
+            var line = bufferPosition.GetContainingLine();
+            var text = line.GetText();
+
+            return text.Substring(0, bufferPosition.Position - line.Start);
+        });
+
+        public string GetLineTextAfterCaret() => ExecuteOnActiveView(view => {
+            var subjectBuffer = view.GetBufferContainingCaret();
+            var bufferPosition = view.Caret.Position.BufferPosition;
+            var line = bufferPosition.GetContainingLine();
+            var text = line.GetText();
+
+            return text.Substring(bufferPosition.Position - line.Start);
+        });
+
+        public void MoveCaret(int position) => ExecuteOnActiveView(view => {
+            var subjectBuffer = view.GetBufferContainingCaret();
+            var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
+
+            view.Caret.MoveTo(point);
+        });
+
+        public string[] GetCompletionItems() => ExecuteOnActiveView(view => {
+            var broker = GetComponentModelService<ICompletionBroker>();
+
+            var sessions = broker.GetSessions(view);
+            if (sessions.Count != 1)
             {
-                var view = GetActiveTextView();
-                action(view);
-            });
-        }
+                throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
+            }
 
-        private static T ExecuteOnActiveView<T>(Func<IWpfTextView, T> action)
-        {
-            return InvokeOnUIThread(() =>
+            var selectedCompletionSet = sessions[0].SelectedCompletionSet;
+
+            return selectedCompletionSet.Completions.Select(c => c.DisplayText).ToArray();
+        });
+
+        public string GetCurrentCompletionItem() => ExecuteOnActiveView(view => {
+            var broker = GetComponentModelService<ICompletionBroker>();
+
+            var sessions = broker.GetSessions(view);
+            if (sessions.Count != 1)
             {
-                var view = GetActiveTextView();
-                return action(view);
-            });
-        }
+                throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
+            }
 
-        public void Activate()
-        {
-            GetDTE().ActiveDocument.Activate();
-        }
+            var selectedCompletionSet = sessions[0].SelectedCompletionSet;
+            return selectedCompletionSet.SelectionStatus.Completion.DisplayText;
+        });
 
-        public string GetText()
-        {
-            return ExecuteOnActiveView(view =>
+        public bool IsCompletionActive() => ExecuteOnActiveView(view => {
+            var broker = GetComponentModelService<ICompletionBroker>();
+            return broker.IsCompletionActive(view);
+        });
+
+        public Signature[] GetSignatures() => ExecuteOnActiveView(view => {
+            var broken = GetComponentModelService<ISignatureHelpBroker>();
+
+            var sessions = broken.GetSessions(view);
+            if (sessions.Count != 1)
             {
-                return view.TextSnapshot.GetText();
-            });
-        }
+                throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
+            }
 
-        public void SetText(string text)
-        {
-            ExecuteOnActiveView(view =>
+            return sessions[0].Signatures.Select(s => new Signature(s)).ToArray();
+        });
+
+        public Signature GetCurrentSignature() => ExecuteOnActiveView(view => {
+            var broken = GetComponentModelService<ISignatureHelpBroker>();
+
+            var sessions = broken.GetSessions(view);
+            if (sessions.Count != 1)
             {
-                var textSnapshot = view.TextSnapshot;
-                var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
-                view.TextBuffer.Replace(replacementSpan, text);
-            });
-        }
+                throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
+            }
 
-        public string GetCurrentLineText()
-        {
-            return ExecuteOnActiveView(view =>
+            return new Signature(sessions[0].SelectedSignature);
+        });
+
+        public bool IsCaretOnScreen() => ExecuteOnActiveView(view => {
+            var editorPrimitivesFactoryService = GetComponentModelService<IEditorPrimitivesFactoryService>();
+            var viewPrimitivies = editorPrimitivesFactoryService.GetViewPrimitives(view);
+
+            var advancedView = viewPrimitivies.View.AdvancedTextView;
+            var caret = advancedView.Caret;
+
+            return caret.Left >= advancedView.ViewportLeft
+                && caret.Right <= advancedView.ViewportRight
+                && caret.Top >= advancedView.ViewportTop
+                && caret.Bottom <= advancedView.ViewportBottom;
+        });
+
+        public void ShowLightBulb() => InvokeOnUIThread(() => GetDTE().ExecuteCommand("View.ShowSmartTag"));
+
+        public void WaitForLightBulbSession() => ExecuteOnActiveView(view => {
+            var broker = GetComponentModel().GetService<ILightBulbBroker>();
+            LightBulbHelper.WaitForLightBulbSession(broker, view);
+        });
+
+        public void DismissLightBulbSession() => ExecuteOnActiveView(view => {
+            var broker = GetComponentModel().GetService<ILightBulbBroker>();
+            broker.DismissSession(view);
+        });
+
+        public bool IsLightBulbSessionExpanded() => ExecuteOnActiveView(view => {
+            var broker = GetComponentModel().GetService<ILightBulbBroker>();
+
+            if (!broker.IsLightBulbSessionActive(view))
             {
-                var subjectBuffer = view.GetBufferContainingCaret();
-                var bufferPosition = view.Caret.Position.BufferPosition;
-                var line = bufferPosition.GetContainingLine();
+                return false;
+            }
 
-                return line.GetText();
-            });
-        }
-
-        public int GetCaretPosition()
-        {
-            return ExecuteOnActiveView(view =>
+            var session = broker.GetSession(view);
+            if (session == null || !session.IsExpanded)
             {
-                var subjectBuffer = view.GetBufferContainingCaret();
-                var bufferPosition = view.Caret.Position.BufferPosition;
+                return false;
+            }
 
-                return bufferPosition.Position;
-            });
-        }
+            return true;
+        });
 
-        public string GetLineTextBeforeCaret()
-        {
-            return ExecuteOnActiveView(view =>
-            {
-                var subjectBuffer = view.GetBufferContainingCaret();
-                var bufferPosition = view.Caret.Position.BufferPosition;
-                var line = bufferPosition.GetContainingLine();
-                var text = line.GetText();
-
-                return text.Substring(0, bufferPosition.Position - line.Start);
-            });
-        }
-
-        public string GetLineTextAfterCaret()
-        {
-            return ExecuteOnActiveView(view =>
-            {
-                var subjectBuffer = view.GetBufferContainingCaret();
-                var bufferPosition = view.Caret.Position.BufferPosition;
-                var line = bufferPosition.GetContainingLine();
-                var text = line.GetText();
-
-                return text.Substring(bufferPosition.Position - line.Start);
-            });
-        }
-
-        public void MoveCaret(int position)
-        {
-            ExecuteOnActiveView(view =>
-            {
-                var subjectBuffer = view.GetBufferContainingCaret();
-                var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
-
-                view.Caret.MoveTo(point);
-            });
-        }
-
-        public string[] GetCompletionItems()
-        {
-            return ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ICompletionBroker>();
-
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
-                }
-
-                var selectedCompletionSet = sessions[0].SelectedCompletionSet;
-
-                return selectedCompletionSet.Completions.Select(c => c.DisplayText).ToArray();
-            });
-        }
-
-        public string GetCurrentCompletionItem()
-        {
-            return ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ICompletionBroker>();
-
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
-                }
-
-                var selectedCompletionSet = sessions[0].SelectedCompletionSet;
-
-                return selectedCompletionSet.SelectionStatus.Completion.DisplayText;
-            });
-        }
-
-        public bool IsCompletionActive()
-        {
-            return ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ICompletionBroker>();
-
-                return broker.IsCompletionActive(view);
-            });
-        }
-
-        public Signature[] GetSignatures()
-        {
-            return ExecuteOnActiveView(view =>
-            {
-                var broken = GetComponentModelService<ISignatureHelpBroker>();
-
-                var sessions = broken.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
-                }
-
-                return sessions[0].Signatures.Select(s => new Signature(s)).ToArray();
-            });
-        }
-
-        public Signature GetCurrentSignature()
-        {
-            return ExecuteOnActiveView(view =>
-            {
-                var broken = GetComponentModelService<ISignatureHelpBroker>();
-
-                var sessions = broken.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
-                }
-
-                return new Signature(sessions[0].SelectedSignature);
-            });
-        }
-
-        public bool IsCaretOnScreen()
-        {
-            return ExecuteOnActiveView(view =>
-            {
-                var editorPrimitivesFactoryService = GetComponentModelService<IEditorPrimitivesFactoryService>();
-                var viewPrimitivies = editorPrimitivesFactoryService.GetViewPrimitives(view);
-
-                var advancedView = viewPrimitivies.View.AdvancedTextView;
-                var caret = advancedView.Caret;
-
-                return caret.Left >= advancedView.ViewportLeft
-                    && caret.Right <= advancedView.ViewportRight
-                    && caret.Top >= advancedView.ViewportTop
-                    && caret.Bottom <= advancedView.ViewportBottom;
-            });
-        }
-
-        public void ShowLightBulb()
-        {
-            InvokeOnUIThread(() => GetDTE().ExecuteCommand("View.ShowSmartTag"));
-        }
-
-        public void WaitForLightBulbSession()
-        {
-            ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModel().GetService<ILightBulbBroker>();
-                LightBulbHelper.WaitForLightBulbSession(broker, view);
-            });
-        }
-
-        public void DismissLightBulbSession()
-        {
-            ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModel().GetService<ILightBulbBroker>();
-                broker.DismissSession(view);
-            });
-        }
-
-        public bool IsLightBulbSessionExpanded()
-        {
-            return ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModel().GetService<ILightBulbBroker>();
-
-                if (!broker.IsLightBulbSessionActive(view))
-                {
-                    return false;
-                }
-
-                var session = broker.GetSession(view);
-                if (session == null || !session.IsExpanded)
-                {
-                    return false;
-                }
-
-                return true;
-            });
-        }
-
-        public string[] GetLightBulbActions()
-        {
-            return ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModel().GetService<ILightBulbBroker>();
-                return GetLightBulbActions(broker, view).Select(a => a.DisplayText).ToArray();
-            });
-        }
+        public string[] GetLightBulbActions() => ExecuteOnActiveView(view => {
+            var broker = GetComponentModel().GetService<ILightBulbBroker>();
+            return GetLightBulbActions(broker, view).Select(a => a.DisplayText).ToArray();
+        });
 
         private IEnumerable<ISuggestedAction> GetLightBulbActions(ILightBulbBroker broker, IWpfTextView view)
         {
@@ -324,8 +229,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 throw new InvalidOperationException(string.Format("No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={0}", bufferType));
             }
 
-            IEnumerable<SuggestedActionSet> actionSets;
-            if (activeSession.TryGetSuggestedActionSets(out actionSets) != QuerySuggestedActionCompletionStatus.Completed)
+            if (activeSession.TryGetSuggestedActionSets(out var actionSets) != QuerySuggestedActionCompletionStatus.Completed)
             {
                 actionSets = Array.Empty<SuggestedActionSet>();
             }
@@ -333,54 +237,50 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return SelectActions(actionSets);
         }
 
-        public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope)
-        {
-            ExecuteOnActiveView(view =>
+        public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope) => ExecuteOnActiveView(view => {
+            var broker = GetComponentModel().GetService<ILightBulbBroker>();
+
+            var actions = GetLightBulbActions(broker, view).ToArray();
+            var action = actions.FirstOrDefault(a => a.DisplayText == actionName);
+
+            if (action == null)
             {
-                var broker = GetComponentModel().GetService<ILightBulbBroker>();
+                var sb = new StringBuilder();
+                foreach (var item in actions)
+                {
+                    sb.AppendLine("Actual ISuggestedAction: " + item.DisplayText);
+                }
 
-                var actions = GetLightBulbActions(broker, view).ToArray();
-                var action = actions.FirstOrDefault(a => a.DisplayText == actionName);
+                var bufferType = view.TextBuffer.ContentType.DisplayName;
+                throw new InvalidOperationException(
+                    string.Format("ISuggestedAction {0} not found.  Buffer content type={1}\r\nActions: {2}", actionName, bufferType, sb.ToString()));
+            }
 
+            if (fixAllScope != null)
+            {
+                if (!action.HasActionSets)
+                {
+                    throw new InvalidOperationException($"Suggested action '{action.DisplayText}' does not support FixAllOccurrences.");
+                }
+
+                var actionSetsForAction = HostWaitHelper.PumpingWaitResult(action.GetActionSetsAsync(CancellationToken.None));
+                action = GetFixAllSuggestedAction(actionSetsForAction, fixAllScope.Value);
                 if (action == null)
                 {
-                    var sb = new StringBuilder();
-                    foreach (var item in actions)
-                    {
-                        sb.AppendLine("Actual ISuggestedAction: " + item.DisplayText);
-                    }
-
-                    var bufferType = view.TextBuffer.ContentType.DisplayName;
-                    throw new InvalidOperationException(
-                        string.Format("ISuggestedAction {0} not found.  Buffer content type={1}\r\nActions: {2}", actionName, bufferType, sb.ToString()));
+                    throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope.ToString()} code fix for suggested action '{action.DisplayText}'.");
                 }
 
-                if (fixAllScope != null)
+                if (string.IsNullOrEmpty(actionName))
                 {
-                    if (!action.HasActionSets)
-                    {
-                        throw new InvalidOperationException($"Suggested action '{action.DisplayText}' does not support FixAllOccurrences.");
-                    }
-
-                    var actionSetsForAction = HostWaitHelper.PumpingWaitResult(action.GetActionSetsAsync(CancellationToken.None));
-                    action = GetFixAllSuggestedAction(actionSetsForAction, fixAllScope.Value);
-                    if (action == null)
-                    {
-                        throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope.ToString()} code fix for suggested action '{action.DisplayText}'.");
-                    }
-
-                    if (string.IsNullOrEmpty(actionName))
-                    {
-                        return;
-                    }
-
-                    // Dismiss the lightbulb session as we not invoking the original code fix.
-                    broker.DismissSession(view);
+                    return;
                 }
 
-                action.Invoke(CancellationToken.None);
-            });
-        }
+                // Dismiss the lightbulb session as we not invoking the original code fix.
+                broker.DismissSession(view);
+            }
+
+            action.Invoke(CancellationToken.None);
+        });
 
         private IEnumerable<ISuggestedAction> SelectActions(IEnumerable<SuggestedActionSet> actionSets)
         {
@@ -435,12 +335,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return null;
         }
 
-        public void MessageBox(string message)
-        {
-            ExecuteOnActiveView(view =>
-            {
-                System.Windows.MessageBox.Show(message);
-            });
-        }
+        public void MessageBox(string message) => ExecuteOnActiveView(view =>  System.Windows.MessageBox.Show(message));
     }
 }

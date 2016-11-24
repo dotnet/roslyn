@@ -250,7 +250,7 @@ assertCaretPosition: true);
 
             ClearEditor();
 
-            ExecuteCommand(WellKnownCommandNames.ToggleCompletionMode);
+            ExecuteCommand(WellKnownCommandNames.Edit_ToggleCompletionMode);
 
             SendKeys("Nam Foo");
             VerifyCurrentLineText("Nam Foo$$", assertCaretPosition: true);

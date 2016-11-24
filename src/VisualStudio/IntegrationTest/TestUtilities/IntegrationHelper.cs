@@ -450,22 +450,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public static DTE TryLocateDteForProcess(Process process)
         {
             object dte = null;
-            IRunningObjectTable runningObjectTable = null;
-            IEnumMoniker enumMoniker = null;
-            IBindCtx bindContext = null;
             var monikers = new IMoniker[1];
             var vsProgId = VisualStudioInstanceFactory.VsProgId;
 
-            NativeMethods.GetRunningObjectTable(0, out runningObjectTable);
-            runningObjectTable.EnumRunning(out enumMoniker);
-            NativeMethods.CreateBindCtx(0, out bindContext);
+            NativeMethods.GetRunningObjectTable(0, out var runningObjectTable);
+            runningObjectTable.EnumRunning(out var enumMoniker);
+            NativeMethods.CreateBindCtx(0, out var bindContext);
 
             do
             {
                 monikers[0] = null;
 
-                var monikersFetched = 0u;
-                var hresult = enumMoniker.Next(1, monikers, out monikersFetched);
+                var hresult = enumMoniker.Next(1, monikers, out var monikersFetched);
 
                 if (hresult == VSConstants.S_FALSE)
                 {
@@ -478,14 +474,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 }
 
                 var moniker = monikers[0];
-                string fullDisplayName = null;
-
-                moniker.GetDisplayName(bindContext, null, out fullDisplayName);
-
-                var displayNameProcessId = 0;
+                moniker.GetDisplayName(bindContext, null, out var fullDisplayName);
 
                 // FullDisplayName will look something like: <ProgID>:<ProccessId>
-                if (!int.TryParse(fullDisplayName.Split(':').Last(), out displayNameProcessId))
+                if (!int.TryParse(fullDisplayName.Split(':').Last(), out var displayNameProcessId))
                 {
                     continue;
                 }

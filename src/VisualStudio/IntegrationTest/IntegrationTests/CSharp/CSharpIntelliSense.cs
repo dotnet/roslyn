@@ -100,7 +100,7 @@ public static class NavigateTo
             VerifyCurrentLineText("System.Console.WriteLine();$$", assertCaretPosition: true);
             SendKeys(VirtualKey.Home, Shift(VirtualKey.End), VirtualKey.Delete);
 
-            ExecuteCommand(WellKnownCommandNames.ToggleCompletionMode);
+            ExecuteCommand(WellKnownCommandNames.Edit_ToggleCompletionMode);
 
             SendKeys("System.Console.writeline();");
             VerifyCurrentLineText("System.Console.writeline();$$", assertCaretPosition: true);

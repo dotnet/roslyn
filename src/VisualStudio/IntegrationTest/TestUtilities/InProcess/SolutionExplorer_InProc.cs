@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class SolutionExplorer_InProc : InProcComponent
     {
-        private EnvDTE80.Solution2 _solution;
+        private Solution2 _solution;
         private string _fileName;
 
         private static readonly IDictionary<string, string> _csharpProjectTemplates = InitializeCSharpProjectTemplates();
@@ -21,17 +21,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private SolutionExplorer_InProc() { }
 
-        public static SolutionExplorer_InProc Create()
-        {
-            return new SolutionExplorer_InProc();
-        }
+        public static SolutionExplorer_InProc Create() => new SolutionExplorer_InProc();
 
         private static IDictionary<string, string> InitializeCSharpProjectTemplates()
         {
             var localeID = GetDTE().LocaleID;
 
-            return new Dictionary<string, string>
-            {
+            return new Dictionary<string, string> {
                 [WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip",
                 [WellKnownProjectTemplates.ConsoleApplication] = "Microsoft.CSharp.ConsoleApplication",
                 [WellKnownProjectTemplates.Website] = "EmptyWeb.zip",
@@ -45,8 +41,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var localeID = GetDTE().LocaleID;
 
-            return new Dictionary<string, string>
-            {
+            return new Dictionary<string, string> {
                 [WellKnownProjectTemplates.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip",
                 [WellKnownProjectTemplates.ConsoleApplication] = "Microsoft.VisualBasic.Windows.ConsoleApplication",
                 [WellKnownProjectTemplates.Website] = "EmptyWeb.zip",
@@ -56,10 +51,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             };
         }
 
-        public string DirectoryName
-        {
-            get { return Path.GetDirectoryName(FileName); }
-        }
+        public string DirectoryName => Path.GetDirectoryName(FileName);
 
         public string FileName
         {
@@ -73,10 +65,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void CloseSolution(bool saveFirst = false)
-        {
-            GetDTE().Solution.Close(saveFirst);
-        }
+        public void CloseSolution(bool saveFirst = false) => GetDTE().Solution.Close(saveFirst);
 
         /// <summary>
         /// Creates and loads a new solution in the host process, optionally saving the existing solution if one exists.
@@ -142,16 +131,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         // TODO: Adjust language name based on whether we are using a web template
         private string GetProjectTemplatePath(string projectTemplate, string languageName)
         {
-            string csharpProjectTemplate;
             if (languageName.Equals("csharp", StringComparison.OrdinalIgnoreCase) &&
-               _csharpProjectTemplates.TryGetValue(projectTemplate, out csharpProjectTemplate))
+               _csharpProjectTemplates.TryGetValue(projectTemplate, out var csharpProjectTemplate))
             {
                 return _solution.GetProjectTemplate(csharpProjectTemplate, languageName);
             }
 
-            string visualBasicProjectTemplate;
             if (languageName.Equals("visualbasic", StringComparison.OrdinalIgnoreCase) &&
-               _visualBasicProjectTemplates.TryGetValue(projectTemplate, out visualBasicProjectTemplate))
+               _visualBasicProjectTemplates.TryGetValue(projectTemplate, out var visualBasicProjectTemplate))
             {
                 return _solution.GetProjectTemplate(visualBasicProjectTemplate, languageName);
             }
@@ -230,7 +217,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var projectPath = Path.GetDirectoryName(project.FullName);
             var filePath = Path.Combine(projectPath, relativeFilePath);
 
-            System.IO.File.WriteAllText(filePath, contents);
+            File.WriteAllText(filePath, contents);
         }
 
         public string GetFileContents(string projectName, string relativeFilePath)
@@ -239,7 +226,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var projectPath = Path.GetDirectoryName(project.FullName);
             var filePath = Path.Combine(projectPath, relativeFilePath);
 
-            return System.IO.File.ReadAllText(filePath);
+            return File.ReadAllText(filePath);
         }
 
         public void BuildSolution(bool waitForBuildToFinish)

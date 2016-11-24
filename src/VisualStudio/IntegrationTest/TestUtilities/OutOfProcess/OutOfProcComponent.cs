@@ -26,14 +26,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 methodName: "Create");
         }
 
-        protected void WaitForCompletionSet()
-        {
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-        }
+        protected void WaitForCompletionSet() => VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
 
-        protected void WaitForSignatureHelp()
-        {
-            VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
-        }
+        protected void WaitForSignatureHelp() => VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
     }
 }

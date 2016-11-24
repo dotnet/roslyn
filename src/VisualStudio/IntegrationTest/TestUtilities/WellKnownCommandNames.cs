@@ -4,10 +4,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class WellKnownCommandNames
     {
-        public const string VsStartServiceCommand = "Tools.StartIntegrationTestService";
-        public const string VsStopServiceCommand = "Tools.StopIntegrationTestService";
+        public const string Edit_ListMembers = "Edit.ListMembers";
+        public const string Edit_ToggleCompletionMode = "Edit.ToggleCompletionMode";
 
-        public const string ToggleCompletionMode = "Edit.ToggleCompletionMode";
-        public const string ListMembers = "Edit.ListMembers";
+        public const string Test_IntegrationTestService_Start = "Test.IntegrationTestService.Start";
+        public const string Test_IntegrationTestService_Stop = "Test.IntegrationTestService.Stop";
     }
 }

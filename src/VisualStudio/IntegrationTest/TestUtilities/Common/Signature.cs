@@ -17,10 +17,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
         public Parameter[] Parameters { get; set; }
         public string PrettyPrintedContent { get; set; }
 
-        public Signature()
-        {
-        }
-
         public Signature(ISignature actual)
         {
             Content = actual.Content;
@@ -45,19 +41,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
                 && Comparison.AreArraysEqual(Parameters, other.Parameters);
         }
 
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as Signature);
-        }
+        public override bool Equals(object obj) => Equals(obj as Signature);
 
-        public override int GetHashCode()
-        {
-            return
-                Hash.Combine(Content,
-                Hash.Combine(Documentation,
-                Hash.Combine(PrettyPrintedContent,
-                Hash.Combine(CurrentParameter, 0))));
-        }
+        public override int GetHashCode() => Hash.Combine(Content, Hash.Combine(Documentation, Hash.Combine(PrettyPrintedContent, Hash.Combine(CurrentParameter, 0))));
 
         public override string ToString()
         {

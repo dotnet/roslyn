@@ -41,10 +41,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public bool IsInitializing => _interactiveWindow.IsInitializing;
 
-        public string GetReplText()
-        {
-            return _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText();
-        }
+        public string GetReplText() => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText();
 
         /// <summary>
         /// Gets the contents of the REPL window without the prompt text.
@@ -144,10 +141,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void WaitForReplPrompt()
-        {
-            WaitForReplPromptAsync().Wait();
-        }
+        public void WaitForReplPrompt() => WaitForReplPromptAsync().Wait();
 
         private async Task WaitForReplPromptAsync()
         {
@@ -157,10 +151,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void WaitForReplOutput(string outputText)
-        {
-            WaitForReplOutputAsync(outputText).Wait();
-        }
+        public void WaitForReplOutput(string outputText) => WaitForReplOutputAsync(outputText).Wait();
 
         private async Task WaitForReplOutputAsync(string outputText)
         {

@@ -16,17 +16,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         internal Editor_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            this._inProc = CreateInProcComponent<Editor_InProc>(visualStudioInstance);
+            _inProc = CreateInProcComponent<Editor_InProc>(visualStudioInstance);
         }
 
         public void Activate() => _inProc.Activate();
 
         public string GetText() => _inProc.GetText();
+
         public void SetText(string value) => _inProc.SetText(value);
 
         public string GetCurrentLineText() => _inProc.GetCurrentLineText();
+
         public int GetCaretPosition() => _inProc.GetCaretPosition();
+
         public string GetLineTextBeforeCaret() => _inProc.GetLineTextBeforeCaret();
+
         public string GetLineTextAfterCaret() => _inProc.GetLineTextAfterCaret();
 
         public void MoveCaret(int position) => _inProc.MoveCaret(position);
@@ -61,35 +65,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _inProc.GetCurrentSignature();
         }
 
-        public void ShowLightBulb()
-        {
-            _inProc.ShowLightBulb();
-        }
+        public void ShowLightBulb() => _inProc.ShowLightBulb();
 
-        public void WaitForLightBulbSession()
-        {
-            _inProc.WaitForLightBulbSession();
-        }
+        public void WaitForLightBulbSession() => _inProc.WaitForLightBulbSession();
 
-        public void DismissLightBulbSession()
-        {
-            _inProc.DismissLightBulbSession();
-        }
+        public void DismissLightBulbSession() => _inProc.DismissLightBulbSession();
 
-        public bool IsLightBulbSessionExpanded()
-        {
-            return _inProc.IsLightBulbSessionExpanded();
-        }
+        public bool IsLightBulbSessionExpanded() => _inProc.IsLightBulbSessionExpanded();
 
-        public string[] GetLightBulbActions()
-        {
-            return _inProc.GetLightBulbActions();
-        }
+        public string[] GetLightBulbActions() => _inProc.GetLightBulbActions();
 
-        public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope)
-        {
-            _inProc.ApplyLightBulbAction(action, fixAllScope);
-        }
+        public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope) => _inProc.ApplyLightBulbAction(action, fixAllScope);
 
         public bool IsCaretOnScreen() => _inProc.IsCaretOnScreen();
 
@@ -104,9 +90,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             VisualStudioInstance.SendKeys.Send(keys);
         }
 
-        public void MessageBox(string message)
-        {
-            _inProc.MessageBox(message);
-        }
+        public void MessageBox(string message) => _inProc.MessageBox(message);
     }
 }

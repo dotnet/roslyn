@@ -11,36 +11,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public SolutionExplorer_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            this._inProc = CreateInProcComponent<SolutionExplorer_InProc>(visualStudioInstance);
+            _inProc = CreateInProcComponent<SolutionExplorer_InProc>(visualStudioInstance);
         }
 
-        public void CloseSolution(bool saveFirst = false)
-        {
-            _inProc.CloseSolution(saveFirst);
-        }
+        public void CloseSolution(bool saveFirst = false) => _inProc.CloseSolution(saveFirst);
 
         /// <summary>
         /// Creates and loads a new solution in the host process, optionally saving the existing solution if one exists.
         /// </summary>
-        public void CreateSolution(string solutionName, bool saveExistingSolutionIfExists = false)
-        {
-            _inProc.CreateSolution(solutionName, saveExistingSolutionIfExists);
-        }
+        public void CreateSolution(string solutionName, bool saveExistingSolutionIfExists = false) => _inProc.CreateSolution(solutionName, saveExistingSolutionIfExists);
 
-        public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
-        {
-            _inProc.OpenSolution(path, saveExistingSolutionIfExists);
-        }
+        public void OpenSolution(string path, bool saveExistingSolutionIfExists = false) => _inProc.OpenSolution(path, saveExistingSolutionIfExists);
 
-        public void AddProject(string projectName, string projectTemplate, string languageName)
-        {
-            _inProc.AddProject(projectName, projectTemplate, languageName);
-        }
+        public void AddProject(string projectName, string projectTemplate, string languageName) => _inProc.AddProject(projectName, projectTemplate, languageName);
 
-        public void CleanUpOpenSolution()
-        {
-            _inProc.CleanUpOpenSolution();
-        }
+        public void CleanUpOpenSolution() => _inProc.CleanUpOpenSolution();
 
         public int ErrorListErrorCount => _inProc.GetErrorListErrorCount();
 

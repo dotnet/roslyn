@@ -11,12 +11,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     /// </summary>
     public sealed class VisualStudioInstanceContext : IDisposable
     {
-        public VisualStudioInstance Instance { get; }
         private readonly VisualStudioInstanceFactory _instanceFactory;
+
+        public VisualStudioInstance Instance { get; }
 
         internal VisualStudioInstanceContext(VisualStudioInstance instance, VisualStudioInstanceFactory instanceFactory)
         {
-            this.Instance = instance;
+            Instance = instance;
             _instanceFactory = instanceFactory;
         }
 
@@ -24,7 +25,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             try
             {
-                this.Instance.CleanUp();
+                Instance.CleanUp();
                 _instanceFactory.NotifyCurrentInstanceContextDisposed(canReuse: true);
             }
             catch (Exception)

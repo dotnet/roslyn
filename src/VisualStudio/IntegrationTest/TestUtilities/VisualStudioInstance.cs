@@ -1,22 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Threading.Tasks;
 using System.Windows.Automation;
+using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
+
+using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public class VisualStudioInstance
     {
         private readonly Process _hostProcess;
-        private readonly EnvDTE.DTE _dte;
+        private readonly DTE _dte;
         private readonly IntegrationService _integrationService;
         private readonly IpcClientChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
@@ -28,7 +30,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
         public VisualStudioWorkspace_OutOfProc VisualStudioWorkspace { get; }
 
-        public VisualStudioInstance(Process hostProcess, EnvDTE.DTE dte)
+        public VisualStudioInstance(Process hostProcess, DTE dte)
         {
             _hostProcess = hostProcess;
             _dte = dte;
@@ -44,18 +46,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // Create marshal-by-ref object that runs in host-process.
             _inProc = ExecuteInHostProcess<VisualStudio_InProc>(
                 type: typeof(VisualStudio_InProc),
-                methodName: nameof(VisualStudio_InProc.Create));
+                methodName: nameof(VisualStudio_InProc.Create)
+            );
 
             // There is a lot of VS initialization code that goes on, so we want to wait for that to 'settle' before
             // we start executing any actual code.
             _inProc.WaitForSystemIdle();
 
-            this.CSharpInteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
-            this.Editor = new Editor_OutOfProc(this);
-            this.SolutionExplorer = new SolutionExplorer_OutOfProc(this);
-            this.VisualStudioWorkspace = new VisualStudioWorkspace_OutOfProc(this);
+            CSharpInteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
+            Editor = new Editor_OutOfProc(this);
+            SolutionExplorer = new SolutionExplorer_OutOfProc(this);
+            VisualStudioWorkspace = new VisualStudioWorkspace_OutOfProc(this);
 
-            this.SendKeys = new SendKeys(this);
+            SendKeys = new SendKeys(this);
 
             // Ensure we are in a known 'good' state by cleaning up anything changed by the previous instance
             CleanUp();
@@ -73,30 +76,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public T ExecuteInHostProcess<T>(Type type, string methodName)
         {
-            var objectUri = _integrationService.Execute(type.Assembly.Location, type.FullName, methodName);
-
-            if (objectUri == null)
-            {
-                throw new InvalidOperationException("The specified call was expected to return a value.");
-            }
-
+            var objectUri = _integrationService.Execute(type.Assembly.Location, type.FullName, methodName) ?? throw new InvalidOperationException("The specified call was expected to return a value.");
             return (T)Activator.GetObject(typeof(T), $"{_integrationService.BaseUri}/{objectUri}");
         }
 
-        public void ActivateMainWindow()
-        {
-            _inProc.ActivateMainWindow();
-        }
+        public void ActivateMainWindow() => _inProc.ActivateMainWindow();
 
-        public void WaitForApplicationIdle()
-        {
-            _inProc.WaitForApplicationIdle();
-        }
+        public void WaitForApplicationIdle() => _inProc.WaitForApplicationIdle();
 
-        public void ExecuteCommand(string commandName)
-        {
-            _inProc.ExecuteCommand(commandName);
-        }
+        public void ExecuteCommand(string commandName) => _inProc.ExecuteCommand(commandName);
 
         public bool IsRunning => !_hostProcess.HasExited;
 
@@ -107,13 +95,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             if (element != null)
             {
                 var tcs = new TaskCompletionSource<object>();
-                Automation.AddAutomationEventHandler(InvokePattern.InvokedEvent, element, TreeScope.Element, (src, e) =>
-                {
+
+                Automation.AddAutomationEventHandler(InvokePattern.InvokedEvent, element, TreeScope.Element, (src, e) => {
                     tcs.SetResult(null);
                 });
 
-                object invokePatternObj = null;
-                if (element.TryGetCurrentPattern(InvokePattern.Pattern, out invokePatternObj))
+                if (element.TryGetCurrentPattern(InvokePattern.Pattern, out var invokePatternObj))
                 {
                     var invokePattern = (InvokePattern)invokePatternObj;
                     invokePattern.Invoke();
@@ -186,17 +173,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
 
-            if (RetryRpcCall(() => dte.Commands.Item(WellKnownCommandNames.VsStartServiceCommand).IsAvailable))
+            if (RetryRpcCall(() => dte.Commands.Item(WellKnownCommandNames.Test_IntegrationTestService_Start).IsAvailable))
             {
-                RetryRpcCall(() => dte.ExecuteCommand(WellKnownCommandNames.VsStartServiceCommand));
+                RetryRpcCall(() => dte.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Start));
             }
         }
 
         private void StopRemoteIntegrationService()
         {
-            if (_inProc.IsCommandAvailable(WellKnownCommandNames.VsStopServiceCommand))
+            if (_inProc.IsCommandAvailable(WellKnownCommandNames.Test_IntegrationTestService_Stop))
             {
-                _inProc.ExecuteCommand(WellKnownCommandNames.VsStopServiceCommand);
+                _inProc.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Stop);
             }
         }
 
