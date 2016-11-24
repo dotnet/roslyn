@@ -5648,7 +5648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance() ;
                 if (methodGroup.Receiver.IsExpressionOfComImportType())
                 {
-                    refOmitMode = RefOmitMode.First;
+                    refOmitMode = RefOmitMode.All;
                 }
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 OverloadResolution.MethodInvocationOverloadResolution(methodGroup.Methods,
