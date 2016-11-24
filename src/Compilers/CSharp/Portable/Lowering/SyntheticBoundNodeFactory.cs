@@ -1245,6 +1245,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
+            if (refKind == RefKind.Out)
+            {
+                refKind = RefKind.Ref;
+            }
+
             MethodSymbol containingMethod = this.CurrentMethod;
             var syntax = argument.Syntax;
             var type = argument.Type;
