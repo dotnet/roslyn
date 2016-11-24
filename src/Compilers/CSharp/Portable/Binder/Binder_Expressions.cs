@@ -5641,7 +5641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Create a set of arguments for overload resolution of the
                     // extension methods that includes the "this" parameter.
                     actualArguments = AnalyzedArguments.GetInstance();
-                    refOmitMode = RefOmitMode.First;
+                    refOmitMode = RefOmitMode.ExtensionMethod;
                     CombineExtensionMethodArguments(left, analyzedArguments, actualArguments);
                 }
 

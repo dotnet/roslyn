@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         None,
         All,
-        First
+        ExtensionMethod
     }
 
     internal sealed partial class OverloadResolution
@@ -2597,6 +2597,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!hasAnyRefOmittedArgument || refOmitMode != RefOmitMode.None);
 
+            // Not setting ref omitted flag for extension methods
+            if (refOmitMode == RefOmitMode.ExtensionMethod)
+            {
+                hasAnyRefOmittedArgument = false;
+            }
+
             // To determine parameter types we use the originalMember.
             EffectiveParameters constructedEffectiveParameters = GetEffectiveParametersInNormalForm(
                 leastOverriddenMember,
@@ -2660,6 +2666,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out hasAnyRefOmittedArgument);
 
             Debug.Assert(!hasAnyRefOmittedArgument || refOmitMode != RefOmitMode.None);
+
+            // Not setting ref omitted flag for extension methods
+            if (refOmitMode == RefOmitMode.ExtensionMethod)
+            {
+                hasAnyRefOmittedArgument = false;
+            }
 
             // To determine parameter types we use the least derived member.
             EffectiveParameters constructedEffectiveParameters = GetEffectiveParametersInExpandedForm(
@@ -3030,7 +3042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 case RefOmitMode.All:
                     return true;
-                case RefOmitMode.First:
+                case RefOmitMode.ExtensionMethod:
                     return argument == 0;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(refOmitMode);
