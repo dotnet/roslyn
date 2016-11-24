@@ -15488,9 +15488,8 @@ class Program
                 expectedOutput: "0");
         }
 
-
         [Fact]
-        public void StructIsPassedByrefIntoRefExtensionMethod()
+        public void LocalStructIsPassedByrefIntoRefExtensionMethod()
         {
             var source =
 @"
@@ -15508,6 +15507,45 @@ class Program
         S s = new S();
         s.E();
         Console.WriteLine(s.I);
+    }
+}
+
+public static class Ext
+{
+    public static void E(this ref S s)
+    {
+        s.I++;
+    }
+}
+";
+            CompileAndVerify(source, additionalRefs: new[] { SystemRef, SystemCoreRef },
+                expectedOutput: "1");
+        }
+
+        [Fact]
+        public void HeapStructIsPassedByrefIntoRefExtensionMethod()
+        {
+            var source =
+@"
+using System;
+
+public struct S
+{
+    public int I;
+}
+
+public class C
+{
+    public S S;
+}
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        C c = new C();
+        c.S.E();
+        Console.WriteLine(c.S.I);
     }
 }
 
