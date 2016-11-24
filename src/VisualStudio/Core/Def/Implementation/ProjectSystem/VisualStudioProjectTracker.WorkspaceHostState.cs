@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -52,14 +53,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private void AddToPushListIfNeeded(AbstractProject project, List<AbstractProject> inOrderToPush, HashSet<AbstractProject> visited)
             {
-                AssertIsForeground();
+                AssertIsForeground();                
+                Contract.ThrowIfFalse(_tracker.ContainsProject(project));
 
-                if (_pushedProjects.Contains(project))
-                {
-                    return;
-                }
-
-                if (!visited.Add(project))
+                // Bail out if any of the following is true:
+                //  1. We have already started pushing changes for this project OR
+                //  2. We have already visited this project in a prior recursive call                
+                if (_pushedProjects.Contains(project) || !visited.Add(project))
                 {
                     return;
                 }
