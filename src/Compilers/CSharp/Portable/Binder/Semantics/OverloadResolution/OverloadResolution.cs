@@ -9,8 +9,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    using System;
-
     internal enum BetterResult
     {
         Left,
@@ -358,11 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MemberAnalysisResult.UseSiteError();
             }
 
-            var effectiveParameters = GetEffectiveParametersInNormalForm(constructor,
-                arguments.Arguments.Count,
-                argumentAnalysis.ArgsToParamsOpt,
-                arguments.RefKinds,
-                refOmitMode: RefOmitMode.None);
+            var effectiveParameters = GetEffectiveParametersInNormalForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, refOmitMode: RefOmitMode.None);
 
             return IsApplicable(constructor, effectiveParameters, arguments, argumentAnalysis.ArgsToParamsOpt, isVararg: constructor.IsVararg, hasAnyRefOmittedArgument: false, ignoreOpenTypes: false, useSiteDiagnostics: ref useSiteDiagnostics);
         }
@@ -381,11 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MemberAnalysisResult.UseSiteError();
             }
 
-            var effectiveParameters = GetEffectiveParametersInExpandedForm(constructor,
-                arguments.Arguments.Count,
-                argumentAnalysis.ArgsToParamsOpt,
-                arguments.RefKinds,
-                refOmitMode: RefOmitMode.None);
+            var effectiveParameters = GetEffectiveParametersInExpandedForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, refOmitMode: RefOmitMode.None);
 
             // A vararg ctor is never applicable in its expanded form because
             // it is never a params method.
@@ -2469,11 +2459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 types.Add(parameter.Type);
 
                 RefKind argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
-                RefKind paramRefKind = GetEffectiveParameterRefKind(
-                    parameter,
-                    argRefKind,
-                    ShouldOmitRefArgument(refOmitMode, arg),
-                    ref hasAnyRefOmittedArgument);
+                RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, ShouldOmitRefArgument(refOmitMode, arg), ref hasAnyRefOmittedArgument);
 
                 if (refs == null)
                 {
@@ -2546,10 +2532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 types.Add(parm == parameters.Length - 1 ? elementType : parameter.Type);
 
                 var argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
-                var paramRefKind = GetEffectiveParameterRefKind(parameter,
-                    argRefKind,
-                    ShouldOmitRefArgument(refOmitMode, arg),
-                    ref hasAnyRefOmittedArgument);
+                var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, ShouldOmitRefArgument(refOmitMode, arg), ref hasAnyRefOmittedArgument);
 
                 refs.Add(paramRefKind);
                 if (paramRefKind != RefKind.None)
@@ -3050,7 +3033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefOmitMode.First:
                     return argument == 0;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(refOmitMode), refOmitMode, null);
+                    throw ExceptionUtilities.UnexpectedValue(refOmitMode);
             }
         }
     }
