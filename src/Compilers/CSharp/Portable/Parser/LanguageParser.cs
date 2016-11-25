@@ -5587,9 +5587,9 @@ tryAgain:
                     // of the keywords is, case, or out, or arises while parsing the first element of a tuple literal
                     // (in which case the tokens are preceded by `(` and the identifier is followed by a `,`) or a
                     // subsequent element of a tuple literal.
-                    if (IsTrueIdentifier() &&
-                        ((options & NameOptions.AfterIsOrCaseOrOutOrTupleComma) != 0 ||
-                         (options & NameOptions.FirstElementOfPossibleTupleLiteral) != 0 && this.PeekToken(1).Kind == SyntaxKind.CommaToken))
+                    // Note that we treat query contextual keywords (which appear here as identifiers) as disambiguating tokens as well.
+                    if ((options & NameOptions.AfterIsOrCaseOrOutOrTupleComma) != 0 ||
+                        (options & NameOptions.FirstElementOfPossibleTupleLiteral) != 0 && this.PeekToken(1).Kind == SyntaxKind.CommaToken)
                     {
                         // we allow 'G<T,U> x' as a pattern-matching operation and a declaration pattern in a tuple.
                         return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
@@ -5617,6 +5617,12 @@ tryAgain:
                 case SyntaxKind.BarBarToken:             // e.g. `e is A<B> || e`
                 case SyntaxKind.AmpersandToken:          // e.g. `e is A<B> & e`
                 case SyntaxKind.OpenBracketToken:        // e.g. `e is A<B>[]`
+                case SyntaxKind.LessThanToken:           // e.g. `e is A<B> < C`
+                case SyntaxKind.GreaterThanToken:        // e.g. `e is A<B> > C`
+                case SyntaxKind.LessThanEqualsToken:     // e.g. `e is A<B> <= C`
+                case SyntaxKind.GreaterThanEqualsToken:  // e.g. `e is A<B> >= C`
+                case SyntaxKind.IsKeyword:               // e.g. `e is A<B> is bool`
+                case SyntaxKind.AsKeyword:               // e.g. `e is A<B> as bool`
                     // These tokens are added to 7.5.4.2 Grammar Ambiguities in C#7
                     return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
 

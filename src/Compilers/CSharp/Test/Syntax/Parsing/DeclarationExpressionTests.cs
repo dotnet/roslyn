@@ -12,16 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
     [CompilerTrait(CompilerFeature.Tuples)]
     public class DeclarationExpressionTests : ParsingTests
     {
-        private void UsingStatement(string text, params DiagnosticDescription[] expectedErrors)
-        {
-            var node = SyntaxFactory.ParseStatement(text);
-            // we validate the text roundtrips
-            Assert.Equal(text, node.ToFullString());
-            var actualErrors = node.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-            UsingNode(node);
-        }
-
         [Fact]
         public void NullaboutOutDeclaration()
         {
