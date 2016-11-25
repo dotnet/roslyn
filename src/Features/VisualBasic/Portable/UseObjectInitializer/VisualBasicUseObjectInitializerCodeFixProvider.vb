@@ -25,10 +25,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
                 objectCreation,
                 GetNewObjectCreation(objectCreation, matches))
 
-            Dim leadingComments = matches.SelectMany(Function(m) m.Statement.GetLeadingTrivia()).
-                                          Where(Function(t) t.Kind = SyntaxKind.CommentTrivia)
+            Dim totalTrivia = ArrayBuilder(Of SyntaxTrivia).GetInstance()
+            totalTrivia.AddRange(statement.GetLeadingTrivia())
+            totalTrivia.Add(SyntaxFactory.ElasticMarker)
 
-            Dim totalTrivia = statement.GetLeadingTrivia().Concat(leadingComments).Concat(SyntaxFactory.ElasticMarker)
+            For Each match In matches
+                For Each trivia In match.Statement.GetLeadingTrivia()
+                    If trivia.Kind = SyntaxKind.CommentTrivia Then
+                        totalTrivia.Add(trivia)
+                        totalTrivia.Add(SyntaxFactory.ElasticMarker)
+                    End If
+                Next
+            Next
+
             Return newStatement.WithLeadingTrivia(totalTrivia)
         End Function
 
