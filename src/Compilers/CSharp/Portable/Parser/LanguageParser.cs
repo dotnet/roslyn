@@ -6726,7 +6726,7 @@ tryAgain:
             {
                 return this.ParseQualifiedName(options);
             }
-            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && IsPossibleTupleType())
+            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 return this.ParseTupleType();
             }
@@ -6734,22 +6734,6 @@ tryAgain:
             {
                 var name = this.CreateMissingIdentifierName();
                 return this.AddError(name, ErrorCode.ERR_TypeExpected);
-            }
-        }
-
-        private bool IsPossibleTupleType()
-        {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenParenToken);
-            var resetPoint = this.GetResetPoint();
-            try
-            {
-                SyntaxToken lastTokenOfType = EatToken();
-                return this.ScanTupleType(out lastTokenOfType) != ScanTypeFlags.NotType;
-            }
-            finally
-            {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
             }
         }
 
@@ -10136,10 +10120,15 @@ tryAgain:
                             return foundRefOrOut;
 
                         case SyntaxKind.CommaToken:
+                            if (foundRefOrOut)
+                            {
+                                return true;
+                            }
+
                             continue;
 
                         case SyntaxKind.CloseParenToken:
-                            return this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken;
+                            return foundRefOrOut || this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken;
 
                         default:
                             return false;

@@ -91,6 +91,9 @@
     <Compile Include="..\Syntax\TextExtensions.cs">
       <Link>DELETEME\TextExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\Syntax\Parsing\SeparatedSyntaxListParsingTests.cs">
+      <Link>DELETEME\SeparatedSyntaxListParsingTests.cs</Link>
+    </Compile>
     <Compile Include="Diagnostics\CompilationEventTests.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.AllInOne.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.cs" />

@@ -3741,9 +3741,18 @@ class C
                 // (4,16): error CS1519: Invalid token '=' in class, struct, or interface member declaration
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 16),
-                // (4,18): error CS1519: Invalid token '(' in class, struct, or interface member declaration
+                // (4,18): error CS8124: Tuple must contain at least two elements.
                 //     var (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(4, 18),
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(").WithLocation(4, 18),
+                // (4,19): error CS1031: Type expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "1").WithLocation(4, 19),
+                // (4,19): error CS1026: ) expected
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "1").WithLocation(4, 19),
+                // (4,19): error CS1519: Invalid token '1' in class, struct, or interface member declaration
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "1").WithArguments("1").WithLocation(4, 19),
                 // (4,10): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(4, 10),
@@ -3888,9 +3897,12 @@ System.Console.Write($""{x} {y}"");
                 // (2,19): error CS1022: Type or namespace definition, or end-of-file expected
                 // (string x, int y) = ("hello", 42);
                 Diagnostic(ErrorCode.ERR_EOFExpected, "=").WithLocation(2, 19),
-                // (2,17): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
                 // (string x, int y) = ("hello", 42);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ")").WithLocation(2, 17),
+                Diagnostic(ErrorCode.ERR_EOFExpected, @"""hello""").WithLocation(2, 22),
+                // (2,22): error CS1026: ) expected
+                // (string x, int y) = ("hello", 42);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, @"""hello""").WithLocation(2, 22),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
                 );
