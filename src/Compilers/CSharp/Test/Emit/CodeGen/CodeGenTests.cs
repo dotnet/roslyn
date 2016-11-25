@@ -15561,8 +15561,6 @@ public static class Ext
                 expectedOutput: "1");
         }
 
-
-
         [Fact]
         public void ArrayStructIsPassedByrefIntoRefExtensionMethod()
         {
@@ -15596,6 +15594,5 @@ public static class Ext
             CompileAndVerify(source, additionalRefs: new[] { SystemRef, SystemCoreRef },
                 expectedOutput: "1");
         }
-
     }
 }

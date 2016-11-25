@@ -19413,7 +19413,6 @@ internal abstract event System.EventHandler E;";
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
         }
 
-
         [Fact]
         public void ERR_RefExtensionMethodOnNonValueType()
         {
