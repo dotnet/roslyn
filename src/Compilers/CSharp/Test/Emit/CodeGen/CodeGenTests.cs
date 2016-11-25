@@ -15594,5 +15594,37 @@ public static class Ext
             CompileAndVerify(source, additionalRefs: new[] { SystemRef, SystemCoreRef },
                 expectedOutput: "1");
         }
+
+        [Fact]
+        public void ByRefExtensionMethodOnByrefReturn()
+        {
+            var source =
+@"
+public struct S { public int I; }
+
+class Program
+{
+    static S s = new S();
+
+    public static ref S Get()
+    {
+        return ref s;
+    }
+
+    public static void Main()
+    {
+        Get().E();
+        System.Console.WriteLine(s.I);
+    }
+}
+
+public static class Ext
+{
+    public static void E(this ref S s) { s.I++; }
+}
+";
+            CompileAndVerify(source, additionalRefs: new[] { SystemRef, SystemCoreRef },
+                expectedOutput: "1");
+        }
     }
 }
