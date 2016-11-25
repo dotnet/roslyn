@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             Return newStatement.WithLeadingTrivia(totalTrivia)
         End Function
 
-        Protected Overrides Function GetNewObjectCreation(
+        Private Function GetNewObjectCreation(
                 objectCreation As ObjectCreationExpressionSyntax,
                 matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As ObjectCreationExpressionSyntax
 

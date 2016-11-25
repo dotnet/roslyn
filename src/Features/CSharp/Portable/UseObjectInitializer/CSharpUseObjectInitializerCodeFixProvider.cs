@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
                 GetNewObjectCreation(objectCreation, matches));
         }
 
-        protected override ObjectCreationExpressionSyntax GetNewObjectCreation(
+        private ObjectCreationExpressionSyntax GetNewObjectCreation(
             ObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
         {
