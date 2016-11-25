@@ -18,6 +18,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             AssignmentStatementSyntax,
             VariableDeclaratorSyntax)
 
+        Protected Overrides Function GetNewStatement(
+                statement As StatementSyntax, objectCreation As ObjectCreationExpressionSyntax,
+                matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As StatementSyntax
+            Dim newStatement = statement.ReplaceNode(
+                objectCreation,
+                GetNewObjectCreation(objectCreation, matches))
+
+            Dim leadingComments = matches.SelectMany(Function(m) m.Statement.GetLeadingTrivia()).
+                                          Where(Function(t) t.Kind = SyntaxKind.CommentTrivia)
+
+            Dim totalTrivia = statement.GetLeadingTrivia().Concat(leadingComments).Concat(SyntaxFactory.ElasticMarker)
+            Return newStatement.WithLeadingTrivia(totalTrivia)
+        End Function
+
         Protected Overrides Function GetNewObjectCreation(
                 objectCreation As ObjectCreationExpressionSyntax,
                 matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As ObjectCreationExpressionSyntax
