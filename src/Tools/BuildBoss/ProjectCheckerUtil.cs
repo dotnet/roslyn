@@ -47,6 +47,7 @@ namespace BuildBoss
                 allGood &= CheckForProperty(textWriter, "HighEntropyVA");
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
+                allGood &= CheckDeploymentSettings(textWriter);
             }
 
             allGood &= CheckTestDeploymentProjects(textWriter);
@@ -63,6 +64,7 @@ namespace BuildBoss
                     textWriter.WriteLine($"\tDo not use {propertyName}");
                     return false;
                 }
+
             }
 
             return true;
@@ -137,6 +139,18 @@ namespace BuildBoss
             allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
             allGood &= CheckTransitiveReferences(textWriter, declaredList);
 
+            return allGood;
+        }
+
+        private bool CheckDeploymentSettings(TextWriter textWriter)
+        {
+            var data = _projectUtil.TryGetRoslynProjectData();
+            if (data?.EffectiveKind == RoslynProjectKind.Custom)
+            {
+                return true;
+            }
+
+            var allGood = CheckForProperty(textWriter, "CopyNuGetImplementations");
             return allGood;
         }
 
