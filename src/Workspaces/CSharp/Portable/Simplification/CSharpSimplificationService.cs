@@ -21,14 +21,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
     [ExportLanguageService(typeof(ISimplificationService), LanguageNames.CSharp), Shared]
     internal partial class CSharpSimplificationService : AbstractSimplificationService<ExpressionSyntax, StatementSyntax, CrefSyntax>
     {
-        protected override IEnumerable<AbstractReducer> GetReducers()
+        // 1. the cast simplifier should run earlier then everything else to minimize the type expressions
+        // 2. Extension method reducer may insert parentheses.  So run it before the parentheses remover.
+        private static readonly ImmutableArray<AbstractReducer> s_reducers =
+            ImmutableArray.Create<AbstractReducer>(
+                new CSharpCastReducer(),
+                new CSharpNameReducer(),
+                new CSharpExtensionMethodReducer(),
+                new CSharpParenthesesReducer(),
+                new CSharpEscapingReducer(),
+                new CSharpMiscellaneousReducer());
+
+        public CSharpSimplificationService() : base(s_reducers)
         {
-            yield return new CSharpCastReducer();
-            yield return new CSharpNameReducer(); // the cast simplifier should run earlier to minimize the type expressions
-            yield return new CSharpParenthesesReducer();
-            yield return new CSharpExtensionMethodReducer();
-            yield return new CSharpEscapingReducer();
-            yield return new CSharpMiscellaneousReducer();
         }
 
         public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool> expandInsideNode, bool expandParameter, CancellationToken cancellationToken)

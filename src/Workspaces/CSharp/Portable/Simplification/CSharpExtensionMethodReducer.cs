@@ -3,6 +3,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -53,19 +54,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     {
                         MemberAccessExpressionSyntax newMemberAccess = null;
                         var invocationExpressionNodeExpression = node.Expression;
-                        var expression = argumentList.Arguments[0].Expression;
+
+                        // Ensure the first expression is parenthesized so that we don't cause any
+                        // precedence issues when we take the extension method and tack it on the 
+                        // end of it.
+                        var expression = argumentList.Arguments[0].Expression.Parenthesize();
 
                         if (node.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
                         {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).OperatorToken, ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).Name);
+                            newMemberAccess = SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression, expression,
+                                ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).OperatorToken, 
+                                ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).Name);
                         }
                         else if (node.Expression.Kind() == SyntaxKind.IdentifierName)
                         {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, (IdentifierNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
+                            newMemberAccess = SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression, expression, 
+                                (IdentifierNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
                         }
                         else if (node.Expression.Kind() == SyntaxKind.GenericName)
                         {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, (GenericNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
+                            newMemberAccess = SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression, expression, 
+                                (GenericNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
                         }
                         else
                         {

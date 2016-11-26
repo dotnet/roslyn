@@ -22,7 +22,12 @@ namespace Microsoft.CodeAnalysis.Simplification
         where TStatementSyntax : SyntaxNode
         where TCrefSyntax : SyntaxNode
     {
-        protected abstract IEnumerable<AbstractReducer> GetReducers();
+        private ImmutableArray<AbstractReducer> _reducers;
+
+        protected AbstractSimplificationService(ImmutableArray<AbstractReducer> reducers)
+        {
+            _reducers = reducers;
+        }
 
         protected abstract ImmutableArray<NodeOrTokenToReduce> GetNodesAndTokensToReduce(SyntaxNode root, Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans);
         protected abstract SemanticModel GetSpeculativeSemanticModel(ref SyntaxNode nodeToSpeculate, SemanticModel originalSemanticModel, SyntaxNode originalNode);
@@ -36,7 +41,12 @@ namespace Microsoft.CodeAnalysis.Simplification
         public abstract SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool> expandInsideNode, bool expandParameter, CancellationToken cancellationToken);
         public abstract SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Func<SyntaxNode, bool> expandInsideNode, CancellationToken cancellationToken);
 
-        public async Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, OptionSet optionSet = null, IEnumerable<AbstractReducer> reducers = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<Document> ReduceAsync(
+            Document document, 
+            IEnumerable<TextSpan> spans,
+            OptionSet optionSet = null,
+            ImmutableArray<AbstractReducer> reducers = default(ImmutableArray<AbstractReducer>), 
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             using (Logger.LogBlock(FunctionId.Simplifier_ReduceAsync, cancellationToken))
             {
@@ -82,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             Document document,
             List<TextSpan> spans,
             OptionSet optionSet,
-            IEnumerable<AbstractReducer> reducers,
+            ImmutableArray<AbstractReducer> reducers,
             CancellationToken cancellationToken)
         {
             // Create a simple interval tree for simplification spans.
@@ -112,9 +122,9 @@ namespace Microsoft.CodeAnalysis.Simplification
 
             if (nodesAndTokensToReduce.Any())
             {
-                if (reducers == null)
+                if (reducers.IsDefault)
                 {
-                    reducers = this.GetReducers();
+                    reducers = _reducers;
                 }
 
                 var reducedNodesMap = new ConcurrentDictionary<SyntaxNode, SyntaxNode>();
