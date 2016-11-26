@@ -151,6 +151,7 @@ namespace BuildBoss
             }
 
             var allGood = CheckForProperty(textWriter, "CopyNuGetImplementations");
+            allGood &= CheckForProperty(textWriter, "UseCommonOutputDirectory");
             return allGood;
         }
 

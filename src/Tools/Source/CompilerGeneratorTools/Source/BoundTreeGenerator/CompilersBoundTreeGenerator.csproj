@@ -16,7 +16,6 @@
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <CopyReferencesByDefault>false</CopyReferencesByDefault>
     <NonShipping>true</NonShipping>
-    <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
     <RoslynProjectType>ExeNonDeployment</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
