@@ -327,8 +327,8 @@ namespace BuildBoss
             }
 
             var allGood = true;
-            var data = _projectUtil.GetRoslynProjectData();
-            if (data.DeclaredKind != RoslynProjectKind.DeploymentTest)
+            var data = _projectUtil.TryGetRoslynProjectData();
+            if (data?.DeclaredKind != RoslynProjectKind.DeploymentTest)
             {
                 textWriter.WriteLine("Test deployment project must be marked as <RoslynProjectKind>DeploymentTest</RoslynProjectKind>");
                 allGood = false;
