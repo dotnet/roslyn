@@ -33,6 +33,7 @@ namespace BuildBoss
             var allGood = true;
             if (ProjectType == ProjectFileType.CSharp || ProjectType == ProjectFileType.Basic)
             {
+                // Properties that aren't related to build but instead artifacts of Visual Studio.
                 allGood &= CheckForProperty(textWriter, "RestorePackages");
                 allGood &= CheckForProperty(textWriter, "SolutionDir");
                 allGood &= CheckForProperty(textWriter, "FileAlignment");
@@ -40,11 +41,14 @@ namespace BuildBoss
                 allGood &= CheckForProperty(textWriter, "UpgradeBackupLocation");
                 allGood &= CheckForProperty(textWriter, "OldToolsVersion");
                 allGood &= CheckForProperty(textWriter, "SchemaVersion");
+
+                // Centrally controlled properties
                 allGood &= CheckForProperty(textWriter, "Configuration");
                 allGood &= CheckForProperty(textWriter, "CheckForOverflowUnderflow");
                 allGood &= CheckForProperty(textWriter, "RemoveIntegerChecks");
                 allGood &= CheckForProperty(textWriter, "Deterministic");
                 allGood &= CheckForProperty(textWriter, "HighEntropyVA");
+                
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
                 allGood &= CheckDeploymentSettings(textWriter);
