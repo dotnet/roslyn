@@ -80,7 +80,7 @@ Type ""#help"" for more information.
 
         <Fact()>
         Public Sub TestReferenceDirective()
-            Dim file1 = Temp.CreateFile("1.dll").WriteAllBytes(TestCompilationFactory.CreateVisualBasicCompilationWithMscorlib("
+            Dim file1 = Temp.CreateFile("1.dll").WriteAllBytes(TestCompilationFactory.CreateVisualBasicCompilationWithCorlib("
 public Class C1
 Public Function Foo() As String
     Return ""Bar""

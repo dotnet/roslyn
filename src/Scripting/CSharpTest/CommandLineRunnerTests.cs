@@ -577,16 +577,16 @@ Print(new C4());
 ");
 
             var dir1 = Temp.CreateDirectory();
-            dir1.CreateFile("1.dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib("public class C1 {}", "1").EmitToArray());
+            dir1.CreateFile("1.dll").WriteAllBytes(CreateCSharpCompilationWithCorlib("public class C1 {}", "1").EmitToArray());
 
             var dir2 = Temp.CreateDirectory();
-            dir2.CreateFile("2.dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib("public class C2 {}", "2").EmitToArray());
+            dir2.CreateFile("2.dll").WriteAllBytes(CreateCSharpCompilationWithCorlib("public class C2 {}", "2").EmitToArray());
 
             var dir3 = Temp.CreateDirectory();
-            dir3.CreateFile("3.dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib("public class C3 {}", "3").EmitToArray());
+            dir3.CreateFile("3.dll").WriteAllBytes(CreateCSharpCompilationWithCorlib("public class C3 {}", "3").EmitToArray());
 
             var dir4 = Temp.CreateDirectory();
-            dir4.CreateFile("4.dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib("public class C4 {}", "4").EmitToArray());
+            dir4.CreateFile("4.dll").WriteAllBytes(CreateCSharpCompilationWithCorlib("public class C4 {}", "4").EmitToArray());
 
             var runner = CreateRunner(new[] { "/r:4.dll", $"/lib:{dir1.Path}", $"/libpath:{dir2.Path}", $"/libpaths:{dir3.Path};{dir4.Path}", main.Path });
 
