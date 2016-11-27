@@ -9530,7 +9530,12 @@ tryAgain:
         {
             switch (this.CurrentToken.Kind)
             {
-                case SyntaxKind.IdentifierToken when IsTrueIdentifier():
+                case SyntaxKind.IdentifierToken:
+                    if (!IsTrueIdentifier())
+                    {
+                        goto default;
+                    }
+
                     this.EatToken(); // eat the identifier
                     return true;
                 case SyntaxKind.OpenParenToken:
