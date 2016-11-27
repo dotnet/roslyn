@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -9,12 +8,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    using DocumentMap = MultiDictionary<Document, (SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>;
+
     internal partial class FindReferencesSearchEngine
     {
         private async Task ProcessDocumentQueueAsync(
             Document document,
-            List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)> documentQueue,
-            ProgressWrapper wrapper)
+            DocumentMap.ValueSet documentQueue)
         {
             await _progress.OnFindInDocumentStartedAsync(document).ConfigureAwait(false);
 
@@ -26,26 +26,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // start cache for this semantic model
                 FindReferenceCache.Start(model);
 
-#if PARALLEL
-                Roslyn.Utilities.TaskExtensions.RethrowIncorrectAggregateExceptions(cancellationToken, () =>
-                    {
-                        documentQueue.AsParallel().WithCancellation(cancellationToken).ForAll(symbolAndFinder =>
-                        {
-                            var symbol = symbolAndFinder.Item1;
-                            var finder = symbolAndFinder.Item2;
-
-                            ProcessDocument(document, symbol, finder, wrapper);
-                        });
-                    });
-#else
                 foreach (var symbolAndFinder in documentQueue)
                 {
                     var symbol = symbolAndFinder.symbolAndProjectId;
                     var finder = symbolAndFinder.finder;
 
-                    await ProcessDocumentAsync(document, symbol, finder, wrapper).ConfigureAwait(false);
+                    await ProcessDocumentAsync(document, symbol, finder).ConfigureAwait(false);
                 }
-#endif
             }
             finally
             {
@@ -63,8 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task ProcessDocumentAsync(
             Document document,
             SymbolAndProjectId symbolAndProjectId,
-            IReferenceFinder finder,
-            ProgressWrapper wrapper)
+            IReferenceFinder finder)
         {
             using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, s_logDocument, document, symbolAndProjectId.Symbol, _cancellationToken))
             {
@@ -78,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
                 finally
                 {
-                    await wrapper.IncrementAsync().ConfigureAwait(false);
+                    await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
                 }
             }
         }
