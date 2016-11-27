@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 : localDeclarator;
 
             context.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptorWithSeverity(option.Notification.Value),
+                GetDescriptorWithSeverity(option.Notification.Value),
                 reportNode.GetLocation(),
                 additionalLocations: allLocations));
         }

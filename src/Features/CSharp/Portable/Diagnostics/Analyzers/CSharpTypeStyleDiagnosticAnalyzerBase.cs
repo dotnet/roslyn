@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 if (TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken, out var diagnosticSpan))
                 {
                     // The severity preference is not Hidden, as indicated by shouldAnalyze.
-                    var descriptor = CreateDescriptorWithSeverity(state.GetDiagnosticSeverityPreference());
+                    var descriptor = GetDescriptorWithSeverity(state.GetDiagnosticSeverityPreference());
                     context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, diagnosticSpan));
                 }
             }

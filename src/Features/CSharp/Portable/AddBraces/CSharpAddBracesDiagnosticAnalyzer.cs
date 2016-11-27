@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -46,15 +47,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 
         public void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
+            var syntaxTree = context.Node.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
             var node = context.Node;
 
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
+            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferBraces);
+            if (!option.Value)
+            {
+                return;
+            }
+
+            var descriptor = GetDescriptorWithSeverity(option.Notification.Value);
             if (node.IsKind(SyntaxKind.IfStatement))
             {
                 var ifStatement = (IfStatementSyntax)node;
                 if (AnalyzeIfStatement(ifStatement))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(HiddenDescriptor,
-                        ifStatement.IfKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.IfKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        ifStatement.IfKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.IfKeyword)));
                 }
             }
 
@@ -63,8 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var elseClause = (ElseClauseSyntax)node;
                 if (AnalyzeElseClause(elseClause))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(HiddenDescriptor,
-                        elseClause.ElseKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ElseKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        elseClause.ElseKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.ElseKeyword)));
                 }
             }
 
@@ -73,8 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var forStatement = (ForStatementSyntax)node;
                 if (AnalyzeForStatement(forStatement))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(HiddenDescriptor,
-                        forStatement.ForKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ForKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        forStatement.ForKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.ForKeyword)));
                 }
             }
 
@@ -83,8 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var forEachStatement = (CommonForEachStatementSyntax)node;
                 if (AnalyzeForEachStatement(forEachStatement))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(HiddenDescriptor,
-                        forEachStatement.ForEachKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ForEachKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        forEachStatement.ForEachKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.ForEachKeyword)));
                 }
             }
 
@@ -93,8 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var whileStatement = (WhileStatementSyntax)node;
                 if (AnalyzeWhileStatement(whileStatement))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(HiddenDescriptor,
-                        whileStatement.WhileKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.WhileKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        whileStatement.WhileKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.WhileKeyword)));
                 }
             }
 
@@ -103,8 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var doStatement = (DoStatementSyntax)node;
                 if (AnalyzeDoStatement(doStatement))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(HiddenDescriptor,
-                        doStatement.DoKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.DoKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        doStatement.DoKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.DoKeyword)));
                 }
             }
 
@@ -113,8 +135,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var usingStatement = (UsingStatementSyntax)context.Node;
                 if (AnalyzeUsingStatement(usingStatement))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(HiddenDescriptor,
-                        usingStatement.UsingKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.UsingKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        usingStatement.UsingKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.UsingKeyword)));
                 }
             }
 
@@ -123,8 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var lockStatement = (LockStatementSyntax)context.Node;
                 if (AnalyzeLockStatement(lockStatement))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(HiddenDescriptor,
-                        lockStatement.LockKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.LockKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        lockStatement.LockKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.LockKeyword)));
                 }
             }
         }
