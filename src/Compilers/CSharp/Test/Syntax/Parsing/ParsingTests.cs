@@ -174,13 +174,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Conditional("PARSING_TESTS_DUMP")]
         private static void Print(SyntaxNodeOrToken node)
         {
-            if (node.Kind() == SyntaxKind.IdentifierToken && !node.IsMissing)
+            switch (node.Kind())
             {
-                Debug.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), node.ToString());
-            }
-            else
-            {
-                Debug.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
+                case SyntaxKind.IdentifierToken:
+                case SyntaxKind.NumericLiteralToken:
+                    if (node.IsMissing)
+                    {
+                        goto default;
+                    }
+                    Debug.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), node.ToString());
+                    break;
+                default:
+                    Debug.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
+                    break;
             }
         }
 

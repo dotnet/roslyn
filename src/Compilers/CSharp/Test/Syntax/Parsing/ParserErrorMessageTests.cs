@@ -1314,15 +1314,10 @@ namespace x
 ";
 
             ParseAndValidate(test,
-    // (8,15): error CS1003: Syntax error, ']' expected
-    //             a[);
-    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")"),
-    // (8,15): error CS1002: ; expected
-    //             a[);
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-    // (8,15): error CS1513: } expected
-    //             a[);
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
+                // (8,15): error CS1003: Syntax error, ']' expected
+                //             a[);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(8, 15)
+                );
         }
 
         [Fact]
@@ -3388,18 +3383,16 @@ class C
 ";
             // Extra errors
             ParseAndValidate(test,
-    // (4,26): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-    //     event System.Action E();
-    Diagnostic(ErrorCode.ERR_BadVarDecl, "()"),
-    // (4,26): error CS1003: Syntax error, '[' expected
-    //     event System.Action E();
-    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "("),
-    // (4,27): error CS1525: Invalid expression term ')'
-    //     event System.Action E();
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
-    // (4,28): error CS1003: Syntax error, ']' expected
-    //     event System.Action E();
-    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";"));
+                // (4,26): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                //     event System.Action E();
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(").WithLocation(4, 26),
+                // (4,26): error CS1003: Syntax error, '[' expected
+                //     event System.Action E();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(4, 26),
+                // (4,27): error CS1003: Syntax error, ']' expected
+                //     event System.Action E();
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(4, 27)
+                );
         }
 
         [Fact]

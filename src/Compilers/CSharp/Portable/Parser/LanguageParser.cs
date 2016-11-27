@@ -9727,7 +9727,18 @@ tryAgain:
             SyntaxKind closeKind)
         {
             bool isIndexer = openKind == SyntaxKind.OpenBracketToken;
-            var open = this.EatToken(openKind);
+
+            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken ||
+                this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
+            {
+                // convert `[` into `(` or vice versa for error recovery
+                openToken = this.ConsumeOneToken(openKind);
+            }
+            else
+            {
+                openToken = this.EatToken(openKind);
+            }
+
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfArgumentList;
 
@@ -9750,7 +9761,9 @@ tryAgain:
                         // additional arguments
                         while (true)
                         {
-                            if (this.CurrentToken.Kind == closeKind || this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                            if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken ||
+                                this.CurrentToken.Kind == SyntaxKind.CloseBracketToken ||
+                                this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                             {
                                 break;
                             }
@@ -9760,13 +9773,13 @@ tryAgain:
                                 list.Add(this.ParseArgumentExpression(isIndexer));
                                 continue;
                             }
-                            else if (this.SkipBadArgumentListTokens(ref open, list, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
+                            else if (this.SkipBadArgumentListTokens(ref openToken, list, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
                             {
                                 break;
                             }
                         }
                     }
-                    else if (this.SkipBadArgumentListTokens(ref open, list, SyntaxKind.IdentifierToken, closeKind) == PostSkipAction.Continue)
+                    else if (this.SkipBadArgumentListTokens(ref openToken, list, SyntaxKind.IdentifierToken, closeKind) == PostSkipAction.Continue)
                     {
                         goto tryAgain;
                     }
@@ -9786,8 +9799,17 @@ tryAgain:
 
                 _termState = saveTerm;
 
-                openToken = open;
-                closeToken = this.EatToken(closeKind);
+                if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken ||
+                    this.CurrentToken.Kind == SyntaxKind.CloseBracketToken)
+                {
+                    // convert `]` into `)` or vice versa for error recovery
+                    closeToken = this.ConsumeOneToken(closeKind);
+                }
+                else
+                {
+                    closeToken = this.EatToken(closeKind);
+                }
+
                 arguments = list.ToList();
             }
             finally
@@ -10134,7 +10156,7 @@ tryAgain:
                             continue;
 
                         case SyntaxKind.CloseParenToken:
-                            return foundRefOrOut || this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken;
+                            return this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken;
 
                         default:
                             return false;

@@ -4115,8 +4115,12 @@ class C
             Assert.NotNull(ms.Body);
             Assert.Equal(1, ms.Body.Statements.Count);
             Assert.Equal(SyntaxKind.DoStatement, ms.Body.Statements[0].Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            file.Errors().Verify(
+                // error CS1003: Syntax error, ']' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", ")").WithLocation(1, 1),
+                // error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -4281,8 +4285,12 @@ class C
             Assert.NotNull(ms.Body);
             Assert.Equal(1, ms.Body.Statements.Count);
             Assert.Equal(SyntaxKind.ForStatement, ms.Body.Statements[0].Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            file.Errors().Verify(
+                // error CS1003: Syntax error, ']' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", ")").WithLocation(1, 1),
+                // error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1)
+                );
         }
 
         [Fact]
