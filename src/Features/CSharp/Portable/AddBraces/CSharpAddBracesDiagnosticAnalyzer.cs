@@ -12,17 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
     internal sealed class CSharpAddBracesDiagnosticAnalyzer : 
         AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private static readonly LocalizableString s_localizableTitle =
-            new LocalizableResourceString(nameof(FeaturesResources.Add_braces), FeaturesResources.ResourceManager,
-                typeof(FeaturesResources));
-
-        private static readonly LocalizableString s_localizableMessage =
-            new LocalizableResourceString(nameof(WorkspacesResources.Add_braces_to_0_statement), WorkspacesResources.ResourceManager,
-                typeof(WorkspacesResources));
-
         public CSharpAddBracesDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddBracesDiagnosticId,
-                   s_localizableTitle, s_localizableMessage)
+                   new LocalizableResourceString(nameof(FeaturesResources.Add_braces), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(WorkspacesResources.Add_braces_to_0_statement), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {
         }
 
