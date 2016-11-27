@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var projectMap = await CreateProjectMapAsync(symbols).ConfigureAwait(false);
                 var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap).ConfigureAwait(false);
+                ValidateProjectToDocumentMap(projectToDocumentMap);
+
                 await ProcessAsync(projectToDocumentMap).ConfigureAwait(false);
             }
             finally
@@ -112,18 +114,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         [Conditional("DEBUG")]
-        private static void ValidateProjectMap(
-            Dictionary<Project, Dictionary<Document, List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>> projectMap)
+        private static void ValidateProjectToDocumentMap(
+            ProjectToDocumentMap projectToDocumentMap)
         {
             var set = new HashSet<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>();
 
-            foreach (var map in projectMap.Values)
+            foreach (var documentMap in projectToDocumentMap.Values)
             {
-                foreach (var finderList in map.Values)
+                foreach (var documentToFinderList in documentMap)
                 {
                     set.Clear();
 
-                    foreach (var finder in finderList)
+                    foreach (var finder in documentToFinderList.Value)
                     {
                         Contract.Requires(set.Add(finder));
                     }
