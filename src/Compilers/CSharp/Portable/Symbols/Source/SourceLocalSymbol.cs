@@ -658,7 +658,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case SyntaxKind.SimpleAssignmentExpression:
                         var assignment = (AssignmentExpressionSyntax)_deconstruction;
-                        _nodeBinder.BindDeconstruction(assignment, assignment.Left, assignment.Right, diagnostics, isDeclaration: true);
+                        Debug.Assert(assignment.IsDeconstruction());
+                        CSharpSyntaxNode declaration = null;
+                        CSharpSyntaxNode expression = null;
+                        _nodeBinder.BindDeconstruction(assignment, assignment.Left, assignment.Right, diagnostics, ref declaration, ref expression);
                         break;
 
                     case SyntaxKind.ForEachVariableStatement:
@@ -682,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     switch (_deconstruction.Kind())
                     {
                         case SyntaxKind.SimpleAssignmentExpression:
-                            return ((AssignmentExpressionSyntax)_deconstruction).Right;
+                            return _deconstruction;
 
                         case SyntaxKind.ForEachVariableStatement:
                             // There is no forbidden zone for a foreach statement, because the

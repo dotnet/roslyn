@@ -1151,15 +1151,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,33): error CS1003: Syntax error, '=>' expected
-                //         var z = ((var x, int y) = new C());
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(6, 33),
-                // (6,33): error CS1525: Invalid expression term '='
-                //         var z = ((var x, int y) = new C());
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 33),
-                // (6,19): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
-                //         var z = ((var x, int y) = new C());
-                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 19)
+                // this is permitted now, as it is just a deconstruction assignment expression
                 );
         }
 
@@ -1214,15 +1206,15 @@ class C
                 // (7,22): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
                 //         (int x, var (err1, y)) = (0, new C());
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "err1").WithArguments("System.ArgIterator").WithLocation(7, 22),
-                // (8,10): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
+                // (8,22): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
                 //         (ArgIterator err2, var err3) = M2();
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(8, 10),
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "err2").WithArguments("System.ArgIterator").WithLocation(8, 22),
                 // (8,32): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
                 //         (ArgIterator err2, var err3) = M2();
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "err3").WithArguments("System.ArgIterator").WithLocation(8, 32),
-                // (9,19): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
+                // (9,31): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
                 //         foreach ((ArgIterator err4, var err5) in new[] { M2() })
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(9, 19),
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "err4").WithArguments("System.ArgIterator").WithLocation(9, 31),
                 // (9,41): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
                 //         foreach ((ArgIterator err4, var err5) in new[] { M2() })
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "err5").WithArguments("System.ArgIterator").WithLocation(9, 41),
@@ -1260,15 +1252,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (7,10): error CS1031: Type expected
+                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (x, int y) = new C();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "x").WithLocation(7, 10),
-                // (7,10): error CS0128: A local variable or function named 'x' is already defined in this scope
-                //         (x, int y) = new C();
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(7, 10),
-                // (6,13): warning CS0168: The variable 'x' is declared but never used
-                //         int x;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(x, int y)").WithLocation(7, 9)
                 );
         }
 
@@ -1287,42 +1273,12 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8124: Tuple must contain at least two elements.
+                // (6,10): error CS8187: Tuple element names are not permitted on the left of a deconstruction.
                 //         (Alice: var x, Bob: int y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(Alice: var ").WithLocation(6, 9),
-                // (6,21): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_TupleElementNamesInDeconstruction, "Alice:").WithLocation(6, 10),
+                // (6,24): error CS8187: Tuple element names are not permitted on the left of a deconstruction.
                 //         (Alice: var x, Bob: int y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(6, 21),
-                // (6,21): error CS1002: ; expected
-                //         (Alice: var x, Bob: int y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(6, 21),
-                // (6,22): error CS1002: ; expected
-                //         (Alice: var x, Bob: int y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 22),
-                // (6,22): error CS1513: } expected
-                //         (Alice: var x, Bob: int y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 22),
-                // (6,34): error CS1002: ; expected
-                //         (Alice: var x, Bob: int y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 34),
-                // (6,34): error CS1513: } expected
-                //         (Alice: var x, Bob: int y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 34),
-                // (6,36): error CS1525: Invalid expression term '='
-                //         (Alice: var x, Bob: int y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 36),
-                // (6,17): error CS0103: The name 'var' does not exist in the current context
-                //         (Alice: var x, Bob: int y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 17),
-                // (6,21): error CS0103: The name 'x' does not exist in the current context
-                //         (Alice: var x, Bob: int y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 21),
-                // (6,24): warning CS0164: This label has not been referenced
-                //         (Alice: var x, Bob: int y) = (1, 2);
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "Bob").WithLocation(6, 24),
-                // (6,33): warning CS0168: The variable 'y' is declared but never used
-                //         (Alice: var x, Bob: int y) = (1, 2);
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_TupleElementNamesInDeconstruction, "Bob:").WithLocation(6, 24)
                 );
         }
 
@@ -2735,25 +2691,8 @@ class C
 ";
 
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            // this is permitted now, as it is just an assignment expression
             comp.VerifyDiagnostics(
-                // (6,35): error CS1002: ; expected
-                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 35),
-                // (6,35): error CS1525: Invalid expression term ','
-                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(6, 35),
-                // (6,35): error CS1002: ; expected
-                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 35),
-                // (6,35): error CS1525: Invalid expression term ','
-                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(6, 35),
-                // (6,43): error CS1026: ) expected
-                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 43),
-                // (6,47): error CS1513: } expected
-                //         for (var (x1, x2) = (1, 2), x1 = 0; ; )
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 47)
                 );
         }
 
@@ -4220,9 +4159,9 @@ var (x, y) = (1, 2);
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6), options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics(
-                // (2,1): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (2,5): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 // var (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "var (x, y)").WithArguments("tuples", "7").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(x, y)").WithArguments("tuples", "7").WithLocation(2, 5),
                 // (2,14): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 // var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7").WithLocation(2, 14)
@@ -4858,9 +4797,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (7,10): error CS8184: Cannot reference _ in a deconstruction declaration
+                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (_, var x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionDisallowed, "_").WithArguments("_").WithLocation(7, 10)
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(_, var x)").WithLocation(7, 9)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -4910,15 +4849,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (7,10): error CS1031: Type expected
+                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (i, var x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_TypeExpected, "i").WithLocation(7, 10),
-                // (7,10): error CS0128: A local variable or function named 'i' is already defined in this scope
-                //         (i, var x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "i").WithArguments("i").WithLocation(7, 10),
-                // (6,13): warning CS0168: The variable 'i' is declared but never used
-                //         int i;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "i").WithArguments("i").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(i, var x)").WithLocation(7, 9)
                 );
         }
 
@@ -5056,23 +4989,9 @@ class C
     }
 }
 ";
+            // This is permitted, as long as it doesn't use an expression lvalue in the deconstruction.
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (6,25): error CS1001: Identifier expected
-                //         foreach ((_, _) in new[] { (1, "hello") }) { System.Console.Write("2"); }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "in").WithLocation(6, 25),
-                // (6,25): error CS0230: Type and identifier are both required in a foreach statement
-                //         foreach ((_, _) in new[] { (1, "hello") }) { System.Console.Write("2"); }
-                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(6, 25),
-                // (6,19): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
-                //         foreach ((_, _) in new[] { (1, "hello") }) { System.Console.Write("2"); }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(6, 19),
-                // (6,22): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
-                //         foreach ((_, _) in new[] { (1, "hello") }) { System.Console.Write("2"); }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(6, 22),
-                // (6,9): error CS0030: Cannot convert type '(int, string)' to '(_, _)'
-                //         foreach ((_, _) in new[] { (1, "hello") }) { System.Console.Write("2"); }
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "foreach").WithArguments("(int, string)", "(_, _)").WithLocation(6, 9)
                 );
         }
 
@@ -5097,12 +5016,12 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (11,30): error CS8184: Cannot reference _ in a deconstruction declaration
-                //             foreach ((var y, _) in new[] { (1, "hello") }) { System.Console.Write("4"); } // error
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionDisallowed, "_").WithArguments("_").WithLocation(11, 30),
                 // (11,30): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //             foreach ((var y, _) in new[] { (1, "hello") }) { System.Console.Write("4"); } // error
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "_").WithArguments("string", "int").WithLocation(11, 30),
+                // (11,22): error CS8186: A foreach loop must declare its iteration variables.
+                //             foreach ((var y, _) in new[] { (1, "hello") }) { System.Console.Write("4"); } // error
+                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(var y, _)").WithLocation(11, 22),
                 // (10,17): warning CS0168: The variable '_' is declared but never used
                 //             int _;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "_").WithArguments("_").WithLocation(10, 17)
@@ -5242,18 +5161,18 @@ class C
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             // mixing declaration and expressions isn't supported yet
             comp.VerifyDiagnostics(
-                // (6,17): error CS1031: Type expected
+                // (6,17): error CS0841: Cannot use local variable 'x' before it is declared
                 //         (var x, x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_TypeExpected, "x").WithLocation(6, 17),
-                // (7,10): error CS1031: Type expected
-                //         (y, var y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_TypeExpected, "y").WithLocation(7, 10),
-                // (6,17): error CS0128: A local variable or function named 'x' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(6, 17),
+                // (6,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (var x, x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x").WithArguments("x").WithLocation(6, 17),
-                // (7,17): error CS0128: A local variable or function named 'y' is already defined in this scope
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(var x, x)").WithLocation(6, 9),
+                // (7,10): error CS0841: Cannot use local variable 'y' before it is declared
                 //         (y, var y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y").WithArguments("y").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(7, 10),
+                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
+                //         (y, var y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(y, var y)").WithLocation(7, 9)
                 );
         }
 
@@ -5508,15 +5427,9 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (6,20): error CS1001: Identifier expected
+                // (6,18): error CS8186: A foreach loop must declare its iteration variables.
                 //         foreach (_ in M())
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "in").WithLocation(6, 20),
-                // (6,20): error CS0230: Type and identifier are both required in a foreach statement
-                //         foreach (_ in M())
-                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(6, 20),
-                // (6,18): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
-                //         foreach (_ in M())
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "_").WithLocation(6, 18)
                 );
         }
 

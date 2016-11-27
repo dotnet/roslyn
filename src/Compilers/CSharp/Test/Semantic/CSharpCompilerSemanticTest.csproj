@@ -47,8 +47,10 @@
       <Name>PdbUtilities</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
@@ -56,6 +58,51 @@
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\Syntax\Parsing\SyntaxExtensions.cs">
+      <Link>DELETEME\SyntaxExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Parsing\DeclarationExpressionTests.cs">
+      <Link>DELETEME\DeclarationExpressionTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Parsing\DeconstructionTests.cs">
+      <Link>DELETEME\DeconstructionTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Parsing\ExpressionParsingTests.cs">
+      <Link>DELETEME\ExpressionParsingTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Parsing\ParsingTests.cs">
+      <Link>DELETEME\ParsingTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Parsing\PatternParsingTests.cs">
+      <Link>DELETEME\PatternParsingTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Parsing\ParsingErrorRecoveryTests.cs">
+      <Link>DELETEME\ParsingErrorRecoveryTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Parsing\ParserErrorMessageTests.cs">
+      <Link>DELETEME\ParserErrorMessageTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Parsing\LambdaParameterParsingTests.cs">
+      <Link>DELETEME\LambdaParameterParsingTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Parsing\ScriptParsingTests.cs">
+      <Link>DELETEME\ScriptParsingTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\TextExtensions.cs">
+      <Link>DELETEME\TextExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Parsing\SeparatedSyntaxListParsingTests.cs">
+      <Link>DELETEME\SeparatedSyntaxListParsingTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Syntax\SyntaxListTests.cs">
+      <Link>DELETEME\SyntaxListTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Parsing\AwaitParsingTests.cs">
+      <Link>DELETEME\AwaitParsingTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Syntax\Parsing\LocalFunctionParsingTests.cs">
+      <Link>DELETEME\LocalFunctionParsingTests.cs</Link>
+    </Compile>
     <Compile Include="Diagnostics\CompilationEventTests.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.AllInOne.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.cs" />
@@ -155,5 +202,6 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>
