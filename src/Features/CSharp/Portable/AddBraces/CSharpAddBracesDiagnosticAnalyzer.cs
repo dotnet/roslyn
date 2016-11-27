@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         public bool OpenFileOnly(Workspace workspace) => false;
 
         private static readonly ImmutableArray<SyntaxKind> s_syntaxKindsOfInterest =
-            ImmutableArray.Create(SyntaxKind.IfStatement,
+            ImmutableArray.Create(
+                SyntaxKind.IfStatement,
                 SyntaxKind.ElseClause,
                 SyntaxKind.ForStatement,
                 SyntaxKind.ForEachStatement,
@@ -31,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 SyntaxKind.DoStatement,
                 SyntaxKind.UsingStatement,
                 SyntaxKind.LockStatement);
-
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeNode, s_syntaxKindsOfInterest);
