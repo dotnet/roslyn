@@ -916,6 +916,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer pattern matching over &apos;as&apos; with &apos;null&apos; check.
+        /// </summary>
+        internal static string Prefer_pattern_matching_over_as_with_null_check {
+            get {
+                return ResourceManager.GetString("Prefer_pattern_matching_over_as_with_null_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer pattern matching over &apos;is&apos; with &apos;cast&apos; check.
+        /// </summary>
+        internal static string Prefer_pattern_matching_over_is_with_cast_check {
+            get {
+                return ResourceManager.GetString("Prefer_pattern_matching_over_is_with_cast_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer &apos;this.&apos;.
         /// </summary>
         internal static string Prefer_this {
