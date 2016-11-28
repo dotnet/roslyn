@@ -2570,5 +2570,34 @@ class C
                 Await state.AssertSelectedCompletionItem("ConfigureAwait")
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function MovingCaretToStartSoftSelects() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+using System;
+
+class C
+{
+    void M()
+    {
+        $$
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars("Conso")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertSelectedCompletionItem(displayText:="Console", isHardSelected:=True)
+                For Each ch In "Conso"
+                    state.SendLeftKey()
+                Next
+
+                Await state.AssertSelectedCompletionItem(displayText:="Console", isHardSelected:=False)
+
+                state.SendRightKey()
+                Await state.AssertSelectedCompletionItem(displayText:="Console", isHardSelected:=True)
+            End Using
+        End Function
     End Class
 End Namespace

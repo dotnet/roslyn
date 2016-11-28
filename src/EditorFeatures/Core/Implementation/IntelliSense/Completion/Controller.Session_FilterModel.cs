@@ -98,20 +98,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     return null;
                 }
 
-                var filterState = model.FilterState;
-
-                // If all the filters are on, or all the filters are off then we don't actually 
-                // need to filter.
-                if (filterState != null)
-                {
-                    if (filterState.Values.All(b => b) ||
-                        filterState.Values.All(b => !b))
-                    {
-                        filterState = null;
-                    }
-                }
-
                 // We want to dismiss the session if the caret ever moved outside our bounds.
+                // Do this before we check the _filterId.  We don't want this work to not happen
+                // just because the user typed more text and added more filter items.
                 if (recheckCaretPosition && Controller.IsCaretOutsideAllItemBounds(model, caretPosition))
                 {
                     return null;
@@ -155,6 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
                 }
 
+                var effectiveFilterItemState = ComputeEffectiveFilterItemState(model);
                 foreach (var currentItem in model.TotalItems)
                 {
                     // Check if something new has happened and there's a later on filter operation
@@ -165,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         return model;
                     }
 
-                    if (ItemIsFilteredOut(currentItem, filterState))
+                    if (ItemIsFilteredOut(currentItem, effectiveFilterItemState))
                     {
                         continue;
                     }
@@ -207,8 +197,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
 
                 return HandleNormalFiltering(
-                    model, document, filterReason, textSnapshot,
+                    model, document, filterReason, caretPosition,
                     helper, recentItems, filterText, filterResults);
+            }
+
+            private static ImmutableDictionary<CompletionItemFilter, bool> ComputeEffectiveFilterItemState(Model model)
+            {
+                var filterState = model.FilterState;
+
+                // If all the filters are on, or all the filters are off then we don't actually 
+                // need to filter.
+                if (filterState != null)
+                {
+                    if (filterState.Values.All(b => b) ||
+                        filterState.Values.All(b => !b))
+                    {
+                        return null;
+                    }
+                }
+
+                return filterState;
             }
 
             private Boolean IsAfterDot(Model model, ITextSnapshot textSnapshot, Dictionary<TextSpan, string> textSpanToText)
@@ -226,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 Model model,
                 Document document,
                 CompletionFilterReason filterReason,
-                ITextSnapshot textSnapshot,
+                SnapshotPoint caretPosition,
                 CompletionHelper helper,
                 ImmutableArray<string> recentItems,
                 string filterText,
@@ -255,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var bestOrFirstCompletionItem = bestCompletionItem ?? filterResults.First().CompletionItem;
 
                 var hardSelection = IsHardSelection(
-                    model, bestOrFirstCompletionItem, textSnapshot, helper, filterReason);
+                    model, bestOrFirstCompletionItem, caretPosition, helper, filterReason);
 
                 // Determine if we should consider this item 'unique' or not.  A unique item
                 // will be automatically committed if the user hits the 'invoke completion' 
@@ -528,7 +536,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             private bool IsHardSelection(
                 Model model,
                 CompletionItem bestFilterMatch,
-                ITextSnapshot textSnapshot,
+                SnapshotPoint caretPosition,
                 CompletionHelper completionHelper,
                 CompletionFilterReason reason)
             {
@@ -536,6 +544,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 {
                     return false;
                 }
+
+                var textSnapshot = caretPosition.Snapshot;
 
                 // We don't have a builder and we have a best match.  Normally this will be hard
                 // selected, except for a few cases.  Specifically, if no filter text has been
@@ -548,8 +558,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 //
                 // Completion will comes up after = with 'integer' selected (Because of MRU).  We do
                 // not want 'space' to commit this.
-                var viewSpan = model.GetViewBufferSpan(bestFilterMatch.Span);
-                var fullFilterText = model.GetCurrentTextInSnapshot(viewSpan, textSnapshot, endPoint: null);
+                var itemViewSpan = model.GetViewBufferSpan(bestFilterMatch.Span);
+                var fullFilterText = model.GetCurrentTextInSnapshot(itemViewSpan, textSnapshot, endPoint: null);
 
                 var trigger = model.Trigger;
                 var shouldSoftSelect = ShouldSoftSelectItem(bestFilterMatch, fullFilterText, trigger);
@@ -561,6 +571,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // If the user moved the caret left after they started typing, the 'best' match may not match at all
                 // against the full text span that this item would be replacing.
                 if (!MatchesFilterText(completionHelper, bestFilterMatch, fullFilterText, trigger, reason, this.Controller.GetRecentItems()))
+                {
+                    return false;
+                }
+
+                // Switch to soft selection, if user moved caret to the start of a non-empty filter span.
+                // This prevents commiting if user types a commit character at this position later, but still has the list if user types filter character
+                // i.e. blah| -> |blah -> !|blah
+                // We want the filter span non-empty because we still want hard selection in the following case:
+                //
+                //  A a = new |
+                if (caretPosition == itemViewSpan.TextSpan.Start && itemViewSpan.TextSpan.Length > 0)
                 {
                     return false;
                 }

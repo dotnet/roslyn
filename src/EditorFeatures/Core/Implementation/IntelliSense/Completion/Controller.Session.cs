@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // When we issue filter tasks, provide them with a (monotonically increasing) id.  That
             // way, when they run we can bail on computation if they've been superseded by another
-            // filter task.  
+            // filter task.
             private int _filterId;
 
             #endregion

@@ -96,26 +96,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // that goes into the other side of the seam, the character may be a commit character.
                     // If it's a commit character, just commit without trying to check caret position,
                     // since the caret is no longer in our buffer.
-                    if (isOnSeam && this.IsCommitCharacter(args.TypedChar))
+                    if (isOnSeam && this.CommitIfCommitCharacter(args.TypedChar, initialTextSnapshot, nextHandler))
                     {
-                        this.CommitOnTypeChar(args.TypedChar, initialTextSnapshot, nextHandler);
                         return;
                     }
-                    else if (_autoBraceCompletionChars.Contains(args.TypedChar) &&
+
+                    if (_autoBraceCompletionChars.Contains(args.TypedChar) &&
                              this.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.AutomaticPairCompletion) &&
-                             this.IsCommitCharacter(args.TypedChar))
+                             this.CommitIfCommitCharacter(args.TypedChar, initialTextSnapshot, nextHandler))
                     {
                         // I don't think there is any better way than this. if typed char is one of auto brace completion char,
                         // we don't do multiple buffer change check
-                        this.CommitOnTypeChar(args.TypedChar, initialTextSnapshot, nextHandler);
                         return;
                     }
-                    else
-                    {
-                        // If we were computing anything, we stop.  We only want to process a typechar
-                        // if it was a normal character.
-                        this.StopModelComputation();
-                    }
+
+                    // If we were computing anything, we stop.  We only want to process a typechar
+                    // if it was a normal character.
+                    this.StopModelComputation();
                 }
 
                 return;
@@ -214,15 +211,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // buffer.
 
                     // Now, commit if it was a commit character.
-                    if (this.IsCommitCharacter(args.TypedChar))
+                    if (!this.CommitIfCommitCharacter(args.TypedChar, initialTextSnapshot, nextHandler))
                     {
-                        // Known to be a commit character for the currently selected item.  So just
-                        // commit the session.
-                        this.CommitOnTypeChar(args.TypedChar, initialTextSnapshot, nextHandler);
-                    }
-                    else
-                    {
-                        // Now dismiss the session.
+                        // Wasn't a filter or commit character.  Stop what we're doing as we have
+                        // no idea what this is.
                         this.StopModelComputation();
                     }
 
@@ -298,12 +290,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return completionService.ShouldTriggerCompletion(previousPosition.Snapshot.AsText(), caretPosition, trigger, _roles, options);
         }
 
-        private bool IsCommitCharacter(char ch)
+        private bool IsCommitCharacter(char ch, out Model model)
         {
             AssertIsForeground();
 
             // TODO(cyrusn): Find a way to allow the user to cancel out of this.
-            var model = sessionOpt.WaitForModel();
+            model = sessionOpt.WaitForModel();
             if (model == null || model.IsSoftSelection)
             {
                 return false;
@@ -440,14 +432,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return filterText;
         }
 
-        private void CommitOnTypeChar(
+        private bool CommitIfCommitCharacter(
             char ch, ITextSnapshot initialTextSnapshot, Action nextHandler)
         {
             AssertIsForeground();
 
             // Note: this function is called after the character has already been inserted into the
             // buffer.
-            var model = sessionOpt.WaitForModel();
+
+            if (!IsCommitCharacter(ch, out var model))
+            {
+                return false;
+            }
 
             // We only call CommitOnTypeChar if ch was a commit character.  And we only know if ch
             // was commit character if we had a selected item.
@@ -456,6 +452,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             this.Commit(
                 model.SelectedItem, model, ch,
                 initialTextSnapshot, nextHandler);
+            return true;
         }
     }
 }
