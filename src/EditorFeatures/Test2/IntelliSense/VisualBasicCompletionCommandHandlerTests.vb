@@ -2803,7 +2803,7 @@ End Class]]></Document>)
 
         <WorkItem(15011, "https://github.com/dotnet/roslyn/issues/15011")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SymbolAndObejctPreselectionUnification() As Task
+        Public Async Function SymbolAndObjectPreselectionUnification() As Task
             Using state = TestState.CreateVisualBasicTestState(
                             <Document><![CDATA[
 Module Module1
