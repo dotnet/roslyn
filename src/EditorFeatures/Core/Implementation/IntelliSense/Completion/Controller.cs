@@ -90,18 +90,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     isDebugger, isImmediateWindow));
         }
 
-        internal bool WaitForComputation()
-        {
-            if (sessionOpt == null)
-            {
-                return false;
-            }
-
-            var model = sessionOpt.WaitForModel();
-
-            return model != null;
-        }
-
         private SnapshotPoint GetCaretPointInViewBuffer()
         {
             AssertIsForeground();
@@ -125,8 +113,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 var selectedItem = modelOpt.SelectedItem;
                 var viewSpan = selectedItem == null ? (ViewTextSpan?)null : modelOpt.GetViewBufferSpan(selectedItem.Span);
-                var triggerSpan = viewSpan == null ? null : modelOpt.GetCurrentSpanInSnapshot(viewSpan.Value, this.TextView.TextSnapshot)
-                                          .CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
+                var triggerSpan = viewSpan == null 
+                    ? null
+                    : modelOpt.GetCurrentSpanInSnapshot(viewSpan.Value, this.TextView.TextSnapshot)
+                              .CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
                 sessionOpt.PresenterSession.PresentItems(
                     triggerSpan, modelOpt.FilteredItems, selectedItem,
