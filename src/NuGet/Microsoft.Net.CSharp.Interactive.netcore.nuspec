@@ -20,6 +20,9 @@
         <dependency id="Microsoft.CodeAnalysis.Compilers" version="$version$" />
         <dependency id="Microsoft.CodeAnalysis.Scripting" version="$version$" />
         <dependency id="NETStandard.Library" version="1.6.0" />
+        <dependency id="Microsoft.CSharp" target="$MicrosoftCSharpVersion$" />
+        <dependency id="System.Dynamic.Runtime" target="$SystemDynamicRuntimeVersion$" />
+        <dependency id="System.ValueTuple" target="$SystemValueTupleVersion$" />
       </group>
     </dependencies>
   </metadata>
