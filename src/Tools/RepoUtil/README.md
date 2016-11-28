@@ -2,22 +2,27 @@
 
 ## Usage
 
-This is a tool used to manage the inputs and outputs of our repo.  In particular, it is used to manage our use of NuGet packages.  It helps to automate the otherwise tedious process of updating NuGet references by:
+This is a tool that manages the use of NuGet packages in the repo:
 
-- Ensuring consistency in NuGet package references
-- Fixing up project.json files
+- Ensuring we consistently use the same package version in our projects.  
+- Ensuring we aren't referencing stale / deleted package versions in configuration.
 - Generating helper files with specified package versions. Example [Dependencies.props](https://github.com/dotnet/roslyn/blob/master/build/Targets/Dependencies.props)
+- Simple way to upgrade package versions in the repo.
 
-The tool works by using all of our project.json files as the primary source of truth for the repo.  All files with the name pattern `*project.json` are considered to be NuGet assets and will be scanned for NuGet references.  
+The primary goal of the tool is to ensure consistency in our NuGet package usage.  Given the large number of project.json files in our repo and the variety of ship vehicles it's easy for packages to get out of sync.  For instance referencing two versions of System.Collection.Immutable.  Doing so is is incorrect, potentially invalidates our testing and potentially breaks insertions. 
 
-This will impose a minimum of requirements on our NuGet packages.  In particular the tool assumes that all references to a given NuGet package should occur at the same version.  If the tool sees a package being used with different versions it will issue an error.  
-
-There are valid cases where a package is used at more than one version in the repo.  Typically because it's being deployed as an asset, used as a tool, etc ...  In those cases an entry can be added to [RepoData.json](https://github.com/dotnet/roslyn/blob/master/src/Tools/RepoUtil/RepoData.json)) in the fixed table to call out that usage:
+The tool ensures that by default given package is only referenced at a single version for the entire repo.  That is we can only use a single version of System.Collections.Immutable in our shipping code.  Deviatons are allowed but they must be explicitly added to the [config file](https://github.com/dotnet/roslyn/blob/master/build/config/RepoUtilData.json) as a "fixed" package.  There is nothing inherently wrong with adding a fixed package so long as it's not used in shipping code.  It's perfectly fine for tools, assets, etc ... 
 
 ``` json
 "fixed" {
     "Microsoft.VSSDK.BuildTools": [ "14.3.25407", "15.0.25201-Dev15Preview2" ]
 }
+```
+
+The tool operates by using all of our project.json files as the primary source of truth for the repo.  All files with the name pattern `*project.json` are considered to be NuGet assets and will be scanned for NuGet references.  To test the tool out locally run the following command:
+
+``` cmd
+> Binaries\Debug\Exes\RepoUtil\RepoUtil.exe verify 
 ```
 
 ## Code generation
@@ -71,7 +76,7 @@ RepoUtil change -version e:\path\to\file.txt
 To regenerate all of the supporting files without updating any packages just use `change` without any arguments
 
 ``` cmd
-RepoUtil change
+> Binaries\Debug\Exes\RepoUtil\RepoUtil.exe change
 ```
 
 ### verify
@@ -82,18 +87,15 @@ The `verify` command will simply analyze the state of the repo and ensure all of
 - All the generated files are up to date.
 - etc ... 
 
-
 All packages must fall into one of the following categories:
 
 - Normal: Packages which are expected to be updated.  
 - Fixed: Package + version which are referenced at a version that should never change. 
 
-All uses of a normal package in the repo must have the same version.  For example every use of System.Collections.Immutable.
-
-An example of a normal package is System.Collections.Immutable.  This package changes
+All uses of a normal package in the repo must have the same version.  For example every use of System.Collections.Immutable in shipping code should be the same version.  This is important as we only deploy a single version.  Hence to ensure our our testing, build and deployment logic reflect our shipping state the code must unify on a single version.
 
 ### consumes
 
 The `consumes` command produces a json file describing all of the NuGet packages consumed by the repo.  It essentially aggregates all of the project.json files and adds a bit of metadata on top of them. 
-# RepoUtil
+
 
