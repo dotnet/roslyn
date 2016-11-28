@@ -4,9 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -19,10 +21,50 @@ namespace Microsoft.CodeAnalysis.Scripting
     {
         public static ScriptOptions Default { get; } = new ScriptOptions(
             filePath: "",
-            references: ImmutableArray<MetadataReference>.Empty,
+            references: GetDefaultMetadataReferences(),
             namespaces: ImmutableArray<string>.Empty,
             metadataResolver: RuntimeMetadataReferenceResolver.Default,
             sourceResolver: SourceFileResolver.Default);
+
+        private static ImmutableArray<MetadataReference> GetDefaultMetadataReferences()
+        {
+            string corlibDir = RuntimeMetadataReferenceResolver.DefaultCorLibDirectoryOpt;
+
+            if (corlibDir == null)
+            {
+                return ImmutableArray<MetadataReference>.Empty;
+            }
+
+            // Provide similar surface to mscorlib (netstandard 2.0).
+            // These references are resolved lazily. Keep in sync with list in core csi.rsp.
+            var files = new[]
+            {
+                "System.Collections.dll",
+                "System.Collections.Concurrent.dll",
+                "System.Console.dll",
+                "System.Diagnostics.Debug.dll",
+                "System.Diagnostics.Process.dll",
+                "System.Diagnostics.StackTrace.dll",
+                "System.Globalization.dll",
+                "System.IO.dll",
+                "System.IO.FileSystem.dll",
+                "System.IO.FileSystem.Primitives.dll",
+                "System.Reflection.dll",
+                "System.Reflection.Primitives.dll",
+                "System.Runtime.dll",
+                "System.Runtime.InteropServices.dll",
+                "System.Text.Encoding.dll",
+                "System.Text.Encoding.CodePages.dll",
+                "System.Text.Encoding.Extensions.dll",
+                "System.Text.RegularExpressions.dll",
+                "System.Threading.dll",
+                "System.Threading.Tasks.dll",
+                "System.Threading.Tasks.Parallel.dll",
+                "System.Threading.Thread.dll",
+            };
+
+            return ImmutableArray.CreateRange(files.Select(f => CreateUnresolvedReference(PathUtilities.CombinePathsUnchecked(corlibDir, f))));
+        }
 
         /// <summary>
         /// An array of <see cref="MetadataReference"/>s to be added to the script.

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
                 Dim responseFile = Path.Combine(AppContext.BaseDirectory, InteractiveResponseFileName)
                 Dim buildPaths = New BuildPaths(
                     clientDir:=AppContext.BaseDirectory,
-                    workingDir:=CorLightup.Desktop.TryGetRuntimeDirectory(),
+                    workingDir:=RuntimeMetadataReferenceResolver.GetCorLibDirectory(),
                     sdkDir:=AppContext.BaseDirectory,
                     tempDir:=Path.GetTempPath())
 
