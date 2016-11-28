@@ -32,23 +32,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         private readonly IWaitIndicator _waitIndicator;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IAsyncCompletionService _completionService;
 
         protected AbstractDocumentationCommentCommandHandler(
             IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            IAsyncCompletionService completionService)
+            IEditorOperationsFactoryService editorOperationsFactoryService)
         {
             Contract.ThrowIfNull(waitIndicator);
             Contract.ThrowIfNull(undoHistoryRegistry);
             Contract.ThrowIfNull(editorOperationsFactoryService);
-            Contract.ThrowIfNull(completionService);
 
             _waitIndicator = waitIndicator;
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _completionService = completionService;
         }
 
         protected abstract string ExteriorTriviaText { get; }

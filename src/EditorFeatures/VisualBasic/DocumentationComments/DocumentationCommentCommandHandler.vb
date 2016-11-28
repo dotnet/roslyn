@@ -19,10 +19,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
         Public Sub New(
             waitIndicator As IWaitIndicator,
             undoHistoryRegistry As ITextUndoHistoryRegistry,
-            editorOperationsFactoryService As IEditorOperationsFactoryService,
-            completionService As IAsyncCompletionService)
+            editorOperationsFactoryService As IEditorOperationsFactoryService)
 
-            MyBase.New(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService, completionService)
+            MyBase.New(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
         End Sub
 
         Protected Overrides ReadOnly Property ExteriorTriviaText As String
