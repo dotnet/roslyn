@@ -156,7 +156,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             // open the builder if any overload takes a delegate at our argument position
             var inferredTypeInfo = typeInferrer.GetTypeInferenceInfo(semanticModel, position, cancellationToken: cancellationToken);
 
-            return inferredTypeInfo.Any(type => GetDelegateType(type, semanticModel.Compilation).IsDelegateType());
+            if (inferredTypeInfo.Any(type => GetDelegateType(type, semanticModel.Compilation).IsDelegateType()))
+            {
+                // In the following situation, the type inferrer will infer Task to support target type preselection
+                // Action a = Task.$$
+                // We need to explicitly exclude invocation/member access from suggestion mode
+                var previousToken = token.GetPreviousTokenIfTouchingWord(position);
+                if (previousToken.IsKind(SyntaxKind.DotToken))
+                {
+                    return !previousToken.Parent.IsKind(SyntaxKind.InvocationExpression, SyntaxKind.SimpleMemberAccessExpression);
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         private ITypeSymbol GetDelegateType(TypeInferenceInfo typeInferenceInfo, Compilation compilation)
