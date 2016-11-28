@@ -16515,13 +16515,13 @@ a: b: c:Test2(Test1(out int x1), x1);
             CompileAndVerify(compilation, expectedOutput: "11").VerifyDiagnostics(
                 // (11,1): warning CS0164: This label has not been referenced
                 // a: b: c:Test2(Test1(out int x1), x1);
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a"),
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(11, 1),
                 // (11,4): warning CS0164: This label has not been referenced
                 // a: b: c:Test2(Test1(out int x1), x1);
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "b"),
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "b").WithLocation(11, 4),
                 // (11,7): warning CS0164: This label has not been referenced
                 // a: b: c:Test2(Test1(out int x1), x1);
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d")
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(11, 7)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
