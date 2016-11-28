@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     // wait task to finish
                     await task.ConfigureAwait(false);
                 }
-                catch (Exception ex) when (IsCancelled(ex, mergedCancellation.Token))
+                catch (Exception ex) when (ReportUnlessCanceled(ex, mergedCancellation.Token))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     throw;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     return result;
                 }
-                catch (Exception ex) when (IsCancelled(ex, mergedCancellation.Token))
+                catch (Exception ex) when (ReportUnlessCanceled(ex, mergedCancellation.Token))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     throw;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     // wait task to finish
                     await task.ConfigureAwait(false);
                 }
-                catch (Exception ex) when (IsCancelled(ex, mergedCancellation.Token))
+                catch (Exception ex) when (ReportUnlessCanceled(ex, mergedCancellation.Token))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     throw;
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     return result;
                 }
-                catch (Exception ex) when (IsCancelled(ex, mergedCancellation.Token))
+                catch (Exception ex) when (ReportUnlessCanceled(ex, mergedCancellation.Token))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     throw;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private static bool IsCancelled(Exception ex, CancellationToken token)
+        private static bool ReportUnlessCanceled(Exception ex, CancellationToken token)
         {
             // check whether we are in cancellation mode
             if (token.IsCancellationRequested)
