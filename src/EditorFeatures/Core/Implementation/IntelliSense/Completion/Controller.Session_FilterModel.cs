@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // We want to dismiss the session if the caret ever moved outside our bounds.
                 // Do this before we check the _filterId.  We don't want this work to not happen
-                // just becaus the user typed more text and added more filter items.
+                // just because the user typed more text and added more filter items.
                 if (recheckCaretPosition && Controller.IsCaretOutsideAllItemBounds(model, caretPosition))
                 {
                     return null;
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
                 }
 
-                var filterItemState = ComputeFilterItemState(model);
+                var effectiveFilterItemState = ComputeEffectiveFilterItemState(model);
                 foreach (var currentItem in model.TotalItems)
                 {
                     // Check if something new has happened and there's a later on filter operation
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         return model;
                     }
 
-                    if (ItemIsFilteredOut(currentItem, filterItemState))
+                    if (ItemIsFilteredOut(currentItem, effectiveFilterItemState))
                     {
                         continue;
                     }
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     helper, recentItems, filterText, filterResults);
             }
 
-            private static ImmutableDictionary<CompletionItemFilter, bool> ComputeFilterItemState(Model model)
+            private static ImmutableDictionary<CompletionItemFilter, bool> ComputeEffectiveFilterItemState(Model model)
             {
                 var filterState = model.FilterState;
 
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     if (filterState.Values.All(b => b) ||
                         filterState.Values.All(b => !b))
                     {
-                        filterState = null;
+                        return null;
                     }
                 }
 
