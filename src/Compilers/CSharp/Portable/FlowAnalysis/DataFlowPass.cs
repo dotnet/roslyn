@@ -899,12 +899,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="symbol">Symbol to variable that is unassigned.</param>
         /// <param name="node">Syntax where read occurs.</param>
         /// <param name="slotOpt">Optional slot where variable is located.</param>
-        /// <param name="considerDefineLocation">
+        /// <param name="skipIfUseBeforeDeclaration">
         /// True if error reporting should consider the location where the
-        /// variable is defined (for instance, eliding errors about reading
-        /// variables that have not yet been defined).
+        /// variable is declared (for instance, eliding errors about reading
+        /// variables that have not yet been declared).
         /// </param>
-        private void ReportUnassigned(Symbol symbol, SyntaxNode node, int? slotOpt, bool considerDefineLocation = true)
+        private void ReportUnassigned(Symbol symbol, SyntaxNode node, int? slotOpt, bool skipIfUseBeforeDeclaration = true)
         {
             int slot = slotOpt ?? VariableSlot(symbol);
             if (slot <= 0) return;
@@ -927,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (slot >= _alreadyReported.Capacity) _alreadyReported.EnsureCapacity(nextVariableSlot);
-            if (considerDefineLocation &&
+            if (skipIfUseBeforeDeclaration &&
                 symbol.Kind == SymbolKind.Local &&
                 (symbol.Locations.Length == 0 || node.Span.End < symbol.Locations[0].SourceSpan.Start))
             {

@@ -92,9 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (slot > 0 && !this.State.IsAssigned(slot))
                     {
                         // Local functions can "call forward" to after a variable has
-                        // been defined but before it has been assigned, so we can never
-                        // consider the definition location when reporting errors.
-                        ReportUnassigned(symbol, node, slot, considerDefineLocation: false);
+                        // been declared but before it has been assigned, so we can never
+                        // consider the declaration location when reporting errors.
+                        ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration: false);
                     }
                 }
             }
