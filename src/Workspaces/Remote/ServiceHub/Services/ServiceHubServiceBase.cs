@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -60,10 +61,10 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        protected Task<Solution> GetSolutionAsync()
+        protected Task<Solution> GetSolutionAsync(OptionSet options = null)
         {
             Contract.ThrowIfNull(_solutionChecksumOpt);
-            return RoslynServices.SolutionService.GetSolutionAsync(_solutionChecksumOpt, CancellationToken);
+            return RoslynServices.SolutionService.GetSolutionAsync(_solutionChecksumOpt, options, CancellationToken);
         }
 
         protected virtual void Dispose(bool disposing)

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var optionSet = await RoslynServices.AssetService.GetAssetAsync<OptionSet>(arguments.GetOptionSetChecksum(), CancellationToken).ConfigureAwait(false);
 
                     // entry point for diagnostic service
-                    var solution = await GetSolutionAsync().ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(optionSet).ConfigureAwait(false);
 
                     var projectId = arguments.GetProjectId();
                     var analyzers = await GetHostAnalyzerReferences(arguments.GetHostAnalyzerChecksums()).ConfigureAwait(false);
