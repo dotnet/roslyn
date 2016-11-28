@@ -149,10 +149,7 @@ class C
                                             {
                                                 N(SyntaxKind.IdentifierToken);
                                             }
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken);
-                                            }
+                                            N(SyntaxKind.IdentifierToken);
                                         }
                                         N(SyntaxKind.CommaToken);
                                         N(SyntaxKind.TupleElement);
@@ -161,10 +158,7 @@ class C
                                             {
                                                 N(SyntaxKind.IdentifierToken);
                                             }
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken);
-                                            }
+                                            N(SyntaxKind.IdentifierToken);
                                         }
                                         N(SyntaxKind.CloseParenToken);
                                     }
