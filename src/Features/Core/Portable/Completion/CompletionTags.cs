@@ -52,10 +52,4 @@ namespace Microsoft.CodeAnalysis.Completion
         public const string Error = WellKnownTags.Error;
         public const string Warning = WellKnownTags.Warning;
         internal const string StatusInformation = WellKnownTags.StatusInformation;
-
-        // Currently needed, but removed from Dev15.  Internal so no one accidently takes a 
-        // dependency on them.
-        internal const string ArgumentName = nameof(ArgumentName);
-        internal const string ObjectCreation = nameof(ObjectCreation);
-    }
 }
