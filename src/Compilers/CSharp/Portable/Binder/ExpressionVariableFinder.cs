@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
         {
-            if (node.IsDeconstructionDeclaration())
+            if (node.Left.IsKind(SyntaxKind.TupleExpression) || node.Left.IsKind(SyntaxKind.DeclarationExpression))
             {
                 CollectVariablesFromDeconstruction(node.Left, node);
             }
@@ -304,7 +304,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(declaration.Kind());
+                    Visit(declaration);
+                    break;
             }
         }
 
@@ -334,6 +335,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     }
+                case SyntaxKind.DiscardedDesignation:
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(designation.Kind());
             }
@@ -398,10 +401,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalSymbol MakePatternVariable(DeclarationPatternSyntax node, SyntaxNode nodeToBind)
         {
-            NamedTypeSymbol container = _scopeBinder.ContainingType;
+            var designation = node.Designation as SingleVariableDesignationSyntax;
+            if (designation == null)
+            {
+                Debug.Assert(node.Designation.Kind() == SyntaxKind.DiscardedDesignation);
+                return null;
+            }
 
+            NamedTypeSymbol container = _scopeBinder.ContainingType;
             if ((object)container != null && container.IsScriptClass &&
-                (object)_scopeBinder.LookupDeclaredField(node) != null)
+                (object)_scopeBinder.LookupDeclaredField(designation) != null)
             {
                 // This is a field declaration
                 return null;
@@ -412,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             scopeBinder: _scopeBinder,
                             nodeBinder: _enclosingBinder,
                             typeSyntax: node.Type,
-                            identifierToken: node.Identifier,
+                            identifierToken: designation.Identifier,
                             kind: LocalDeclarationKind.PatternVariable,
                             nodeToBind: nodeToBind,
                             forbiddenZone: null);
@@ -420,7 +429,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override LocalSymbol MakeOutVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntax, SyntaxNode nodeToBind)
         {
             NamedTypeSymbol container = _scopeBinder.ContainingType;
-            var designation = (SingleVariableDesignationSyntax)node.Designation;
+            var designation = node.Designation as SingleVariableDesignationSyntax;
+            if (designation == null)
+            {
+                return null;
+            }
 
             if ((object)container != null && container.IsScriptClass &&
                 (object)_scopeBinder.LookupDeclaredField(designation) != null)
@@ -507,9 +520,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override Symbol MakePatternVariable(DeclarationPatternSyntax node, SyntaxNode nodeToBind)
         {
+            var designation = node.Designation as SingleVariableDesignationSyntax;
+            if (designation == null)
+            {
+                return null;
+            }
+
             return GlobalExpressionVariable.Create(
                 _containingType, _modifiers, node.Type,
-                node.Identifier.ValueText, node, node.Identifier.GetLocation(),
+                designation.Identifier.ValueText, designation, designation.GetLocation(),
                 _containingFieldOpt, nodeToBind);
         }
 

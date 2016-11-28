@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -8,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 {
@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
+        private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
+
         public CSharpInlineDeclarationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineDeclarationDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Inline_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
@@ -186,6 +188,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return;
             }
 
+            // See if inlining this variable would make it so that some variables were no
+            // longer definitely assigned.
+            if (WouldCauseDefiniteAssignmentErrors(
+                    semanticModel, localDeclarator, enclosingBlockOfLocalStatement, 
+                    outSymbol, cancellationToken))
+            {
+                return;
+            }
+
             // Collect some useful nodes for the fix provider to use so it doesn't have to
             // find them again.
             var allLocations = ImmutableArray.Create(
@@ -204,6 +215,79 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 CreateDescriptorWithSeverity(option.Notification.Value),
                 reportNode.GetLocation(),
                 additionalLocations: allLocations));
+        }
+
+        private bool WouldCauseDefiniteAssignmentErrors(
+            SemanticModel semanticModel, VariableDeclaratorSyntax localDeclarator, 
+            BlockSyntax enclosingBlock, ISymbol outSymbol, CancellationToken cancellationToken)
+        {
+            // See if we have something like:
+            //
+            //      int i = 0;
+            //      if (Foo() || Bar(out i))
+            //      {
+            //          Console.WriteLine(i);
+            //      }
+            //
+            // In this case, inlining the 'i' would cause it to longer be definitely
+            // assigned in the WriteLine invocation.
+
+            if (localDeclarator.Initializer == null)
+            {
+                // Don't need to examine this unless the variable has an initializer.
+                return false;
+            }
+
+            // Find all the current read-references to the local.
+            var query = from t in enclosingBlock.DescendantTokens()
+                        where t.Kind() == SyntaxKind.IdentifierToken
+                        where t.ValueText == outSymbol.Name
+                        let id = t.Parent as IdentifierNameSyntax
+                        where id != null
+                        where !id.IsOnlyWrittenTo()
+                        let symbol = semanticModel.GetSymbolInfo(id).GetAnySymbol()
+                        where outSymbol.Equals(symbol)
+                        select id;
+
+            var references = query.ToImmutableArray<SyntaxNode>();
+
+            var root = semanticModel.SyntaxTree.GetCompilationUnitRoot(cancellationToken);
+
+            // Ensure we can track the references and the local variable as we make edits
+            // to the tree.
+            var rootWithTrackedNodes = root.TrackNodes(references.Concat(localDeclarator).Concat(enclosingBlock));
+
+            // Now, take the local variable and remove it's initializer.  Then go to all
+            // the locations where we read from it.  If they're definitely assigned, then
+            // that means the out-var did it's work and assigned the variable across all
+            // paths. If it's not definitely assigned, then we can't inline this variable.
+            var currentLocalDeclarator = rootWithTrackedNodes.GetCurrentNode(localDeclarator);
+            var rootWithoutInitializer = rootWithTrackedNodes.ReplaceNode(
+                currentLocalDeclarator,
+                currentLocalDeclarator.WithInitializer(null));
+
+            // Fork the compilation so we can do this analysis.
+            var newCompilation = semanticModel.Compilation.ReplaceSyntaxTree(
+                root.SyntaxTree, rootWithoutInitializer.SyntaxTree);
+            var newSemanticModel = newCompilation.GetSemanticModel(rootWithoutInitializer.SyntaxTree);
+
+            // NOTE: there is no current compiler API to determine if a variable is definitely
+            // assigned or not.  So, for now, we just get diagnostics for this block and see if
+            // we get any definite assigment errors where we have a reference to the symbol. If
+            // so, then we don't offer the fix.
+
+            var currentBlock = rootWithoutInitializer.GetCurrentNode(enclosingBlock);
+            var diagnostics = newSemanticModel.GetDiagnostics(currentBlock.Span, cancellationToken);
+
+            var diagnosticSpans = diagnostics.Where(d => d.Id == CS0165)
+                                             .Select(d => d.Location.SourceSpan)
+                                             .Distinct();
+
+            var newReferenceSpans = rootWithoutInitializer.GetCurrentNodes<SyntaxNode>(references)
+                                                          .Select(n => n.Span)
+                                                          .Distinct();
+
+            return diagnosticSpans.Intersect(newReferenceSpans).Any();
         }
 
         private SyntaxNode GetOutArgumentScope(SyntaxNode argumentExpression)

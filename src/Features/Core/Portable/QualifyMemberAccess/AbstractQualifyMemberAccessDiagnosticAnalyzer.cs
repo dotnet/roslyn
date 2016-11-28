@@ -66,8 +66,10 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
             }
 
-            // if we can't find a member then we can't do anything
-            if (memberReference.Member == null)
+            // if we can't find a member then we can't do anything.  Also, we shouldn't qualify
+            // accesses to static members.  
+            if (memberReference.Member == null ||
+                memberReference.Member.IsStatic)
             {
                 return;
             }

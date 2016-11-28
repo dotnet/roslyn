@@ -271,5 +271,8 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Diagnostics\VisualBasicDiagnosticPropertiesService.vb" />
+  </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
