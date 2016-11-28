@@ -23,12 +23,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode declaration = null;
             CSharpSyntaxNode expression = null;
             var result = BindDeconstruction(node, left, right, diagnostics, ref declaration, ref expression);
-            if (declaration != null && expression != null)
+            if (declaration != null)
             {
-                // We only allow assignment-only or declaration-only deconstructions at this point.
-                // Issue https://github.com/dotnet/roslyn/issues/15050 tracks allowing mixed deconstructions.
-                // For now we give an error when you mix.
-                Error(diagnostics, ErrorCode.ERR_MixedDeconstructionUnsupported, left);
+                // only allowed at the top level, or in a for loop
+                switch (node.Parent?.Kind())
+                {
+                    case null:
+                    case SyntaxKind.ExpressionStatement:
+                        if (expression != null)
+                        {
+                            // We only allow assignment-only or declaration-only deconstructions at this point.
+                            // Issue https://github.com/dotnet/roslyn/issues/15050 tracks allowing mixed deconstructions.
+                            // For now we give an error when you mix.
+                            Error(diagnostics, ErrorCode.ERR_MixedDeconstructionUnsupported, left);
+                        }
+                        break;
+                    case SyntaxKind.ForStatement:
+                        if (((ForStatementSyntax)node.Parent).Initializers.Contains(node))
+                        {
+                            if (expression != null)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_MixedDeconstructionUnsupported, left);
+                            }
+                        }
+                        else
+                        {
+                            Error(diagnostics, ErrorCode.ERR_DeclarationExpressionNotPermitted, declaration);
+                        }
+                        break;
+                    default:
+                        Error(diagnostics, ErrorCode.ERR_DeclarationExpressionNotPermitted, declaration);
+                        break;
+                }
             }
 
             return result;

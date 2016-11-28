@@ -2634,5 +2634,91 @@ class C
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 15)
             );
         }
+
+        [Fact]
+        public void MixedDeconstruction_01()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var t = (1, 2);
+        var x = (int y, int z) = t;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,18): error CS8185: A declaration is not allowed in this context.
+                //         var x = (int y, int z) = t;
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(7, 18)
+            );
+        }
+
+        [Fact]
+        public void MixedDeconstruction_02()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var t = (1, 2);
+        int z;
+        (int y, z) = t;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
+                //         (int y, z) = t;
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int y, z)").WithLocation(8, 9)
+            );
+        }
+
+        [Fact]
+        public void MixedDeconstruction_03()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var t = (1, 2);
+        int z;
+        for ((int y, z) = t; ; ) {}
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (8,14): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
+                //         for ((int y, z) = t; ; ) {}
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int y, z)").WithLocation(8, 14)
+            );
+        }
+
+        [Fact]
+        public void MixedDeconstruction_04()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var t = (1, 2);
+        for (; ; (int y, int z) = t) {}
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,19): error CS8185: A declaration is not allowed in this context.
+                //         for (; ; (int y, int z) = t) {}
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(7, 19)
+            );
+        }
     }
 }
