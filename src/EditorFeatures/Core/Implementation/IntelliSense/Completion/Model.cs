@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         public CompletionList OriginalList { get; }
         public ImmutableArray<CompletionItem> FilteredItems { get; }
 
+        /// <summary>
+        /// The currently selected item. Note that this can be null
+        /// in VS 15+ if the user uses completion list filters
+        /// hide all the items in the list.
+        /// </summary>
         public CompletionItem SelectedItem { get; }
 
         public ImmutableArray<CompletionItemFilter> CompletionItemFilters { get; }
