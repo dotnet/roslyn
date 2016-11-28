@@ -67,16 +67,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             _autoBraceCompletionCharSet = new Dictionary<IContentType, ImmutableHashSet<char>>();
         }
 
-        public bool WaitForComputation(ITextView textView, ITextBuffer subjectBuffer)
-        {
-            if (!TryGetController(textView, subjectBuffer, out var controller))
-            {
-                return false;
-            }
-
-            return controller.WaitForComputation();
-        }
-
         public bool TryGetController(ITextView textView, ITextBuffer subjectBuffer, out Controller controller)
         {
             AssertIsForeground();

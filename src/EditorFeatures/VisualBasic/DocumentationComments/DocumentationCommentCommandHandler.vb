@@ -11,6 +11,7 @@ Imports Microsoft.VisualStudio.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
     <ExportCommandHandler(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.VisualBasicContentType)>
     <Order(Before:=PredefinedCommandHandlerNames.Commit, After:=PredefinedCommandHandlerNames.Rename)>
+    <Order(After:=PredefinedCommandHandlerNames.Completion)>
     Friend Class DocumentationCommentCommandHandler
         Inherits AbstractDocumentationCommentCommandHandler(Of DocumentationCommentTriviaSyntax, DeclarationStatementSyntax)
 

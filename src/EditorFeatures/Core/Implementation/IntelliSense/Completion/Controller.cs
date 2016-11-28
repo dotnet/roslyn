@@ -90,18 +90,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     isDebugger, isImmediateWindow));
         }
 
-        internal bool WaitForComputation()
-        {
-            if (sessionOpt == null)
-            {
-                return false;
-            }
-
-            var model = sessionOpt.WaitForModel();
-
-            return model != null;
-        }
-
         private SnapshotPoint GetCaretPointInViewBuffer()
         {
             AssertIsForeground();

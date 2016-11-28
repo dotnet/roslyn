@@ -518,14 +518,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return;
             }
 
-            // Finally, wait and see if completion is computing. If it is, we want to allow
-            // the list to pop up rather than insert a blank line in the buffer.
-            if (_completionService.WaitForComputation(args.TextView, args.SubjectBuffer))
-            {
-                nextHandler();
-                return;
-            }
-
             // According to JasonMal, the text undo history is associated with the surface buffer
             // in projection buffer scenarios, so the following line's usage of the surface buffer
             // is correct.

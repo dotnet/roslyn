@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 {
     [ExportCommandHandler(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.CSharpContentType)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
+    [Order(After = PredefinedCommandHandlerNames.Completion)]
     internal class DocumentationCommentCommandHandler
         : AbstractDocumentationCommentCommandHandler<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
     {
