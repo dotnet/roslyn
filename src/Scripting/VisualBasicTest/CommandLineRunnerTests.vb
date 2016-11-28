@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
             Dim buildPaths = New BuildPaths(
                 clientDir:=AppContext.BaseDirectory,
                 workingDir:=If(workingDirectory, AppContext.BaseDirectory),
-                sdkDir:=CorLightup.Desktop.TryGetRuntimeDirectory(),
+                sdkDir:=RuntimeMetadataReferenceResolver.GetDesktopFrameworkDirectory(),
                 tempDir:=Path.GetTempPath())
 
             Dim compiler = New VisualBasicInteractiveCompiler(
