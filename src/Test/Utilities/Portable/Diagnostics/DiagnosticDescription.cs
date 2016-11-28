@@ -378,8 +378,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static string GetAssertText(DiagnosticDescription[] expected, IEnumerable<Diagnostic> actual)
         {
-            var includeCompilerOutput = false;
-
             const int CSharp = 1;
             const int VisualBasic = 2;
             var language = actual.Any() && actual.First().Id.StartsWith("CS", StringComparison.Ordinal) ? CSharp : VisualBasic;
@@ -391,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Write out the 'command line compiler output' including squiggles (easy to read debugging info in the case of a failure).
             // This will be useful for VB, because we can't do the inline comments.
-            if (includeCompilerOutput)
+#if false
             {
                 assertText.AppendLine("Compiler output:");
                 foreach (var d in actual)
@@ -410,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     assertText.AppendLine();
                 }
             }
-
+#endif
             // write out the error baseline as method calls
             int i;
             assertText.AppendLine("Expected:");
@@ -463,6 +461,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 var description = new DiagnosticDescription(d, errorCodeOnly: false, showPosition: true);
+                var idx = Array.IndexOf(expected, description);
+                if (idx != -1)
+                {
+                    description = expected[idx];
+                }
                 AppendDiagnosticDescription(assertText, description, indentDepth);
                 AppendDiagnosticDescription(actualText, description, indentDepth);
             }
