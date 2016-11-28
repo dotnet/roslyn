@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IInlineRenameService _inlineRenameService;
-        private readonly IWaitIndicator _waitIndicator;
         private readonly IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> _completionPresenter;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
         private readonly IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> _autoBraceCompletionChars;
@@ -60,7 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _undoHistoryRegistry = undoHistoryRegistry;
             _inlineRenameService = inlineRenameService;
-            _waitIndicator = waitIndicator;
             _completionPresenter = completionPresenter;
             _asyncListeners = asyncListeners;
             _autoBraceCompletionChars = autoBraceCompletionChars;
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var autobraceCompletionCharSet = GetAllAutoBraceCompletionChars(subjectBuffer.ContentType);
             controller = Controller.GetInstance(
                 textView, subjectBuffer,
-                _editorOperationsFactoryService, _undoHistoryRegistry, _waitIndicator, _completionPresenter, 
+                _editorOperationsFactoryService, _undoHistoryRegistry, _completionPresenter, 
                 new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.CompletionSet),
                 autobraceCompletionCharSet);
 

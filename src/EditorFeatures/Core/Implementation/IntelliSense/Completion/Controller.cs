@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IWaitIndicator _waitIndicator;
         private readonly ImmutableHashSet<char> _autoBraceCompletionChars;
         private readonly bool _isDebugger;
         private readonly bool _isImmediateWindow;
@@ -52,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             ITextBuffer subjectBuffer,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IWaitIndicator waitIndicator,
             IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> presenter,
             IAsynchronousOperationListener asyncListener,
             ImmutableHashSet<char> autoBraceCompletionChars,
@@ -62,7 +60,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _undoHistoryRegistry = undoHistoryRegistry;
-            _waitIndicator = waitIndicator;
             _autoBraceCompletionChars = autoBraceCompletionChars;
             _isDebugger = isDebugger;
             _isImmediateWindow = isImmediateWindow;
@@ -74,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             ITextBuffer subjectBuffer,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IWaitIndicator waitIndicator,
             IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> presenter,
             IAsynchronousOperationListener asyncListener,
             ImmutableHashSet<char> autoBraceCompletionChars)
@@ -84,10 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var isImmediateWindow = isDebugger && debuggerTextView.IsImmediateWindow;
 
             return textView.GetOrCreatePerSubjectBufferProperty(subjectBuffer, s_controllerPropertyKey,
-                (v, b) => new Controller(textView, subjectBuffer, editorOperationsFactoryService, undoHistoryRegistry, waitIndicator,
-                    presenter, asyncListener,
-                    autoBraceCompletionChars,
-                    isDebugger, isImmediateWindow));
+                (v, b) => new Controller(
+                    textView, subjectBuffer, editorOperationsFactoryService, undoHistoryRegistry, 
+                    presenter, asyncListener, autoBraceCompletionChars, isDebugger, isImmediateWindow));
         }
 
         internal bool WaitForComputation()
