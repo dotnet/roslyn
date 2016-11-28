@@ -730,6 +730,27 @@ class C {
             await VerifyNotBuilderAsync(markup);
         }
 
+        [WorkItem(15443, "https://github.com/dotnet/roslyn/issues/15443")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotBuilderInTypeArgument()
+        {
+            var markup = @"
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        class N { }
+        static void Main(string[] args)
+        {
+            Program.N n = Load<Program.$$
+        }
+
+        static T Load<T>() => default(T);
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
         {
             await VerifyWorkerAsync(markup, isBuilder: false);
