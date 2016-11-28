@@ -61,7 +61,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        protected Task<Solution> GetSolutionAsync(OptionSet options = null)
+        protected Task<Solution> GetSolutionAsync()
+        {
+            Contract.ThrowIfNull(_solutionChecksumOpt);
+            return RoslynServices.SolutionService.GetSolutionAsync(_solutionChecksumOpt, CancellationToken);
+        }
+
+        protected Task<Solution> GetSolutionWithSpecificOptionsAsync(OptionSet options)
         {
             Contract.ThrowIfNull(_solutionChecksumOpt);
             return RoslynServices.SolutionService.GetSolutionAsync(_solutionChecksumOpt, options, CancellationToken);
