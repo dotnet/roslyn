@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
     {
         private readonly DisconnectedBufferGraph _disconnectedBufferGraph;
         public ITextSnapshot TriggerSnapshot { get { return _disconnectedBufferGraph.SubjectBufferSnapshot; } }
-
+        public ITextSnapshot ViewTriggerSnapshot { get { return _disconnectedBufferGraph.ViewSnapshot; } }
         public CompletionList OriginalList { get; }
         public ImmutableArray<PresentationItem> TotalItems { get; }
         public ImmutableArray<PresentationItem> FilteredItems { get; }
@@ -62,10 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             ITrackingPoint commitSpanEndPoint,
             bool dismissIfEmpty)
         {
-            Contract.ThrowIfNull(selectedItem);
             Contract.ThrowIfFalse(totalItems.Length != 0, "Must have at least one item.");
-            Contract.ThrowIfFalse(filteredItems.Length != 0, "Must have at least one filtered item.");
-            Contract.ThrowIfFalse(filteredItems.Contains(selectedItem) || defaultSuggestionModeItem == selectedItem, "Selected item must be in filtered items.");
 
             _disconnectedBufferGraph = disconnectedBufferGraph;
             this.OriginalList = originalList;

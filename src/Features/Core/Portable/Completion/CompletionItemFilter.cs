@@ -27,7 +27,15 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public bool Matches(CompletionItem item)
         {
-            return this.Tags.All(t => item.Tags.Contains(t));
+            foreach (var tag in this.Tags)
+            {
+                if (item.Tags.Contains(tag))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static readonly CompletionItemFilter NamespaceFilter = new CompletionItemFilter(FeaturesResources.Namespaces, CompletionTags.Namespace, 'n');
@@ -43,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly CompletionItemFilter PropertyFilter = new CompletionItemFilter(FeaturesResources.Properties, CompletionTags.Property, 'p');
         public static readonly CompletionItemFilter MethodFilter = new CompletionItemFilter(FeaturesResources.Methods, CompletionTags.Method, 'm');
         public static readonly CompletionItemFilter ExtensionMethodFilter = new CompletionItemFilter(FeaturesResources.Extension_methods, CompletionTags.ExtensionMethod, 'x');
-        public static readonly CompletionItemFilter LocalAndParameterFilter = new CompletionItemFilter(FeaturesResources.Locals_and_parameters, CompletionTags.Parameter, 'l');
+        public static readonly CompletionItemFilter LocalAndParameterFilter = new CompletionItemFilter(FeaturesResources.Locals_and_parameters, ImmutableArray.Create(CompletionTags.Local, CompletionTags.Parameter), 'l');
 
         public static readonly ImmutableArray<CompletionItemFilter> NamespaceFilters = ImmutableArray.Create(NamespaceFilter);
         public static readonly ImmutableArray<CompletionItemFilter> ClassFilters = ImmutableArray.Create(ClassFilter);

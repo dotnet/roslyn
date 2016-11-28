@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeSymbol> _elementTypes;
 
         private ImmutableArray<Symbol> _lazyMembers;
+        private ImmutableArray<FieldSymbol> _lazyFields;
         private SmallDictionary<Symbol, Symbol> _lazyUnderlyingDefinitionToMemberMap;
 
         internal const int RestPosition = 8; // The Rest field is in 8th position
@@ -88,21 +89,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, compilation, diagnostics);
 
-            return Create(locationOpt, underlyingType, elementLocations, elementNames);
+            return Create(underlyingType, elementNames, locationOpt, elementLocations);
         }
 
-        public static TupleTypeSymbol Create(NamedTypeSymbol tupleCompatibleType)
-        {
-            return Create(ImmutableArray<Location>.Empty,
-                          tupleCompatibleType,
-                          default(ImmutableArray<Location>),
-                          default(ImmutableArray<string>));
-        }
-
-        public static TupleTypeSymbol Create(Location locationOpt, NamedTypeSymbol tupleCompatibleType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames)
+        public static TupleTypeSymbol Create(NamedTypeSymbol tupleCompatibleType,
+                                             ImmutableArray<string> elementNames = default(ImmutableArray<string>),
+                                             Location locationOpt = null,
+                                             ImmutableArray<Location> elementLocations = default(ImmutableArray<Location>))
         {
             return Create(locationOpt == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(locationOpt),
-                          tupleCompatibleType, elementLocations, elementNames);
+                          tupleCompatibleType,
+                          elementLocations,
+                          elementNames);
         }
 
         public static TupleTypeSymbol Create(ImmutableArray<Location> locations, NamedTypeSymbol tupleCompatibleType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames)
@@ -160,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 do
                 {
-                    var extensionTuple = Create(null, tupleCompatibleType, default(ImmutableArray<Location>), default(ImmutableArray<string>));
+                    var extensionTuple = Create(tupleCompatibleType);
                     tupleCompatibleType = nonTupleTypeChain.Pop();
 
                     tupleCompatibleType = ReplaceRestExtensionType(tupleCompatibleType, typeArgumentsBuilder, extensionTuple);
@@ -684,6 +682,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _elementNames;
             }
+        }
+
+        /// <summary>
+        /// Get the fields for the tuple's elements (in order and cached).
+        /// </summary>
+        public override ImmutableArray<FieldSymbol> TupleElementFields
+        {
+            get
+            {
+                if (_lazyFields.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyFields, CollectTupleElementFields());
+                }
+
+                return _lazyFields;
+            }
+        }
+
+        private ImmutableArray<FieldSymbol> CollectTupleElementFields()
+        {
+            var builder = ArrayBuilder<FieldSymbol>.GetInstance(_elementTypes.Length, null);
+
+            foreach (var member in GetMembers())
+            {
+                if (member.Kind != SymbolKind.Field)
+                {
+                    continue;
+                }
+
+                int index = (member as TupleFieldSymbol)?.TupleElementIndex ??
+                            ((TupleErrorFieldSymbol)member).TupleElementIndex;
+
+                if (index >= 0)
+                {
+                    Debug.Assert((object)builder[index] == null);
+                    builder[index] = (FieldSymbol)member;
+                }
+            }
+
+            Debug.Assert(builder.All(symbol => (object)symbol != null));
+
+            return builder.ToImmutableAndFree();
         }
 
         /// <summary>

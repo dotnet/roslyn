@@ -4,7 +4,6 @@ using System;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -27,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly IErrorList _errorList;
         private readonly LiveTableDataSource _liveTableSource;
         private readonly BuildTableDataSource _buildTableSource;
-        
+
         private const string TypeScriptLanguageName = "TypeScript";
 
         [ImportingConstructor]
@@ -67,8 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 InitializeFullSolutionAnalysisState(workspace, errorList2);
                 errorList2.AnalysisToggleStateChanged += OnErrorListFullSolutionAnalysisToggled;
                 workspace.Services.GetService<IOptionService>().OptionChanged += OnOptionChanged;
-            }                
-
+            }
         }
 
         private ITableDataSource GetCurrentDataSource()
@@ -183,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private static void InitializeFullSolutionAnalysisState(Workspace workspace, IErrorList2 errorList2)
         {
             // Initialize the error list toggle state based on full solution analysis state for all supported languages.
-            var fullAnalysisState = workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis) && 
+            var fullAnalysisState = workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis) &&
                 ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace.Options, LanguageNames.CSharp) &&
                 ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace.Options, LanguageNames.VisualBasic) &&
                 ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace.Options, TypeScriptLanguageName);

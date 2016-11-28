@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private DiagnosticInfo[] MoveDiagnostics(DiagnosticInfo[] infos, int offset)
+        private static DiagnosticInfo[] MoveDiagnostics(DiagnosticInfo[] infos, int offset)
         {
             var builder = ArrayBuilder<DiagnosticInfo>.GetInstance();
             foreach (var info in infos)

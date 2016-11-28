@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.FindReferences;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Moq;
@@ -29,7 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                 var handler = new FindReferencesCommandHandler(
                     TestWaitIndicator.Default,
-                    SpecializedCollections.SingletonEnumerable(findReferencesPresenter));
+                    SpecializedCollections.SingletonEnumerable(findReferencesPresenter),
+                    SpecializedCollections.EmptyEnumerable<IAsyncFindReferencesPresenter>(),
+                    workspace.ExportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>());
 
                 var textView = workspace.Documents[0].GetTextView();
                 textView.Caret.MoveTo(new SnapshotPoint(textView.TextSnapshot, 7));

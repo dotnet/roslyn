@@ -377,15 +377,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The project does not contain the specified document..
-        /// </summary>
-        internal static string DocumentNotInProject {
-            get {
-                return ResourceManager.GetString("DocumentNotInProject", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The solution does not contain the specified document..
         /// </summary>
         internal static string DocumentNotInSolution {

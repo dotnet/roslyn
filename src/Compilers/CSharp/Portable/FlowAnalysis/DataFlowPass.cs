@@ -1075,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ForEachStatement:
                     {
-                        var iterationVariable = ((BoundForEachStatement)node).IterationVariable;
+                        var iterationVariable = ((BoundForEachStatement)node).IterationVariableOpt;
                         Debug.Assert((object)iterationVariable != null);
                         int slot = GetOrCreateSlot(iterationVariable);
                         if (slot > 0) SetSlotState(slot, written);
@@ -1330,7 +1330,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
                 case BoundKind.WildcardPattern:
+                    break;
                 case BoundKind.ConstantPattern:
+                    {
+                        var pat = (BoundConstantPattern)pattern;
+                        this.VisitRvalue(pat.Value);
+                        break;
+                    }
                 default:
                     break;
             }
@@ -1365,9 +1371,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
         {
-            // TODO: this an probably depend more heavily on the base class implementation.
             DeclareVariables(node.Locals);
             base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
+        }
+
+        protected override void VisitGuardedPattern(DecisionTree.Guarded guarded)
+        {
+            AssignPatternVariables(guarded.Label.Pattern);
+            base.VisitGuardedPattern(guarded);
         }
 
         private void CreateSlots(BoundPattern pattern)
@@ -1485,7 +1496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (LocalSymbol local in node.Locals)
             {
-                switch(local.DeclarationKind)
+                switch (local.DeclarationKind)
                 {
                     case LocalDeclarationKind.RegularVariable:
                     case LocalDeclarationKind.PatternVariable:
@@ -1578,8 +1589,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocal(BoundLocal node)
         {
             // Note: the caller should avoid allowing this to be called for the left-hand-side of
-            // an assignment (if a simple variable or this-qualified) or an out parameter.  That's
-            // because this code assumes the variable is being read, not written.
+            // an assignment (if a simple variable or this-qualified or deconstruction variables) or an out parameter.
+            // That's because this code assumes the variable is being read, not written.
             LocalSymbol localSymbol = node.LocalSymbol;
             CheckAssigned(localSymbol, node.Syntax);
             if (localSymbol.IsFixed &&
@@ -1719,6 +1730,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             base.VisitAssignmentOperator(node);
             Assign(node.Left, node.Right, refKind: node.RefKind);
+            return null;
+        }
+
+        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
+        {
+            base.VisitDeconstructionAssignmentOperator(node);
+
+            foreach (BoundExpression variable in node.LeftVariables)
+            {
+                Assign(variable, value: null, refKind: RefKind.None);
+            }
+
             return null;
         }
 
@@ -2042,7 +2065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitForEachIterationVariable(BoundForEachStatement node)
         {
-            var local = node.IterationVariable;
+            var local = node.IterationVariableOpt;
             if ((object)local != null)
             {
                 GetOrCreateSlot(local);

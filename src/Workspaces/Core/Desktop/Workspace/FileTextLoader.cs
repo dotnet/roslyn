@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="path"/> is not an absolute path.</exception>
         public FileTextLoader(string path, Encoding defaultEncoding)
         {
-            FilePathUtilities.RequireAbsolutePath(path, "path");
+            CompilerPathUtilities.RequireAbsolutePath(path, "path");
 
             _path = path;
             _defaultEncoding = defaultEncoding;

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.Type.IsInterfaceType())
                 {
                     Debug.Assert(rewrittenObjectCreation.Type == ((NamedTypeSymbol)node.Type).ComImportCoClass);
-                    rewrittenObjectCreation = MakeConversion(rewrittenObjectCreation, node.Type, false, false);
+                    rewrittenObjectCreation = MakeConversionNode(rewrittenObjectCreation, node.Type, false, false);
                 }
 
                 return rewrittenObjectCreation;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Type.IsInterfaceType())
             {
                 Debug.Assert(rewrittenObjectCreation.Type == ((NamedTypeSymbol)node.Type).ComImportCoClass);
-                rewrittenObjectCreation = MakeConversion(rewrittenObjectCreation, node.Type, false, false);
+                rewrittenObjectCreation = MakeConversionNode(rewrittenObjectCreation, node.Type, false, false);
             }
 
             if (node.InitializerExpressionOpt == null || node.InitializerExpressionOpt.HasErrors)

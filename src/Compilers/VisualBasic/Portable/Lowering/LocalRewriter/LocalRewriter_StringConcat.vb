@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If leftConst IsNot Nothing AndAlso rightConst IsNot Nothing Then
                 ' const concat may fail to fold if strings are huge. 
                 ' This would be unusual.
-                Dim concatenated As ConstantValue = Me.TryFoldTwoConcatConsts(leftConst, rightConst)
+                Dim concatenated As ConstantValue = TryFoldTwoConcatConsts(leftConst, rightConst)
                 If concatenated IsNot Nothing Then
                     Return factory.StringLiteral(concatenated)
                 End If
@@ -179,10 +179,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If IsNullOrEmptyStringConstant(loweredRight) Then
                     Return factory.Literal("")
                 ElseIf Not _inExpressionLambda Then
-                    Return Me.RewriteStringConcatenationOneExpr(factory, loweredRight)
+                    Return RewriteStringConcatenationOneExpr(factory, loweredRight)
                 End If
             ElseIf Not _inExpressionLambda AndAlso IsNullOrEmptyStringConstant(loweredRight) Then
-                Return Me.RewriteStringConcatenationOneExpr(factory, loweredLeft)
+                Return RewriteStringConcatenationOneExpr(factory, loweredLeft)
             End If
 
             Return Nothing
@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' otherwise returns null.
         ''' It is generally always possible to concat constants, unless resulting string would be too large.
         ''' </summary>
-        Private Function TryFoldTwoConcatConsts(leftConst As ConstantValue, rightConst As ConstantValue) As ConstantValue
+        Private Shared Function TryFoldTwoConcatConsts(leftConst As ConstantValue, rightConst As ConstantValue) As ConstantValue
             Dim leftVal As String = leftConst.StringValue
             Dim rightVal As String = rightConst.StringValue
 
@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Strangely enough there is such a thing as unary concatenation and it must be rewritten.
         ''' </summary>
-        Private Function RewriteStringConcatenationOneExpr(factory As SyntheticBoundNodeFactory,
+        Private Shared Function RewriteStringConcatenationOneExpr(factory As SyntheticBoundNodeFactory,
                                                            loweredOperand As BoundExpression) As BoundExpression
 
             Return factory.BinaryConditional(loweredOperand, factory.Literal(""))

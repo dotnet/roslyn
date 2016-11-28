@@ -85,6 +85,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        internal override SyntaxNode ScopeDesignator
+        {
+            get
+            {
+                if (_statements.Count == 1)
+                {
+                    return _statements.First();
+                }
+
+                return _statements.Node;
+            }
+        }
+
         internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
             if (IsMatchingScopeDesignator(scopeDesignator))

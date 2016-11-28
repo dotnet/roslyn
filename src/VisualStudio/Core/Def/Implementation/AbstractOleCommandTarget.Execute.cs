@@ -35,6 +35,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 var contentType = subjectBuffer.ContentType;
 
+                if (pguidCmdGroup == _asyncFindRefsCommandGroup &&
+                    commandId == _asyncFindRefsCommandId)
+                {
+                    int result = VSConstants.S_OK;
+                    var guidCmdGroup = pguidCmdGroup;
+                    Action executeNextCommandTarget = () =>
+                    {
+                        result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
+                    };
+
+                    ExecuteAsyncFindReferences(subjectBuffer, contentType, executeNextCommandTarget);
+                    return result;
+                }
+
                 if (pguidCmdGroup == VSConstants.VSStd2K)
                 {
                     return ExecuteVisualStudio2000(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
@@ -259,16 +273,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             switch (commandId)
             {
-                case ID.CSharpCommands.OrganizeSortUsings:
-                case ID.CSharpCommands.ContextOrganizeSortUsings:
-                    ExecuteSortUsings(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case ID.CSharpCommands.OrganizeRemoveUnusedUsings:
-                case ID.CSharpCommands.ContextOrganizeRemoveUnusedUsings:
-                    ExecuteRemoveUnusedUsings(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
                 case ID.CSharpCommands.OrganizeRemoveAndSort:
                 case ID.CSharpCommands.ContextOrganizeRemoveAndSort:
                     ExecuteSortAndRemoveUnusedUsings(subjectBuffer, contentType, executeNextCommandTarget);
@@ -930,6 +934,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 lastHandler: executeNextCommandTarget);
         }
 
+        private void ExecuteAsyncFindReferences(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        {
+            CurrentHandlers.Execute(contentType,
+                args: new AsyncFindReferencesCommandArgs(ConvertTextView(), subjectBuffer),
+                lastHandler: executeNextCommandTarget);
+        }
+
         private void ExecuteSyncClassView(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             CurrentHandlers.Execute(contentType,
@@ -941,20 +952,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             CurrentHandlers.Execute(contentType,
                 args: new PasteCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteSortUsings(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new SortImportsCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteRemoveUnusedUsings(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new RemoveUnnecessaryImportsCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 

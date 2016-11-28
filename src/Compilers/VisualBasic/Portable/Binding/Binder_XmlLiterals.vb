@@ -1135,7 +1135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return namespaces
         End Function
 
-        Private Function AddXmlAttributeIfNotDuplicate(
+        Private Shared Function AddXmlAttributeIfNotDuplicate(
                                                       syntax As XmlNodeSyntax,
                                                       name As XmlName,
                                                       attribute As BoundXmlAttribute,

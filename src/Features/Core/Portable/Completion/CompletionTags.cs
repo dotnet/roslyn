@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Completion
         public const string Assembly = nameof(Assembly);
 
         // language elements
-        public const string ArgumentName = nameof(ArgumentName);
         public const string Class = nameof(Class);
         public const string Constant = nameof(Constant);
         public const string Delegate = nameof(Delegate);
@@ -54,6 +53,9 @@ namespace Microsoft.CodeAnalysis.Completion
         public const string Error = nameof(Error);
         public const string Warning = nameof(Warning);
 
-        public const string ObjectCreation = nameof(ObjectCreation);
+        // Currently needed, but removed from Dev15.  Internal so no one accidently takes a 
+        // dependency on them.
+        internal const string ArgumentName = nameof(ArgumentName);
+        internal const string ObjectCreation = nameof(ObjectCreation);
     }
 }

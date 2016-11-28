@@ -4776,7 +4776,7 @@ Module Module1
         TestSng(value2)
         TestDbl(value)
 
-        Dim value3 As System.IComparable = "5/23/2016"
+        Dim value3 As System.IComparable = "2016-5-23"
         TestDate(value3)
         TestChar(value3)
     End Sub
@@ -4866,7 +4866,7 @@ End Module
 1
 1
 23
-5")
+2")
 
             verifier.VerifyIL("Module1.TestArray",
             <![CDATA[

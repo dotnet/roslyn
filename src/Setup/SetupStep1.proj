@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- The intent of this portion of Setup.proj is to build any remaining assemblies / VSIX that need to be signed --> 
+  <Import Project="..\..\build\Targets\VSL.Settings.targets" />
+
+  <ItemGroup>
+    <Project Include="Deployment\Current\Roslyn.Deployment.Full.csproj">
+      <!-- No reason to rebuild the VSIXes again that were built previously -->
+      <AdditionalProperties>BuildProjectReferences=false</AdditionalProperties>
+    </Project>
+    <Project Include="Deployment\Next\Roslyn.Deployment.Full.Next.csproj">
+      <!-- No reason to rebuild the VSIXes again that were built previously -->
+      <AdditionalProperties>BuildProjectReferences=false</AdditionalProperties>
+    </Project>
+  </ItemGroup>
+
+  <ItemGroup>  
+    <PowerShellScriptsToCopy Include="PowerShell\*.ps1"/>  
+  </ItemGroup>  
+
+  <Target Name="Build">
+    <!-- We build these serially to work around https://github.com/dotnet/roslyn/issues/11856,
+         where building multiple projects that produce VSIXes larger than 10MB will race against each other -->
+    <MSBuild Projects="@(Project)" Targets="Build" BuildInParallel="false" />
+
+    <Copy SourceFiles="@(PowerShellScriptsToCopy)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />  
+    <Copy SourceFiles="@(PowerShellScriptsToCopy)" DestinationFolder="Templates\CSharp\Diagnostic\Analyzer"/>  
+    <Copy SourceFiles="@(PowerShellScriptsToCopy)" DestinationFolder="Templates\VisualBasic\Diagnostic\Analyzer\tools"/> 
+
+    <!-- Roslyn SDK -->
+    <!-- Because the SDK references 1.0 versions of roslyn, we want it to build into its own folder to avoid overwriting other components -->
+    <MSBuild Projects="Templates\Templates.sln" Properties="VersionType=Release;OutDir=$(OutDir)SDK\;BaseIntermediateOutputPath=$(OutDir)SDK\obj\$(MSBuildProjectName)\"/>
+  </Target>
+
+  <Target Name="Clean">
+    <MSBuild Projects="@(Project)" Targets="Clean" BuildInParallel="false" />
+  </Target>
+  <Target Name="Rebuild">
+    <MSBuild Projects="@(Project)" Targets="Rebuild" BuildInParallel="false" />
+  </Target>
+</Project>

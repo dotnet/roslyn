@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateVar
                 null, new GenerateVariableCodeFixProvider());
         }
 
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Info);
+        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
@@ -2948,7 +2948,7 @@ class C
             await TestAsync(
 @"class Class { void Method((int, string) i) { Method([|tuple|]); } }",
 @"class Class { private (int, string) tuple; void Method((int, string) i) { Method(tuple); } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -2958,7 +2958,7 @@ withScriptOption: true);
             await TestAsync(
 @"class Class { void Method((int a, string) i) { Method([|tuple|]); } }",
 @"class Class { private (int a, string Item2) tuple; void Method((int a, string) i) { Method(tuple); } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -2968,7 +2968,7 @@ withScriptOption: true);
             await TestAsync(
 @"class Class { void Method() { [|tuple|] = (1, ""hello""); } }",
 @"class Class { private (int, string) tuple; void Method() { tuple = (1, ""hello""); } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -2978,7 +2978,7 @@ withScriptOption: true);
             await TestAsync(
 @"class Class { void Method() { [|tuple|] = (a: 1, ""hello""); } }",
 @"class Class { private (int a, string Item2) tuple; void Method() { tuple = (a: 1, ""hello""); } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
     }

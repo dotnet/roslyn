@@ -7,12 +7,16 @@ Source generators provide a mechanism through which source code can be generated
 and added to the compilation. The additional source can be based on the content of the compilation,
 enabling some meta-programming scenarios.
 
+Like all pre-release features, code generators will need to be specially enabled, either by passing
+`/features:replace` directly to `csc` or by setting the `<Features>replace</Features>` flag in the project file.
+
 Scenarios
 ---------
 * Generate `BoundNode` classes from record definitions.
 * Implement `System.ComponentModel.INotifyPropertyChanged`.
 * Support code contracts defined through attributes.
 * Generate types from structured data similar to F# Type Providers.
+* Serialization/deserialization (see https://github.com/agocke/json-serializer)
 
 General
 -------
@@ -24,8 +28,14 @@ Source generators are implementations of `Microsoft.CodeAnalysis.SourceGenerator
     }
 ```
 `SourceGenerator` implementations are defined in external assemblies passed to the compiler
-using the same `-analyzer:` option used for diagnostic analyzers. An assembly can
-contain a mix of diagnostic analyzers and source generators.
+using the same `-analyzer:` option used for diagnostic analyzers. Valid source generators
+must:
+
+1. Implement `Microsoft.CodeAnalysis.SourceGenerator`
+1. Be decorated with the `Microsoft.CodeAnalysis.SourceGeneratorAttribute` to indicate 
+   supported languages.
+
+An assembly can contain a mix of diagnostic analyzers and source generators.
 Since generators are loaded from external assemblies, a generator cannot be used to build
 the assembly in which it is defined.
 

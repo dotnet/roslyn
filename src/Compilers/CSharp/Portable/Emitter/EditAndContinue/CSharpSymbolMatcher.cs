@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         return null;
                     }
 
-                    return this.VisitTypeMembers(otherContainer, nestedType, GetNestedTypes, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
+                    return VisitTypeMembers(otherContainer, nestedType, GetNestedTypes, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
                 }
 
                 var member = def as Cci.ITypeDefinitionMember;
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var field = def as Cci.IFieldDefinition;
                     if (field != null)
                     {
-                        return this.VisitTypeMembers(otherContainer, field, GetFields, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
+                        return VisitTypeMembers(otherContainer, field, GetFields, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
                     }
                 }
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return _lazyTopLevelTypes;
             }
 
-            private T VisitTypeMembers<T>(
+            private static T VisitTypeMembers<T>(
                 Cci.ITypeDefinition otherContainer,
                 T member,
                 Func<Cci.ITypeDefinition, IEnumerable<T>> getMembers,
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     property.Parameters.SequenceEqual(other.Parameters, AreParametersEqual);
             }
 
-            private bool AreTypeParametersEqual(TypeParameterSymbol type, TypeParameterSymbol other)
+            private static bool AreTypeParametersEqual(TypeParameterSymbol type, TypeParameterSymbol other)
             {
                 Debug.Assert(type.Ordinal == other.Ordinal);
                 Debug.Assert(StringOrdinalComparer.Equals(type.Name, other.Name));

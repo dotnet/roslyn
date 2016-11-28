@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
@@ -20,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             SyntaxToken targetToken,
             bool isTypeContext,
             bool isNamespaceContext,
+            bool isNamespaceDeclarationNameContext,
             bool isPreProcessorDirectiveContext,
             bool isRightOfNameSeparator,
             bool isStatementContext,
@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.TargetToken = targetToken;
             this.IsTypeContext = isTypeContext;
             this.IsNamespaceContext = isNamespaceContext;
+            this.IsNamespaceDeclarationNameContext = isNamespaceDeclarationNameContext;
             this.IsPreProcessorDirectiveContext = isPreProcessorDirectiveContext;
             this.IsRightOfNameSeparator = isRightOfNameSeparator;
             this.IsStatementContext = isStatementContext;
@@ -59,6 +60,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         public bool IsTypeContext { get; }
         public bool IsNamespaceContext { get; }
+
+        public bool IsNamespaceDeclarationNameContext { get; }
 
         public bool IsPreProcessorDirectiveContext { get; }
 

@@ -4,6 +4,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
@@ -15,35 +16,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     {
         public static readonly LineSeparatorTag Instance = new LineSeparatorTag();
 
-        private static Brush s_brush;
-
-        private void Initialize(IWpfTextView view)
-        {
-            // TODO: Refresh this when the user changes fonts and colors
-
-            // TODO: Get from resources
-            var lightGray = Color.FromRgb(0xE0, 0xE0, 0xE0);
-
-            var outliningForegroundBrush = view.VisualElement.TryFindResource("outlining.verticalrule.foreground") as SolidColorBrush;
-            var darkGray = outliningForegroundBrush != null
-                ? outliningForegroundBrush.Color
-                : lightGray;
-
-            s_brush = new SolidColorBrush(darkGray);
-        }
-
         /// <summary>
         /// Creates a very long line at the bottom of bounds.
         /// </summary>
         public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds)
         {
-            if (s_brush == null)
-            {
-                Initialize(view);
-            }
+            Initialize(view);
 
             var border = new Border();
-            border.BorderBrush = s_brush;
+            border.BorderBrush = VerticalRuleBrush;
             border.BorderThickness = new Thickness(0, 0, 0, bottom: 1);
             border.Height = 1;
             border.Width = view.ViewportWidth;

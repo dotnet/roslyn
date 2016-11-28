@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
             => Main(args, SpecializedCollections.EmptyArray<string>());
 
         public static int Main(string[] args, string[] extraArgs)
-            => DesktopBuildClient.Run(args, extraArgs, RequestLanguage.VisualBasicCompile, Vbc.Run, new SimpleAnalyzerAssemblyLoader());
+            => DesktopBuildClient.Run(args, extraArgs, RequestLanguage.VisualBasicCompile, Vbc.Run, new DesktopAnalyzerAssemblyLoader());
 
         public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
             => Vbc.Run(args, new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir), textWriter, analyzerLoader);

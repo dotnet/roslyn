@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversion(declType, iDisposable, ref useSiteDiagnostics);
+                    iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
                     diagnostics.Add(declarationSyntax, useSiteDiagnostics);
 
                     if (!iDisposableConversion.IsImplicit)
@@ -149,6 +149,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
             throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override SyntaxNode ScopeDesignator
+        {
+            get
+            {
+                return _syntax;
+            }
         }
     }
 }

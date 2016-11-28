@@ -98,6 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                    .SelectMany(n => n.Usings));
         }
 
+        public static IEnumerable<ExternAliasDirectiveSyntax> GetEnclosingExternAliasDirectives(this SyntaxNode node)
+        {
+            return node.GetAncestorOrThis<CompilationUnitSyntax>().Externs
+                       .Concat(node.GetAncestorsOrThis<NamespaceDeclarationSyntax>()
+                                   .Reverse()
+                                   .SelectMany(n => n.Externs));
+        }
+
         public static bool IsUnsafeContext(this SyntaxNode node)
         {
             if (node.GetAncestor<UnsafeStatementSyntax>() != null)
@@ -1131,51 +1139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return SpecializedCollections.EmptyEnumerable<MemberDeclarationSyntax>();
-        }
-
-        public static IEnumerable<SyntaxNode> GetBodies(this SyntaxNode node)
-        {
-            var constructor = node as ConstructorDeclarationSyntax;
-            if (constructor != null)
-            {
-                var result = SpecializedCollections.SingletonEnumerable<SyntaxNode>(constructor.Body).WhereNotNull();
-                var initializer = constructor.Initializer;
-                if (initializer != null)
-                {
-                    result = result.Concat(initializer.ArgumentList.Arguments.Select(a => (SyntaxNode)a.Expression).WhereNotNull());
-                }
-
-                return result;
-            }
-
-            var method = node as BaseMethodDeclarationSyntax;
-            if (method != null)
-            {
-                return SpecializedCollections.SingletonEnumerable<SyntaxNode>(method.Body).WhereNotNull();
-            }
-
-            var property = node as BasePropertyDeclarationSyntax;
-            if (property != null && property.AccessorList != null)
-            {
-                return property.AccessorList.Accessors.Select(a => a.Body).WhereNotNull();
-            }
-
-            var @enum = node as EnumMemberDeclarationSyntax;
-            if (@enum != null)
-            {
-                if (@enum.EqualsValue != null)
-                {
-                    return SpecializedCollections.SingletonEnumerable(@enum.EqualsValue.Value).WhereNotNull();
-                }
-            }
-
-            var field = node as BaseFieldDeclarationSyntax;
-            if (field != null)
-            {
-                return field.Declaration.Variables.Where(v => v.Initializer != null).Select(v => v.Initializer.Value).WhereNotNull();
-            }
-
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
 
         public static ConditionalAccessExpressionSyntax GetParentConditionalAccessExpression(this SyntaxNode node)

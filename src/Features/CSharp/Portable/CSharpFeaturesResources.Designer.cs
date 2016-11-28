@@ -80,6 +80,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to namespace declaration..
+        /// </summary>
+        internal static string AutoselectDisabledDueToNamespaceDeclaration {
+            get {
+                return ResourceManager.GetString("AutoselectDisabledDueToNamespaceDeclaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to possible explicitly named anonymous type member creation..
         /// </summary>
         internal static string AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation {
@@ -566,6 +575,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;namespace name&gt;.
+        /// </summary>
+        internal static string NamespaceName {
+            get {
+                return ResourceManager.GetString("NamespaceName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No common root node for extraction..
         /// </summary>
         internal static string NoCommonRootNodeForExtraction {
@@ -616,15 +634,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string OrganizeUsings {
             get {
                 return ResourceManager.GetString("OrganizeUsings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &amp;Organize Usings.
-        /// </summary>
-        internal static string OrganizeUsingsWithAccelerator {
-            get {
-                return ResourceManager.GetString("OrganizeUsingsWithAccelerator", resourceCulture);
             }
         }
         
@@ -724,15 +733,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string RemoveUnnecessaryUsingsDiagnosticTitle {
             get {
                 return ResourceManager.GetString("RemoveUnnecessaryUsingsDiagnosticTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &amp;Remove Unnecessary Usings.
-        /// </summary>
-        internal static string RemoveUnnecessaryUsingsWithAccelerator {
-            get {
-                return ResourceManager.GetString("RemoveUnnecessaryUsingsWithAccelerator", resourceCulture);
             }
         }
         
@@ -850,15 +850,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string SimplifyName {
             get {
                 return ResourceManager.GetString("SimplifyName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &amp;Sort Usings.
-        /// </summary>
-        internal static string SortUsingsWithAccelerator {
-            get {
-                return ResourceManager.GetString("SortUsingsWithAccelerator", resourceCulture);
             }
         }
         

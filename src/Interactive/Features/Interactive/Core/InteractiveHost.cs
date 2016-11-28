@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         internal Service TryGetService()
         {
-            var initializedService = TryGetOrCreateRemoteServiceAsync().Result;
+            var initializedService = TryGetOrCreateRemoteServiceAsync(processPendingOutput: false).Result;
             return initializedService.ServiceOpt?.Service;
         }
 
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         private Task OnProcessExited(Process process)
         {
             ReportProcessExited(process);
-            return TryGetOrCreateRemoteServiceAsync();
+            return TryGetOrCreateRemoteServiceAsync(processPendingOutput: true);
         }
 
         private void ReportProcessExited(Process process)
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
         }
 
-        private async Task<InitializedRemoteService> TryGetOrCreateRemoteServiceAsync()
+        private async Task<InitializedRemoteService> TryGetOrCreateRemoteServiceAsync(bool processPendingOutput)
         {
             try
             {
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     if (previousService == currentRemoteService)
                     {
                         // we replaced the service whose process we know is dead:
-                        currentRemoteService.Dispose(joinThreads: false);
+                        currentRemoteService.Dispose(processPendingOutput);
                         currentRemoteService = newService;
                     }
                     else
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             try
             {
-                var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
+                var initializedService = await TryGetOrCreateRemoteServiceAsync(processPendingOutput: false).ConfigureAwait(false);
                 if (initializedService.ServiceOpt == null)
                 {
                     return default(TResult);
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     oldService.Dispose(joinThreads: false);
                 }
 
-                var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
+                var initializedService = await TryGetOrCreateRemoteServiceAsync(processPendingOutput: false).ConfigureAwait(false);
                 if (initializedService.ServiceOpt == null)
                 {
                     return default(RemoteExecutionResult);

@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EncapsulateField;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
 {
     public class EncapsulateFieldTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new EncapsulateFieldRefactoringProvider();
         }
@@ -1293,7 +1294,7 @@ class C
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1335,7 +1336,7 @@ class C
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular, withScriptOption: true);
         }
     }
 }

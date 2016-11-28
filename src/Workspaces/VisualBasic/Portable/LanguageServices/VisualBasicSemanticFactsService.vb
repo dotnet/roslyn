@@ -243,5 +243,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsNameOfContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsNameOfContext
             Return semanticModel.SyntaxTree.IsNameOfContext(position, cancellationToken)
         End Function
+
+        Public Function IsNamespaceDeclarationNameContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsNamespaceDeclarationNameContext
+            Return semanticModel.SyntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken)
+        End Function
     End Class
 End Namespace

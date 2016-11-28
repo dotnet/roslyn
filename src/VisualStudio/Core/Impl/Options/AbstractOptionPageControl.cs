@@ -39,6 +39,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             textBoxStyle.Setters.Add(new Setter(TextBox.MarginProperty, new Thickness() { Left = 7, Right = 7 }));
             textBoxStyle.Setters.Add(new Setter(TextBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
             Resources.Add(typeof(TextBox), textBoxStyle);
+
+            var radioButtonStyle = new System.Windows.Style(typeof(RadioButton));
+            radioButtonStyle.Setters.Add(new Setter(RadioButton.MarginProperty, new Thickness() { Bottom = 7 }));
+            radioButtonStyle.Setters.Add(new Setter(RadioButton.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
+            Resources.Add(typeof(RadioButton), radioButtonStyle);
         }
 
         protected void AddBinding(BindingExpressionBase bindingExpression)
@@ -98,6 +103,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
+        protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption<T> optionKey, T optionValue, string languageName)
+        {
+            var binding = new Binding()
+            {
+                Source = new PerLanguageOptionBinding<T>(OptionService, optionKey, languageName),
+                Path = new PropertyPath("Value"),
+                UpdateSourceTrigger = UpdateSourceTrigger.Explicit,
+                Converter = new RadioButtonCheckedConverter(),
+                ConverterParameter = optionValue
+            };
+
+            var bindingExpression = radiobutton.SetBinding(RadioButton.IsCheckedProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
         protected void BindToFullSolutionAnalysisOption(CheckBox checkbox, string languageName)
         {
             // Full solution analysis option has been moved to error list from Dev14 Update3.
@@ -144,6 +164,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal virtual void Close()
         {
+        }
+    }
+
+    public class RadioButtonCheckedConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter,
+            System.Globalization.CultureInfo culture)
+        {
+            return value.Equals(parameter);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter,
+            System.Globalization.CultureInfo culture)
+        {
+            return value.Equals(true) ? parameter : Binding.DoNothing;
         }
     }
 }

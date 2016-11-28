@@ -590,7 +590,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me._factory.WellKnownMember(Of MethodSymbol)(wellKnownHelper)
         End Function
 
-        Private Function GetBinaryOperatorMethodName(opKind As BinaryOperatorKind, isChecked As Boolean) As String
+        Private Shared Function GetBinaryOperatorMethodName(opKind As BinaryOperatorKind, isChecked As Boolean) As String
             Select Case (opKind And BinaryOperatorKind.OpMask)
                 Case BinaryOperatorKind.Add
                     Return If(isChecked, "AddChecked", "Add")
@@ -638,7 +638,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Function AdjustCallArgumentForLiftedOperator(oldArg As BoundExpression, parameterType As TypeSymbol) As BoundExpression
+        Private Shared Function AdjustCallArgumentForLiftedOperator(oldArg As BoundExpression, parameterType As TypeSymbol) As BoundExpression
             Debug.Assert(oldArg.Type.IsNullableType)
             Debug.Assert(Not parameterType.IsNullableType)
             Debug.Assert(oldArg.Type.GetNullableUnderlyingTypeOrSelf() = parameterType)

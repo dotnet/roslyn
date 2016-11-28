@@ -586,7 +586,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml
 
                 foreach (var argument in elementAccessExpression.ArgumentList.Arguments)
                 {
-                    if (!TryGenerateExpression(argument.Expression))
+                    if (argument.Expression == null || !TryGenerateExpression(argument.Expression))
                     {
                         return false;
                     }
@@ -600,7 +600,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml
         {
             using (ArgumentTag())
             {
-                return TryGenerateExpression(argument.Expression);
+                return argument.Expression != null && TryGenerateExpression(argument.Expression);
             }
         }
 

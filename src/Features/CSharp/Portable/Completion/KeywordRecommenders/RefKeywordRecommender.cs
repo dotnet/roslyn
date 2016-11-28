@@ -63,8 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsXmlCrefParameterModifierContext() ||
-                (syntaxTree.Options.Features.ContainsKey("refLocalsAndReturns") && 
-                    IsValidNewByRefContext(syntaxTree, position, context, cancellationToken));
+                IsValidNewByRefContext(syntaxTree, position, context, cancellationToken);
         }
 
         private bool IsValidNewByRefContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)

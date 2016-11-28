@@ -1,0 +1,16 @@
+use vs
+
+package name=Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents
+        version=$(Version)
+        vs.package.chip=neutral
+        vs.package.language=en-us
+        vs.package.type=vsix
+        vs.package.vsixId=500fff63-afcf-4195-8db4-3fa8a5180e79
+
+vs.localizedResources
+  vs.localizedResource language=en-us
+                       title="Roslyn Interactive Components"
+                       description="Interactive Roslyn components for Visual Studio."
+
+vs.payloads
+  vs.payload source=$(OutputPath)Roslyn.VisualStudio.InteractiveComponents.vsix

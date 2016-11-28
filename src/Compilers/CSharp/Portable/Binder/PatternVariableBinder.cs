@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class PatternVariableBinder : LocalScopeBinder
     {
-        public readonly CSharpSyntaxNode ScopeDesignator;
-
         internal PatternVariableBinder(CSharpSyntaxNode scopeDesignator, Binder next) : base(next)
         {
             this.ScopeDesignator = scopeDesignator;
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
-            PatternVariableFinder.FindPatternVariables(this, builder, ScopeDesignator);
+            PatternVariableFinder.FindPatternVariables(this, builder, (CSharpSyntaxNode)ScopeDesignator);
             return builder.ToImmutableAndFree();
         }
 
@@ -39,5 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal override SyntaxNode ScopeDesignator { get; }
     }
 }

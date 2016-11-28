@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
             await TestAsync(
 @"class Class { [|(int, string) i|]; (int, string) P { get { return i; } } }",
 @"class Class { (int, string) P { get; } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -335,7 +335,7 @@ withScriptOption: true);
             await TestAsync(
 @"class Class { [|(int a, string b) i|]; (int a, string b) P { get { return i; } } }",
 @"class Class { (int a, string b) P { get; } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -344,7 +344,7 @@ withScriptOption: true);
         {
             await TestMissingAsync(
 @"class Class { [|(int a, string b) i|]; (int c, string d) P { get { return i; } } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -354,7 +354,7 @@ withScriptOption: true);
             await TestAsync(
 @"class Class { [|(int a, string) i|]; (int a, string) P { get { return i; } } }",
 @"class Class { (int a, string) P { get; } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -364,7 +364,7 @@ withScriptOption: true);
             await TestAsync(
 @"class Class { [|(int, string) i = (1, ""hello"")|]; (int, string) P { get { return i; } } }",
 @"class Class { (int, string) P { get; } = (1, ""hello""); }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -374,7 +374,7 @@ withScriptOption: true);
             await TestAsync(
 @"class Class { [|(int, string) i|]; (int, string) P { get { return i; } set { i = value; } } }",
 @"class Class { (int, string) P { get; set; } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
     }

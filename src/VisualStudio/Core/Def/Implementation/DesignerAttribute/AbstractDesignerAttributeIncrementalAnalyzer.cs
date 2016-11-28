@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -64,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return false;
         }
 
-        public async System.Threading.Tasks.Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+        public async System.Threading.Tasks.Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(document.IsFromPrimaryBranch());
 
@@ -311,12 +310,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return SpecializedTasks.EmptyTask;
         }
 
-        public System.Threading.Tasks.Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }
 
-        public System.Threading.Tasks.Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }

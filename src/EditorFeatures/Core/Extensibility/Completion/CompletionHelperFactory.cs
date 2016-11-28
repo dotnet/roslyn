@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal abstract class CompletionHelperFactory : ILanguageService
     {
-        public abstract CompletionHelper CreateCompletionHelper(CompletionService completionService);
+        public abstract CompletionHelper CreateCompletionHelper();
     }
 }

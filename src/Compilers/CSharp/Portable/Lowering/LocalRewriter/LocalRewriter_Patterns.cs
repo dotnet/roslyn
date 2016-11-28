@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _factory.Sequence(assignment, result);
             }
 
-            return MakeDeclarationPattern(pattern.Syntax, input, pattern.LocalSymbol);
+            return MakeDeclarationPattern(pattern.Syntax, input, pattern.LocalSymbol, requiresNullTest: true);
         }
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 );
         }
 
-        BoundExpression MakeDeclarationPattern(CSharpSyntaxNode syntax, BoundExpression input, LocalSymbol target)
+        BoundExpression MakeDeclarationPattern(CSharpSyntaxNode syntax, BoundExpression input, LocalSymbol target, bool requiresNullTest)
         {
             var type = target.Type;
             // a pattern match of the form "expression is Type identifier" is equivalent to
@@ -118,9 +118,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     t = e as T;
                 //     return t != null;
                 // }
-                var assignment = _factory.AssignmentExpression(_factory.Local(target), _factory.As(input, type));
-                var result = _factory.ObjectNotEqual(_factory.Local(target), _factory.Null(type));
-                return _factory.Sequence(assignment, result);
+                if (input.Type == type)
+                {
+                    // CONSIDER: this can be done whenever input.Type is a subtype of type for improved code
+                    var assignment = _factory.AssignmentExpression(_factory.Local(target), input);
+                    var result = requiresNullTest
+                        ? _factory.ObjectNotEqual(_factory.Local(target), _factory.Null(type))
+                        : (BoundExpression)_factory.Literal(true);
+                    return _factory.Sequence(assignment, result);
+                }
+                else
+                {
+                    var assignment = _factory.AssignmentExpression(_factory.Local(target), _factory.As(input, type));
+                    var result = _factory.ObjectNotEqual(_factory.Local(target), _factory.Null(type));
+                    return _factory.Sequence(assignment, result);
+                }
             }
             else if (type.IsNullableType())
             {
@@ -156,14 +168,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return tmp.HasValue;
                 // }
                 var tmpType = _factory.SpecialType(SpecialType.System_Nullable_T).Construct(type);
-                var tmp = _factory.SynthesizedLocal(tmpType, syntax);
-                var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), _factory.As(input, tmpType));
-                var value = _factory.Call(
-                    _factory.Local(tmp),
-                    GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
-                var asg2 = _factory.AssignmentExpression(_factory.Local(target), value);
-                var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
-                return _factory.Sequence(tmp, asg1, asg2, result);
+                if (tmpType == input.Type)
+                {
+                    var value = _factory.Call(
+                        input,
+                        GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                    var asg2 = _factory.AssignmentExpression(_factory.Local(target), value);
+                    var result = requiresNullTest ? MakeNullableHasValue(syntax, input) : _factory.Literal(true);
+                    return _factory.Sequence(asg2, result);
+                }
+                else
+                {
+                    var tmp = _factory.SynthesizedLocal(tmpType, syntax);
+                    var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), _factory.As(input, tmpType));
+                    var value = _factory.Call(
+                        _factory.Local(tmp),
+                        GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                    var asg2 = _factory.AssignmentExpression(_factory.Local(target), value);
+                    var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
+                    return _factory.Sequence(tmp, asg1, asg2, result);
+                }
             }
             else // type parameter
             {

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -48,13 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 return SpecializedCollections.EmptyEnumerable<ISymbol>();
             }
 
-            // TODO: don't show completion set at namespace name part to match Dev10 behavior
-            // if we want to provide new feature that shows all existing namespaces later, remove this
-            if (context.IsNamespaceDeclarationNameContext)
-            {
-                return SpecializedCollections.EmptyEnumerable<ISymbol>();
-            }
-
             if (context.IsRightOfNameSeparator)
             {
                 return GetSymbolsOffOfContainer(context, cancellationToken);
@@ -86,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else if (context.IsTypeContext || context.IsNamespaceContext)
             {
-                return GetSymbolsForTypeOrNamespaceContext(context, cancellationToken);
+                return GetSymbolsForTypeOrNamespaceContext(context);
             }
             else if (context.IsLabelContext)
             {
@@ -99,6 +93,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             else if (context.IsDestructorTypeContext)
             {
                 return SpecializedCollections.SingletonEnumerable(context.SemanticModel.GetDeclaredSymbol(context.ContainingTypeOrEnumDeclaration, cancellationToken));
+            }
+            else if (context.IsNamespaceDeclarationNameContext)
+            {
+                return GetSymbolsForNamespaceDeclarationNameContext(context, cancellationToken);
             }
 
             return SpecializedCollections.EmptyEnumerable<ISymbol>();
@@ -219,9 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 .AsImmutableOrEmpty();
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsForTypeOrNamespaceContext(
-            CSharpSyntaxContext context,
-            CancellationToken cancellationToken)
+        private static IEnumerable<ISymbol> GetSymbolsForTypeOrNamespaceContext(CSharpSyntaxContext context)
         {
             var symbols = context.SemanticModel.LookupNamespacesAndTypes(context.LeftToken.SpanStart);
 
@@ -236,6 +232,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
 
             return symbols;
+        }
+
+        private static IEnumerable<ISymbol> GetSymbolsForNamespaceDeclarationNameContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            var declarationSyntax = context.TargetToken.GetAncestor<NamespaceDeclarationSyntax>();
+
+            if (declarationSyntax == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+            }
+
+            return GetRecommendedNamespaceNameSymbols(context.SemanticModel, declarationSyntax, cancellationToken);
         }
 
         private static IEnumerable<ISymbol> GetSymbolsForExpressionOrStatementContext(
@@ -320,6 +328,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 IEnumerable<ISymbol> symbols = context.SemanticModel.LookupNamespacesAndTypes(
                     position: name.SpanStart,
                     container: symbol);
+
+                if (context.IsNamespaceDeclarationNameContext)
+                {
+                    var declarationSyntax = name.GetAncestorOrThis<NamespaceDeclarationSyntax>();
+                    return symbols.Where(s => IsNonIntersectingNamespace(s, declarationSyntax));
+                }
 
                 // Filter the types when in a using directive, but not an alias.
                 // 

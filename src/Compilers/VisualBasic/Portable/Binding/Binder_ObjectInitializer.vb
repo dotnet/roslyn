@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 callerInfoOpt:=Nothing)
         End Function
 
-        Private Function MergeBoundChildNodesWithObjectInitializerForBadNode(
+        Private Shared Function MergeBoundChildNodesWithObjectInitializerForBadNode(
             boundArguments As ImmutableArray(Of BoundExpression),
             objectInitializerExpression As BoundObjectInitializerExpressionBase
         ) As ImmutableArray(Of BoundNode)

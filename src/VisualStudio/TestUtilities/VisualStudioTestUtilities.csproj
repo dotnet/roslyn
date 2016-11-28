@@ -18,19 +18,27 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Extensions\DteExtensions.cs" />
-    <Compile Include="Extensions\IntegrationServiceExtensions.cs" />
+    <Compile Include="Common\Comparison.cs" />
+    <Compile Include="Common\Parameter.cs" />
+    <Compile Include="Common\Signature.cs" />
+    <Compile Include="InProcess\CSharpInteractiveWindow_InProc.cs" />
+    <Compile Include="InProcess\InProcComponent.cs" />
+    <Compile Include="InProcess\SolutionExplorer_InProc.cs" />
+    <Compile Include="InProcess\VisualStudio_InProc.cs" />
+    <Compile Include="Input\KeyPress.cs" />
+    <Compile Include="Input\SendKeys.cs" />
+    <Compile Include="Input\ShiftState.cs" />
+    <Compile Include="Input\VirtualKey.cs" />
     <Compile Include="IntegrationHelper.cs" />
-    <Compile Include="Interop\Kernel32.cs" />
-    <Compile Include="Remoting\EditorWindowWrapper.cs" />
-    <Compile Include="Remoting\RemotingHelper.cs" />
-    <Compile Include="Remoting\WorkspaceWrapper.cs" />
-    <Compile Include="VisualStudioCommandNames.cs" />
+    <Compile Include="InProcess\Editor_InProc.cs" />
+    <Compile Include="Interop\NativeMethods.cs" />
+    <Compile Include="OutOfProcess\OutOfProcComponent.cs" />
+    <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.cs" />
+    <Compile Include="InProcess\VisualStudioWorkspace_InProc.cs" />
+    <Compile Include="WellKnownCommandNames.cs" />
     <Compile Include="VisualStudioInstance.cs" />
     <Compile Include="IntegrationService.cs" />
-    <Compile Include="Interop\Ole32.cs" />
-    <Compile Include="Interop\User32.cs" />
-    <Compile Include="Remoting\InteractiveWindowWrapper.cs" />
+    <Compile Include="InProcess\InteractiveWindow_InProc.cs" />
     <Compile Include="Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
@@ -38,15 +46,11 @@
     </Compile>
     <Compile Include="VisualStudioInstanceContext.cs" />
     <Compile Include="VisualStudioInstanceFactory.cs" />
-    <Compile Include="Window\CSharpInteractiveWindow.cs" />
-    <Compile Include="Window\EditorWindow.cs" />
-    <Compile Include="Window\InteractiveWindow.cs" />
-    <Compile Include="Workspace\Project.cs" />
-    <Compile Include="Workspace\ProjectLanguage.cs" />
-    <Compile Include="Workspace\ProjectTemplate.cs" />
-    <Compile Include="Workspace\Solution.cs" />
-    <Compile Include="Window\SolutionExplorer.cs" />
-    <Compile Include="Workspace\Workspace.cs" />
+    <Compile Include="OutOfProcess\CSharpInteractiveWindow_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\Editor_OutOfProc.cs" />
+    <Compile Include="OutOfProcess\InteractiveWindow_OutOfProc.cs" />
+    <Compile Include="WellKnownProjectTemplates.cs" />
+    <Compile Include="OutOfProcess\VisualStudioWorkspace_OutOfProc.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.VisualStudio.IntegrationTests" />
@@ -128,5 +132,6 @@
       <Name>VisualStudioInteractiveServices</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

@@ -699,12 +699,6 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             return MetadataTokens.ExportedTypeHandle(_exportedTypeTable.Count);
         }
 
-        // TODO: remove
-        public uint GetExportedTypeFlags(int rowId)
-        {
-            return _exportedTypeTable[rowId].Flags;
-        }
-
         public DeclarativeSecurityAttributeHandle AddDeclarativeSecurityAttribute(
             EntityHandle parent,
             DeclarativeSecurityAction action,

@@ -519,10 +519,10 @@ public class Test
     {
         switch (val)
         {
-            case (int)int.MinValue: 
-            case (int)int.MinValue + 1: 
-            case (int)short.MinValue: 
-            case (int)short.MinValue + 1: 
+            case (int)int.MinValue:
+            case (int)int.MinValue + 1:
+            case (int)short.MinValue:
+            case (int)short.MinValue + 1:
             case (int)sbyte.MinValue: return 0;
             case (int)-1: return -1;
             case (int)0: return 0;
@@ -531,7 +531,7 @@ public class Test
             case (int)0xFE: return 0;
             case (int)0xFF: return 0;
             case (int)0x7FFE: return 0;
-            case (int)0xFFFE: 
+            case (int)0xFFFE:
             case (int)0x7FFFFFFF: return 0;
             default: return null;
         }

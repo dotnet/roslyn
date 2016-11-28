@@ -53,10 +53,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return ImmutableArray<DiagnosticAnalyzer>.Empty;
         }
-
-        public override ImmutableArray<SourceGenerator> GetSourceGenerators(string language)
-        {
-            return ImmutableArray<SourceGenerator>.Empty;
-        }
     }
 }

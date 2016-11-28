@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis
 
         #region Flags 
         [Flags]
-        internal enum NodeFlags : ushort
+        internal enum NodeFlags : byte
         {
             None = 0,
             ContainsDiagnostics = 1 << 0,
@@ -205,7 +205,6 @@ namespace Microsoft.CodeAnalysis
             FactoryContextIsInAsync = 1 << 6,
             FactoryContextIsInQuery = 1 << 7,
             FactoryContextIsInIterator = FactoryContextIsInQuery,  // VB does not use "InQuery", but uses "InIterator" instead
-            FactoryContextIsInReplace = 1 << 8,
 
             InheritMask = ContainsDiagnostics | ContainsStructuredTrivia | ContainsDirectives | ContainsSkippedText | ContainsAnnotations | IsNotMissing,
         }

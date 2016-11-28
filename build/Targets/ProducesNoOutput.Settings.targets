@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <Import Project="Settings.targets" />
+  <Import Project="VSL.Settings.targets" />
 
   <PropertyGroup>
     <IsDeployment Condition="'$(IsDeployment)' == ''">false</IsDeployment>
@@ -14,8 +14,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
-    <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
     <OutputType>Library</OutputType>
   </PropertyGroup>
 
@@ -30,4 +28,7 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   
+  <PropertyGroup>
+    <MicroBuildVersion>0.2.0</MicroBuildVersion>
+  </PropertyGroup>
 </Project>

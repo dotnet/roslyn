@@ -2,7 +2,6 @@
 
 using System;
 using System.IO;
-using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -87,19 +86,6 @@ namespace Roslyn.Utilities
             }
 
             return relativePath;
-        }
-
-        internal static void RequireAbsolutePath(string path, string argumentName)
-        {
-            if (path == null)
-            {
-                throw new ArgumentNullException(argumentName);
-            }
-
-            if (!PathUtilities.IsAbsolute(path))
-            {
-                throw new ArgumentException(WorkspacesResources.AbsolutePathExpected, argumentName);
-            }
         }
 
         public static bool PathsEqual(string path1, string path2)

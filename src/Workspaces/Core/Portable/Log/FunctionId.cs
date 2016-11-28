@@ -326,5 +326,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SpellChecker_ExceptionInCacheRead,
         BKTree_ExceptionInCacheRead,
         IntellisenseBuild_Failed,
+
+        // Generic performance measurement action IDs
+        MeasurePerformance_StartAction,
+        MeasurePerformance_StopAction
     }
 }

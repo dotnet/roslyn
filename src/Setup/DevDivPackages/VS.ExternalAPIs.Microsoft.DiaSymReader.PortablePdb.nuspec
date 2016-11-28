@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>VS.ExternalAPIs.Microsoft.DiaSymReader.PortablePdb</id>
+    <summary>CoreXT package for the VS build.</summary>
+    <description>CoreXT package for the VS build.</description>
+    <authors>Managed Languages</authors>
+    <version>0.0</version>
+  </metadata>
+  <files>
+    <file src="Microsoft.DiaSymReader.PortablePdb.dll" target="lib\portable-net45+win8" />
+    <file src="Microsoft.DiaSymReader.PortablePdb.xml" target="lib\portable-net45+win8" />
+  </files>
+</package>

@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             public InterpolatedStringSplitter(
                 Document document, int position,
-                SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText,
+                SyntaxNode root, SourceText sourceText,
                 InterpolatedStringExpressionSyntax interpolatedStringExpression,
                 bool useTabs, int tabSize, CancellationToken cancellationToken)
-                : base(document, position, syntaxTree, root, sourceText, useTabs, tabSize, cancellationToken)
+                : base(document, position, root, sourceText, useTabs, tabSize, cancellationToken)
             {
                 _interpolatedStringExpression = interpolatedStringExpression;
             }

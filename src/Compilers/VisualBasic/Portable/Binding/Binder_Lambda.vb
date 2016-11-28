@@ -1103,7 +1103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _functionValue = CreateFunctionValueLocal(lambdaSymbol)
         End Sub
 
-        Private Function CreateFunctionValueLocal(lambdaSymbol As LambdaSymbol) As LocalSymbol
+        Private Shared Function CreateFunctionValueLocal(lambdaSymbol As LambdaSymbol) As LocalSymbol
             ' synthesized lambdas may not result from a LambdaExpressionSyntax (e.g. an AddressOf expression that 
             ' needs relaxation). In this case there will be no need to create a local here, this is done when generating the 
             ' lambda body.

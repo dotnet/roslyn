@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundSequence(node, ImmutableArray.Create(arrayTemp), sideeffects.ToImmutableAndFree, arrayTempRef, arrayTempRef.Type)
         End Function
 
-        Private Function LateAssignToArrayElement(node As VisualBasicSyntaxNode,
+        Private Shared Function LateAssignToArrayElement(node As VisualBasicSyntaxNode,
                                                   arrayRef As BoundExpression,
                                                   index As Integer,
                                                   value As BoundExpression,
@@ -884,7 +884,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' TODO: 
         ' ================= GENERAL PURPOSE, MOVE TO COMMON FILE
 
-        Private Function MakeStringLiteral(node As VisualBasicSyntaxNode,
+        Private Shared Function MakeStringLiteral(node As VisualBasicSyntaxNode,
                                            value As String,
                                            stringType As TypeSymbol) As BoundLiteral
 
@@ -895,14 +895,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Function MakeBooleanLiteral(node As VisualBasicSyntaxNode,
+        Private Shared Function MakeBooleanLiteral(node As VisualBasicSyntaxNode,
                                    value As Boolean,
                                    booleanType As TypeSymbol) As BoundLiteral
 
             Return New BoundLiteral(node, ConstantValue.Create(value), booleanType)
         End Function
 
-        Private Function MakeGetTypeExpression(node As VisualBasicSyntaxNode,
+        Private Shared Function MakeGetTypeExpression(node As VisualBasicSyntaxNode,
                                                type As TypeSymbol,
                                                typeType As TypeSymbol) As BoundGetType
 

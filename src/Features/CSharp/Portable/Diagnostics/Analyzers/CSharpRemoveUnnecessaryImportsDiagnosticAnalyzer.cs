@@ -14,7 +14,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryImports
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer : RemoveUnnecessaryImportsDiagnosticAnalyzerBase
+    internal sealed class CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer : 
+        RemoveUnnecessaryImportsDiagnosticAnalyzerBase
     {
         private static readonly LocalizableString s_TitleAndMessageFormat =
             new LocalizableResourceString(nameof(CSharpFeaturesResources.RemoveUnnecessaryUsingsDiagnosticTitle), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
@@ -24,12 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryImports
             return s_TitleAndMessageFormat;
         }
 
-        protected override IEnumerable<SyntaxNode> GetUnnecessaryImports(SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken = default(CancellationToken))
+        protected override IEnumerable<SyntaxNode> GetUnnecessaryImports(
+            SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken)
         {
             return CSharpRemoveUnnecessaryImportsService.GetUnnecessaryImports(semanticModel, root, cancellationToken);
         }
 
-        protected override IEnumerable<TextSpan> GetFixableDiagnosticSpans(IEnumerable<SyntaxNode> nodes, SyntaxTree tree, CancellationToken cancellationToken = default(CancellationToken))
+        protected override IEnumerable<TextSpan> GetFixableDiagnosticSpans(
+            IEnumerable<SyntaxNode> nodes, SyntaxTree tree, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(nodes.Any());
 

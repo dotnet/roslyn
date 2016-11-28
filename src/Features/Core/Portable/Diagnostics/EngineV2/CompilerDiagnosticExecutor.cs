@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     /// </summary>
     internal static class CompilerDiagnosticExecutor
     {
-        public static async Task<ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>> AnalyzeAsync(this CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
+        public static async Task<CompilerAnalysisResult> AnalyzeAsync(this CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {
             var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 builder.Add(analyzer, result.ToResult());
             }
 
-            return builder.ToImmutable();
+            return new CompilerAnalysisResult(builder.ToImmutable(), analysisResult.AnalyzerTelemetryInfo);
         }
 
         /// <summary>

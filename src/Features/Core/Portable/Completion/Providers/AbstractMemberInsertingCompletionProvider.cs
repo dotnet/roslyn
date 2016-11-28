@@ -71,22 +71,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Contract.ThrowIfNull(document);
 
             // Annotate the line we care about so we can find it after adding usings
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = GetToken(completionItem, tree, cancellationToken);
             var annotatedRoot = tree.GetRoot(cancellationToken).ReplaceToken(token, token.WithAdditionalAnnotations(_otherAnnotation));
             document = document.WithSyntaxRoot(annotatedRoot);
 
             var memberContainingDocument = await GenerateMemberAndUsingsAsync(document, completionItem, line, cancellationToken).ConfigureAwait(false);
 
-            var insertionRoot = PrepareTreeForMemberInsertion(memberContainingDocument, cancellationToken);
-            var insertionText = GenerateInsertionText(memberContainingDocument, cancellationToken);
+            var insertionRoot = await PrepareTreeForMemberInsertionAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
+            var insertionText = await GenerateInsertionTextAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
 
             var destinationSpan = ComputeDestinationSpan(insertionRoot, insertionText);
 
             var finalText = insertionRoot.GetText(sourceText.Encoding).Replace(destinationSpan, insertionText.Trim());
 
             document = document.WithText(finalText);
-            var newRoot = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var newRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var declaration = GetSyntax(newRoot.FindToken(destinationSpan.End));
 
             document = document.WithSyntaxRoot(newRoot.ReplaceNode(declaration, declaration.WithAdditionalAnnotations(_annotation)));
@@ -177,20 +177,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return TextSpan.FromBounds(firstToken.SpanStart, line.End);
         }
 
-        private string GenerateInsertionText(Document memberContainingDocument, CancellationToken cancellationToken)
+        private async Task<string> GenerateInsertionTextAsync(
+            Document memberContainingDocument, CancellationToken cancellationToken)
         {
-            memberContainingDocument = Simplifier.ReduceAsync(memberContainingDocument, Simplifier.Annotation, null, cancellationToken).WaitAndGetResult(cancellationToken);
-            memberContainingDocument = Formatter.FormatAsync(memberContainingDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            memberContainingDocument = await Simplifier.ReduceAsync(memberContainingDocument, Simplifier.Annotation, null, cancellationToken).ConfigureAwait(false);
+            memberContainingDocument = await Formatter.FormatAsync(memberContainingDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var root = memberContainingDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = await memberContainingDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var members = root.GetAnnotatedNodesAndTokens(_annotation).AsImmutable().Select(nOrT => nOrT.AsNode().ToString().Trim());
 
             return string.Join("\r\n", members);
         }
 
-        private SyntaxNode PrepareTreeForMemberInsertion(Document document, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> PrepareTreeForMemberInsertionAsync(
+            Document document, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var members = root.GetAnnotatedNodesAndTokens(_annotation)
                               .AsImmutable()
@@ -200,9 +202,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var dismemberedDocument = document.WithSyntaxRoot(root);
 
-            dismemberedDocument = Simplifier.ReduceAsync(dismemberedDocument, Simplifier.Annotation, null, cancellationToken).WaitAndGetResult(cancellationToken);
-            dismemberedDocument = Formatter.FormatAsync(dismemberedDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
-            return dismemberedDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            dismemberedDocument = await Simplifier.ReduceAsync(dismemberedDocument, Simplifier.Annotation, null, cancellationToken).ConfigureAwait(false);
+            dismemberedDocument = await Formatter.FormatAsync(dismemberedDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return await dismemberedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private static readonly ImmutableArray<CharacterSetModificationRule> s_commitRules = ImmutableArray.Create(

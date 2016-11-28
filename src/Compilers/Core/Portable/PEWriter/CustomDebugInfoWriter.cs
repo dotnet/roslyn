@@ -4,8 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
@@ -13,8 +12,6 @@ using CDI = Microsoft.Cci.CustomDebugInfoConstants;
 
 namespace Microsoft.Cci
 {
-    using Roslyn.Reflection;
-
     internal sealed class CustomDebugInfoWriter
     {
         private int _methodTokenWithModuleInfo;
@@ -164,7 +161,7 @@ namespace Microsoft.Cci
 
             recordSerializer(debugInfo, cmw);
 
-            int length = cmw.Position;
+            int length = cmw.Count;
             int alignedLength = 4 * ((length + 3) / 4);
             byte alignmentSize = (byte)(alignedLength - length);
             cmw.WriteBytes(0, alignmentSize);
@@ -194,7 +191,7 @@ namespace Microsoft.Cci
             cmw.WriteUTF16(iteratorClassName);
             cmw.WriteInt16(0);
             cmw.Align(4);
-            Debug.Assert(cmw.Position == length);
+            Debug.Assert(cmw.Count == length);
             customDebugInfo.Add(cmw);
         }
 

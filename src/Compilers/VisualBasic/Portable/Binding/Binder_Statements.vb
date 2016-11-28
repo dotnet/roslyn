@@ -830,7 +830,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Not hasError
         End Function
 
-        Private Function IsValidBranchTarget(block As VisualBasicSyntaxNode, labelSyntax As LabelSyntax) As Boolean
+        Private Shared Function IsValidBranchTarget(block As VisualBasicSyntaxNode, labelSyntax As LabelSyntax) As Boolean
             Debug.Assert(block.Kind = SyntaxKind.TryBlock OrElse
                          block.Kind = SyntaxKind.CatchBlock OrElse
                          block.Kind = SyntaxKind.FinallyBlock OrElse
@@ -3243,7 +3243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Verify that control variable can actually be used as a control variable
-        Private Function IsValidForControlVariableType(node As ForOrForEachBlockSyntax,
+        Private Shared Function IsValidForControlVariableType(node As ForOrForEachBlockSyntax,
                                     targetType As TypeSymbol,
                                     diagnostics As DiagnosticBag) As Boolean
 
@@ -3493,7 +3493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="variableDeclarator">The variable declarator.</param>
         ''' <param name="diagnostics">The diagnostics.</param><returns></returns>
-        Private Function VerifyForControlVariableDeclaration(variableDeclarator As VariableDeclaratorSyntax, diagnostics As DiagnosticBag) As Boolean
+        Private Shared Function VerifyForControlVariableDeclaration(variableDeclarator As VariableDeclaratorSyntax, diagnostics As DiagnosticBag) As Boolean
             ' Check variable declaration syntax if present
             Debug.Assert(variableDeclarator.Names.Count = 1, "should be exactly one control variable")
             Dim identifier = variableDeclarator.Names(0)
@@ -4586,7 +4586,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' This method decides if a WRN_MutableStructureInUsing should be shown for a given type of the Using variable.
         ' The purpose of this function is to avoid code duplication in 'CheckForMutableStructureConstraints'. 
         ' This is not a general purpose helper.
-        Private Function ShouldReportMutableStructureInUsing(structureType As TypeSymbol) As Boolean
+        Private Shared Function ShouldReportMutableStructureInUsing(structureType As TypeSymbol) As Boolean
             Debug.Assert(structureType.IsValueType)
 
             If structureType.Kind = SymbolKind.NamedType Then

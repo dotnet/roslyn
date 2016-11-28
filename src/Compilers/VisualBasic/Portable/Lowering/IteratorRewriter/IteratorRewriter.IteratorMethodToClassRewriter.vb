@@ -16,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' The field of the generated iterator class that underlies the Current property.
             ''' </summary>
             Private ReadOnly _current As FieldSymbol
-            Private ReadOnly _originalMethodDeclaration As VisualBasicSyntaxNode
 
             Private _exitLabel As LabelSymbol
             Private _methodValue As LocalSymbol
@@ -36,8 +35,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 MyBase.New(F, state, hoistedVariables, localProxies, SynthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
 
                 Me._current = current
-
-                Me._originalMethodDeclaration = method.DeclaringSyntaxReferences(0).GetVisualBasicSyntax
             End Sub
 
             Public Sub GenerateMoveNextAndDispose(Body As BoundStatement,

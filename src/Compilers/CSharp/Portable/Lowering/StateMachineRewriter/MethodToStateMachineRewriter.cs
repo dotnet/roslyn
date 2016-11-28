@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Must remain in sync with <see cref="MakeStateMachineScope"/>.
         /// </remarks>
-        internal bool TryUnwrapBoundStateMachineScope(ref BoundStatement statement, out ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
+        internal static bool TryUnwrapBoundStateMachineScope(ref BoundStatement statement, out ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
         {
             if (statement.Kind == BoundKind.Block)
             {

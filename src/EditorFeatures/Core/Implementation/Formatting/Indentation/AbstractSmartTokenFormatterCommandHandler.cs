@@ -128,9 +128,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
                 return;
             }
 
-            var indentationService = document.GetLanguageService<IIndentationService>();
-            var indentation = indentationService.GetDesiredIndentationAsync(document,
-                currentPosition.GetContainingLine().LineNumber, cancellationToken).WaitAndGetResult(cancellationToken);
+            var indentationService = document.GetLanguageService<ISynchronousIndentationService>();
+            var indentation = indentationService.GetDesiredIndentation(document,
+                currentPosition.GetContainingLine().LineNumber, cancellationToken);
 
             // looks like we can't.
             if (!indentation.HasValue)

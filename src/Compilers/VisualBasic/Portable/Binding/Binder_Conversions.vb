@@ -387,7 +387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If applyNullableIsTrueOperator Then
-                    result = Me.ApplyNullableIsTrueOperator(result, targetType)
+                    result = Binder.ApplyNullableIsTrueOperator(result, targetType)
                 End If
             Else
                 conv = Conversions.ClassifyConversion(argument, targetType, Me, useSiteDiagnostics)
@@ -404,7 +404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Function ApplyNullableIsTrueOperator(argument As BoundExpression, booleanType As TypeSymbol) As BoundNullableIsTrueOperator
+        Private Shared Function ApplyNullableIsTrueOperator(argument As BoundExpression, booleanType As TypeSymbol) As BoundNullableIsTrueOperator
             Debug.Assert(argument.Type.IsNullableOfBoolean() AndAlso booleanType.IsBooleanType())
             Return New BoundNullableIsTrueOperator(argument.Syntax, argument, booleanType).MakeCompilerGenerated()
         End Function

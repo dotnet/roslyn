@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.Conversion:
                     BoundConversion conversionNode = (BoundConversion)boundNode;
-                    return new Conversion(conversionNode.ConversionKind, methodGroupConversionMethod: conversionNode.SymbolOpt, isExtensionMethod: conversionNode.IsExtensionMethod);
+                    return conversionNode.Conversion;
 
                 default:
                     return Conversion.Identity;

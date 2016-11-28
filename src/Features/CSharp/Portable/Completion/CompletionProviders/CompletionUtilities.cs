@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // Bring up on space or at the start of a word.
             var ch = text[characterPosition];
             return SpaceTypedNotBeforeWord(ch, text, characterPosition) ||
-                (CompletionUtilities.IsStartingNewWord(text, characterPosition) && options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp));
+                (IsStartingNewWord(text, characterPosition) && options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp));
         }
 
         private static bool SpaceTypedNotBeforeWord(char ch, SourceText text, int characterPosition)

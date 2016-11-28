@@ -28,6 +28,11 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <PropertyGroup>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(DevEnvDir)devenv.exe</StartProgram>
+    <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Compilers\Extension\CompilerExtension.csproj">
       <Project>{43026D51-3083-4850-928D-07E1883D5B1A}</Project>

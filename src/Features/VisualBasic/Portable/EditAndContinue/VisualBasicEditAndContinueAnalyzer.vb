@@ -418,18 +418,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     End If
                 End If
 
-                Debug.Assert(declarationBody.Parent.IsKind(SyntaxKind.EqualsValue))
-                Debug.Assert(declarationBody.Parent.Parent.IsKind(SyntaxKind.VariableDeclarator) AndAlso
-                             declarationBody.Parent.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration))
+                If declarationBody.Parent.IsKind(SyntaxKind.EqualsValue) Then
+                    Debug.Assert(declarationBody.Parent.Parent.IsKind(SyntaxKind.VariableDeclarator) AndAlso
+                                 declarationBody.Parent.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration))
 
-                If partnerDeclarationBodyOpt IsNot Nothing Then
-                    partnerOpt = partnerDeclarationBodyOpt.Parent.Parent
+                    If partnerDeclarationBodyOpt IsNot Nothing Then
+                        partnerOpt = partnerDeclarationBodyOpt.Parent.Parent
+                    End If
+
+                    Return declarationBody.Parent.Parent
                 End If
-
-                Return declarationBody.Parent.Parent
             End If
 
-            Debug.Assert(declarationBody.FullSpan.Contains(position))
+            If Not declarationBody.FullSpan.Contains(position) Then
+                ' invalid position, let's find a labeled node that encompasses the body:
+                position = declarationBody.SpanStart
+            End If
 
             Dim node As SyntaxNode = Nothing
             If partnerDeclarationBodyOpt IsNot Nothing Then
@@ -544,7 +548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Protected Overrides Function FindEnclosingLambdaBody(containerOpt As SyntaxNode, node As SyntaxNode) As SyntaxNode
             Dim root As SyntaxNode = GetEncompassingAncestor(containerOpt)
 
-            While node IsNot root
+            While node IsNot root And node IsNot Nothing
                 Dim body As SyntaxNode = Nothing
                 If LambdaUtilities.IsLambdaBodyStatementOrExpression(node, body) Then
                     Return body

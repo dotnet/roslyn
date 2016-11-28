@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -7023,6 +7024,100 @@ public class C
                 method0 = method1;
                 generation0 = diff1.NextGeneration;
             }
+        }
+
+        [WorkItem(187868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/187868")]
+        [Fact]
+        public void PdbReadingErrors()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+	static void F() 
+    {
+        <N:0>Console.WriteLine(1);</N:0>
+    }
+}");
+
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+	static void F() 
+    {
+        <N:0>Console.WriteLine(2);</N:0>
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: TestOptions.DebugDll, assemblyName: "PdbReadingErrorsAssembly");
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodHandle =>
+            {
+                throw new InvalidDataException("Bad PDB!");
+            });
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // TODO: better error code
+            diff1.EmitResult.Diagnostics.Verify(
+                // (6,14): error CS7038: Failed to emit module 'Unable to read debug information of method 'C.F()' (token 0x06000001) from assembly 'PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null''.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure, "F").WithArguments("Unable to read debug information of method 'C.F()' (token 0x06000001) from assembly 'PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'").WithLocation(6, 14));
+        }
+
+        [Fact]
+        public void PdbReadingErrors_PassThruExceptions()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+	static void F() 
+    {
+        <N:0>Console.WriteLine(1);</N:0>
+    }
+}");
+
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+	static void F() 
+    {
+        <N:0>Console.WriteLine(2);</N:0>
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: TestOptions.DebugDll, assemblyName: "PdbReadingErrorsAssembly");
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, methodHandle =>
+            {
+                throw new ArgumentOutOfRangeException();
+            });
+
+            // the compiler shound't swallow any exceptions but InvalidDataException
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true))));
         }
     }
 }

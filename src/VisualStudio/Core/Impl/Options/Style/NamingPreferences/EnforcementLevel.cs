@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     Moniker = KnownMonikers.None;
                     return;
                 case DiagnosticSeverity.Info:
-                    Name = "Info";
+                    Name = "Suggestion";
                     Moniker = KnownMonikers.StatusInformation;
                     return;
                 case DiagnosticSeverity.Warning:

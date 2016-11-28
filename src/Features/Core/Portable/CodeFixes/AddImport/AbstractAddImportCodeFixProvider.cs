@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         internal abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
 
         protected abstract string GetDescription(IReadOnlyList<string> nameParts);
-        protected abstract string GetDescription(INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, bool checkForExistingImport);
+        protected abstract string TryGetDescription(INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, bool checkForExistingImport);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

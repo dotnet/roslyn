@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SmallDictionary<string, Symbol> _definitionMap;
         private IteratorInfo _iteratorInfo;
 
-        private static readonly HashSet<string> s_emptySet = new HashSet<string>();
-
         private class IteratorInfo
         {
             public static readonly IteratorInfo Empty = new IteratorInfo(null, default(ImmutableArray<Diagnostic>));

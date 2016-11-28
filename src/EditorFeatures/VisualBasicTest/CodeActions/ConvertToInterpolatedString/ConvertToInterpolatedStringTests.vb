@@ -1,11 +1,12 @@
 ﻿Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 
 Public Class ConvertToInterpolatedStringTests
     Inherits AbstractVisualBasicCodeActionTest
 
-    Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As Object
+    Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
         Return New ConvertToInterpolatedStringRefactoringProvider()
     End Function
 

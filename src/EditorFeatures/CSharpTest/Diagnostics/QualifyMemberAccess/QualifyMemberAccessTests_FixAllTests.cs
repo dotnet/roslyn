@@ -89,7 +89,7 @@ class D
             await TestAsync(
                 initialMarkup: input,
                 expectedMarkup: expected,
-                options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Info),
+                options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Suggestion),
                 compareTokens: false,
                 fixAllActionEquivalenceKey: FeaturesResources.AddQualification);
         }

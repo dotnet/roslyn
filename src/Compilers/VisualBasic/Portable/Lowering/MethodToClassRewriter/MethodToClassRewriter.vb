@@ -420,7 +420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return RewriteBlock(node, prologue, newLocals)
         End Function
 
-        Protected Function CreateReplacementLocalOrReturnSelf(
+        Protected Shared Function CreateReplacementLocalOrReturnSelf(
             originalLocal As LocalSymbol,
             newType As TypeSymbol,
             Optional onlyReplaceIfFunctionValue As Boolean = False,

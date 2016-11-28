@@ -301,6 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.MethodGroup:
                                 case ConversionKind.NullLiteral:
                                     return true;
+
                                 case ConversionKind.Boxing:
                                 case ConversionKind.ImplicitDynamic:
                                 case ConversionKind.ExplicitDynamic:
@@ -321,12 +322,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.IntegerToPointer:
                                     current = conv.Operand;
                                     break;
+
                                 case ConversionKind.ExplicitUserDefined:
                                 case ConversionKind.ImplicitUserDefined:
+                                // expression trees rewrite this later.
+                                // it is a kind of user defined conversions on IntPtr and in some cases can fail
+                                case ConversionKind.IntPtr:
                                     return false;
+
                                 default:
-                                    // Unhandled conversion kind in reordering logic
-                                    throw ExceptionUtilities.UnexpectedValue(conv.ConversionKind);
+                                    // when this assert is hit, examine whether such conversion kind is 
+                                    // 1) actually expected to get this far
+                                    // 2) figure if it is possibly not producing or consuming any sideeffects (rare case)
+                                    // 3) add a case for it
+                                    Debug.Assert(false, "Unexpected conversion kind" + conv.ConversionKind);
+
+                                    // it is safe to assume that conversion is not reorderable
+                                    return false;
                             }
                             break;
                         }
@@ -890,7 +902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (parameterType.IsNullableType())
                 {
-                    defaultValue = MakeConversion(lineLiteral, parameterType.GetNullableUnderlyingType(), false);
+                    defaultValue = MakeConversionNode(lineLiteral, parameterType.GetNullableUnderlyingType(), false);
 
                     // wrap it in a nullable ctor.
                     defaultValue = new BoundObjectCreationExpression(
@@ -900,14 +912,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    defaultValue = MakeConversion(lineLiteral, parameterType, false);
+                    defaultValue = MakeConversionNode(lineLiteral, parameterType, false);
                 }
             }
             else if (parameter.IsCallerFilePath && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
             {
                 string path = callerSourceLocation.SourceTree.GetDisplayPath(callerSourceLocation.SourceSpan, _compilation.Options.SourceReferenceResolver);
                 BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(path), _compilation.GetSpecialType(SpecialType.System_String));
-                defaultValue = MakeConversion(memberNameLiteral, parameterType, false);
+                defaultValue = MakeConversionNode(memberNameLiteral, parameterType, false);
             }
             else if (parameter.IsCallerMemberName && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
             {
@@ -965,7 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(memberName), _compilation.GetSpecialType(SpecialType.System_String));
-                defaultValue = MakeConversion(memberNameLiteral, parameterType, false);
+                defaultValue = MakeConversionNode(memberNameLiteral, parameterType, false);
             }
             else if (defaultConstantValue == ConstantValue.NotAvailable)
             {
@@ -998,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The parameter's underlying type might not match the constant type. For example, we might have
                 // a default value of 5 (an integer) but a parameter type of decimal?.
 
-                defaultValue = MakeConversion(defaultValue, parameterType.GetNullableUnderlyingType(), @checked: false, acceptFailingConversion: true);
+                defaultValue = MakeConversionNode(defaultValue, parameterType.GetNullableUnderlyingType(), @checked: false, acceptFailingConversion: true);
 
                 // Finally, wrap it in a nullable ctor.
                 defaultValue = new BoundObjectCreationExpression(
@@ -1017,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol constantType = _compilation.GetSpecialType(defaultConstantValue.SpecialType);
                 defaultValue = MakeLiteral(syntax, defaultConstantValue, constantType);
                 // The parameter type might not match the constant type.
-                defaultValue = MakeConversion(defaultValue, parameterType, @checked: false, acceptFailingConversion: true);
+                defaultValue = MakeConversionNode(defaultValue, parameterType, @checked: false, acceptFailingConversion: true);
             }
 
             return defaultValue;
@@ -1064,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultValue = new BoundFieldAccess(syntax, null, fieldSymbol, ConstantValue.NotAvailable);
             }
 
-            defaultValue = MakeConversion(defaultValue, parameter.Type, @checked: false);
+            defaultValue = MakeConversionNode(defaultValue, parameter.Type, @checked: false);
 
             return defaultValue;
         }

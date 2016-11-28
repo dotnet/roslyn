@@ -11,7 +11,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
 {
-    internal abstract class RemoveUnnecessaryImportsDiagnosticAnalyzerBase : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract class RemoveUnnecessaryImportsDiagnosticAnalyzerBase : 
+        DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         // NOTE: This is a trigger diagnostic, which doesn't show up in the ruleset editor and hence doesn't need a conventional IDE Diagnostic ID string.
         internal const string DiagnosticFixableId = "RemoveUnnecessaryImportsFixable";
@@ -69,14 +70,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
             var tree = context.SemanticModel.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+
             var root = tree.GetRoot();
-            var unnecessaryImports = GetUnnecessaryImports(context.SemanticModel, root);
+            var unnecessaryImports = GetUnnecessaryImports(context.SemanticModel, root, cancellationToken);
             if (unnecessaryImports != null && unnecessaryImports.Any())
             {
                 Func<SyntaxNode, SyntaxToken> getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
                 var contiguousSpans = unnecessaryImports.GetContiguousSpans(getLastTokenFunc);
-                var diagnostics = CreateClassificationDiagnostics(contiguousSpans, tree).Concat(
-                        CreateFixableDiagnostics(unnecessaryImports, tree));
+                var diagnostics =
+                    CreateClassificationDiagnostics(contiguousSpans, tree, cancellationToken).Concat(
+                    CreateFixableDiagnostics(unnecessaryImports, tree, cancellationToken));
 
                 foreach (var diagnostic in diagnostics)
                 {
@@ -85,14 +89,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
             }
         }
 
-        protected abstract IEnumerable<SyntaxNode> GetUnnecessaryImports(SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken = default(CancellationToken));
+        protected abstract IEnumerable<SyntaxNode> GetUnnecessaryImports(
+            SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
+
         protected virtual Func<SyntaxNode, SyntaxToken> GetLastTokenDelegateForContiguousSpans()
         {
             return null;
         }
 
         // Create one diagnostic for each unnecessary span that will be classified as Unnecessary
-        private IEnumerable<Diagnostic> CreateClassificationDiagnostics(IEnumerable<TextSpan> contiguousSpans, SyntaxTree tree, CancellationToken cancellationToken = default(CancellationToken))
+        private IEnumerable<Diagnostic> CreateClassificationDiagnostics(
+            IEnumerable<TextSpan> contiguousSpans, SyntaxTree tree, CancellationToken cancellationToken)
         {
             foreach (var span in contiguousSpans)
             {
@@ -105,9 +112,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryImports
             }
         }
 
-        protected abstract IEnumerable<TextSpan> GetFixableDiagnosticSpans(IEnumerable<SyntaxNode> nodes, SyntaxTree tree, CancellationToken cancellationToken = default(CancellationToken));
+        protected abstract IEnumerable<TextSpan> GetFixableDiagnosticSpans(
+            IEnumerable<SyntaxNode> nodes, SyntaxTree tree, CancellationToken cancellationToken);
 
-        private IEnumerable<Diagnostic> CreateFixableDiagnostics(IEnumerable<SyntaxNode> nodes, SyntaxTree tree, CancellationToken cancellationToken = default(CancellationToken))
+        private IEnumerable<Diagnostic> CreateFixableDiagnostics(
+            IEnumerable<SyntaxNode> nodes, SyntaxTree tree, CancellationToken cancellationToken)
         {
             var spans = GetFixableDiagnosticSpans(nodes, tree, cancellationToken);
 

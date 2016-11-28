@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            if (context.Options.GetOption(CompletionOptions.AlwaysShowBuilder))
+            if (context.Options.GetOption(CompletionControllerOptions.AlwaysShowBuilder))
             {
                 var text = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
                 context.SuggestionModeItem = this.CreateEmptySuggestionModeItem(context.DefaultItemSpan);

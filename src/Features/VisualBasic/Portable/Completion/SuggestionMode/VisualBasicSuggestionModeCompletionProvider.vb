@@ -5,7 +5,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.SuggestionMode
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -92,6 +91,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
                               VBFeaturesResources.NoteSpaceAndCompletion
 
                 Return CreateSuggestionModeItem(VBFeaturesResources.NewResource, itemSpan, description)
+            End If
+
+            ' Builder at Namespace declaration name
+            If syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken) Then
+
+                description = VBFeaturesResources.TypeANameHereToDeclareANamespace & vbCrLf &
+                              VBFeaturesResources.NoteSpaceAndCompletion
+
+                Return CreateSuggestionModeItem(VBFeaturesResources.NamespaceName, itemSpan, description)
             End If
 
             Return Nothing

@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Text.Differencing;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -374,9 +375,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 // If there is just one document change then we expect the preview to be a WpfTextView
                 var content = (await editHandler.GetPreviews(workspace, operations, CancellationToken.None).GetPreviewsAsync())[0];
-                var diffView = content as IWpfDifferenceViewer;
-                Assert.NotNull(diffView);
-                diffView.Close();
+                var diffView = content as DifferenceViewerPreview;
+                Assert.NotNull(diffView.Viewer);
+                diffView.Dispose();
             }
             else
             {
@@ -390,11 +391,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     {
                         if (preview != null)
                         {
-                            var diffView = preview as IWpfDifferenceViewer;
-                            if (diffView != null)
+                            var diffView = preview as DifferenceViewerPreview;
+                            if (diffView?.Viewer != null)
                             {
                                 hasPreview = true;
-                                diffView.Close();
+                                diffView.Dispose();
                                 break;
                             }
                         }

@@ -2807,6 +2807,451 @@ Lambda(
 ]]>)
         End Sub
 
+        <Fact()>
+        Public Sub Relaxation01()
+            Dim file = <file name="expr.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Imports System.Reflection
+
+Module Module1
+
+    Sub Main()
+        Dim o As New C1(Of C0)
+    End Sub
+
+End Module
+
+Class C0
+    Public Function Process() As Boolean
+        Return False
+    End Function
+
+    Public Sub ProcessSub()
+    End Sub
+End Class
+
+Class C1(Of T As {New, C0})
+    Public ProcessMethodSub As MethodInfo = RegisterMethod(Sub(c) c.ProcessSub())
+    Public ProcessMethod As MethodInfo = RegisterMethod(Function(c) c.Process)
+
+    Public Function RegisterMethod(methodLambdaExpression As Expression(Of Action(Of T))) As MethodInfo
+        System.Console.WriteLine(methodLambdaExpression.ToString())
+
+        methodLambdaExpression.Compile()(new T())
+
+        Return Nothing
+    End Function
+
+End Class
+
+
+]]></file>
+
+            TestExpressionTrees(file,
+            <![CDATA[
+c => c.ProcessSub()
+c => c.Process()
+]]>)
+        End Sub
+
+
+        <Fact()>
+        Public Sub Relaxation02()
+            Dim file = <file name="expr.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Imports System.Reflection
+
+Module Module1
+
+    Sub Main()
+        Dim o As New C1(Of String)
+    End Sub
+
+End Module
+
+Class C0
+    Public Shared Function Process(x As Integer) As Boolean
+        Return False
+    End Function
+
+    Public Shared Sub ProcessSub(x As Integer)
+    End Sub
+End Class
+
+Class C1(Of T)
+    Public ProcessMethodSub As MethodInfo = RegisterMethod(Sub(c As String) C0.ProcessSub(c))
+    Public ProcessMethod As MethodInfo = RegisterMethod(Function(c) C0.Process(c))
+
+    Public Function RegisterMethod(methodLambdaExpression As Expression(Of Action(Of String))) As MethodInfo
+
+        System.Console.WriteLine(methodLambdaExpression.ToString())
+
+        methodLambdaExpression.Compile()(1)
+
+        Return Nothing
+    End Function
+
+End Class
+
+
+]]></file>
+
+            TestExpressionTrees(file,
+            <![CDATA[
+c => ProcessSub(ConvertChecked(c))
+c => Process(ConvertChecked(c))
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub Relaxation03()
+            Dim file = <file name="expr.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Imports System.Reflection
+
+Module Module1
+
+    Sub Main()
+        Dim o As New C1(Of String)
+    End Sub
+
+End Module
+
+Class C0
+    Public Shared Function Process() As Boolean
+        Return False
+    End Function
+
+    Public Shared Sub ProcessSub()
+    End Sub
+End Class
+
+Class C1(Of T)
+    Public ProcessMethodSub As MethodInfo = RegisterMethod(Sub(c As String) C0.ProcessSub())
+    Public ProcessMethod As MethodInfo = RegisterMethod(Function(c As String) C0.Process())
+
+    Public Function RegisterMethod(methodLambdaExpression As Expression(Of Action(Of String))) As MethodInfo
+
+        System.Console.WriteLine(methodLambdaExpression.ToString())
+
+        methodLambdaExpression.Compile()("qq")
+
+        Return Nothing
+    End Function
+
+End Class
+
+]]></file>
+
+            TestExpressionTrees(file,
+            <![CDATA[
+c => ProcessSub()
+c => Process()
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub Relaxation04()
+            Dim file = <file name="expr.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Imports System.Reflection
+
+Module Module1
+
+    Sub Main()
+        Dim o As New C1(Of String)
+    End Sub
+
+End Module
+
+Class C0
+    Public Shared Function Process() As Boolean
+        Return False
+    End Function
+
+    Public Shared Sub ProcessSub()
+    End Sub
+End Class
+
+Class C1(Of T)
+    Public ProcessMethodSub As MethodInfo = RegisterMethod(Sub() C0.ProcessSub())
+    Public ProcessMethod As MethodInfo = RegisterMethod(Function() C0.Process())
+
+    Public Function RegisterMethod(methodLambdaExpression As Expression(Of Action(Of Integer))) As MethodInfo
+
+        System.Console.WriteLine(methodLambdaExpression.ToString())
+
+        methodLambdaExpression.Compile()(1)
+
+        Return Nothing
+    End Function
+
+End Class
+
+
+]]></file>
+
+            TestExpressionTrees(file,
+            <![CDATA[
+a0 => Invoke(() => ProcessSub())
+a0 => Invoke(() => Process())
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub Relaxation05()
+            Dim file = <file name="expr.vb"><![CDATA[
+
+Imports System
+Imports System.Linq.Expressions
+Imports System.Reflection
+
+Module Module1
+
+    Sub Main()
+        Dim o As New C1(Of String)
+    End Sub
+
+End Module
+
+Class C0
+    Public Shared Function Process(arg As Action(Of Integer)) As Boolean
+        Return False
+    End Function
+
+    Public Shared Sub ProcessSub(arg As Action(Of Integer))
+    End Sub
+End Class
+
+Class C1(Of T)
+    Public ProcessMethodSub As MethodInfo = RegisterMethod(Sub(t As Integer) C0.ProcessSub(Sub(tt As Integer) C0.ProcessSub(Nothing)))
+    Public ProcessMethod As MethodInfo = RegisterMethod(Function(t As Integer) C0.Process(Function(tt As Integer) C0.Process(Nothing)))
+
+    Public Function RegisterMethod(methodLambdaExpression As Expression(Of Action(Of Integer))) As MethodInfo
+
+        System.Console.WriteLine(methodLambdaExpression.ToString())
+
+        methodLambdaExpression.Compile()(Nothing)
+
+        Return Nothing
+    End Function
+
+End Class
+
+]]></file>
+
+            TestExpressionTrees(file,
+            <![CDATA[
+t => ProcessSub(tt => ProcessSub(null))
+t => Process(tt => Process(null))
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub Relaxation05ET()
+            Dim file = <file name="expr.vb"><![CDATA[
+
+Imports System
+Imports System.Linq.Expressions
+Imports System.Reflection
+
+Module Module1
+
+    Sub Main()
+        Dim o As New C1(Of String)
+    End Sub
+
+End Module
+
+Class C0
+    Public Shared Function Process(arg As Expression(Of Action(Of Integer))) As Boolean
+        Return False
+    End Function
+
+    Public Shared Sub ProcessSub(arg As Expression(Of Action(Of Integer)))
+    End Sub
+End Class
+
+Class C1(Of T)
+    Public ProcessMethodSub As MethodInfo = RegisterMethod(Sub(t As Integer) C0.ProcessSub(Sub(tt As Integer) C0.ProcessSub(Nothing)))
+    Public ProcessMethod As MethodInfo = RegisterMethod(Function(t As Integer) C0.Process(Function(tt As Integer) C0.Process(Nothing)))
+
+    Public Function RegisterMethod(methodLambdaExpression As Expression(Of Action(Of Integer))) As MethodInfo
+
+        System.Console.WriteLine(methodLambdaExpression.ToString())
+
+        methodLambdaExpression.Compile()(Nothing)
+
+        Return Nothing
+    End Function
+
+End Class
+
+]]></file>
+
+            TestExpressionTrees(file,
+            <![CDATA[
+t => ProcessSub(tt => ProcessSub(null))
+t => Process(tt => Process(null))
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub Relaxation06()
+            Dim file = <file name="expr.vb"><![CDATA[
+
+Imports System
+Imports System.Linq.Expressions
+Imports System.Reflection
+
+Module Module1
+
+    Sub Main()
+        Dim o As New C1(Of String)
+    End Sub
+
+End Module
+
+Class C0
+    Public Shared Function Process(arg As Action(Of Integer)) As Boolean
+        Return False
+    End Function
+
+    Public Shared Sub ProcessSub(arg As Action(Of Integer))
+    End Sub
+End Class
+
+Class C1(Of T)
+    Public ProcessMethodSub As MethodInfo = RegisterMethod(DirectCast(
+                                                           Sub(t As Integer) C0.ProcessSub(Sub(tt As Integer) C0.ProcessSub(Nothing)),
+                                                           Expression(Of Action(Of Integer))))
+
+    Public ProcessMethod As MethodInfo = RegisterMethod(DirectCast(
+                                                        Function(t As Integer) C0.Process(Function(tt As Integer) C0.Process(Nothing)),
+                                                        Expression(Of Action(Of Integer))))
+
+    Public Function RegisterMethod(methodLambdaExpression As Expression(Of Action(Of Integer))) As MethodInfo
+
+        System.Console.WriteLine(methodLambdaExpression.ToString())
+
+        methodLambdaExpression.Compile()(Nothing)
+
+        Return Nothing
+    End Function
+
+End Class
+
+]]></file>
+
+            TestExpressionTrees(file,
+            <![CDATA[
+t => ProcessSub(tt => ProcessSub(null))
+t => Process(tt => Process(null))
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub Relaxation07()
+            Dim file = <file name="expr.vb"><![CDATA[
+
+Imports System
+Imports System.Linq.Expressions
+Imports System.Reflection
+
+Module Module1
+
+    Sub Main()
+        Dim o As New C1(Of String)
+    End Sub
+
+End Module
+
+Class C0
+    Public Shared Function Process(arg As Action(Of Integer)) As Boolean
+        Return False
+    End Function
+
+    Public Shared Sub ProcessSub(arg As Action(Of Integer))
+    End Sub
+End Class
+
+Class C1(Of T)
+    Public ProcessMethodSub As MethodInfo = RegisterMethod(TryCast(
+                                                           Sub(t As Integer) C0.ProcessSub(Sub(tt As Integer) C0.ProcessSub(Nothing)),
+                                                           Expression(Of Action(Of Integer))))
+
+    Public ProcessMethod As MethodInfo = RegisterMethod(TryCast(
+                                                        Function(t As Integer) C0.Process(Function(tt As Integer) C0.Process(Nothing)),
+                                                        Expression(Of Action(Of Integer))))
+
+    Public Function RegisterMethod(methodLambdaExpression As Expression(Of Action(Of Integer))) As MethodInfo
+
+        System.Console.WriteLine(methodLambdaExpression.ToString())
+
+        methodLambdaExpression.Compile()(Nothing)
+
+        Return Nothing
+    End Function
+
+End Class
+
+]]></file>
+
+            TestExpressionTrees(file,
+            <![CDATA[
+t => ProcessSub(tt => ProcessSub(null))
+t => Process(tt => Process(null))
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub Relaxation08()
+            Dim file = <file name="expr.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Imports System.Reflection
+
+Module Module1
+
+    Sub Main()
+        Dim o As New C1(Of String)
+        o.Test()
+    End Sub
+
+End Module
+
+
+Class C1(Of T)
+
+    Sub Test()
+        Dim anonymousDelegate = Function(x As Integer) x
+        RegisterMethod(Sub() M1(anonymousDelegate))
+    End Sub
+
+    Shared Sub M1(y As Action(Of Integer))
+    End Sub
+
+    Public Function RegisterMethod(methodLambdaExpression As Expression(Of Action)) As MethodInfo
+        System.Console.WriteLine(methodLambdaExpression.ToString())
+        methodLambdaExpression.Compile()()
+        Return Nothing
+    End Function
+
+End Class
+
+]]></file>
+
+            TestExpressionTrees(file,
+            <![CDATA[
+() => M1(a0 => Invoke(value(C1`1+_Closure$__1-0[System.String]).$VB$Local_anonymousDelegate, a0))
+]]>)
+        End Sub
+
+
 #End Region
 
 #Region "Xml Literals"

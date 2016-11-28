@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 current = current._next;
             }
 
-            FileLinePositionSpan? firstReal = FindFirstRealSequencePoint(documentProvider);
+            FileLinePositionSpan? firstReal = FindFirstRealSequencePoint();
             if (!firstReal.HasValue)
             {
                 return;
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         // Find the document for the first non-hidden sequence point (issue #4370)
         // Returns null if a real sequence point was found.
-        private FileLinePositionSpan? FindFirstRealSequencePoint(DebugDocumentProvider documentProvider)
+        private FileLinePositionSpan? FindFirstRealSequencePoint()
         {
             SequencePointList current = this;
             

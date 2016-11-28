@@ -89,9 +89,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return newProject.Solution;
             }
 
-            protected override string GetDescription(Project project, SyntaxNode node, SemanticModel semanticModel)
+            protected override string TryGetDescription(Project project, SyntaxNode node, SemanticModel semanticModel)
             {
-                var description = base.GetDescription(project, node, semanticModel);
+                var description = base.TryGetDescription(project, node, semanticModel);
+                if (description == null)
+                {
+                    return null;
+                }
+
                 return project.Id == _project.Id
                     ? description
                     : $"{description} ({string.Format(FeaturesResources.from_0, _project.Name)})";

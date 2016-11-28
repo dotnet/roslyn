@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void NoteBranch(
             PendingBranch pending,
-            BoundStatement gotoStmt,
+            BoundNode gotoStmt,
             BoundStatement targetStmt)
         {
             targetStmt.AssertIsLabeledStatement();

@@ -3655,8 +3655,8 @@ void M()
         public async Task TupleDeclaration()
         {
             await TestInMethodAsync("(int, string) x",
-                TestOptions.Regular.WithTuplesFeature(),
-                Options.Script.WithTuplesFeature(),
+                TestOptions.Regular,
+                Options.Script,
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Punctuation.Comma,
@@ -3669,8 +3669,8 @@ void M()
         public async Task TupleDeclarationWithNames()
         {
             await TestInMethodAsync("(int a, string b) x",
-                TestOptions.Regular.WithTuplesFeature(),
-                Options.Script.WithTuplesFeature(),
+                TestOptions.Regular,
+                Options.Script,
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Identifier("a"),
@@ -3685,8 +3685,8 @@ void M()
         public async Task TupleLiteral()
         {
             await TestInMethodAsync("var values = (1, 2)",
-                TestOptions.Regular.WithTuplesFeature(),
-                Options.Script.WithTuplesFeature(),
+                TestOptions.Regular,
+                Options.Script,
                 Keyword("var"),
                 Identifier("values"),
                 Operators.Equals,
@@ -3701,8 +3701,8 @@ void M()
         public async Task TupleLiteralWithNames()
         {
             await TestInMethodAsync("var values = (a: 1, b: 2)",
-                TestOptions.Regular.WithTuplesFeature(),
-                Options.Script.WithTuplesFeature(),
+                TestOptions.Regular,
+                Options.Script,
                 Keyword("var"),
                 Identifier("values"),
                 Operators.Equals,

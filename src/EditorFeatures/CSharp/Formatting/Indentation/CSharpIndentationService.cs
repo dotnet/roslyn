@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -20,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 {
-    [ExportLanguageService(typeof(IIndentationService), LanguageNames.CSharp), Shared]
+    [ExportLanguageService(typeof(ISynchronousIndentationService), LanguageNames.CSharp), Shared]
     internal partial class CSharpIndentationService : AbstractIndentationService
     {
         private static readonly IFormattingRule s_instance = new FormattingRule();
@@ -30,11 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             return s_instance;
         }
 
-        protected override async Task<AbstractIndenter> GetIndenterAsync(
-            Document document, TextLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
+        protected override AbstractIndenter GetIndenter(
+            ISyntaxFactsService syntaxFacts, SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
         {
-            var syntacticDocument = await SyntacticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            return new Indenter(syntacticDocument, formattingRules, optionSet, lineToBeIndented, cancellationToken);
+            return new Indenter(
+                syntaxFacts, syntaxTree, formattingRules,
+                optionSet, lineToBeIndented, cancellationToken);
         }
 
         protected override bool ShouldUseSmartTokenFormatterInsteadOfIndenter(

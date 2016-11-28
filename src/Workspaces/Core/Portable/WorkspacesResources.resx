@@ -198,9 +198,6 @@
   <data name="DocumentVersionIsDifferent" xml:space="preserve">
     <value>The specified document is not a version of this document.</value>
   </data>
-  <data name="DocumentNotInProject" xml:space="preserve">
-    <value>The project does not contain the specified document.</value>
-  </data>
   <data name="UnsupportedLanguage" xml:space="preserve">
     <value>The language '{0}' is not supported.</value>
   </data>

@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return sym
         End Function
 
-        Private Sub ReportUseOfModuleOrVoidType(typeSyntax As TypeSyntax, type As TypeSymbol, diagBag As DiagnosticBag)
+        Private Shared Sub ReportUseOfModuleOrVoidType(typeSyntax As TypeSyntax, type As TypeSymbol, diagBag As DiagnosticBag)
             If type.SpecialType = SpecialType.System_Void Then
                 Dim diagInfo = New BadSymbolDiagnostic(type, ERRID.ERR_BadUseOfVoid)
                 ReportDiagnostic(diagBag, typeSyntax, diagInfo)
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Try
         End Function
 
-        Friend Function ReportUseSiteError(diagBag As DiagnosticBag, syntax As SyntaxNodeOrToken, symbol As Symbol) As Boolean
+        Friend Shared Function ReportUseSiteError(diagBag As DiagnosticBag, syntax As SyntaxNodeOrToken, symbol As Symbol) As Boolean
             Dim useSiteErrorInfo As DiagnosticInfo = symbol.GetUseSiteErrorInfo()
 
             If useSiteErrorInfo IsNot Nothing Then
@@ -379,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' site errors only on a definition.                            ' 
                             If Not reportedAnError AndAlso Not suppressUseSiteError AndAlso
                                Not typeSymbol.IsArrayType() AndAlso typeSymbol.IsDefinition Then
-                                Binder.ReportUseSiteError(diagBag, typeSyntax, typeSymbol)
+                                ReportUseSiteError(diagBag, typeSyntax, typeSymbol)
                             End If
 
                             If typeSymbol.Kind = SymbolKind.NamedType AndAlso binder.SourceModule.AnyReferencedAssembliesAreLinked Then
@@ -918,7 +918,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Else
                     If Not suppressUseSiteError Then
-                        If Binder.ReportUseSiteError(diagBag, genericNameSyntax, genericType) Then
+                        If ReportUseSiteError(diagBag, genericNameSyntax, genericType) Then
                             reportedAnError = True
                         End If
                     End If

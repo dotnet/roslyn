@@ -1,13 +1,10 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace System
 {
+    using System.Collections;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Helper so we can call some tuple methods recursively without knowing the underlying types.
     /// </summary>
@@ -58,7 +55,7 @@ namespace System
 
             if (!(other is ValueTuple))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return 0;
@@ -83,7 +80,7 @@ namespace System
 
             if (!(other is ValueTuple))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return 0;
@@ -346,7 +343,7 @@ namespace System
 
             if (!(other is ValueTuple<T1>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1>)other;
@@ -373,7 +370,7 @@ namespace System
 
             if (!(other is ValueTuple<T1>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1>)other;
@@ -519,7 +516,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return CompareTo((ValueTuple<T1, T2>)other);
@@ -547,7 +544,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1, T2>)other;
@@ -694,7 +691,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return CompareTo((ValueTuple<T1, T2, T3>)other);
@@ -725,7 +722,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1, T2, T3>)other;
@@ -884,7 +881,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return CompareTo((ValueTuple<T1, T2, T3, T4>)other);
@@ -918,7 +915,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1, T2, T3, T4>)other;
@@ -1091,7 +1088,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return CompareTo((ValueTuple<T1, T2, T3, T4, T5>)other);
@@ -1128,7 +1125,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1, T2, T3, T4, T5>)other;
@@ -1315,7 +1312,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return CompareTo((ValueTuple<T1, T2, T3, T4, T5, T6>)other);
@@ -1355,7 +1352,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1, T2, T3, T4, T5, T6>)other;
@@ -1556,7 +1553,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6, T7>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return CompareTo((ValueTuple<T1, T2, T3, T4, T5, T6, T7>)other);
@@ -1599,7 +1596,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6, T7>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1, T2, T3, T4, T5, T6, T7>)other;
@@ -1745,7 +1742,7 @@ namespace System
         {
             if (!(rest is ITupleInternal))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleLastArgumentNotAValueTuple);
+                throw new ArgumentException();
             }
 
             Item1 = item1;
@@ -1820,7 +1817,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             return CompareTo((ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>)other);
@@ -1866,7 +1863,7 @@ namespace System
 
             if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>))
             {
-                throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
+                throw new ArgumentException();
             }
 
             var objTuple = (ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>)other;
@@ -1966,7 +1963,6 @@ namespace System
                                                        rest.GetHashCode());
             }
 
-            Debug.Assert(false, "Missed all cases for computing ValueTuple hash code");
             return -1;
         }
 
@@ -2017,7 +2013,6 @@ namespace System
                                                        comparer.GetHashCode(Item7), rest.GetHashCode(comparer));
             }
 
-            Debug.Assert(false, "Missed all cases for computing ValueTuple hash code");
             return -1;
         }
 

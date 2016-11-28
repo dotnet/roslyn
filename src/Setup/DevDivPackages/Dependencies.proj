@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <PackagesOutDir>$(OutDir)DevDivPackages\Dependencies</PackagesOutDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- 
+      We create new CoreXT packages here for two reasons:
+      1) Package exists on NuGet but has a different structure than what DevDiv projects expect (External=true)
+      2) Package doesn't exist on NuGet, the content is built from Roslyn repo (External=false)
+      
+      TODO: 
+      The goal is to remove all these packages. We need to update DevDiv projects that reference the binaries 
+      and/or move the source for the packages to separate repos.
+     -->
+    <NuSpec Include="Microsoft.VisualStudio.InteractiveWindow">
+      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)-beta-$(BuildNumberFiveDigitDateStamp)-$(BuildNumberBuildOfTheDayPadded)</Version>
+      <External>false</External>
+    </NuSpec>
+    <NuSpec Include="System.Collections.Immutable">
+      <Version>$(SystemCollectionsImmutableVersion)</Version>
+      <External>true</External>
+    </NuSpec>
+    <NuSpec Include="System.Reflection.Metadata">
+      <Version>$(SystemReflectionMetadataVersion)</Version>
+      <External>true</External>
+    </NuSpec>
+    <NuSpec Include="ManagedEsent">
+      <!-- 
+        ManagedEsent version specified in its nuspec doesn't match the nupkg name.
+        Nuget doesn't complain but VSO tooling does. Until the package is fixed we need to recreate it.
+      -->
+      <Version>$(ManagedEsentVersion)</Version>
+      <External>true</External>
+    </NuSpec>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- 
+      Packages that exist on NuGet and already have structure compatible with DevDiv. 
+    -->
+    <NuPkg Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader\$(MicrosoftDiaSymReaderVersion)\*.nupkg" />
+    <NuPkg Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.PortablePdb\$(MicrosoftDiaSymReaderPortablePdbVersion)\*.nupkg" />
+    <NuPkg Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.Native\$(MicrosoftDiaSymReaderNativeVersion)\*.nupkg" />
+    <NuPkg Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Elfie\$(MicrosoftCodeAnalysisElfieVersion)\*.nupkg" />
+  </ItemGroup>
+  <Target Name="Build" Inputs="@(NuSpec)" Outputs="@(NuSpec->$(PackagesOutDir)\VS.ExternalAPIs.%(NuSpec.Identity).%(Version).nupkg">
+    <MakeDir Directories="$(PackagesOutDir)" Condition="!Exists('$(PackagesOutDir)')" />
+    <PropertyGroup>
+      <BaseDir Condition="'%(NuSpec.External)'=='true'">$(NuGetPackageRoot)\%(NuSpec.Identity)\%(NuSpec.Version)</BaseDir>
+      <BaseDir Condition="'%(NuSpec.External)'!='true'">$(OutDir)\</BaseDir>
+    </PropertyGroup>
+    <!-- nuget doesn't set exitcode when the value of an arg is invalid -->
+    <Exec Command='Pack.cmd "VS.ExternalAPIs.%(NuSpec.Identity).nuspec" %(NuSpec.Version) "$(BaseDir)" "$(PackagesOutDir)"'
+          CustomErrorRegularExpression="pack: invalid arguments"/>
+  </Target>
+  <Target Name="CopyFiles" Inputs="@(NuPkg)" Outputs="@(NuPkg->$(PackagesOutDir)\%(Filename)%(Extension))" AfterTargets="Build">
+    <Copy SourceFiles="%(NuPkg.Fullpath)" DestinationFolder="$(PackagesOutDir)"/>
+  </Target>
+  <Target Name="Clean">
+    <RemoveDir Directories="$(PackagesOutDir)" />
+  </Target>
+</Project>

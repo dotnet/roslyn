@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return (expectedUnoptimizedIL != null) ^ (expectedOptimizedIL != null) ? (unoptimizedVerifier ?? optimizedVerifier) : null;
         }
 
-        private readonly CSharpParseOptions _localFunctionParseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
+        private readonly CSharpParseOptions _localFunctionParseOptions = TestOptions.Regular;
 
         #endregion
 

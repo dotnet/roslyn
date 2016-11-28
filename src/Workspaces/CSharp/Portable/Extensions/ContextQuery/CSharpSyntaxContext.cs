@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsLabelContext;
         public readonly bool IsTypeArgumentOfConstraintContext;
 
-        public readonly bool IsNamespaceDeclarationNameContext;
         public readonly bool IsIsOrAsContext;
         public readonly bool IsObjectCreationTypeContext;
         public readonly bool IsDefiniteCastTypeContext;
@@ -63,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isPreProcessorExpressionContext,
             bool isTypeContext,
             bool isNamespaceContext,
+            bool isNamespaceDeclarationNameContext,
             bool isStatementContext,
             bool isGlobalStatementContext,
             bool isAnyExpressionContext,
@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isInImportsDirective,
             bool isLabelContext,
             bool isTypeArgumentOfConstraintContext,
-            bool isNamespaceDeclarationNameContext,
             bool isRightOfDotOrArrowOrColonColon,
             bool isIsOrAsContext,
             bool isObjectCreationTypeContext,
@@ -98,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isCatchFilterContext,
             bool isDestructorTypeContext)
             : base(workspace, semanticModel, position, leftToken, targetToken,
-                   isTypeContext, isNamespaceContext,
+                   isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
                    isPreProcessorDirectiveContext,
                    isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
                    isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
@@ -114,7 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsConstantExpressionContext = isConstantExpressionContext;
             this.IsLabelContext = isLabelContext;
             this.IsTypeArgumentOfConstraintContext = isTypeArgumentOfConstraintContext;
-            this.IsNamespaceDeclarationNameContext = isNamespaceDeclarationNameContext;
             this.IsIsOrAsContext = isIsOrAsContext;
             this.IsObjectCreationTypeContext = isObjectCreationTypeContext;
             this.IsDefiniteCastTypeContext = isDefiniteCastTypeContext;
@@ -201,6 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isPreProcessorExpressionContext,
                 syntaxTree.IsTypeContext(position, cancellationToken, semanticModelOpt: semanticModel),
                 syntaxTree.IsNamespaceContext(position, cancellationToken, semanticModelOpt: semanticModel),
+                syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),
                 isStatementContext,
                 isGlobalStatementContext,
                 isAnyExpressionContext,
@@ -213,7 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 IsLeftSideOfUsingAliasDirective(leftToken, cancellationToken),
                 syntaxTree.IsLabelContext(position, cancellationToken),
                 syntaxTree.IsTypeArgumentOfConstraintClause(position, cancellationToken),
-                syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),
                 syntaxTree.IsRightOfDotOrArrowOrColonColon(position, cancellationToken),
                 syntaxTree.IsIsOrAsContext(position, leftToken, cancellationToken),
                 syntaxTree.IsObjectCreationTypeContext(position, leftToken, cancellationToken),

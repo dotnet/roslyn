@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Settings;
 using Roslyn.Utilities;
 
@@ -27,16 +27,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         protected readonly ISettingsManager Manager;
         private readonly IOptionService _optionService;
 
-        public AbstractSettingsManagerOptionSerializer(IServiceProvider serviceProvider, IOptionService optionService)
+        public AbstractSettingsManagerOptionSerializer(VisualStudioWorkspaceImpl workspace)
             : base(assertIsForeground: true) // The GetService call requires being on the UI thread or else it will marshal and risk deadlock
         {
-            Contract.ThrowIfNull(serviceProvider);
-            Contract.ThrowIfNull(optionService);
+            Contract.ThrowIfNull(workspace);
 
             _storageKeyToOptionMap = new Lazy<ImmutableDictionary<string, IOption>>(CreateStorageKeyToOptionMap, isThreadSafe: true);
 
-            this.Manager = (ISettingsManager)serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
-            _optionService = optionService;
+            this.Manager = workspace.GetVsService<SVsSettingsPersistenceManager, ISettingsManager>();
+            _optionService = workspace.Services.GetService<IOptionService>();
 
             // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
             // contributing package. In that case persistence of settings won't work (we don't bother with a backup solution for persistence
@@ -147,6 +146,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             var storageKey = GetStorageKeyForOption(optionKey.Option);
             value = this.Manager.GetValueOrDefault(storageKey, optionKey.Option.DefaultValue);
+
+            // VS's ISettingsManager has some quirks around storing enums.  Specifically,
+            // it *can* persist and retrieve enums, but only if you properly call 
+            // GetValueOrDefault<EnumType>.  This is because it actually stores enums just
+            // as ints and depends on the type parameter passed in to convert the integral
+            // value back to an enum value.  Unfortunately, we call GetValueOrDefault<object>
+            // and so we get the value back as boxed integer.
+            //
+            // Because of that, manually convert the integer to an enum here so we don't
+            // crash later trying to cast a boxed integer to an enum value.
+            if (value != null && optionKey.Option.Type.IsEnum)
+            {
+                value = Enum.ToObject(optionKey.Option.Type, value);
+            }
 
             return true;
         }

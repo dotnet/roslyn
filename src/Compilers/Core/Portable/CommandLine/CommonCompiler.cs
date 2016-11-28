@@ -12,7 +12,6 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -38,14 +37,10 @@ namespace Microsoft.CodeAnalysis
         public abstract void PrintHelp(TextWriter consoleOutput);
         internal abstract string GetToolName();
 
-        protected abstract uint GetSqmAppID();
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
-        protected abstract void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession);
-        protected abstract void ResolveAnalyzersAndGeneratorsFromArguments(
+        protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
-            CommonMessageProvider messageProvider,
-            out ImmutableArray<DiagnosticAnalyzer> analyzers,
-            out ImmutableArray<SourceGenerator> generators);
+            CommonMessageProvider messageProvider);
 
         public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
         {
@@ -245,7 +240,7 @@ namespace Microsoft.CodeAnalysis
         public bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
         {
             bool hasErrors = false;
-            if (diagnostics != null && diagnostics.Any())
+            if (diagnostics != null)
             {
                 foreach (var diagnostic in diagnostics)
                 {
@@ -273,7 +268,7 @@ namespace Microsoft.CodeAnalysis
             consoleOutput.WriteLine(diagnostic.ToString(Culture));
         }
 
-        public ErrorLogger GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)
+        public StreamErrorLogger GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)
         {
             Debug.Assert(Arguments.ErrorLogPath != null);
 
@@ -283,7 +278,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return new ErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion(), Culture);
+            return new StreamErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion(), Culture);
         }
 
         /// <summary>
@@ -292,7 +287,7 @@ namespace Microsoft.CodeAnalysis
         public virtual int Run(TextWriter consoleOutput, CancellationToken cancellationToken = default(CancellationToken))
         {
             var saveUICulture = CultureInfo.CurrentUICulture;
-            ErrorLogger errorLogger = null;
+            StreamErrorLogger errorLogger = null;
 
             try
             {
@@ -333,7 +328,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
+        internal int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
             Debug.Assert(!Arguments.IsScriptRunner);
 
@@ -364,9 +359,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var diagnostics = new List<DiagnosticInfo>();
-            ImmutableArray<DiagnosticAnalyzer> analyzers;
-            ImmutableArray<SourceGenerator> sourceGenerators;
-            ResolveAnalyzersAndGeneratorsFromArguments(diagnostics, MessageProvider, out analyzers, out sourceGenerators);
+            ImmutableArray<DiagnosticAnalyzer> analyzers = ResolveAnalyzersFromArguments(diagnostics, MessageProvider);
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
             if (ReportErrors(diagnostics, consoleOutput, errorLogger))
             {
@@ -384,19 +377,6 @@ namespace Microsoft.CodeAnalysis
                 if (ReportErrors(compilation.GetParseDiagnostics(), consoleOutput, errorLogger))
                 {
                     return Failed;
-                }
-
-                if (!sourceGenerators.IsEmpty)
-                {
-                    var trees = compilation.GenerateSource(sourceGenerators, this.Arguments.OutputDirectory, writeToDisk: true, cancellationToken: cancellationToken);
-                    if (!trees.IsEmpty)
-                    {
-                        compilation = compilation.AddSyntaxTrees(trees);
-                        if (ReportErrors(compilation.GetParseDiagnostics(), consoleOutput, errorLogger))
-                        {
-                            return Failed;
-                        }
-                    }
                 }
 
                 ConcurrentSet<Diagnostic> analyzerExceptionDiagnostics = null;
@@ -558,8 +538,6 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     var compileAndEmitDiagnostics = diagnosticBag.ToReadOnly();
-                    GenerateSqmData(Arguments.CompilationOptions, compileAndEmitDiagnostics);
-
                     if (ReportErrors(compileAndEmitDiagnostics, consoleOutput, errorLogger))
                     {
                         return Failed;
@@ -725,86 +703,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 consoleOutput.WriteLine();
-            }
-        }
-
-        private void GenerateSqmData(CompilationOptions compilationOptions, ImmutableArray<Diagnostic> diagnostics)
-        {
-            // Generate SQM data file for Compilers
-            if (Arguments.SqmSessionGuid != Guid.Empty)
-            {
-                IVsSqmMulti sqm = null;
-                uint sqmSession = 0u;
-                try
-                {
-                    sqm = SqmServiceProvider.TryGetSqmService(_clientDirectory);
-                    if (sqm != null)
-                    {
-                        sqm.BeginSession(this.GetSqmAppID(), false, out sqmSession);
-                        sqm.SetGlobalSessionGuid(Arguments.SqmSessionGuid);
-
-                        // Build Version
-                        sqm.SetStringDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_BUILDVERSION, GetAssemblyFileVersion());
-
-                        // Write Errors and Warnings from build
-                        foreach (var diagnostic in diagnostics)
-                        {
-                            switch (diagnostic.Severity)
-                            {
-                                case DiagnosticSeverity.Error:
-                                    sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_ERRORNUMBERS, (uint)diagnostic.Code);
-                                    break;
-
-                                case DiagnosticSeverity.Warning:
-                                    sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNINGNUMBERS, (uint)diagnostic.Code);
-                                    break;
-
-                                case DiagnosticSeverity.Hidden:
-                                case DiagnosticSeverity.Info:
-                                    break;
-
-                                default:
-                                    throw ExceptionUtilities.UnexpectedValue(diagnostic.Severity);
-                            }
-                        }
-
-                        //Suppress Warnings / warningCode as error / warningCode as warning
-                        foreach (var item in compilationOptions.SpecificDiagnosticOptions)
-                        {
-                            uint code;
-                            if (TryGetCompilerDiagnosticCode(item.Key, out code))
-                            {
-                                ReportDiagnostic options = item.Value;
-                                switch (options)
-                                {
-                                    case ReportDiagnostic.Suppress:
-                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SUPPRESSWARNINGNUMBERS, code);      // Suppress warning
-                                        break;
-
-                                    case ReportDiagnostic.Error:
-                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNASERRORS_NUMBERS, code);       // Warning as errors
-                                        break;
-
-                                    case ReportDiagnostic.Warn:
-                                        sqm.AddItemToStream(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNASWARNINGS_NUMBERS, code);     // Warning as warnings
-                                        break;
-
-                                    default:
-                                        break;
-                                }
-                            }
-                        }
-                        sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_OUTPUTKIND, (uint)compilationOptions.OutputKind);
-                        CompilerSpecificSqm(sqm, sqmSession);
-                    }
-                }
-                finally
-                {
-                    if (sqm != null)
-                    {
-                        sqm.EndSession(sqmSession);
-                    }
-                }
             }
         }
 

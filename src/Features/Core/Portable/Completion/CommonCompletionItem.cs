@@ -21,10 +21,9 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<SymbolDisplayPart> description = default(ImmutableArray<SymbolDisplayPart>),
             string sortText = null,
             string filterText = null,
-            bool preselect = false,
+            int? matchPriority = null,
             bool showsWarningIcon = false,
             bool shouldFormatOnCommit = false,
-            bool isArgumentName = false,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default(ImmutableArray<string>),
             CompletionItemRules rules = null)
@@ -42,11 +41,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 tags = tags.Add(CompletionTags.Warning);
             }
 
-            if (isArgumentName)
-            {
-                tags = tags.Add(CompletionTags.ArgumentName);
-            }
-
             properties = properties ?? ImmutableDictionary<string, string>.Empty;
             if (!description.IsDefault && description.Length > 0)
             {
@@ -54,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             rules = rules ?? CompletionItemRules.Default;
-            rules = rules.WithPreselect(preselect)
+            rules = rules.WithMatchPriority(matchPriority.GetValueOrDefault())
                          .WithFormatOnCommit(shouldFormatOnCommit);
 
             return CompletionItem.Create(

@@ -48,9 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SynthesizedSealedPropertyAccessor _lazySynthesizedSealedAccessor;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
 
-        private SourcePropertySymbol _replacedBy;
-        private SourcePropertySymbol _replaced;
-
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).
 
         private SourcePropertySymbol(
@@ -165,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasInitializer)
             {
-                CheckInitializer(hasExpressionBody, notRegularProperty, location, diagnostics);
+                CheckInitializer(notRegularProperty, location, diagnostics);
             }
 
             if (notRegularProperty || hasInitializer)
@@ -383,7 +380,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private void CheckInitializer(
-            bool hasExpressionBody,
             bool isAutoProperty,
             Location location,
             DiagnosticBag diagnostics)
@@ -577,31 +573,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.New) != 0; }
         }
 
-        internal sealed override bool IsReplace
-        {
-            get { return (_modifiers & DeclarationModifiers.Replace) != 0; }
-        }
-
-        internal sealed override Symbol Replaced
-        {
-            get { return _replaced; }
-        }
-
-        internal sealed override Symbol ReplacedBy
-        {
-            get { return _replacedBy; }
-        }
-
-        internal sealed override void SetReplaced(Symbol replaced)
-        {
-            this._replaced = (SourcePropertySymbol)replaced;
-        }
-
-        internal sealed override void SetReplacedBy(Symbol replacedBy)
-        {
-            this._replacedBy = (SourcePropertySymbol)replacedBy;
-        }
-
         public override MethodSymbol GetMethod
         {
             get { return _getMethod; }
@@ -757,8 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!isInterface)
             {
                 allowedModifiers |=
-                    DeclarationModifiers.Extern |
-                    DeclarationModifiers.Replace;
+                    DeclarationModifiers.Extern;
             }
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
@@ -1087,10 +1057,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            if (this.Type.ContainsDynamic())
+            if (Type.ContainsDynamic())
             {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.TypeCustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, TypeCustomModifiers.Length));
+            }
+
+            if (Type.ContainsTuple())
+            {
+                AddSynthesizedAttribute(ref attributes,
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
             }
         }
 

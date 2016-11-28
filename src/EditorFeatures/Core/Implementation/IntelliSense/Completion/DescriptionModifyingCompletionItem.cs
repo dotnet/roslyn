@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                    glyph: completionItem.Glyph,
                    sortText: completionItem.SortText,
                    filterText: completionItem.FilterText,
-                   preselect: completionItem.Preselect,
+                   matchPriority: completionItem.MatchPriority,
                    isBuilder: completionItem.IsBuilder,
                    showsWarningIcon: completionItem.ShowsWarningIcon,
                    shouldFormatOnCommit: completionItem.ShouldFormatOnCommit,

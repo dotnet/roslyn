@@ -59,6 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.RangeVariable, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPotentialRangeVariableDecl);
                 }
+                else if (tree.IsNamespaceDeclarationNameContext(position, cancellationToken))
+                {
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.NamespaceName, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToNamespaceDeclaration);
+                }
             }
 
             return null;

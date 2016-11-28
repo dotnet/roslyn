@@ -2001,7 +2001,7 @@ End Module</text>.Value
         End Function
 #End Region
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestSmartIndenterConstructorThrows1()
             Assert.Throws(Of ArgumentNullException)(

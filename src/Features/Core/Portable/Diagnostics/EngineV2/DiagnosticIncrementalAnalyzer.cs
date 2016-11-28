@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -93,6 +94,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             ClearAllDiagnostics(stateSets, project.Id);
+        }
+
+        public override void Shutdown()
+        {
+            var stateSets = _stateManager.GetStateSets();
+
+            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            {
+                var handleActiveFile = true;
+                foreach (var stateSet in stateSets)
+                {
+                    var projectIds = stateSet.GetProjectsWithDiagnostics();
+                    foreach (var projectId in projectIds)
+                    {
+                        RaiseProjectDiagnosticsRemoved(stateSet, projectId, stateSet.GetDocumentsWithDiagnostics(projectId), handleActiveFile, raiseEvents);
+                    }
+                }
+            });
         }
 
         private void ClearAllDiagnostics(ImmutableArray<StateSet> stateSets, ProjectId projectId)

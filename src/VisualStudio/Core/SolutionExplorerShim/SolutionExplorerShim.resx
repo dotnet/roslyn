@@ -210,7 +210,4 @@
   <data name="DiagnosticItemTitleDisplayName" xml:space="preserve">
     <value>Title</value>
   </data>
-  <data name="GeneratedSourceFolderItem_Name" xml:space="preserve">
-    <value>Generated Source</value>
-  </data>
 </root>

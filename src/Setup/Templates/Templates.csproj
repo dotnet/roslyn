@@ -1,0 +1,354 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProjectGuid>{AE95B1D1-5E64-429B-B075-EE491665ECFB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <AssemblyName>Roslyn.Templates</AssemblyName>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+    <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <DeployVSTemplates>false</DeployVSTemplates>
+    <CopyZipOutputToOutputDirectory>false</CopyZipOutputToOutputDirectory>
+    <BaseIntermediateOutputPath>$(BaseIntermediateOutputPath)\$(VersionType)</BaseIntermediateOutputPath>
+    <VsixOutDirSuffix>Roslyn Templates\$(VersionType)</VsixOutDirSuffix>
+    <TargetVsixContainerName>$(VsixOutDirSuffix)\Roslyn SDK.vsix</TargetVsixContainerName>
+    <ImportVSSDKTargets>true</ImportVSSDKTargets>
+    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(DevEnvDir)devenv.exe</StartProgram>
+    <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="..\..\Tools\Source\SyntaxVisualizer\SyntaxVisualizerExtension\SyntaxTree.bmp">
+      <Link>SyntaxTree.bmp</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\..\Tools\Source\SyntaxVisualizer\SyntaxVisualizerExtension\SyntaxTree.ico">
+      <Link>SyntaxTree.ico</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\Roslyn.ThirdPartyNotices\ThirdPartyNotices.rtf">
+      <Link>ThirdPartyNotices.rtf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\Roslyn.VsixLicense\EULA.rtf">
+      <Link>EULA.rtf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <None Include="VisualBasic\Diagnostic\Vsix\Deployment.vbproj" />
+    <None Include="VisualBasic\Diagnostic\Vsix\Deployment.vstemplate">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="VisualBasic\ItemTemplates\Refactoring\Refactoring.vb" />
+    <VSTemplate Include="VisualBasic\ItemTemplates\Refactoring\VBRefactoring.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <None Include="VisualBasic\ItemTemplates\Analyzer\Analyzer.vb" />
+    <VSTemplate Include="VisualBasic\ItemTemplates\CodeFix\VBCodeFix.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <VSTemplate Include="VisualBasic\ItemTemplates\Analyzer\VBAnalyzer.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <None Include="VisualBasic\ItemTemplates\CodeFix\CodeFix.vb" />
+    <VSTemplate Include="CSharp\ItemTemplates\Analyzer\CSharpAnalyzer.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <VSTemplate Include="CSharp\ItemTemplates\CodeFix\CSharpCodeFix.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <VSTemplate Include="CSharp\ItemTemplates\Refactoring\CSharpRefactoring.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <None Include="CSharp\Diagnostic\Vsix\Deployment.csproj" />
+    <None Include="CSharp\Diagnostic\Vsix\Deployment.vstemplate">
+      <SubType>Designer</SubType>
+    </None>
+    <VSTemplate Include="CSRef.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <None Include="CSharp\CodeRefactoring\Vsix\Deployment.csproj" />
+    <None Include="CSharp\CodeRefactoring\Vsix\Deployment.vstemplate" />
+    <VSTemplate Include="VBRef.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <None Include="VisualBasic\CodeRefactoring\Vsix\Deployment.vbproj" />
+    <None Include="VisualBasic\CodeRefactoring\Vsix\Deployment.vstemplate" />
+    <None Include="VisualBasic\Diagnostic\Analyzer\Resources.Designer.vb" />
+    <Content Include="CodeInformation.ico" />
+    <Content Include="CSharp\ConsoleApplication\CodeAnalysisConsole.ico" />
+    <Content Include="VisualBasic\ConsoleApplication\CodeAnalysisConsole.ico" />
+    <Content Include="VisualBasic\Diagnostic\Test\My Project\Application.Designer.vb" />
+    <Content Include="VisualBasic\Diagnostic\Test\My Project\Application.myapp" />
+    <Content Include="VisualBasic\Diagnostic\Test\My Project\AssemblyInfo.vb" />
+    <Content Include="VisualBasic\Diagnostic\Test\My Project\Resources.Designer.vb" />
+    <Content Include="VisualBasic\Diagnostic\Test\My Project\Settings.Designer.vb" />
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <VSTemplate Include="CSharp\ConsoleApplication\CSharpConsoleApplication.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <None Include="CSharp\ConsoleApplication\Properties\AssemblyInfo.cs" />
+    <None Include="CSharp\ConsoleApplication\ConsoleApplication.csproj" />
+    <None Include="CSharp\ConsoleApplication\Program.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CSharp\CodeRefactoring\Ref\CSharpCodeRefactoring.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </None>
+    <None Include="CSharp\CodeRefactoring\Ref\CodeRefactoring.csproj" />
+    <None Include="CSharp\CodeRefactoring\Ref\CodeRefactoringProvider.cs" />
+    <None Include="CSharp\CodeRefactoring\Ref\Properties\AssemblyInfo.cs" />
+    <None Include="CSharp\CodeRefactoring\Vsix\source.extension.vsixmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <VSTemplate Include="CSharpDiagnostic.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <None Include="CSharp\Diagnostic\Analyzer\ReadMe.txt" />
+    <None Include="CSharp\Diagnostic\Analyzer\Diagnostic.nuspec" />
+    <None Include="CSharp\Diagnostic\Analyzer\DiagnosticAnalyzer.csproj">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="CSharp\Diagnostic\Analyzer\DiagnosticAnalyzer.cs" />
+    <None Include="CSharp\Diagnostic\Analyzer\CodeFixProvider.cs" />
+    <None Include="CSharp\Diagnostic\Vsix\source.extension.vsixmanifest" />
+    <None Include="CSharp\Diagnostic\Analyzer\DiagnosticAnalyzer.vstemplate">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="CSharp\Diagnostic\Test\Test.vstemplate" />
+    <None Include="CSharp\Diagnostic\Test\Test.csproj" />
+    <None Include="CSharp\Diagnostic\Test\CodeFixVerifier.cs" />
+    <None Include="CSharp\Diagnostic\Test\DiagnosticVerifier.cs" />
+    <None Include="CSharp\Diagnostic\Test\UnitTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <VSTemplate Include="VisualBasic\ConsoleApplication\VBConsoleApplication.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <None Include="VisualBasic\ConsoleApplication\Settings.settings" />
+    <None Include="VisualBasic\ConsoleApplication\AssemblyInfo.vb" />
+    <None Include="VisualBasic\ConsoleApplication\ConsoleApplication.vbproj">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="VisualBasic\ConsoleApplication\Module1.vb" />
+    <None Include="VisualBasic\ConsoleApplication\MyApplication.Designer.vb" />
+    <None Include="VisualBasic\ConsoleApplication\MyApplication.myapp" />
+    <None Include="VisualBasic\ConsoleApplication\Resources.Designer.vb" />
+    <None Include="VisualBasic\ConsoleApplication\Resources.resx" />
+    <None Include="VisualBasic\ConsoleApplication\Settings.Designer.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="VisualBasic\CodeRefactoring\Ref\VBCodeRefactoring.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </None>
+    <None Include="VisualBasic\CodeRefactoring\Ref\AssemblyInfo.vb" />
+    <None Include="VisualBasic\CodeRefactoring\Ref\CodeRefactoring.vbproj">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="VisualBasic\CodeRefactoring\Ref\CodeRefactoringProvider.vb" />
+    <None Include="VisualBasic\CodeRefactoring\Vsix\source.extension.vsixmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <VSTemplate Include="VBDiagnostic.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <None Include="VisualBasic\Diagnostic\Analyzer\DiagnosticAnalyzer.vstemplate">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="VisualBasic\Diagnostic\Analyzer\Diagnostic.nuspec" />
+    <None Include="VisualBasic\Diagnostic\Analyzer\Diagnostic.vbproj">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="VisualBasic\Diagnostic\Analyzer\DiagnosticAnalyzer.vb" />
+    <None Include="VisualBasic\Diagnostic\Analyzer\CodeFixProvider.vb" />
+    <None Include="VisualBasic\Diagnostic\Analyzer\ReadMe.txt" />
+    <None Include="VisualBasic\Diagnostic\Analyzer\AssemblyInfo.vb" />
+    <None Include="VisualBasic\Diagnostic\Vsix\source.extension.vsixmanifest" />
+    <None Include="VisualBasic\Diagnostic\Test\My Project\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="VisualBasic\Diagnostic\Test\Test.vstemplate" />
+    <None Include="VisualBasic\Diagnostic\Test\UnitTestProject.vbproj" />
+    <None Include="VisualBasic\Diagnostic\Test\UnitTests.vb" />
+    <None Include="VisualBasic\Diagnostic\Test\Verifiers\DiagnosticVerifier.vb" />
+    <None Include="VisualBasic\Diagnostic\Test\Verifiers\CodeFixVerifier.vb" />
+    <None Include="VisualBasic\Diagnostic\Test\Helpers\DiagnosticVerifier.Helper.vb" />
+    <None Include="VisualBasic\Diagnostic\Test\Helpers\DiagnosticResult.vb" />
+    <None Include="VisualBasic\Diagnostic\Test\Helpers\CodeFixVerifier.Helper.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.4.5">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 4.5</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.TemplateWizardInterface, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="VSLangProj, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CSharp\Diagnostic\Analyzer\AssemblyInfo.cs" />
+    <None Include="CSharp\Diagnostic\Test\AssemblyInfo.cs" />
+    <None Include="CSharp\Diagnostic\Test\CodeFixVerifier.Helper.cs" />
+    <None Include="CSharp\Diagnostic\Test\DiagnosticResult.cs" />
+    <None Include="CSharp\Diagnostic\Test\DiagnosticVerifier.Helper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="VisualBasic\Diagnostic\Test\My Project\Resources.resx">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CSharp\Diagnostic\Analyzer\Resources.Designer.cs" />
+    <Compile Include="Wizard\RoslynSDKAnalyzerTemplateWizard.cs" />
+    <Compile Include="Wizard\RoslynSDKTestTemplateWizard.cs" />
+    <Compile Include="Wizard\RoslynSDKVsixTemplateWizardSecondProject.cs" />
+    <Compile Include="Wizard\RoslynSDKVsixTemplateWizardThirdProject.cs" />
+    <None Include="CSharp\ItemTemplates\Analyzer\Analyzer.cs" />
+    <None Include="CSharp\ItemTemplates\CodeFix\CodeFix.cs" />
+    <None Include="CSharp\ItemTemplates\Refactoring\Refactoring.cs" />
+    <Compile Include="VisualBasic\Diagnostic\Test\My Project\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="Wizard\RoslynSDKChildTemplateWizard.cs" />
+    <Compile Include="Wizard\RoslynSDKChildTemplateWizard.InterfaceMembers.cs" />
+    <Compile Include="Wizard\RoslynSDKRootTemplateWizard.cs" />
+    <Compile Include="Wizard\RoslynSDKRootTemplateWizard.InterfaceMembers.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CSharp\Diagnostic\Analyzer\Resources.resx">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="VisualBasic\Diagnostic\Analyzer\Resources.resx">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tools\Source\SyntaxVisualizer\SyntaxVisualizerControl\SyntaxVisualizerControl.csproj">
+      <Project>{afe45e23-e7ee-48c5-8143-ebe2ff67070f}</Project>
+      <Name>SyntaxVisualizerControl</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Tools\Source\SyntaxVisualizer\SyntaxVisualizerDgmlHelper\SyntaxVisualizerDgmlHelper.vbproj">
+      <Project>{da4f74af-2694-4ac9-a8cc-18382de8215e}</Project>
+      <Name>SyntaxVisualizerDgmlHelper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Tools\Source\SyntaxVisualizer\SyntaxVisualizerExtension\SyntaxVisualizerExtension.csproj">
+      <Project>{1d168023-d473-446e-9a73-dcf9e16ce73d}</Project>
+      <Name>SyntaxVisualizerExtension</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems%3bPkgdefProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+  </ItemGroup>
+  <Target BeforeTargets="CreateVsixContainer" Name="MakeVsixOutputDirectory">
+    <MakeDir Condition="!Exists('$(OutDir)$(VsixOutDirSuffix)')" Directories="$(OutDir)$(VsixOutDirSuffix)" />
+  </Target>
+  <Target Name="GetVsixTemplateItems" DependsOnTargets="ZipProjects;ZipItems">
+    <ItemGroup>
+      <VSIXSourceItem Include="@(IntermediateZipItem)">
+        <VSIXSubPath>%(IntermediateZipItem.Filename)\%(IntermediateZipItem.Language)\%(IntermediateZipItem.OutputSubPath)\%(IntermediateZipItem.Culture)</VSIXSubPath>
+      </VSIXSourceItem>
+      <VSIXSourceItem Include="@(IntermediateZipProject)">
+        <VSIXSubPath>%(IntermediateZipProject.Filename)\%(IntermediateZipProject.Language)\%(IntermediateZipProject.OutputSubPath)\%(IntermediateZipProject.Culture)</VSIXSubPath>
+      </VSIXSourceItem>
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Common\1.0.0\Microsoft.CodeAnalysis.Common.1.0.0.nupkg">
+        <VSIXSubPath>Packages</VSIXSubPath>
+      </VSIXSourceItem>
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.CSharp\1.0.0\Microsoft.CodeAnalysis.CSharp.1.0.0.nupkg">
+        <VSIXSubPath>Packages</VSIXSubPath>
+      </VSIXSourceItem>
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.CSharp.Workspaces\1.0.0\Microsoft.CodeAnalysis.CSharp.Workspaces.1.0.0.nupkg">
+        <VSIXSubPath>Packages</VSIXSubPath>
+      </VSIXSourceItem>
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Workspaces.Common\1.0.0\Microsoft.CodeAnalysis.Workspaces.Common.1.0.0.nupkg">
+        <VSIXSubPath>Packages</VSIXSubPath>
+      </VSIXSourceItem>
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.VisualBasic\1.0.0\Microsoft.CodeAnalysis.VisualBasic.1.0.0.nupkg">
+        <VSIXSubPath>Packages</VSIXSubPath>
+      </VSIXSourceItem>
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.VisualBasic.Workspaces\1.0.0\Microsoft.CodeAnalysis.VisualBasic.Workspaces.1.0.0.nupkg">
+        <VSIXSubPath>Packages</VSIXSubPath>
+      </VSIXSourceItem>
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.Composition\1.0.27\Microsoft.Composition.1.0.27.nupkg">
+        <VSIXSubPath>Packages</VSIXSubPath>
+      </VSIXSourceItem>
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\System.Collections.Immutable\1.1.36\System.Collections.Immutable.1.1.36.nupkg">
+        <VSIXSubPath>Packages</VSIXSubPath>
+      </VSIXSourceItem>
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\System.Reflection.Metadata\1.0.21\System.Reflection.Metadata.1.0.21.nupkg">
+        <VSIXSubPath>Packages</VSIXSubPath>
+      </VSIXSourceItem>
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\NuGet.CommandLine\2.8.5\NuGet.CommandLine.2.8.5.nupkg">
+        <VSIXSubPath>Packages</VSIXSubPath>
+      </VSIXSourceItem>
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Analyzers\1.1.0\Microsoft.CodeAnalysis.Analyzers.1.1.0.nupkg">
+        <VSIXSubPath>Packages</VSIXSubPath>
+      </VSIXSourceItem>
+    </ItemGroup>
+  </Target>
+  <PropertyGroup>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);GetVsixTemplateItems</GetVsixSourceItemsDependsOn>
+  </PropertyGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  </ImportGroup>
+</Project>

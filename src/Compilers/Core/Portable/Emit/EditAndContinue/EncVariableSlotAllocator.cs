@@ -8,14 +8,11 @@ using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
     internal sealed class EncVariableSlotAllocator : VariableSlotAllocator
     {
-        private readonly CommonMessageProvider _messageProvider;
-
         // symbols:
         private readonly SymbolMatcher _symbolMap;
 
@@ -40,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly IReadOnlyDictionary<int, DebugId> _closureMapOpt; // SyntaxOffset -> Id
 
         public EncVariableSlotAllocator(
-            CommonMessageProvider messageProvider,
             SymbolMatcher symbolMap,
             Func<SyntaxNode, SyntaxNode> syntaxMapOpt,
             IMethodSymbolInternal previousTopLevelMethod,
@@ -54,12 +50,10 @@ namespace Microsoft.CodeAnalysis.Emit
             int awaiterCount,
             IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMapOpt)
         {
-            Debug.Assert(messageProvider != null);
             Debug.Assert(symbolMap != null);
             Debug.Assert(previousTopLevelMethod != null);
             Debug.Assert(!previousLocals.IsDefault);
 
-            _messageProvider = messageProvider;
             _symbolMap = symbolMap;
             _syntaxMapOpt = syntaxMapOpt;
             _previousLocals = previousLocals;

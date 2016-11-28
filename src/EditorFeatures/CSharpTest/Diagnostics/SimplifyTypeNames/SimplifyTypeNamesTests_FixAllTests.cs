@@ -931,8 +931,8 @@ class D
 </Workspace>";
 
             var options = OptionsSet(
-                Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Info),
-                Tuple.Create(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Info));
+                Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Suggestion),
+                Tuple.Create(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Suggestion));
             await TestAsync(
                 initialMarkup: input,
                 expectedMarkup: expected,

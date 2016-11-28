@@ -1,10 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Runtime.InteropServices
-Imports System.Text.RegularExpressions
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -18,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
-        Public Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
+        Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   id As ERRID,
                                                                   ParamArray args As Object()) As BoundExpression
@@ -28,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
-        Public Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
+        Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   info As DiagnosticInfo,
                                                                   ParamArray nodes As BoundNode()) As BoundExpression
@@ -40,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
-        Public Function ReportDiagnosticAndProduceErrorTypeSymbol(diagBag As DiagnosticBag,
+        Public Shared Function ReportDiagnosticAndProduceErrorTypeSymbol(diagBag As DiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   id As ERRID,
                                                                   ParamArray args As Object()) As ErrorTypeSymbol
@@ -50,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
-        Public Function ReportDiagnosticAndProduceErrorTypeSymbol(diagBag As DiagnosticBag,
+        Public Shared Function ReportDiagnosticAndProduceErrorTypeSymbol(diagBag As DiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   info As DiagnosticInfo) As ErrorTypeSymbol
             ReportDiagnostic(diagBag, syntax, info)

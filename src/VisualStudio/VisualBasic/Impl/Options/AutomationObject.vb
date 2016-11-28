@@ -204,7 +204,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property Option_Suggest_imports_for_types_in_reference_assemblies As Boolean
+        Public Property Option_SuggestImportsForTypesInReferenceAssemblies As Boolean
             Get
                 Return GetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies)
             End Get
@@ -213,7 +213,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property Option_Suggest_imports_for_types_in_NuGet_packages As Boolean
+        Public Property Option_SuggestImportsForTypesInNuGetPackages As Boolean
             Get
                 Return GetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages)
             End Get

@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(result.Count == explicitModules.Length + totalReferencedAssemblyCount);
         }
 
-        private ImmutableArray<int> CalculateModuleToReferenceMap(ImmutableArray<PEModule> modules, ImmutableArray<ResolvedReference> resolvedReferences)
+        private static ImmutableArray<int> CalculateModuleToReferenceMap(ImmutableArray<PEModule> modules, ImmutableArray<ResolvedReference> resolvedReferences)
         {
             if (modules.Length == 0)
             {

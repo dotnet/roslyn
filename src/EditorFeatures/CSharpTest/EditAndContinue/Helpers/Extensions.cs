@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             CSharpEditAndContinueTestHelpers.Instance.VerifyUnchangedDocument(
                 ActiveStatementsDescription.ClearTags(source),
                 description.OldSpans,
-                description.TrackingSpans,
+                description.OldTrackingSpans,
                 description.NewSpans,
                 description.OldRegions,
                 description.NewRegions);

@@ -192,8 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return type1;
             }
 
-            var t1tot2 = _conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Exists;
-            var t2tot1 = _conversions.ClassifyImplicitConversion(type2, type1, ref useSiteDiagnostics).Exists;
+            var t1tot2 = _conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteDiagnostics).Exists;
+            var t2tot1 = _conversions.ClassifyImplicitConversionFromType(type2, type1, ref useSiteDiagnostics).Exists;
 
             if (t1tot2 && t2tot1)
             {

@@ -490,7 +490,7 @@ namespace n2 { namespace Inner { class CAttribute { } } }");
             await TestAsync(
 @"class Class { ([|IDictionary|], string) Method() { Foo(); } }",
 @"class Class { (System.Collections.IDictionary, string) Method() { Foo(); } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -500,7 +500,7 @@ withScriptOption: true);
             await TestAsync(
 @"class Class { ([|IDictionary|] a, string) Method() { Foo(); } }",
 @"class Class { (System.Collections.IDictionary a, string) Method() { Foo(); } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
     }

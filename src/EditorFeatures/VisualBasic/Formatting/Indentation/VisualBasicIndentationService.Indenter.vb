@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
@@ -14,12 +15,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
         Private Class Indenter
             Inherits AbstractIndenter
 
-            Public Sub New(document As SyntacticDocument,
+            Public Sub New(syntaxFacts As ISyntaxFactsService,
+                           syntaxTree As SyntaxTree,
                            rules As IEnumerable(Of IFormattingRule),
                            optionSet As OptionSet,
                            line As TextLine,
                            cancellationToken As CancellationToken)
-                MyBase.New(document, rules, optionSet, line, cancellationToken)
+                MyBase.New(syntaxFacts, syntaxTree, rules, optionSet, line, cancellationToken)
             End Sub
 
             Public Overrides Function GetDesiredIndentation() As IndentationResult?

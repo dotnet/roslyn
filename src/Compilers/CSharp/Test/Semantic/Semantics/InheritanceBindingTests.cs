@@ -1271,7 +1271,7 @@ class Derived : Base
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (13,29): error CS8893: 'Derived.Method1()' must not return by reference to match overridden member 'Base.Method1()'
     //     public override ref int Method1() { return ref field; }
     Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method1").WithArguments("Derived.Method1()", "Base.Method1()", "not ").WithLocation(13, 29),
@@ -1417,7 +1417,7 @@ class Derived : Base
     public override ref int Property3 { get { return ref field; } }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (15,29): error CS8893: 'Derived.Proprty1' must not return by reference to match overridden member 'Base.Proprty1'
     //     public override ref int Proprty1 { get { return ref field; } }
     Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Proprty1").WithArguments("Derived.Proprty1", "Base.Proprty1", "not ").WithLocation(15, 29),
@@ -1477,7 +1477,7 @@ class Derived : Base
     public override ref int this[string x, int y] { get { return ref field; } }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (15,29): error CS8893: 'Derived.this[int, int]' must not return by reference to match overridden member 'Base.this[int, int]'
     //     public override ref int this[int x, int y] { get { return ref field; } }
     Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("Derived.this[int, int]", "Base.this[int, int]", "not ").WithLocation(15, 29),
@@ -2051,7 +2051,7 @@ class Derived : Base
     public override ref object Method6(ref object o) { return ref o; } //wrong by-ref return
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (16,16): warning CS0114: 'Derived.Method3()' hides inherited member 'Base.Method3()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
     //     public int Method3() { return 0; } //wrong return type
     Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Method3").WithArguments("Derived.Method3()", "Base.Method3()").WithLocation(16, 16),
@@ -2120,7 +2120,7 @@ class Derived : Base
     public override object Property11 { get { return null; } }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (23,25): error CS1715: 'Derived.Property3': type must be 'object' to match overridden member 'Base.Property3'
     //     public override int Property3 { get; set; } //wrong type
     Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "Property3").WithArguments("Derived.Property3", "Base.Property3", "object").WithLocation(23, 25),
@@ -2225,7 +2225,7 @@ class Derived : Base
     public override object this[string w, int x, string y, int z] { get; }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
                 // (36,69): error CS0501: 'Derived.this[string, int, string, int].get' must declare a body because it is not marked abstract, extern, or partial
                 //     public override object this[string w, int x, string y, int z] { get; }
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("Derived.this[string, int, string, int].get").WithLocation(36, 69),
@@ -2489,7 +2489,7 @@ class Class : Interface
     public ref object Method4(ref object o) { return ref o; } //wrong by-ref return
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (10,15): error CS8897: 'Class' does not implement interface member 'Interface.Method4(ref object)'. 'Class.Method4(ref object)' cannot implement 'Interface.Method4(ref object)' because it does not return by value
     // class Class : Interface
     Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "Interface").WithArguments("Class", "Interface.Method4(ref object)", "Class.Method4(ref object)", "value").WithLocation(10, 15),
@@ -2542,7 +2542,7 @@ class Class : Interface
     public ref object Property9 { get { return ref o; } }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.Property2.set'
     // class Class : Interface
     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Property2.set").WithLocation(17, 15),
@@ -2604,7 +2604,7 @@ class Class : Interface
     public ref object this[string w, int x, int y, string z] { get { return ref o; } }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
                 // (17,15): error CS0535: 'Class' does not implement interface member 'Interface.this[int, string, string, string].set'
                 // class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.this[int, string, string, string].set").WithLocation(17, 15),

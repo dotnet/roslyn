@@ -53,22 +53,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     {
                         MemberAccessExpressionSyntax newMemberAccess = null;
                         var invocationExpressionNodeExpression = node.Expression;
+                        var expression = argumentList.Arguments[0].Expression;
 
-                        if (node.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+                        if (expression != null)
                         {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments[0].Expression, ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).OperatorToken, ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).Name);
-                        }
-                        else if (node.Expression.Kind() == SyntaxKind.IdentifierName)
-                        {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments[0].Expression, (IdentifierNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
-                        }
-                        else if (node.Expression.Kind() == SyntaxKind.GenericName)
-                        {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments[0].Expression, (GenericNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
-                        }
-                        else
-                        {
-                            Debug.Assert(false, "The expression kind is not MemberAccessExpression or IdentifierName or GenericName to be converted to Member Access Expression for Ext Method Reduction");
+                            if (node.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+                            {
+                                newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).OperatorToken, ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).Name);
+                            }
+                            else if (node.Expression.Kind() == SyntaxKind.IdentifierName)
+                            {
+                                newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, (IdentifierNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
+                            }
+                            else if (node.Expression.Kind() == SyntaxKind.GenericName)
+                            {
+                                newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, (GenericNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
+                            }
+                            else
+                            {
+                                Debug.Assert(false, "The expression kind is not MemberAccessExpression or IdentifierName or GenericName to be converted to Member Access Expression for Ext Method Reduction");
+                            }
                         }
 
                         if (newMemberAccess == null)

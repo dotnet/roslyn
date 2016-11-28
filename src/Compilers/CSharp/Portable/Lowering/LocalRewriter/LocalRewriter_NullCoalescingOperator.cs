@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!leftConversion.IsIdentity)
                 {
-                    rewrittenLeft = MakeConversion(rewrittenLeft.Syntax, rewrittenLeft, leftConversion, rewrittenResultType, @checked: false);
+                    rewrittenLeft = MakeConversionNode(rewrittenLeft.Syntax, rewrittenLeft, leftConversion, rewrittenResultType, @checked: false);
                 }
                 return new BoundNullCoalescingOperator(syntax, rewrittenLeft, rewrittenRight, Conversion.Identity, rewrittenResultType);
             }
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return MakeConversion(rewrittenLeft.Syntax, rewrittenLeft, leftConversion, rewrittenResultType, @checked: false);
+            return MakeConversionNode(rewrittenLeft.Syntax, rewrittenLeft, leftConversion, rewrittenResultType, @checked: false);
         }
     }
 }

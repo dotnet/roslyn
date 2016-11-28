@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (kind == UnaryOperatorKind.DynamicLogicalNegation)
                     {
-                        return MakeConversion(_factory.Literal(!constant.BooleanValue), type, @checked: false);
+                        return MakeConversionNode(_factory.Literal(!constant.BooleanValue), type, @checked: false);
                     }
                 }
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _compilation.GetSpecialType(upconvertSpecialType);
 
 
-                var newOperand = MakeConversion(loweredOperand, upconvertType, false);
+                var newOperand = MakeConversionNode(loweredOperand, upconvertType, false);
                 UnaryOperatorKind newKind = kind.Operator().WithType(upconvertSpecialType);
 
                 var newNode = (oldNode != null) ?
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LookupResultKind.Viable,
                         upconvertType);
 
-                return MakeConversion(newNode.Syntax, newNode, ConversionKind.ExplicitEnumeration, type, @checked: false);
+                return MakeConversionNode(newNode.Syntax, newNode, Conversion.ExplicitEnumeration, type, @checked: false);
             }
 
             if (kind == UnaryOperatorKind.DecimalUnaryMinus)
@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (X)(short)((int)(short)x + 1)
             if (!node.ResultConversion.IsIdentity)
             {
-                result = MakeConversion(
+                result = MakeConversionNode(
                     syntax: node.Syntax,
                     rewrittenOperand: result,
                     conversion: node.ResultConversion,
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!node.OperandConversion.IsIdentity)
             {
-                rewrittenArgument = MakeConversion(
+                rewrittenArgument = MakeConversionNode(
                     syntax: syntax,
                     rewrittenOperand: rewrittenValueToIncrement,
                     conversion: node.OperandConversion,
@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!node.OperandConversion.IsIdentity)
             {
                 // (short)x
-                binaryOperand = MakeConversion(
+                binaryOperand = MakeConversionNode(
                     syntax: node.Syntax,
                     rewrittenOperand: binaryOperand,
                     conversion: node.OperandConversion,
@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // do it now.
 
             // (int)(short)x
-            binaryOperand = MakeConversion(binaryOperand, binaryOperandType, @checked);
+            binaryOperand = MakeConversionNode(binaryOperand, binaryOperandType, @checked);
 
             // Perform the addition.
 
@@ -756,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Generate the conversion back to the type of the unary operator.
 
             // (short)((int)(short)x + 1)
-            result = MakeConversion(binOp, unaryOperandType, @checked);
+            result = MakeConversionNode(binOp, unaryOperandType, @checked);
             return result;
         }
 

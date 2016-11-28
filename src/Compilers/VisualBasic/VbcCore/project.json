@@ -1,7 +1,7 @@
 ﻿{
   "dependencies": { },
   "frameworks": {
-    "dnxcore50": {
+    "NETCoreApp1.0": {
       "imports": "portable-net452"
     }
   },

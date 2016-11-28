@@ -156,18 +156,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// Gets the <see cref="SyntaxTree" /> for this document asynchronously.
-        /// </summary>
-        public Task<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
+        private Task<SyntaxTree> GetExistingSyntaxTreeTask()
         {
-            // If the language doesn't support getting syntax trees for a document, then bail out
-            // immediately.
-            if (!this.SupportsSyntaxTree)
-            {
-                return SpecializedTasks.Default<SyntaxTree>();
-            }
-
             if (_syntaxTreeResultTask != null)
             {
                 return _syntaxTreeResultTask;
@@ -197,9 +187,49 @@ namespace Microsoft.CodeAnalysis
                 return _syntaxTreeResultTask;
             }
 
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="SyntaxTree" /> for this document asynchronously.
+        /// </summary>
+        public Task<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // If the language doesn't support getting syntax trees for a document, then bail out
+            // immediately.
+            if (!this.SupportsSyntaxTree)
+            {
+                return SpecializedTasks.Default<SyntaxTree>();
+            }
+
+            var syntaxTreeTask = GetExistingSyntaxTreeTask();
+            if (syntaxTreeTask != null)
+            {
+                return syntaxTreeTask;
+            }
+
             // we can't cache this result, since internally it uses AsyncLazy which
             // care about cancellation token
             return _state.GetSyntaxTreeAsync(cancellationToken);
+        }
+
+        private SyntaxTree GetSyntaxTree(CancellationToken cancellationToken)
+        {
+            if (!this.SupportsSyntaxTree)
+            {
+                return null;
+            }
+
+            // if we already have a stask for getting this syntax tree, and the task
+            // has completed, then we can just return that value.
+            var syntaxTreeTask = GetExistingSyntaxTreeTask();
+            if (syntaxTreeTask?.Status == TaskStatus.RanToCompletion)
+            {
+                return syntaxTreeTask.Result;
+            }
+
+            // Otherwise defer to our state to get this value.
+            return _state.GetSyntaxTree(cancellationToken);
         }
 
         /// <summary>
@@ -226,6 +256,22 @@ namespace Microsoft.CodeAnalysis
 
             var tree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Only for features that absolutely must run synchronously (probably because they're
+        /// on the UI thread).  Right now, the only feature this is for is Outlining as VS will
+        /// block on that feature from the UI thread when a document is opened.
+        /// </summary>
+        internal SyntaxNode GetSyntaxRootSynchronously(CancellationToken cancellationToken)
+        {
+            if (!this.SupportsSyntaxTree)
+            {
+                return null;
+            }
+
+            var tree = this.GetSyntaxTree(cancellationToken);
+            return tree.GetRoot(cancellationToken);
         }
 
         /// <summary>

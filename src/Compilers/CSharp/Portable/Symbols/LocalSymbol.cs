@@ -271,7 +271,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case LocalDeclarationKind.FixedVariable:
                     case LocalDeclarationKind.ForEachIterationVariable:
                     case LocalDeclarationKind.UsingVariable:
-                    case LocalDeclarationKind.PatternVariable:
                         return false;
                     default:
                         return true;

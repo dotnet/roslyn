@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // so that the same object is passed to both Monitor.Enter and Monitor.Exit.
                 argumentType = _compilation.GetSpecialType(SpecialType.System_Object);
 
-                rewrittenArgument = MakeConversion(
+                rewrittenArgument = MakeConversionNode(
                     rewrittenArgument.Syntax,
                     rewrittenArgument,
-                    ConversionKind.Boxing,
+                    Conversion.Boxing,
                     argumentType,
                     @checked: false,
                     constantValueOpt: rewrittenArgument.ConstantValue);

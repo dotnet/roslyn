@@ -247,8 +247,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             Return $"Imports { String.Join(".", nameParts) }"
         End Function
 
-        Protected Overrides Function GetDescription(namespaceSymbol As INamespaceOrTypeSymbol, semanticModel As SemanticModel,
-                                                    root As SyntaxNode, checkForExistingImport As Boolean) As String
+        Protected Overrides Function TryGetDescription(
+                namespaceSymbol As INamespaceOrTypeSymbol,
+                semanticModel As SemanticModel,
+                root As SyntaxNode,
+                checkForExistingImport As Boolean) As String
             Return $"Imports {namespaceSymbol.ToDisplayString()}"
         End Function
 

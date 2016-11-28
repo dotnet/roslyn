@@ -756,7 +756,7 @@ class Program
             var code = @"public class C { $$(int, int, int, int, int, int, int, int) x; }";
             var expected = @"public class C { (int, int, int, int, int, int, int, int[|)|] x; }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
@@ -765,7 +765,7 @@ class Program
             var code = @"public class C { (int, int, int, int, int, int, int, int)$$ x; }";
             var expected = @"public class C { [|(|]int, int, int, int, int, int, int, int) x; }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
@@ -774,7 +774,7 @@ class Program
             var code = @"public class C { var x = $$(1, 2, 3, 4, 5, 6, 7, 8); }";
             var expected = @"public class C { var x = (1, 2, 3, 4, 5, 6, 7, 8[|)|]; }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
@@ -783,7 +783,7 @@ class Program
             var code = @"public class C { var x = (1, 2, 3, 4, 5, 6, 7, 8)$$; }";
             var expected = @"public class C { var x = [|(|]1, 2, 3, 4, 5, 6, 7, 8); }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
@@ -792,7 +792,7 @@ class Program
             var code = @"public class C { var x = $$((1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }";
             var expected = @"public class C { var x = ((1, 1, 1), 2, 3, 4, 5, 6, 7, 8[|)|]; }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
@@ -801,7 +801,7 @@ class Program
             var code = @"public class C { var x = ($$(1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }";
             var expected = @"public class C { var x = ((1, 1, 1[|)|], 2, 3, 4, 5, 6, 7, 8); }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
@@ -810,7 +810,7 @@ class Program
             var code = @"public class C { var x = (1, 2, 3, 4, 5, 6, 7, (8, 8, 8))$$; }";
             var expected = @"public class C { var x = [|(|]1, 2, 3, 4, 5, 6, 7, (8, 8, 8)); }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
@@ -819,7 +819,7 @@ class Program
             var code = @"public class C { var x = ((1, 1, 1)$$, 2, 3, 4, 5, 6, 7, 8); }";
             var expected = @"public class C { var x = ([|(|]1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }";
 
-            await TestAsync(code, expected, TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(code, expected, TestOptions.Regular);
         }
     }
 }

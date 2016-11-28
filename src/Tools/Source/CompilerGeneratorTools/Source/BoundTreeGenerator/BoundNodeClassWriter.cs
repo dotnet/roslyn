@@ -1165,8 +1165,10 @@ namespace BoundTreeGenerator
                     {
                         WriteLine("public override BoundNode Visit{0}({1} node)", StripBound(node.Name), node.Name);
                         Brace();
-                        foreach (Field field in AllFields(node).Where(f => IsDerivedOrListOfDerived("BoundNode", f.Type)))
+                        foreach (Field field in AllFields(node).Where(f => IsDerivedOrListOfDerived("BoundNode", f.Type) && !SkipInVisitor(f)))
+                        {
                             WriteLine("this.Visit{1}(node.{0});", field.Name, IsNodeList(field.Type) ? "List" : "");
+                        }
                         WriteLine("return null;");
                         Unbrace();
                     }
@@ -1344,7 +1346,14 @@ namespace BoundTreeGenerator
                             foreach (Field field in AllNodeOrNodeListFields(node))
                             {
                                 hadField = true;
-                                WriteLine("{3} {0} = ({3})this.Visit{2}(node.{1});", ToCamelCase(field.Name), field.Name, IsNodeList(field.Type) ? "List" : "", field.Type);
+                                if (SkipInVisitor(field))
+                                {
+                                    WriteLine("{2} {0} = node.{1};", ToCamelCase(field.Name), field.Name, field.Type);
+                                }
+                                else
+                                {
+                                    WriteLine("{3} {0} = ({3})this.Visit{2}(node.{1});", ToCamelCase(field.Name), field.Name, IsNodeList(field.Type) ? "List" : "", field.Type);
+                                }
                             }
                             foreach (Field field in AllTypeFields(node))
                             {

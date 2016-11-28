@@ -3843,7 +3843,7 @@ class Program
             await TestAsync(
             @" class C { void Main() { (int, string) tuple = [|((int, string))(1, ""hello"")|]; } }",
             @" class C { void Main() { (int, string) tuple = (1, ""hello""); } }",
-            parseOptions: TestOptions.Regular.WithTuplesFeature(),
+            parseOptions: TestOptions.Regular,
             withScriptOption: true);
         }
 
@@ -3853,7 +3853,7 @@ class Program
             await TestAsync(
             @" class C { void Main() { (int a, string) tuple = [|((int, string d))(1, f: ""hello"")|]; } }",
             @" class C { void Main() { (int a, string) tuple = (1, f: ""hello""); } }",
-            parseOptions: TestOptions.Regular.WithTuplesFeature(),
+            parseOptions: TestOptions.Regular,
             withScriptOption: true);
         }
     }

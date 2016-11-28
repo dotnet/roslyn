@@ -416,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim param = parameters(nPropertyParameters)
                 If Not IdentifierComparison.Equals(param.Name, StringConstants.ValueParameterName) Then
                     Dim paramSyntax = parameterListSyntax(0)
-                    binder.CheckParameterNameNotDuplicate(parameters, nPropertyParameters, paramSyntax, param, diagnostics)
+                    Binder.CheckParameterNameNotDuplicate(parameters, nPropertyParameters, paramSyntax, param, diagnostics)
                 End If
 
                 If parameterListSyntax.Count = 1 Then

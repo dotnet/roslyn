@@ -112,7 +112,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 (uint)VSConstants.VSITEMID.Nil,
                 filePath: additionalFilePath,
                 sourceCodeKind: SourceCodeKind.Regular,
-                isGenerated: false,
                 canUseTextBuffer: _ => true);
 
             if (document == null)

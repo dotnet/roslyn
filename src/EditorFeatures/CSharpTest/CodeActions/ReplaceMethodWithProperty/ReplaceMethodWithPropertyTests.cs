@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 {
     public class ReplaceMethodWithPropertyTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new ReplaceMethodWithPropertyCodeRefactoringProvider();
         }
@@ -429,7 +430,7 @@ index: 1);
             await TestAsync(
 @"class C { (int, string) [||]GetFoo() { } }",
 @"class C { (int, string) Foo { get { } } }",
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -440,7 +441,7 @@ withScriptOption: true);
 @"using System; class C { (int, string) [||]getFoo() { } void setFoo((int, string) i) { } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
 @"using System; class C { (int, string) Foo { get { } set { } } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
 index: 1,
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -451,7 +452,7 @@ withScriptOption: true);
 @"using System; class C { (int a, string b) [||]getFoo() { } void setFoo((int a, string b) i) { } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
 @"using System; class C { (int a, string b) Foo { get { } set { } } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
 index: 1,
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -464,8 +465,140 @@ withScriptOption: true);
 @"using System; class C { (int a, string b) [||]getFoo() { } void setFoo((int c, string d) i) { } }",
 @"",
 index: 1,
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestOutVarDeclaration_1()
+        {
+            await TestAsync(
+@"class C
+{
+    // Foo
+    int [||]GetFoo()
+    {
+    }
+    // SetFoo
+    void SetFoo(out int i)
+    {
+    }
+
+    void Test()
+    {
+        SetFoo(out int i);
+    }
+}",
+@"class C
+{
+    // Foo
+    int Foo
+    {
+        get
+        {
+        }
+    }
+
+    // SetFoo
+    void SetFoo(out int i)
+    {
+    }
+
+    void Test()
+    {
+        SetFoo(out int i);
+    }
+}",
+index: 0,
+compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestOutVarDeclaration_2()
+        {
+            await TestAsync(
+@"class C
+{
+    // Foo
+    int [||]GetFoo()
+    {
+    }
+    // SetFoo
+    void SetFoo(int i)
+    {
+    }
+
+    void Test()
+    {
+        SetFoo(out int i);
+    }
+}",
+@"class C
+{
+    // Foo
+    // SetFoo
+    int Foo
+    {
+        get
+        {
+        }
+
+        set
+        {
+        }
+    }
+
+    void Test()
+    {
+        {|Conflict:Foo|}(out int i);
+    }
+}",
+index: 1,
+compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestOutVarDeclaration_3()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    // Foo
+    int GetFoo()
+    {
+    }
+    // SetFoo
+    void [||]SetFoo(out int i)
+    {
+    }
+
+    void Test()
+    {
+        SetFoo(out int i);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestOutVarDeclaration_4()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    // Foo
+    int [||]GetFoo(out int i)
+    {
+    }
+    // SetFoo
+    void SetFoo(out int i, int j)
+    {
+    }
+
+    void Test()
+    {
+        var y = GetFoo(out int i);
+    }
+}");
         }
     }
 }

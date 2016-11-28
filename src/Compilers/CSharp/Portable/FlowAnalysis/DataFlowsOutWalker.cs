@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.ForEachStatement:
                         {
-                            return ((BoundForEachStatement)node).IterationVariable;
+                            return ((BoundForEachStatement)node).IterationVariableOpt;
                         }
 
                     case BoundKind.RangeVariable:

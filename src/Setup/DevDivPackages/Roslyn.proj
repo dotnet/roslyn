@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <InsertionFilesDir>$(OutDir)DevDivInsertionFiles</InsertionFilesDir>
+    <PackagesOutDir>$(OutDir)DevDivPackages\Roslyn</PackagesOutDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <NuSpec Include="$(InsertionFilesDir)\VS.ExternalAPIs.Roslyn.nuspec" >
+      <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
+      <!-- TFS build number isn't set on CI server -->
+      <Version Condition="'$(NuGetPerBuildPreReleaseVersion)' == ''">$(NuGetReleaseVersion)-cibuild</Version>
+    </NuSpec>
+  </ItemGroup>
+  <Target Name="Build" Inputs="@(NuSpec)" Outputs="@(NuSpec->$(PackagesOutDir)\%(Filename)%(Extension).%(Version).nupkg">
+    <MakeDir Directories="$(PackagesOutDir)" Condition="!Exists('$(PackagesOutDir)')" />
+    <!-- nuget doesn't set exitcode when the value of an arg is invalid -->
+    <Exec Command='Pack.cmd %(NuSpec.FullPath) %(NuSpec.Version) $(OutDir) $(PackagesOutDir)'
+          CustomErrorRegularExpression="pack: invalid arguments"/>
+  </Target>
+  <Target Name="Clean">
+    <RemoveDir Directories="$(PackagesOutDir)" />
+  </Target>
+</Project>

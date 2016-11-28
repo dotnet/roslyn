@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -75,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause),
                     Function(ifStatement As ElseIfStatementSyntax) InferTypeInIfOrElseIfStatement(),
                     Function(ifStatement As IfStatementSyntax) InferTypeInIfOrElseIfStatement(),
-                    Function(memberAccessExpression As MemberAccessExpressionSyntax) InferTypeInMemberAccessExpression(memberAccessExpression),
+                    Function(memberAccessExpression As MemberAccessExpressionSyntax) InferTypeInMemberAccessExpression(memberAccessExpression, expression),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer),
                     Function(parenthesizedLambda As MultiLineLambdaExpressionSyntax) InferTypeInLambda(parenthesizedLambda),
                     Function(prefixUnary As UnaryExpressionSyntax) InferTypeInUnaryExpression(prefixUnary),
@@ -145,6 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(forStatement As ForStatementSyntax) InferTypeInForStatement(forStatement, previousToken:=token),
                     Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause, token),
                     Function(ifStatement As IfStatementSyntax) InferTypeInIfOrElseIfStatement(token),
+                    Function(memberAccessExpression As MemberAccessExpressionSyntax) InferTypeInMemberAccessExpression(memberAccessExpression, previousToken:=token),
                     Function(nameColonEquals As NameColonEqualsSyntax) InferTypeInArgumentList(TryCast(nameColonEquals.Parent.Parent, ArgumentListSyntax), DirectCast(nameColonEquals.Parent, ArgumentSyntax)),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer, token),
                     Function(objectCreation As ObjectCreationExpressionSyntax) InferTypes(objectCreation),
@@ -203,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim targetExpression As ExpressionSyntax = Nothing
                             If invocation.Expression IsNot Nothing Then
                                 targetExpression = invocation.Expression
-                            ElseIf invocation.Parent.IsKind(SyntaxKind.ConditionalAccessExpression)
+                            ElseIf invocation.Parent.IsKind(SyntaxKind.ConditionalAccessExpression) Then
                                 targetExpression = DirectCast(invocation.Parent, ConditionalAccessExpressionSyntax).Expression
                             End If
 
@@ -801,14 +803,133 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SpecializedCollections.SingletonEnumerable(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
             End Function
 
-            Private Function InferTypeInMemberAccessExpression(expression As MemberAccessExpressionSyntax) As IEnumerable(Of ITypeSymbol)
-                Dim awaitExpression = expression.GetAncestor(Of AwaitExpressionSyntax)
-                Dim lambdaExpression = expression.GetAncestor(Of LambdaExpressionSyntax)
-                If Not awaitExpression?.Contains(lambdaExpression) AndAlso awaitExpression IsNot Nothing Then
-                    Return InferTypes(awaitExpression.Expression)
+            Private Function InferTypeInMemberAccessExpression(
+                    memberAccessExpression As MemberAccessExpressionSyntax,
+                    Optional expressionOpt As ExpressionSyntax = Nothing,
+                    Optional previousToken As SyntaxToken? = Nothing) As IEnumerable(Of ITypeSymbol)
+
+                ' We need to be on the right of the dot to infer an appropriate type for
+                ' the member access expression.  i.e. if we have "Foo.Bar" then we can 
+                ' def infer what the type of 'Bar' should be (it's whatever type we infer
+                ' for 'Foo.Bar' itself.  However, if we're on 'Foo' then we can't figure
+                ' out anything about its type.
+                If previousToken <> Nothing Then
+                    If previousToken.Value <> memberAccessExpression.OperatorToken Then
+                        Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)
+                    End If
+
+                    Return InferTypes(memberAccessExpression)
+                Else
+                    ' If we're on the left side of a dot, it's possible in a few cases
+                    ' to figure out what type we should be.  Specifically, if we have
+                    '
+                    '      await foo.ConfigureAwait()
+                    '
+                    ' then we can figure out what 'foo' should be based on teh await
+                    ' context.
+                    If expressionOpt Is memberAccessExpression.Expression Then
+                        Return InferTypeForExpressionOfMemberAccessExpression(memberAccessExpression)
+                    End If
+
+                    Return InferTypes(memberAccessExpression)
+                End If
+            End Function
+
+            Private Function InferTypeForExpressionOfMemberAccessExpression(memberAccessExpression As MemberAccessExpressionSyntax) As IEnumerable(Of ITypeSymbol)
+                Dim name = memberAccessExpression.Name.Identifier.Value
+
+                If name.Equals(NameOf(Task(Of Integer).ConfigureAwait)) AndAlso
+                   memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) AndAlso
+                   memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression) Then
+                    Return InferTypes(DirectCast(memberAccessExpression.Parent, ExpressionSyntax))
+                ElseIf name.Equals(NameOf(Task(Of Integer).ContinueWith)) Then
+                    ' foo.ContinueWith(...)
+                    ' We want to infer Task<T>.  For now, we'll just do Task<object>,
+                    ' in the future it would be nice to figure out the actual result
+                    ' type based on the argument to ContinueWith.
+                    Dim taskOfT = Me.Compilation.TaskOfTType()
+                    If taskOfT IsNot Nothing Then
+                        Return SpecializedCollections.SingletonEnumerable(
+                            taskOfT.Construct(Me.Compilation.ObjectType))
+                    End If
+                ElseIf name.Equals(NameOf(Enumerable.Select)) OrElse
+                       name.Equals(NameOf(Enumerable.Where)) Then
+
+                    Dim ienumerableType = Me.Compilation.IEnumerableOfTType()
+
+                    ' foo.Select
+                    ' We want to infer IEnumerable<T>.  We can try to figure out what 
+                    ' T if we get a delegate as the first argument to Select/Where.
+                    If ienumerableType IsNot Nothing AndAlso memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) Then
+                        Dim invocation = DirectCast(memberAccessExpression.Parent, InvocationExpressionSyntax)
+                        If invocation.ArgumentList.Arguments.Count > 0 AndAlso
+                           TypeOf invocation.ArgumentList.Arguments(0) Is SimpleArgumentSyntax Then
+                            Dim argumentExpression = DirectCast(invocation.ArgumentList.Arguments(0), SimpleArgumentSyntax).Expression
+                            Dim argumentTypes = GetTypes(argumentExpression)
+                            Dim delegateType = argumentTypes.FirstOrDefault().GetDelegateType(Me.Compilation)
+                            Dim typeArg = If(delegateType?.TypeArguments.Length > 0,
+                                delegateType.TypeArguments(0),
+                                Me.Compilation.ObjectType)
+
+                            If delegateType Is Nothing OrElse IsUnusableType(typeArg) Then
+                                If TypeOf argumentExpression Is LambdaExpressionSyntax Then
+                                    typeArg = If(InferTypeForFirstParameterOfLambda(DirectCast(argumentExpression, LambdaExpressionSyntax)),
+                                    Me.Compilation.ObjectType)
+                                End If
+                            End If
+
+                            Return SpecializedCollections.SingletonEnumerable(
+                                ienumerableType.Construct(typeArg))
+                        End If
+                    End If
                 End If
 
                 Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+            End Function
+
+            Private Function InferTypeForFirstParameterOfLambda(
+                    lambda As LambdaExpressionSyntax) As ITypeSymbol
+                If lambda.SubOrFunctionHeader.ParameterList.Parameters.Count > 0 Then
+                    Dim parameter = lambda.SubOrFunctionHeader.ParameterList.Parameters(0)
+                    Dim parameterName = parameter.Identifier.Identifier.ValueText
+
+                    If TypeOf lambda Is SingleLineLambdaExpressionSyntax Then
+                        Dim singleLine = DirectCast(lambda, SingleLineLambdaExpressionSyntax)
+                        Return InferTypeForFirstParameterOfLambda(parameterName, singleLine.Body)
+                    ElseIf TypeOf lambda Is MultiLineLambdaExpressionSyntax Then
+                        Dim multiLine = DirectCast(lambda, MultiLineLambdaExpressionSyntax)
+                        For Each statement In multiLine.Statements
+                            Dim type = InferTypeForFirstParameterOfLambda(parameterName, statement)
+                            If type IsNot Nothing Then
+                                Return type
+                            End If
+                        Next
+                    End If
+                End If
+
+                Return Nothing
+            End Function
+
+            Private Function InferTypeForFirstParameterOfLambda(
+                    parameterName As String, node As SyntaxNode) As ITypeSymbol
+                If node.IsKind(SyntaxKind.IdentifierName) Then
+                    Dim identifier = DirectCast(node, IdentifierNameSyntax)
+                    If CaseInsensitiveComparison.Equals(parameterName, identifier.Identifier.ValueText) AndAlso
+                       SemanticModel.GetSymbolInfo(identifier.Identifier).Symbol?.Kind = SymbolKind.Parameter Then
+                        Return InferTypes(identifier).FirstOrDefault()
+                    End If
+                Else
+                    For Each child In node.ChildNodesAndTokens()
+                        If child.IsNode Then
+                            Dim type = InferTypeForFirstParameterOfLambda(parameterName, child.AsNode)
+                            If type IsNot Nothing Then
+                                Return type
+                            End If
+                        End If
+                    Next
+                End If
+
+                Return Nothing
             End Function
 
             Private Function InferTypeInNamedFieldInitializer(initializer As NamedFieldInitializerSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)

@@ -11,4 +11,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
     {
         Task<IList<OutliningSpan>> GetOutliningSpansAsync(Document document, CancellationToken cancellationToken);
     }
+
+    internal interface ISynchronousOutliningService : IOutliningService
+    {
+        IList<OutliningSpan> GetOutliningSpans(Document document, CancellationToken cancellationToken);
+    }
 }

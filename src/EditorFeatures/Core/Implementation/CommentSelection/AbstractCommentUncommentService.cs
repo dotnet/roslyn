@@ -21,11 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         public Document Format(Document document, IEnumerable<TextSpan> changes, CancellationToken cancellationToken)
         {
-            var snapshot = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).FindCorrespondingEditorTextSnapshot();
-
             var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var formattingSpans = changes.Select(s => s.ToSnapshotSpan(snapshot))
-                                         .Select(s => CommonFormattingHelpers.GetFormattingSpan(root, s.Span.ToTextSpan()));
+            var formattingSpans = changes.Select(s => CommonFormattingHelpers.GetFormattingSpan(root, s));
 
             return Formatter.FormatAsync(document, formattingSpans, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
         }

@@ -2120,7 +2120,7 @@ class Test
             var expected = @"
 > 42
 42";
-            CompileAndVerifyExperimental(source, expected);
+            CompileAndVerify(source, expected);
         }
 
         [Fact]

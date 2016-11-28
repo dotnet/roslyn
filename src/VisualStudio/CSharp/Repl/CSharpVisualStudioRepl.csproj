@@ -91,7 +91,9 @@
     <Compile Include="CSharpVsInteractiveWindowPackage.cs" />
     <Compile Include="CSharpVsInteractiveWindowCommandProvider.cs" />
     <Compile Include="CSharpVsResetInteractiveCommand.cs" />
-    <Content Include="CSharpInteractive.rsp" />
+    <Content Include="CSharpInteractive.rsp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\ScriptFile.ico" />
   </ItemGroup>
   <ItemGroup>

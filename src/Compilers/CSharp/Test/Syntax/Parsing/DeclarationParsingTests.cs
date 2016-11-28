@@ -1950,7 +1950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDelegateWithRefReturnType()
         {
             var text = "delegate ref a b();";
-            var file = this.ParseFileExperimental(text);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2422,7 +2422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithRefReturn()
         {
             var text = "class a { ref b X() { } }";
-            var file = this.ParseFileExperimental(text);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2468,7 +2468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithRef()
         {
             var text = "class a { ref }";
-            var file = this.ParseFileExperimental(text);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3787,7 +3787,7 @@ class Class1<T>{
         public void TestClassPropertyWithRefReturn()
         {
             var text = "class a { ref b c { get; set; } }";
-            var file = this.ParseFileExperimental(text);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3969,7 +3969,7 @@ class Class1<T>{
         public void TestClassAutoPropertyWithInitializer()
         {
             var text = "class a { b c { get; set; } = d; }";
-            var file = this.ParseFile(text, TestOptions.ExperimentalParseOptions);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4025,7 +4025,7 @@ class Class1<T>{
         public void InitializerOnNonAutoProp()
         {
             var text = "class C { int P { set {} } = 0; }";
-            var file = this.ParseFile(text, TestOptions.ExperimentalParseOptions);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(0, file.Errors().Length);
@@ -4663,7 +4663,7 @@ class Class1<T>{
         public void TestClassIndexerWithRefReturn()
         {
             var text = "class a { ref b this[c d] { get; set; } }";
-            var file = this.ParseFileExperimental(text);
+            var file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -5547,7 +5547,7 @@ class C1
     }
 }
 ";
-            var file = this.ParseFile(text, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
             Assert.Equal(0, file.Errors().Length);
         }
 
@@ -5568,7 +5568,7 @@ class C1
     }
 }
 ";
-            var file = this.ParseFile(text, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
             Assert.Equal(0, file.Errors().Length);
         }
     }

@@ -213,7 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         private static Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> s_replaceSetReferenceInvocation =
             (editor, invocation, nameNode, newName) =>
             {
-                if (invocation.ArgumentList?.Arguments.Count != 1)
+                if (invocation.ArgumentList?.Arguments.Count != 1 ||
+                    invocation.ArgumentList.Arguments[0].Declaration != null)
                 {
                     var annotation = ConflictAnnotation.Create(FeaturesResources.OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty);
                     editor.ReplaceNode(nameNode, newName.WithIdentifier(newName.Identifier.WithAdditionalAnnotations(annotation)));

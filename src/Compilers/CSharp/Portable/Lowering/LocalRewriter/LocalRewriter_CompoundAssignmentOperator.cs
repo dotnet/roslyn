@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var lhsRead = MakeRValue(transformedLHS);
 
-            BoundExpression opLHS = isDynamic ? lhsRead : MakeConversion(
+            BoundExpression opLHS = isDynamic ? lhsRead : MakeConversionNode(
                 syntax: syntax,
                 rewrittenOperand: lhsRead,
                 conversion: node.LeftConversion,
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression operand = MakeBinaryOperator(syntax, node.Operator.Kind, opLHS, loweredRight, node.Operator.ReturnType, node.Operator.Method, isCompoundAssignment: true);
 
-            BoundExpression opFinal = MakeConversion(
+            BoundExpression opFinal = MakeConversionNode(
                 syntax: syntax,
                 rewrittenOperand: operand,
                 conversion: node.FinalConversion,
@@ -565,10 +565,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BoxReceiver(BoundExpression rewrittenReceiver, NamedTypeSymbol memberContainingType)
         {
-            return MakeConversion(
+            return MakeConversionNode(
                 rewrittenReceiver.Syntax,
                 rewrittenReceiver,
-                ConversionKind.Boxing,
+                Conversion.Boxing,
                 memberContainingType,
                 @checked: false,
                 constantValueOpt: rewrittenReceiver.ConstantValue);

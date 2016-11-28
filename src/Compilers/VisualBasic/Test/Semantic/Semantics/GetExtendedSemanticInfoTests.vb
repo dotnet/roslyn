@@ -2640,7 +2640,7 @@ End Module
             Assert.Null(semanticInfo.Symbol)
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason)
             Assert.Equal(12, semanticInfo.CandidateSymbols.Length)
-            Dim sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.InvariantCulture).ToArray()
             Assert.Equal("Sub System.Console.WriteLine(buffer As System.Char())", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
             Assert.Equal("Sub System.Console.WriteLine(value As System.Boolean)", sortedCandidates(1).ToTestDisplayString())
@@ -2667,7 +2667,7 @@ End Module
             Assert.Equal(SymbolKind.Method, sortedCandidates(11).Kind)
 
             Assert.Equal(19, semanticInfo.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.InvariantCulture).ToArray()
             Assert.Equal("Sub System.Console.WriteLine()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(buffer As System.Char())", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(buffer As System.Char(), index As System.Int32, count As System.Int32)", sortedMethodGroup(2).ToTestDisplayString())

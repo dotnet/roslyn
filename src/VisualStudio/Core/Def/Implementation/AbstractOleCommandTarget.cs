@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -24,6 +25,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly ICommandHandlerServiceFactory _commandHandlerServiceFactory;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly System.IServiceProvider _serviceProvider;
+
+        /// NOTE(cyrusn): These values are only needed as we prototype the new FindAllRefs experience.
+        /// Once the new experience is a property part of the Dev15 API, then we will not need these and
+        /// we can refer to normal command-groups/ids as we do elsewhere.
+        private static readonly Guid _asyncFindRefsCommandGroup = new Guid("cc5d21e2-c5cf-49d0-bf20-24bb7eb776d8");
+        private static readonly int _asyncFindRefsCommandId = 256;
 
         /// <summary>
         /// This is set only during Exec. Currently, this is required to disambiguate the editor calls to

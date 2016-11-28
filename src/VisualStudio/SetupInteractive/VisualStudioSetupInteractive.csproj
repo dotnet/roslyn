@@ -45,13 +45,6 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\Repl\BasicVisualStudioRepl.vbproj">
-      <Project>{b4a38526-5f15-4ca8-b5e9-0ba04e547023}</Project>
-      <Name>BasicVisualStudioRepl</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;ContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
     <ProjectReference Include="..\Setup\VisualStudioSetup.csproj">
       <Project>{201ec5b7-f91e-45e5-b9f2-67a266cce6fc}</Project>
       <Name>VisualStudioSetup</Name>

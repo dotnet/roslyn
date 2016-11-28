@@ -182,6 +182,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
             }
 
+            // attribute case ] *
+            // Place a space between the attribute and the next member if they're on the same line.
+            if (previousKind == SyntaxKind.CloseBracketToken && previousToken.Parent.IsKind(SyntaxKind.AttributeList))
+            {
+                var attributeOwner = previousToken.Parent?.Parent;
+                if (attributeOwner is MemberDeclarationSyntax)
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+            }
+
             // For spacing delimiters - after colon
             if (previousToken.IsColonInTypeBaseList())
             {
@@ -308,6 +319,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 (currentKind == SyntaxKind.ColonToken && currentToken.Parent is InterpolationFormatClauseSyntax))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+            }
+
+            // Always put a space in the var form of deconstruction-declaration
+            if (currentToken.IsOpenParenInVarDeconstructionDeclaration())
+            {
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
             }
 
             return nextOperation.Invoke();

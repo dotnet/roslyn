@@ -462,12 +462,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Function
 
-        Private Shared Iterator Function EnumerateExpressions(variables As SeparatedSyntaxList(Of CollectionRangeVariableSyntax)) As IEnumerable(Of SyntaxNode)
-            For Each variable In variables
-                Yield variable.Expression
-            Next
-        End Function
-
         Private Shared Iterator Function EnumerateJoinClauseLeftExpressions(clause As JoinClauseSyntax) As IEnumerable(Of SyntaxNode)
             For Each condition As JoinConditionSyntax In clause.JoinConditions
                 Yield condition.Left

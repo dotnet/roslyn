@@ -6,13 +6,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
@@ -25,10 +23,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return typeSymbol.Accept(ExpressionSyntaxGeneratorVisitor.Instance).WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
-        public static TypeSyntax GenerateTypeSyntax(
-            this ITypeSymbol typeSymbol)
+        public static NameSyntax GenerateNameSyntax(
+            this INamespaceOrTypeSymbol symbol)
         {
-            return typeSymbol.Accept(TypeSyntaxGeneratorVisitor.Instance).WithAdditionalAnnotations(Simplifier.Annotation);
+            return (NameSyntax)GenerateTypeSyntax(symbol, nameSyntax: true);
+        }
+
+        public static TypeSyntax GenerateTypeSyntax(
+            this INamespaceOrTypeSymbol symbol)
+        {
+            return GenerateTypeSyntax(symbol, nameSyntax: false);
+        }
+
+        private static TypeSyntax GenerateTypeSyntax(
+            INamespaceOrTypeSymbol symbol, bool nameSyntax)
+        {
+            return symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))
+                         .WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
         public static bool ContainingTypesOrSelfHasUnsafeKeyword(this ITypeSymbol containingType)

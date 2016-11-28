@@ -664,12 +664,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     yield return method;
-
-                    // Replaced methods are not included in GetMembers().
-                    foreach (MethodSymbol replaced in method.GetReplacedMembers())
-                    {
-                        yield return replaced;
-                    }
                 }
             }
         }

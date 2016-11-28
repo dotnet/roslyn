@@ -976,6 +976,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 using (NonReentrantContext)
                 {
                     delta = emitTask.Result;
+
+                    if (delta == null)
+                    {
+                        // Non-fatal Watson has already been reported by the emit task
+                        return VSConstants.E_FAIL;
+                    }
                 }
 
                 var errorId = new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId);
@@ -1070,42 +1076,64 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             return emitTask.Result;
         }
 
+        /// <summary>
+        /// Returns EnC debug information for initial version of the specified method.
+        /// </summary>
+        /// <exception cref="InvalidDataException">The debug information data is corrupt or can't be retrieved from the debugger.</exception>
         private EditAndContinueMethodDebugInformation GetBaselineEncDebugInfo(MethodDefinitionHandle methodHandle)
         {
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
-
             if (_pdbReader == null)
             {
                 // Unmarshal the symbol reader (being marshalled cross thread from STA -> MTA).
                 Debug.Assert(_pdbReaderObjAsStream != IntPtr.Zero);
                 object pdbReaderObjMta;
-                int hr = NativeMethods.GetObjectForStream(_pdbReaderObjAsStream, out pdbReaderObjMta);
-                _pdbReaderObjAsStream = IntPtr.Zero;
-                if (hr != VSConstants.S_OK)
+
+                var exception = Marshal.GetExceptionForHR(NativeMethods.GetObjectForStream(_pdbReaderObjAsStream, out pdbReaderObjMta));
+                if (exception != null)
                 {
-                    log.Write("Error unmarshaling object from stream.");
-                    return default(EditAndContinueMethodDebugInformation);
+                    // likely a bug in the compiler/debugger
+                    FatalError.ReportWithoutCrash(exception); 
+
+                    throw new InvalidDataException(exception.Message, exception);
                 }
+
+                _pdbReaderObjAsStream = IntPtr.Zero;
                 _pdbReader = (ISymUnmanagedReader3)pdbReaderObjMta;
             }
 
             int methodToken = MetadataTokens.GetToken(methodHandle);
-            byte[] debugInfo = _pdbReader.GetCustomDebugInfoBytes(methodToken, methodVersion: 1);
-            if (debugInfo != null)
+
+            byte[] debugInfo;
+            try
             {
-                try
-                {
-                    var localSlots = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLocalSlotMap);
-                    var lambdaMap = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLambdaMap);
-                    return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
-                }
-                catch (Exception e) when (e is InvalidOperationException || e is InvalidDataException)
-                {
-                    log.Write($"Error reading CDI of method 0x{methodToken:X8}: {e.Message}");
-                }
+                debugInfo = _pdbReader.GetCustomDebugInfoBytes(methodToken, methodVersion: 1);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e)) // likely a bug in the compiler/debugger
+            {
+                throw new InvalidDataException(e.Message, e);
             }
 
-            return default(EditAndContinueMethodDebugInformation);
+            try
+            {
+                ImmutableArray<byte> localSlots, lambdaMap;
+                if (debugInfo != null)
+                {
+                    localSlots = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLocalSlotMap);
+                    lambdaMap = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLambdaMap);
+                }
+                else
+                {
+                    localSlots = lambdaMap = default(ImmutableArray<byte>);
+                }
+
+                return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
+            }
+            catch (InvalidOperationException e) when (FatalError.ReportWithoutCrash(e)) // likely a bug in the compiler/debugger
+            {
+                // TODO: CustomDebugInfoReader should throw InvalidDataException
+                throw new InvalidDataException(e.Message, e);
+            }
         }
 
         public int EncApplySucceeded(int hrApplyResult)

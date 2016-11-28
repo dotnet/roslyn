@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved)
         {
             failedThroughTypeCheck = false;
-            return this.IsSymbolAccessibleConditional(symbol, Compilation.Assembly, ref useSiteDiagnostics);
+            return IsSymbolAccessibleConditional(symbol, Compilation.Assembly, ref useSiteDiagnostics);
         }
 
         internal override ConstantFieldsInProgress ConstantFieldsInProgress
@@ -177,6 +177,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override BoundStatement BindForEachParts(DiagnosticBag diagnostics, Binder originalBinder)
+        {
+            // There's supposed to be a ForEachLoopBinder (or other overrider of this method) in the chain.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override void BindForEachDeconstruction(DiagnosticBag diagnostics, Binder originalBinder)
         {
             // There's supposed to be a ForEachLoopBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;

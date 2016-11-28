@@ -77,9 +77,10 @@ namespace Microsoft.Cci
         bool GenerateVisualBasicStylePdb { get; }
 
         /// <summary>
-        /// Public types defined in other modules making up this assembly and to which other assemblies may refer to via this assembly.
+        /// Public types defined in other modules making up this assembly and to which other assemblies may refer to via this assembly
+        /// followed by types forwarded to another assembly.
         /// </summary>
-        IEnumerable<ITypeReference> GetExportedTypes(EmitContext context);
+        ImmutableArray<ExportedType> GetExportedTypes(DiagnosticBag diagnostics);
 
         /// <summary>
         /// A list of objects representing persisted instances of types that extend System.Attribute. Provides an extensible way to associate metadata

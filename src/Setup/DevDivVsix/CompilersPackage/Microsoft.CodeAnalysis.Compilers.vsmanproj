@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\ProducesNoOutput.Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\VSL.Versions.targets" />
+
+  <PropertyGroup>
+    <FinalizeManifest>true</FinalizeManifest>
+    <FinalizeSkipLayout>true</FinalizeSkipLayout>
+    <OutputPath>$(OutDir)Insertion\</OutputPath>
+    <IsPackage>true</IsPackage>
+  </PropertyGroup>
+
+  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildVersion)\build\MicroBuild.Core.props" />
+  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildVersion)\build\MicroBuild.Core.targets" />
+
+  <Target Name="BeforeBuild"> 
+    <MSBuild Projects="Microsoft.CodeAnalysis.Compilers.swixproj" Targets="Build" /> 
+  </Target>
+
+  <ItemGroup>
+    <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.Compilers.json" />
+  </ItemGroup>
+</Project>

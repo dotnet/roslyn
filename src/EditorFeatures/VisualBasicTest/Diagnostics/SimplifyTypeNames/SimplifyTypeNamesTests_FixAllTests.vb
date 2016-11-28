@@ -789,8 +789,8 @@ End Class]]>
 </Workspace>.ToString()
 
             Dim options = OptionsSet(
-                Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Info),
-                Tuple.Create(CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Info))
+                Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Suggestion),
+                Tuple.Create(CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Suggestion))
             Await TestAsync(
                 initialMarkup:=input,
                 expectedMarkup:=expected,

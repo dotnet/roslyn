@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal bool EarlyDecodeDeprecatedOrObsoleteAttribute(
+        internal static bool EarlyDecodeDeprecatedOrObsoleteAttribute(
             ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments,
             out CSharpAttributeData attributeData,
             out ObsoleteAttributeData obsoleteData)

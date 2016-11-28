@@ -198,7 +198,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 return null;
             }
 
-            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(EqualsValueClauseSyntax equalsValue)
+            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
+                EqualsValueClauseSyntax equalsValue)
             {
                 if (equalsValue != null && equalsValue.Value != null)
                 {
@@ -208,10 +209,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                         return null;
                     }
 
-                    var classifications = Classifier.GetClassifiedSpans(semanticModel, equalsValue.Value.Span, this.Workspace, this.CancellationToken);
-
-                    var text = await semanticModel.SyntaxTree.GetTextAsync(this.CancellationToken).ConfigureAwait(false);
-                    return ConvertClassifications(text, classifications);
+                    return await Classifier.GetClassifiedSymbolDisplayPartsAsync(
+                        semanticModel, equalsValue.Value.Span, 
+                        this.Workspace, this.CancellationToken).ConfigureAwait(false);
                 }
 
                 return null;

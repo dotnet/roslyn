@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToInterpolatedString;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Roslyn.Test.Utilities;
@@ -12,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertToIn
 {
     public class ConvertToInterpolatedStringTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace) =>
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace) =>
             new ConvertToInterpolatedStringRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
@@ -520,6 +517,34 @@ public class T
     public static void M()
     {
         string result = $""{5}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestOutVariableDeclaration_01()
+        {
+            await TestMissingAsync(
+@"using System;
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(""{0}"", out int x)|];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestOutVariableDeclaration_02()
+        {
+            await TestMissingAsync(
+@"using System;
+class T
+{
+    void M()
+    {
+        var a = [|string.Format(out string x, 1)|];
     }
 }");
         }

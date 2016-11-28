@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // we are removing the label expressions from the bound tree because this expression is no longer needed
             // for the emit phase. It is even doing harm to e.g. the stack depth calculation because this expression
-            // would not need to be pushed to the stack.
-            return node.Update(node.Label, expressionOpt: null);
+            // would not need to be pushed to the stack. We do preserve the constant value, which is used in emit.
+            return node.Update(node.Label, expressionOpt: null, constantValueOpt: node.ConstantValueOpt);
         }
     }
 }

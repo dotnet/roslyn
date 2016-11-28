@@ -146,7 +146,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim delaySignSetting As Boolean? = Nothing
             Dim moduleAssemblyName As String = Nothing
             Dim moduleName As String = Nothing
-            Dim sqmsessionguid As Guid = Nothing
             Dim touchedFilesPath As String = Nothing
             Dim features = New List(Of String)()
             Dim reportAnalyzer As Boolean = False
@@ -350,10 +349,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Continue For
 
                     Case "sqmsessionguid"
+                        ' The use of SQM is deprecated in the compiler but we still support the command line parsing for 
+                        ' back compat reasons.
                         value = RemoveQuotesAndSlashes(value)
                         If String.IsNullOrWhiteSpace(value) = True Then
                             AddDiagnostic(diagnostics, ERRID.ERR_MissingGuidForOption, value, name)
                         Else
+                            Dim sqmsessionguid As Guid
                             If Not Guid.TryParse(value, sqmsessionguid) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_InvalidFormatForGuidForOption, value, name)
                             End If
@@ -1332,7 +1334,6 @@ lVbRuntimePlus:
                 .EmitPdb = emitPdb,
                 .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,
-                .SqmSessionGuid = sqmsessionguid,
                 .ReportAnalyzer = reportAnalyzer
             }
         End Function

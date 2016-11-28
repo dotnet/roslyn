@@ -303,6 +303,26 @@ End Class
             Await VerifyBuilderAsync(markup, CompletionTrigger.Default, useDebuggerOptions:=True)
         End Function
 
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceDeclarationName_Unqualified() As Task
+            Dim markup = <a> 
+Namespace $$
+End Class
+</a>
+            Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceDeclarationName_Qualified() As Task
+            Dim markup = <a> 
+Namespace A.$$
+End Class
+</a>
+            Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
+        End Function
+
         Private Function VerifyNotBuilderAsync(markup As XElement, Optional triggerInfo As CompletionTrigger? = Nothing, Optional useDebuggerOptions As Boolean = False) As Task
             Return VerifySuggestionModeWorkerAsync(markup, isBuilder:=False, triggerInfo:=triggerInfo, useDebuggerOptions:=useDebuggerOptions)
         End Function

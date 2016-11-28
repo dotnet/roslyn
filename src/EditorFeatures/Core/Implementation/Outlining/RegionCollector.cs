@@ -9,14 +9,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 {
     internal class RegionCollector
     {
-        private readonly SyntacticDocument _document;
+        private readonly Document _document;
         private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxOutliner>> _nodeOutlinerMap;
         private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxOutliner>> _triviaOutlinerMap;
         private readonly List<OutliningSpan> _regions;
         private readonly CancellationToken _cancellationToken;
 
         private RegionCollector(
-            SyntacticDocument document,
+            Document document,
             ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxOutliner>> nodeOutlinerMap,
             ImmutableDictionary<int, ImmutableArray<AbstractSyntaxOutliner>> triviaOutlinerMap,
             List<OutliningSpan> spans,
@@ -30,14 +30,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
         }
 
         public static void CollectOutliningSpans(
-            SyntacticDocument document,
+            Document document,
+            SyntaxNode syntaxRoot,
             ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxOutliner>> nodeOutlinerMap,
             ImmutableDictionary<int, ImmutableArray<AbstractSyntaxOutliner>> triviaOutlinerMap,
             List<OutliningSpan> spans,
             CancellationToken cancellationToken)
         {
             var collector = new RegionCollector(document, nodeOutlinerMap, triviaOutlinerMap, spans, cancellationToken);
-            collector.Collect(document.Root);
+            collector.Collect(syntaxRoot);
         }
 
         private void Collect(SyntaxNode root)
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    outliner.CollectOutliningSpans(_document.Document, node, _regions, _cancellationToken);
+                    outliner.CollectOutliningSpans(_document, node, _regions, _cancellationToken);
                 }
             }
         }
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        outliner.CollectOutliningSpans(_document.Document, trivia, _regions, _cancellationToken);
+                        outliner.CollectOutliningSpans(_document, trivia, _regions, _cancellationToken);
                     }
                 }
             }

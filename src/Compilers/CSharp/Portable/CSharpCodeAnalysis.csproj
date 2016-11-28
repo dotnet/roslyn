@@ -18,6 +18,7 @@
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
+    <ServiceablePackage>true</ServiceablePackage>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\DeployCompilerGeneratorToolsRuntime\DeployCompilerGeneratorToolsRuntime.csproj">
@@ -44,7 +45,6 @@
     <DebugSymbols>true</DebugSymbols>
     <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <NoWarn>1591</NoWarn>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>..\CSharpCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
@@ -53,7 +53,6 @@
     <OutDir>..\..\..\..\Binaries\Release\amd64</OutDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
-    <NoWarn>1591</NoWarn>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>..\CSharpCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
@@ -85,6 +84,7 @@
     <Compile Include="Binder\Binder_Patterns.cs" />
     <Compile Include="Binder\Binder_Query.cs" />
     <Compile Include="Binder\Binder_QueryErrors.cs" />
+    <Compile Include="Binder\Binder_Deconstruct.cs" />
     <Compile Include="Binder\Binder_Statements.cs" />
     <Compile Include="Binder\Binder_Symbols.cs" />
     <Compile Include="Binder\Binder_Unsafe.cs" />
@@ -199,7 +199,11 @@
     <Compile Include="BoundTree\BoundTreeVisitors.cs" />
     <Compile Include="BoundTree\BoundTreeWalker.cs" />
     <Compile Include="BoundTree\Constructors.cs" />
+    <Compile Include="BoundTree\DecisionTree.cs" />
     <Compile Include="BoundTree\Expression.cs" />
+    <Compile Include="BoundTree\DeconstructionLocalPendingInference.cs" />
+    <Compile Include="BoundTree\OutVarLocalPendingInference.cs" />
+    <Compile Include="BoundTree\OutDeconstructVarPendingInference.cs" />
     <Compile Include="BoundTree\PseudoVariableExpressions.cs" />
     <Compile Include="BoundTree\Formatting.cs" />
     <Compile Include="BoundTree\NoOpStatementFlavor.cs" />
@@ -407,6 +411,7 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ConditionalOperator.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ContinueStatement.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Conversion.cs" />
+    <Compile Include="Lowering\LocalRewriter\LocalRewriter_DeconstructionAssignmentOperator.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_DelegateCreationExpression.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_DoStatement.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Event.cs" />
@@ -421,11 +426,11 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_IndexerAccess.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_IsOperator.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_LabeledStatement.cs" />
+    <Compile Include="Lowering\LocalRewriter\LocalRewriter_PatternSwitchStatement.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_TupleCreationExpression.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Literal.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_LocalDeclaration.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_LockStatement.cs" />
-    <Compile Include="Lowering\LocalRewriter\LocalRewriter_MatchStatement.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_MultipleLocalDeclarations.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_NullCoalescingOperator.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ObjectCreationExpression.cs" />
@@ -512,6 +517,7 @@
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TemplateSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.ToStringMethodSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TypeParameterSymbol.cs" />
+    <Compile Include="Symbols\Metadata\PE\TupleTypeDecoder.cs" />
     <Compile Include="Symbols\Tuples\TupleEventSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleFieldSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleMethodSymbol.cs" />
@@ -740,6 +746,7 @@
     <Compile Include="Symbols\Wrapped\WrappedPropertySymbol.cs" />
     <Compile Include="Symbols\Wrapped\WrappedTypeParameterSymbol.cs" />
     <Compile Include="Syntax\AliasedQualifiedNameSyntax.cs" />
+    <Compile Include="Syntax\ArgumentSyntax.cs" />
     <Compile Include="Syntax\ArrayRankSpecifierSyntax.cs" />
     <Compile Include="Syntax\AttributeSyntax.cs" />
     <Compile Include="Syntax\AttributeTargetSpecifierSyntax.cs" />
@@ -756,7 +763,11 @@
     <Compile Include="Syntax\DeclarationStatementSyntax.cs" />
     <Compile Include="Syntax\DelegateDeclarationSyntax.cs" />
     <Compile Include="Syntax\DirectiveTriviaSyntax.cs" />
+    <Compile Include="Syntax\EventFieldDeclarationSyntax.cs" />
     <Compile Include="Syntax\ExpressionStatementSyntax.cs" />
+    <Compile Include="Syntax\FieldDeclarationSyntax.cs" />
+    <Compile Include="Syntax\FixedStatementSyntax.cs" />
+    <Compile Include="Syntax\ForEachStatementSyntax.cs" />
     <Compile Include="Syntax\GenericNameSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\BinaryExpressionSyntax.cs" />
     <Compile Include="Syntax\CSharpSyntaxTree.DebuggerSyntaxTree.cs" />
@@ -851,6 +862,7 @@
     <Compile Include="Syntax\SyntaxTriviaListBuilder.cs" />
     <Compile Include="Syntax\TypeDeclarationSyntax.cs" />
     <Compile Include="Syntax\TypeSyntax.cs" />
+    <Compile Include="Syntax\VariableDeclarationSyntax.cs" />
     <Compile Include="Syntax\XmlNameAttributeElementKind.cs" />
     <Compile Include="Utilities\EnumExtensions.cs" />
     <Compile Include="Utilities\FirstAmongEqualsSet.cs" />

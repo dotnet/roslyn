@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         Return Nothing
                     End If
 
-                    Return Me.VisitTypeMembers(otherContainer, nestedType, AddressOf GetNestedTypes, Function(a, b) s_nameComparer.Equals(a.Name, b.Name))
+                    Return VisitTypeMembers(otherContainer, nestedType, AddressOf GetNestedTypes, Function(a, b) s_nameComparer.Equals(a.Name, b.Name))
                 End If
 
                 Dim member = TryCast(def, Cci.ITypeDefinitionMember)
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                     Dim field = TryCast(def, Cci.IFieldDefinition)
                     If field IsNot Nothing Then
-                        Return Me.VisitTypeMembers(otherContainer, field, AddressOf GetFields, Function(a, b) s_nameComparer.Equals(a.Name, b.Name))
+                        Return VisitTypeMembers(otherContainer, field, AddressOf GetFields, Function(a, b) s_nameComparer.Equals(a.Name, b.Name))
                     End If
                 End If
 
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return Me._lazyTopLevelTypes
             End Function
 
-            Private Function VisitTypeMembers(Of T As {Class, Cci.ITypeDefinitionMember})(
+            Private Shared Function VisitTypeMembers(Of T As {Class, Cci.ITypeDefinitionMember})(
                 otherContainer As Cci.ITypeDefinition,
                 member As T,
                 getMembers As Func(Of Cci.ITypeDefinition, IEnumerable(Of T)),
@@ -577,7 +577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     [property].Parameters.SequenceEqual(other.Parameters, AddressOf Me.AreParametersEqual)
             End Function
 
-            Private Function AreTypeParametersEqual(type As TypeParameterSymbol, other As TypeParameterSymbol) As Boolean
+            Private Shared Function AreTypeParametersEqual(type As TypeParameterSymbol, other As TypeParameterSymbol) As Boolean
                 Debug.Assert(type.Ordinal = other.Ordinal)
                 Debug.Assert(s_nameComparer.Equals(type.Name, other.Name))
                 ' Comparing constraints is unnecessary: two methods cannot differ by

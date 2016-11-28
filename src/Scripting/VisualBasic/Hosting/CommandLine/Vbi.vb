@@ -5,7 +5,6 @@ Imports System.Reflection
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
@@ -29,14 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
         Public Overrides Sub PrintHelp(consoleOutput As TextWriter)
             consoleOutput.Write(VBScriptingResources.InteractiveHelp)
-        End Sub
-
-        Protected Overrides Function GetSqmAppID() As UInteger
-            Return SqmServiceProvider.BASIC_APPID
-        End Function
-
-        Protected Overrides Sub CompilerSpecificSqm(sqm As IVsSqmMulti, sqmSession As UInteger)
-            sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_COMPILERTYPE, CType(SqmServiceProvider.CompilerType.Interactive, UInteger))
         End Sub
     End Class
 

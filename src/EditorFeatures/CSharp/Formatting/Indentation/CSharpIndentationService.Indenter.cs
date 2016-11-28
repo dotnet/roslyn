@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -24,12 +25,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
         internal class Indenter : AbstractIndenter
         {
             public Indenter(
-                SyntacticDocument document,
+                ISyntaxFactsService syntaxFacts,
+                SyntaxTree syntaxTree,
                 IEnumerable<IFormattingRule> rules,
                 OptionSet optionSet,
                 TextLine line,
                 CancellationToken cancellationToken) :
-                base(document, rules, optionSet, line, cancellationToken)
+                base(syntaxFacts, syntaxTree, rules, optionSet, line, cancellationToken)
             {
             }
 

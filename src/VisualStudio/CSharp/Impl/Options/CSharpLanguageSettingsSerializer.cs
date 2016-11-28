@@ -10,7 +10,13 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
-    [ExportLanguageSpecificOptionSerializer(LanguageNames.CSharp, FormattingOptions.TabFeatureName, BraceCompletionOptions.FeatureName, CompletionOptions.FeatureName, SignatureHelpOptions.FeatureName, NavigationBarOptions.FeatureName), Shared]
+    [ExportLanguageSpecificOptionSerializer(
+        LanguageNames.CSharp,
+        FormattingOptions.TabFeatureName,
+        BraceCompletionOptions.FeatureName,
+        CompletionOptions.FeatureName,
+        SignatureHelpOptions.FeatureName,
+        NavigationBarOptions.FeatureName), Shared]
     internal class CSharpLanguageSettingsSerializer : AbstractLanguageSettingsSerializer
     {
         [ImportingConstructor]

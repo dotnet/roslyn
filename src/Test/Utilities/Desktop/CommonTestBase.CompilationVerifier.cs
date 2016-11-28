@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _diagnostics = testEnvironment.GetDiagnostics();
                 EmittedAssemblyData = testEnvironment.GetMainImage();
                 EmittedAssemblyPdb = testEnvironment.GetMainPdb();
-                _testData = ((IInternalRuntimeEnvironment) testEnvironment).GetCompilationTestData();
+                _testData = ((IInternalRuntimeEnvironment)testEnvironment).GetCompilationTestData();
 
                 return _compilation.Assembly.Identity.GetDisplayName();
             }
@@ -332,6 +332,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     return AssemblyMetadata.Create(moduleMetadata).GetReference(display: display);
                 }
+            }
+
+            public void VerifyOperationTree(string expectedOperationTree, bool skipImplicitlyDeclaredSymbols = false)
+            {
+                _compilation.VerifyOperationTree(expectedOperationTree, skipImplicitlyDeclaredSymbols);
+            }
+
+            public void VerifyOperationTree(string symbolToVerify, string expectedOperationTree, bool skipImplicitlyDeclaredSymbols = false)
+            {
+                _compilation.VerifyOperationTree(symbolToVerify, expectedOperationTree, skipImplicitlyDeclaredSymbols);
             }
         }
     }

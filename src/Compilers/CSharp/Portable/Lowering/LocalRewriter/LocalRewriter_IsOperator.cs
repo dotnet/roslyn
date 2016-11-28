@@ -68,10 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // We need to box the type parameter even if it is a known
                         // reference type to ensure there are no verifier errors
-                        rewrittenOperand = MakeConversion(
+                        rewrittenOperand = MakeConversionNode(
                             syntax: rewrittenOperand.Syntax,
                             rewrittenOperand: rewrittenOperand,
-                            conversionKind: ConversionKind.Boxing,
+                            conversion: Conversion.Boxing,
                             rewrittenType: _compilation.GetSpecialType(SpecialType.System_Object),
                             @checked: false);
                     }

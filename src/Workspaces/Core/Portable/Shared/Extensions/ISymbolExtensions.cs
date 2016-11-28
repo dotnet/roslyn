@@ -504,10 +504,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             .Skip(skip)
                             .Select(p => p.Type)
                             .Concat(method.ReturnType)
-                            .Select(t =>
-                                t == null ?
-                                compilation.GetSpecialType(SpecialType.System_Object) :
-                                t)
+                            .Select(t => t ?? compilation.GetSpecialType(SpecialType.System_Object))
                             .ToArray();
                         return functionType.Construct(types);
                     }

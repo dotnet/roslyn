@@ -236,11 +236,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // Light bulb will always invoke this function on the UI thread.
             AssertIsForeground();
 
+            var previewPaneService = Workspace.Services.GetService<IPreviewPaneService>();
+            if (previewPaneService == null)
+            {
+                return null;
+            }
+
+            // after this point, this method should only return at GetPreviewPane. otherwise, DifferenceViewer will leak
+            // since there is no one to close the viewer
             var preferredDocumentId = Workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
             var preferredProjectId = preferredDocumentId?.ProjectId;
 
             var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
-            var previewContent = await extensionManager.PerformFunctionAsync(Provider, async () =>
+            var previewContents = await extensionManager.PerformFunctionAsync(Provider, async () =>
             {
                 // We need to stay on UI thread after GetPreviewResultAsync() so that TakeNextPreviewAsync()
                 // below can execute on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
@@ -259,14 +267,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // GetPreviewPane() below needs to run on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
             }, defaultValue: null).ConfigureAwait(true);
 
-            var previewPaneService = Workspace.Services.GetService<IPreviewPaneService>();
-            if (previewPaneService == null)
-            {
-                return null;
-            }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
             // GetPreviewPane() needs to run on the UI thread.
             AssertIsForeground();
 
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             string projectType;
             Workspace.GetLanguageAndProjectType(preferredProjectId, out language, out projectType);
 
-            return previewPaneService.GetPreviewPane(GetDiagnostic(), language, projectType, previewContent);
+            return previewPaneService.GetPreviewPane(GetDiagnostic(), language, projectType, previewContents);
         }
 
         protected virtual DiagnosticData GetDiagnostic()

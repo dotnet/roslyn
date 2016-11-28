@@ -874,13 +874,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsApplicable(BinaryOperatorSignature binaryOperator, BoundExpression left, BoundExpression right, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            return
-                Conversions.ClassifyImplicitConversionFromExpression(left, binaryOperator.LeftType, ref useSiteDiagnostics).Exists &&
-                Conversions.ClassifyImplicitConversionFromExpression(right, binaryOperator.RightType, ref useSiteDiagnostics).Exists;
-        }
-
         private BetterResult BetterOperator(BinaryOperatorSignature op1, BinaryOperatorSignature op2, BoundExpression left, BoundExpression right, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(op1.Priority.HasValue == op2.Priority.HasValue);

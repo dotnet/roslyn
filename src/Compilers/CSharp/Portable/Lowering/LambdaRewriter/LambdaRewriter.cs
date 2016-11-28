@@ -1050,21 +1050,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.ConversionKind == ConversionKind.AnonymousFunction)
             {
                 var result = (BoundExpression)RewriteLambdaConversion((BoundLambda)conversion.Operand);
-                return _inExpressionLambda && conversion.ExplicitCastInCode
-                    ? new BoundConversion(
+
+                if (_inExpressionLambda && conversion.ExplicitCastInCode)
+                {
+                    result = new BoundConversion(
                         syntax: conversion.Syntax,
                         operand: result,
-                        conversionKind: conversion.ConversionKind,
-                        resultKind: conversion.ResultKind,
+                        conversion: conversion.Conversion,
                         isBaseConversion: false,
-                        symbolOpt: null,
                         @checked: false,
                         explicitCastInCode: true,
-                        isExtensionMethod: false,
-                        isArrayIndex: false,
                         constantValueOpt: conversion.ConstantValueOpt,
-                        type: conversion.Type)
-                    : result;
+                        type: conversion.Type);
+                }
+
+                return result;
             }
             else
             {

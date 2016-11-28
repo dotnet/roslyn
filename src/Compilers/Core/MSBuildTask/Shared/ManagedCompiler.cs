@@ -60,6 +60,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         // We do not support BugReport because it always requires user interaction,
         // which will cause a hang.
 
+        public string ChecksumAlgorithm
+        {
+            set { _store[nameof(ChecksumAlgorithm)] = value; }
+            get { return (string)_store[nameof(ChecksumAlgorithm)]; }
+        }
+
         public string CodeAnalysisRuleSet
         {
             set { _store[nameof(CodeAnalysisRuleSet)] = value; }
@@ -698,6 +704,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/deterministic", _store, nameof(Deterministic));
             commandLine.AppendPlusOrMinusSwitch("/publicsign", _store, nameof(PublicSign));
             commandLine.AppendSwitchIfNotNull("/runtimemetadataversion:", RuntimeMetadataVersion);
+            commandLine.AppendSwitchIfNotNull("/checksumalgorithm:", ChecksumAlgorithm);
 
             AddFeatures(commandLine, Features);
         }
