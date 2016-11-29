@@ -17101,9 +17101,8 @@ public class C3 : I0<int>, I0<int> { }
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
             var c1 = nodes.OfType<ClassDeclarationSyntax>().First();
-            Assert.Equal(2, model.GetDeclaredSymbol(c1).AllInterfaces.Count());
-            Assert.Equal("I0<(System.Int32 a, System.Int32 b)>", model.GetDeclaredSymbol(c1).AllInterfaces[0].ToTestDisplayString());
-            Assert.Equal("I0<(System.Int32 notA, System.Int32 notB)>", model.GetDeclaredSymbol(c1).AllInterfaces[1].ToTestDisplayString());
+            Assert.Equal(1, model.GetDeclaredSymbol(c1).AllInterfaces.Count());
+            Assert.Equal("I0<(System.Int32 notA, System.Int32 notB)>", model.GetDeclaredSymbol(c1).AllInterfaces[0].ToTestDisplayString());
 
             var c2 = nodes.OfType<ClassDeclarationSyntax>().Skip(1).First();
             Assert.Equal(1, model.GetDeclaredSymbol(c2).AllInterfaces.Count());
@@ -20324,28 +20323,257 @@ static class Program
 
         [Fact]
         [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
-        public static void Test1()
+        public void ImplicitIEnumerableImplementationWithDifferentTupleNames()
         {
             var source = @"
-interface I1<T>{}
+using System;
+using System.Collections;
+using System.Collections.Generic;
 
-class Base : I1<(int a, int b)>{}
+class Base : IEnumerable<(int a, int b)>
+{
+    public IEnumerator<(int a, int b)> GetEnumerator() { throw new Exception(); }
+    IEnumerator IEnumerable.GetEnumerator() { throw new Exception(); }
+}
 
-class Derived : Base, I1<(int c, int d)> {}
+class Derived : Base, IEnumerable<(int notA, int notB)>
+{
+    public new IEnumerator<(int notA, int notB)> GetEnumerator() { return new DerivedEnumerator(); }
+    IEnumerator IEnumerable.GetEnumerator() { throw new Exception(); }
 
-interface I2 : I1<(int a, int b)> {}
+    public class DerivedEnumerator : IEnumerator<(int notA, int notB)>
+    {
+        bool done = false;
+        public (int notA, int notB) Current { get { return (2, 2); } }
+        public bool MoveNext() { if (done) { return false; } else { done = true; return true; } }
+        public void Reset() { }
+        public void Dispose() { }
+        object IEnumerator.Current { get { throw new Exception(); } }
+    }
+}
 
-class C1 : I2, I1<(int c, int d)> {}
-
-class C2 : I2, I1<(int a, int b)> {}
+class C
+{
+    static void Main()
+    {
+        foreach (var x in new Derived())
+        {
+            Console.WriteLine(x.notA);
+        }
+    }
+}
 ";
-            var comp1 = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
-            comp1.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var derived = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().ElementAt(1);
+            var derivedSymbol = model.GetDeclaredSymbol(derived);
+            Assert.Equal("Derived", derivedSymbol.ToTestDisplayString());
+
+            Assert.Equal(new[] {
+                    "System.Collections.Generic.IEnumerable<(System.Int32 notA, System.Int32 notB)>",
+                    "System.Collections.IEnumerable" },
+                derivedSymbol.AllInterfaces.Select(i => i.ToTestDisplayString()));
+
+            var xSymbol = model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single());
+            Assert.Equal("(System.Int32 notA, System.Int32 notB)", xSymbol.Type.ToTestDisplayString());
+
+            CompileAndVerify(comp, expectedOutput: "2");
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void ExplicitIEnumerableImplementationWithDifferentTupleNames()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+class Base : IEnumerable<(int a, int b)>
+{
+    IEnumerator<(int a, int b)> IEnumerable<(int a, int b)>.GetEnumerator() { throw new Exception(); }
+    IEnumerator IEnumerable.GetEnumerator() { throw new Exception(); }
+}
+
+class Derived : Base, IEnumerable<(int notA, int notB)>
+{
+    IEnumerator<(int notA, int notB)> IEnumerable<(int notA, int notB)>.GetEnumerator() { return new DerivedEnumerator(); }
+    IEnumerator IEnumerable.GetEnumerator() { throw new Exception(); }
+
+    public class DerivedEnumerator : IEnumerator<(int notA, int notB)>
+    {
+        bool done = false;
+        public (int notA, int notB) Current { get { return (2, 2); } }
+        public bool MoveNext() { if (done) { return false; } else { done = true; return true; } }
+        public void Reset() { }
+        public void Dispose() { }
+        object IEnumerator.Current { get { throw new Exception(); } }
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        foreach (var x in new Derived())
+        {
+            System.Console.WriteLine(x.notA);
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var derived = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().ElementAt(1);
+            var derivedSymbol = model.GetDeclaredSymbol(derived);
+            Assert.Equal("Derived", derivedSymbol.ToTestDisplayString());
+
+            Assert.Equal(new[] {
+                    "System.Collections.Generic.IEnumerable<(System.Int32 notA, System.Int32 notB)>",
+                    "System.Collections.IEnumerable" },
+                derivedSymbol.AllInterfaces.Select(i => i.ToTestDisplayString()));
+
+            var xSymbol = model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single());
+            Assert.Equal("(System.Int32 notA, System.Int32 notB)", xSymbol.Type.ToTestDisplayString());
+
+            CompileAndVerify(comp, expectedOutput: "2");
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void GenericImplicitIEnumerableImplementationUsedWithDifferentTupleNames()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+class Base : IEnumerable<(int, int)>
+{
+    public IEnumerator<(int, int)> GetEnumerator() { return null; }
+    IEnumerator IEnumerable.GetEnumerator() { return null; }
+}
+
+class Derived<T> : Base, IEnumerable<T>
+{
+    public T state;
+    public new IEnumerator<T> GetEnumerator() { return new DerivedEnumerator() { state = state }; }
+    IEnumerator IEnumerable.GetEnumerator() { return null; }
+
+    public class DerivedEnumerator : IEnumerator<T>
+    {
+        public T state;
+        bool done = false;
+        public T Current { get { return state; } }
+        public bool MoveNext() { if (done) { return false; } else { done = true; return true; } }
+        public void Reset() { }
+        public void Dispose() { }
+        object IEnumerator.Current { get { return null; } }
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        var derived = new Derived<(string a, string b)>() { state = (""hello"", ""world"") };
+        foreach (var x in derived)
+        {
+            System.Console.WriteLine(x.a);
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var derived = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().ElementAt(1);
+            var derivedSymbol = model.GetDeclaredSymbol(derived);
+            Assert.Equal("Derived<T>", derivedSymbol.ToTestDisplayString());
+
+            Assert.Equal(new[] {
+                    "System.Collections.Generic.IEnumerable<(System.Int32, System.Int32)>",
+                    "System.Collections.Generic.IEnumerable<T>",
+                    "System.Collections.IEnumerable" },
+                derivedSymbol.AllInterfaces.Select(i => i.ToTestDisplayString()));
+
+            CompileAndVerify(comp, expectedOutput: "hello");
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void GenericExplicitIEnumerableImplementationUsedWithDifferentTupleNames()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+class Base : IEnumerable<(int a, int b)>
+{
+    IEnumerator<(int a, int b)> IEnumerable<(int a, int b)>.GetEnumerator() { throw new Exception(); }
+    IEnumerator IEnumerable.GetEnumerator() { throw new Exception(); }
+}
+
+class Derived<T> : Base, IEnumerable<T>
+{
+    public T state;
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() { return new DerivedEnumerator() { state = state }; }
+    IEnumerator IEnumerable.GetEnumerator() { throw new Exception(); }
+
+    public class DerivedEnumerator : IEnumerator<T>
+    {
+        public T state;
+        bool done = false;
+        public T Current { get { return state; } }
+        public bool MoveNext() { if (done) { return false; } else { done = true; return true; } }
+        public void Reset() { }
+        public void Dispose() { }
+        object IEnumerator.Current { get { throw new Exception(); } }
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        var derived = new Derived<(string notA, string notB)>() { state = (""hello"", ""world"") };
+        foreach (var x in derived)
+        {
+            System.Console.WriteLine(x.notA);
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (35,27): error CS1640: foreach statement cannot operate on variables of type 'Derived<(string notA, string notB)>' because it implements multiple instantiations of 'IEnumerable<T>'; try casting to a specific interface instantiation
+                //         foreach (var x in derived)
+                Diagnostic(ErrorCode.ERR_MultipleIEnumOfT, "derived").WithArguments("Derived<(string notA, string notB)>", "System.Collections.Generic.IEnumerable<T>").WithLocation(35, 27)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var derived = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().ElementAt(1);
+            var derivedSymbol = model.GetDeclaredSymbol(derived);
+            Assert.Equal("Derived<T>", derivedSymbol.ToTestDisplayString());
+
+            Assert.Equal(new[] {
+                    "System.Collections.Generic.IEnumerable<(System.Int32 a, System.Int32 b)>",
+                    "System.Collections.Generic.IEnumerable<T>",
+                    "System.Collections.IEnumerable" },
+                derivedSymbol.AllInterfaces.Select(i => i.ToTestDisplayString()));
         }
 
         [Fact]
         [WorkItem(14843, "https://github.com/dotnet/roslyn/issues/14843")]
-        public static void TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion()
+        public void TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion()
         {
             var source = @"
 interface I1<T> {}
@@ -20354,13 +20582,13 @@ class Base<U> where U : I1<(int a, int b)> {}
 
 class Derived : Base<I1<(int notA, int notB)>> {}
 ";
-            var comp1 = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
-            comp1.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
         [WorkItem(14843, "https://github.com/dotnet/roslyn/issues/14843")]
-        public static void TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion2()
+        public void TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion2()
         {
             var source = @"
 interface I1<T> {}
@@ -20370,8 +20598,8 @@ class Base<U> where U : I1<(int a, int b)> {}
 
 class Derived : Base<I2<(int notA, int notB)>> {}
 ";
-            var comp1 = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
-            comp1.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
         }
     }
 }
