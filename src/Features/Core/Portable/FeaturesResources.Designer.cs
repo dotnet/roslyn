@@ -126,6 +126,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add document &apos;{0}&apos;.
+        /// </summary>
+        internal static string Add_document_0 {
+            get {
+                return ResourceManager.GetString("Add_document_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add missing cases.
         /// </summary>
         internal static string Add_missing_cases {
@@ -2208,6 +2217,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Remarks_colon {
             get {
                 return ResourceManager.GetString("Remarks_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove document &apos;{0}&apos;.
+        /// </summary>
+        internal static string Remove_document_0 {
+            get {
+                return ResourceManager.GetString("Remove_document_0", resourceCulture);
             }
         }
         
