@@ -42,7 +42,7 @@
                 "Dlls\\VisualStudioInteractiveServices\\Microsoft.VisualStudio.InteractiveServices.dll",
                 "Dlls\\Workspaces.Desktop\\Microsoft.CodeAnalysis.Workspaces.Desktop.dll",
                 "Dlls\\Workspaces\\Microsoft.CodeAnalysis.Workspaces.dll",
-                "Dlls\\XamlVisualStudio\\Microsoft.VisualStudio.LanguageServices.Xaml.dll"
+                "Dlls\\XamlVisualStudio\\Microsoft.VisualStudio.LanguageServices.Xaml.dll",
                 "Exes\\InteractiveHost\\InteractiveHost.exe",
                 "Exes\\VBCSCompiler\\VBCSCompiler.exe",
                 "Exes\\csc\\csc.exe",
@@ -58,7 +58,7 @@
                 "Vsix\\CompilerExtension\\Roslyn.Compilers.Extension.dll",
                 "Vsix\\Templates\\Roslyn.Templates.dll",
                 "Vsix\\VisualStudioDiagnosticsWindow\\Roslyn.VisualStudio.DiagnosticsWindow.dll",
-                "Vsix\\VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.dll",
+                "Vsix\\VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.dll"
             ]
         },
         {
