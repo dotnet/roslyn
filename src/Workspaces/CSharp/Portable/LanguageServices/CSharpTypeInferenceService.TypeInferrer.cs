@@ -894,11 +894,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var otherSideTypes = GetTypes(otherSide);
                 if (otherSideTypes.Any())
                 {
-                    // Don't infer delegate types. They're unlikely to be what the
+                    // Don't infer delegate types except in assignments. They're unlikely to be what the
                     // user needs and can cause lambda suggestion mode while
                     // typing type arguments:
                     // https://github.com/dotnet/roslyn/issues/14492
-                    return otherSideTypes.Where(t => !t.InferredType.IsDelegateType());
+                    if (!(binop is AssignmentExpressionSyntax))
+                    {
+                        otherSideTypes = otherSideTypes.Where(t => !t.InferredType.IsDelegateType());
+                    }
+
+                    return otherSideTypes;
                 }
 
                 // For &, &=, |, |=, ^, and ^=, since we couldn't infer the type of either side, 
