@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -14,10 +13,8 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -84,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             var componentModel = _workspace.GetVsService<SComponentModel, IComponentModel>();
 
             var packageInstallerServices = componentModel.GetExtensions<IVsPackageInstallerServices>().FirstOrDefault();
-            var packageInstaller = componentModel.GetExtensions<IVsPackageInstaller>().FirstOrDefault();
+            var packageInstaller = componentModel.GetExtensions<IVsPackageInstaller2>().FirstOrDefault();
             var packageUninstaller = componentModel.GetExtensions<IVsPackageUninstaller>().FirstOrDefault();
             var packageSourceProvider = componentModel.GetExtensions<IVsPackageSourceProvider>().FirstOrDefault();
 
@@ -566,48 +563,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private class PackageServicesProxy : IPackageServicesProxy
         {
-            private readonly IVsPackageInstaller _packageInstaller;
+            private readonly IVsPackageInstaller2 _packageInstaller;
             private readonly IVsPackageInstallerServices _packageInstallerServices;
             private readonly IVsPackageSourceProvider _packageSourceProvider;
             private readonly IVsPackageUninstaller _packageUninstaller;
 
-            public PackageServicesProxy(IVsPackageInstallerServices packageInstallerServices, IVsPackageInstaller packageInstaller, IVsPackageUninstaller packageUninstaller, IVsPackageSourceProvider packageSourceProvider)
+            public PackageServicesProxy(
+                IVsPackageInstallerServices packageInstallerServices,
+                IVsPackageInstaller2 packageInstaller,
+                IVsPackageUninstaller packageUninstaller,
+                IVsPackageSourceProvider packageSourceProvider)
             {
                 _packageInstallerServices = packageInstallerServices;
                 _packageInstaller = packageInstaller;
                 _packageUninstaller = packageUninstaller;
                 _packageSourceProvider = packageSourceProvider;
-            }
-
-            public IEnumerable<PackageMetadata> GetInstalledPackages(EnvDTE.Project project)
-            {
-                return _packageInstallerServices.GetInstalledPackages(project)
-                                  .Select(m => new PackageMetadata(m.Id, m.VersionString))
-                                  .ToList();
-            }
-
-            public bool IsPackageInstalled(EnvDTE.Project project, string id)
-            {
-                return _packageInstallerServices.IsPackageInstalled(project, id);
-            }
-
-            public void InstallPackage(string source, EnvDTE.Project project, string packageId, string version, bool ignoreDependencies)
-            {
-                _packageInstaller.InstallPackage(source, project, packageId, version, ignoreDependencies);
-            }
-
-            public void InstallLatestPackage(string source, EnvDTE.Project project, string packageId, bool includePrerelease, bool ignoreDependencies)
-            {
-                // Use reflection until the 3.5.0 version of NuGet.VisualStudio is released
-                // publicly.  Then we call into this method directly.
-                var installLatestPackageInfo = _packageInstaller.GetType().GetMethod(
-                    nameof(InstallLatestPackage), BindingFlags.Public | BindingFlags.Instance);
-
-                if (installLatestPackageInfo != null)
-                {
-                    installLatestPackageInfo.Invoke(_packageInstaller,
-                        new object[] { source, project, packageId, includePrerelease, ignoreDependencies });
-                }
             }
 
             public event EventHandler SourcesChanged
@@ -623,15 +593,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 }
             }
 
-            public IEnumerable<KeyValuePair<string, string>> GetSources(bool includeUnOfficial, bool includeDisabled)
+            public IEnumerable<PackageMetadata> GetInstalledPackages(EnvDTE.Project project)
             {
-                return _packageSourceProvider.GetSources(includeUnOfficial, includeDisabled);
+                return _packageInstallerServices.GetInstalledPackages(project)
+                                  .Select(m => new PackageMetadata(m.Id, m.VersionString))
+                                  .ToList();
             }
 
+            public bool IsPackageInstalled(EnvDTE.Project project, string id)
+                => _packageInstallerServices.IsPackageInstalled(project, id);
+
+            public void InstallPackage(string source, EnvDTE.Project project, string packageId, string version, bool ignoreDependencies)
+                => _packageInstaller.InstallPackage(source, project, packageId, version, ignoreDependencies);
+
+            public void InstallLatestPackage(string source, EnvDTE.Project project, string packageId, bool includePrerelease, bool ignoreDependencies)
+                => _packageInstaller.InstallLatestPackage(source, project, packageId, includePrerelease, ignoreDependencies);
+
+            public IEnumerable<KeyValuePair<string, string>> GetSources(bool includeUnOfficial, bool includeDisabled)
+                => _packageSourceProvider.GetSources(includeUnOfficial, includeDisabled);
+
             public void UninstallPackage(EnvDTE.Project project, string packageId, bool removeDependencies)
-            {
-                _packageUninstaller.UninstallPackage(project, packageId, removeDependencies);
-            }
+                => _packageUninstaller.UninstallPackage(project, packageId, removeDependencies);
         }
     }
 }
