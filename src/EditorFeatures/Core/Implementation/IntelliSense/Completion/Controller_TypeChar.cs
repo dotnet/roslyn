@@ -143,14 +143,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         }
 
         private void ExecuteTypeCharWithSession(
-            TypeCharCommandArgs args,
-            Action nextHandler,
-            ITextSnapshot initialTextSnapshot,
-            SnapshotPoint initialCaretPosition,
-            CompletionService completionService,
-            OptionSet options,
-            bool isTextuallyTriggered,
-            CompletionTrigger trigger)
+            TypeCharCommandArgs args, Action nextHandler, ITextSnapshot initialTextSnapshot,
+            SnapshotPoint initialCaretPosition, CompletionService completionService,
+            OptionSet options, bool isTextuallyTriggered, CompletionTrigger trigger)
         {
 
             sessionOpt.UpdateModelTrackingSpan(initialCaretPosition);
