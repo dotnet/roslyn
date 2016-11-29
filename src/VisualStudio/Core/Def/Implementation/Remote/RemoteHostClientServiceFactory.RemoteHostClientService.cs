@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -18,6 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         public class RemoteHostClientService : ForegroundThreadAffinitizedObject, IRemoteHostClientService
         {
+            private readonly IAsynchronousOperationListener _listener;
             private readonly Workspace _workspace;
             private readonly IDiagnosticAnalyzerService _analyzerService;
 
@@ -28,17 +30,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private Task<RemoteHostClient> _instanceTask;
 
             public RemoteHostClientService(
+                IAsynchronousOperationListener listener,
                 Workspace workspace,
                 IDiagnosticAnalyzerService analyzerService) :
                 base()
             {
                 _gate = new object();
 
+                _listener = listener;
                 _workspace = workspace;
                 _analyzerService = analyzerService;
             }
 
             public Workspace Workspace => _workspace;
+            public IAsynchronousOperationListener Listener => _listener;
 
             public void Enable()
             {

@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private bool _synchronize;
 
             public SolutionChecksumUpdater(RemoteHostClientService service, CancellationToken shutdownToken) :
-                base(AggregateAsynchronousOperationListener.CreateEmptyListener(),
+                base(service.Listener,
                      service.Workspace.Services.GetService<IGlobalOperationNotificationService>(),
                      service.Workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
             {

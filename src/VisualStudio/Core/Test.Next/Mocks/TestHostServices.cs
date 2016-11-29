@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Composition;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
@@ -19,14 +21,27 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
         {
             return MinimalTestExportProvider.CreateExportProvider(
                 ServiceTestExportProvider.CreateAssemblyCatalog()
-                                         .WithPart(typeof(InProcRemoteHostClientFactory)));
+                                         .WithPart(typeof(InProcRemoteHostClientFactory))
+                                         .WithPart(typeof(WorkspaceWaiter)));
         }
 
         public static ExportProvider CreateExportProvider()
         {
             return MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic()
-                                         .WithPart(typeof(InProcRemoteHostClientFactory)));
+                                         .WithPart(typeof(InProcRemoteHostClientFactory))
+                                         .WithPart(typeof(WorkspaceWaiter)));
+        }
+
+        [Shared]
+        [Export(typeof(IAsynchronousOperationListener))]
+        [Export(typeof(IAsynchronousOperationWaiter))]
+        [Feature(FeatureAttribute.Workspace)]
+        private class WorkspaceWaiter : AsynchronousOperationListener
+        {
+            internal WorkspaceWaiter()
+            {
+            }
         }
     }
 }
