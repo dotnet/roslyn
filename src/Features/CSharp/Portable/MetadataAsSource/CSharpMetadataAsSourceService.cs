@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -68,12 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             return document.WithSyntaxRoot(newSyntaxRoot);
         }
 
-        protected override IEnumerable<AbstractReducer> GetReducers()
-        {
-            yield return new CSharpNameReducer();
-            yield return new CSharpEscapingReducer();
-            yield return new CSharpParenthesesReducer();
-        }
+        protected override ImmutableArray<AbstractReducer> GetReducers()
+            => ImmutableArray.Create<AbstractReducer>(
+                new CSharpNameReducer(),
+                new CSharpEscapingReducer(),
+                new CSharpParenthesesReducer());
 
         private class FormattingRule : AbstractFormattingRule
         {

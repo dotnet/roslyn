@@ -794,6 +794,83 @@ public struct C
             CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics();
         }
 
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void RefValueTest04_optimizer()
+        {
+            var text = @"
+using System;
+public struct C
+{
+    static void Main()
+    {
+        int k = 42;
+
+        int i = 1;
+        TypedReference tr1 = __makeref(i);
+
+        __refvalue(tr1, int) = k;
+        __refvalue(tr1, int) = k;
+
+        int j = 1;
+        TypedReference tr2 = __makeref(j);
+
+        int l = 42;
+
+        __refvalue(tr1, int) = l;
+        __refvalue(tr2, int) = l;
+
+        Console.Write(i);
+        Console.Write(j);
+    }
+}";
+
+            var verifier = CompileAndVerify(source: text, expectedOutput: "4242");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  .locals init (int V_0, //k
+                int V_1, //i
+                System.TypedReference V_2, //tr1
+                int V_3, //j
+                int V_4) //l
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  stloc.1
+  IL_0005:  ldloca.s   V_1
+  IL_0007:  mkrefany   ""int""
+  IL_000c:  stloc.2
+  IL_000d:  ldloc.2
+  IL_000e:  refanyval  ""int""
+  IL_0013:  ldloc.0
+  IL_0014:  stind.i4
+  IL_0015:  ldloc.2
+  IL_0016:  refanyval  ""int""
+  IL_001b:  ldloc.0
+  IL_001c:  stind.i4
+  IL_001d:  ldc.i4.1
+  IL_001e:  stloc.3
+  IL_001f:  ldloca.s   V_3
+  IL_0021:  mkrefany   ""int""
+  IL_0026:  ldc.i4.s   42
+  IL_0028:  stloc.s    V_4
+  IL_002a:  ldloc.2
+  IL_002b:  refanyval  ""int""
+  IL_0030:  ldloc.s    V_4
+  IL_0032:  stind.i4
+  IL_0033:  refanyval  ""int""
+  IL_0038:  ldloc.s    V_4
+  IL_003a:  stind.i4
+  IL_003b:  ldloc.1
+  IL_003c:  call       ""void System.Console.Write(int)""
+  IL_0041:  ldloc.3
+  IL_0042:  call       ""void System.Console.Write(int)""
+  IL_0047:  ret
+}
+");
+        }
+
         [Fact]
         public void TestBug13263()
         {

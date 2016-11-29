@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
-            var containingDeclarator = _objectCreationExpression.FirstAncestorOrSelf<TVariableDeclaratorSyntax>();
+            var containingDeclarator = _objectCreationExpression.Parent.Parent as TVariableDeclaratorSyntax;
             if (containingDeclarator == null)
             {
                 return false;

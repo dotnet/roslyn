@@ -74,7 +74,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Function
 
             Private Shared Function GenerateStringConstantExpression(name As String) As MemberAccessExpressionSyntax
-                Dim factory = New VisualBasicSyntaxGenerator()
                 Dim result = GenerateMemberAccessExpression("Microsoft", "VisualBasic", "Constants", name)
 
                 Return result.WithAdditionalAnnotations(Simplifier.Annotation)

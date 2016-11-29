@@ -494,6 +494,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 AddDocumentToProject(hostProject, project, info.Id, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument);
             }
+
+            var undoManager = TryGetUndoManager();
+
+            if (isAdditionalDocument)
+            {
+                undoManager?.Add(new RemoveAdditionalDocumentUndoUnit(this, info.Id));
+            }
+            else
+            {
+                undoManager?.Add(new RemoveDocumentUndoUnit(this, info.Id));
+            }
         }
 
         private bool IsWebsite(EnvDTE.Project project)
@@ -626,19 +637,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected void RemoveDocumentCore(DocumentId documentId)
+        protected void RemoveDocumentCore(
+            DocumentId documentId, bool isAdditionalDocument)
         {
             if (documentId == null)
             {
                 throw new ArgumentNullException(nameof(documentId));
             }
 
-            var document = this.GetHostDocument(documentId);
-            if (document != null)
+            var hostDocument = this.GetHostDocument(documentId);
+            if (hostDocument != null)
             {
-                var project = document.Project.Hierarchy as IVsProject3;
+                var document = this.CurrentSolution.GetDocument(documentId);
+                var text = this.GetTextForced(document);
 
-                var itemId = document.GetItemId();
+                var project = hostDocument.Project.Hierarchy as IVsProject3;
+
+                var itemId = hostDocument.GetItemId();
                 if (itemId == (uint)VSConstants.VSITEMID.Nil)
                 {
                     // it is no longer part of the solution
@@ -646,17 +661,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 project.RemoveItem(0, itemId, out var result);
+
+                var undoManager = TryGetUndoManager();
+                var docInfo = CreateDocumentInfoWithoutText(document);
+
+                if (isAdditionalDocument)
+                {
+                    undoManager?.Add(new AddAdditionalDocumentUndoUnit(this, docInfo, text));
+                }
+                else
+                {
+                    undoManager?.Add(new AddDocumentUndoUnit(this, docInfo, text));
+                }
             }
         }
 
         protected override void ApplyDocumentRemoved(DocumentId documentId)
         {
-            RemoveDocumentCore(documentId);
+            RemoveDocumentCore(documentId, isAdditionalDocument: false);
         }
 
         protected override void ApplyAdditionalDocumentRemoved(DocumentId documentId)
         {
-            RemoveDocumentCore(documentId);
+            RemoveDocumentCore(documentId, isAdditionalDocument: true);
         }
 
         public override void OpenDocument(DocumentId documentId, bool activate = true)

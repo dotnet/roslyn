@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
@@ -105,16 +106,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private static async Task<Stream> RequestServiceAsync(HubClient client, string serviceName, string hostGroup, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // we can remove these once whole system moved to new servicehub API
-            try
+            const int max_retry = 10;
+            const int retry_delayInMS = 50;
+
+            // call to get service can fail due to this bug - devdiv#288961
+            // until root cause is fixed, we decide to have retry rather than fail right away
+            for (var i = 0; i < max_retry; i++)
             {
-                var descriptor = new ServiceDescriptor(serviceName) { HostGroup = new HostGroup(hostGroup) };
-                return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                try
+                {
+                    var descriptor = new ServiceDescriptor(serviceName) { HostGroup = new HostGroup(hostGroup) };
+                    return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
+                }
+                catch (RemoteInvocationException ex)
+                {
+                    // RequestServiceAsync should never fail unless service itself is actually broken.
+                    // right now, we know only 1 case where it can randomly fail. but there might be more cases so 
+                    // adding non fatal watson here.
+                    FatalError.ReportWithoutCrash(ex);
+                }
+
+                // wait for retry_delayInMS before next try
+                await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
             }
-            catch
-            {
-                return await client.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
-            }
+
+            return Contract.FailWithReturn<Stream>("Fail to get service. look FatalError.s_reportedException for more detail");
         }
     }
 }

@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // with how that convoluted code worked.  So I'm not maintaining that behavior here.  If
             // we do want it through, it would be easy to get again simply by asking the model
             // computation to remove all filtering.
-
             if (model.IsUnique)
             {
                 // We had a unique item in the list.  Commit it and dismiss this session.

@@ -4981,4 +4981,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ThrowMisplaced" xml:space="preserve">
     <value>A throw expression is not allowed in this context.</value>
   </data>
+  <data name="ERR_PossibleBadNegCast" xml:space="preserve">
+    <value>To cast a negative value, you must enclose the value in parentheses.</value>
+  </data>
 </root>

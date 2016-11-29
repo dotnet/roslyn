@@ -663,10 +663,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return false;
         }
 
+        public abstract bool IsExpressionBodiedProperty(SyntaxNode node);
         public abstract bool IsAccessorNode(SyntaxNode node);
         public abstract MethodKind GetAccessorKind(SyntaxNode node);
 
         public abstract bool TryGetAccessorNode(SyntaxNode parentNode, MethodKind kind, out SyntaxNode accessorNode);
+        public abstract bool TryGetAutoPropertyExpressionBody(SyntaxNode parentNode, out SyntaxNode accessorNode);
         public abstract bool TryGetParameterNode(SyntaxNode parentNode, string name, out SyntaxNode parameterNode);
         public abstract bool TryGetImportNode(SyntaxNode parentNode, string dottedName, out SyntaxNode importNode);
         public abstract bool TryGetOptionNode(SyntaxNode parentNode, string name, int ordinal, out SyntaxNode optionNode);

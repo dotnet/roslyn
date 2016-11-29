@@ -345,13 +345,16 @@
     <Compile Include="CodeStyle\CodeStyleOptions.cs" />
     <Compile Include="CodeStyle\NotificationOption.cs" />
     <Compile Include="CodeStyle\CodeStyleOption.cs" />
+    <Compile Include="Diagnostics\AbstractDiagnosticPropertiesService.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalysisResult.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalysisResultMap.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalysisResultBuilder.cs" />
     <Compile Include="Diagnostics\DiagnosticData.cs" />
     <Compile Include="Diagnostics\DiagnosticDataSerializer.cs" />
+    <Compile Include="Diagnostics\DiagnosticPropertyConstants.cs" />
     <Compile Include="Diagnostics\DiagnosticProvider.cs" />
     <Compile Include="Diagnostics\Extensions.cs" />
+    <Compile Include="Diagnostics\IDiagnosticPropertiesService.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptions.cs" />
     <Compile Include="Diagnostics\InternalRuntimeDiagnosticOptions.cs" />
     <Compile Include="Execution\AssetStorages.Storage.cs" />
@@ -634,7 +637,6 @@
     <Compile Include="FindSymbols\FindReferences\FindReferenceCache.cs" />
     <Compile Include="FindSymbols\FindReferences\FindReferencesProgress.cs" />
     <Compile Include="FindSymbols\FindReferences\FindReferencesSearchEngine.cs" />
-    <Compile Include="FindSymbols\FindReferences\FindReferencesSearchEngine.ProgressWrapper.cs" />
     <Compile Include="FindSymbols\FindReferences\FindReferencesSearchEngine_DocumentProcessing.cs" />
     <Compile Include="FindSymbols\FindReferences\FindReferencesSearchEngine_MapCreation.cs" />
     <Compile Include="FindSymbols\FindReferences\FindReferencesSearchEngine_ProjectProcessing.cs" />

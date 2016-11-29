@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -10,9 +11,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected readonly string DescriptorId;
 
         /// <summary>
-        /// Diagnostic descriptor that for analysis results that we don't want any treatment for.
+        /// Diagnostic descriptors corresponding to each of the DiagnosticSeverities.
         /// </summary>
         protected readonly DiagnosticDescriptor HiddenDescriptor;
+        protected readonly DiagnosticDescriptor InfoDescriptor;
+        protected readonly DiagnosticDescriptor WarningDescriptor;
+        protected readonly DiagnosticDescriptor ErrorDescriptor;
 
         /// <summary>
         /// Diagnostic descriptor for code you want to fade out *and* want to have a smart-tag
@@ -45,6 +49,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _localizableMessage = message ?? title;
 
             HiddenDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Hidden);
+            InfoDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Info);
+            WarningDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Warning);
+            ErrorDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Error);
 
             UnnecessaryWithSuggestionDescriptor = CreateDescriptorWithId(
                 descriptorId, _localizableTitle, _localizableMessage, 
@@ -60,6 +67,18 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+
+        protected DiagnosticDescriptor GetDescriptorWithSeverity(DiagnosticSeverity severity)
+        {
+            switch (severity)
+            {
+                case DiagnosticSeverity.Hidden: return HiddenDescriptor;
+                case DiagnosticSeverity.Info: return InfoDescriptor;
+                case DiagnosticSeverity.Warning: return WarningDescriptor;
+                case DiagnosticSeverity.Error: return ErrorDescriptor;
+                default: throw new InvalidOperationException();
+            }
+        }
 
         protected DiagnosticDescriptor CreateDescriptorWithSeverity(DiagnosticSeverity severity, params string[] customTags)
             => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessage, severity, customTags);

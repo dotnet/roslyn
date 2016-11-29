@@ -144,15 +144,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         private bool HasAccessorNode(MethodKind methodKind)
-        {
-            return CodeModelService.TryGetAccessorNode(LookupNode(), methodKind, out var accessorNode);
-        }
+            => CodeModelService.TryGetAccessorNode(LookupNode(), methodKind, out var accessorNode);
+
+        private bool IsExpressionBodiedProperty()
+            => CodeModelService.IsExpressionBodiedProperty(LookupNode());
 
         public EnvDTE.CodeFunction Getter
         {
             get
             {
-                if (!HasAccessorNode(MethodKind.PropertyGet))
+                if (!HasAccessorNode(MethodKind.PropertyGet) &&
+                    !IsExpressionBodiedProperty())
                 {
                     return null;
                 }

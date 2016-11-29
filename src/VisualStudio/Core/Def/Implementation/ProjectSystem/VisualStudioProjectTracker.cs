@@ -288,6 +288,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        internal bool ContainsProject(AbstractProject project)
+        {
+            lock (_gate)
+            {
+                return _projectMap.ContainsKey(project.Id);
+            }
+        }
+
         /// <summary>
         /// Add a project to the workspace.
         /// If invoked on the foreground thread, the add is executed right away.
@@ -335,6 +343,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private void StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(IEnumerable<AbstractProject> projects)
         {
             AssertIsForeground();
+
+            // StartPushingToWorkspaceAndNotifyOfOpenDocuments might be invoked from a background thread,
+            // and hence StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground scheduled to be executed later on the foreground task scheduler.
+            // By the time it gets scheduled, we might have removed some project(s) from the tracker on the UI thread.
+            // So, we filter out the projects that have been removed from the tracker.
+            projects = projects.Where(p => this.ContainsProject(p));
 
             using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
