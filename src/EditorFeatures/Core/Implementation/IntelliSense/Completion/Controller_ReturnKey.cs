@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             AssertIsForeground();
 
-            var service = GetCompletionService();
             var model = WaitForModel();
 
             // If there's no model, then there's nothing to commit.
@@ -89,6 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var textTypedSoFar = model.GetCurrentTextInSnapshot(
                     viewSpan, this.TextView.TextSnapshot, this.GetCaretPointInViewBuffer());
 
+                var service = GetCompletionService();
                 sendThrough = SendEnterThroughToEditor(
                      service.GetRules(), model.SelectedItem, textTypedSoFar);
             }
