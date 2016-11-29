@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             // Get the selected item.  If it's unique, then we want to commit it.
-            var model = this.sessionOpt.WaitForModel();
+            var model = WaitForModel();
             if (model == null)
             {
                 // Computation failed.  Just pass this command on.

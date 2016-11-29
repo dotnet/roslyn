@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             AssertIsForeground();
 
-            var model = sessionOpt.WaitForModel();
+            var model = WaitForModel();
 
             // If there's no model, then there's nothing to commit.
             if (model == null)

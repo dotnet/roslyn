@@ -97,6 +97,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return this.TextView.BufferGraph.MapUpOrDownToBuffer(this.TextView.Caret.Position.BufferPosition, this.SubjectBuffer).GetValueOrDefault();
         }
 
+        private Model WaitForModel()
+        {
+            var model = sessionOpt.WaitForModel(BlockForCompletionItems());
+            if (model == null)
+            {
+                DismissSessionIfActive();
+            }
+
+            return model;
+        }
+
         internal override void OnModelUpdated(Model modelOpt)
         {
             AssertIsForeground();

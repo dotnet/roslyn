@@ -188,26 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // Generally, the language will allow this if completions can be computed quickly.  
             // If they can't, then we will not block and we will stop computed immediately.
 
-            if (sessionOpt.InitialUnfilteredModel == null)
-            {
-                // We haven't finished computing completion items.  Block if the language wants
-                // us to.  Otherwise, dismiss the session
-                var result = Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out var workspace);
-                Debug.Assert(result, "We successfully got the completion service.  We must be able to get to the workspace.");
-
-                if (!options.GetOption(CompletionOptions.BlockForCompletionItems, completionService.Language))
-                {
-                    // Language doesn't want us to block.  Just stop our existing session as we 
-                    // don't have enough data on what to do.  Restart the session if appropriate
-                    // for the character typed.
-                    DismissSessionAndStartAnotherIfTriggered(completionService, isTextuallyTriggered, trigger);
-                    return;
-                }
-            }
-
-            // We've either computed the items, or the language is fine with blocking.  
-            // Block to get the model and determine what we should so.
-
             // What they type may end up filtering, committing, or else will dismiss.
             //
             // For example, we may filter in cases like this: "Color."
@@ -216,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // "Color", "Color.Red", "Color.Blue", etc.  When we process the 'dot', we
             // actually want to filter some more.  But we can't know that ahead of time until
             // we have computed the list of completions.
-            var model = sessionOpt.WaitForModel();
+            var model = WaitForModel();
             if (this.IsFilterCharacter(args.TypedChar, model))
             {
                 // Known to be a filter character for the currently selected item.  So just 
@@ -230,22 +210,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // It wasn't a filter character.  We'll either commit what's selected, or we'll
             // dismiss the completion list.  
-            this.CommitIfCommitCharacter(args.TypedChar, model, initialTextSnapshot, nextHandler);
-
-            // If the character was a commit character, then we will have committed the list
-            // and dismissed the session.  If it wasn't a commit character, then we don't know
-            // what to do with this character, and we want to dismiss the session.  So, at this
-            // point we always want hte session dismissed. 'DismissSessionAndStartAnotherIfTriggered'
-            // will ensure that happens.
-
-            // The character may have committed *and* should start a new session.  i.e. 
-            // hittins "Sys<dot>".  <dot> should commit "System" and start a new session.
-            DismissSessionAndStartAnotherIfTriggered(completionService, isTextuallyTriggered, trigger);
-        }
-
-        private void DismissSessionAndStartAnotherIfTriggered(CompletionService completionService, bool isTextuallyTriggered, CompletionTrigger trigger)
-        {
-            DismissSessionIfActive();
+            if (!this.CommitIfCommitCharacter(args.TypedChar, model, initialTextSnapshot, nextHandler))
+            {
+                this.StopModelComputation();
+            }
 
             if (isTextuallyTriggered)
             {
@@ -254,6 +222,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 StartNewModelComputation(
                     completionService, trigger, filterItems: true, dismissIfEmptyAllowed: true);
             }
+        }
+
+        private bool BlockForCompletionItems()
+        {
+            var service = GetCompletionService();
+            var options = GetOptions();
+            return service != null && options != null &&
+                options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language);
+        }
+
+        private void DismissSessionAndStartAnotherIfTriggered(CompletionService completionService, bool isTextuallyTriggered, CompletionTrigger trigger)
+        {
+
         }
 
         private void ExecuteTypeCharWithNoSession(CompletionService completionService, bool isTextuallyTriggered, CompletionTrigger trigger)
@@ -473,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private bool CommitIfCommitCharacter(
             char ch, ITextSnapshot initialTextSnapshot, Action nextHandler)
         {
-            return CommitIfCommitCharacter(ch, sessionOpt.WaitForModel(), initialTextSnapshot, nextHandler);
+            return this.CommitIfCommitCharacter(ch, this.WaitForModel(), initialTextSnapshot, nextHandler);
         }
 
         private bool CommitIfCommitCharacter(
