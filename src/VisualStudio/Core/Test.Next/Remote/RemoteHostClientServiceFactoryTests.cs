@@ -105,11 +105,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var analyzerService = GetDiagnosticAnalyzerService(hostAnalyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
 
-            var optionMock = new Mock<IEditorOptions>(MockBehavior.Strict);
-            var optionFactoryMock = new Mock<IEditorOptionsFactoryService>(MockBehavior.Strict);
-            optionFactoryMock.SetupGet(i => i.GlobalOptions).Returns(optionMock.Object);
-
-            var factory = new RemoteHostClientServiceFactory(analyzerService, optionFactoryMock.Object);
+            var factory = new RemoteHostClientServiceFactory(analyzerService);
             return factory.CreateService(workspace.Services) as RemoteHostClientServiceFactory.RemoteHostClientService;
         }
 

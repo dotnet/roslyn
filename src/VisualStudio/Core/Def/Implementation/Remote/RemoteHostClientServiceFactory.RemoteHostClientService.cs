@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -21,7 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             private readonly Workspace _workspace;
             private readonly IDiagnosticAnalyzerService _analyzerService;
-            private readonly IEditorOptions _globalEditorOptions;
 
             private readonly object _gate;
 
@@ -31,15 +29,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             public RemoteHostClientService(
                 Workspace workspace,
-                IDiagnosticAnalyzerService analyzerService,
-                IEditorOptions globalEditorOptions) :
+                IDiagnosticAnalyzerService analyzerService) :
                 base()
             {
                 _gate = new object();
 
                 _workspace = workspace;
                 _analyzerService = analyzerService;
-                _globalEditorOptions = globalEditorOptions;
             }
 
             public Workspace Workspace => _workspace;

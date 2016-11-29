@@ -9,11 +9,24 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
 {
     public static class TestHostServices
     {
-        public static HostServices CreateHostServices()
+        public static HostServices CreateHostServices(ExportProvider exportProvider = null)
         {
-            return MefV1HostServices.Create(
-                MinimalTestExportProvider.CreateExportProvider(
-                    ServiceTestExportProvider.CreateAssemblyCatalog().WithPart(typeof(InProcRemoteHostClientFactory))).AsExportProvider());
+            exportProvider = exportProvider ?? CreateMinimalExportProvider();
+            return MefV1HostServices.Create(exportProvider.AsExportProvider());
+        }
+
+        public static ExportProvider CreateMinimalExportProvider()
+        {
+            return MinimalTestExportProvider.CreateExportProvider(
+                ServiceTestExportProvider.CreateAssemblyCatalog()
+                                         .WithPart(typeof(InProcRemoteHostClientFactory)));
+        }
+
+        public static ExportProvider CreateExportProvider()
+        {
+            return MinimalTestExportProvider.CreateExportProvider(
+                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic()
+                                         .WithPart(typeof(InProcRemoteHostClientFactory)));
         }
     }
 }
