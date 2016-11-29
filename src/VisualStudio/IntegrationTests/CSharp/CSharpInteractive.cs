@@ -8,9 +8,9 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpInteractiveDemo : AbstractInteractiveWindowTest
+    public class CSharpInteractive : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveDemo(VisualStudioInstanceFactory instanceFactory)
+        public CSharpInteractive(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
         }
