@@ -237,14 +237,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
         }
 
-        private bool ShouldBlockForCompletionItems()
-        {
-            var service = GetCompletionService();
-            var options = GetOptions();
-            return service != null && options != null &&
-                options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language);
-        }
-
         private bool IsOnSeam()
         {
             var caretPoint = TextView.Caret.Position.Point;

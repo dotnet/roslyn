@@ -95,6 +95,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return this.TextView.BufferGraph.MapUpOrDownToBuffer(this.TextView.Caret.Position.BufferPosition, this.SubjectBuffer).GetValueOrDefault();
         }
 
+        private bool ShouldBlockForCompletionItems()
+        {
+            var service = GetCompletionService();
+            var options = GetOptions();
+            return service != null && options != null &&
+                options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language);
+        }
+
         private Model WaitForModel()
         {
             var model = sessionOpt.WaitForModel_DoNotCallDirectly(ShouldBlockForCompletionItems());
