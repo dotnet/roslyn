@@ -11,6 +11,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
 {
     public static class TestHostServices
     {
+        public static readonly ExportProvider SharedExportProvider = CreateExportProvider();
+
         public static HostServices CreateHostServices(ExportProvider exportProvider = null)
         {
             exportProvider = exportProvider ?? CreateMinimalExportProvider();
