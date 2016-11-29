@@ -20321,5 +20321,57 @@ static class Program
             Assert.Equal("System.Int32 (System.Int32 elem1, System.Int32 elem2).elem1", model.GetDeclaredSymbol((SyntaxNode)type.Elements.First()).ToTestDisplayString());
             Assert.Equal("System.Int32 (System.Int32 elem1, System.Int32 elem2).elem2", model.GetDeclaredSymbol((SyntaxNode)type.Elements.Last()).ToTestDisplayString());
         }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public static void Test1()
+        {
+            var source = @"
+interface I1<T>{}
+
+class Base : I1<(int a, int b)>{}
+
+class Derived : Base, I1<(int c, int d)> {}
+
+interface I2 : I1<(int a, int b)> {}
+
+class C1 : I2, I1<(int c, int d)> {}
+
+class C2 : I2, I1<(int a, int b)> {}
+";
+            var comp1 = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(14843, "https://github.com/dotnet/roslyn/issues/14843")]
+        public static void TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion()
+        {
+            var source = @"
+interface I1<T> {}
+
+class Base<U> where U : I1<(int a, int b)> {}
+
+class Derived : Base<I1<(int notA, int notB)>> {}
+";
+            var comp1 = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(14843, "https://github.com/dotnet/roslyn/issues/14843")]
+        public static void TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion2()
+        {
+            var source = @"
+interface I1<T> {}
+interface I2<T> : I1<T> {}
+
+class Base<U> where U : I1<(int a, int b)> {}
+
+class Derived : Base<I2<(int notA, int notB)>> {}
+";
+            var comp1 = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp1.VerifyDiagnostics();
+        }
     }
 }
