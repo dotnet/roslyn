@@ -47,7 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            // Get the selected item.  If it's unique, then we want to commit it.
+            // We're either in a language that is ok with blocking, or we have the initial set
+            // of items.  Wait until we're done filtering them, then get the selected item.  If 
+            // it's unique, then we want to commit it.
             var model = WaitForModel();
             if (model == null)
             {
@@ -84,6 +86,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private void CommitIfUnique(Model model)
         {
+            this.AssertIsForeground();
+
+            if (model == null)
+            {
+                return;
+            }
+
             // Note: Dev10 behavior seems to be that if there is no unique item that filtering is
             // turned off.  However, i do not know if this is desirable behavior, or merely a bug
             // with how that convoluted code worked.  So I'm not maintaining that behavior here.  If
