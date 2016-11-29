@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
-            if (sessionOpt.InitialUnfilteredModel == null && !BlockForCompletionItems())
+            if (sessionOpt.InitialUnfilteredModel == null && !ShouldBlockForCompletionItems())
             {
                 CommitUniqueCompletionListItemAsynchronously();
                 return;
