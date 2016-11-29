@@ -617,7 +617,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ''' BoundAssignment is used only to assign values.
             ''' therefore an indirect assignment may only happen if lhs is a reference
             ''' </summary>
-            Friend Shared Function IsIndirectAssignment(node As BoundAssignmentOperator) As Boolean
+            Private Shared Function IsIndirectAssignment(node As BoundAssignmentOperator) As Boolean
                 Return IsByRefVariable(node.Left)
             End Function
 

@@ -256,34 +256,40 @@ End Module",
                 Nothing,
 "Module M
     Sub Main()
-        C(Of Double).P = 1.5
+        Dim d = 1.5  ' must not be stack local
+        C(Of Double).P = d
+        C(Of Double).P = d  ' assign second time, should not be on stack
         C(Of Double).P += 2.0
         System.Console.Write(C(Of Double).P)
     End Sub
 End Module",
                 referencedCompilations:={comp1},
-                compilationOptions:=TestOptions.DebugExe)
+                compilationOptions:=TestOptions.ReleaseExe)
             Dim verifier = CompileAndVerify(comp2, expectedOutput:="3.5")
             verifier.VerifyIL("M.Main",
             <![CDATA[
 {
-  // Code size       51 (0x33)
+  // Code size       58 (0x3a)
   .maxstack  3
-  IL_0000:  nop
-  IL_0001:  call       "ByRef Function C(Of Double).get_P() As Double"
-  IL_0006:  ldc.r8     1.5
-  IL_000f:  stind.r8
-  IL_0010:  call       "ByRef Function C(Of Double).get_P() As Double"
-  IL_0015:  call       "ByRef Function C(Of Double).get_P() As Double"
-  IL_001a:  ldind.r8
-  IL_001b:  ldc.r8     2
-  IL_0024:  add
-  IL_0025:  stind.r8
-  IL_0026:  call       "ByRef Function C(Of Double).get_P() As Double"
-  IL_002b:  ldind.r8
-  IL_002c:  call       "Sub System.Console.Write(Double)"
-  IL_0031:  nop
-  IL_0032:  ret
+  .locals init (Double V_0) //d
+  IL_0000:  ldc.r8     1.5
+  IL_0009:  stloc.0
+  IL_000a:  call       "ByRef Function C(Of Double).get_P() As Double"
+  IL_000f:  ldloc.0
+  IL_0010:  stind.r8
+  IL_0011:  call       "ByRef Function C(Of Double).get_P() As Double"
+  IL_0016:  ldloc.0
+  IL_0017:  stind.r8
+  IL_0018:  call       "ByRef Function C(Of Double).get_P() As Double"
+  IL_001d:  call       "ByRef Function C(Of Double).get_P() As Double"
+  IL_0022:  ldind.r8
+  IL_0023:  ldc.r8     2
+  IL_002c:  add
+  IL_002d:  stind.r8
+  IL_002e:  call       "ByRef Function C(Of Double).get_P() As Double"
+  IL_0033:  ldind.r8
+  IL_0034:  call       "Sub System.Console.Write(Double)"
+  IL_0039:  ret
 }
 ]]>)
             verifier.VerifyDiagnostics()
