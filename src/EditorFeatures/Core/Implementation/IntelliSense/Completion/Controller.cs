@@ -102,6 +102,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var model = sessionOpt.WaitForModel(BlockForCompletionItems());
             if (model == null)
             {
+                // We either didn't get a model because we blocked, and no model was computed,
+                // or because we didn't block, and no initial model was computed yet.  In either
+                // event, make sure we have no more active session.
                 DismissSessionIfActive();
             }
 
