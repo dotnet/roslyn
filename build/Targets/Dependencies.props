@@ -35,6 +35,7 @@
     <SystemDiagnosticsProcessVersion>4.1.0</SystemDiagnosticsProcessVersion>
     <SystemDiagnosticsStackTraceVersion>4.0.1</SystemDiagnosticsStackTraceVersion>
     <SystemDiagnosticsToolsVersion>4.0.1</SystemDiagnosticsToolsVersion>
+    <SystemDiagnosticsTraceSourceVersion>4.0.0</SystemDiagnosticsTraceSourceVersion>
     <SystemDynamicRuntimeVersion>4.0.11</SystemDynamicRuntimeVersion>
     <SystemGlobalizationVersion>4.0.11</SystemGlobalizationVersion>
     <SystemIdentityModelTokensJwtVersion>5.0.0</SystemIdentityModelTokensJwtVersion>
