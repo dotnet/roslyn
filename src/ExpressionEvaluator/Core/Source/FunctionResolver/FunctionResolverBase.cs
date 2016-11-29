@@ -11,17 +11,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         where TModule : class
         where TRequest : class
     {
-        internal void EnableResolution(TProcess process, TRequest request)
-        {
-            ResolveRequest(process, request);
-        }
-
-        internal void OnModuleLoad(TProcess process, TModule module)
-        {
-            var requests = GetRequests(process);
-            ResolveRequests(process, module, requests);
-        }
-
         internal abstract bool ShouldEnableFunctionResolver(TProcess process);
         internal abstract IEnumerable<TModule> GetAllModules(TProcess process);
         internal abstract string GetModuleName(TModule module);
@@ -29,9 +18,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract TRequest[] GetRequests(TProcess process);
         internal abstract string GetRequestModuleName(TRequest request);
         internal abstract RequestSignature GetParsedSignature(TRequest request);
-        internal abstract void OnFunctionResolved(TModule module, TRequest request, int token, int version, int ilOffset);
 
-        private void ResolveRequest(TProcess process, TRequest request)
+        internal void EnableResolution(TProcess process, TRequest request, OnFunctionResolvedDelegate<TModule, TRequest> onFunctionResolved)
         {
             var moduleName = GetRequestModuleName(request);
             var signature = GetParsedSignature(request);
@@ -51,6 +39,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
                     checkEnabled = false;
                 }
+
                 if (!ShouldModuleHandleRequest(module, moduleName))
                 {
                     continue;
@@ -60,12 +49,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
-                var resolver = new MetadataResolver<TProcess, TModule, TRequest>(this, process, module, reader);
+                var resolver = new MetadataResolver<TProcess, TModule, TRequest>(process, module, reader, onFunctionResolved);
                 resolver.Resolve(request, signature);
             }
         }
 
-        private void ResolveRequests(TProcess process, TModule module, TRequest[] requests)
+        internal void OnModuleLoad(TProcess process, TModule module, OnFunctionResolvedDelegate<TModule, TRequest> onFunctionResolved)
         {
             if (!ShouldEnableFunctionResolver(process))
             {
@@ -73,6 +62,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             MetadataResolver<TProcess, TModule, TRequest> resolver = null;
+            var requests = GetRequests(process);
 
             foreach (var request in requests)
             {
@@ -95,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         return;
                     }
-                    resolver = new MetadataResolver<TProcess, TModule, TRequest>(this, process, module, reader);
+                    resolver = new MetadataResolver<TProcess, TModule, TRequest>(process, module, reader, onFunctionResolved);
                 }
 
                 resolver.Resolve(request, signature);
