@@ -439,13 +439,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 var description = new DiagnosticDescription(d, errorCodeOnly: false, showPosition: true);
+                var diffDescription = description;
                 var idx = Array.IndexOf(expected, description);
                 if (idx != -1)
                 {
-                    description = expected[idx];
+                    diffDescription = expected[idx];
                 }
                 AppendDiagnosticDescription(assertText, description, indentDepth);
-                AppendDiagnosticDescription(actualText, description, indentDepth);
+                AppendDiagnosticDescription(actualText, diffDescription, indentDepth);
             }
             if (i > 0)
             {
