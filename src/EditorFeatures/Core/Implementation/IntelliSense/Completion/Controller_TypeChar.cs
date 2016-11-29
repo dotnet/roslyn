@@ -128,108 +128,125 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             Contract.ThrowIfNull(options);
 
             var isTextuallyTriggered = IsTextualTriggerCharacter(completionService, args.TypedChar, options);
-            var isPotentialFilterCharacter = IsPotentialFilterCharacter(args);
             var trigger = CompletionTrigger.CreateInsertionTrigger(args.TypedChar);
 
             if (sessionOpt == null)
             {
-                // No computation at all.  If this is not a trigger character, we just ignore it and
-                // stay in this state.  Otherwise, if it's a trigger character, start up a new
-                // computation and start computing the model in the background.
-                if (isTextuallyTriggered)
-                {
-                    // First create the session that represents that we now have a potential
-                    // completion list.  Then tell it to start computing.
-                    StartNewModelComputation(completionService, trigger, filterItems: true, dismissIfEmptyAllowed: true);
-                    return;
-                }
-                else
-                {
-                    // No need to do anything.  Just stay in the state where we have no session.
-                    return;
-                }
+                // No current session.  start one if necessary.
+                ExecuteTYpeCharWithNoSession(completionService, isTextuallyTriggered, trigger);
             }
             else
             {
-                sessionOpt.UpdateModelTrackingSpan(initialCaretPosition);
+                ExecuteTypeCharWithSession(args, nextHandler, initialTextSnapshot, initialCaretPosition, completionService, options, isTextuallyTriggered, trigger);
+            }
+        }
 
-                // If the session is up, it may be in one of many states.  It may know nothing
-                // (because it is currently computing the list of completions).  Or it may have a
-                // list of completions that it has filtered. 
+        private void ExecuteTypeCharWithSession(
+            TypeCharCommandArgs args,
+            Action nextHandler,
+            ITextSnapshot initialTextSnapshot,
+            SnapshotPoint initialCaretPosition,
+            CompletionService completionService,
+            OptionSet options,
+            bool isTextuallyTriggered,
+            CompletionTrigger trigger)
+        {
 
-                // If the user types something which is absolutely known to be a filter character
-                // then we can just proceed without blocking.
-                if (isPotentialFilterCharacter)
+            sessionOpt.UpdateModelTrackingSpan(initialCaretPosition);
+
+            // If the session is up, it may be in one of many states.  It may know nothing
+            // (because it is currently computing the list of completions).  Or it may have a
+            // list of completions that it has filtered. 
+
+            // If the user types something which is absolutely known to be a filter character
+            // then we can just proceed without blocking.
+            if (IsPotentialFilterCharacter(args))
+            {
+                if (isTextuallyTriggered)
                 {
-                    if (isTextuallyTriggered)
-                    {
-                        // The character typed was something like "a".  It can both filter a list if
-                        // we have computed one, or it can trigger a new list.  Ask the computation
-                        // to compute again. If nothing has been computed, then it will try to
-                        // compute again, otherwise it will just ignore this request.
-                        sessionOpt.ComputeModel(completionService, trigger, _roles, options);
-                    }
-
-                    // Now filter whatever result we have.
-                    sessionOpt.FilterModel(
-                        CompletionFilterReason.TypeChar,
-                        recheckCaretPosition: false,
-                        dismissIfEmptyAllowed: true,
-                        filterState: null);
+                    // The character typed was something like "a".  It can both filter a list if
+                    // we have computed one, or it can trigger a new list.  Ask the computation
+                    // to compute again. If nothing has been computed, then it will try to
+                    // compute again, otherwise it will just ignore this request.
+                    sessionOpt.ComputeModel(completionService, trigger, _roles, options);
                 }
-                else
-                {
-                    // It wasn't a trigger or filter character. At this point, we make our
-                    // determination on what to do based on what has actually been computed and
-                    // what's being typed. This means waiting on the session and will effectively
-                    // block the user.
 
-                    // Again, from this point on we must block on the computation to decide what to
-                    // do.
+                // Now filter whatever result we have.
+                sessionOpt.FilterModel(
+                    CompletionFilterReason.TypeChar,
+                    recheckCaretPosition: false,
+                    dismissIfEmptyAllowed: true,
+                    filterState: null);
+                return;
+            }
 
-                    // What they type may end up filtering, committing, or else will dismiss.
-                    //
-                    // For example, we may filter in cases like this: "Color."
-                    //
-                    // "Color" will have already filtered the list down to some things like
-                    // "Color", "Color.Red", "Color.Blue", etc.  When we process the 'dot', we
-                    // actually want to filter some more.  But we can't know that ahead of time until
-                    // we have computed the list of completions.
-                    if (this.IsFilterCharacter(args.TypedChar))
-                    {
-                        // Known to be a filter character for the currently selected item.  So just 
-                        // filter the session.
-                        sessionOpt.FilterModel(CompletionFilterReason.TypeChar,
-                            recheckCaretPosition: false,
-                            dismissIfEmptyAllowed: true,
-                            filterState: null);
-                        return;
-                    }
+            // It wasn't a trigger or filter character. At this point, we make our
+            // determination on what to do based on what has actually been computed and
+            // what's being typed. This means waiting on the session and will effectively
+            // block the user.
 
-                    // It wasn't a filter character.  We'll either commit what's selected, or we'll
-                    // dismiss the completion list.  First, ensure that what was typed is in the
-                    // buffer.
+            // Again, from this point on we must block on the computation to decide what to
+            // do.
 
-                    // Now, commit if it was a commit character.
-                    if (!this.CommitIfCommitCharacter(args.TypedChar, initialTextSnapshot, nextHandler))
-                    {
-                        // Wasn't a filter or commit character.  Stop what we're doing as we have
-                        // no idea what this is.
-                        this.StopModelComputation();
-                    }
+            // What they type may end up filtering, committing, or else will dismiss.
+            //
+            // For example, we may filter in cases like this: "Color."
+            //
+            // "Color" will have already filtered the list down to some things like
+            // "Color", "Color.Red", "Color.Blue", etc.  When we process the 'dot', we
+            // actually want to filter some more.  But we can't know that ahead of time until
+            // we have computed the list of completions.
+            if (this.IsFilterCharacter(args.TypedChar))
+            {
+                // Known to be a filter character for the currently selected item.  So just 
+                // filter the session.
+                sessionOpt.FilterModel(CompletionFilterReason.TypeChar,
+                    recheckCaretPosition: false,
+                    dismissIfEmptyAllowed: true,
+                    filterState: null);
+                return;
+            }
 
-                    // The character may commit/dismiss and then trigger completion again. So check
-                    // for that here.
+            // It wasn't a filter character.  We'll either commit what's selected, or we'll
+            // dismiss the completion list.  First, ensure that what was typed is in the
+            // buffer.
 
-                    if (isTextuallyTriggered)
-                    {
-                        // First create the session that represents that we now have a potential
-                        // completion list.
-                        StartNewModelComputation(
-                            completionService, trigger, filterItems: true, dismissIfEmptyAllowed: true);
-                        return;
-                    }
-                }
+            // Now, commit if it was a commit character.
+            if (!this.CommitIfCommitCharacter(args.TypedChar, initialTextSnapshot, nextHandler))
+            {
+                // Wasn't a filter or commit character.  Stop what we're doing as we have
+                // no idea what this is.
+                this.StopModelComputation();
+            }
+
+            // The character may commit/dismiss and then trigger completion again. So check
+            // for that here.
+
+            if (isTextuallyTriggered)
+            {
+                // First create the session that represents that we now have a potential
+                // completion list.
+                StartNewModelComputation(
+                    completionService, trigger, filterItems: true, dismissIfEmptyAllowed: true);
+            }
+        }
+
+        private void ExecuteTYpeCharWithNoSession(CompletionService completionService, bool isTextuallyTriggered, CompletionTrigger trigger)
+        {
+            // No computation at all.  If this is not a trigger character, we just ignore it and
+            // stay in this state.  Otherwise, if it's a trigger character, start up a new
+            // computation and start computing the model in the background.
+            if (isTextuallyTriggered)
+            {
+                // First create the session that represents that we now have a potential
+                // completion list.  Then tell it to start computing.
+                StartNewModelComputation(completionService, trigger, filterItems: true, dismissIfEmptyAllowed: true);
+                return;
+            }
+            else
+            {
+                // No need to do anything.  Just stay in the state where we have no session.
+                return;
             }
         }
 
