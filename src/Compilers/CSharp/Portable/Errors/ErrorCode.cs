@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantOverrideNonEvent = 72,
         ERR_AddRemoveMustHaveBody = 73,
         ERR_AbstractEventInitializer = 74,
-        //ERR_PossibleBadNegCast = 75,      Not used in Roslyn. Occurs so infrequently, not worth reimplementing.
+        ERR_PossibleBadNegCast = 75,
         ERR_ReservedEnumerator = 76,
         ERR_AsMustHaveReferenceType = 77,
         WRN_LowercaseEllSuffix = 78,
