@@ -15519,5 +15519,143 @@ public class Form1 {
 }");
         }
 
+        [Fact]
+        public void LocalStructIsPassedByrefIntoRefExtensionMethod()
+        {
+            var source =
+@"
+using System;
+
+public struct S
+{
+    public int I;
+}
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        S s = new S();
+        s.E();
+        Console.WriteLine(s.I);
+    }
+}
+
+public static class Ext
+{
+    public static void E(this ref S s)
+    {
+        s.I++;
+    }
+}
+";
+            CompileAndVerifyExperimental(source, MessageID.IDS_FeatureRefExtensionMethod, additionalRefs: new[] { SystemRef, SystemCoreRef },
+                expectedOutput: "1");
+        }
+
+        [Fact]
+        public void HeapStructIsPassedByrefIntoRefExtensionMethod()
+        {
+            var source =
+@"
+using System;
+
+public struct S
+{
+    public int I;
+}
+
+public class C
+{
+    public S S;
+}
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        C c = new C();
+        c.S.E();
+        Console.WriteLine(c.S.I);
+    }
+}
+
+public static class Ext
+{
+    public static void E(this ref S s)
+    {
+        s.I++;
+    }
+}
+";
+            CompileAndVerifyExperimental(source, MessageID.IDS_FeatureRefExtensionMethod, additionalRefs: new[] { SystemRef, SystemCoreRef },
+                expectedOutput: "1");
+        }
+
+        [Fact]
+        public void ArrayStructIsPassedByrefIntoRefExtensionMethod()
+        {
+            var source =
+@"
+using System;
+
+public struct S
+{
+    public int I;
+}
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        S[] a = new S[1];
+        a[0].E();
+        Console.WriteLine(a[0].I);
+    }
+}
+
+public static class Ext
+{
+    public static void E(this ref S s)
+    {
+        s.I++;
+    }
+}
+";
+            CompileAndVerifyExperimental(source, MessageID.IDS_FeatureRefExtensionMethod, additionalRefs: new[] { SystemRef, SystemCoreRef },
+                expectedOutput: "1");
+        }
+
+        [Fact]
+        public void ByRefExtensionMethodOnByrefReturn()
+        {
+            var source =
+@"
+public struct S { public int I; }
+
+class Program
+{
+    static S s = new S();
+
+    public static ref S Get()
+    {
+        return ref s;
+    }
+
+    public static void Main()
+    {
+        Get().E();
+        System.Console.WriteLine(s.I);
+    }
+}
+
+public static class Ext
+{
+    public static void E(this ref S s) { s.I++; }
+}
+";
+            CompileAndVerifyExperimental(source, MessageID.IDS_FeatureRefExtensionMethod, additionalRefs: new[] { SystemRef, SystemCoreRef },
+                expectedOutput: "1");
+        }
     }
 }

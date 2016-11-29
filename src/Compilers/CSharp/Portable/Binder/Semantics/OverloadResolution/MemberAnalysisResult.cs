@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are invoking a method/property on an instance of a COM imported type.
         /// This property returns a flag indicating whether we had any ref omitted argument for the given call.
         /// </summary>
-        public readonly bool HasAnyRefOmittedArgument;
+        public readonly bool HasAnyComRefOmittedArgument;
 
         private MemberAnalysisResult(MemberResolutionKind kind)
             : this(kind, default(ImmutableArray<int>), default(ImmutableArray<int>), default(ImmutableArray<Conversion>))
@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<Conversion> conversionsOpt,
             int missingParameter = -1,
-            bool hasAnyRefOmittedArgument = false)
+            bool hasAnyComRefOmittedArgument = false)
         {
             this.Kind = kind;
             this.BadArgumentsOpt = badArgumentsOpt;
             this.ArgsToParamsOpt = argsToParamsOpt;
             this.ConversionsOpt = conversionsOpt;
             this.BadParameter = missingParameter;
-            this.HasAnyRefOmittedArgument = hasAnyRefOmittedArgument;
+            this.HasAnyComRefOmittedArgument = hasAnyComRefOmittedArgument;
         }
 
         public override bool Equals(object obj)
@@ -246,14 +246,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MemberAnalysisResult(MemberResolutionKind.LessDerived);
         }
 
-        public static MemberAnalysisResult NormalForm(ImmutableArray<int> argsToParamsOpt, ImmutableArray<Conversion> conversions, bool hasAnyRefOmittedArgument)
+        public static MemberAnalysisResult NormalForm(ImmutableArray<int> argsToParamsOpt, ImmutableArray<Conversion> conversions, bool hasAnyComRefOmittedArgument)
         {
-            return new MemberAnalysisResult(MemberResolutionKind.ApplicableInNormalForm, default(ImmutableArray<int>), argsToParamsOpt, conversions, hasAnyRefOmittedArgument: hasAnyRefOmittedArgument);
+            return new MemberAnalysisResult(MemberResolutionKind.ApplicableInNormalForm, default(ImmutableArray<int>), argsToParamsOpt, conversions, hasAnyComRefOmittedArgument: hasAnyComRefOmittedArgument);
         }
 
-        public static MemberAnalysisResult ExpandedForm(ImmutableArray<int> argsToParamsOpt, ImmutableArray<Conversion> conversions, bool hasAnyRefOmittedArgument)
+        public static MemberAnalysisResult ExpandedForm(ImmutableArray<int> argsToParamsOpt, ImmutableArray<Conversion> conversions, bool hasAnyComRefOmittedArgument)
         {
-            return new MemberAnalysisResult(MemberResolutionKind.ApplicableInExpandedForm, default(ImmutableArray<int>), argsToParamsOpt, conversions, hasAnyRefOmittedArgument: hasAnyRefOmittedArgument);
+            return new MemberAnalysisResult(MemberResolutionKind.ApplicableInExpandedForm, default(ImmutableArray<int>), argsToParamsOpt, conversions, hasAnyComRefOmittedArgument: hasAnyComRefOmittedArgument);
         }
 
         public static MemberAnalysisResult Worse()

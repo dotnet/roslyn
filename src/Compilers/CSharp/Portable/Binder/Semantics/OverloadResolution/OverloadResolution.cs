@@ -17,6 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         Equal
     }
 
+    internal enum RefOmitMode
+    {
+        None,
+        All,
+        ExtensionMethod
+    }
+
     internal sealed partial class OverloadResolution
     {
         private readonly Binder _binder;
@@ -94,13 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             OverloadResolutionResult<MethodSymbol> result,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool isMethodGroupConversion = false,
-            bool allowRefOmittedArguments = false,
+            RefOmitMode refOmitMode = RefOmitMode.None,
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true)
         {
             MethodOrPropertyOverloadResolution(
                 methods, typeArguments, arguments, result, isMethodGroupConversion,
-                allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic,
+                refOmitMode, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic,
                 allowUnexpandedForm: allowUnexpandedForm);
         }
 
@@ -114,7 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             ArrayBuilder<TypeSymbol> typeArguments = ArrayBuilder<TypeSymbol>.GetInstance();
-            MethodOrPropertyOverloadResolution(indexers, typeArguments, arguments, result, isMethodGroupConversion: false, allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics);
+            MethodOrPropertyOverloadResolution(indexers, typeArguments, arguments, result, isMethodGroupConversion: false,
+                refOmitMode: allowRefOmittedArguments ? RefOmitMode.All : RefOmitMode.None,
+                useSiteDiagnostics: ref useSiteDiagnostics);
             typeArguments.Free();
         }
 
@@ -124,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments arguments,
             OverloadResolutionResult<TMember> result,
             bool isMethodGroupConversion,
-            bool allowRefOmittedArguments,
+            RefOmitMode refOmitMode,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true)
@@ -135,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // First, attempt overload resolution not getting complete results.
             PerformMemberOverloadResolution(
                 results, members, typeArguments, arguments, false, isMethodGroupConversion,
-                allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic,
+                refOmitMode, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic,
                 allowUnexpandedForm: allowUnexpandedForm);
 
             if (!OverloadResolutionResultIsValid(results, arguments.HasDynamicArgument))
@@ -143,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We didn't get a single good result. Get full results of overload resolution and return those.
                 result.Clear();
                 PerformMemberOverloadResolution(results, members, typeArguments, arguments, true, isMethodGroupConversion,
-                    allowRefOmittedArguments, ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
+                    refOmitMode, ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
             }
         }
 
@@ -203,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments arguments,
             bool completeResults,
             bool isMethodGroupConversion,
-            bool allowRefOmittedArguments,
+            RefOmitMode refOmitMode,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
             bool allowUnexpandedForm = true)
@@ -232,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddMemberToCandidateSet(
                     members[i], results, members, typeArguments, arguments, completeResults,
-                    isMethodGroupConversion, allowRefOmittedArguments, containingTypeMapOpt, inferWithDynamic: inferWithDynamic,
+                    isMethodGroupConversion, refOmitMode, containingTypeMapOpt, inferWithDynamic: inferWithDynamic,
                     useSiteDiagnostics: ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
             }
 
@@ -347,9 +356,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MemberAnalysisResult.UseSiteError();
             }
 
-            var effectiveParameters = GetEffectiveParametersInNormalForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, allowRefOmittedArguments: false);
+            var effectiveParameters = GetEffectiveParametersInNormalForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, refOmitMode: RefOmitMode.None);
 
-            return IsApplicable(constructor, effectiveParameters, arguments, argumentAnalysis.ArgsToParamsOpt, isVararg: constructor.IsVararg, hasAnyRefOmittedArgument: false, ignoreOpenTypes: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            return IsApplicable(constructor, effectiveParameters, arguments, argumentAnalysis.ArgsToParamsOpt, isVararg: constructor.IsVararg, hasAnyComRefOmittedArgument: false, ignoreOpenTypes: false, useSiteDiagnostics: ref useSiteDiagnostics);
         }
 
         private MemberAnalysisResult IsConstructorApplicableInExpandedForm(MethodSymbol constructor, AnalyzedArguments arguments, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -366,14 +375,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MemberAnalysisResult.UseSiteError();
             }
 
-            var effectiveParameters = GetEffectiveParametersInExpandedForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, allowRefOmittedArguments: false);
+            var effectiveParameters = GetEffectiveParametersInExpandedForm(constructor, arguments.Arguments.Count, argumentAnalysis.ArgsToParamsOpt, arguments.RefKinds, refOmitMode: RefOmitMode.None);
 
             // A vararg ctor is never applicable in its expanded form because
             // it is never a params method.
             Debug.Assert(!constructor.IsVararg);
-            var result = IsApplicable(constructor, effectiveParameters, arguments, argumentAnalysis.ArgsToParamsOpt, isVararg: false, hasAnyRefOmittedArgument: false, ignoreOpenTypes: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            var result = IsApplicable(constructor, effectiveParameters, arguments, argumentAnalysis.ArgsToParamsOpt, isVararg: false, hasAnyComRefOmittedArgument: false, ignoreOpenTypes: false, useSiteDiagnostics: ref useSiteDiagnostics);
 
-            return result.IsValid ? MemberAnalysisResult.ExpandedForm(result.ArgsToParamsOpt, result.ConversionsOpt, hasAnyRefOmittedArgument: false) : result;
+            return result.IsValid ? MemberAnalysisResult.ExpandedForm(result.ArgsToParamsOpt, result.ConversionsOpt, hasAnyComRefOmittedArgument: false) : result;
         }
 
         private void AddMemberToCandidateSet<TMember>(
@@ -384,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments arguments,
             bool completeResults,
             bool isMethodGroupConversion,
-            bool allowRefOmittedArguments,
+            RefOmitMode refOmitMode,
             Dictionary<NamedTypeSymbol, ArrayBuilder<TMember>> containingTypeMapOpt,
             bool inferWithDynamic,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
@@ -492,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
 
             var normalResult = (allowUnexpandedForm || !IsValidParams(leastOverriddenMember))
-                ? IsMemberApplicableInNormalForm(member, leastOverriddenMember, typeArguments, arguments, isMethodGroupConversion, allowRefOmittedArguments, inferWithDynamic, ref useSiteDiagnostics, completeResults: completeResults)
+                ? IsMemberApplicableInNormalForm(member, leastOverriddenMember, typeArguments, arguments, isMethodGroupConversion, refOmitMode, inferWithDynamic, ref useSiteDiagnostics, completeResults: completeResults)
                 : default(MemberResolutionResult<TMember>);
 
             var result = normalResult;
@@ -505,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!isMethodGroupConversion && IsValidParams(leastOverriddenMember))
                 {
-                    var expandedResult = IsMemberApplicableInExpandedForm(member, leastOverriddenMember, typeArguments, arguments, allowRefOmittedArguments, ref useSiteDiagnostics);
+                    var expandedResult = IsMemberApplicableInExpandedForm(member, leastOverriddenMember, typeArguments, arguments, refOmitMode, ref useSiteDiagnostics);
                     if (PreferExpandedFormOverNormalForm(normalResult.Result, expandedResult.Result))
                     {
                         result = expandedResult;
@@ -1163,8 +1172,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // when determining the BetterFunctionMember.
             // During argument rewriting, we will replace the argument value with a temporary local and pass that local by reference.
 
-            bool hasAnyRefOmittedArgument1 = m1.Result.HasAnyRefOmittedArgument;
-            bool hasAnyRefOmittedArgument2 = m2.Result.HasAnyRefOmittedArgument;
+            bool hasAnyRefOmittedArgument1 = m1.Result.HasAnyComRefOmittedArgument;
+            bool hasAnyRefOmittedArgument2 = m2.Result.HasAnyComRefOmittedArgument;
             if (hasAnyRefOmittedArgument1 != hasAnyRefOmittedArgument2)
             {
                 return hasAnyRefOmittedArgument1 ? BetterResult.Right : BetterResult.Left;
@@ -2402,11 +2411,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
-            bool allowRefOmittedArguments)
+            RefOmitMode refOmitMode)
             where TMember : Symbol
         {
             bool discarded;
-            return GetEffectiveParametersInNormalForm(member, argumentCount, argToParamMap, argumentRefKinds, allowRefOmittedArguments, hasAnyRefOmittedArgument: out discarded);
+            return GetEffectiveParametersInNormalForm(member, argumentCount, argToParamMap, argumentRefKinds, refOmitMode, hasAnyRefOmittedArgument: out discarded);
         }
 
         private EffectiveParameters GetEffectiveParametersInNormalForm<TMember>(
@@ -2414,7 +2423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
-            bool allowRefOmittedArguments,
+            RefOmitMode refOmitMode,
             out bool hasAnyRefOmittedArgument) where TMember : Symbol
         {
             Debug.Assert(argumentRefKinds != null);
@@ -2450,7 +2459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 types.Add(parameter.Type);
 
                 RefKind argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
-                RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
+                RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, ShouldOmitRefArgument(refOmitMode, arg), ref hasAnyRefOmittedArgument);
 
                 if (refs == null)
                 {
@@ -2492,10 +2501,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
-            bool allowRefOmittedArguments) where TMember : Symbol
+            RefOmitMode refOmitMode) where TMember : Symbol
         {
             bool discarded;
-            return GetEffectiveParametersInExpandedForm(member, argumentCount, argToParamMap, argumentRefKinds, allowRefOmittedArguments, hasAnyRefOmittedArgument: out discarded);
+            return GetEffectiveParametersInExpandedForm(member, argumentCount, argToParamMap, argumentRefKinds, refOmitMode, hasAnyRefOmittedArgument: out discarded);
         }
 
         private EffectiveParameters GetEffectiveParametersInExpandedForm<TMember>(
@@ -2503,7 +2512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
-            bool allowRefOmittedArguments,
+            RefOmitMode refOmitMode,
             out bool hasAnyRefOmittedArgument) where TMember : Symbol
         {
             Debug.Assert(argumentRefKinds != null);
@@ -2523,7 +2532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 types.Add(parm == parameters.Length - 1 ? elementType : parameter.Type);
 
                 var argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
-                var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
+                var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, ShouldOmitRefArgument(refOmitMode, arg), ref hasAnyRefOmittedArgument);
 
                 refs.Add(paramRefKind);
                 if (paramRefKind != RefKind.None)
@@ -2543,7 +2552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TypeSymbol> typeArguments,
             AnalyzedArguments arguments,
             bool isMethodGroupConversion,
-            bool allowRefOmittedArguments,
+            RefOmitMode refOmitMode,
             bool inferWithDynamic,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool completeResults = false)
@@ -2575,7 +2584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.UseSiteError());
             }
 
-            bool hasAnyRefOmittedArgument;
+            bool hasAnyComRefOmittedArgument;
 
             // To determine parameter types we use the originalMember.
             EffectiveParameters originalEffectiveParameters = GetEffectiveParametersInNormalForm(
@@ -2583,10 +2592,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
-                allowRefOmittedArguments,
-                out hasAnyRefOmittedArgument);
+                refOmitMode,
+                out hasAnyComRefOmittedArgument);
 
-            Debug.Assert(!hasAnyRefOmittedArgument || allowRefOmittedArguments);
+            Debug.Assert(!hasAnyComRefOmittedArgument || refOmitMode != RefOmitMode.None);
+
+            // Not setting ref omitted flag for extension methods
+            if (refOmitMode == RefOmitMode.ExtensionMethod)
+            {
+                hasAnyComRefOmittedArgument = false;
+            }
 
             // To determine parameter types we use the originalMember.
             EffectiveParameters constructedEffectiveParameters = GetEffectiveParametersInNormalForm(
@@ -2594,14 +2609,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
-                allowRefOmittedArguments);
+                refOmitMode);
 
             // The member passed to the following call is returned in the result (possibly a constructed version of it).
             // The applicability is checked based on effective parameters passed in.
             var applicableResult = IsApplicable(
                 member, leastOverriddenMember,
                 typeArguments, arguments, originalEffectiveParameters, constructedEffectiveParameters,
-                argumentAnalysis.ArgsToParamsOpt, hasAnyRefOmittedArgument,
+                argumentAnalysis.ArgsToParamsOpt, hasAnyComRefOmittedArgument,
                 ref useSiteDiagnostics,
                 inferWithDynamic);
 
@@ -2620,7 +2635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TMember leastOverriddenMember, // method or property
             ArrayBuilder<TypeSymbol> typeArguments,
             AnalyzedArguments arguments,
-            bool allowRefOmittedArguments,
+            RefOmitMode refOmitMode,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
@@ -2639,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.UseSiteError());
             }
 
-            bool hasAnyRefOmittedArgument;
+            bool hasAnyComRefOmittedArgument;
 
             // To determine parameter types we use the least derived member.
             EffectiveParameters originalEffectiveParameters = GetEffectiveParametersInExpandedForm(
@@ -2647,10 +2662,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
-                allowRefOmittedArguments,
-                out hasAnyRefOmittedArgument);
+                refOmitMode,
+                out hasAnyComRefOmittedArgument);
 
-            Debug.Assert(!hasAnyRefOmittedArgument || allowRefOmittedArguments);
+            Debug.Assert(!hasAnyComRefOmittedArgument || refOmitMode != RefOmitMode.None);
+
+            // Not setting ref omitted flag for extension methods
+            if (refOmitMode == RefOmitMode.ExtensionMethod)
+            {
+                hasAnyComRefOmittedArgument = false;
+            }
 
             // To determine parameter types we use the least derived member.
             EffectiveParameters constructedEffectiveParameters = GetEffectiveParametersInExpandedForm(
@@ -2658,20 +2679,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
-                allowRefOmittedArguments);
+                refOmitMode);
 
             // The member passed to the following call is returned in the result (possibly a constructed version of it).
             // The applicability is checked based on effective parameters passed in.
             var result = IsApplicable(
                 member, leastOverriddenMember,
                 typeArguments, arguments, originalEffectiveParameters, constructedEffectiveParameters,
-                argumentAnalysis.ArgsToParamsOpt, hasAnyRefOmittedArgument, ref useSiteDiagnostics);
+                argumentAnalysis.ArgsToParamsOpt, hasAnyComRefOmittedArgument, ref useSiteDiagnostics);
 
             return result.Result.IsValid ?
                 new MemberResolutionResult<TMember>(
                     result.Member,
                     result.LeastOverriddenMember,
-                    MemberAnalysisResult.ExpandedForm(result.Result.ArgsToParamsOpt, result.Result.ConversionsOpt, hasAnyRefOmittedArgument)) :
+                    MemberAnalysisResult.ExpandedForm(result.Result.ArgsToParamsOpt, result.Result.ConversionsOpt, hasAnyComRefOmittedArgument)) :
                 result;
         }
 
@@ -2683,7 +2704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             EffectiveParameters originalEffectiveParameters,
             EffectiveParameters constructedEffectiveParameters,
             ImmutableArray<int> argsToParamsMap,
-            bool hasAnyRefOmittedArgument,
+            bool hasAnyComRefOmittedArgument,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false)
             where TMember : Symbol
@@ -2794,7 +2815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MemberResolutionResult<TMember>(
                 member,
                 leastOverriddenMember,
-                IsApplicable(member, effectiveParameters, arguments, argsToParamsMap, member.GetIsVararg(), hasAnyRefOmittedArgument, ignoreOpenTypes, ref useSiteDiagnostics));
+                IsApplicable(member, effectiveParameters, arguments, argsToParamsMap, member.GetIsVararg(), hasAnyComRefOmittedArgument, ignoreOpenTypes, ref useSiteDiagnostics));
         }
 
         private ImmutableArray<TypeSymbol> InferMethodTypeArguments(
@@ -2847,7 +2868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments arguments,
             ImmutableArray<int> argsToParameters,
             bool isVararg,
-            bool hasAnyRefOmittedArgument,
+            bool hasAnyComRefOmittedArgument,
             bool ignoreOpenTypes,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
@@ -2931,7 +2952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                result = MemberAnalysisResult.NormalForm(argsToParameters, conversionsArray, hasAnyRefOmittedArgument);
+                result = MemberAnalysisResult.NormalForm(argsToParameters, conversionsArray, hasAnyComRefOmittedArgument);
             }
 
             return result;
@@ -3010,6 +3031,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return (TMember)(Symbol)(member as MethodSymbol).ConstructedFrom;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
+            }
+        }
+
+        public static bool ShouldOmitRefArgument(RefOmitMode refOmitMode, int argument)
+        {
+            switch (refOmitMode)
+            {
+                case RefOmitMode.None:
+                    return false;
+                case RefOmitMode.All:
+                    return true;
+                case RefOmitMode.ExtensionMethod:
+                    return argument == 0;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(refOmitMode);
             }
         }
     }

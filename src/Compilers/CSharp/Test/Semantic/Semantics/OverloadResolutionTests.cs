@@ -9068,5 +9068,31 @@ public enum Something
             // should be NO errors.
             CompileAndVerify(source, expectedOutput: @"False");
         }
+
+        [Fact]
+        public void RefExtensionMethodAmbiguity()
+        {
+            string source = @"
+public struct S { }
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        new S().E();
+    }
+}
+
+public static class Ext { public static void E(this ref S s) { } }
+public static class Ext2 { public static void E(this S s) { } }
+";
+
+            CreateExperimentalCompilationWithMscorlib45(source, MessageID.IDS_FeatureRefExtensionMethod)
+                .VerifyDiagnostics(
+                // (8,17): error CS0121: The call is ambiguous between the following methods or properties: 'Ext.E(ref S)' and 'Ext2.E(S)'
+                //     new S().E();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("Ext.E(ref S)", "Ext2.E(S)")
+                );
+        }
     }
 }

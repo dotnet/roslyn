@@ -252,6 +252,9 @@
   <data name="IDS_FeaturePartialMethod" xml:space="preserve">
     <value>partial method</value>
   </data>
+  <data name="IDS_FeatureRefExtensionMethod" xml:space="preserve">
+    <value>by-ref extension method</value>
+  </data>
   <data name="IDS_SK_METHOD" xml:space="preserve">
     <value>method</value>
   </data>
@@ -4980,5 +4983,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ThrowMisplaced" xml:space="preserve">
     <value>A throw expression is not allowed in this context.</value>
+  </data>
+  <data name="ERR_RefExtensionMethodOnNonValueType" xml:space="preserve">
+    <value>A ref extension methods can only be defined on value types.</value>
   </data>
 </root>

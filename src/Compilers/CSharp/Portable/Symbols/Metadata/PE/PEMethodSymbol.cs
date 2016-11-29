@@ -784,7 +784,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var parameter = parameters[0];
-            return (parameter.RefKind == RefKind.None) && !parameter.IsParams;
+            return (parameter.RefKind == RefKind.None || parameter.RefKind == RefKind.Ref)
+                && !parameter.IsParams;
         }
 
         private bool IsValidUserDefinedOperatorSignature(int parameterCount) =>

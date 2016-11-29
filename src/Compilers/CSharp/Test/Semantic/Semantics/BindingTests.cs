@@ -3412,5 +3412,49 @@ class Program
             Assert.Null(symbolInfo1.Symbol);
             Assert.True(symbolInfo1.CandidateSymbols.IsEmpty);
         }
+
+
+
+        [Fact]
+        public void ByrefExtensionMethodOnNonVariables()
+        {
+            var text = @"
+public struct S { }
+
+class Program
+{
+    static readonly S s = new S();
+    readonly S i = new S();
+    S p { get; set; }
+
+    public Program()
+    {
+        i.E();
+    }
+
+    static Program()
+    {
+        s.E();
+    }
+
+    public void Main()
+    {
+        i.E(); // CS0192
+        s.E(); // CS0199
+        p.E(); // CS0206
+    }
+}
+
+public static class Ext
+{
+    public static void E(this ref S s) { }
+}
+";
+            CreateExperimentalCompilationWithMscorlib45(text, MessageID.IDS_FeatureRefExtensionMethod)
+                .VerifyDiagnostics(
+                    Diagnostic(ErrorCode.ERR_RefReadonly, "i.E").WithLocation(22, 9),
+                    Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "s.E").WithLocation(23, 9),
+                    Diagnostic(ErrorCode.ERR_RefProperty, "p.E").WithArguments("Program.p").WithLocation(24, 9));
+        }
     }
 }

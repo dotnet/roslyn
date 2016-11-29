@@ -926,6 +926,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 args = analyzedArguments.Arguments.ToImmutable();
             }
 
+            // Verify that receiver is accessible if by-ref extension method
+            if (invokedAsExtensionMethod &&
+                !method.ParameterRefKinds.IsDefaultOrEmpty &&
+                method.ParameterRefKinds[0] == RefKind.Ref)
+            {
+                CheckIsVariable(expression, args[0], BindValueKind.RefOrOut, false, diagnostics);
+            }
+
             // This will be the receiver of the BoundCall node that we create.
             // For extension methods, there is no receiver because the receiver in source was actually the first argument.
             // For instance methods, we may have synthesized an implicit this node.  We'll keep it for the emitter.

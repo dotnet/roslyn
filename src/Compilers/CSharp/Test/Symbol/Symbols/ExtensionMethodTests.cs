@@ -3898,5 +3898,42 @@ public class BaseClass<TMember> : I1<TMember>
             Assert.Empty(model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true));
             Assert.Empty(model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true).Where(s => s.Name == "SetMembers"));
         }
+
+        [Fact]
+        public void RefExtensionMethod()
+        {
+            var ilSource =
+@".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly extern System.Core {}
+.assembly '<<GeneratedFileName>>'
+{
+    .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+}
+.class public S
+{
+    .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .method public static void M2(object& o)
+    {
+        .custom instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        ret
+    }
+}
+";
+            var source = @"class A
+{
+    internal static S G = null;
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, appendDefaultHeader: false);
+
+            var refType = compilation.Assembly.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+
+            var type = (NamedTypeSymbol)refType.GetMember<FieldSymbol>("G").Type;
+
+            // Static method ref param.
+            var method = type.GetMember<MethodSymbol>("M2");
+            Assert.Equal(1, method.Parameters.Length);
+            Assert.True(method.IsStatic);
+            Assert.True(method.IsExtensionMethod);
+        }
     }
 }

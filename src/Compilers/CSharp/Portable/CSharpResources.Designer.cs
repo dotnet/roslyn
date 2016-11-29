@@ -7865,6 +7865,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A ref extension methods can only be defined on value types..
+        /// </summary>
+        internal static string ERR_RefExtensionMethodOnNonValueType {
+            get {
+                return ResourceManager.GetString("ERR_RefExtensionMethodOnNonValueType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A ref or out value must be an assignable variable.
         /// </summary>
         internal static string ERR_RefLvalueExpected {
@@ -10040,6 +10049,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureReadonlyAutoImplementedProperties {
             get {
                 return ResourceManager.GetString("IDS_FeatureReadonlyAutoImplementedProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to by-ref extension method.
+        /// </summary>
+        internal static string IDS_FeatureRefExtensionMethod {
+            get {
+                return ResourceManager.GetString("IDS_FeatureRefExtensionMethod", resourceCulture);
             }
         }
         

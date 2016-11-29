@@ -19412,6 +19412,22 @@ internal abstract event System.EventHandler E;";
                 // internal abstract event System.EventHandler E;
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
         }
+
+        [Fact]
+        public void ERR_RefExtensionMethodOnNonValueType()
+        {
+            var source = @"public static class Extensions
+{
+    public static void Test1(this ref System.String s) { } //CS8201
+    public static void Test2<T>(this ref T s) { } //CS8201
+    public static void Test3<T>(this ref T s) where T: struct { }
+}
+";
+            CreateExperimentalCompilationWithMscorlib45(source, MessageID.IDS_FeatureRefExtensionMethod)
+                .VerifyDiagnostics(
+                    Diagnostic(ErrorCode.ERR_RefExtensionMethodOnNonValueType, "Test1").WithLocation(3, 24),
+                    Diagnostic(ErrorCode.ERR_RefExtensionMethodOnNonValueType, "Test2").WithLocation(4, 24));
+        }
     }
 }
 
