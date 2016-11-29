@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private Model WaitForModel()
         {
-            var model = sessionOpt.WaitForModel(ShouldBlockForCompletionItems());
+            var model = sessionOpt.WaitForModel_DoNotCallDirectly(ShouldBlockForCompletionItems());
             if (model == null)
             {
                 // We either didn't get a model because we blocked, and no model was computed,

@@ -10,7 +10,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
     {
         internal partial class Session
         {
-            internal Model WaitForModel(bool blockForInitialItems)
+            /// <summary>
+            /// Should only be called from <see cref="Controller.WaitForModel"/>.
+            /// </summary>
+            internal Model WaitForModel_DoNotCallDirectly(bool blockForInitialItems)
             {
                 AssertIsForeground();
 
