@@ -613,26 +613,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             ''' <summary>
-            ''' indirect assignment is assignment to a value referenced indirectly
-            ''' it may only happen if lhs is a reference (must be a parameter or a local)
-            '''       1) lhs is a reference (must be a parameter or a local)
-            '''       2) it is not a ref/out assignment where the reference itself would be assigned
+            ''' VB uses a special node to assign references.
+            ''' BoundAssignment is used only to assign values.
+            ''' therefore an indirect assignment may only happen if lhs is a reference
             ''' </summary>
-            Friend Shared Function IsIndirectAssignment(node As BoundAssignmentOperator) As Boolean
-                If Not IsByRefLocalOrParameter(node.Left) Then
-                    Return False
-                End If
-                Return Not IsByRefLocalOrParameter(node.Right)
+            Private Shared Function IsIndirectAssignment(node As BoundAssignmentOperator) As Boolean
+                Return IsByRefVariable(node.Left)
             End Function
 
-            Private Shared Function IsByRefLocalOrParameter(node As BoundExpression) As Boolean
+            Private Shared Function IsByRefVariable(node As BoundExpression) As Boolean
                 Select Case node.Kind
                     Case BoundKind.Parameter
                         Return DirectCast(node, BoundParameter).ParameterSymbol.IsByRef
                     Case BoundKind.Local
                         Return DirectCast(node, BoundLocal).LocalSymbol.IsByRef
-                    Case Else
+                    Case BoundKind.Call
+                        Return DirectCast(node, BoundCall).Method.ReturnsByRef
+                    Case BoundKind.Sequence
+                        Debug.Assert(Not IsByRefVariable(DirectCast(node, BoundSequence).ValueOpt))
                         Return False
+
+                    Case BoundKind.PseudoVariable
+                        Return True
+                    Case BoundKind.ReferenceAssignment
+                        Return True
+                    Case BoundKind.ValueTypeMeReference
+                        Return True
+
+                    Case BoundKind.ModuleVersionId,
+                        BoundKind.InstrumentationPayloadRoot
+                        ' same as static fields
+                        Return False
+
+                    Case BoundKind.FieldAccess,
+                         BoundKind.ArrayAccess
+                        ' fields are never byref
+                        Return False
+
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(node.Kind)
                 End Select
             End Function
 
