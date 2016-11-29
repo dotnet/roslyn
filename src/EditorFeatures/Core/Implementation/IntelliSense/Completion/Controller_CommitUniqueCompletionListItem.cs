@@ -39,6 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             if (sessionOpt.InitialUnfilteredModel == null && !ShouldBlockForCompletionItems())
             {
+                // We're in a language that doesn't want to block, but hasn't computed the initial
+                // set of completion items.  In this case, we asynchronously wait for the items to
+                // be computed.  And if nothing has happened between now and that point, we proceed
+                // with committing the items.
                 CommitUniqueCompletionListItemAsynchronously();
                 return;
             }
@@ -57,10 +61,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private void CommitUniqueCompletionListItemAsynchronously()
         {
-            // We're in a language that doesn't want to block, but hasn't computed the initial
-            // set of completion items.  In this case, we asynchronously wait for the items to
-            // be computed.  And if nothing has happened between now and that point, we proceed
-            // with committing the items.
             var currentSession = sessionOpt;
             var currentTask = currentSession.Computation.ModelTask;
 
