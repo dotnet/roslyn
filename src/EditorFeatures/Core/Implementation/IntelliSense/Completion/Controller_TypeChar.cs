@@ -208,12 +208,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            // It wasn't a filter character.  We'll either commit what's selected, or we'll
-            // dismiss the completion list.  
-            if (!this.CommitIfCommitCharacter(args.TypedChar, model, initialTextSnapshot, nextHandler))
-            {
-                this.StopModelComputation();
-            }
+            // It wasn't a filter character.  It's either a commit character, or something we
+            // don't know how to handle.  First try to commit.
+            this.CommitIfCommitCharacter(args.TypedChar, model, initialTextSnapshot, nextHandler);
+
+            // At this point we don't want a session anymore (either because we committed, or 
+            // because we got a character we don't know how to handle).  Unilaterally dismiss
+            // the session.
+            DismissSessionIfActive();
 
             if (isTextuallyTriggered)
             {
