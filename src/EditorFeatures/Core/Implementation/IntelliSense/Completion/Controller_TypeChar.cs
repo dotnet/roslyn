@@ -147,7 +147,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             SnapshotPoint initialCaretPosition, CompletionService completionService,
             OptionSet options, bool isTextuallyTriggered, CompletionTrigger trigger)
         {
-
             sessionOpt.UpdateModelTrackingSpan(initialCaretPosition);
 
             // If the session is up, it may be in one of many states.  It may know nothing
@@ -227,11 +226,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var options = GetOptions();
             return service != null && options != null &&
                 options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language);
-        }
-
-        private void DismissSessionAndStartAnotherIfTriggered(CompletionService completionService, bool isTextuallyTriggered, CompletionTrigger trigger)
-        {
-
         }
 
         private void ExecuteTypeCharWithNoSession(CompletionService completionService, bool isTextuallyTriggered, CompletionTrigger trigger)
