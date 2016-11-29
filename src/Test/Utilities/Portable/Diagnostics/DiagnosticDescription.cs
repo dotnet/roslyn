@@ -387,28 +387,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             StringBuilder assertText = new StringBuilder();
             assertText.AppendLine();
 
-            // Write out the 'command line compiler output' including squiggles (easy to read debugging info in the case of a failure).
-            // This will be useful for VB, because we can't do the inline comments.
-#if false
-            {
-                assertText.AppendLine("Compiler output:");
-                foreach (var d in actual)
-                {
-                    Indent(assertText, 1);
-                    assertText.AppendLine(d.ToString());
-                    var location = d.Location;
-                    var lineText = location.SourceTree.GetText().Lines.GetLineFromPosition(location.SourceSpan.Start).ToString();
-                    assertText.AppendLine(lineText);
-                    var span = location.GetMappedLineSpan();
-                    var startPosition = span.StartLinePosition;
-                    var endPosition = span.EndLinePosition;
-                    assertText.Append(' ', startPosition.Character);
-                    var endCharacter = (startPosition.Line == endPosition.Line) ? endPosition.Character : lineText.Length;
-                    assertText.Append('~', endCharacter - startPosition.Character);
-                    assertText.AppendLine();
-                }
-            }
-#endif
             // write out the error baseline as method calls
             int i;
             assertText.AppendLine("Expected:");
