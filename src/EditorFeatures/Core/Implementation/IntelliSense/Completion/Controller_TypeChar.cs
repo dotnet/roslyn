@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (sessionOpt == null)
             {
                 // No current session.  start one if necessary.
-                ExecuteTYpeCharWithNoSession(completionService, isTextuallyTriggered, trigger);
+                ExecuteTypeCharWithNoSession(completionService, isTextuallyTriggered, trigger);
             }
             else
             {
@@ -180,13 +181,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            // It wasn't a trigger or filter character. At this point, we make our
-            // determination on what to do based on what has actually been computed and
-            // what's being typed. This means waiting on the session and will effectively
-            // block the user.
+            // It wasn't a trigger or filter character. At this point, we make our determination 
+            // on what to do based on what has actually been computed and what's being typed. 
+            // In order to do this, we need to know what the actual completion items are.  If we 
+            // want these, we have to block.  We will do this if the language allows this.  
+            // Generally, the language will allow this if completions can be computed quickly.  
+            // If they can't, then we will not block and we will stop computed immediately.
 
-            // Again, from this point on we must block on the computation to decide what to
-            // do.
+            if (sessionOpt.InitialUnfilteredModel == null)
+            {
+                // We haven't finished computing completion items.  Block if the language wants
+                // us to.  Otherwise, dismiss the session
+                var result = Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out var workspace);
+                Debug.Assert(result, "We successfully got the completion service.  We must be able to get to the workspace.");
+
+                if (!options.GetOption(CompletionOptions.BlockForCompletionItems, completionService.Language))
+                {
+                    // Language doesn't want us to block.  Just stop our existing session as we 
+                    // don't have enough data on what to do.  Restart the session if appropriate
+                    // for the character typed.
+                    DismissSessionAndStartAnotherIfTriggered(completionService, isTextuallyTriggered, trigger);
+                    return;
+                }
+            }
+
+            // We've either computed the items, or the language is fine with blocking.  
+            // Block to get the model and determine what we should so.
 
             // What they type may end up filtering, committing, or else will dismiss.
             //
@@ -196,7 +216,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // "Color", "Color.Red", "Color.Blue", etc.  When we process the 'dot', we
             // actually want to filter some more.  But we can't know that ahead of time until
             // we have computed the list of completions.
-            if (this.IsFilterCharacter(args.TypedChar))
+            var model = sessionOpt.WaitForModel();
+            if (this.IsFilterCharacter(args.TypedChar, model))
             {
                 // Known to be a filter character for the currently selected item.  So just 
                 // filter the session.
@@ -208,19 +229,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             // It wasn't a filter character.  We'll either commit what's selected, or we'll
-            // dismiss the completion list.  First, ensure that what was typed is in the
-            // buffer.
+            // dismiss the completion list.  
+            this.CommitIfCommitCharacter(args.TypedChar, model, initialTextSnapshot, nextHandler);
 
-            // Now, commit if it was a commit character.
-            if (!this.CommitIfCommitCharacter(args.TypedChar, initialTextSnapshot, nextHandler))
-            {
-                // Wasn't a filter or commit character.  Stop what we're doing as we have
-                // no idea what this is.
-                this.StopModelComputation();
-            }
+            // If the character was a commit character, then we will have committed the list
+            // and dismissed the session.  If it wasn't a commit character, then we don't know
+            // what to do with this character, and we want to dismiss the session.  So, at this
+            // point we always want hte session dismissed. 'DismissSessionAndStartAnotherIfTriggered'
+            // will ensure that happens.
 
-            // The character may commit/dismiss and then trigger completion again. So check
-            // for that here.
+            // The character may have committed *and* should start a new session.  i.e. 
+            // hittins "Sys<dot>".  <dot> should commit "System" and start a new session.
+            DismissSessionAndStartAnotherIfTriggered(completionService, isTextuallyTriggered, trigger);
+        }
+
+        private void DismissSessionAndStartAnotherIfTriggered(CompletionService completionService, bool isTextuallyTriggered, CompletionTrigger trigger)
+        {
+            DismissSessionIfActive();
 
             if (isTextuallyTriggered)
             {
@@ -231,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
         }
 
-        private void ExecuteTYpeCharWithNoSession(CompletionService completionService, bool isTextuallyTriggered, CompletionTrigger trigger)
+        private void ExecuteTypeCharWithNoSession(CompletionService completionService, bool isTextuallyTriggered, CompletionTrigger trigger)
         {
             // No computation at all.  If this is not a trigger character, we just ignore it and
             // stay in this state.  Otherwise, if it's a trigger character, start up a new
@@ -307,12 +332,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return completionService.ShouldTriggerCompletion(previousPosition.Snapshot.AsText(), caretPosition, trigger, _roles, options);
         }
 
-        private bool IsCommitCharacter(char ch, out Model model)
+        private bool IsCommitCharacter(char ch, Model model)
         {
             AssertIsForeground();
 
-            // TODO(cyrusn): Find a way to allow the user to cancel out of this.
-            model = sessionOpt.WaitForModel();
             if (model == null || model.IsSoftSelection)
             {
                 return false;
@@ -374,12 +397,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return completionRules.DefaultCommitCharacters.IndexOf(ch) >= 0;
         }
 
-        private bool IsFilterCharacter(char ch)
+        private bool IsFilterCharacter(char ch, Model model)
         {
             AssertIsForeground();
 
-            // TODO(cyrusn): Find a way to allow the user to cancel out of this.
-            var model = sessionOpt.WaitForModel();
             if (model == null)
             {
                 return false;
@@ -452,12 +473,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private bool CommitIfCommitCharacter(
             char ch, ITextSnapshot initialTextSnapshot, Action nextHandler)
         {
+            return CommitIfCommitCharacter(ch, sessionOpt.WaitForModel(), initialTextSnapshot, nextHandler);
+        }
+
+        private bool CommitIfCommitCharacter(
+            char ch, Model model, ITextSnapshot initialTextSnapshot, Action nextHandler)
+        {
             AssertIsForeground();
 
             // Note: this function is called after the character has already been inserted into the
             // buffer.
 
-            if (!IsCommitCharacter(ch, out var model))
+            if (!IsCommitCharacter(ch, model))
             {
                 return false;
             }
