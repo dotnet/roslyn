@@ -154,9 +154,12 @@ namespace BuildBoss
                 return true;
             }
 
+            return true;
+            /* Disabled while staging the closed / open change. 
             var allGood = CheckForProperty(textWriter, "CopyNuGetImplementations");
             allGood &= CheckForProperty(textWriter, "UseCommonOutputDirectory");
             return allGood;
+            */
         }
 
         /// <summary>
