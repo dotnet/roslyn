@@ -93,5 +93,20 @@ w.Content = g;");
             VerifyLastReplOutput("Hello, World!");
             SubmitText("b = null; w.Close(); w = null;");
         }
+
+        [Fact]
+        public void TypingHelpDirectiveWorks()
+        {
+            InteractiveWindow.ShowWindow(waitForPrompt: true);
+
+            // Directly type #help, rather than sending it through SubmitText. We want to actually test
+            // that completion doesn't interfere and there aren't problems with the content-type switching.
+            VisualStudio.Instance.SendKeys.Send("#help");
+
+            Assert.EndsWith("#help", InteractiveWindow.GetReplText());
+
+            VisualStudio.Instance.SendKeys.Send("\n");
+            InteractiveWindow.WaitForReplOutputContains("REPL commands");
+        }
     }
 }

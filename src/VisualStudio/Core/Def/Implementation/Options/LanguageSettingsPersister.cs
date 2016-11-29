@@ -231,7 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             // This particular serializer is a bit strange, since we have to initially read things out on the UI thread.
             // Therefore, we refresh the values in the constructor, meaning that this should never get called for our values.
 
-            Contract.ThrowIfTrue(_supportedOptions.Contains(optionKey.Option));
+            Contract.ThrowIfTrue(_supportedOptions.Contains(optionKey.Option) && _languageMap.ContainsKey(optionKey.Language));
 
             value = null;
             return false;
