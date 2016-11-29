@@ -3450,11 +3450,11 @@ public static class Ext
     public static void E(this ref S s) { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new List<MetadataReference> { SystemCoreRef },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_RefReadonly, Line = 22, Column = 9 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_RefReadonlyStatic, Line = 23, Column = 9 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_RefProperty, Line = 24, Column = 9 });
+            CreateExperimentalCompilationWithMscorlib45(text, MessageID.IDS_FeatureRefExtensionMethod)
+                .VerifyDiagnostics(
+                    Diagnostic(ErrorCode.ERR_RefReadonly, "i.E").WithLocation(22, 9),
+                    Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "s.E").WithLocation(23, 9),
+                    Diagnostic(ErrorCode.ERR_RefProperty, "p.E").WithArguments("Program.p").WithLocation(24, 9));
         }
     }
 }

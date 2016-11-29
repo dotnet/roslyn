@@ -15549,7 +15549,7 @@ public static class Ext
     }
 }
 ";
-            CompileAndVerify(source, additionalRefs: new[] { SystemRef, SystemCoreRef },
+            CompileAndVerifyExperimental(source, MessageID.IDS_FeatureRefExtensionMethod, additionalRefs: new[] { SystemRef, SystemCoreRef },
                 expectedOutput: "1");
         }
 
@@ -15588,7 +15588,7 @@ public static class Ext
     }
 }
 ";
-            CompileAndVerify(source, additionalRefs: new[] { SystemRef, SystemCoreRef },
+            CompileAndVerifyExperimental(source, MessageID.IDS_FeatureRefExtensionMethod, additionalRefs: new[] { SystemRef, SystemCoreRef },
                 expectedOutput: "1");
         }
 
@@ -15622,7 +15622,7 @@ public static class Ext
     }
 }
 ";
-            CompileAndVerify(source, additionalRefs: new[] { SystemRef, SystemCoreRef },
+            CompileAndVerifyExperimental(source, MessageID.IDS_FeatureRefExtensionMethod, additionalRefs: new[] { SystemRef, SystemCoreRef },
                 expectedOutput: "1");
         }
 
@@ -15654,7 +15654,7 @@ public static class Ext
     public static void E(this ref S s) { s.I++; }
 }
 ";
-            CompileAndVerify(source, additionalRefs: new[] { SystemRef, SystemCoreRef },
+            CompileAndVerifyExperimental(source, MessageID.IDS_FeatureRefExtensionMethod, additionalRefs: new[] { SystemRef, SystemCoreRef },
                 expectedOutput: "1");
         }
     }

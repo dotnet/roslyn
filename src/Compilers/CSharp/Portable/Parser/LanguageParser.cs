@@ -4257,6 +4257,10 @@ tryAgain:
                         {
                             mod = this.AddError(mod, ErrorCode.ERR_BadOutWithThis);
                         }
+                        else if ((flags & ParamFlags.Ref) != 0 && !IsFeatureEnabled(MessageID.IDS_FeatureRefExtensionMethod))
+                        {
+                            mod = this.AddError(mod, ErrorCode.ERR_BadRefWithThis);
+                        }
                         else if ((flags & ParamFlags.Params) != 0)
                         {
                             mod = this.AddError(mod, ErrorCode.ERR_BadParamModThis);
@@ -4271,6 +4275,10 @@ tryAgain:
                         if ((flags & ParamFlags.Ref) != 0)
                         {
                             mod = this.AddError(mod, ErrorCode.ERR_DupParamMod, SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                        }
+                        else if ((flags & ParamFlags.This) != 0 && !IsFeatureEnabled(MessageID.IDS_FeatureRefExtensionMethod))
+                        {
+                            mod = this.AddError(mod, ErrorCode.ERR_BadRefWithThis);
                         }
                         else if ((flags & ParamFlags.Params) != 0)
                         {

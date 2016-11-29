@@ -2603,6 +2603,48 @@ class Program
     Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]"));
         }
 
+        [WorkItem(863401, "DevDiv/Personal")]
+        [Fact]
+        public void CS1101ERR_BadRefWithThis()
+        {
+            // No error
+            var test = @"
+using System;
+public static class Extensions
+{
+    //No type parameters
+    public static void Foo(ref this int i) {}
+    //Single type parameter
+    public static void Foo<T>(ref this T t) {}
+    //Multiple type parameters
+    public static void Foo<T,U,V>(ref this U u) {}
+}
+public static class GenExtensions<X>
+{
+    //No type parameters
+    public static void Foo(ref this int i) {}
+    public static void Foo(ref this X x) {}
+    //Single type parameter
+    public static void Foo<T>(ref this T t) {}
+    public static void Foo<T>(ref this X x) {}
+    //Multiple type parameters
+    public static void Foo<T,U,V>(ref this U u) {}
+    public static void Foo<T,U,V>(ref this X x) {}
+}
+";
+
+            ParseAndValidate(test,
+Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
+Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
+Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
+Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
+Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
+Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
+Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
+Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
+Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"));
+        }
+
         [WorkItem(906072, "DevDiv/Personal")]
         [Fact]
         public void CS1102ERR_BadOutWithThis()
