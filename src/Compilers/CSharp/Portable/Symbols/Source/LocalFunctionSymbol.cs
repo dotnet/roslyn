@@ -66,7 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public LocalFunctionSymbol(
             Binder binder,
             Symbol containingSymbol,
-            LocalFunctionStatementSyntax syntax)
+            LocalFunctionStatementSyntax syntax,
+            bool inUnsafeRegion)
         {
             _syntax = syntax;
             _containingSymbol = containingSymbol;
@@ -75,6 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Private |
                 DeclarationModifiers.Static |
                 syntax.Modifiers.ToDeclarationModifiers();
+
+            this.IsUnsafe = inUnsafeRegion || _declarationModifiers.HasFlag(DeclarationModifiers.Unsafe);
 
             var diagnostics = DiagnosticBag.GetInstance();
 
@@ -299,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsExtern => (_declarationModifiers & DeclarationModifiers.Extern) != 0;
 
-        public bool IsUnsafe => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        public bool IsUnsafe { get; }
 
         internal bool IsExpressionBodied => _syntax.Body == null && _syntax.ExpressionBody != null;
 

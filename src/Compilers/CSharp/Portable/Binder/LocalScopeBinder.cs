@@ -268,7 +268,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new LocalFunctionSymbol(
                 this,
                 this.ContainingMemberOrLambda,
-                declaration);
+                declaration,
+                this.InUnsafeRegion);
         }
 
         protected void BuildLabels(SyntaxList<StatementSyntax> statements, ref ArrayBuilder<LabelSymbol> labels)
