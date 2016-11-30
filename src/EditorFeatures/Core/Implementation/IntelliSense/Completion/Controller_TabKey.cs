@@ -44,10 +44,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // session wasn't able to commit, then we do send the tab through to the buffer.
             var committed = CommitOnTab();
 
+            // After tab, we always want to be in an inactive state.
             this.DismissSessionIfActive();
 
-            // We did not commit based on tab.  So our computation will still be running.  Stop it now.
-            // Also, send the tab through to the editor.
+            // We did not commit based on tab, so send the tab through to the editor.
             if (!committed)
             {
                 nextHandler();
