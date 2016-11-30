@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             _action = action
         End Sub
 
-        Public Function StartSearch(title As String) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearch
+        Public Function StartSearch(title As String, alwaysShowDeclarations As Boolean) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearch
             _action()
             Return Context
         End Function
