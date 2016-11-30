@@ -5479,6 +5479,8 @@ class C
                 //         foreach (_ in M())
                 Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "_").WithLocation(6, 18)
                 );
+            // TODO: test SemanticModel.GetTypeInfo on the wildcard here.
+            // see https://github.com/dotnet/roslyn/issues/15450
         }
 
         [Fact]

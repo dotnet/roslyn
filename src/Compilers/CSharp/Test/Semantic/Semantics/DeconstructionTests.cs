@@ -2410,7 +2410,7 @@ class C1
         }
 
         [Fact]
-        public void DeclarationCannotBeEmbedded()
+        public void DeconstructionMayBeEmbedded()
         {
             var source = @"
 class C1

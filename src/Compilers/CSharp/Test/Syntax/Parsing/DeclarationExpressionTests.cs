@@ -1,11 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
@@ -456,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void NewForeach_04()
         {
-            // PROTOTYPE(wildcards): these should be semantic, not syntax errors
+            // there are semantic, not syntax errors
             UsingStatement("foreach ((1, 2) in e) {}");
             N(SyntaxKind.ForEachVariableStatement);
             {
@@ -611,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void NewForeach_07()
         {
-            // PROTOTYPE(wildcards): SHOULD BE some kind of *semantic* error here
+            // there are semantic but not syntax errors here.
             UsingStatement("foreach ((var (x, y), z) in e) {}");
             N(SyntaxKind.ForEachVariableStatement);
             {
@@ -957,7 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void OutTuple_04()
         {
-            // PROTOTYPE(wildcards): require some sort of semantic error here
+            // there are semantic but not syntax errors here.
             UsingStatement("M(out (int x, int y));");
             N(SyntaxKind.ExpressionStatement);
             {
@@ -1019,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void OutTuple_05()
         {
-            // PROTOTYPE(wildcards): require some sort of semantic error here
+            // there are semantic but not syntax errors here.
             UsingStatement("M(out (var x, var y));");
             N(SyntaxKind.ExpressionStatement);
             {
