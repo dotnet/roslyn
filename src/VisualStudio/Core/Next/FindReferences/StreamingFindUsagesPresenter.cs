@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
         }
 
-        public FindUsagesContext StartSearch(string title)
+        public FindUsagesContext StartSearch(string title, bool alwaysShowDeclarations)
         {
             this.AssertIsForeground();
 
@@ -68,7 +68,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             var window = _vsFindAllReferencesService.StartSearch(title);
 
             // Make the data source that will feed data into this window.
-            var dataSource = new TableDataSourceFindUsagesContext(this, window);
+            var dataSource = new TableDataSourceFindUsagesContext(
+                this, window, alwaysShowDeclarations);
 
             // And return the data source so that the FindRefs engine can report results
             // which the data source can then create the appropriate presentation items for

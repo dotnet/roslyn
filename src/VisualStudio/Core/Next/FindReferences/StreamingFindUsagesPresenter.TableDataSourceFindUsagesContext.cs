@@ -34,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public readonly StreamingFindUsagesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
             private readonly IWpfTableControl2 _tableControl;
+            private readonly bool _alwaysIncludeDeclarations;
 
             private readonly object _gate = new object();
 
@@ -67,8 +68,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// </summary>
             private bool _currentlyGroupingByDefinition;
 
-            private ImmutableList<Entry> _entriesWhenGroupingByDefinition = ImmutableList<Entry>.Empty;
-            private ImmutableList<Entry> _entriesWhenNotGroupingByDefinition = ImmutableList<Entry>.Empty;
+            private ImmutableList<Entry> _entriesWithDeclarations = ImmutableList<Entry>.Empty;
+            private ImmutableList<Entry> _entriesWithoutDeclarations = ImmutableList<Entry>.Empty;
 
             private TableEntriesSnapshot _lastSnapshot;
             public int CurrentVersionNumber { get; private set; }
@@ -77,11 +78,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public TableDataSourceFindUsagesContext(
                  StreamingFindUsagesPresenter presenter,
-                 IFindAllReferencesWindow findReferencesWindow)
+                 IFindAllReferencesWindow findReferencesWindow,
+                 bool alwaysIncludeDeclarations)
             {
                 presenter.AssertIsForeground();
 
                 Presenter = presenter;
+                _alwaysIncludeDeclarations = alwaysIncludeDeclarations;
                 _findReferencesWindow = findReferencesWindow;
                 _tableControl = (IWpfTableControl2)findReferencesWindow.TableControl;
                 _tableControl.GroupingsChanged += OnTableControlGroupingsChanged;
@@ -227,8 +230,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     await OnEntryFoundAsync(NoResultsDefinitionItem,
                         bucket => SimpleMessageEntry.CreateAsync(
                             bucket, ServicesVisualStudioNextResources.Search_found_no_results),
-                        showEntryWhenGroupingByDefinition: true,
-                        showEntryWhenNotGroupingByDefinition: true).ConfigureAwait(false);
+                        addToEntriesWithDeclarations: true,
+                        addToEntriesWithoutDeclarations: true).ConfigureAwait(false);
                 }
             }
 
@@ -241,17 +244,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             private async Task CreateMissingReferenceEntriesIfNecessaryAsync()
             {
-                await CreateMissingReferenceEntriesIfNecessaryAsync(whenGroupingByDefinition: true).ConfigureAwait(false);
-                await CreateMissingReferenceEntriesIfNecessaryAsync(whenGroupingByDefinition: false).ConfigureAwait(false);
+                await CreateMissingReferenceEntriesIfNecessaryAsync(withDeclarations: true).ConfigureAwait(false);
+                await CreateMissingReferenceEntriesIfNecessaryAsync(withDeclarations: false).ConfigureAwait(false);
             }
 
             private async Task CreateMissingReferenceEntriesIfNecessaryAsync(
-                bool whenGroupingByDefinition)
+                bool withDeclarations)
             {
                 // Go through and add dummy entries for any definitions that 
                 // that we didn't find any references for.
 
-                var definitions = GetDefinitionsToCreateMissingReferenceItemsFor(whenGroupingByDefinition);
+                var definitions = GetDefinitionsToCreateMissingReferenceItemsFor(withDeclarations);
                 foreach (var definition in definitions)
                 {
                     // Create a fake reference to this definition that says 
@@ -259,8 +262,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     await OnEntryFoundAsync(definition,
                         bucket => SimpleMessageEntry.CreateAsync(
                             bucket, GetMessage(bucket.DefinitionItem)),
-                        showEntryWhenGroupingByDefinition: whenGroupingByDefinition,
-                        showEntryWhenNotGroupingByDefinition: !whenGroupingByDefinition).ConfigureAwait(false);
+                        addToEntriesWithDeclarations: withDeclarations,
+                        addToEntriesWithoutDeclarations: !withDeclarations).ConfigureAwait(false);
                 }
             }
 
@@ -277,13 +280,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             private ImmutableArray<DefinitionItem> GetDefinitionsToCreateMissingReferenceItemsFor(
-                bool whenGroupingByDefinition)
+                bool withDeclarations)
             {
                 lock (_gate)
                 {
-                    var entries = whenGroupingByDefinition
-                        ? _entriesWhenGroupingByDefinition
-                        : _entriesWhenNotGroupingByDefinition;
+                    var entries = withDeclarations
+                        ? _entriesWithDeclarations
+                        : _entriesWithoutDeclarations;
 
                     // Find any definitions that we didn't have any references to. But only show 
                     // them if they want to be displayed without any references.  This will 
@@ -334,9 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 lock (_gate)
                 {
-                    // We only store declaration entries in the entries list we use when
-                    // we're not grouping by definition.
-                    return _entriesWhenNotGroupingByDefinition.Any(e => e.DefinitionBucket.DefinitionItem == definition);
+                    return _entriesWithDeclarations.Any(e => e.DefinitionBucket.DefinitionItem == definition);
                 }
             }
 
@@ -375,7 +376,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     {
                         // We only include declaration entries in the entries we show when 
                         // not grouping by definition.
-                        _entriesWhenNotGroupingByDefinition = _entriesWhenNotGroupingByDefinition.AddRange(declarations);
+                        _entriesWithDeclarations = _entriesWithDeclarations.AddRange(declarations);
                         CurrentVersionNumber++;
                     }
                 }
@@ -393,17 +394,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     reference.Definition,
                     bucket => CreateDocumentLocationEntryAsync(
                         bucket, reference.SourceSpan, isDefinitionLocation: false),
-                    showEntryWhenGroupingByDefinition: true,
-                    showEntryWhenNotGroupingByDefinition: true);
+                    addToEntriesWithDeclarations: true,
+                    addToEntriesWithoutDeclarations: true);
             }
 
             private async Task OnEntryFoundAsync(
                 DefinitionItem definition,
                 Func<RoslynDefinitionBucket, Task<Entry>> createEntryAsync,
-                bool showEntryWhenGroupingByDefinition,
-                bool showEntryWhenNotGroupingByDefinition)
+                bool addToEntriesWithDeclarations,
+                bool addToEntriesWithoutDeclarations)
             {
-                Debug.Assert(showEntryWhenGroupingByDefinition || showEntryWhenNotGroupingByDefinition);
+                Debug.Assert(addToEntriesWithDeclarations || addToEntriesWithoutDeclarations);
                 CancellationToken.ThrowIfCancellationRequested();
 
                 // First find the bucket corresponding to our definition.
@@ -421,14 +422,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 lock (_gate)
                 {
                     // Once we can make the new entry, add it to the appropriate list.
-                    if (showEntryWhenGroupingByDefinition)
+                    if (addToEntriesWithDeclarations)
                     {
-                        _entriesWhenGroupingByDefinition = _entriesWhenGroupingByDefinition.Add(entry);
+                        _entriesWithDeclarations = _entriesWithDeclarations.Add(entry);
                     }
 
-                    if (showEntryWhenNotGroupingByDefinition)
+                    if (addToEntriesWithoutDeclarations)
                     {
-                        _entriesWhenNotGroupingByDefinition = _entriesWhenNotGroupingByDefinition.Add(entry);
+                        _entriesWithoutDeclarations = _entriesWithoutDeclarations.Add(entry);
                     }
 
                     CurrentVersionNumber++;
@@ -704,9 +705,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // our version.
                     if (_lastSnapshot?.VersionNumber != CurrentVersionNumber)
                     {
-                        var entries = _currentlyGroupingByDefinition
-                            ? _entriesWhenGroupingByDefinition
-                            : _entriesWhenNotGroupingByDefinition;
+                        var entries = _currentlyGroupingByDefinition && !_alwaysIncludeDeclarations
+                            ? _entriesWithoutDeclarations
+                            : _entriesWithDeclarations;
 
                         _lastSnapshot = new TableEntriesSnapshot(entries, CurrentVersionNumber);
                     }
