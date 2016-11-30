@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             HashSet<DocumentSpan> uniqueSpans = null)
         {
             var displayParts = definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
-            var nameDisplayParts = definition.ToDisplayParts(s_nameOnlyFormat).ToTaggedText();
+            var nameDisplayParts = definition.ToDisplayParts(s_namePartsFormat).ToTaggedText();
 
             var tags = GlyphTags.GetTags(definition.GetGlyph());
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
@@ -249,7 +249,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 : s_definitionFormat;
         }
 
-        private static readonly SymbolDisplayFormat s_nameOnlyFormat = new SymbolDisplayFormat();
+        private static readonly SymbolDisplayFormat s_namePartsFormat = new SymbolDisplayFormat(
+            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
         private static readonly SymbolDisplayFormat s_definitionFormat =
             new SymbolDisplayFormat(
