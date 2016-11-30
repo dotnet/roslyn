@@ -203,6 +203,8 @@ namespace Roslyn.VisualStudio.Test.Utilities.Input
                     IntegrationHelper.UnblockInput();
                 }
             }
+
+            _visualStudioInstance.WaitForApplicationIdle();
         }
     }
 }
