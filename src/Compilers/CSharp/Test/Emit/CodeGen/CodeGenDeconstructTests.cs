@@ -5022,7 +5022,19 @@ class C
 ";
             Action<ModuleSymbol> validator = (ModuleSymbol module) =>
             {
-                // TODO: add tests for semantic model of discards here.
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var refs = GetReferences(tree, "_");
+                Assert.Equal(2, refs.Count());
+                model.GetTypeInfo(refs.ElementAt(0)); //  Assert.Equal("int", model.GetTypeInfo(refs.ElementAt(0)).Type.ToDisplayString());
+                model.GetTypeInfo(refs.ElementAt(1)); //  Assert.Equal("string", model.GetTypeInfo(refs.ElementAt(1)).Type.ToDisplayString());
+
+                var tuple = (TupleExpressionSyntax)refs.ElementAt(0).Parent.Parent;
+                Assert.Equal("(_, _)", tuple.ToString());
+                Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(tuple).Type.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: @"2", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
