@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
             where TTag : ITag
         {
-            using (var wrapper = new DiagnosticTaggerWrapper(workspace, analyzerMap))
+            using (var wrapper = new DiagnosticTaggerWrapper<TTag>(workspace, analyzerMap))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
@@ -41,20 +41,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
         }
     }
 
-    public abstract class AbstractDiagnosticTagProducerTests<TTag>
+    public sealed class DiagnosticTagProducer<TTag>
         where TTag : ITag
     {
-        internal static Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpans(
+        internal Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpans(
             TestWorkspace workspace,
             Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
         {
             return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TTag>(workspace, analyzerMap);
         }
 
-        internal static async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
+        internal async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
         {
             var source = new TestDiagnosticUpdateSource();
-            using (var wrapper = new DiagnosticTaggerWrapper(workspace, source))
+            using (var wrapper = new DiagnosticTaggerWrapper<TTag>(workspace, source))
             {
                 var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             }
         }
 
-        internal static DiagnosticData CreateDiagnosticData(TestWorkspace workspace, TestHostDocument document, TextSpan span)
+        internal DiagnosticData CreateDiagnosticData(TestWorkspace workspace, TestHostDocument document, TextSpan span)
         {
             return new DiagnosticData("test", "test", "test", "test", DiagnosticSeverity.Error, true, 0, workspace, document.Project.Id,
                 new DiagnosticDataLocation(document.Id, span));
