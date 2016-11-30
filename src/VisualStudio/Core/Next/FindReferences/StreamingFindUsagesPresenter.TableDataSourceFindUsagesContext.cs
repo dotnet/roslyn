@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
+using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Utilities;
 
@@ -32,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public readonly StreamingFindUsagesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
+            private readonly IWpfTableControl2 _tableControl;
 
             // Lock which protects _definitionToShoudlShowWithoutReferences, 
             // _definitionToBucket, _entries, _lastSnapshot and CurrentVersionNumber
@@ -50,7 +52,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly Dictionary<DefinitionItem, RoslynDefinitionBucket> _definitionToBucket =
                 new Dictionary<DefinitionItem, RoslynDefinitionBucket>();
 
-            private ImmutableList<Entry> _entries = ImmutableList<Entry>.Empty;
+            private bool _hideDeclarations;
+            private ImmutableList<Entry> _entriesWithDeclarations = ImmutableList<Entry>.Empty;
+            private ImmutableList<Entry> _entriesWithoutDeclarations = ImmutableList<Entry>.Empty;
+
             private TableEntriesSnapshot _lastSnapshot;
             public int CurrentVersionNumber { get; private set; }
 
@@ -62,9 +67,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
+                _tableControl = (IWpfTableControl2)findReferencesWindow.TableControl;
+                _tableControl.GroupingsChanged += OnTableControlGroupingsChanged;
 
                 // If the window is closed, cancel any work we're doing.
-                _findReferencesWindow.Closed += (s, e) => CancelSearch();
+                _findReferencesWindow.Closed += OnFindReferencesWindowClosed;
+
+                SetDeclarationVisibility();
 
                 // Remove any existing sources in the window.  
                 foreach (var source in findReferencesWindow.Manager.Sources.ToArray())
@@ -78,6 +87,51 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // After adding us as the source, the manager should immediately call into us to
                 // tell us what the data sink is.
                 Debug.Assert(_tableDataSink != null);
+            }
+
+            private void OnFindReferencesWindowClosed(object sender, EventArgs e)
+            {
+                Presenter.AssertIsForeground();
+                CancelSearch();
+
+                _findReferencesWindow.Closed -= OnFindReferencesWindowClosed;
+                _tableControl.GroupingsChanged -= OnTableControlGroupingsChanged;
+            }
+
+            private void OnTableControlGroupingsChanged(object sender, EventArgs e)
+            {
+                Presenter.AssertIsForeground();
+                UpdateDeclarationVisibility();
+            }
+
+            private void UpdateDeclarationVisibility()
+            {
+                Presenter.AssertIsForeground();
+                var changed = SetDeclarationVisibility();
+
+                if (changed)
+                {
+                    lock (_gate)
+                    {
+                        CurrentVersionNumber++;
+                    }
+
+                    // Let all our subscriptions know that we've updated.  That way they'll refresh
+                    // and we'll show/hide declarations as appropriate.
+                    _tableDataSink.FactorySnapshotChanged(this);
+                }
+            }
+
+            private bool SetDeclarationVisibility()
+            {
+                Presenter.AssertIsForeground();
+
+                var definitionColumn = _tableControl.ColumnStates.FirstOrDefault(s => s.Name == StandardTableColumnDefinitions2.Definition) as ColumnState2;
+
+                var oldHideDeclarations = _hideDeclarations;
+                _hideDeclarations = definitionColumn?.GroupingPriority > 0;
+
+                return oldHideDeclarations != _hideDeclarations;
             }
 
             private void CancelSearch()
@@ -150,7 +204,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // Create a fake definition/reference called "search found no results"
                     await OnEntryFoundAsync(NoResultsDefinitionItem,
                         bucket => SimpleMessageEntry.CreateAsync(
-                            bucket, ServicesVisualStudioNextResources.Search_found_no_results)).ConfigureAwait(false);
+                            bucket, ServicesVisualStudioNextResources.Search_found_no_results),
+                        addToEntriesWithDeclarations: true,
+                        addToEntriesWithoutDeclarations: true).ConfigureAwait(false);
                 }
             }
 
@@ -163,17 +219,26 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             private async Task CreateMissingReferenceEntriesIfNecessaryAsync()
             {
+                await CreateMissingReferenceEntriesIfNecessaryAsync(entriesWithDeclarations: true).ConfigureAwait(false);
+                await CreateMissingReferenceEntriesIfNecessaryAsync(entriesWithDeclarations: false).ConfigureAwait(false);
+            }
+
+            private async Task CreateMissingReferenceEntriesIfNecessaryAsync(
+                bool entriesWithDeclarations)
+            {
                 // Go through and add dummy entries for any definitions that 
                 // that we didn't find any references for.
 
-                var definitions = GetDefinitionsToCreateMissingReferenceItemsFor();
+                var definitions = GetDefinitionsToCreateMissingReferenceItemsFor(entriesWithDeclarations);
                 foreach (var definition in definitions)
                 {
                     // Create a fake reference to this definition that says 
                     // "no references found to <symbolname>".
                     await OnEntryFoundAsync(definition,
                         bucket => SimpleMessageEntry.CreateAsync(
-                            bucket, GetMessage(bucket.DefinitionItem))).ConfigureAwait(false);
+                            bucket, GetMessage(bucket.DefinitionItem)),
+                        addToEntriesWithDeclarations: entriesWithDeclarations,
+                        addToEntriesWithoutDeclarations: !entriesWithDeclarations).ConfigureAwait(false);
                 }
             }
 
@@ -186,24 +251,29 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 return string.Format(
                     ServicesVisualStudioNextResources.No_references_found_to_0,
-                    definition.DisplayParts.JoinText());
+                    definition.NameDisplayParts.JoinText());
             }
 
-            private ImmutableArray<DefinitionItem> GetDefinitionsToCreateMissingReferenceItemsFor()
+            private ImmutableArray<DefinitionItem> GetDefinitionsToCreateMissingReferenceItemsFor(
+                bool entriesWithDeclarations)
             {
                 lock (_gate)
                 {
+                    var entries = entriesWithDeclarations
+                        ? _entriesWithDeclarations
+                        : _entriesWithoutDeclarations;
+
                     // Find any definitions that we didn't have any references to. But only show 
                     // them if they want to be displayed without any references.  This will 
                     // ensure that we still see things like overrides and whatnot, but we
                     // won't show property-accessors.
-                    var seenDefinitions = this._entries.Select(r => r.DefinitionBucket.DefinitionItem).ToSet();
+                    var seenDefinitions = entries.Select(r => r.DefinitionBucket.DefinitionItem).ToSet();
                     var q = from definition in _definitions
                             where !seenDefinitions.Contains(definition) &&
                                   definition.DisplayIfNoReferences
                             select definition;
 
-                    // If we find at least one of these tyeps of definitions, then just return those.
+                    // If we find at least one of these types of definitions, then just return those.
                     var result = ImmutableArray.CreateRange(q);
                     if (result.Length > 0)
                     {
@@ -213,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // We found no definitions that *want* to be displayed.  However, we still 
                     // want to show something.  So, if necessary, show at lest the first definition
                     // even if we found no references and even if it would prefer to not be seen.
-                    if (_entries.Count == 0 && _definitions.Count > 0)
+                    if (entries.Count == 0 && _definitions.Count > 0)
                     {
                         return ImmutableArray.Create(_definitions.First());
                     }
@@ -260,14 +330,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // lock, and i'd like to avoid that.  That does mean that we might do extra
                 // work if multiple threads end up down htis path.  But only one of them will
                 // win when we access the lock below.
-                var builder = ImmutableArray.CreateBuilder<Entry>();
+                var declarations = ArrayBuilder<Entry>.GetInstance();
                 foreach (var definitionLocation in definition.SourceSpans)
                 {
                     var definitionEntry = await CreateDocumentLocationEntryAsync(
                         definitionBucket, definitionLocation, isDefinitionLocation: true).ConfigureAwait(false);
                     if (definitionEntry != null)
                     {
-                        builder.Add(definitionEntry);
+                        declarations.Add(definitionEntry);
                     }
                 }
 
@@ -276,10 +346,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // Do one final check to ensure that no other thread beat us here.
                     if (!HasEntriesForDefinition(definition))
                     {
-                        _entries = _entries.AddRange(builder);
+                        _entriesWithDeclarations = _entriesWithDeclarations.AddRange(declarations);
                         CurrentVersionNumber++;
                     }
                 }
+
+                declarations.Free();
 
                 // Let all our subscriptions know that we've updated.
                 _tableDataSink.FactorySnapshotChanged(this);
@@ -287,15 +359,22 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public override Task OnReferenceFoundAsync(SourceReferenceItem reference)
             {
-                return OnEntryFoundAsync(reference.Definition,
+                // Normal references go into both sets of entries.
+                return OnEntryFoundAsync(
+                    reference.Definition,
                     bucket => CreateDocumentLocationEntryAsync(
-                        bucket, reference.SourceSpan, isDefinitionLocation: false));
+                        bucket, reference.SourceSpan, isDefinitionLocation: false),
+                    addToEntriesWithDeclarations: true,
+                    addToEntriesWithoutDeclarations: true);
             }
 
             private async Task OnEntryFoundAsync(
                 DefinitionItem definition,
-                Func<RoslynDefinitionBucket, Task<Entry>> createEntryAsync)
+                Func<RoslynDefinitionBucket, Task<Entry>> createEntryAsync,
+                bool addToEntriesWithDeclarations,
+                bool addToEntriesWithoutDeclarations)
             {
+                Debug.Assert(addToEntriesWithDeclarations || addToEntriesWithoutDeclarations);
                 CancellationToken.ThrowIfCancellationRequested();
 
                 // First find the bucket corresponding to our definition. If we can't find/create 
@@ -322,7 +401,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 lock (_gate)
                 {
                     // Once we can make the new entry, add it to our list.
-                    _entries = _entries.Add(entry);
+                    if (addToEntriesWithDeclarations)
+                    {
+                        _entriesWithDeclarations = _entriesWithDeclarations.Add(entry);
+                    }
+
+                    if (addToEntriesWithoutDeclarations)
+                    {
+                        _entriesWithoutDeclarations = _entriesWithoutDeclarations.Add(entry);
+                    }
+
                     CurrentVersionNumber++;
                 }
 
@@ -334,7 +422,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 lock (_gate)
                 {
-                    return _entries.Any(e => e.DefinitionBucket.DefinitionItem == definition);
+                    return _entriesWithDeclarations.Any(e => e.DefinitionBucket.DefinitionItem == definition);
                 }
             }
 
@@ -604,7 +692,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // our version.
                     if (_lastSnapshot?.VersionNumber != CurrentVersionNumber)
                     {
-                        _lastSnapshot = new TableEntriesSnapshot(_entries, CurrentVersionNumber);
+                        var entries = _hideDeclarations
+                            ? _entriesWithoutDeclarations
+                            : _entriesWithDeclarations;
+
+                        _lastSnapshot = new TableEntriesSnapshot(entries, CurrentVersionNumber);
                     }
 
                     return _lastSnapshot;

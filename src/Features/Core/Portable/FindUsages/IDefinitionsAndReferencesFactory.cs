@@ -159,6 +159,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             HashSet<DocumentSpan> uniqueSpans = null)
         {
             var displayParts = definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
+            var nameDisplayParts = definition.ToDisplayParts(s_nameOnlyFormat).ToTaggedText();
 
             var tags = GlyphTags.GetTags(definition.GetGlyph());
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
@@ -176,7 +177,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     if (location.IsInMetadata)
                     {
                         return DefinitionItem.CreateMetadataDefinition(
-                            tags, displayParts, solution, definition, displayIfNoReferences);
+                            tags, displayParts, nameDisplayParts, solution, 
+                            definition, displayIfNoReferences);
                     }
                     else if (location.IsInSource)
                     {
@@ -218,7 +220,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
 
             return DefinitionItem.Create(
-                tags, displayParts, sourceLocations.ToImmutableAndFree(), displayIfNoReferences);
+                tags, displayParts, sourceLocations.ToImmutableAndFree(),
+                nameDisplayParts, displayIfNoReferences);
         }
 
         public static SourceReferenceItem TryCreateSourceReferenceItem(
@@ -245,6 +248,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 ? s_parameterDefinitionFormat
                 : s_definitionFormat;
         }
+
+        private static readonly SymbolDisplayFormat s_nameOnlyFormat = new SymbolDisplayFormat();
 
         private static readonly SymbolDisplayFormat s_definitionFormat =
             new SymbolDisplayFormat(

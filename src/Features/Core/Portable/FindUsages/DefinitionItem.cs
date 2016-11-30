@@ -25,7 +25,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public ImmutableArray<string> Tags { get; }
 
         /// <summary>
-        /// The display text that should be displayed to the user.
+        /// The DisplayParts just for the name of this definition.  Generally used only for 
+        /// error messages.
+        /// </summary>
+        public ImmutableArray<TaggedText> NameDisplayParts { get; }
+
+        /// <summary>
+        /// The full display parts for this definition.  Displayed in a classified 
+        /// manner when possible.
         /// </summary>
         public ImmutableArray<TaggedText> DisplayParts { get; }
 
@@ -58,12 +65,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
         protected DefinitionItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<TaggedText> nameDisplayParts,
             ImmutableArray<TaggedText> originationParts = default(ImmutableArray<TaggedText>),
             ImmutableArray<DocumentSpan> sourceSpans = default(ImmutableArray<DocumentSpan>),
             bool displayIfNoReferences = true)
         {
             Tags = tags;
             DisplayParts = displayParts;
+            NameDisplayParts = nameDisplayParts.IsDefaultOrEmpty ? displayParts : nameDisplayParts;
             OriginationParts = originationParts.NullToEmpty();
             SourceSpans = sourceSpans.NullToEmpty();
             DisplayIfNoReferences = displayIfNoReferences;
@@ -76,16 +85,20 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             DocumentSpan sourceSpan,
+            ImmutableArray<TaggedText> nameDisplayParts = default(ImmutableArray<TaggedText>),
             bool displayIfNoReferences = true)
         {
-            return Create(tags, displayParts, ImmutableArray.Create(sourceSpan), displayIfNoReferences);
+            return Create(
+                tags, displayParts, ImmutableArray.Create(sourceSpan),
+                nameDisplayParts, displayIfNoReferences);
         }
 
         public static DefinitionItem Create(
-           ImmutableArray<string> tags,
-           ImmutableArray<TaggedText> displayParts,
-           ImmutableArray<DocumentSpan> sourceSpans,
-           bool displayIfNoReferences = true)
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableArray<TaggedText> nameDisplayParts = default(ImmutableArray<TaggedText>),
+            bool displayIfNoReferences = true)
         {
             if (sourceSpans.Length == 0)
             {
@@ -93,17 +106,19 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
 
             return new DocumentLocationDefinitionItem(
-                tags, displayParts, sourceSpans, displayIfNoReferences);
+                tags, displayParts, nameDisplayParts, sourceSpans, displayIfNoReferences);
         }
 
         internal static DefinitionItem CreateMetadataDefinition(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<TaggedText> nameDisplayParts,
             Solution solution, ISymbol symbol,
             bool displayIfNoReferences = true)
         {
             return new MetadataDefinitionItem(
-                tags, displayParts, displayIfNoReferences, solution, symbol);
+                tags, displayParts, nameDisplayParts, 
+                displayIfNoReferences, solution, symbol);
         }
 
         public static DefinitionItem CreateNonNavigableItem(
