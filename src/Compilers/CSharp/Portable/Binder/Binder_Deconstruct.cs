@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var left = node.Left;
             var right = node.Right;
-            CSharpSyntaxNode declaration = null;
-            CSharpSyntaxNode expression = null;
+            DeclarationExpressionSyntax declaration = null;
+            ExpressionSyntax expression = null;
             var result = BindDeconstruction(node, left, right, diagnostics, ref declaration, ref expression);
             if (declaration != null)
             {
@@ -58,20 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
-        }
-
-        private static bool ContainsDeclarations(ExpressionSyntax expression)
-        {
-            switch (expression.Kind())
-            {
-                case SyntaxKind.DeclarationExpression:
-                    return true;
-                case SyntaxKind.TupleExpression:
-                    var tuple = (TupleExpressionSyntax)expression;
-                    return tuple.Arguments.Any(a => ContainsDeclarations(a.Expression));
-                default:
-                    return false;
-            }
         }
 
         private static void FreeDeconstructionVariables(ArrayBuilder<DeconstructionVariable> variables)
@@ -295,15 +281,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DiscardedExpression:
                     {
                         var pending = (BoundDiscardedExpression)expression;
-                        if ((object)pending.Type == null)
-                        {
-                            return pending.SetInferredType(type);
-                        }
+                        Debug.Assert((object)pending.Type == null);
+                        return pending.SetInferredType(type);
                     }
-                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(expression.Kind);
             }
-
-            return expression;
         }
 
         /// <summary>
@@ -659,13 +642,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BadExpression(syntax, childNode);
         }
 
+        /// <summary>
+        /// Bind a deconstruction assignment.
+        /// </summary>
+        /// <param name="deconstruction">The deconstruction operation</param>
+        /// <param name="left">The left (tuple) operand</param>
+        /// <param name="right">The right (deconstrucible) operand</param>
+        /// <param name="diagnostics">Where to report diagnostics</param>
+        /// <param name="declaration">A variable set to the first variable declaration found in the left</param>
+        /// <param name="expression">A variable set to the first expression in the left that isn't a declaration or discard</param>
+        /// <param name="rightPlaceholder"></param>
+        /// <returns></returns>
         internal BoundDeconstructionAssignmentOperator BindDeconstruction(
             CSharpSyntaxNode deconstruction,
             ExpressionSyntax left,
             ExpressionSyntax right,
             DiagnosticBag diagnostics,
-            ref CSharpSyntaxNode declaration,
-            ref CSharpSyntaxNode expression,
+            ref DeclarationExpressionSyntax declaration,
+            ref ExpressionSyntax expression,
             BoundDeconstructValuePlaceholder rightPlaceholder = null)
         {
             DeconstructionVariable locals = BindDeconstructionVariables(left, diagnostics, ref declaration, ref expression);
@@ -684,19 +678,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         private DeconstructionVariable BindDeconstructionVariables(
             ExpressionSyntax node,
             DiagnosticBag diagnostics,
-            ref CSharpSyntaxNode declaration,
-            ref CSharpSyntaxNode expression)
+            ref DeclarationExpressionSyntax declaration,
+            ref ExpressionSyntax expression)
         {
             switch (node.Kind())
             {
                 case SyntaxKind.DeclarationExpression:
                     {
+                        var component = (DeclarationExpressionSyntax)node;
                         if (declaration == null)
                         {
-                            declaration = node;
+                            declaration = component;
                         }
 
-                        var component = (DeclarationExpressionSyntax)node;
                         bool isVar;
                         bool isConst = false;
                         AliasSymbol alias;
@@ -770,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundDiscardedExpression BindDiscardedExpression(
+        private static BoundDiscardedExpression BindDiscardedExpression(
             DiscardedDesignationSyntax designation,
             TypeSymbol declType)
         {

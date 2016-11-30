@@ -6146,15 +6146,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot reference {0} in a deconstruction declaration.
-        /// </summary>
-        internal static string ERR_MixedDeconstructionDisallowed {
-            get {
-                return ResourceManager.GetString("ERR_MixedDeconstructionDisallowed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A deconstruction cannot mix declarations and expressions on the left-hand-side..
         /// </summary>
         internal static string ERR_MixedDeconstructionUnsupported {

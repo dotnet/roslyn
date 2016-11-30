@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IdentifierName:
                     break;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(declaration.Kind());
+                    ExpressionVariableFinder.FindExpressionVariables(this, locals, declaration);
+                    break;
             }
         }
 
@@ -166,8 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ExpressionSyntax variables = ((ForEachVariableStatementSyntax)_syntax).Variable;
             var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, inferredType ?? CreateErrorType("var"));
-            CSharpSyntaxNode declaration = null;
-            CSharpSyntaxNode expression = null;
+            DeclarationExpressionSyntax declaration = null;
+            ExpressionSyntax expression = null;
             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
                                                                     variables,
                                                                     variables,
@@ -236,11 +237,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         iterationVariableType = inferredType ?? CreateErrorType("var");
 
                         var variables = node.Variable;
-                        if (variables.Kind() == SyntaxKind.TupleExpression || variables.Kind() == SyntaxKind.DeclarationExpression)
+                        if (variables.IsDeconstructionLeft())
                         {
                             var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
-                            CSharpSyntaxNode declaration = null;
-                            CSharpSyntaxNode expression = null;
+                            DeclarationExpressionSyntax declaration = null;
+                            ExpressionSyntax expression = null;
                             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
                                                                                     variables,
                                                                                     variables,
@@ -263,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // error: must declare foreach loop iteration variables.
                             Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
+                            hasErrors = true;
                         }
 
                         boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType);
@@ -274,10 +276,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement body = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
 
-            hasErrors = hasErrors || iterationVariableType.IsErrorType();
+            hasErrors = hasErrors || boundIterationVariableType.HasErrors || iterationVariableType.IsErrorType();
 
             // Skip the conversion checks and array/enumerator differentiation if we know we have an error (except local name conflicts).
-            if (hasErrors || _syntax.HasErrors)
+            if (hasErrors)
             {
                 return new BoundForEachStatement(
                     _syntax,

@@ -1149,7 +1149,11 @@ class C
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (6,18): error CS1547: Keyword 'void' cannot be used in this context
                 //         foreach (void element in new int[1])
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void"));
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 18),
+                // (6,9): error CS0030: Cannot convert type 'int' to 'void'
+                //         foreach (void element in new int[1])
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "foreach").WithArguments("int", "void").WithLocation(6, 9)
+                );
         }
 
         [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]

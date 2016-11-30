@@ -2018,6 +2018,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             AddTypeAndName((TupleExpressionSyntax)expr, elementTypesBuilder, elementNamesBuilder);
                         }
+                        else
+                        {
+                            return false;
+                        }
                     }
 
                     if (elementTypesBuilder.Contains(null))

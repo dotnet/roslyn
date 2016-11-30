@@ -721,21 +721,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindDeclarationVariables(declType, node.Designation, diagnostics);
         }
 
-        // Bind a declaration variable where it isn't permitted.
+        /// <summary>
+        /// Bind a declaration variable where it isn't permitted. The caller is expected to produce a diagnostic.
+        /// </summary>
         private BoundExpression BindDeclarationVariables(TypeSymbol declType, VariableDesignationSyntax node, DiagnosticBag diagnostics)
         {
+            declType = declType ?? CreateErrorType("var");
             switch (node.Kind())
             {
                 case SyntaxKind.SingleVariableDesignation:
                     {
                         var single = (SingleVariableDesignationSyntax)node;
                         var result = BindDeconstructionVariable(declType, single, diagnostics);
-
-                        // for error recovery, we force inference of the type of a misplaced declaration expression
-                        if ((object)declType == null)
-                        {
-                            result = SetInferredType(result, CreateErrorType("var"), diagnostics);
-                        }
                         return result;
                     }
                 case SyntaxKind.DiscardedDesignation:
@@ -746,14 +743,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
                         var tuple = (ParenthesizedVariableDesignationSyntax)node;
-                        var builder = ArrayBuilder<BoundExpression>.GetInstance();
+                        var builder = ArrayBuilder<BoundExpression>.GetInstance(tuple.Variables.Count);
                         foreach (var n in tuple.Variables)
                         {
                             builder.Add(BindDeclarationVariables(declType, n, diagnostics));
                         }
                         var subExpressions = builder.ToImmutableAndFree();
-                        var tupleType = (TypeSymbol)this.Compilation.CreateTupleTypeSymbol(subExpressions.Select<BoundExpression, ITypeSymbol>(e => e.Type).ToImmutableArray());
-                        return new BoundTupleLiteral(node, ImmutableArray<string>.Empty, subExpressions, tupleType);
+                        var tupleType = TupleTypeSymbol.Create(
+                            null,
+                            subExpressions.SelectAsArray(e => e.Type),
+                            default(ImmutableArray<Location>),
+                            default(ImmutableArray<string>),
+                            Compilation);
+                        return new BoundTupleLiteral(node, default(ImmutableArray<string>), subExpressions, tupleType);
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());

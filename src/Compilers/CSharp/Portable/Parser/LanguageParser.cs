@@ -5343,6 +5343,10 @@ tryAgain:
             return false;
         }
 
+        /// <summary>
+        /// True if the given token is not really some contextual keyword.
+        /// This method is for use in executable code, as it treats `partial` as an identifier.
+        /// </summary>
         private bool IsTrueIdentifier(SyntaxToken token)
         {
             return
@@ -5591,7 +5595,7 @@ tryAgain:
                     if ((options & NameOptions.AfterIsOrCaseOrOutOrTupleComma) != 0 ||
                         (options & NameOptions.FirstElementOfPossibleTupleLiteral) != 0 && this.PeekToken(1).Kind == SyntaxKind.CommaToken)
                     {
-                        // we allow 'G<T,U> x' as a pattern-matching operation and a declaration pattern in a tuple.
+                        // we allow 'G<T,U> x' as a pattern-matching operation and a declaration expression in a tuple.
                         return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
                     }
 
@@ -6182,22 +6186,19 @@ tryAgain:
                 return result;
             }
 
-            // Finally, check for array types and nullables.
+            // Finally, check for array types.
             while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
             {
                 this.EatToken();
+                while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                {
+                    this.EatToken();
+                }
+
                 if (this.CurrentToken.Kind != SyntaxKind.CloseBracketToken)
                 {
-                    while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                    {
-                        this.EatToken();
-                    }
-
-                    if (this.CurrentToken.Kind != SyntaxKind.CloseBracketToken)
-                    {
-                        lastTokenOfType = null;
-                        return ScanTypeFlags.NotType;
-                    }
+                    lastTokenOfType = null;
+                    return ScanTypeFlags.NotType;
                 }
 
                 lastTokenOfType = this.EatToken();
@@ -6490,6 +6491,7 @@ tryAgain:
             var type = this.ParseUnderlyingType(parentIsParameter: mode == ParseTypeMode.Parameter, options: nameOptions);
 
             if (this.CurrentToken.Kind == SyntaxKind.QuestionToken &&
+                // we do not permit nullable types in a declaration pattern
                 (mode != ParseTypeMode.AfterIsOrCase || !IsTrueIdentifier(this.PeekToken(1))))
             {
                 var resetPoint = this.GetResetPoint();
@@ -6986,8 +6988,11 @@ tryAgain:
             // compiler it would simply call IsLocalDeclaration.
 
             var tk = this.CurrentToken.Kind;
-            if (tk == SyntaxKind.RefKeyword || IsDeclarationModifier(tk) ||
-                (SyntaxFacts.IsPredefinedType(tk) && this.PeekToken(1).Kind != SyntaxKind.DotToken && this.PeekToken(1).Kind != SyntaxKind.OpenParenToken))
+            if (tk == SyntaxKind.RefKeyword ||
+                IsDeclarationModifier(tk) || // treat `static int x = 2;` as a local variable declaration
+                (SyntaxFacts.IsPredefinedType(tk) &&
+                        this.PeekToken(1).Kind != SyntaxKind.DotToken && // e.g. `int.Parse()` is an expression
+                        this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)) // e.g. `int (x, y)` is an error decl expression
             {
                 return true;
             }
@@ -7829,8 +7834,6 @@ tryAgain:
 
         private StatementSyntax ParseForOrForEachStatement()
         {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ForKeyword || this.CurrentToken.Kind == SyntaxKind.ForEachKeyword);
-
             // Check if the user wrote the following accidentally:
             //
             // for (SomeType t in
@@ -8051,7 +8054,7 @@ tryAgain:
             return _syntaxFactory.ForEachVariableStatement(@foreach, openParen, variable, @in, expression, closeParen, statement);
         }
 
-        private bool IsValidForeachVariable(ExpressionSyntax variable)
+        private static bool IsValidForeachVariable(ExpressionSyntax variable)
         {
             switch (variable.Kind)
             {
@@ -8514,7 +8517,7 @@ tryAgain:
             }
         }
 
-        private VariableDesignationSyntax ParseDesignation(bool topLevel = false)
+        private VariableDesignationSyntax ParseDesignation()
         {
             // the two forms of designation are
             // (1) identifier
@@ -9217,10 +9220,7 @@ tryAgain:
             }
             else if (this.IsPossibleDeconstructionLeft(precedence))
             {
-                // for error recovery, we parse `int (x, y) = e` as a deconstruction.
-                TypeSyntax type = this.ParseType();
-                var designation = CheckFeatureAvailability(ParseDesignation(), MessageID.IDS_FeatureTuples);
-                leftOperand = _syntaxFactory.DeclarationExpression(type, designation);
+                leftOperand = ParseDeclarationExpression(ParseTypeMode.Normal, MessageID.IDS_FeatureTuples);
             }
             else
             {
@@ -9347,6 +9347,18 @@ tryAgain:
             return leftOperand;
         }
 
+        private ExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, MessageID feature)
+        {
+            TypeSyntax type = this.ParseType(mode);
+            var designation = ParseDesignation();
+            if (feature != MessageID.None)
+            {
+                designation = CheckFeatureAvailability(designation, feature);
+            }
+
+            return _syntaxFactory.DeclarationExpression(type, designation);
+        }
+
         private ExpressionSyntax ParseThrowExpression()
         {
             var throwToken = this.EatToken(SyntaxKind.ThrowKeyword);
@@ -9418,9 +9430,7 @@ tryAgain:
                         }
                         else if (this.IsPossibleDeconstructionLeft(precedence))
                         {
-                            TypeSyntax type = this.ParseType();
-                            var designation = CheckFeatureAvailability(ParseDesignation(), MessageID.IDS_FeatureTuples);
-                            expr = _syntaxFactory.DeclarationExpression(type, designation);
+                            expr = ParseDeclarationExpression(ParseTypeMode.Normal, MessageID.IDS_FeatureTuples);
                         }
                         else
                         {
@@ -9498,7 +9508,7 @@ tryAgain:
         /// <summary>
         /// Returns true if...
         /// 1. The precedence is less than or equal to Assignment, and
-        /// 2. The current token is the identifier var, and
+        /// 2. The current token is the identifier var or a predefined type, and
         /// 3. it is followed by (, and
         /// 4. that ( begins a valid parenthesized designation, and
         /// 5. the token following that designation is =
@@ -9731,6 +9741,9 @@ tryAgain:
             SyntaxKind openKind,
             SyntaxKind closeKind)
         {
+            Debug.Assert(openKind == SyntaxKind.OpenParenToken || openKind == SyntaxKind.OpenBracketToken);
+            Debug.Assert(closeKind == SyntaxKind.CloseParenToken || closeKind == SyntaxKind.CloseBracketToken);
+            Debug.Assert((openKind == SyntaxKind.OpenParenToken) == (closeKind == SyntaxKind.CloseParenToken));
             bool isIndexer = openKind == SyntaxKind.OpenBracketToken;
 
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken ||
@@ -10098,7 +10111,7 @@ tryAgain:
             var resetPoint = this.GetResetPoint();
             try
             {
-                bool foundRefOrOut = false;
+                bool foundParameterModifier = false;
 
                 // do we have the following:
                 //   case 1: ( T x , ... ) =>
@@ -10111,28 +10124,28 @@ tryAgain:
                 // if so then parse it as a lambda
 
                 // Note: in the first two cases, we cannot distinguish a lambda from a tuple expression
-                // containing declaration expressions, so we scan forwards to the => so we know for sure.
+                // containing declaration expressions, so we scan forwards to the `=>` so we know for sure.
 
                 while (true)
                 {
                     // Advance past the open paren or comma.
                     this.EatToken();
 
-                    // Eat 'out' or 'ref' for cases [3, 6]. Even though not allowed, we treat `params`
-                    // similarly for better error recovery.
+                    // Eat 'out' or 'ref' for cases [3, 6]. Even though not allowed in a lambda,
+                    // we treat `params` similarly for better error recovery.
                     switch (this.CurrentToken.Kind)
                     {
                         case SyntaxKind.RefKeyword:
                         case SyntaxKind.OutKeyword:
                         case SyntaxKind.ParamsKeyword:
                             this.EatToken();
-                            foundRefOrOut = true;
+                            foundParameterModifier = true;
                             break;
                     }
 
                     if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken)
                     {
-                        return foundRefOrOut;
+                        return foundParameterModifier;
                     }
 
                     // NOTE: advances CurrentToken
@@ -10150,10 +10163,10 @@ tryAgain:
                     switch (this.CurrentToken.Kind)
                     {
                         case SyntaxKind.EndOfFileToken:
-                            return foundRefOrOut;
+                            return foundParameterModifier;
 
                         case SyntaxKind.CommaToken:
-                            if (foundRefOrOut)
+                            if (foundParameterModifier)
                             {
                                 return true;
                             }

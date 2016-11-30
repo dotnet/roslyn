@@ -1151,7 +1151,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // this is permitted now, as it is just a deconstruction assignment expression
+                // (6,19): error CS8185: A declaration is not allowed in this context.
+                //         var z = ((var x, int y) = new C());
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x").WithLocation(6, 19)
                 );
         }
 
@@ -2387,6 +2389,11 @@ Deconstructing (1, hello)
             VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.RegularVariable, references);
         }
 
+        private static void VerifyModelForLocal(SemanticModel model, SingleVariableDesignationSyntax decl, LocalDeclarationKind kind, params IdentifierNameSyntax[] references)
+        {
+            VerifyModelForDeconstruction(model, decl, kind, references);
+        }
+
         private static void VerifyModelForDeconstructionForeach(SemanticModel model, SingleVariableDesignationSyntax decl, params IdentifierNameSyntax[] references)
         {
             VerifyModelForDeconstruction(model, decl, LocalDeclarationKind.ForEachIterationVariable, references);
@@ -2676,23 +2683,47 @@ class C
         }
 
         [Fact]
-        public void ForWithBadInitializersCannotParse()
+        public void ForWithVarDeconstructInitializersCanParse()
         {
             string source = @"
+using System;
 class C
 {
     static void Main()
     {
-        for (var (x1, x2) = (1, 2), x1 = 0; ; )
+        int x3;
+        for (var (x1, x2) = (1, 2), x3 = 3; true; )
         {
+            Console.WriteLine(x1);
+            Console.WriteLine(x2);
+            Console.WriteLine(x3);
+            break;
         }
     }
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
-            // this is permitted now, as it is just an assignment expression
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x1 = GetDeconstructionVariable(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionVariable(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: @"1
+2
+3", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics(
+                // this is permitted now, as it is just an assignment expression
                 );
         }
 
@@ -4989,9 +5020,14 @@ class C
     }
 }
 ";
-            // This is permitted, as long as it doesn't use an expression lvalue in the deconstruction.
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                // TODO: add tests for semantic model of discards here.
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: @"2", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics(
+                // this is permitted now, as it is just an assignment expression
                 );
         }
 
@@ -5458,6 +5494,276 @@ class C
                 //         int _;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "_").WithArguments("_").WithLocation(6, 13)
                 );
+        }
+
+        [Fact]
+        public void MixedDeconstruction_01()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var t = (1, 2);
+        var x = (int x1, int x2) = t;
+        System.Console.WriteLine(x1);
+        System.Console.WriteLine(x2);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            compilation.VerifyDiagnostics(
+                // (7,18): error CS8185: A declaration is not allowed in this context.
+                //         var x = (int x1, int x2) = t;
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x1").WithLocation(7, 18)
+            );
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+
+            var x2 = GetDeconstructionVariable(tree, "x2");
+            var x2Ref = GetReference(tree, "x2");
+            VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+        }
+
+        [Fact]
+        public void MixedDeconstruction_02()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var t = (1, 2);
+        int z;
+        (int x1, z) = t;
+        System.Console.WriteLine(x1);
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            compilation.VerifyDiagnostics(
+                // (8,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
+                //         (int x1, z) = t;
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int x1, z)").WithLocation(8, 9)
+            );
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+        }
+
+        [Fact]
+        public void MixedDeconstruction_03()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var t = (1, 2);
+        int z;
+        for ((int x1, z) = t; ; )
+        {
+            System.Console.WriteLine(x1);
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            compilation.VerifyDiagnostics(
+                // (8,14): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
+                //         for ((int x1, z) = t; ; )
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int x1, z)").WithLocation(8, 14)
+            );
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+        }
+
+        [Fact]
+        public void MixedDeconstruction_04()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var t = (1, 2);
+        for (; ; (int x1, int x2) = t)
+        {
+            System.Console.WriteLine(x1);
+            System.Console.WriteLine(x2);
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            compilation.VerifyDiagnostics(
+                // (7,19): error CS8185: A declaration is not allowed in this context.
+                //         for (; ; (int x1, int x2) = t)
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x1").WithLocation(7, 19),
+                // (9,38): error CS0165: Use of unassigned local variable 'x1'
+                //             System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(9, 38),
+                // (10,38): error CS0165: Use of unassigned local variable 'x2'
+                //             System.Console.WriteLine(x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(10, 38)
+            );
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+
+            var x2 = GetDeconstructionVariable(tree, "x2");
+            var x2Ref = GetReference(tree, "x2");
+            VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+        }
+
+        [Fact]
+        public void MixedDeconstruction_05()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach ((M(out var x1), args is var x2, _) in new[] { (1, 2, 3) })
+        {
+            System.Console.WriteLine(x1);
+            System.Console.WriteLine(x2);
+        }
+    }
+    static int _M;
+    static ref int M(out int x) { x = 2; return ref _M; }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            compilation.VerifyDiagnostics(
+                // (6,34): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         foreach ((M(out var x1), args is var x2, _) in new[] { (1, 2, 3) })
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "args is var x2").WithLocation(6, 34),
+                // (6,34): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         foreach ((M(out var x1), args is var x2, _) in new[] { (1, 2, 3) })
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "args is var x2").WithArguments("int", "bool").WithLocation(6, 34),
+                // (6,18): error CS8186: A foreach loop must declare its iteration variables.
+                //         foreach ((M(out var x1), args is var x2, _) in new[] { (1, 2, 3) })
+                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(M(out var x1), args is var x2, _)").WithLocation(6, 18)
+                );
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("int", model.GetTypeInfo(x1Ref).Type.ToDisplayString());
+
+            model = compilation.GetSemanticModel(tree);
+            var x2 = GetDeconstructionVariable(tree, "x2");
+            var x2Ref = GetReference(tree, "x2");
+            Assert.Equal("string[]", model.GetTypeInfo(x2Ref).Type.ToDisplayString());
+
+            VerifyModelForLocal(model, x1, LocalDeclarationKind.RegularVariable, x1Ref);
+            VerifyModelForLocal(model, x2, LocalDeclarationKind.PatternVariable, x2Ref);
+        }
+
+        [Fact]
+        public void MixedDeconstruction_06()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach (M1(M2(out var x1, args is var x2), x1, x2) in new[] {1, 2, 3})
+        {
+            System.Console.WriteLine(x1);
+            System.Console.WriteLine(x2);
+        }
+    }
+    
+    static int _M;
+    static ref int M1(int m2, int x, string[] y) { return ref _M; }
+    static int M2(out int x, bool b) => x = 2;
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            compilation.VerifyDiagnostics(
+                // (6,61): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (M1(M2(out var x1, args is var x2), x1, x2) in new[] {1, 2, 3})
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(6, 61)
+                );
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1");
+            Assert.Equal("int", model.GetTypeInfo(x1Ref.First()).Type.ToDisplayString());
+
+            model = compilation.GetSemanticModel(tree);
+            var x2 = GetDeconstructionVariable(tree, "x2");
+            var x2Ref = GetReferences(tree, "x2");
+            Assert.Equal("string[]", model.GetTypeInfo(x2Ref.First()).Type.ToDisplayString());
+
+            VerifyModelForLocal(model, x1, LocalDeclarationKind.RegularVariable, x1Ref.ToArray());
+            VerifyModelForLocal(model, x2, LocalDeclarationKind.PatternVariable, x2Ref.ToArray());
+        }
+
+        [Fact]
+        public void IncompleteDeclarationIsSeenAsTupleLiteral()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (int x1, string x2);
+        System.Console.WriteLine(x1);
+        System.Console.WriteLine(x2);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            compilation.VerifyDiagnostics(
+                // (6,10): error CS8184: A declaration is not allowed in this context.
+                //         (int x1, string x2);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x1").WithLocation(6, 10),
+                // (6,18): error CS8184: A declaration is not allowed in this context.
+                //         (int x1, string x2);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "string x2").WithLocation(6, 18),
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         (int x1, string x2);
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x1, string x2)").WithLocation(6, 9),
+                // (6,14): error CS0165: Use of unassigned local variable 'x1'
+                //         (int x1, string x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 14),
+                // (6,25): error CS0165: Use of unassigned local variable 'x2'
+                //         (int x1, string x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 25)
+                );
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("int", model.GetTypeInfo(x1Ref).Type.ToDisplayString());
+
+            var x2 = GetDeconstructionVariable(tree, "x2");
+            var x2Ref = GetReference(tree, "x2");
+            Assert.Equal("string", model.GetTypeInfo(x2Ref).Type.ToDisplayString());
+
+            VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+            VerifyModelForDeconstructionLocal(model, x2, x2Ref);
         }
     }
 }

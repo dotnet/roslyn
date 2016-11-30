@@ -659,8 +659,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.SimpleAssignmentExpression:
                         var assignment = (AssignmentExpressionSyntax)_deconstruction;
                         Debug.Assert(assignment.IsDeconstruction());
-                        CSharpSyntaxNode declaration = null;
-                        CSharpSyntaxNode expression = null;
+                        DeclarationExpressionSyntax declaration = null;
+                        ExpressionSyntax expression = null;
                         _nodeBinder.BindDeconstruction(assignment, assignment.Left, assignment.Right, diagnostics, ref declaration, ref expression);
                         break;
 
@@ -673,9 +673,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
                 }
 
-                TypeSymbol result = this._type;
-                Debug.Assert((object)result != null);
-                return result;
+                if ((object)this._type == null)
+                {
+                    diagnostics.Add(this.ForbiddenDiagnostic, Locations[0], Name);
+                    SetType(new ExtendedErrorTypeSymbol(
+                        ((SourceModuleSymbol)this.ContainingModule).DeclaringCompilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true));
+                }
+
+                return this._type;
             }
 
             internal override SyntaxNode ForbiddenZone
@@ -755,7 +760,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                Debug.Assert((object)this._type != null);
+                if ((object)this._type == null)
+                {
+                    diagnostics.Add(this.ForbiddenDiagnostic, Locations[0], Name);
+                    SetType(new ExtendedErrorTypeSymbol(
+                        ((SourceModuleSymbol)this.ContainingModule).DeclaringCompilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true));
+                }
+
                 return this._type;
             }
         }

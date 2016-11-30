@@ -139,7 +139,16 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(var x1, var x2)").WithLocation(6, 19)
                 );
 
-            Assert.Equal(2, compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Count());
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
+            var x2Decl = GetDeclaration(tree, "x2");
+            var x2Ref = GetReference(tree, "x2");
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -186,7 +195,16 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 33)
                 );
 
-            Assert.Equal(2, compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Count());
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
+            var x2Decl = GetDeclaration(tree, "x2");
+            var x2Ref = GetReference(tree, "x2");
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -243,7 +261,20 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(6, 43)
                 );
 
-            Assert.Equal(3, compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Count());
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
+            var x2Decl = GetDeclaration(tree, "x2");
+            var x2Ref = GetReference(tree, "x2");
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
+
+            var x3Decl = GetDeclaration(tree, "x3");
+            var x3Ref = GetReference(tree, "x3");
+            VerifyModelForOutVarWithoutDataFlow(model, x3Decl, x3Ref);
         }
 
         [Fact]
@@ -735,6 +766,17 @@ public class Cls
         private static IEnumerable<IdentifierNameSyntax> GetReferences(SyntaxTree tree, string name)
         {
             return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == name);
+        }
+
+        private static IEnumerable<DeclarationExpressionSyntax> GetDeclarations(SyntaxTree tree, string name)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
+                    .Where(p => p.Identifier().ValueText == name);
+        }
+
+        private static DeclarationExpressionSyntax GetDeclaration(SyntaxTree tree, string name)
+        {
+            return GetDeclarations(tree, name).Single();
         }
 
         private static DeclarationExpressionSyntax GetOutVarDeclaration(SyntaxTree tree, string name)

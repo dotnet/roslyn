@@ -109,43 +109,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // differently, as we check for the comma before concluding that the identifier should cause a
         // disambiguation. For example, for the input `(A < B , C > D)`, we treat this as a tuple with
         // two elements, because if we considered the `A<B,C>` to be a type, it wouldn't be a tuple at
-        // all. Since we don't have such as thing as a one-element tuple (even for deconstruction), the
+        // all. Since we don't have such a thing as a one-element tuple (even for deconstruction), the
         // absence of the comma after the `D` means we don't treat the `D` as contributing to the
         // disambiguation of the expression/type. More formally, ...
         //
-        // If a sequence of tokens can be parsed (in context) as a *simple-name* (§7.6.3), *member-access* (§7.6.5), or
-        // *pointer-member-access* (§18.5.2) ending with a *type-argument-list* (§4.4.1), the token immediately
-        // following the closing `>` token is examined, to see if it is one of
-        //     `(  )  ]  }  :  ;  ,  .  ?  ==  !=  |  ^  &&  ||  &  [`
-        // And, in certain contexts, we treat *identifier* as a disambiguating token. Those contexts are where
-        // the sequence of tokens being disambiguated is immediately preceded by one of the keywords `is`, `case`,
-        // or `out`, or arises while parsing the first element of a tuple literal (in which case the tokens are
-        // preceded by `(` or `:` and the identifier is followed by a `,`) or a subsequent element of a tuple literal.
-        // If the following token is among this list, or an identifier in such a context,
-        // then the *type-argument-list* is retained as part of the *simple-name*, *member-access* or
-        // *pointer-member-access* and any other possible parse of the sequence of tokens is discarded.
-        // Otherwise, the *type-argument-list* is not considered to be part of the *simple-name*,
-        // *member-access* or *pointer-member-access*, even if there is no other possible parse of the
-        // sequence of tokens. Note that these rules are not applied when parsing a *type-argument-list*
-        // in a *namespace-or-type-name* (§3.8).
+        // If a sequence of tokens can be parsed(in context) as a* simple-name* (§7.6.3), *member-access* (§7.6.5),
+        // or* pointer-member-access* (§18.5.2) ending with a* type-argument-list* (§4.4.1), the token immediately
+        // following the closing `>` token is examined, to see if it is
+        // - One of `(  )  ]  }  :  ;  ,  .  ?  ==  !=  |  ^  &&  ||  &  [`; or
+        // - One of the relational operators `<  >  <=  >=  is as`; or
+        // - A contextual query keyword appearing inside a query expression; or
+        // - In certain contexts, we treat *identifier* as a disambiguating token.Those contexts are where the
+        //   sequence of tokens being disambiguated is immediately preceded by one of the keywords `is`, `case`
+        //   or `out`, or arises while parsing the first element of a tuple literal(in which case the tokens are
+        //   preceded by `(` or `:` and the identifier is followed by a `,`) or a subsequent element of a tuple literal.
+        //
+        // If the following token is among this list, or an identifier in such a context, then the *type-argument-list* is
+        // retained as part of the *simple-name*, *member-access* or  *pointer-member-access* and any other possible parse
+        // of the sequence of tokens is discarded.Otherwise, the *type-argument-list* is not considered to be part of the
+        // *simple-name*, *member-access* or *pointer-member-access*, even if there is no other possible parse of the
+        // sequence of tokens.Note that these rules are not applied when parsing a *type-argument-list* in a *namespace-or-type-name* (§3.8).
+        //
+        // See also ScanTypeArgumentList where these disambiguation rules are encoded.
         //
         private ExpressionSyntax ParseExpressionOrDeclaration(ParseTypeMode mode, MessageID feature, bool permitTupleDesignation)
         {
-            if (IsPossibleDeclarationExpression(mode, permitTupleDesignation))
-            {
-                TypeSyntax type = this.ParseType(mode);
-                var designation = ParseDesignation();
-                if (feature != 0)
-                {
-                    designation = CheckFeatureAvailability(designation, feature);
-                }
-
-                return _syntaxFactory.DeclarationExpression(type, designation);
-            }
-            else
-            {
-                return this.ParseSubExpression(Precedence.Expression);
-            }
+            return IsPossibleDeclarationExpression(mode, permitTupleDesignation)
+                ? this.ParseDeclarationExpression(mode, feature)
+                : this.ParseSubExpression(Precedence.Expression);
         }
 
         private bool IsPossibleDeclarationExpression(ParseTypeMode mode, bool permitTupleDesignation)
@@ -159,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var resetPoint = this.GetResetPoint();
             try
             {
+                bool typeIsVar = IsVarType();
                 SyntaxToken lastTokenOfType;
                 switch (ScanType(out lastTokenOfType))
                 {
@@ -175,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // check for a designation
-                if (!ScanDesignation(permitTupleDesignation && (lastTokenOfType.IsVar() || IsPredefinedType(lastTokenOfType.Kind))))
+                if (!ScanDesignation(permitTupleDesignation && (typeIsVar || IsPredefinedType(lastTokenOfType.Kind))))
                 {
                     return false;
                 }
@@ -186,6 +178,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 this.Reset(ref resetPoint);
                 this.Release(ref resetPoint);
+            }
+        }
+
+        /// <summary>
+        /// Is the following set of tokens, interpreted as a type, the type `var`?
+        /// </summary>
+        private bool IsVarType()
+        {
+            if (!this.CurrentToken.IsVar())
+            {
+                return false;
+            }
+
+            switch (this.PeekToken(1).Kind)
+            {
+                case SyntaxKind.DotToken:
+                case SyntaxKind.ColonColonToken:
+                case SyntaxKind.OpenBracketToken:
+                case SyntaxKind.AsteriskToken:
+                case SyntaxKind.QuestionToken:
+                case SyntaxKind.LessThanToken:
+                    return false;
+                default:
+                    return true;
             }
         }
 

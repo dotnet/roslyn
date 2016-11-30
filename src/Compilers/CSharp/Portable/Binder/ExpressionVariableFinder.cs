@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)
         {
             var argumentSyntax = (ArgumentSyntax)node?.Parent;
-            var argumentListSyntax = argumentSyntax.FirstAncestorOrSelf<BaseArgumentListSyntax>();
+            var argumentListSyntax = argumentSyntax.Parent as BaseArgumentListSyntax;
             var variable = MakeOutVariable(node, argumentListSyntax, _nodeToBind);
             if ((object)variable != null)
             {

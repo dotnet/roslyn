@@ -1420,39 +1420,6 @@ class C
         }
 
         [Fact]
-        public void IncompleteDeclarationIsSeenAsTupleType()
-        {
-            string source = @"
-class C
-{
-    static void Main()
-    {
-        (int x1, string x2);
-    }
-}
-";
-
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,10): error CS8184: A declaration is not allowed in this context.
-                //         (int x1, string x2);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x1").WithLocation(6, 10),
-                // (6,18): error CS8184: A declaration is not allowed in this context.
-                //         (int x1, string x2);
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "string x2").WithLocation(6, 18),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                //         (int x1, string x2);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x1, string x2)").WithLocation(6, 9),
-                // (6,14): error CS0165: Use of unassigned local variable 'x1'
-                //         (int x1, string x2);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 14),
-                // (6,25): error CS0165: Use of unassigned local variable 'x2'
-                //         (int x1, string x2);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 25)
-                );
-        }
-
-        [Fact]
         public void UseBeforeDeclared()
         {
             string source = @"
@@ -2632,92 +2599,6 @@ class C
                 // (6,15): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //         const var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 15)
-            );
-        }
-
-        [Fact]
-        public void MixedDeconstruction_01()
-        {
-            string source = @"
-class Program
-{
-    static void Main(string[] args)
-    {
-        var t = (1, 2);
-        var x = (int y, int z) = t;
-    }
-}";
-
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (7,18): error CS8185: A declaration is not allowed in this context.
-                //         var x = (int y, int z) = t;
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(7, 18)
-            );
-        }
-
-        [Fact]
-        public void MixedDeconstruction_02()
-        {
-            string source = @"
-class Program
-{
-    static void Main(string[] args)
-    {
-        var t = (1, 2);
-        int z;
-        (int y, z) = t;
-    }
-}";
-
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (8,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (int y, z) = t;
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int y, z)").WithLocation(8, 9)
-            );
-        }
-
-        [Fact]
-        public void MixedDeconstruction_03()
-        {
-            string source = @"
-class Program
-{
-    static void Main(string[] args)
-    {
-        var t = (1, 2);
-        int z;
-        for ((int y, z) = t; ; ) {}
-    }
-}";
-
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (8,14): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         for ((int y, z) = t; ; ) {}
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int y, z)").WithLocation(8, 14)
-            );
-        }
-
-        [Fact]
-        public void MixedDeconstruction_04()
-        {
-            string source = @"
-class Program
-{
-    static void Main(string[] args)
-    {
-        var t = (1, 2);
-        for (; ; (int y, int z) = t) {}
-    }
-}";
-
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (7,19): error CS8185: A declaration is not allowed in this context.
-                //         for (; ; (int y, int z) = t) {}
-                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(7, 19)
             );
         }
     }
