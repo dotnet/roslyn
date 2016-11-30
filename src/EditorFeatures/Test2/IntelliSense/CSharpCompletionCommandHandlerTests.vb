@@ -2599,5 +2599,111 @@ class C
                 Await state.AssertSelectedCompletionItem(displayText:="Console", isHardSelected:=True)
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNoBlockOnCompletionItems1() As Task
+            Dim tcs = New TaskCompletionSource(Of Boolean)
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+                                  using $$
+                              </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+
+                state.SendTypeChars("Sys.")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("Sys.", state.GetLineTextFromCaretPosition())
+
+                tcs.SetResult(True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNoBlockOnCompletionItems2() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+                                  using $$
+                              </Document>, {New TaskControlledCompletionProvider(Task.FromResult(True))})
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+
+                state.SendTypeChars("Sys")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+                state.SendTypeChars(".")
+                Assert.Contains("System.", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNoBlockOnCompletionItems4() As Task
+            Dim tcs = New TaskCompletionSource(Of Boolean)
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+                                  using $$
+                              </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+
+                state.SendTypeChars("Sys")
+                state.SendCommitUniqueCompletionListItem()
+                Await Task.Delay(250)
+                Await state.AssertNoCompletionSession(block:=False)
+                Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
+                Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
+
+                tcs.SetResult(True)
+
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("System", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNoBlockOnCompletionItems3() As Task
+            Dim tcs = New TaskCompletionSource(Of Boolean)
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+                                  using $$
+                              </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+
+                state.SendTypeChars("Sys")
+                state.SendCommitUniqueCompletionListItem()
+                Await Task.Delay(250)
+                Await state.AssertNoCompletionSession(block:=False)
+                Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
+                Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
+
+                state.SendTypeChars("a")
+
+                tcs.SetResult(True)
+
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+                Assert.Contains("Sysa", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        Private Class TaskControlledCompletionProvider
+            Inherits CompletionProvider
+
+            Private ReadOnly _task As Task
+
+            Public Sub New(task As Task)
+                _task = task
+            End Sub
+
+            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                Return _task
+            End Function
+        End Class
     End Class
 End Namespace
