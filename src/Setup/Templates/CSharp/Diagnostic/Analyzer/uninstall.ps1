@@ -1,5 +1,14 @@
 ﻿param($installPath, $toolsPath, $package, $project)
 
+if($project.Object.SupportsPackageDependencyResolution)
+{
+    if($project.Object.SupportsPackageDependencyResolution())
+    {
+        # Do not uninstall analyzers via uninstall.ps1, instead let the project system handle it.
+        return
+    }
+}
+
 $analyzersPaths = Join-Path (Join-Path (Split-Path -Path $toolsPath -Parent) "analyzers") * -Resolve
 
 foreach($analyzersPath in $analyzersPaths)

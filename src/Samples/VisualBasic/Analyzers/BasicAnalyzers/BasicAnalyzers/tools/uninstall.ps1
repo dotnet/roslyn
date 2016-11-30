@@ -51,7 +51,14 @@ foreach($analyzersPath in $analyzersPaths)
         {
             if($project.Object.AnalyzerReferences)
             {
-                $project.Object.AnalyzerReferences.Remove($analyzerFilePath.FullName)
+                try
+                {
+                    $project.Object.AnalyzerReferences.Remove($analyzerFilePath.FullName)
+                }
+                catch
+                {
+
+                }
             }
         }
     }
