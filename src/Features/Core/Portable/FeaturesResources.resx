@@ -1172,4 +1172,10 @@ This version used in: {2}</value>
   <data name="Use_explicitly_provided_tuple_name" xml:space="preserve">
     <value>Use explicitly provided tuple name</value>
   </data>
+  <data name="Remove_document_0" xml:space="preserve">
+    <value>Remove document '{0}'</value>
+  </data>
+  <data name="Add_document_0" xml:space="preserve">
+    <value>Add document '{0}'</value>
+  </data>
 </root>

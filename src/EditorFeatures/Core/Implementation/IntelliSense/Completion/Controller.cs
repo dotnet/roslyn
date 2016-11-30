@@ -3,8 +3,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -97,12 +95,43 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return this.TextView.BufferGraph.MapUpOrDownToBuffer(this.TextView.Caret.Position.BufferPosition, this.SubjectBuffer).GetValueOrDefault();
         }
 
+        private bool ShouldBlockForCompletionItems()
+        {
+            var service = GetCompletionService();
+            var options = GetOptions();
+            if (service == null || options == null)
+            {
+                return true;
+            }
+
+            return options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language);
+        }
+
+        private Model WaitForModel()
+        {
+            this.AssertIsForeground();
+
+            var shouldBlock = ShouldBlockForCompletionItems();
+            var model = sessionOpt.WaitForModel_DoNotCallDirectly(shouldBlock);
+            if (model == null && !shouldBlock)
+            {
+                // We didn't get a model back, and we're a language that doesn't want to block
+                // when this happens.  Essentially, the user typed something like a commit 
+                // character before we got any results back.  In this case, because we're not
+                // willing to block, we just stop everything that we're doing and return to 
+                // the non-active state.
+                DismissSessionIfActive();
+            }
+
+            return model;
+        }
+
         internal override void OnModelUpdated(Model modelOpt)
         {
             AssertIsForeground();
             if (modelOpt == null)
             {
-                this.StopModelComputation();
+                this.DismissSessionIfActive();
             }
             else
             {
@@ -230,13 +259,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var model = sessionOpt.InitialUnfilteredModel;
 
             // If the selected item is the builder, there's not actually any work to do to commit
-            if (item == model.SuggestionModeItem)
+            if (item != model.SuggestionModeItem)
             {
-                this.StopModelComputation();
-                return;
+                this.CommitOnNonTypeChar(item, this.sessionOpt.Computation.InitialUnfilteredModel);
             }
 
-            this.CommitOnNonTypeChar(item, this.sessionOpt.Computation.InitialUnfilteredModel);
+            // Make sure we're always dismissed after any commit request.
+            this.DismissSessionIfActive();
         }
 
         private const int MaxMRUSize = 10;

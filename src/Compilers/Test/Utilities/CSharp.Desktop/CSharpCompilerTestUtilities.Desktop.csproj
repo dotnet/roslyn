@@ -12,7 +12,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">

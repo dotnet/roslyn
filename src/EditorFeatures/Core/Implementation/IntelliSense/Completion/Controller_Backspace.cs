@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     (model != null && model.OriginalList.Rules.DismissIfLastCharacterDeleted && AllFilterTextsEmpty(model, GetCaretPointInViewBuffer())))
                 {
                     // If the caret moved out of bounds of our items, then we want to dismiss the list. 
-                    this.StopModelComputation();
+                    this.DismissSessionIfActive();
                     return;
                 }
                 else if (model != null)

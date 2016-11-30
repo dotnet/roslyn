@@ -840,4 +840,7 @@ Additional information: {1}</value>
   <data name="with_other_members_of_the_same_kind" xml:space="preserve">
     <value>with other members of the same kind</value>
   </data>
+  <data name="Prefer_braces" xml:space="preserve">
+    <value>Prefer braces</value>
+  </data>
 </root>

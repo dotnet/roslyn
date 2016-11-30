@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                 foreach (var provider in optionProviders)
                 {
-                    options.AddRange(provider.Value.GetOptions());
+                    options.AddRange(provider.Value.Options);
                 }
 
                 return options;

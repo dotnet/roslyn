@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(SuggestionTag))]
-    internal partial class DiagnosticsSuggestionTaggerProvider : 
+    [TagType(typeof(IOverviewMarkTag))]
+    internal partial class DiagnosticsSuggestionTaggerProvider :
         AbstractDiagnosticsAdornmentTaggerProvider<SuggestionTag>
     {
         private static readonly IEnumerable<Option<bool>> s_tagSourceOptions =
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected override SuggestionTag CreateTag(DiagnosticData diagnostic)
         {
-            lock(_suggestionTagGate)
+            lock (_suggestionTagGate)
             {
                 return _suggestionTag;
             }
