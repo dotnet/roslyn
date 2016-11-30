@@ -147,9 +147,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return current == questionPosition;
         }
 
-        /// <summary>
-        /// Returns whether or not the item was actually committed.
-        /// </summary>
         private void CommitOnTab(Action nextHandler)
         {
             AssertIsForeground();
