@@ -147,10 +147,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var definitionColumn = _tableControl.ColumnStates.FirstOrDefault(
                     s => s.Name == StandardTableColumnDefinitions2.Definition) as ColumnState2;
 
-                var oldGroupingByDefinition = _currentlyGroupingByDefinition;
-                _currentlyGroupingByDefinition = definitionColumn?.GroupingPriority > 0;
+                lock (_gate)
+                {
+                    var oldGroupingByDefinition = _currentlyGroupingByDefinition;
+                    _currentlyGroupingByDefinition = definitionColumn?.GroupingPriority > 0;
 
-                return oldGroupingByDefinition != _currentlyGroupingByDefinition;
+                    return oldGroupingByDefinition != _currentlyGroupingByDefinition;
+                }
             }
 
             private void CancelSearch()
