@@ -58,9 +58,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// is just redundant.  To make life easier we keep around two groups of entries.
             /// One group for when we are grouping by definition, and one when we're not.
             /// </summary>
-            private bool _hideDeclarations;
-            private ImmutableList<Entry> _entriesWithDeclarations = ImmutableList<Entry>.Empty;
-            private ImmutableList<Entry> _entriesWithoutDeclarations = ImmutableList<Entry>.Empty;
+            private bool _currentlyGroupingByDefinition;
+
+            private ImmutableList<Entry> _entriesWhenGroupingByDefinition = ImmutableList<Entry>.Empty;
+            private ImmutableList<Entry> _entriesWhenNotGroupingByDefinition = ImmutableList<Entry>.Empty;
 
             private TableEntriesSnapshot _lastSnapshot;
             public int CurrentVersionNumber { get; private set; }
@@ -81,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // If the window is closed, cancel any work we're doing.
                 _findReferencesWindow.Closed += OnFindReferencesWindowClosed;
 
-                SetDeclarationVisibility();
+                DetermineCurrentGroupingByDefinitionState();
 
                 // Remove any existing sources in the window.  
                 foreach (var source in findReferencesWindow.Manager.Sources.ToArray())
@@ -109,16 +110,18 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private void OnTableControlGroupingsChanged(object sender, EventArgs e)
             {
                 Presenter.AssertIsForeground();
-                UpdateDeclarationVisibility();
+                UpdateGroupingByDefinition();
             }
 
-            private void UpdateDeclarationVisibility()
+            private void UpdateGroupingByDefinition()
             {
                 Presenter.AssertIsForeground();
-                var changed = SetDeclarationVisibility();
+                var changed = DetermineCurrentGroupingByDefinitionState();
 
                 if (changed)
                 {
+                    // We changed from grouping-by-definition to not (or vice versa).
+                    // Change which list we show the user.
                     lock (_gate)
                     {
                         CurrentVersionNumber++;
@@ -130,16 +133,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            private bool SetDeclarationVisibility()
+            private bool DetermineCurrentGroupingByDefinitionState()
             {
                 Presenter.AssertIsForeground();
 
                 var definitionColumn = _tableControl.ColumnStates.FirstOrDefault(s => s.Name == StandardTableColumnDefinitions2.Definition) as ColumnState2;
 
-                var oldHideDeclarations = _hideDeclarations;
-                _hideDeclarations = definitionColumn?.GroupingPriority > 0;
+                var oldGroupingByDefinition = _currentlyGroupingByDefinition;
+                _currentlyGroupingByDefinition = definitionColumn?.GroupingPriority > 0;
 
-                return oldHideDeclarations != _hideDeclarations;
+                return oldGroupingByDefinition != _currentlyGroupingByDefinition;
             }
 
             private void CancelSearch()
@@ -213,8 +216,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     await OnEntryFoundAsync(NoResultsDefinitionItem,
                         bucket => SimpleMessageEntry.CreateAsync(
                             bucket, ServicesVisualStudioNextResources.Search_found_no_results),
-                        addToEntriesWithDeclarations: true,
-                        addToEntriesWithoutDeclarations: true).ConfigureAwait(false);
+                        showEntryWhenGroupingByDefinition: true,
+                        showEntryWhenNotGroupingByDefinition: true).ConfigureAwait(false);
                 }
             }
 
@@ -227,17 +230,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             private async Task CreateMissingReferenceEntriesIfNecessaryAsync()
             {
-                await CreateMissingReferenceEntriesIfNecessaryAsync(entriesWithDeclarations: true).ConfigureAwait(false);
-                await CreateMissingReferenceEntriesIfNecessaryAsync(entriesWithDeclarations: false).ConfigureAwait(false);
+                await CreateMissingReferenceEntriesIfNecessaryAsync(whenGroupingByDefinition: true).ConfigureAwait(false);
+                await CreateMissingReferenceEntriesIfNecessaryAsync(whenGroupingByDefinition: false).ConfigureAwait(false);
             }
 
             private async Task CreateMissingReferenceEntriesIfNecessaryAsync(
-                bool entriesWithDeclarations)
+                bool whenGroupingByDefinition)
             {
                 // Go through and add dummy entries for any definitions that 
                 // that we didn't find any references for.
 
-                var definitions = GetDefinitionsToCreateMissingReferenceItemsFor(entriesWithDeclarations);
+                var definitions = GetDefinitionsToCreateMissingReferenceItemsFor(whenGroupingByDefinition);
                 foreach (var definition in definitions)
                 {
                     // Create a fake reference to this definition that says 
@@ -245,8 +248,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     await OnEntryFoundAsync(definition,
                         bucket => SimpleMessageEntry.CreateAsync(
                             bucket, GetMessage(bucket.DefinitionItem)),
-                        addToEntriesWithDeclarations: entriesWithDeclarations,
-                        addToEntriesWithoutDeclarations: !entriesWithDeclarations).ConfigureAwait(false);
+                        showEntryWhenGroupingByDefinition: whenGroupingByDefinition,
+                        showEntryWhenNotGroupingByDefinition: !whenGroupingByDefinition).ConfigureAwait(false);
                 }
             }
 
@@ -263,13 +266,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             private ImmutableArray<DefinitionItem> GetDefinitionsToCreateMissingReferenceItemsFor(
-                bool entriesWithDeclarations)
+                bool whenGroupingByDefinition)
             {
                 lock (_gate)
                 {
-                    var entries = entriesWithDeclarations
-                        ? _entriesWithDeclarations
-                        : _entriesWithoutDeclarations;
+                    var entries = whenGroupingByDefinition
+                        ? _entriesWhenGroupingByDefinition
+                        : _entriesWhenNotGroupingByDefinition;
 
                     // Find any definitions that we didn't have any references to. But only show 
                     // them if they want to be displayed without any references.  This will 
@@ -308,20 +311,21 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
 
                 // If this is a definition we always want to show, then create entries
-                // for all the definition locations immediately.
+                // for all the declaration locations immediately.  Otherwise, we'll 
+                // create them on demand when we hear about references for this definition.
                 if (definition.DisplayIfNoReferences)
                 {
-                    await AddDefinitionEntriesAsync(definition).ConfigureAwait(false);
+                    await AddDefinitionDeclarationEntriesAsync(definition).ConfigureAwait(false);
                 }
             }
 
-            private async Task AddDefinitionEntriesAsync(DefinitionItem definition)
+            private async Task AddDefinitionDeclarationEntriesAsync(DefinitionItem definition)
             {
                 CancellationToken.ThrowIfCancellationRequested();
 
-                // Don't do anything if we already have entries for this definition 
+                // Don't do anything if we already have declaration entries for this definition 
                 // (i.e. another thread beat us to this).
-                if (HasEntriesForDefinition(definition))
+                if (HasDeclarationEntriesForDefinition(definition))
                 {
                     return;
                 }
@@ -339,10 +343,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // work if multiple threads end up down htis path.  But only one of them will
                 // win when we access the lock below.
                 var declarations = ArrayBuilder<Entry>.GetInstance();
-                foreach (var definitionLocation in definition.SourceSpans)
+                foreach (var declarationLocation in definition.SourceSpans)
                 {
                     var definitionEntry = await CreateDocumentLocationEntryAsync(
-                        definitionBucket, definitionLocation, isDefinitionLocation: true).ConfigureAwait(false);
+                        definitionBucket, declarationLocation, isDefinitionLocation: true).ConfigureAwait(false);
                     if (definitionEntry != null)
                     {
                         declarations.Add(definitionEntry);
@@ -352,9 +356,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 lock (_gate)
                 {
                     // Do one final check to ensure that no other thread beat us here.
-                    if (!HasEntriesForDefinition(definition))
+                    if (!HasDeclarationEntriesForDefinition(definition))
                     {
-                        _entriesWithDeclarations = _entriesWithDeclarations.AddRange(declarations);
+                        // We only include declaration entries in the entries we show when 
+                        // not grouping by definition.
+                        _entriesWhenNotGroupingByDefinition = _entriesWhenNotGroupingByDefinition.AddRange(declarations);
                         CurrentVersionNumber++;
                     }
                 }
@@ -372,17 +378,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     reference.Definition,
                     bucket => CreateDocumentLocationEntryAsync(
                         bucket, reference.SourceSpan, isDefinitionLocation: false),
-                    addToEntriesWithDeclarations: true,
-                    addToEntriesWithoutDeclarations: true);
+                    showEntryWhenGroupingByDefinition: true,
+                    showEntryWhenNotGroupingByDefinition: true);
             }
 
             private async Task OnEntryFoundAsync(
                 DefinitionItem definition,
                 Func<RoslynDefinitionBucket, Task<Entry>> createEntryAsync,
-                bool addToEntriesWithDeclarations,
-                bool addToEntriesWithoutDeclarations)
+                bool showEntryWhenGroupingByDefinition,
+                bool showEntryWhenNotGroupingByDefinition)
             {
-                Debug.Assert(addToEntriesWithDeclarations || addToEntriesWithoutDeclarations);
+                Debug.Assert(showEntryWhenGroupingByDefinition || showEntryWhenNotGroupingByDefinition);
                 CancellationToken.ThrowIfCancellationRequested();
 
                 // First find the bucket corresponding to our definition. If we can't find/create 
@@ -400,23 +406,23 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
 
                 // Ok, we got a *reference* to some definition item.  This may have been
-                // a reference for some definition that we haven't created any definition
+                // a reference for some definition that we haven't created any declaration
                 // entries for (i.e. becuase it had DisplayIfNoReferences = false).  Because
-                // we've now found a reference, we want to make sure all tis definition
+                // we've now found a reference, we want to make sure all its declaration
                 // entries are added.
-                await AddDefinitionEntriesAsync(definition).ConfigureAwait(false);
+                await AddDefinitionDeclarationEntriesAsync(definition).ConfigureAwait(false);
 
                 lock (_gate)
                 {
                     // Once we can make the new entry, add it to our list.
-                    if (addToEntriesWithDeclarations)
+                    if (showEntryWhenGroupingByDefinition)
                     {
-                        _entriesWithDeclarations = _entriesWithDeclarations.Add(entry);
+                        _entriesWhenGroupingByDefinition = _entriesWhenGroupingByDefinition.Add(entry);
                     }
 
-                    if (addToEntriesWithoutDeclarations)
+                    if (showEntryWhenNotGroupingByDefinition)
                     {
-                        _entriesWithoutDeclarations = _entriesWithoutDeclarations.Add(entry);
+                        _entriesWhenNotGroupingByDefinition = _entriesWhenNotGroupingByDefinition.Add(entry);
                     }
 
                     CurrentVersionNumber++;
@@ -426,11 +432,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _tableDataSink.FactorySnapshotChanged(this);
             }
 
-            private bool HasEntriesForDefinition(DefinitionItem definition)
+            private bool HasDeclarationEntriesForDefinition(DefinitionItem definition)
             {
                 lock (_gate)
                 {
-                    return _entriesWithDeclarations.Any(e => e.DefinitionBucket.DefinitionItem == definition);
+                    // We only store declaration entries in the entries list we use when
+                    // we're not grouping by definition.
+                    return _entriesWhenNotGroupingByDefinition.Any(e => e.DefinitionBucket.DefinitionItem == definition);
                 }
             }
 
@@ -700,9 +708,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // our version.
                     if (_lastSnapshot?.VersionNumber != CurrentVersionNumber)
                     {
-                        var entries = _hideDeclarations
-                            ? _entriesWithoutDeclarations
-                            : _entriesWithDeclarations;
+                        var entries = _currentlyGroupingByDefinition
+                            ? _entriesWhenGroupingByDefinition
+                            : _entriesWhenNotGroupingByDefinition;
 
                         _lastSnapshot = new TableEntriesSnapshot(entries, CurrentVersionNumber);
                     }
