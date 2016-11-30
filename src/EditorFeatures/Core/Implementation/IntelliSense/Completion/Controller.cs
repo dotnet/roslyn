@@ -109,12 +109,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private Model WaitForModel()
         {
-            var model = sessionOpt.WaitForModel_DoNotCallDirectly(ShouldBlockForCompletionItems());
-            if (model == null)
+            this.AssertIsForeground();
+
+            var shouldBlock = ShouldBlockForCompletionItems();
+            var model = sessionOpt.WaitForModel_DoNotCallDirectly(shouldBlock);
+            if (model == null && !shouldBlock)
             {
-                // We either didn't get a model because we blocked, and no model was computed,
-                // or because we didn't block, and no initial model was computed yet.  In either
-                // event, make sure we have no more active session.
+                // We didn't get a model back, and we're a language that doesn't want to block
+                // when this happens.  Essentially, the user typed something like a commit 
+                // character before we got any results back.  In this case, because we're not
+                // willing to block, we just stop everything that we're doing and return to 
+                // the non-active state.
                 DismissSessionIfActive();
             }
 
