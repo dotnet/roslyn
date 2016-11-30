@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
@@ -82,7 +83,43 @@ End Class";
             }
         }
 
-        private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType)
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestCancellation()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using (var workspace = await CreateWorkspaceAsync(LanguageNames.CSharp, code))
+            {
+                var analyzerType = typeof(MyAnalyzer);
+
+                for (var i = 0; i < 5; i++)
+                {
+                    var source = new CancellationTokenSource();
+
+                    try
+                    {
+                        var task = Task.Run(() => AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, source.Token));
+
+                        // wait random milli-second
+                        var random = new Random(Environment.TickCount);
+                        var next = random.Next(1000);
+                        await Task.Delay(next);
+
+                        source.Cancel();
+
+                        // let it throw
+                        var result = await task;
+                    }
+                    catch (Exception ex)
+                    {
+                        // only cancellation is expected
+                        Assert.True(ex is OperationCanceledException, $"cancellationToken : {source.Token.IsCancellationRequested}/r/n{ex.ToString()}");
+                    }
+                }
+            }
+        }
+
+        private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType, CancellationToken cancellationToken = default(CancellationToken))
         {
             var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
             var executor = new VisualStudioDiagnosticAnalyzerExecutor(diagnosticService, new MyUpdateSource(workspace));
@@ -91,7 +128,7 @@ End Class";
             var project = workspace.CurrentSolution.GetProject(projectId).AddAnalyzerReference(analyzerReference);
 
             var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray());
-            var result = await executor.AnalyzeAsync(analyzerDriver, project, CancellationToken.None);
+            var result = await executor.AnalyzeAsync(analyzerDriver, project, cancellationToken);
 
             return result.AnalysisResult[analyzerDriver.Analyzers[0]];
         }
@@ -107,6 +144,26 @@ End Class";
                                      .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, true);
 
             return workspace;
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        private class MyAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics =
+                ImmutableArray.Create(new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true));
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => _supportedDiagnostics;
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxTreeAction(c =>
+                {
+                    for (var i = 0; i < 10000; i++)
+                    {
+                        c.ReportDiagnostic(Diagnostic.Create(_supportedDiagnostics[0], c.Tree.GetLocation(TextSpan.FromBounds(0, 1))));
+                    }
+                });
+            }
         }
 
         private class MyUpdateSource : AbstractHostDiagnosticUpdateSource
