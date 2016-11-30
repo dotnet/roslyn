@@ -35,9 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly IFindAllReferencesWindow _findReferencesWindow;
             private readonly IWpfTableControl2 _tableControl;
 
-            // Lock which protects _definitionToShoudlShowWithoutReferences, 
-            // _definitionToBucket, _entries, _lastSnapshot and CurrentVersionNumber
             private readonly object _gate = new object();
+
+            #region Fields that should be locked by _gate
 
             private readonly List<DefinitionItem> _definitions = new List<DefinitionItem>();
 
@@ -52,12 +52,20 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly Dictionary<DefinitionItem, RoslynDefinitionBucket> _definitionToBucket =
                 new Dictionary<DefinitionItem, RoslynDefinitionBucket>();
 
+            /// <summary>
+            /// We want to hide declarations of a symbol if the user is grouping by definition.
+            /// With such grouping on, having both the definition group and the declaration item
+            /// is just redundant.  To make life easier we keep around two groups of entries.
+            /// One group for when we are grouping by definition, and one when we're not.
+            /// </summary>
             private bool _hideDeclarations;
             private ImmutableList<Entry> _entriesWithDeclarations = ImmutableList<Entry>.Empty;
             private ImmutableList<Entry> _entriesWithoutDeclarations = ImmutableList<Entry>.Empty;
 
             private TableEntriesSnapshot _lastSnapshot;
             public int CurrentVersionNumber { get; private set; }
+
+            #endregion
 
             public TableDataSourceFindUsagesContext(
                  StreamingFindUsagesPresenter presenter,
