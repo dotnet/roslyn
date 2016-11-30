@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         /// <summary>
         /// The currently selected item. Note that this can be null
-        /// in VS 15+ if the user uses completion list filters
+        /// in VS 15+ if the user uses completion list filters to
         /// hide all the items in the list.
         /// </summary>
-        public CompletionItem SelectedItem { get; }
+        public CompletionItem SelectedItemOpt { get; }
 
         public ImmutableArray<CompletionItemFilter> CompletionItemFilters { get; }
         public ImmutableDictionary<CompletionItemFilter, bool> FilterState { get; }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             this.OriginalList = originalList;
             this.FilteredItems = filteredItems;
             this.FilterState = filterState;
-            this.SelectedItem = selectedItem;
+            this.SelectedItemOpt = selectedItem;
             this.CompletionItemFilters = completionItemFilters;
             this.FilterText = filterText;
             this.IsHardSelection = isHardSelection;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             Optional<ITrackingPoint> commitTrackingSpanEndPoint = default(Optional<ITrackingPoint>))
         {
             var newFilteredItems = filteredItems.HasValue ? filteredItems.Value : FilteredItems;
-            var newSelectedItem = selectedItem.HasValue ? selectedItem.Value : SelectedItem;
+            var newSelectedItem = selectedItem.HasValue ? selectedItem.Value : SelectedItemOpt;
             var newFilterState = filterState.HasValue ? filterState.Value : FilterState;
             var newFilterText = filterText.HasValue ? filterText.Value : FilterText;
             var newIsHardSelection = isHardSelection.HasValue ? isHardSelection.Value : IsHardSelection;
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var newCommitTrackingSpanEndPoint = commitTrackingSpanEndPoint.HasValue ? commitTrackingSpanEndPoint.Value : CommitTrackingSpanEndPoint;
 
             if (newFilteredItems == FilteredItems &&
-                newSelectedItem == SelectedItem &&
+                newSelectedItem == SelectedItemOpt &&
                 newFilterState == FilterState &&
                 newFilterText == FilterText &&
                 newIsHardSelection == IsHardSelection &&

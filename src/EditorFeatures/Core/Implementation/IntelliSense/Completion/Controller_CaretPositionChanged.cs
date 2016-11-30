@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            if (model.SelectedItem != null && model.IsHardSelection)
+            if (model.SelectedItemOpt != null && model.IsHardSelection)
             {
                 // Switch to soft selection, if user moved caret to the start of a non-empty filter span.
                 // This prevents commiting if user types a commit character at this position later, but still has the list if user types filter character
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // We want the filter span non-empty because we still want completion in the following case:
                 // A a = new | -> A a = new (|
 
-                var currentSpan = model.GetViewBufferSpan(model.SelectedItem.Span).TextSpan;
+                var currentSpan = model.GetViewBufferSpan(model.SelectedItemOpt.Span).TextSpan;
                 if (caretPoint == currentSpan.Start && currentSpan.Length > 0)
                 {
                     sessionOpt.SetModelIsHardSelection(false);

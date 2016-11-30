@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             sendThrough = !_isDebugger || _isImmediateWindow;
 
             // If the user used completion filters to empty the list, just dismiss
-            if (model.SelectedItem == null)
+            if (model.SelectedItemOpt == null)
             {
                 committed = false;
                 return;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             // If the selected item is the builder, dismiss
-            if (model.SelectedItem == model.SuggestionModeItem)
+            if (model.SelectedItemOpt == model.SuggestionModeItem)
             {
                 sendThrough = false;
                 committed = false;
@@ -93,16 +93,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (sendThrough)
             {
                 // Get the text that the user has currently entered into the buffer
-                var viewSpan = model.GetViewBufferSpan(model.SelectedItem.Span);
+                var viewSpan = model.GetViewBufferSpan(model.SelectedItemOpt.Span);
                 var textTypedSoFar = model.GetCurrentTextInSnapshot(
                     viewSpan, this.TextView.TextSnapshot, this.GetCaretPointInViewBuffer());
 
                 var service = GetCompletionService();
                 sendThrough = SendEnterThroughToEditor(
-                     service.GetRules(), model.SelectedItem, textTypedSoFar);
+                     service.GetRules(), model.SelectedItemOpt, textTypedSoFar);
             }
 
-            this.CommitOnNonTypeChar(model.SelectedItem, model);
+            this.CommitOnNonTypeChar(model.SelectedItemOpt, model);
             committed = true;
         }
 

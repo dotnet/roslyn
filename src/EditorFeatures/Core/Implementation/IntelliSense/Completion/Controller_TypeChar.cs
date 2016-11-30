@@ -304,12 +304,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // TODO(cyrusn): Find a way to allow the user to cancel out of this.
             var model = sessionOpt.WaitForModel();
-            if (model == null || model.IsSoftSelection || model.SelectedItem == null)
+            if (model == null || model.IsSoftSelection || model.SelectedItemOpt == null)
             {
                 return false;
             }
 
-            if (model.SelectedItem == model.SuggestionModeItem)
+            if (model.SelectedItemOpt == model.SuggestionModeItem)
             {
                 return char.IsLetterOrDigit(ch);
             }
@@ -320,9 +320,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
-            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItem);
+            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItemOpt);
             return IsCommitCharacter(
-                completionService.GetRules(), model.SelectedItem, ch, textTypedSoFar);
+                completionService.GetRules(), model.SelectedItemOpt, ch, textTypedSoFar);
         }
 
         /// <summary>
@@ -376,13 +376,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
-            if (model.SelectedItem == model.SuggestionModeItem)
+            if (model.SelectedItemOpt == model.SuggestionModeItem)
             {
                 return char.IsLetterOrDigit(ch);
             }
 
-            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItem);
-            return IsFilterCharacter(model.SelectedItem, ch, textTypedSoFar);
+            var textTypedSoFar = GetTextTypedSoFar(model, model.SelectedItemOpt);
+            return IsFilterCharacter(model.SelectedItemOpt, ch, textTypedSoFar);
         }
 
         private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             Contract.ThrowIfNull(model);
 
             this.Commit(
-                model.SelectedItem, model, ch,
+                model.SelectedItemOpt, model, ch,
                 initialTextSnapshot, nextHandler);
         }
     }

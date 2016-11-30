@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             model, localId, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
 
                         return filteredModel != null
-                            ? filteredModel.WithFilteredItems(filteredModel.TotalItems).WithSelectedItem(filteredModel.SelectedItem)
+                            ? filteredModel.WithFilteredItems(filteredModel.TotalItems).WithSelectedItem(filteredModel.SelectedItemOpt)
                             : null;
                     });
             }
