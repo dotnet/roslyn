@@ -32,7 +32,7 @@ if($project.Type -eq "C#")
 {
     $languageFolder = "cs"
 }
-if($project.Type -eq " VB.NET")
+if($project.Type -eq "VB.NET")
 {
     $languageFolder = "vb"
 }
