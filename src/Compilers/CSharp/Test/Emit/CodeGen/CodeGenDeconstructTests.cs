@@ -5779,5 +5779,27 @@ class C
             VerifyModelForDeconstructionLocal(model, x1, x1Ref);
             VerifyModelForDeconstructionLocal(model, x2, x2Ref);
         }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/15614")]
+        void InvokeVarForLvalueInParens()
+        {
+            var source = @"
+class Program
+{
+    public static void Main()
+    {
+        (var(x, y)) = 10;
+        System.Console.WriteLine(z);
+    }
+    static int x = 1, y = 2, z = 3;
+    static ref int var(int x, int y)
+    {
+        return ref z;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "10");
+        }
     }
 }
