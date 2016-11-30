@@ -39,6 +39,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             #region Fields that should be locked by _gate
 
+            /// <summary>
+            /// The list of all definitions we've heard about.  This may be a superset of the
+            /// keys in <see cref="_definitionToBucket"/> becaue we may encounter definitions
+            /// we don't create definition buckets for.  For example, if the definition asks
+            /// us to not display it if it has no references, and we don't run into any 
+            /// references for it (common with implicitly declared symbols).
+            /// </summary>
             private readonly List<DefinitionItem> _definitions = new List<DefinitionItem>();
 
             /// <summary>
@@ -137,7 +144,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 Presenter.AssertIsForeground();
 
-                var definitionColumn = _tableControl.ColumnStates.FirstOrDefault(s => s.Name == StandardTableColumnDefinitions2.Definition) as ColumnState2;
+                var definitionColumn = _tableControl.ColumnStates.FirstOrDefault(
+                    s => s.Name == StandardTableColumnDefinitions2.Definition) as ColumnState2;
 
                 var oldGroupingByDefinition = _currentlyGroupingByDefinition;
                 _currentlyGroupingByDefinition = definitionColumn?.GroupingPriority > 0;
@@ -221,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            private static DefinitionItem NoResultsDefinitionItem =
+            private static readonly DefinitionItem NoResultsDefinitionItem =
                 DefinitionItem.CreateNonNavigableItem(
                     GlyphTags.GetTags(Glyph.StatusInformation),
                     ImmutableArray.Create(new TaggedText(
@@ -315,28 +323,32 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // create them on demand when we hear about references for this definition.
                 if (definition.DisplayIfNoReferences)
                 {
-                    await AddDefinitionDeclarationEntriesAsync(definition).ConfigureAwait(false);
+                    await AddDeclarationEntriesAsync(definition).ConfigureAwait(false);
                 }
             }
 
-            private async Task AddDefinitionDeclarationEntriesAsync(DefinitionItem definition)
+            private bool HasDeclarationEntries(DefinitionItem definition)
+            {
+                lock (_gate)
+                {
+                    // We only store declaration entries in the entries list we use when
+                    // we're not grouping by definition.
+                    return _entriesWhenNotGroupingByDefinition.Any(e => e.DefinitionBucket.DefinitionItem == definition);
+                }
+            }
+
+            private async Task AddDeclarationEntriesAsync(DefinitionItem definition)
             {
                 CancellationToken.ThrowIfCancellationRequested();
 
                 // Don't do anything if we already have declaration entries for this definition 
                 // (i.e. another thread beat us to this).
-                if (HasDeclarationEntriesForDefinition(definition))
+                if (HasDeclarationEntries(definition))
                 {
                     return;
                 }
 
-                // First find the bucket corresponding to our definition. If we can't find/create 
-                // one, then don't do anything for this reference.
                 var definitionBucket = GetOrCreateDefinitionBucket(definition);
-                if (definitionBucket == null)
-                {
-                    return;
-                }
 
                 // We could do this inside the lock.  but that would mean async activity in a 
                 // lock, and i'd like to avoid that.  That does mean that we might do extra
@@ -356,7 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 lock (_gate)
                 {
                     // Do one final check to ensure that no other thread beat us here.
-                    if (!HasDeclarationEntriesForDefinition(definition))
+                    if (!HasDeclarationEntries(definition))
                     {
                         // We only include declaration entries in the entries we show when 
                         // not grouping by definition.
@@ -391,30 +403,21 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 Debug.Assert(showEntryWhenGroupingByDefinition || showEntryWhenNotGroupingByDefinition);
                 CancellationToken.ThrowIfCancellationRequested();
 
-                // First find the bucket corresponding to our definition. If we can't find/create 
-                // one, then don't do anything for this reference.
+                // First find the bucket corresponding to our definition.
                 var definitionBucket = GetOrCreateDefinitionBucket(definition);
-                if (definitionBucket == null)
-                {
-                    return;
-                }
 
                 var entry = await createEntryAsync(definitionBucket).ConfigureAwait(false);
-                if (entry == null)
-                {
-                    return;
-                }
 
                 // Ok, we got a *reference* to some definition item.  This may have been
                 // a reference for some definition that we haven't created any declaration
                 // entries for (i.e. becuase it had DisplayIfNoReferences = false).  Because
                 // we've now found a reference, we want to make sure all its declaration
                 // entries are added.
-                await AddDefinitionDeclarationEntriesAsync(definition).ConfigureAwait(false);
+                await AddDeclarationEntriesAsync(definition).ConfigureAwait(false);
 
                 lock (_gate)
                 {
-                    // Once we can make the new entry, add it to our list.
+                    // Once we can make the new entry, add it to the appropriate list.
                     if (showEntryWhenGroupingByDefinition)
                     {
                         _entriesWhenGroupingByDefinition = _entriesWhenGroupingByDefinition.Add(entry);
@@ -430,16 +433,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 // Let all our subscriptions know that we've updated.
                 _tableDataSink.FactorySnapshotChanged(this);
-            }
-
-            private bool HasDeclarationEntriesForDefinition(DefinitionItem definition)
-            {
-                lock (_gate)
-                {
-                    // We only store declaration entries in the entries list we use when
-                    // we're not grouping by definition.
-                    return _entriesWhenNotGroupingByDefinition.Any(e => e.DefinitionBucket.DefinitionItem == definition);
-                }
             }
 
             private async Task<Entry> CreateDocumentLocationEntryAsync(
