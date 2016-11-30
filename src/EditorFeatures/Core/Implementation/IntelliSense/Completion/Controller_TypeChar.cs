@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                     // If we were computing anything, we stop.  We only want to process a typechar
                     // if it was a normal character.
-                    this.StopModelComputation();
+                    this.DismissSessionIfActive();
                 }
 
                 return;

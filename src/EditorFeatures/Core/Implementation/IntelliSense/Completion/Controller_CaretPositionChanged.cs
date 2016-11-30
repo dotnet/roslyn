@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 // Completions hadn't even been computed yet. Just cancel everything we're doing
                 // and move to the Inactive state.
-                this.StopModelComputation();
+                this.DismissSessionIfActive();
                 return;
             }
 

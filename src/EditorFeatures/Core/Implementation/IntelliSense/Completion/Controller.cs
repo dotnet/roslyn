@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             AssertIsForeground();
             if (modelOpt == null)
             {
-                this.StopModelComputation();
+                this.DismissSessionIfActive();
             }
             else
             {
@@ -254,13 +254,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var model = sessionOpt.InitialUnfilteredModel;
 
             // If the selected item is the builder, there's not actually any work to do to commit
-            if (item == model.SuggestionModeItem)
+            if (item != model.SuggestionModeItem)
             {
-                this.StopModelComputation();
-                return;
+                this.CommitOnNonTypeChar(item, this.sessionOpt.Computation.InitialUnfilteredModel);
             }
 
-            this.CommitOnNonTypeChar(item, this.sessionOpt.Computation.InitialUnfilteredModel);
+            // Make sure we're always dismissed after any commit request.
+            this.DismissSessionIfActive();
         }
 
         private const int MaxMRUSize = 10;

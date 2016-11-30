@@ -27,11 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             CommitOnEnter(out var sendThrough, out var committed);
 
-            // We did not commit based on enter.  So our computation will still be running.  Stop it now.
-            if (!committed)
-            {
-                this.StopModelComputation();
-            }
+            // Always stop completion after enter has been typed.
+            DismissSessionIfActive();
 
             // Enter has different behavior amongst languages, so we need to actually defer to
             // the individual language item to determine what to do.  For example, in VB, enter

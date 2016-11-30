@@ -37,17 +37,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 nextHandler();
                 return;
             }
+
             // We are computing a model.  Try to commit the selected item if there was one. Note: If
             // it was able to commit, then we never send the tab to the buffer. That way, if the
             // user does an undo they'll get to the code they had *before* they hit tab. If the
             // session wasn't able to commit, then we do send the tab through to the buffer.
-            CommitOnTab(out var committed);
+            var committed = CommitOnTab();
+
+            this.DismissSessionIfActive();
 
             // We did not commit based on tab.  So our computation will still be running.  Stop it now.
             // Also, send the tab through to the editor.
             if (!committed)
             {
-                this.StopModelComputation();
                 nextHandler();
             }
         }
@@ -151,7 +153,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return current == questionPosition;
         }
 
-        private void CommitOnTab(out bool committed)
+        /// <summary>
+        /// Returns whether or not the item was actually committed.
+        /// </summary>
+        private bool CommitOnTab()
         {
             AssertIsForeground();
 
@@ -160,20 +165,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // If there's no model, then there's nothing to commit.
             if (model == null)
             {
-                committed = false;
-                return;
+                return false;
             }
 
             // If the selected item is the builder, there's not actually any work to do to commit
-            if (model.SelectedItem == model.SuggestionModeItem)
+            if (model.SelectedItem != model.SuggestionModeItem)
             {
-                committed = true;
-                this.StopModelComputation();
-                return;
+                CommitOnNonTypeChar(model.SelectedItem, model);
             }
 
-            CommitOnNonTypeChar(model.SelectedItem, model);
-            committed = true;
+            return true;
         }
     }
 }
