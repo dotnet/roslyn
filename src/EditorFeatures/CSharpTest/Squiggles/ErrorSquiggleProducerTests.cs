@@ -25,12 +25,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
-    public class ErrorSquiggleProducerTests : AbstractSquiggleProducerTests
+    public class ErrorSquiggleProducerTests : AbstractDiagnosticTagProducerTests<IErrorTag>
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorTagGeneratedForError()
         {
-            var spans = await GetErrorSpans("class C {");
+            var spans = await GetTagSpansAsync("class C {");
             Assert.Equal(1, spans.Count());
 
             var firstSpan = spans.First();
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorTagGeneratedForWarning()
         {
-            var spans = await GetErrorSpans("class C { long x = 5l; }");
+            var spans = await GetTagSpansAsync("class C { long x = 5l; }");
             Assert.Equal(1, spans.Count());
             Assert.Equal(PredefinedErrorTypeNames.Warning, spans.First().Tag.ErrorType);
         }
@@ -149,14 +149,14 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task ErrorDoesNotCrashPastEOF()
         {
-            var spans = await GetErrorSpans("class C { int x =");
+            var spans = await GetTagSpansAsync("class C { int x =");
             Assert.Equal(3, spans.Count());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public async Task SemanticErrorReported()
         {
-            var spans = await GetErrorSpans("class C : Bar { }");
+            var spans = await GetTagSpansAsync("class C : Bar { }");
             Assert.Equal(1, spans.Count());
 
             var firstSpan = spans.First();
@@ -300,7 +300,7 @@ class Program
             }
         }
 
-        private static async Task<IEnumerable<ITagSpan<IErrorTag>>> GetErrorSpans(string content)
+        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content)
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(content))
             {
