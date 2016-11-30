@@ -99,8 +99,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             var service = GetCompletionService();
             var options = GetOptions();
-            return service != null && options != null &&
-                options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language);
+            if (service == null || options == null)
+            {
+                return true;
+            }
+
+            return options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language);
         }
 
         private Model WaitForModel()
