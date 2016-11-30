@@ -191,7 +191,7 @@
     <Compile Include="Mocks\TestHostServices.cs" />
     <Compile Include="Mocks\InProcRemoteHostClientFactory.cs" />
     <Compile Include="Remote\RemoteHostClientServiceFactoryTests.cs" />
-    <Compile Include="ServiceHub\CodeAnalysisService_CalculateDiagnostics.cs" />
+    <Compile Include="ServiceHub\CalculateDiagnosticsTests.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
