@@ -689,11 +689,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var binaryParent = (BinaryExpressionSyntax)parent;
                         return node == binaryParent.Right;
                     }
-                case SyntaxKind.ArrowExpressionClause: // =>
-                    {
-                        var arrowClauseParent = (ArrowExpressionClauseSyntax)parent;
-                        return node == arrowClauseParent.Expression;
-                    }
+                case SyntaxKind.ArrowExpressionClause:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                    return true;
                 // We do not support && and || because
                 // 1. The precedence would not syntactically allow it
                 // 2. It isn't clear what the semantics should be
