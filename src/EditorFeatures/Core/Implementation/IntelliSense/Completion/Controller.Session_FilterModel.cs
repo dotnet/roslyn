@@ -576,7 +576,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
 
                 // Switch to soft selection, if user moved caret to the start of a non-empty filter span.
-                // This prevents commiting if user types a commit character at this position later, but still has the list if user types filter character
+                // This prevents commiting if user types a commit character at this position later, but 
+                // still has the list if user types filter character
                 // i.e. blah| -> |blah -> !|blah
                 // We want the filter span non-empty because we still want hard selection in the following case:
                 //
