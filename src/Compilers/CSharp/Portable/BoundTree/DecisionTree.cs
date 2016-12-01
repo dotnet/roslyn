@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public readonly BoundExpression Expression;
         public readonly TypeSymbol Type;
+        public readonly DecisionKind Kind;
         public LocalSymbol Temp;
         public bool MatchIsComplete;
 
         public enum DecisionKind { ByType, ByValue, Guarded }
-        public abstract DecisionKind Kind { get; }
 
 #if DEBUG
         internal string Dump()
@@ -32,11 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         internal abstract void DumpInternal(StringBuilder builder, string indent);
 #endif
-        public DecisionTree(BoundExpression expression, TypeSymbol type, LocalSymbol temp)
+        public DecisionTree(BoundExpression expression, TypeSymbol type, LocalSymbol temp, DecisionKind kind)
         {
             this.Expression = expression;
             this.Type = type;
             this.Temp = temp;
+            this.Kind = kind;
             Debug.Assert(this.Expression != null);
             Debug.Assert(this.Type != null);
         }
@@ -76,8 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly ArrayBuilder<KeyValuePair<TypeSymbol, DecisionTree>> TypeAndDecision =
                 new ArrayBuilder<KeyValuePair<TypeSymbol, DecisionTree>>();
             public DecisionTree Default;
-            public override DecisionKind Kind => DecisionKind.ByType;
-            public ByType(BoundExpression expression, TypeSymbol type, LocalSymbol temp) : base(expression, type, temp) { }
+            public ByType(BoundExpression expression, TypeSymbol type, LocalSymbol temp) : base(expression, type, temp, DecisionKind.ByType) { }
 #if DEBUG
             internal override void DumpInternal(StringBuilder builder, string indent)
             {
@@ -108,8 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly Dictionary<object, DecisionTree> ValueAndDecision =
                 new Dictionary<object, DecisionTree>();
             public DecisionTree Default;
-            public override DecisionKind Kind => DecisionKind.ByValue;
-            public ByValue(BoundExpression expression, TypeSymbol type, LocalSymbol temp) : base(expression, type, temp) { }
+            public ByValue(BoundExpression expression, TypeSymbol type, LocalSymbol temp) : base(expression, type, temp, DecisionKind.ByValue) { }
 #if DEBUG
             internal override void DumpInternal(StringBuilder builder, string indent)
             {
@@ -138,7 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly BoundExpression Guard;
             public readonly BoundPatternSwitchLabel Label;
             public DecisionTree Default = null; // decision tree to use if the Guard is false
-            public override DecisionKind Kind => DecisionKind.Guarded;
             public Guarded(
                 BoundExpression expression,
                 TypeSymbol type,
@@ -146,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxNode sectionSyntax,
                 BoundExpression guard,
                 BoundPatternSwitchLabel label)
-                : base(expression, type, null)
+                : base(expression, type, null, DecisionKind.Guarded)
             {
                 this.Guard = guard;
                 this.Label = label;
