@@ -2460,9 +2460,9 @@ Deconstructing (1, hello)
             return tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == name).Single();
         }
 
-        private static IEnumerable<DiscardedDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
+        private static IEnumerable<DiscardDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
         {
-            return tree.GetRoot().DescendantNodes().OfType<DiscardedDesignationSyntax>();
+            return tree.GetRoot().DescendantNodes().OfType<DiscardDesignationSyntax>();
         }
 
         private static IEnumerable<IdentifierNameSyntax> GetDiscardIdentifiers(SyntaxTree tree)
@@ -4806,7 +4806,7 @@ class C
             var model = comp.GetSemanticModel(tree);
 
             var discard = GetDiscardIdentifiers(tree).First();
-            var symbol = (IDiscardedSymbol)model.GetSymbolInfo(discard).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
+            var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
             //Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
         }
 
@@ -5003,7 +5003,7 @@ class C
 
             var discard3 = GetDiscardIdentifiers(tree).First();
             Assert.Equal("(_, var x)", discard3.Parent.Parent.ToString());
-            var symbol3 = (IDiscardedSymbol)model.GetSymbolInfo(discard3).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
+            var symbol3 = (IDiscardSymbol)model.GetSymbolInfo(discard3).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
             //Assert.Equal("System.Int32", symbol3.Type.ToTestDisplayString());
         }
 

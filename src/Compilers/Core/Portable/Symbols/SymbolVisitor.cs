@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
             DefaultVisit(symbol);
         }
 
-        public virtual void VisitDiscarded(IDiscardedSymbol symbol)
+        public virtual void VisitDiscard(IDiscardSymbol symbol)
         {
             DefaultVisit(symbol);
         }

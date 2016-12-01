@@ -278,9 +278,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var pending = (DeconstructionVariablePendingInference)expression;
                         return pending.SetInferredType(type, this, diagnostics);
                     }
-                case BoundKind.DiscardedExpression:
+                case BoundKind.DiscardExpression:
                     {
-                        var pending = (BoundDiscardedExpression)expression;
+                        var pending = (BoundDiscardExpression)expression;
                         Debug.Assert((object)pending.Type == null);
                         return pending.SetInferredType(type);
                     }
@@ -310,8 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundExpression local = ((DeconstructionVariablePendingInference)variable.Single).FailInference(this, diagnostics);
                             variables[i] = new DeconstructionVariable(local, local.Syntax);
                             break;
-                        case BoundKind.DiscardedExpression:
-                            var pending = (BoundDiscardedExpression)variable.Single;
+                        case BoundKind.DiscardExpression:
+                            var pending = (BoundDiscardExpression)variable.Single;
                             if ((object)pending.Type == null)
                             {
                                 Error(diagnostics, ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, pending.Syntax, "_");
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     var boundVariable = BindExpression(node, diagnostics, invoked: false, indexed: false);
                     var checkedVariable = CheckValue(boundVariable, BindValueKind.Assignment, diagnostics);
-                    if (expression == null && checkedVariable.Kind != BoundKind.DiscardedExpression)
+                    if (expression == null && checkedVariable.Kind != BoundKind.DiscardExpression)
                     {
                         expression = node;
                     }
@@ -744,10 +744,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var single = (SingleVariableDesignationSyntax)node;
                         return new DeconstructionVariable(BindDeconstructionVariable(declType, single, diagnostics), node);
                     }
-                case SyntaxKind.DiscardedDesignation:
+                case SyntaxKind.DiscardDesignation:
                     {
-                        var discarded = (DiscardedDesignationSyntax)node;
-                        return new DeconstructionVariable(BindDiscardedExpression(discarded, declType), node);
+                        var discarded = (DiscardDesignationSyntax)node;
+                        return new DeconstructionVariable(BindDiscardExpression(discarded, declType), node);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
@@ -764,11 +764,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static BoundDiscardedExpression BindDiscardedExpression(
-            DiscardedDesignationSyntax designation,
+        private static BoundDiscardExpression BindDiscardExpression(
+            DiscardDesignationSyntax designation,
             TypeSymbol declType)
         {
-            return new BoundDiscardedExpression(designation, declType);
+            return new BoundDiscardExpression(designation, declType);
         }
 
         /// <summary>

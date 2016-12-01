@@ -8038,9 +8038,9 @@ tryAgain:
                     case SyntaxKind.SingleVariableDesignation:
                         identifier = ((SingleVariableDesignationSyntax)decl.designation).identifier;
                         break;
-                    case SyntaxKind.DiscardedDesignation:
+                    case SyntaxKind.DiscardDesignation:
                         // revert the identifier from its contextual underscore back to an identifier.
-                        var discard = ((DiscardedDesignationSyntax)decl.designation).underscoreToken;
+                        var discard = ((DiscardDesignationSyntax)decl.designation).underscoreToken;
                         Debug.Assert(discard.Kind == SyntaxKind.UnderscoreToken);
                         identifier = SyntaxToken.WithValue(SyntaxKind.IdentifierToken, discard.LeadingTrivia.Node, discard.Text, discard.ValueText, discard.TrailingTrivia.Node);
                         break;
@@ -8560,7 +8560,7 @@ tryAgain:
             if (CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken)
             {
                 var underscore = this.EatContextualToken(SyntaxKind.UnderscoreToken);
-                return _syntaxFactory.DiscardedDesignation(underscore);
+                return _syntaxFactory.DiscardDesignation(underscore);
             }
             else
             {

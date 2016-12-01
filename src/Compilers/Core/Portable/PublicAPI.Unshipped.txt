@@ -83,8 +83,8 @@ Microsoft.CodeAnalysis.Emit.EmitOptions.WithInstrumentationKinds(System.Collecti
 Microsoft.CodeAnalysis.Emit.InstrumentationKind
 Microsoft.CodeAnalysis.Emit.InstrumentationKind.None = 0 -> Microsoft.CodeAnalysis.Emit.InstrumentationKind
 Microsoft.CodeAnalysis.Emit.InstrumentationKind.TestCoverage = 1 -> Microsoft.CodeAnalysis.Emit.InstrumentationKind
-Microsoft.CodeAnalysis.IDiscardedSymbol
-Microsoft.CodeAnalysis.IDiscardedSymbol.Type.get -> Microsoft.CodeAnalysis.ITypeSymbol
+Microsoft.CodeAnalysis.IDiscardSymbol
+Microsoft.CodeAnalysis.IDiscardSymbol.Type.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnsByRef.get -> bool
 Microsoft.CodeAnalysis.INamedTypeSymbol.TupleElementNames.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.INamedTypeSymbol.TupleElementTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol>
@@ -717,7 +717,7 @@ Microsoft.CodeAnalysis.SymbolDisplayFormat.RemoveGenericsOptions(Microsoft.CodeA
 Microsoft.CodeAnalysis.SymbolDisplayFormat.RemoveLocalOptions(Microsoft.CodeAnalysis.SymbolDisplayLocalOptions options) -> Microsoft.CodeAnalysis.SymbolDisplayFormat
 Microsoft.CodeAnalysis.SymbolDisplayFormat.RemoveMiscellaneousOptions(Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions options) -> Microsoft.CodeAnalysis.SymbolDisplayFormat
 Microsoft.CodeAnalysis.SymbolDisplayMemberOptions.IncludeRef = 128 -> Microsoft.CodeAnalysis.SymbolDisplayMemberOptions
-Microsoft.CodeAnalysis.SymbolKind.Discarded = 19 -> Microsoft.CodeAnalysis.SymbolKind
+Microsoft.CodeAnalysis.SymbolKind.Discard = 19 -> Microsoft.CodeAnalysis.SymbolKind
 Microsoft.CodeAnalysis.Text.SourceText.CanBeEmbedded.get -> bool
 Microsoft.CodeAnalysis.Text.SourceText.GetChecksum() -> System.Collections.Immutable.ImmutableArray<byte>
 abstract Microsoft.CodeAnalysis.CompilationOptions.Language.get -> string
@@ -985,8 +985,8 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitWhileUntilLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitWithStatement(Microsoft.CodeAnalysis.Semantics.IWithStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitYieldBreakStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation, TArgument argument) -> TResult
-virtual Microsoft.CodeAnalysis.SymbolVisitor.VisitDiscarded(Microsoft.CodeAnalysis.IDiscardedSymbol symbol) -> void
-virtual Microsoft.CodeAnalysis.SymbolVisitor<TResult>.VisitDiscarded(Microsoft.CodeAnalysis.IDiscardedSymbol symbol) -> TResult
+virtual Microsoft.CodeAnalysis.SymbolVisitor.VisitDiscard(Microsoft.CodeAnalysis.IDiscardSymbol symbol) -> void
+virtual Microsoft.CodeAnalysis.SymbolVisitor<TResult>.VisitDiscard(Microsoft.CodeAnalysis.IDiscardSymbol symbol) -> TResult
 virtual Microsoft.CodeAnalysis.SyntaxNode.ChildThatContainsPosition(int position) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
 virtual Microsoft.CodeAnalysis.SyntaxNode.SerializeTo(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
 virtual Microsoft.CodeAnalysis.SyntaxNode.ToFullString() -> string

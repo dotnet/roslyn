@@ -1797,7 +1797,7 @@ class C
                                                 {
                                                     N(SyntaxKind.IntKeyword);
                                                 }
-                                                N(SyntaxKind.DiscardedDesignation);
+                                                N(SyntaxKind.DiscardDesignation);
                                                 {
                                                     N(SyntaxKind.UnderscoreToken);
                                                 }
@@ -1812,7 +1812,7 @@ class C
                                                 {
                                                     N(SyntaxKind.IdentifierToken, "var");
                                                 }
-                                                N(SyntaxKind.DiscardedDesignation);
+                                                N(SyntaxKind.DiscardDesignation);
                                                 {
                                                     N(SyntaxKind.UnderscoreToken);
                                                 }
@@ -1830,12 +1830,12 @@ class C
                                                 N(SyntaxKind.ParenthesizedVariableDesignation);
                                                 {
                                                     N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.DiscardedDesignation);
+                                                    N(SyntaxKind.DiscardDesignation);
                                                     {
                                                         N(SyntaxKind.UnderscoreToken);
                                                     }
                                                     N(SyntaxKind.CommaToken);
-                                                    N(SyntaxKind.DiscardedDesignation);
+                                                    N(SyntaxKind.DiscardDesignation);
                                                     {
                                                         N(SyntaxKind.UnderscoreToken);
                                                     }
@@ -2225,7 +2225,7 @@ class C
                                             N(SyntaxKind.IdentifierToken, "x");
                                         }
                                         N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.DiscardedDesignation);
+                                        N(SyntaxKind.DiscardDesignation);
                                         {
                                             N(SyntaxKind.UnderscoreToken);
                                         }
@@ -2299,7 +2299,7 @@ class C
                                             {
                                                 N(SyntaxKind.IdentifierToken, "var");
                                             }
-                                            N(SyntaxKind.DiscardedDesignation);
+                                            N(SyntaxKind.DiscardDesignation);
                                             {
                                                 N(SyntaxKind.UnderscoreToken);
                                             }
@@ -2364,7 +2364,7 @@ class C
                                             {
                                                 N(SyntaxKind.IdentifierToken, "var");
                                             }
-                                            N(SyntaxKind.DiscardedDesignation);
+                                            N(SyntaxKind.DiscardDesignation);
                                             {
                                                 N(SyntaxKind.UnderscoreToken);
                                             }
@@ -2424,7 +2424,7 @@ class C
                                             {
                                                 N(SyntaxKind.IntKeyword);
                                             }
-                                            N(SyntaxKind.DiscardedDesignation);
+                                            N(SyntaxKind.DiscardDesignation);
                                             {
                                                 N(SyntaxKind.UnderscoreToken);
                                             }
@@ -2481,7 +2481,7 @@ class C
                                     {
                                         N(SyntaxKind.IntKeyword);
                                     }
-                                    N(SyntaxKind.DiscardedDesignation);
+                                    N(SyntaxKind.DiscardDesignation);
                                     {
                                         N(SyntaxKind.UnderscoreToken);
                                     }
@@ -2540,7 +2540,7 @@ class C
                                     {
                                         N(SyntaxKind.IdentifierToken, "var");
                                     }
-                                    N(SyntaxKind.DiscardedDesignation);
+                                    N(SyntaxKind.DiscardDesignation);
                                     {
                                         N(SyntaxKind.UnderscoreToken);
                                     }
@@ -2603,7 +2603,7 @@ class C
                                         {
                                             N(SyntaxKind.IntKeyword);
                                         }
-                                        N(SyntaxKind.DiscardedDesignation);
+                                        N(SyntaxKind.DiscardDesignation);
                                         {
                                             N(SyntaxKind.UnderscoreToken);
                                         }
@@ -2668,7 +2668,7 @@ class C
                                         {
                                             N(SyntaxKind.IdentifierToken, "var");
                                         }
-                                        N(SyntaxKind.DiscardedDesignation);
+                                        N(SyntaxKind.DiscardDesignation);
                                         {
                                             N(SyntaxKind.UnderscoreToken);
                                         }

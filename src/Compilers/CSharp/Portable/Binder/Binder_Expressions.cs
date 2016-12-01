@@ -735,10 +735,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var result = BindDeconstructionVariable(declType, single, diagnostics);
                         return result;
                     }
-                case SyntaxKind.DiscardedDesignation:
+                case SyntaxKind.DiscardDesignation:
                     {
-                        var discarded = (DiscardedDesignationSyntax)node;
-                        return BindDiscardedExpression(discarded, declType);
+                        var discarded = (DiscardDesignationSyntax)node;
+                        return BindDiscardExpression(discarded, declType);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
@@ -1203,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.IsKind(SyntaxKind.IdentifierName) && FallBackOnDiscard((IdentifierNameSyntax)node, diagnostics))
                 {
-                    return new BoundDiscardedExpression(node, type: null);
+                    return new BoundDiscardExpression(node, type: null);
                 }
 
                 // Otherwise, the simple-name is undefined and a compile-time error occurs.
@@ -2186,7 +2186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableDesignationSyntax designation = declarationExpression.Designation;
             switch (designation.Kind())
             {
-                case SyntaxKind.DiscardedDesignation:
+                case SyntaxKind.DiscardDesignation:
                     {
                         bool isVar;
                         bool isConst = false;
@@ -2194,7 +2194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeSymbol declType = BindVariableType(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
                         Debug.Assert(isVar == ((object)declType == null));
 
-                        return new BoundDiscardedExpression((DiscardedDesignationSyntax)designation, declType);
+                        return new BoundDiscardExpression((DiscardDesignationSyntax)designation, declType);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     return BindOutVariableDeclarationArgument(declarationExpression, diagnostics);
@@ -2461,11 +2461,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
                     arguments[arg] = ((OutDeconstructVarPendingInference)argument).SetInferredType(parameterType, success: true);
                 }
-                else if (argument.Kind == BoundKind.DiscardedExpression && !argument.HasExpressionType())
+                else if (argument.Kind == BoundKind.DiscardExpression && !argument.HasExpressionType())
                 {
                     TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
                     Debug.Assert((object)parameterType != null);
-                    arguments[arg] = ((BoundDiscardedExpression)argument).SetInferredType(parameterType);
+                    arguments[arg] = ((BoundDiscardExpression)argument).SetInferredType(parameterType);
                 }
             }
         }
@@ -6293,9 +6293,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return ((OutVariablePendingInference)index).FailInference(this, diagnostics);
             }
-            else if (index.Kind == BoundKind.DiscardedExpression && !index.HasExpressionType())
+            else if (index.Kind == BoundKind.DiscardExpression && !index.HasExpressionType())
             {
-                return ((BoundDiscardedExpression)index).FailInference(this, diagnostics);
+                return ((BoundDiscardExpression)index).FailInference(this, diagnostics);
             }
 
             var result =

@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     }
-                case SyntaxKind.DiscardedDesignation:
+                case SyntaxKind.DiscardDesignation:
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(designation.Kind());

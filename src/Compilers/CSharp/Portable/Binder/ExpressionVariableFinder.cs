@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     }
-                case SyntaxKind.DiscardedDesignation:
+                case SyntaxKind.DiscardDesignation:
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(designation.Kind());
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var designation = node.Designation as SingleVariableDesignationSyntax;
             if (designation == null)
             {
-                Debug.Assert(node.Designation.Kind() == SyntaxKind.DiscardedDesignation);
+                Debug.Assert(node.Designation.Kind() == SyntaxKind.DiscardDesignation);
                 return null;
             }
 
