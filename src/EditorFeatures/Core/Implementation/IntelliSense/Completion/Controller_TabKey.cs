@@ -161,10 +161,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            // If the selected item is the builder, there's not actually any work to do to commit
-            if (model.SelectedItem != model.SuggestionModeItem)
+            // If there's no selected item, there's nothing to commit
+            if (model.SelectedItemOpt == null)
             {
-                CommitOnNonTypeChar(model.SelectedItem, model);
+                nextHandler();
+                return;
+            }
+
+            // If the selected item is the builder, there's not actually any work to do to commit
+            if (model.SelectedItemOpt != model.SuggestionModeItem)
+            {
+                CommitOnNonTypeChar(model.SelectedItemOpt, model);
             }
         }
     }
