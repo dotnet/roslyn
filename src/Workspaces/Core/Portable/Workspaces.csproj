@@ -637,7 +637,6 @@
     <Compile Include="FindSymbols\FindReferences\FindReferenceCache.cs" />
     <Compile Include="FindSymbols\FindReferences\FindReferencesProgress.cs" />
     <Compile Include="FindSymbols\FindReferences\FindReferencesSearchEngine.cs" />
-    <Compile Include="FindSymbols\FindReferences\FindReferencesSearchEngine.ProgressWrapper.cs" />
     <Compile Include="FindSymbols\FindReferences\FindReferencesSearchEngine_DocumentProcessing.cs" />
     <Compile Include="FindSymbols\FindReferences\FindReferencesSearchEngine_MapCreation.cs" />
     <Compile Include="FindSymbols\FindReferences\FindReferencesSearchEngine_ProjectProcessing.cs" />

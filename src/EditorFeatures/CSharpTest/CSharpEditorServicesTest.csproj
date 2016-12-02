@@ -333,6 +333,7 @@
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests.cs" />
     <Compile Include="Structure\ArrowExpressionClauseStructureTests.cs" />
     <Compile Include="Structure\InitializerExpressionStructureTests.cs" />
+    <Compile Include="SuggestionTags\SuggestionTagProducerTests.cs" />
     <Compile Include="UseCollectionInitializer\UseCollectionInitializerTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.cs" />

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -23,10 +24,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         internal class TestOptionsProvider : IOptionProvider
         {
-            public IEnumerable<IOption> GetOptions()
-            {
-                yield return new Option<bool>("Test Feature", "Test Name", false);
-            }
+            public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+                new Option<bool>("Test Feature", "Test Name", false));
         }
     }
 }

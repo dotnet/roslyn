@@ -473,6 +473,7 @@ namespace Roslyn.Utilities
 
             // get type of array
             var elementType = instance.GetType().GetElementType();
+
             // optimization for primitive type array
             if (s_typeMap.TryGetValue(elementType, out var elementKind))
             {

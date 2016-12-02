@@ -1413,6 +1413,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer braces.
+        /// </summary>
+        internal static string Prefer_braces {
+            get {
+                return ResourceManager.GetString("Prefer_braces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer coalesce expression.
         /// </summary>
         internal static string Prefer_coalesce_expression {

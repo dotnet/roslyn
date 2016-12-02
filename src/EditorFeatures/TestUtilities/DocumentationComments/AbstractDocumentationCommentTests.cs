@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
     {
         protected abstract char DocumentationCommentCharacter { get; }
 
-        internal abstract ICommandHandler CreateCommandHandler(IWaitIndicator waitIndicator, ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService, IAsyncCompletionService completionService);
+        internal abstract ICommandHandler CreateCommandHandler(IWaitIndicator waitIndicator, ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService);
         protected abstract Task<TestWorkspace> CreateTestWorkspaceAsync(string code);
 
         protected async Task VerifyTypingCharacterAsync(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true)
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             await VerifyAsync(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
                 execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
                 {
-                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<TypeCharCommandArgs>;
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler<TypeCharCommandArgs>;
 
                     var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, DocumentationCommentCharacter);
                     var nextHandler = CreateInsertTextHandler(view, DocumentationCommentCharacter.ToString());
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             await VerifyAsync(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
                 execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
                 {
-                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<ReturnKeyCommandArgs>;
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler<ReturnKeyCommandArgs>;
 
                     var commandArgs = new ReturnKeyCommandArgs(view, view.TextBuffer);
                     var nextHandler = CreateInsertTextHandler(view, "\r\n");
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             await VerifyAsync(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
                 execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
                 {
-                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<InsertCommentCommandArgs>;
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler<InsertCommentCommandArgs>;
 
                     var commandArgs = new InsertCommentCommandArgs(view, view.TextBuffer);
                     Action nextHandler = delegate { };
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             await VerifyAsync(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
                 execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
                 {
-                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<OpenLineAboveCommandArgs>;
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler<OpenLineAboveCommandArgs>;
 
                     var commandArgs = new OpenLineAboveCommandArgs(view, view.TextBuffer);
                     Action nextHandler = () =>
@@ -90,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             await VerifyAsync(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
                 execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
                 {
-                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<OpenLineBelowCommandArgs>;
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService) as ICommandHandler<OpenLineBelowCommandArgs>;
 
                     var commandArgs = new OpenLineBelowCommandArgs(view, view.TextBuffer);
                     Action nextHandler = () =>

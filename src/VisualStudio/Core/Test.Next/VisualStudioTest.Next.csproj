@@ -170,6 +170,7 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Threading.Tasks.Dataflow" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
@@ -182,7 +183,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="RemoteWorkspace\" />
-    <Folder Include="ServiceHub\" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
@@ -191,6 +191,7 @@
     <Compile Include="Mocks\TestHostServices.cs" />
     <Compile Include="Mocks\InProcRemoteHostClientFactory.cs" />
     <Compile Include="Remote\RemoteHostClientServiceFactoryTests.cs" />
+    <Compile Include="ServiceHub\CalculateDiagnosticsTests.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

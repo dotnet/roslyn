@@ -107,6 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             //       it is not part of snapshot and can't save option to solution since we can't use language
             //       specific option without loading related language specific dlls
             var options = solution.Options;
+
             // we have cached options
             if (_lastOptionSetPerLanguage.TryGetValue(language, out var value) && value.Item1 == options)
             {

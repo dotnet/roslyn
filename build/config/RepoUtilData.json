@@ -40,7 +40,8 @@
                 "Microsoft.CodeAnalysis.Elfie",
                 "xunit",
                 "RoslynTools.*",
-                "^Microsoft.?Build.*"
+                "^Microsoft.?Build.*",
+                "GitLink"
             ]
         }
     },

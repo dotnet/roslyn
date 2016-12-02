@@ -21,10 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // First, always dismiss whatever session we might have already had.  We no longer need
             // it.
-            if (sessionOpt != null)
-            {
-                this.StopModelComputation();
-            }
+            DismissSessionIfActive();
 
             // Next create the session that represents that we now have a potential completion list.
             // Then tell it to start computing.

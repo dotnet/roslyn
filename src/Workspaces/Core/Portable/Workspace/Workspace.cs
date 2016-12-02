@@ -1274,7 +1274,7 @@ namespace Microsoft.CodeAnalysis
                 project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)));
         }
 
-        private SourceText GetTextForced(TextDocument doc)
+        internal SourceText GetTextForced(TextDocument doc)
         {
             return doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait (called during TryApplyChanges)
         }
@@ -1284,7 +1284,7 @@ namespace Microsoft.CodeAnalysis
             return CreateDocumentInfoWithoutText(doc).WithTextLoader(TextLoader.From(TextAndVersion.Create(GetTextForced(doc), VersionStamp.Create(), doc.FilePath)));
         }
 
-        private DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)
+        internal DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)
         {
             var sourceDoc = doc as Document;
             return DocumentInfo.Create(

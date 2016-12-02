@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             _requests = new Dictionary<Process, List<Request>>();
         }
 
-        internal new void EnableResolution(Process process, Request request)
+        internal void EnableResolution(Process process, Request request)
         {
             List<Request> requests;
             if (!_requests.TryGetValue(process, out requests))
@@ -23,7 +24,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 _requests.Add(process, requests);
             }
             requests.Add(request);
-            base.EnableResolution(process, request);
+            base.EnableResolution(process, request, OnFunctionResolved);
+        }
+
+        internal void OnModuleLoad(Process process, Module module)
+        {
+            base.OnModuleLoad(process, module, OnFunctionResolved);
         }
 
         internal override bool ShouldEnableFunctionResolver(Process process)
@@ -66,14 +72,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return request.Signature;
         }
 
-        internal override void OnFunctionResolved(Module module, Request request, int token, int version, int ilOffset)
+        private static void OnFunctionResolved(Module module, Request request, int token, int version, int ilOffset)
         {
             request.OnFunctionResolved(module, token, version, ilOffset);
-        }
-
-        private void OnModuleLoaded(object sender, Module e)
-        {
-            OnModuleLoad((Process)sender, e);
         }
     }
 }

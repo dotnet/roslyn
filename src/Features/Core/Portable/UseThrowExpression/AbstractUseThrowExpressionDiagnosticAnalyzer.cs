@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 throwOperation.ThrownObject.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
-            var descriptor = CreateDescriptorWithSeverity(option.Notification.Value);
+            var descriptor = GetDescriptorWithSeverity(option.Notification.Value);
 
             context.ReportDiagnostic(
                 Diagnostic.Create(descriptor, throwStatement.GetLocation(), additionalLocations: allLocations));

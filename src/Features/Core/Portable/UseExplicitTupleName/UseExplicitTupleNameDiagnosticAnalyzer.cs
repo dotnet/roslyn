@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                             var properties = ImmutableDictionary<string, string>.Empty.Add(
                                 nameof(ElementName), namedField.Name);
                             context.ReportDiagnostic(Diagnostic.Create(
-                                CreateDescriptorWithSeverity(severity),
+                                GetDescriptorWithSeverity(severity),
                                 nameNode.GetLocation(),
                                 properties));
                         }

@@ -5566,7 +5566,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
             Assert.True(mFirst.GetAttributes().IsEmpty)
             'Assert.Null(mFirst.GetUseSiteDiagnostic())
             Assert.False(mFirst.Locations.IsEmpty)
-            Assert.Equal("first", mFirst.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.Equal("first As T1", mFirst.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
             Assert.False(mFirst.IsImplicitlyDeclared)
             Assert.Null(mFirst.TypeLayoutOffset)
 
@@ -13552,7 +13552,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
             Assert.True(m2a2.GetAttributes().IsEmpty)
             Assert.Null(m2a2.GetUseSiteErrorInfo())
             Assert.False(m2a2.Locations.IsEmpty)
-            Assert.Equal("a2", m2a2.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.Equal("a2 As Integer", m2a2.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
             Assert.Equal("Item1", m2a2.TupleUnderlyingField.Name)
             Assert.False(m2a2.IsImplicitlyDeclared)
             Assert.Null(m2a2.TypeLayoutOffset)
@@ -14180,7 +14180,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
             Assert.True(m5Item8.GetAttributes().IsEmpty)
             Assert.Null(m5Item8.GetUseSiteErrorInfo())
             Assert.False(m5Item8.Locations.IsEmpty)
-            Assert.Equal("Item8", m5Item8.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.Equal("Item8 As Integer", m5Item8.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
             Assert.Equal("Item1", m5Item8.TupleUnderlyingField.Name)
             Assert.False(m5Item8.IsImplicitlyDeclared)
             Assert.Null(m5Item8.TypeLayoutOffset)
@@ -18105,6 +18105,69 @@ End Class
             Dim comp3 = CreateCompilationWithMscorlib(src2,
                 references:={SystemRuntimeFacadeRef, ValueTupleRef, comp1.EmitToImageReference()})
             AssertTheseDiagnostics(comp3)
+        End Sub
+
+        <Fact()>
+        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        Public Sub TupleElementVsLocal()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+
+    Sub Main()
+        Dim tuple As (Integer, elem2 As Integer)
+        Dim elem2 As Integer
+
+        tuple = (5, 6)
+        tuple.elem2 = 23
+        elem2 = 10
+
+        Console.WriteLine(tuple.elem2)
+        Console.WriteLine(elem2)
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.First()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "elem2").ToArray()
+
+            Assert.Equal(4, nodes.Length)
+
+            Assert.Equal("tuple.elem2 = 23", nodes(0).Parent.Parent.ToString())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).elem2 As System.Int32", model.GetSymbolInfo(nodes(0)).Symbol.ToTestDisplayString())
+
+            Assert.Equal("elem2 = 10", nodes(1).Parent.ToString())
+            Assert.Equal("elem2 As System.Int32", model.GetSymbolInfo(nodes(1)).Symbol.ToTestDisplayString())
+
+            Assert.Equal("(tuple.elem2)", nodes(2).Parent.Parent.Parent.ToString())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).elem2 As System.Int32", model.GetSymbolInfo(nodes(2)).Symbol.ToTestDisplayString())
+
+            Assert.Equal("(elem2)", nodes(3).Parent.Parent.ToString())
+            Assert.Equal("elem2 As System.Int32", model.GetSymbolInfo(nodes(3)).Symbol.ToTestDisplayString())
+
+            Dim type = tree.GetRoot().DescendantNodes().OfType(Of TupleTypeSyntax)().Single()
+
+            Dim symbolInfo = model.GetSymbolInfo(type)
+            Assert.Equal("(System.Int32, elem2 As System.Int32)", symbolInfo.Symbol.ToTestDisplayString())
+
+            Dim typeInfo = model.GetTypeInfo(type)
+            Assert.Equal("(System.Int32, elem2 As System.Int32)", typeInfo.Type.ToTestDisplayString())
+
+            Assert.Same(symbolInfo.Symbol, typeInfo.Type)
+
+            Assert.Equal(SyntaxKind.TypedTupleElement, type.Elements.First().Kind())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).Item1 As System.Int32", model.GetDeclaredSymbol(type.Elements.First()).ToTestDisplayString())
+            Assert.Equal(SyntaxKind.NamedTupleElement, type.Elements.Last().Kind())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).elem2 As System.Int32", model.GetDeclaredSymbol(type.Elements.Last()).ToTestDisplayString())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).Item1 As System.Int32", model.GetDeclaredSymbol(DirectCast(type.Elements.First(), SyntaxNode)).ToTestDisplayString())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).elem2 As System.Int32", model.GetDeclaredSymbol(DirectCast(type.Elements.Last(), SyntaxNode)).ToTestDisplayString())
         End Sub
 
     End Class

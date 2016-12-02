@@ -18,13 +18,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 {
     public static class SquiggleUtilities
     {
-        internal static async Task<Tuple<ImmutableArray<DiagnosticData>, List<ITagSpan<IErrorTag>>>> GetDiagnosticsAndErrorSpans(
+        internal static async Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpansAsync<TTag>(
             TestWorkspace workspace,
             Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
+            where TTag : ITag
         {
-            using (var wrapper = new DiagnosticTaggerWrapper(workspace, analyzerMap))
+            using (var wrapper = new DiagnosticTaggerWrapper<TTag>(workspace, analyzerMap))
             {
-                var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+                var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
                 {
                     await wrapper.WaitForTags();
@@ -32,29 +33,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                     var analyzerDiagnostics = await wrapper.AnalyzerService.GetDiagnosticsAsync(workspace.CurrentSolution);
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
-                    var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
+                    var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
 
-                    return Tuple.Create(analyzerDiagnostics, spans);
+                    return (analyzerDiagnostics, spans);
                 }
             }
         }
     }
 
-    public abstract class AbstractSquiggleProducerTests
+    public sealed class DiagnosticTagProducer<TTag>
+        where TTag : ITag
     {
-        internal static async Task<Tuple<ImmutableArray<DiagnosticData>, List<ITagSpan<IErrorTag>>>> GetDiagnosticsAndErrorSpans(
+        internal Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpans(
             TestWorkspace workspace,
             Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
         {
-            return await SquiggleUtilities.GetDiagnosticsAndErrorSpans(workspace, analyzerMap);
+            return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TTag>(workspace, analyzerMap);
         }
 
-        internal static async Task<IList<ITagSpan<IErrorTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
+        internal async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
         {
             var source = new TestDiagnosticUpdateSource();
-            using (var wrapper = new DiagnosticTaggerWrapper(workspace, source))
+            using (var wrapper = new DiagnosticTaggerWrapper<TTag>(workspace, source))
             {
-                var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+                var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
                 {
                     source.RaiseDiagnosticsUpdated(updateArgs);
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             }
         }
 
-        internal static DiagnosticData CreateDiagnosticData(TestWorkspace workspace, TestHostDocument document, TextSpan span)
+        internal DiagnosticData CreateDiagnosticData(TestWorkspace workspace, TestHostDocument document, TextSpan span)
         {
             return new DiagnosticData("test", "test", "test", "test", DiagnosticSeverity.Error, true, 0, workspace, document.Project.Id,
                 new DiagnosticDataLocation(document.Id, span));

@@ -15,7 +15,9 @@
     "RoslynDependencies.OptimizationData": "2.0.0-rc-61101-16",
     "RoslynTools.Microsoft.LocateVS": "0.2.0-beta",
     "RoslynTools.Microsoft.SignTool": "0.2.0-beta",
-    "RoslynTools.Microsoft.VSIXExpInstaller": "0.2.1-beta"
+    "RoslynTools.Microsoft.VSIXExpInstaller": "0.2.1-beta",
+    "GitLink": "2.3.0"
+
   },
   "frameworks": {
     "net461": {}

@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 whenPartToCheck.GetLocation());
 
             context.ReportDiagnostic(Diagnostic.Create(
-                this.CreateDescriptorWithSeverity(option.Notification.Value),
+                this.GetDescriptorWithSeverity(option.Notification.Value),
                 conditionalExpression.GetLocation(),
                 locations));
         }

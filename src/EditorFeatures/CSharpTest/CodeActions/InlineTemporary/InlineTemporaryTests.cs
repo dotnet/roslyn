@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
     public class InlineTemporaryTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new InlineTemporaryCodeRefactoringProvider();
-        }
+            => new InlineTemporaryCodeRefactoringProvider();
 
         private async Task TestFixOneAsync(string initial, string expected, bool compareTokens = true)
         {
@@ -3847,6 +3845,34 @@ class C
     public void M(int x)
     {
         var s2 = string.Replace($""hello {x}"", ""world"");
+    }
+}");
+        }
+
+        [WorkItem(15530, "https://github.com/dotnet/roslyn/issues/15530")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task PArenthesizeAwaitInlinedIntoReducedExtensionMethod()
+        {
+            await TestAsync(
+@"using System.Linq;
+using System.Threading.Tasks;
+
+internal class C
+{
+    async Task M()
+    {
+        var [|t|] = await Task.FromResult("""");
+        t.Any();
+    }
+}",
+@"using System.Linq;
+using System.Threading.Tasks;
+
+internal class C
+{
+    async Task M()
+    {
+        (await Task.FromResult("""")).Any();
     }
 }");
         }

@@ -8,10 +8,10 @@ Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest = 2147483647 -> Micros
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15 = 15 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax.AsClause() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleAsClauseSyntax
-Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax.Identifier() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax
-Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax.Update(identifier As Microsoft.CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax, asClause As Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleAsClauseSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax.Identifier() -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax.Update(identifier As Microsoft.CodeAnalysis.SyntaxToken, asClause As Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleAsClauseSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax.WithAsClause(asClause As Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleAsClauseSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
-Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax.WithIdentifier(identifier As Microsoft.CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax.WithIdentifier(identifier As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleElementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleExpressionSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleExpressionSyntax.AddArguments(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleExpressionSyntax
@@ -40,6 +40,7 @@ Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.TupleExpression = 788 -> Microsoft
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.TupleType = 789 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.TypedTupleElement = 790 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.ParseOptions() -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetDeclaredSymbol(semanticModel As Microsoft.CodeAnalysis.SemanticModel, elementSyntax As Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleElementSyntax, cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.ISymbol
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.New(languageVersion As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Default, documentationMode As Microsoft.CodeAnalysis.DocumentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, kind As Microsoft.CodeAnalysis.SourceCodeKind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, preprocessorSymbols As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, Object)) = Nothing) -> Void
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.SpecifiedLanguageVersion() -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult).VisitNamedTupleElement(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax) -> TResult
@@ -64,8 +65,9 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitName
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitTupleExpression(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleExpressionSyntax) -> Microsoft.CodeAnalysis.SyntaxNode
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitTupleType(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax) -> Microsoft.CodeAnalysis.SyntaxNode
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitTypedTupleElement(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax) -> Microsoft.CodeAnalysis.SyntaxNode
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.NamedTupleElement(identifier As Microsoft.CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
-Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.NamedTupleElement(identifier As Microsoft.CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax, asClause As Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleAsClauseSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.NamedTupleElement(identifier As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.NamedTupleElement(identifier As Microsoft.CodeAnalysis.SyntaxToken, asClause As Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleAsClauseSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.NamedTupleElement(identifier As String) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TupleExpression(ParamArray arguments As Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleExpressionSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TupleExpression(arguments As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleExpressionSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TupleExpression(openParenToken As Microsoft.CodeAnalysis.SyntaxToken, arguments As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax), closeParenToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleExpressionSyntax

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -26,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IInlineRenameService _inlineRenameService;
-        private readonly IWaitIndicator _waitIndicator;
         private readonly IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> _completionPresenter;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
         private readonly IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> _autoBraceCompletionChars;
@@ -37,14 +35,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IInlineRenameService inlineRenameService,
-            IWaitIndicator waitIndicator,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>, OrderableMetadata>> completionPresenters,
             [ImportMany] IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
-            : this(editorOperationsFactoryService, undoHistoryRegistry, inlineRenameService, waitIndicator,
+            : this(editorOperationsFactoryService, undoHistoryRegistry, inlineRenameService,
                   ExtensionOrderer.Order(completionPresenters).Select(lazy => lazy.Value).FirstOrDefault(),
-                  asyncListeners, 
-                  autoBraceCompletionChars)
+                  asyncListeners, autoBraceCompletionChars)
         {
         }
 
@@ -52,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IInlineRenameService inlineRenameService,
-            IWaitIndicator waitIndicator,
             IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> completionPresenter,
             IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
             IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
@@ -60,21 +55,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _undoHistoryRegistry = undoHistoryRegistry;
             _inlineRenameService = inlineRenameService;
-            _waitIndicator = waitIndicator;
             _completionPresenter = completionPresenter;
             _asyncListeners = asyncListeners;
             _autoBraceCompletionChars = autoBraceCompletionChars;
             _autoBraceCompletionCharSet = new Dictionary<IContentType, ImmutableHashSet<char>>();
-        }
-
-        public bool WaitForComputation(ITextView textView, ITextBuffer subjectBuffer)
-        {
-            if (!TryGetController(textView, subjectBuffer, out var controller))
-            {
-                return false;
-            }
-
-            return controller.WaitForComputation();
         }
 
         public bool TryGetController(ITextView textView, ITextBuffer subjectBuffer, out Controller controller)
@@ -101,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var autobraceCompletionCharSet = GetAllAutoBraceCompletionChars(subjectBuffer.ContentType);
             controller = Controller.GetInstance(
                 textView, subjectBuffer,
-                _editorOperationsFactoryService, _undoHistoryRegistry, _waitIndicator, _completionPresenter, 
+                _editorOperationsFactoryService, _undoHistoryRegistry, _completionPresenter, 
                 new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.CompletionSet),
                 autobraceCompletionCharSet);
 

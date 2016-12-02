@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 if (severity != DiagnosticSeverity.Hidden)
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
-                        CreateDescriptorWithSeverity(severity), 
+                        GetDescriptorWithSeverity(severity), 
                         context.Operation.Syntax.GetLocation()));
                 }
             }

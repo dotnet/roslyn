@@ -14,7 +14,7 @@
         "Microsoft.VisualStudio.Shell.15.0": "15.0.25726-Preview5",
         "Roslyn.Microsoft.VisualStudio.Language.NavigateTo.Interfaces": "15.0.25726-Preview5",
         "NuGet.VisualStudio": {
-            "version": "3.3.0",
+            "version": "4.0.0-rc-2048",
             "suppressParent": "all"
         },
         "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": {
