@@ -7,6 +7,7 @@
 * [Building, Testing, and Debugging](Building-Testing-and-Debugging)
 * [Contributing](Contributing-Code)
 * [FAQ](FAQ)
+* [Documentation](https://github.com/dotnet/roslyn/blob/master/docs)
 
 # Language Design
 
