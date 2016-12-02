@@ -998,5 +998,23 @@ class C
                 expectedOutput: "frog",
                 additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void RefReturnThisInClass()
+        {
+            var text = @"
+public class Test
+{
+    public class C
+    {
+        public ref C Foo()
+        {
+            return ref this;
+        }
+    }
+}";
+            var comp = CreateCompilationRef(text);
+            comp.VerifyDiagnostics();
+        }
     }
 }
