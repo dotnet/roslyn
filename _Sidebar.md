@@ -7,6 +7,8 @@
 [Labels used for Issues](https://github.com/dotnet/roslyn/wiki/Labels-used-for-issues)
 
 [Performance considerations for large solutions](https://github.com/dotnet/roslyn/wiki/Performance-considerations-for-large-solutions)
+
+[Other documentation in the repo](https://github.com/dotnet/roslyn/blob/master/docs/)
 ***
 #Contributors
 [Building, Testing, and Debugging](https://github.com/dotnet/roslyn/wiki/Building-Testing-and-Debugging)
