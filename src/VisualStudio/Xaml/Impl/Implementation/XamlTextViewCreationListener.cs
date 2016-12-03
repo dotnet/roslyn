@@ -105,8 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             AbstractProject project = GetXamlProject(hierarchy);
             if (project == null)
             {
-                project = new XamlProject(hierarchy, _serviceProvider, _vsWorkspace);
-                _vsWorkspace.ProjectTracker.AddProject(project);
+                project = new XamlProject(_vsWorkspace.ProjectTracker, hierarchy, _serviceProvider, _vsWorkspace);
             }
 
             IVisualStudioHostDocument vsDocument = project.GetCurrentDocumentFromPath(filePath);

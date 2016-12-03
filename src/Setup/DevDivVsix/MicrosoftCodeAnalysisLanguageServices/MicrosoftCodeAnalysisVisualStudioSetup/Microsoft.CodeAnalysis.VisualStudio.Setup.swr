@@ -12,4 +12,8 @@ vs.localizedResources
                        description="C# and VB.NET language services for Visual Studio"
 
 vs.payloads
-  vs.payload source=$(OutputPath)Roslyn.VisualStudio.Setup.vsix
+  vs.payload source=$(OutputPath)Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix
+
+vs.dependencies
+  vs.dependency id=Microsoft.Net.PackageGroup.4.6.1.Redist
+  vs.dependency id=Microsoft.VisualStudio.MinShell

@@ -392,6 +392,8 @@ public class C
         {
             case Student s when s.GPA > 3.5:
                 return $""Student {s.Name} ({s.GPA:N1})"";
+            case Student s when (s.GPA < 2.0):
+                return $""Failing Student {s.Name} ({s.GPA:N1})"";
             case Student s:
                 return $""Student {s.Name} ({s.GPA:N1})"";
             case Teacher t:
@@ -423,12 +425,122 @@ class Student : Person { public double GPA; }
                 new SpanResult(10, 8, 10, 19, "Operate(s)"));
 
             VerifySpans(reader, reader.Methods[1], sourceLines,
-                new SpanResult(13, 4, 26, 5, "static string Operate(Person p)"),
+                new SpanResult(13, 4, 28, 5, "static string Operate(Person p)"),
+                new SpanResult(17, 27, 17, 43, "when s.GPA > 3.5"),
+                new SpanResult(19, 27, 19, 45, "when (s.GPA < 2.0)"),
                 new SpanResult(18, 16, 18, 56, "return $\"Student {s.Name} ({s.GPA:N1})\""),
-                new SpanResult(20, 16, 20, 56, "return $\"Student {s.Name} ({s.GPA:N1})\""),
-                new SpanResult(22, 16, 22, 58, "return $\"Teacher {t.Name} of {t.Subject}\""),
-                new SpanResult(24, 16, 24, 42, "return $\"Person {p.Name}\""),
+                new SpanResult(20, 16, 20, 64, "return $\"Failing Student {s.Name} ({s.GPA:N1})\""),
+                new SpanResult(22, 16, 22, 56, "return $\"Student {s.Name} ({s.GPA:N1})\""),
+                new SpanResult(24, 16, 24, 58, "return $\"Teacher {t.Name} of {t.Subject}\""),
+                new SpanResult(26, 16, 26, 42, "return $\"Person {p.Name}\""),
                 new SpanResult(15, 16, 15, 17, "p"));
+        }
+
+        [Fact]
+        public void TestDeconstructionSpans()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main() // Method 1
+    {
+        var (x, y) = new C();
+    }
+
+    public void Deconstruct(out int x, out int y)
+    {
+        x = 1;
+        y = 2;
+    }
+}
+";
+            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
+
+            string[] sourceLines = source.Split('\n');
+
+            VerifySpans(reader, reader.Methods[0], sourceLines,
+                new SpanResult(5, 4, 8, 5, "public static void Main()"),
+                new SpanResult(7, 8, 7, 29, "var (x, y) = new C()"));
+        }
+
+        [Fact]
+        public void TestForeachSpans()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main() // Method 1
+    {
+        C[] a = null;
+        foreach
+            (var x
+            in a)
+            ;
+    }
+}
+";
+            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
+
+            string[] sourceLines = source.Split('\n');
+
+            VerifySpans(reader, reader.Methods[0], sourceLines,
+                new SpanResult(5, 4, 12, 5, "public static void Main()"),
+                new SpanResult(7, 8, 7, 21, "C[] a = null"),
+                new SpanResult(11, 12, 11, 13, ";"),
+                new SpanResult(10, 15, 10, 16, "a")
+                );
+        }
+
+        [Fact]
+        public void TestForeachDeconstructionSpans()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main() // Method 1
+    {
+        C[] a = null;
+        foreach
+            (var (x, y)
+            in a)
+            ;
+    }
+
+    public void Deconstruct(out int x, out int y)
+    {
+        x = 1;
+        y = 2;
+    }
+}
+";
+            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef});
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
+
+            string[] sourceLines = source.Split('\n');
+
+            VerifySpans(reader, reader.Methods[0], sourceLines,
+                new SpanResult(5, 4, 12, 5, "public static void Main()"),
+                new SpanResult(7, 8, 7, 21, "C[] a = null"),
+                new SpanResult(11, 12, 11, 13, ";"),
+                new SpanResult(10, 15, 10, 16, "a")
+                );
         }
 
         [Fact]

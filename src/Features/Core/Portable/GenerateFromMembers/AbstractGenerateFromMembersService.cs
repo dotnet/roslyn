@@ -61,9 +61,12 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
 
         private static bool IsWritableFieldOrProperty(ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IFieldSymbol field) => !field.IsConst,
-                (IPropertySymbol property) => property.SetMethod != null);
+            switch (symbol)
+            {
+                case IFieldSymbol field: return !field.IsConst;
+                case IPropertySymbol property: return property.IsWritableInConstructor();
+                default: return false;
+            }
         }
 
         protected static bool IsInstanceFieldOrProperty(ISymbol symbol)
@@ -97,11 +100,13 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
                     refKind: RefKind.None,
                     isParams: false,
                     type: type,
-                    name: symbol.Name.ToCamelCase()));
+                    name: symbol.Name.ToCamelCase().TrimStart(s_underscore)));
             }
 
             return parameters;
         }
+
+        private static readonly char[] s_underscore = { '_' };
 
         protected IMethodSymbol GetDelegatedConstructor(
             INamedTypeSymbol containingType,

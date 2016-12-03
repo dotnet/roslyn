@@ -370,12 +370,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+        public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
         {
-            get
-            {
-                return CreateEmptyTypeArgumentsCustomModifiers();
-            }
+            return GetEmptyTypeArgumentCustomModifiers(ordinal);
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -694,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNames, arguments.AttributeSyntaxOpt.Location);
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SecurityCriticalAttribute)
                 || attribute.IsTargetAttribute(this, AttributeDescription.SecuritySafeCriticalAttribute))

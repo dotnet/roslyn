@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -61,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     Space())
             End Sub
 
-            Protected Overrides Function GetInitializerSourcePartsAsync(symbol As ISymbol) As Task(Of IEnumerable(Of SymbolDisplayPart))
+            Protected Overrides Function GetInitializerSourcePartsAsync(symbol As ISymbol) As Task(Of ImmutableArray(Of SymbolDisplayPart))
                 If TypeOf symbol Is IParameterSymbol Then
                     Return GetInitializerSourcePartsAsync(DirectCast(symbol, IParameterSymbol))
                 ElseIf TypeOf symbol Is ILocalSymbol Then
@@ -70,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     Return GetInitializerSourcePartsAsync(DirectCast(symbol, IFieldSymbol))
                 End If
 
-                Return SpecializedTasks.Default(Of IEnumerable(Of SymbolDisplayPart))()
+                Return SpecializedTasks.EmptyImmutableArray(Of SymbolDisplayPart)
             End Function
 
             Private Async Function GetFirstDeclarationAsync(Of T As SyntaxNode)(symbol As ISymbol) As Task(Of T)
@@ -86,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             End Function
 
             Private Async Function GetDeclarationsAsync(Of T As SyntaxNode)(symbol As ISymbol) As Task(Of List(Of T))
-                Dim list = New list(Of T)()
+                Dim list = New List(Of T)()
                 For Each syntaxRef In symbol.DeclaringSyntaxReferences
                     Dim syntax = Await syntaxRef.GetSyntaxAsync(Me.CancellationToken).ConfigureAwait(False)
                     Dim casted = TryCast(syntax, T)
@@ -98,16 +99,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 Return list
             End Function
 
-            Private Overloads Async Function GetInitializerSourcePartsAsync(symbol As IParameterSymbol) As Task(Of IEnumerable(Of SymbolDisplayPart))
+            Private Overloads Async Function GetInitializerSourcePartsAsync(symbol As IParameterSymbol) As Task(Of ImmutableArray(Of SymbolDisplayPart))
                 Dim syntax = Await GetFirstDeclarationAsync(Of ParameterSyntax)(symbol).ConfigureAwait(False)
                 If syntax IsNot Nothing Then
                     Return Await GetInitializerSourcePartsAsync(syntax.Default).ConfigureAwait(False)
                 End If
 
-                Return Nothing
+                Return ImmutableArray(Of SymbolDisplayPart).Empty
             End Function
 
-            Private Overloads Async Function GetInitializerSourcePartsAsync(symbol As ILocalSymbol) As Task(Of IEnumerable(Of SymbolDisplayPart))
+            Private Overloads Async Function GetInitializerSourcePartsAsync(symbol As ILocalSymbol) As Task(Of ImmutableArray(Of SymbolDisplayPart))
                 Dim ids = Await GetDeclarationsAsync(Of ModifiedIdentifierSyntax)(symbol).ConfigureAwait(False)
                 Dim syntax = ids.Select(Function(i) i.Parent).OfType(Of VariableDeclaratorSyntax).FirstOrDefault()
                 If syntax IsNot Nothing Then
@@ -117,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 Return Nothing
             End Function
 
-            Private Overloads Async Function GetInitializerSourcePartsAsync(symbol As IFieldSymbol) As Task(Of IEnumerable(Of SymbolDisplayPart))
+            Private Overloads Async Function GetInitializerSourcePartsAsync(symbol As IFieldSymbol) As Task(Of ImmutableArray(Of SymbolDisplayPart))
                 Dim ids = Await GetDeclarationsAsync(Of ModifiedIdentifierSyntax)(symbol).ConfigureAwait(False)
                 Dim variableDeclarator = ids.Select(Function(i) i.Parent).OfType(Of VariableDeclaratorSyntax).FirstOrDefault()
                 If variableDeclarator IsNot Nothing Then
@@ -132,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 Return Nothing
             End Function
 
-            Private Overloads Async Function GetInitializerSourcePartsAsync(equalsValue As EqualsValueSyntax) As Task(Of IEnumerable(Of SymbolDisplayPart))
+            Private Overloads Async Function GetInitializerSourcePartsAsync(equalsValue As EqualsValueSyntax) As Task(Of ImmutableArray(Of SymbolDisplayPart))
                 If equalsValue IsNot Nothing AndAlso equalsValue.Value IsNot Nothing Then
                     Dim semanticModel = GetSemanticModel(equalsValue.SyntaxTree)
                     If semanticModel IsNot Nothing Then

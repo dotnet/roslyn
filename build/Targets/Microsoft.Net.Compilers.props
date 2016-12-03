@@ -1,19 +1,4 @@
-<Project DefaultTargets="Build" InitialTargets="ValidateMSBuildToolsVersion" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- The UsingTask, UseSharedCompilation, and ToolPath/Exe variables all interact to 
-       choose which compiler path to use and whether or not to use the compiler server.
-       If UsingTask and UseSharedCompilation are set then the compiler server next to the
-       task will be used (i.e., the one in this package).
-       If UseSharedCompilation is false or ToolPath/Exe are set the compiler server will
-       not be used and the compiler exe at the ToolPath, if set, will be executed, otherwise
-       the executable in the MSBuild install path will be executed. -->
-
-  <Target Name="ValidateMSBuildToolsVersion" Condition="'$(BuildingProject)' == 'true'">
-    <Error Text="Microsoft.Net.Compilers is only supported on MSBuild v14.0 and above"
-           Condition="'$(MSBuildToolsVersion)' == '2.0'
-                   OR '$(MSBuildToolsVersion)' == '3.5'
-                   OR '$(MSBuildToolsVersion)' == '4.0'
-                   OR '$(MSBuildToolsVersion)' == '12.0'" />
-  </Target>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
     <ToolsetCompilerPath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\$(ToolsetCompilerPackageVersion)\tools</ToolsetCompilerPath>

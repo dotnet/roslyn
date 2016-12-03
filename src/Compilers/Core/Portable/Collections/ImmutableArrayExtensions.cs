@@ -448,6 +448,11 @@ namespace Microsoft.CodeAnalysis
             return first.AddRange(second);
         }
 
+        internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, T second)
+        {
+            return first.Add(second);
+        }
+
         internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer)
         {
             switch (array.Length)
@@ -514,9 +519,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var item = items[i];
                 var key = keySelector(item);
-
-                ArrayBuilder<T> bucket;
-                if (!accumulator.TryGetValue(key, out bucket))
+                if (!accumulator.TryGetValue(key, out var bucket))
                 {
                     bucket = ArrayBuilder<T>.GetInstance();
                     accumulator.Add(key, bucket);

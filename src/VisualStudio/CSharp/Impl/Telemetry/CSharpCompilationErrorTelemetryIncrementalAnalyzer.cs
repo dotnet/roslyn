@@ -238,9 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 lock (_lockObject)
                 {
                     List<CompilationErrorDetails> ret = null;
-
-                    HashSet<CompilationErrorDetails> cachedErrorsForDocument;
-                    if (!_errorCache.TryGetValue(documentId, out cachedErrorsForDocument))
+                    if (!_errorCache.TryGetValue(documentId, out var cachedErrorsForDocument))
                     {
                         cachedErrorsForDocument = new HashSet<CompilationErrorDetails>();
                         _errorCache[documentId] = cachedErrorsForDocument;
@@ -309,8 +307,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
                 lock (_lockObject)
                 {
-                    string ret;
-                    if (_projectGuids.TryGetValue(projectPath, out ret))
+                    if (_projectGuids.TryGetValue(projectPath, out var ret))
                     {
                         return ret;
                     }

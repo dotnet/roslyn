@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             this.DismissIfEmpty = dismissIfEmpty;
             this.DismissIfLastCharacterDeleted = dismissIfLastCharacterDeleted;
-            this.DefaultCommitCharacters = defaultCommitCharacters.IsDefault ? ImmutableArray<char>.Empty : defaultCommitCharacters;
+            this.DefaultCommitCharacters = defaultCommitCharacters.NullToEmpty();
             this.DefaultEnterKeyRule = defaultEnterKeyRule;
             this.SnippetsRule = snippetsRule;
         }

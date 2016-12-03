@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
             builder.Add<AccessorDeclarationSyntax, AccessorDeclarationStructureProvider>();
             builder.Add<AnonymousMethodExpressionSyntax, AnonymousMethodExpressionStructureProvider>();
+            builder.Add<ArrowExpressionClauseSyntax, ArrowExpressionClauseStructureProvider>();
+            builder.Add<BlockSyntax, BlockSyntaxStructureProvider>();
             builder.Add<ClassDeclarationSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider>();
             builder.Add<CompilationUnitSyntax, CompilationUnitStructureProvider>();
             builder.Add<ConstructorDeclarationSyntax, ConstructorDeclarationStructureProvider, MetadataAsSource.MetadataConstructorDeclarationStructureProvider>();
@@ -28,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<EventFieldDeclarationSyntax, EventFieldDeclarationStructureProvider, MetadataAsSource.MetadataEventFieldDeclarationStructureProvider>();
             builder.Add<FieldDeclarationSyntax, FieldDeclarationStructureProvider, MetadataAsSource.MetadataFieldDeclarationStructureProvider>();
             builder.Add<IndexerDeclarationSyntax, IndexerDeclarationStructureProvider, MetadataAsSource.MetadataIndexerDeclarationStructureProvider>();
+            builder.Add<InitializerExpressionSyntax, InitializerExpressionStructureProvider>();
             builder.Add<InterfaceDeclarationSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider>();
             builder.Add<MethodDeclarationSyntax, MethodDeclarationStructureProvider, MetadataAsSource.MetadataMethodDeclarationStructureProvider>();
             builder.Add<NamespaceDeclarationSyntax, NamespaceDeclarationStructureProvider>();
@@ -37,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<RegionDirectiveTriviaSyntax, RegionDirectiveStructureProvider, MetadataAsSource.MetadataRegionDirectiveStructureProvider>();
             builder.Add<SimpleLambdaExpressionSyntax, SimpleLambdaExpressionStructureProvider>();
             builder.Add<StructDeclarationSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider>();
+            builder.Add<SwitchStatementSyntax, SwitchStatementStructureProvider>();
 
             return builder.ToImmutable();
         }

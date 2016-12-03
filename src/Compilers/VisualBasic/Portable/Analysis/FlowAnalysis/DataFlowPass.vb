@@ -1,13 +1,34 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#If DEBUG Then
+' We use a struct rather than a class to represent the state for efficiency
+' for data flow analysis, with 32 bits of data inline. Merely copying the state
+' variable causes the first 32 bits to be cloned, as they are inline. This can
+' hide a plethora of errors that would only be exhibited in programs with more
+' than 32 variables to be tracked. However, few of our tests have that many
+' variables.
+'
+' To help diagnose these problems, we use the preprocessor symbol REFERENCE_STATE
+' to cause the data flow state be a class rather than a struct. When it is a class,
+' this category of problems would be exhibited in programs with a small number of
+' tracked variables. But it is slower, so we only do it in DEBUG mode.
+#Const REFERENCE_STATE = True
+#End If
+
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
+#If REFERENCE_STATE Then
+Imports OptionalState = Microsoft.CodeAnalysis.[Optional](Of Microsoft.CodeAnalysis.VisualBasic.DataFlowPass.LocalState)
+#Else
+Imports OptionalState = System.Nullable(Of Microsoft.CodeAnalysis.VisualBasic.DataFlowPass.LocalState)
+#End If
+
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Friend Partial Class DataFlowPass
+    Partial Friend Class DataFlowPass
         Inherits AbstractFlowPass(Of LocalState)
 
         Public Enum SlotKind
@@ -653,7 +674,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Normalize(Me.State)
             End If
 
-            If Me._tryState IsNot Nothing Then
+            If Me._tryState.HasValue Then
                 Dim tryState = Me._tryState.Value
                 SetSlotUnassigned(slot, tryState)
                 Me._tryState = tryState
@@ -1411,13 +1432,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '
         ' As a result, when dealing with exception handling flows we need to maintain a separate state
         ' that collects UN-assignments only and is not affected by subsequent assignments.
-        Private _tryState As LocalState?
+        Private _tryState As OptionalState
 
         Protected Overrides Sub VisitTryBlock(tryBlock As BoundStatement, node As BoundTryStatement, ByRef _tryState As LocalState)
             If Me.TrackUnassignments Then
 
                 ' store original try state
-                Dim oldTryState As LocalState? = Me._tryState
+                Dim oldTryState As OptionalState = Me._tryState
 
                 ' start with AllBitsSet (means there were no assignments)
                 Me._tryState = AllBitsSet()
@@ -1427,7 +1448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' merge resulting tryState into tryState that we were given.
                 Me.IntersectWith(_tryState, Me._tryState.Value)
                 ' restore and merge old state with new changes.
-                If oldTryState IsNot Nothing Then
+                If oldTryState.HasValue Then
                     Dim tryState = Me._tryState.Value
                     Me.IntersectWith(tryState, oldTryState.Value)
                     Me._tryState = tryState
@@ -1442,13 +1463,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Sub VisitCatchBlock(catchBlock As BoundCatchBlock, ByRef finallyState As LocalState)
             If Me.TrackUnassignments Then
 
-                Dim oldTryState As LocalState? = Me._tryState
+                Dim oldTryState As OptionalState = Me._tryState
 
                 Me._tryState = AllBitsSet()
                 Me.VisitCatchBlockInternal(catchBlock, finallyState)
                 Me.IntersectWith(finallyState, Me._tryState.Value)
 
-                If oldTryState IsNot Nothing Then
+                If oldTryState.HasValue Then
                     Dim tryState = Me._tryState.Value
                     Me.IntersectWith(tryState, oldTryState.Value)
                     Me._tryState = tryState
@@ -1476,13 +1497,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Sub VisitFinallyBlock(finallyBlock As BoundStatement, ByRef unsetInFinally As LocalState)
             If Me.TrackUnassignments Then
-                Dim oldTryState As LocalState? = Me._tryState
+                Dim oldTryState As OptionalState = Me._tryState
 
                 Me._tryState = AllBitsSet()
                 MyBase.VisitFinallyBlock(finallyBlock, unsetInFinally)
                 Me.IntersectWith(unsetInFinally, Me._tryState.Value)
 
-                If oldTryState IsNot Nothing Then
+                If oldTryState.HasValue Then
                     Dim tryState = Me._tryState.Value
                     Me.IntersectWith(tryState, oldTryState.Value)
                     Me._tryState = tryState

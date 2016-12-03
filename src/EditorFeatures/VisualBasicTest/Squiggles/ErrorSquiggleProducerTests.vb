@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
@@ -10,23 +9,24 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.RemoveUnnecessaryImports
+Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 Imports Microsoft.VisualStudio.Text.Adornments
 Imports Microsoft.VisualStudio.Text.Tagging
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
     Public Class ErrorSquiggleProducerTests
-        Inherits AbstractSquiggleProducerTests
 
-        Private Async Function ProduceSquiggles(content As String) As Task(Of IEnumerable(Of ITagSpan(Of IErrorTag)))
+        Private _producer As New DiagnosticTagProducer(Of IErrorTag)
+
+        Private Async Function ProduceSquiggles(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
             Using workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
-                Return (Await GetDiagnosticsAndErrorSpans(workspace)).Item2
+                Return (Await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2
             End Using
         End Function
 
-        Private Async Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), content As String) As Task(Of IEnumerable(Of ITagSpan(Of IErrorTag)))
+        Private Async Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
             Using workspace = Await TestWorkspace.CreateVisualBasicAsync(content)
-                Return (Await GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
+                Return (Await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
             End Using
         End Function
 
@@ -107,7 +107,7 @@ End Class"
                 options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue)
                 workspace.ApplyOptions(options)
 
-                Dim spans = (Await GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2.OrderBy(Function(s) s.Span.Span.Start).ToImmutableArray()
+                Dim spans = (Await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2.OrderBy(Function(s) s.Span.Span.Start).ToImmutableArray()
 
                 Assert.Equal(2, spans.Length)
                 Dim first = spans(0)

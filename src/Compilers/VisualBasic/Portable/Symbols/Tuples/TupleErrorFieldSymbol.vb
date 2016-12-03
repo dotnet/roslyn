@@ -24,10 +24,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly _locations As ImmutableArray(Of Location)
         Private ReadOnly _useSiteDiagnosticInfo As DiagnosticInfo
+        Private ReadOnly _correspondingDefaultField As TupleErrorFieldSymbol
 
         ' default tuple elements like Item1 Or Item20 could be provided by the user or
         ' otherwise implicitly declared by compiler
         Private ReadOnly _isImplicitlyDeclared As Boolean
+
+        Public Sub New(container As NamedTypeSymbol,
+                       name As String,
+                       tupleElementIndex As Integer,
+                       location As Location,
+                       type As TypeSymbol,
+                       useSiteDiagnosticInfo As DiagnosticInfo,
+                       isImplicitlyDeclared As Boolean,
+                       correspondingDefaultFieldOpt As TupleErrorFieldSymbol)
+
+            MyBase.New(container, container, type, name, Accessibility.Public)
+
+            Debug.Assert(name <> Nothing)
+            Me._locations = If((location Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location))
+            Me._useSiteDiagnosticInfo = useSiteDiagnosticInfo
+            Me._tupleElementIndex = If(correspondingDefaultFieldOpt Is Nothing, tupleElementIndex << 1, (tupleElementIndex << 1) + 1)
+            Me._isImplicitlyDeclared = isImplicitlyDeclared
+
+            Debug.Assert(correspondingDefaultFieldOpt Is Nothing = Me.IsDefaultTupleElement)
+            Debug.Assert(correspondingDefaultFieldOpt Is Nothing OrElse correspondingDefaultFieldOpt.IsDefaultTupleElement)
+
+            _correspondingDefaultField = If(correspondingDefaultFieldOpt, Me)
+        End Sub
 
         Public Overrides ReadOnly Property IsTupleField As Boolean
             Get
@@ -83,14 +107,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Sub New(container As NamedTypeSymbol, name As String, tupleElementIndex As Integer, location As Location, type As TypeSymbol, useSiteDiagnosticInfo As DiagnosticInfo, isImplicitlyDeclared As Boolean)
-            MyBase.New(container, container, type, name, Accessibility.Public)
-            Debug.Assert(name <> Nothing)
-            Me._locations = If((location Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location))
-            Me._useSiteDiagnosticInfo = useSiteDiagnosticInfo
-            Me._tupleElementIndex = tupleElementIndex
-            Me._isImplicitlyDeclared = isImplicitlyDeclared
-        End Sub
+        Public Overrides ReadOnly Property CorrespondingTupleField As FieldSymbol
+            Get
+                Return _correspondingDefaultField
+            End Get
+        End Property
 
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get

@@ -36,12 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         protected AbstractEditorFactory(Package package)
         {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            _package = package;
+            _package = package ?? throw new ArgumentNullException(nameof(package));
             _componentModel = (IComponentModel)ServiceProvider.GetService(typeof(SComponentModel));
 
             _editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
@@ -145,8 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // If the text buffer is marked as read-only, ensure that the padlock icon is displayed
             // next the new window's title and that [Read Only] is appended to title.
             READONLYSTATUS readOnlyStatus = READONLYSTATUS.ROSTATUS_NotReadOnly;
-            uint textBufferFlags;
-            if (ErrorHandler.Succeeded(textBuffer.GetStateFlags(out textBufferFlags)) &&
+            if (ErrorHandler.Succeeded(textBuffer.GetStateFlags(out var textBufferFlags)) &&
                 0 != (textBufferFlags & ((uint)BUFFERSTATEFLAGS.BSF_FILESYS_READONLY | (uint)BUFFERSTATEFLAGS.BSF_USER_READONLY)))
             {
                 readOnlyStatus = READONLYSTATUS.ROSTATUS_ReadOnly;

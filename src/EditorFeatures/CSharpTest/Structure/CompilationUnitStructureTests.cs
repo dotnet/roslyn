@@ -17,48 +17,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         public async Task TestUsings()
         {
             const string code = @"
-$${|hint:using {|collapse:System;
+$${|hint:using {|textspan:System;
 using System.Core;|}|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestUsingAliases()
         {
             const string code = @"
-$${|hint:using {|collapse:System;
+$${|hint:using {|textspan:System;
 using System.Core;
 using text = System.Text;
 using linq = System.Linq;|}|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestExternAliases()
         {
             const string code = @"
-$${|hint:extern {|collapse:alias Foo;
+$${|hint:extern {|textspan:alias Foo;
 extern alias Bar;|}|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestExternAliasesAndUsings()
         {
             const string code = @"
-$${|hint:extern {|collapse:alias Foo;
+$${|hint:extern {|textspan:alias Foo;
 extern alias Bar;
 using System;
 using System.Core;|}|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -67,7 +67,7 @@ using System.Core;|}|}";
             const string code = @"
 $${|span1:// Foo
 // Bar|}
-{|hint2:extern {|collapse2:alias Foo;
+{|hint2:extern {|textspan2:alias Foo;
 extern alias Bar;
 // Foo
 // Bar
@@ -78,7 +78,7 @@ using System.Core;|}|}
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
                 Region("span3", "// Foo ...", autoCollapse: true));
         }
 
@@ -88,12 +88,12 @@ using System.Core;|}|}
             const string code = @"
 $${|span1:// Foo
 // Bar|}
-{|hint2:using {|collapse2:System;
+{|hint2:using {|textspan2:System;
 using System.Core;|}|}";
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -102,12 +102,12 @@ using System.Core;|}|}";
             const string code = @"
 $${|span1:// Foo
 // Bar|}
-{|hint2:extern {|collapse2:alias Foo;
+{|hint2:extern {|textspan2:alias Foo;
 extern alias Bar;|}|}";
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -125,12 +125,12 @@ $${|span1:// Foo
         public async Task TestWithCommentsAtEnd()
         {
             const string code = @"
-$${|hint1:using {|collapse1:System;|}|}
+$${|hint1:using {|textspan1:System;|}|}
 {|span2:// Foo
 // Bar|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+                Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
                 Region("span2", "// Foo ...", autoCollapse: true));
         }
 
@@ -139,10 +139,10 @@ $${|hint1:using {|collapse1:System;|}|}
         public async Task TestUsingKeywordWithSpace()
         {
             const string code = @"
-$${|hint:using|} {|collapse:|}";
+$${|hint:using|} {|textspan:|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

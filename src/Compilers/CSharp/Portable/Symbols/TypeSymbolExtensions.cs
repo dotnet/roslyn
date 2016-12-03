@@ -794,6 +794,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly Func<TypeSymbol, Symbol, bool, bool> s_isTypeParameterWithSpecificContainerPredicate =
              (type, parameterContainer, unused) => type.TypeKind == TypeKind.TypeParameter && (object)type.ContainingSymbol == (object)parameterContainer;
 
+        public static bool ContainsTypeParameters(this TypeSymbol type, HashSet<TypeParameterSymbol> parameters)
+        {
+            var result = type.VisitType(s_containsTypeParametersPredicate, parameters);
+            return (object)result != null;
+        }
+
+        private static readonly Func<TypeSymbol, HashSet<TypeParameterSymbol>, bool, bool> s_containsTypeParametersPredicate =
+            (type, parameters, unused) => type.TypeKind == TypeKind.TypeParameter && parameters.Contains((TypeParameterSymbol)type);
+
         /// <summary>
         /// Return true if the type contains any dynamic type reference.
         /// </summary>
@@ -1422,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ImmutableArray.Create(
                             new TypeWithModifiers(
                                 type.TypeArgumentsNoUseSiteDiagnostics[0],
-                                type.HasTypeArgumentsCustomModifiers ? type.TypeArgumentsCustomModifiers[0] : default(ImmutableArray<CustomModifier>))),
+                                type.HasTypeArgumentsCustomModifiers ? type.GetTypeArgumentCustomModifiers(0) : default(ImmutableArray<CustomModifier>))),
                         unbound: false);
                 hasChanged = true;
             }

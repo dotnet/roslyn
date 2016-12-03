@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -194,29 +195,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public override BoundStatement InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, BoundStatement collectionVarDecl)
         {
-            // NOTE: This is slightly different from Dev10.  In Dev10, when you stop the debugger
-            // on the collection expression, you can see the (uninitialized) iteration variable.
-            // In Roslyn, you cannot because the iteration variable is re-declared in each iteration
-            // of the loop and is, therefore, not yet in scope.
-            if (original.Syntax is ForEachComponentStatementSyntax)
-            {
-                return InstrumentForEachStatementDeconstructionVariablesDeclaration(original, collectionVarDecl);
-            }
-
-            var forEachSyntax = (ForEachStatementSyntax)original.Syntax;
+            var forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
             return new BoundSequencePoint(forEachSyntax.Expression,
                                           base.InstrumentForEachStatementCollectionVarDeclaration(original, collectionVarDecl));
         }
 
         public override BoundStatement InstrumentForEachStatementDeconstructionVariablesDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)
         {
-            var forEachSyntax = (ForEachComponentStatementSyntax)original.Syntax;
-            return new BoundSequencePointWithSpan(forEachSyntax, base.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl), forEachSyntax.VariableComponent.Span);
-        }
-
-        public override BoundStatement InstrumentLocalDeconstructionDeclaration(BoundLocalDeconstructionDeclaration original, BoundStatement rewritten)
-        {
-            return AddSequencePoint(base.InstrumentLocalDeconstructionDeclaration(original, rewritten));
+            var forEachSyntax = (ForEachVariableStatementSyntax)original.Syntax;
+            return new BoundSequencePointWithSpan(forEachSyntax, base.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl), forEachSyntax.Variable.Span);
         }
 
         /// <summary>
@@ -255,10 +242,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         iterationVarDeclSpan = TextSpan.FromBounds(forEachSyntax.Type.SpanStart, forEachSyntax.Identifier.Span.End);
                         break;
                     }
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     {
-                        var forEachSyntax = (ForEachComponentStatementSyntax)original.Syntax;
-                        iterationVarDeclSpan = forEachSyntax.VariableComponent.Span;
+                        var forEachSyntax = (ForEachVariableStatementSyntax)original.Syntax;
+                        iterationVarDeclSpan = forEachSyntax.Variable.Span;
                         break;
                     }
                 default:
@@ -381,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: false);
         }
 
-        public override BoundStatement InstrumentBoundPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
         {
             SwitchStatementSyntax switchSyntax = (SwitchStatementSyntax)original.Syntax;
             TextSpan switchSequencePointSpan = TextSpan.FromBounds(
@@ -390,9 +377,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequencePointWithSpan(
                 syntax: switchSyntax,
-                statementOpt: base.InstrumentBoundPatternSwitchStatement(original, rewritten),
+                statementOpt: base.InstrumentPatternSwitchStatement(original, rewritten),
                 span: switchSequencePointSpan,
                 hasErrors: false);
+        }
+
+        public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
+        {
+            WhenClauseSyntax whenClause = original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>();
+            Debug.Assert(whenClause != null);
+
+            return new BoundSequencePointWithSpan(
+                syntax: whenClause,
+                statementOpt: base.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody),
+                span: whenClause.Span);
         }
 
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
@@ -421,12 +419,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddConditionSequencePoint(new BoundSequencePointExpression(filterClause, rewrittenFilter, rewrittenFilter.Type), filterClause, factory);
         }
 
-        public override BoundExpression InstrumentSwitchStatementExpression(BoundSwitchStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        public override BoundExpression InstrumentSwitchStatementExpression(BoundStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
         {
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the expression are being executed.
             return AddConditionSequencePoint(base.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory), original.Syntax, factory);
         }
 
+        public override BoundStatement InstrumentPatternSwitchBindCasePatternVariables(BoundStatement bindings)
+        {
+            // Mark the code that binds pattern variables to their values as hidden.
+            // We do it to tell that this is not a part of previous statement.
+            return new BoundSequencePoint(null, base.InstrumentPatternSwitchBindCasePatternVariables(bindings));
+        }
     }
 }

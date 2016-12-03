@@ -316,6 +316,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
                 EnsureSignature()
@@ -543,6 +549,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
 
             Dim attrData = arguments.Attribute
+
+            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+            End If
+
             If arguments.SymbolPart = AttributeLocation.Return Then
                 Dim isMarshalAs = attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute)
 
@@ -724,6 +735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         fakeParamsBuilder.Add(New SignatureOnlyParameterSymbol(
                                                 param.Type,
                                                 ImmutableArray(Of CustomModifier).Empty,
+                                                ImmutableArray(Of CustomModifier).Empty,
                                                 defaultConstantValue:=Nothing,
                                                 isParamArray:=False,
                                                 isByRef:=param.IsByRef,
@@ -738,6 +750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                             returnsByRef:=False,
                                                                             [type]:=retType,
                                                                             typeCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
+                                                                            refCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
                                                                             isOverrides:=True, isWithEvents:=Me.IsWithEvents))
                 End If
 
@@ -752,8 +765,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' property (incorrectly) has a different return type than the overridden property.  In such cases,
                     ' we want to retain the original (incorrect) return type to avoid hiding the return type
                     ' given in source.
-                    If retType.IsSameTypeIgnoringCustomModifiers(returnTypeWithCustomModifiers) Then
-                        retType = returnTypeWithCustomModifiers
+                    If retType.IsSameType(returnTypeWithCustomModifiers, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) Then
+                        retType = CustomModifierUtils.CopyTypeCustomModifiers(returnTypeWithCustomModifiers, retType)
                     End If
 
                     params = CustomModifierUtils.CopyParameterCustomModifiers(overridden.Parameters, params)
@@ -1035,15 +1048,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return _lazyDocComment
         End Function
-
-        Private Sub CopyPropertyCustomModifiers(propertyWithCustomModifiers As PropertySymbol, ByRef type As TypeSymbol, ByRef typeCustomModifiers As ImmutableArray(Of CustomModifier))
-            Debug.Assert(propertyWithCustomModifiers IsNot Nothing)
-            typeCustomModifiers = propertyWithCustomModifiers.TypeCustomModifiers
-            Dim overriddenPropertyType As TypeSymbol = propertyWithCustomModifiers.Type
-            If type.IsSameTypeIgnoringCustomModifiers(overriddenPropertyType) Then
-                type = overriddenPropertyType
-            End If
-        End Sub
 
         Private Shared Function DecodeModifiers(modifiers As SyntaxTokenList,
                                                 container As SourceMemberContainerTypeSymbol,

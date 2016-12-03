@@ -19,6 +19,39 @@ using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis
 {
+    internal struct BuildPaths
+    {
+        /// <summary>
+        /// The path which containts the compiler binaries and response files.
+        /// </summary>
+        internal string ClientDirectory { get; }
+
+        /// <summary>
+        /// The path in which the compilation takes place.
+        /// </summary>
+        internal string WorkingDirectory { get; }
+
+        /// <summary>
+        /// The path which contains mscorlib.  This can be null when specified by the user or running in a 
+        /// CoreClr environment.
+        /// </summary>
+        internal string SdkDirectory { get; }
+
+        /// <summary>
+        /// The temporary directory a compilation should use instead of <see cref="Path.GetTempPath"/>.  The latter
+        /// relies on global state individual compilations should ignore.
+        /// </summary>
+        internal string TempDirectory { get; }
+
+        internal BuildPaths(string clientDir, string workingDir, string sdkDir, string tempDir)
+        {
+            ClientDirectory = clientDir;
+            WorkingDirectory = workingDir;
+            SdkDirectory = sdkDir;
+            TempDirectory = tempDir;
+        }
+    }
+
     /// <summary>
     /// Base class for csc.exe, csi.exe, vbc.exe and vbi.exe implementations.
     /// </summary>
@@ -45,17 +78,25 @@ namespace Microsoft.CodeAnalysis
         public abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLoggerOpt);
         public abstract void PrintLogo(TextWriter consoleOutput);
         public abstract void PrintHelp(TextWriter consoleOutput);
-        internal abstract string GetToolName();
+
+        /// <summary>
+        /// Print compiler version
+        /// </summary>
+        /// <param name="consoleOutput"></param>
+        public virtual void PrintVersion(TextWriter consoleOutput)
+        {
+            consoleOutput.WriteLine(GetAssemblyFileVersion());
+        }
 
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
         protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider);
 
-        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
+        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, BuildPaths buildPaths, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
         {
             IEnumerable<string> allArgs = args;
-            _clientDirectory = clientDirectory;
+            _clientDirectory = buildPaths.ClientDirectory;
 
             Debug.Assert(null == responseFile || PathUtilities.IsAbsolute(responseFile));
             if (!SuppressDefaultResponseFile(args) && File.Exists(responseFile))
@@ -63,24 +104,33 @@ namespace Microsoft.CodeAnalysis
                 allArgs = new[] { "@" + responseFile }.Concat(allArgs);
             }
 
-            this.Arguments = parser.Parse(allArgs, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories);
+            this.Arguments = parser.Parse(allArgs, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, additionalReferenceDirectories);
             this.MessageProvider = parser.MessageProvider;
             this.AssemblyLoader = assemblyLoader;
             this.EmbeddedSourcePaths = GetEmbedddedSourcePaths(Arguments);
 
             if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
             {
-                EmitDeterminismKey(Arguments, args, baseDirectory, parser);
+                EmitDeterminismKey(Arguments, args, buildPaths.WorkingDirectory, parser);
             }
         }
 
         internal abstract bool SuppressDefaultResponseFile(IEnumerable<string> args);
 
-        internal string GetAssemblyFileVersion()
+        /// <summary>
+        /// The type of the compiler class for version information in /help and /version.
+        /// We don't simply use this.GetType() because that would break mock subclasses.
+        /// </summary>
+        internal abstract Type Type { get; }
+
+        /// <summary>
+        /// The assembly file version of this compiler, used in logo and /version output.
+        /// </summary>
+        internal virtual string GetAssemblyFileVersion()
         {
             if (_clientDirectory != null)
             {
-                var name = $"{typeof(CommonCompiler).GetTypeInfo().Assembly.GetName().Name}.dll";
+                var name = $"{Type.GetTypeInfo().Assembly.GetName().Name}.dll";
                 var filePath = Path.Combine(_clientDirectory, name);
                 return FileVersionInfo.GetVersionInfo(filePath).FileVersion;
             }
@@ -88,9 +138,17 @@ namespace Microsoft.CodeAnalysis
             return "";
         }
 
+        /// <summary>
+        /// Tool name used, along with assembly version, for error logging.
+        /// </summary>
+        internal abstract string GetToolName();
+
+        /// <summary>
+        /// Tool version identifier used for error logging.
+        /// </summary>
         internal Version GetAssemblyVersion()
         {
-            return typeof(CommonCompiler).GetTypeInfo().Assembly.GetName().Version;
+            return Type.GetTypeInfo().Assembly.GetName().Version;
         }
 
         internal string GetCultureName()
@@ -337,6 +395,11 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
+                if (diag.Severity == DiagnosticSeverity.Error)
+                {
+                    hasErrors = true;
+                }
+
                 // We want to report diagnostics with source suppression in the error log file.
                 // However, these diagnostics should not be reported on the console output.
                 errorLoggerOpt?.LogDiagnostic(diag);
@@ -345,12 +408,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                consoleOutput.WriteLine(DiagnosticFormatter.Format(diag));
-
-                if (diag.Severity == DiagnosticSeverity.Error)
-                {
-                    hasErrors = true;
-                }
+                PrintError(diag, consoleOutput);
 
                 _reportedDiagnostics.Add(diag);
             }
@@ -366,35 +424,12 @@ namespace Microsoft.CodeAnalysis
             return (diagnostic.Severity == DiagnosticSeverity.Error) && !diagnostic.IsSuppressed;
         }
 
-        public bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
+        public bool ReportErrors(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt) =>
+            ReportErrors(diagnostics.Select(info => Diagnostic.Create(info)), consoleOutput, errorLoggerOpt);
+
+        protected virtual void PrintError(Diagnostic diagnostic, TextWriter consoleOutput)
         {
-            bool hasErrors = false;
-            if (diagnostics != null)
-            {
-                foreach (var diagnostic in diagnostics)
-                {
-                    if (diagnostic.Severity == DiagnosticSeverity.Hidden)
-                    {
-                        // Not reported from the command-line compiler.
-                        continue;
-                    }
-
-                    PrintError(diagnostic, consoleOutput);
-                    errorLoggerOpt?.LogDiagnostic(Diagnostic.Create(diagnostic));
-
-                    if (diagnostic.Severity == DiagnosticSeverity.Error)
-                    {
-                        hasErrors = true;
-                    }
-                }
-            }
-
-            return hasErrors;
-        }
-
-        protected virtual void PrintError(DiagnosticInfo diagnostic, TextWriter consoleOutput)
-        {
-            consoleOutput.WriteLine(diagnostic.ToString(Culture));
+            consoleOutput.WriteLine(DiagnosticFormatter.Format(diagnostic, Culture));
         }
 
         public StreamErrorLogger GetErrorLogger(TextWriter consoleOutput, CancellationToken cancellationToken)
@@ -466,6 +501,12 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(!Arguments.IsScriptRunner);
 
             cancellationToken.ThrowIfCancellationRequested();
+
+            if (Arguments.DisplayVersion)
+            {
+                PrintVersion(consoleOutput);
+                return Succeeded;
+            }
 
             if (Arguments.DisplayLogo)
             {

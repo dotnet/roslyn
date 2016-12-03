@@ -179,7 +179,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return AddDynamicAnalysis(original, base.InstrumentForEachStatementIterationVarDeclaration(original, iterationVarDecl));
         }
-        
+
+        public override BoundStatement InstrumentForEachStatementDeconstructionVariablesDeclaration(BoundForEachStatement original, BoundStatement iterationVarDecl)
+        {
+            return AddDynamicAnalysis(original, base.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl));
+        }
+
         public override BoundStatement InstrumentIfStatement(BoundIfStatement original, BoundStatement rewritten)
         {
             return AddDynamicAnalysis(original, base.InstrumentIfStatement(original, rewritten));
@@ -220,16 +225,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddDynamicAnalysis(original, base.InstrumentSwitchStatement(original, rewritten));
         }
 
-        public override BoundStatement InstrumentBoundPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
         {
-            return AddDynamicAnalysis(original, base.InstrumentBoundPatternSwitchStatement(original, rewritten));
+            return AddDynamicAnalysis(original, base.InstrumentPatternSwitchStatement(original, rewritten));
+        }
+
+        public override BoundStatement InstrumentPatternSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
+        {
+            ifConditionGotoBody = base.InstrumentPatternSwitchWhenClauseConditionalGotoBody(original, ifConditionGotoBody);
+            WhenClauseSyntax whenClause = original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>();
+            Debug.Assert(whenClause != null);
+
+            // Instrument the statement using a factory with the same syntax as the clause, so that the instrumentation appears to be part of the clause.
+            SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, whenClause, _methodBodyFactory.CompilationState, _diagnostics);
+
+            // Instrument using the span of the expression
+            return statementFactory.StatementList(AddAnalysisPoint(whenClause, statementFactory), ifConditionGotoBody);
         }
 
         public override BoundStatement InstrumentUsingTargetCapture(BoundUsingStatement original, BoundStatement usingTargetCapture)
         {
             return AddDynamicAnalysis(original, base.InstrumentUsingTargetCapture(original, usingTargetCapture));
         }
-        
+
         private BoundStatement AddDynamicAnalysis(BoundStatement original, BoundStatement rewritten)
         {
             if (!original.WasCompilerGenerated)

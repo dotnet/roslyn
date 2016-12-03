@@ -32,19 +32,19 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function WithAttributes() As Task
             Dim code = "
-{|hint:{|collapse:<Foo>
+{|hint:{|textspan:<Foo>
 |}Class $$C|}
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
+                Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function WithCommentsAndAttributes() As Task
             Dim code = "
-{|hint:{|collapse:' Summary:
+{|hint:{|textspan:' Summary:
 '     This is a summary.
 <Foo>
 |}Class $$C|}
@@ -52,13 +52,13 @@ End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
+                Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function WithCommentsAttributesAndModifiers() As Task
             Dim code = "
-{|hint:{|collapse:' Summary:
+{|hint:{|textspan:' Summary:
 '     This is a summary.
 <Foo>
 |}Public Class $$C|}
@@ -66,7 +66,7 @@ End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
+                Region("textspan", "hint", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
     End Class
 End Namespace

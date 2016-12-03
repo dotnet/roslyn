@@ -6,23 +6,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolDisplay
 {
-    internal abstract partial class AbstractSymbolDisplayVisitor<TSemanticModel> : SymbolVisitor
-        where TSemanticModel : SemanticModel
+    internal abstract partial class AbstractSymbolDisplayVisitor : SymbolVisitor
     {
         protected readonly ArrayBuilder<SymbolDisplayPart> builder;
         protected readonly SymbolDisplayFormat format;
         protected readonly bool isFirstSymbolVisited;
 
-        protected readonly TSemanticModel semanticModelOpt;
+        protected readonly SemanticModel semanticModelOpt;
         protected readonly int positionOpt;
 
-        private AbstractSymbolDisplayVisitor<TSemanticModel> _lazyNotFirstVisitor;
+        private AbstractSymbolDisplayVisitor _lazyNotFirstVisitor;
 
         protected AbstractSymbolDisplayVisitor(
             ArrayBuilder<SymbolDisplayPart> builder,
             SymbolDisplayFormat format,
             bool isFirstSymbolVisited,
-            TSemanticModel semanticModelOpt,
+            SemanticModel semanticModelOpt,
             int positionOpt)
         {
             Debug.Assert(format != null);
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             }
         }
 
-        protected AbstractSymbolDisplayVisitor<TSemanticModel> NotFirstVisitor
+        protected AbstractSymbolDisplayVisitor NotFirstVisitor
         {
             get
             {
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             }
         }
 
-        protected abstract AbstractSymbolDisplayVisitor<TSemanticModel> MakeNotFirstVisitor();
+        protected abstract AbstractSymbolDisplayVisitor MakeNotFirstVisitor();
 
         protected abstract void AddLiteralValue(SpecialType type, object value);
         protected abstract void AddExplicitlyCastedLiteralValue(INamedTypeSymbol namedType, SpecialType type, object value);

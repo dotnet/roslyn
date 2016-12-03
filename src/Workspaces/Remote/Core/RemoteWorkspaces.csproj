@@ -3,16 +3,14 @@
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{F822F72A-CC87-4E31-B57D-853F65CBEBF3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Remote</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Remote.Workspaces</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -59,17 +57,22 @@
   <ItemGroup />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.BuildManager" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Diagnostics\DiagnosticComputer.cs" />
     <Compile Include="Services\AssetSource.cs" />
     <Compile Include="Services\AssetService.cs" />
+    <Compile Include="Services\AssetStorage.cs" />
+    <Compile Include="Services\ChecksumSourceText.cs" />
     <Compile Include="Services\CompilationService.cs" />
+    <Compile Include="Services\ProjectCacheHostServiceFactory.cs" />
     <Compile Include="Services\RoslynServices.cs" />
     <Compile Include="Services\SolutionService.cs" />
     <Compile Include="Storage\RemotePersistentStorageLocationService.cs" />
   </ItemGroup>
-  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

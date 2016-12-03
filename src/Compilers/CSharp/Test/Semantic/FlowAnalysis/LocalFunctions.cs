@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -6,6 +7,306 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctions : FlowTestBase
     {
+        [Fact]
+        [WorkItem(14243, "https://github.com/dotnet/roslyn/issues/14243")]
+        public void AssignInsideCallToLocalFunc()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public void M()
+    {
+        int x;
+        int Local(int p1) => x++;
+
+        Local(x = 0);
+
+        int z;
+        int Local2(int p1, int p2) => z++;
+        Local2(z = 0, z++);
+    }
+
+    public void M2()
+    {
+        int x;
+        int Local(int p1) => x++;
+        int Local2(int p1) => Local(p1);
+        int Local3(int p1) => x + Local2(p1);
+
+        Local3(x = 0);
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(14046, "https://github.com/dotnet/roslyn/issues/14046")]
+        public void UnreachableAfterThrow()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+  public void M3()
+  {
+    int x, y;
+    void Local()
+    {
+      throw null;
+      x = 5; // unreachable code
+      System.Console.WriteLine(y);
+    }
+
+    Local();
+    System.Console.WriteLine(x);
+    System.Console.WriteLine(y);
+  }
+}");
+            comp.VerifyDiagnostics(
+                // (10,7): warning CS0162: Unreachable code detected
+                //       x = 5; // unreachable code
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(10, 7));
+        }
+
+        [Fact]
+        [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
+        public void UnreachableRecursion()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public void M()
+    {
+        int x, y;
+        void Local()
+        {
+            Local();
+            x = 0;
+        }
+        Local();
+        x++;
+        y++;
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadBeforeUnreachable()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public void M()
+    {
+        int x;
+        void Local()
+        {
+            x++;
+            Local();
+        }
+        Local();
+        x++;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (12,9): error CS0165: Use of unassigned local variable 'x'
+                //         Local();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Local()").WithArguments("x").WithLocation(12, 9));
+        }
+
+        [Fact]
+        [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
+        public void MutualRecursiveUnreachable()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public static void M()
+    {
+        int x, y, z;
+        
+        void L1()
+        {
+            L2();
+            x++; // Unreachable
+        } 
+        void L2()
+        {
+            L1();
+            y++; // Unreachable
+        }
+
+        L1();
+        // Unreachable code, so everything should be definitely assigned
+        x++;
+        y++;
+        z++;
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
+        public void AssignedInDeadBranch()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        int u;
+        M();
+    https://github.com/dotnet/roslyn/issues/13739
+        Console.WriteLine(u); // error: use of unassigned local variable 'u'
+        return;
+
+        void M()
+        {
+            goto La;
+        Lb: return;
+        La: u = 3;
+            goto Lb;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (10,5): warning CS0164: This label has not been referenced
+                //     https://github.com/dotnet/roslyn/issues/13739
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "https").WithLocation(10, 5));
+        }
+
+        [Fact]
+        public void InvalidBranchOutOfLocalFunc()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public static void M()
+    {
+        label1:
+
+        L();
+        L2();
+        L3();
+
+        void L()
+        {
+            goto label1;
+        }
+
+        void L2()
+        {
+            break;
+        }
+
+        void L3()
+        {
+            continue;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (14,13): error CS0159: No such label 'label1' within the scope of the goto statement
+                //             goto label1;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("label1").WithLocation(14, 13),
+                // (19,13): error CS0139: No enclosing loop out of which to break or continue
+                //             break;
+                Diagnostic(ErrorCode.ERR_NoBreakOrCont, "break;").WithLocation(19, 13),
+                // (24,13): error CS0139: No enclosing loop out of which to break or continue
+                //             continue;
+                Diagnostic(ErrorCode.ERR_NoBreakOrCont, "continue;").WithLocation(24, 13),
+                // (6,9): warning CS0164: This label has not been referenced
+                //         label1:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label1").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(13762, "https://github.com/dotnet/roslyn/issues/13762")]
+        public void AssignsInAsync()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System.Threading.Tasks;
+
+class C
+{
+    public static void M2()
+    {
+        int a=0, x, y, z;
+        L1();
+        a++;
+        x++;
+        y++;
+        z++;
+
+        async void L1()
+        {
+            x = 0;
+            await Task.Delay(0);
+            y = 0;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (12,9): error CS0165: Use of unassigned local variable 'y'
+                //         y++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(12, 9),
+                // (13,9): error CS0165: Use of unassigned local variable 'z'
+                //         z++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(13, 9));
+        }
+
+        [Fact]
+        [WorkItem(13762, "https://github.com/dotnet/roslyn/issues/13762")]
+        public void AssignsInIterator()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System.Collections.Generic;
+
+class C
+{
+    public static void M2()
+    {
+        int a=0, w, x, y, z;
+
+        L1();
+
+        a++;
+        w++;
+        x++;
+        y++;
+        z++;
+
+        IEnumerable<bool> L1()
+        {
+            w = 0;
+            yield return false;
+            x = 0;
+            yield break;
+            y = 0;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (24,13): warning CS0162: Unreachable code detected
+                //             y = 0;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "y").WithLocation(24, 13),
+                // (13,9): error CS0165: Use of unassigned local variable 'w'
+                //         w++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "w").WithArguments("w").WithLocation(13, 9),
+                // (14,9): error CS0165: Use of unassigned local variable 'x'
+                //         x++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(14, 9),
+                // (15,9): error CS0165: Use of unassigned local variable 'y'
+                //         y++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(15, 9),
+                // (16,9): error CS0165: Use of unassigned local variable 'z'
+                //         z++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(16, 9));
+        }
+
         [Fact]
         public void SimpleForwardCall()
         {
@@ -789,6 +1090,62 @@ class C
     }
 }");
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(15298, "https://github.com/dotnet/roslyn/issues/15298")]
+        public void UnassignedUndefinedVariable()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    void M()
+    {
+        {
+            Foo();
+            int x = 0;
+            void Foo() => x++;
+        }
+        {
+            System.Action a = Foo;
+            int x = 0;
+            void Foo() => x++;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0165: Use of unassigned local variable 'x'
+                //             Foo();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Foo()").WithArguments("x").WithLocation(7, 13),
+                // (12,31): error CS0165: Use of unassigned local variable 'x'
+                //             System.Action a = Foo;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Foo").WithArguments("x").WithLocation(12, 31));
+        }
+
+        [Fact]
+        [WorkItem(15322, "https://github.com/dotnet/roslyn/issues/15322")]
+        public void UseBeforeDeclarationInSwitch()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Program
+{
+    static void Main(object[] args)
+    {
+        switch(args[0])
+        {
+            case string x:
+                Foo(); 
+                break;
+            case int x:
+                void Foo() => System.Console.WriteLine(x);
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,17): error CS0165: Use of unassigned local variable 'x'
+                //                 Foo();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Foo()").WithArguments("x").WithLocation(9, 17));
         }
     }
 }

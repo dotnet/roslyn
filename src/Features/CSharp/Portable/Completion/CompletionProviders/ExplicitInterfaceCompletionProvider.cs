@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var members = semanticModel.LookupSymbols(
                 position: name.SpanStart,
                 container: symbol)
-                    .Where(s => !s.IsStatic)
+                    .WhereAsArray(s => !s.IsStatic)
                     .FilterToVisibleAndBrowsableSymbols(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation);
 
             // We're going to create a entry for each one, including the signature
@@ -108,19 +108,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(
-            Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-        }
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         public override Task<TextChange?> GetTextChangeAsync(
             Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             if (ch == '(')
             {
-                string insertionText;
-                if (selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, out insertionText))
+                if (selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, out var insertionText))
                 {
                     return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
                 }

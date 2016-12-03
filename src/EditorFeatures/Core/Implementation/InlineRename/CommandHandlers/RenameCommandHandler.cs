@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     [Order(Before = PredefinedCommandHandlerNames.ChangeSignature)]
     [Order(Before = PredefinedCommandHandlerNames.ExtractInterface)]
     [Order(Before = PredefinedCommandHandlerNames.EncapsulateField)]
-    [ExportCommandHandler(PredefinedCommandHandlerNames.Rename, ContentTypeNames.RoslynContentType)]
+    [ExportCommandHandler(PredefinedCommandHandlerNames.Rename, ContentTypeNames.RoslynContentType, ContentTypeNames.XamlContentType)]
     internal partial class RenameCommandHandler
     {
         private readonly InlineRenameService _renameService;
@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             var singleSpan = selectedSpans.Single();
-            SnapshotSpan containingSpan;
-            if (_renameService.ActiveSession.TryGetContainingEditableSpan(singleSpan.Start, out containingSpan) &&
+            if (_renameService.ActiveSession.TryGetContainingEditableSpan(singleSpan.Start, out var containingSpan) &&
                 containingSpan.Contains(singleSpan))
             {
                 actionIfInsideActiveSpan(containingSpan);

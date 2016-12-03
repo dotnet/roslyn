@@ -57,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <ProvideService(GetType(IVbCompilerService), ServiceName:="Visual Basic Project System Shim")>
     <ProvideService(GetType(IVbTempPECompilerFactory), ServiceName:="Visual Basic TempPE Compiler Factory Service")>
     Friend Class VisualBasicPackage
-        Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService, VisualBasicProject)
+        Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService)
         Implements IVbCompilerService
         Implements IVsUserSettingsQuery
 

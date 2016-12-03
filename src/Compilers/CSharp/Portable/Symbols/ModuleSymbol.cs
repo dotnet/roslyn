@@ -245,6 +245,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract ImmutableArray<AssemblySymbol> GetReferencedAssemblySymbols(); // TODO: Remove this method and make ReferencedAssemblySymbols property abstract instead.
 
+        internal AssemblySymbol GetReferencedAssemblySymbol(int referencedAssemblyIndex)
+        {
+            var referencedAssemblies = GetReferencedAssemblySymbols();
+            if (referencedAssemblyIndex < referencedAssemblies.Length)
+            {
+                return referencedAssemblies[referencedAssemblyIndex];
+            }
+
+            // This module must be a corlib where the original metadata contains assembly
+            // references (see https://github.com/dotnet/roslyn/issues/13275).
+            var assembly = ContainingAssembly;
+            if ((object)assembly != assembly.CorLibrary)
+            {
+                throw new ArgumentOutOfRangeException(nameof(referencedAssemblyIndex));
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// A helper method for ReferenceManager to set assembly identities for assemblies 
         /// referenced by this module and corresponding AssemblySymbols.

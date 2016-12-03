@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -49,10 +50,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private void OnReferenceLocationsChanged(object sender, IList<InlineRenameLocation> renameLocations)
+        private void OnReferenceLocationsChanged(object sender, ImmutableArray<InlineRenameLocation> renameLocations)
         {
             int totalFilesCount = renameLocations.GroupBy(s => s.Document).Count();
-            int totalSpansCount = renameLocations.Count;
+            int totalSpansCount = renameLocations.Length;
 
             UpdateSearchText(totalSpansCount, totalFilesCount);
         }

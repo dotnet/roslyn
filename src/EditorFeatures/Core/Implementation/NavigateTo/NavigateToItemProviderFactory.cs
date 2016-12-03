@@ -15,26 +15,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
     {
         private readonly IGlyphService _glyphService;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IEnumerable<Lazy<INavigateToOptionsService, VisualStudioVersionMetadata>> _optionsServices;
+        private readonly IEnumerable<Lazy<INavigateToHostVersionService, VisualStudioVersionMetadata>> _hostServices;
 
         [ImportingConstructor]
         public NavigateToItemProviderFactory(
             IGlyphService glyphService,
-            [ImportMany] IEnumerable<Lazy<INavigateToOptionsService, VisualStudioVersionMetadata>> optionsServices,
+            [ImportMany] IEnumerable<Lazy<INavigateToHostVersionService, VisualStudioVersionMetadata>> hostServices,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
-            if (glyphService == null)
-            {
-                throw new ArgumentNullException(nameof(glyphService));
-            }
-
             if (asyncListeners == null)
             {
                 throw new ArgumentNullException(nameof(asyncListeners));
             }
 
-            _glyphService = glyphService;
-            _optionsServices = optionsServices;
+            _glyphService = glyphService ?? throw new ArgumentNullException(nameof(glyphService));
+            _hostServices = hostServices;
             _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.NavigateTo);
         }
 
@@ -49,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return false;
             }
 
-            provider = new NavigateToItemProvider(workspace, _glyphService,  _asyncListener, _optionsServices);
+            provider = new NavigateToItemProvider(workspace, _glyphService, _asyncListener, _hostServices);
             return true;
         }
     }

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
 
         private ImmutableArray<CompletionItem> GetFilesAndDirectories(string path, string basePath)
         {
-            var result = ImmutableArray.CreateBuilder<CompletionItem>();
+            var result = ArrayBuilder<CompletionItem>.GetInstance();
             var pathKind = PathUtilities.GetPathKind(path);
             switch (pathKind)
             {
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
                     throw ExceptionUtilities.Unreachable;
             }
 
-            return result.AsImmutable();
+            return result.ToImmutableAndFree();
         }
 
         private static bool IsDriveRoot(string fullPath)
@@ -228,9 +228,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
 
         private bool CanAccess(FileSystemInfo info)
         {
-            return info.TypeSwitch(
-                (DirectoryInfo d) => CanAccessDirectory(d),
-                (FileInfo f) => CanAccessFile(f));
+            switch (info)
+            {
+                case DirectoryInfo d: return CanAccessDirectory(d);
+                case FileInfo f: return CanAccessFile(f);
+            }
+
+            return false;
         }
 
         private bool CanAccessFile(FileInfo file)

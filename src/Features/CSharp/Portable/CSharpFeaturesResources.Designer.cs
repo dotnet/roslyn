@@ -71,6 +71,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add &apos;this.&apos;.
+        /// </summary>
+        internal static string Add_this {
+            get {
+                return ResourceManager.GetString("Add_this", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to anonymous method.
         /// </summary>
         internal static string anonymous_method {
@@ -94,6 +103,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Autoselect_disabled_due_to_namespace_declaration {
             get {
                 return ResourceManager.GetString("Autoselect_disabled_due_to_namespace_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to possible deconstruction declaration..
+        /// </summary>
+        internal static string Autoselect_disabled_due_to_possible_deconstruction_declaration {
+            get {
+                return ResourceManager.GetString("Autoselect_disabled_due_to_possible_deconstruction_declaration", resourceCulture);
             }
         }
         
@@ -284,6 +302,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string deprecated {
             get {
                 return ResourceManager.GetString("deprecated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;designation name&gt;.
+        /// </summary>
+        internal static string designation_name {
+            get {
+                return ResourceManager.GetString("designation_name", resourceCulture);
             }
         }
         

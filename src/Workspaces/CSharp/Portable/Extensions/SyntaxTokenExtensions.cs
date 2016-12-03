@@ -82,11 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return token.GetNextTokenOrEndOfFile();
         }
 
-        public static SyntaxToken With(this SyntaxToken token, SyntaxTriviaList leading, SyntaxTriviaList trailing)
-        {
-            return token.WithLeadingTrivia(leading).WithTrailingTrivia(trailing);
-        }
-
         /// <summary>
         /// Determines whether the given SyntaxToken is the first token on a line in the specified SourceText.
         /// </summary>
@@ -138,56 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool SpansPreprocessorDirective(SyntaxTriviaList list)
         {
             return list.Any(t => t.GetStructure() is DirectiveTriviaSyntax);
-        }
-
-        public static SyntaxToken WithoutTrivia(
-            this SyntaxToken token,
-            params SyntaxTrivia[] trivia)
-        {
-            if (!token.LeadingTrivia.Any() && !token.TrailingTrivia.Any())
-            {
-                return token;
-            }
-
-            return token.With(new SyntaxTriviaList(), new SyntaxTriviaList());
-        }
-
-        public static SyntaxToken WithPrependedLeadingTrivia(
-            this SyntaxToken token,
-            params SyntaxTrivia[] trivia)
-        {
-            if (trivia.Length == 0)
-            {
-                return token;
-            }
-
-            return token.WithPrependedLeadingTrivia((IEnumerable<SyntaxTrivia>)trivia);
-        }
-
-        public static SyntaxToken WithPrependedLeadingTrivia(
-            this SyntaxToken token,
-            SyntaxTriviaList trivia)
-        {
-            if (trivia.Count == 0)
-            {
-                return token;
-            }
-
-            return token.WithLeadingTrivia(trivia.Concat(token.LeadingTrivia));
-        }
-
-        public static SyntaxToken WithPrependedLeadingTrivia(
-            this SyntaxToken token,
-            IEnumerable<SyntaxTrivia> trivia)
-        {
-            return token.WithPrependedLeadingTrivia(trivia.ToSyntaxTriviaList());
-        }
-
-        public static SyntaxToken WithAppendedTrailingTrivia(
-            this SyntaxToken token,
-            IEnumerable<SyntaxTrivia> trivia)
-        {
-            return token.WithTrailingTrivia(token.TrailingTrivia.Concat(trivia));
         }
 
         /// <summary>

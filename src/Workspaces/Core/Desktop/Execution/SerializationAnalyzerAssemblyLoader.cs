@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private string GetAssemblyPath(string fullPath)
         {
-            string assemblyPath;
-            if (_map.TryGetValue(fullPath, out assemblyPath))
+            if (_map.TryGetValue(fullPath, out var assemblyPath))
             {
                 return assemblyPath;
             }

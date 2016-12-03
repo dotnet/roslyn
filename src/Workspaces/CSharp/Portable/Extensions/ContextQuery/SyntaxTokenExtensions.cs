@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 var parent = token.Parent;
                 if (parent.IsKind(SyntaxKind.ForStatement) ||
                     parent.IsKind(SyntaxKind.ForEachStatement) ||
-                    parent.IsKind(SyntaxKind.ForEachComponentStatement) ||
+                    parent.IsKind(SyntaxKind.ForEachVariableStatement) ||
                     parent.IsKind(SyntaxKind.WhileStatement) ||
                     parent.IsKind(SyntaxKind.IfStatement) ||
                     parent.IsKind(SyntaxKind.LockStatement) ||
@@ -513,12 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // yield |
             // yield r|
 
-            if (targetToken.IsKindOrHasMatchingText(SyntaxKind.YieldKeyword))
-            {
-                return true;
-            }
-
-            return false;
+            return targetToken.IsKindOrHasMatchingText(SyntaxKind.YieldKeyword);
         }
 
         public static bool IsAnyAccessorDeclarationContext(this SyntaxToken targetToken, int position, SyntaxKind kind = SyntaxKind.None)

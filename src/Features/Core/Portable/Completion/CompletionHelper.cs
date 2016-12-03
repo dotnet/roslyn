@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -47,11 +48,11 @@ namespace Microsoft.CodeAnalysis.Completion
             return GetHelper(document.Project.Solution.Workspace, document.Project.Language);
         }
 
-        public IReadOnlyList<TextSpan> GetHighlightedSpans(
+        public ImmutableArray<TextSpan> GetHighlightedSpans(
             CompletionItem completionItem, string filterText, CultureInfo culture)
         {
             var match = GetMatch(completionItem, filterText, includeMatchSpans: true, culture: culture);
-            return match?.MatchedSpans;
+            return match == null ? ImmutableArray<TextSpan>.Empty : match.Value.MatchedSpans;
         }
 
         /// <summary>
@@ -126,15 +127,13 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             lock (_gate)
             {
-                Dictionary<string, PatternMatcher> innerMap;
-                if (!map.TryGetValue(culture, out innerMap))
+                if (!map.TryGetValue(culture, out var innerMap))
                 {
                     innerMap = new Dictionary<string, PatternMatcher>();
                     map[culture] = innerMap;
                 }
 
-                PatternMatcher patternMatcher;
-                if (!innerMap.TryGetValue(value, out patternMatcher))
+                if (!innerMap.TryGetValue(value, out var patternMatcher))
                 {
                     patternMatcher = new PatternMatcher(value, culture,
                         verbatimIdentifierPrefixIsWordCharacter: true,
@@ -182,12 +181,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 return 1;
             }
 
-            // If they both seemed just as good, but they differ on preselection, then
-            // item1 is better if it is preselected, otherwise it is worse.
-            var diff = item1.Rules.MatchPriority - item2.Rules.MatchPriority;
-            if (diff != 0)
+            var preselectionDiff = ComparePreselection(item1, item2);
+            if (preselectionDiff != 0)
             {
-                return -diff;
+                return preselectionDiff;
             }
 
             // Prefer things with a keyword tag, if the filter texts are the same.
@@ -229,15 +226,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 return diff;
             }
 
-            // Now, after comparing matches, check if an item wants to be preselected.  If so,
-            // we prefer that.  i.e. say the user has typed 'f' and we have the items 'foo' 
-            // and 'False' (with the latter being 'Preselected').  Both will be a prefix match.
-            // And because we are ignoring case, neither will be seen as better.  Now, because
-            // 'False' is preselected we pick it even though 'foo' matches 'f' case sensitively.
-            diff = item2.Rules.MatchPriority - item1.Rules.MatchPriority;
-            if (diff != 0)
+            var preselectionDiff = ComparePreselection(item1, item2);
+            if (preselectionDiff != 0)
             {
-                return diff;
+                return preselectionDiff;
             }
 
             // At this point we have two items which we're matching in a rather similar fasion.
@@ -263,6 +255,24 @@ namespace Microsoft.CodeAnalysis.Completion
             if (diff != 0)
             {
                 return diff;
+            }
+
+            return 0;
+        }
+
+        private int ComparePreselection(CompletionItem item1, CompletionItem item2)
+        {
+            // If they both seemed just as good, but they differ on preselection, then
+            // item1 is better if it is preselected, otherwise it is worse.
+            if (item1.Rules.MatchPriority == MatchPriority.Preselect &&
+                item2.Rules.MatchPriority != MatchPriority.Preselect)
+            {
+                return -1;
+            }
+            else if (item1.Rules.MatchPriority != MatchPriority.Preselect &&
+                     item2.Rules.MatchPriority == MatchPriority.Preselect)
+            {
+                return 1;
             }
 
             return 0;

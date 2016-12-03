@@ -81,21 +81,10 @@ namespace Microsoft.CodeAnalysis
         private readonly static Func<ITypeSymbol, bool> s_typeIsNull = t => t == null;
 
         private readonly string _symbolKeyData;
-        private readonly int _hashCode;
 
         public SymbolKey(string symbolKeyData)
         {
-            if (symbolKeyData == null)
-            {
-                throw new ArgumentNullException();
-            }
-
-            _symbolKeyData = symbolKeyData;
-
-            using (var reader = GetHashCodeReader.GetReader(_symbolKeyData))
-            {
-                _hashCode = reader.ReadFirstSymbolKey();
-            }
+            _symbolKeyData = symbolKeyData ?? throw new ArgumentNullException();
         }
 
         public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase, bool ignoreAssemblyKeys)
@@ -248,11 +237,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return true;
-        }
-
-        public override int GetHashCode()
-        {
-            return _hashCode;
         }
     }
 }

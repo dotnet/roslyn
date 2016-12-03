@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -931,8 +932,9 @@ class D
 </Workspace>";
 
             var options = OptionsSet(
-                Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Suggestion),
-                Tuple.Create(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Suggestion));
+                SingleOption(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Suggestion),
+                SingleOption(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Suggestion));
+
             await TestAsync(
                 initialMarkup: input,
                 expectedMarkup: expected,

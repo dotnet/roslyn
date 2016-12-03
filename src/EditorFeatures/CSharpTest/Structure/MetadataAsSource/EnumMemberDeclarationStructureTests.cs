@@ -34,13 +34,13 @@ enum E
             const string code = @"
 enum E
 {
-    {|hint:{|collapse:[Blah]
+    {|hint:{|textspan:[Blah]
     |}$$Foo|},
     Bar
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -49,7 +49,7 @@ enum E
             const string code = @"
 enum E
 {
-    {|hint:{|collapse:// Summary:
+    {|hint:{|textspan:// Summary:
     //     This is a summary.
     [Blah]
     |}$$Foo|},
@@ -57,7 +57,7 @@ enum E
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

@@ -354,6 +354,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
+            End Get
+        End Property
+
         ''' <summary>
         ''' Returns the type arguments that have been substituted for the type parameters.
         ''' If nothing has been substituted for a given type parameter,

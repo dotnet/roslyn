@@ -3,11 +3,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Gets the service corresponding to the specified document.
         /// </summary>
         public static CompletionService GetService(Document document)
-        {
-            return document.Project.LanguageServices.GetService<CompletionService>();
-        }
+            => document.GetLanguageService<CompletionService>();
 
         /// <summary>
         /// The language from <see cref="LanguageNames"/> this service corresponds to.
@@ -34,10 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Gets the current presentation and behavior rules.
         /// </summary>
-        public virtual CompletionRules GetRules()
-        {
-            return CompletionRules.Default;
-        }
+        public virtual CompletionRules GetRules() => CompletionRules.Default;
 
         /// <summary>
         /// Returns true if the character recently inserted or deleted in the text should trigger completion.
@@ -142,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var helper = CompletionHelper.GetHelper(document);
 
-            var bestItems = ImmutableArray.CreateBuilder<CompletionItem>();
+            var bestItems = ArrayBuilder<CompletionItem>.GetInstance();
             foreach (var item in items)
             {
                 if (bestItems.Count == 0)
@@ -171,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
             }
 
-            return bestItems.ToImmutable();
+            return bestItems.ToImmutableAndFree();
         }
     }
 }

@@ -8,6 +8,5 @@ namespace Microsoft.CodeAnalysis.ErrorLogger
     internal interface IErrorLoggerService : IWorkspaceService
     {
         void LogException(object source, Exception exception);
-        bool TryLogException(object source, Exception exception);
     }
 }

@@ -55,6 +55,68 @@ class C
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestAutoPropGetStartPoint1() As Task
+            Dim code =
+<Code>
+class C
+{
+    public int $$P => 0;
+}
+</Code>
+
+            Await TestElement(
+                code,
+                Sub(prop)
+                    Dim getter = prop.Getter
+                    Dim textPointGetter = Function(part As EnvDTE.vsCMPart)
+                                              Return getter.GetStartPoint(part)
+                                          End Function
+
+                    Part(EnvDTE.vsCMPart.vsCMPartAttributes, ThrowsNotImplementedException)(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter, ThrowsNotImplementedException)(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartBody, TextPoint(line:=3, lineOffset:=21, absoluteOffset:=31, lineLength:=22))(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter, ThrowsNotImplementedException)(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartHeader, ThrowsNotImplementedException)(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes, ThrowsNotImplementedException)(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartName, ThrowsNotImplementedException)(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartNavigate, ThrowsNotImplementedException)(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartWhole, TextPoint(line:=3, lineOffset:=18, absoluteOffset:=28, lineLength:=22))(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes, ThrowsNotImplementedException)(textPointGetter)
+                End Sub)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestAutoPropGetEndPoint1() As Task
+            Dim code =
+<Code>
+class C
+{
+    public int $$P => 0;
+}
+</Code>
+
+            Await TestElement(
+                code,
+                Sub(prop)
+                    Dim getter = prop.Getter
+                    Dim textPointGetter = Function(part As EnvDTE.vsCMPart)
+                                              Return getter.GetEndPoint(part)
+                                          End Function
+
+                    Part(EnvDTE.vsCMPart.vsCMPartAttributes, ThrowsNotImplementedException)(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter, ThrowsNotImplementedException)(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartBody, TextPoint(line:=3, lineOffset:=22, absoluteOffset:=32, lineLength:=22))(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter, ThrowsNotImplementedException)(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartHeader, ThrowsNotImplementedException)(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartHeaderWithAttributes, ThrowsNotImplementedException)(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartName, ThrowsNotImplementedException)(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartNavigate, ThrowsNotImplementedException)(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartWhole, TextPoint(line:=3, lineOffset:=22, absoluteOffset:=32, lineLength:=22))(textPointGetter)
+                    Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes, ThrowsNotImplementedException)(textPointGetter)
+                End Sub)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestGetStartPoint_Attribute() As Task
             Dim code =
 <Code>

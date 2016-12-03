@@ -903,11 +903,10 @@ namespace Microsoft.CodeAnalysis
                     var pemeta = meta as PortableExecutableReference;
                     if (pemeta != null)
                     {
-                        ProjectId matchingProjectId;
 
                         // check both Display and FilePath. FilePath points to the actually bits, but Display should match output path if 
                         // the metadata reference is shadow copied.
-                        if ((!string.IsNullOrEmpty(pemeta.Display) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.Display, out matchingProjectId)) ||
+                        if ((!string.IsNullOrEmpty(pemeta.Display) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.Display, out var matchingProjectId)) ||
                             (!string.IsNullOrEmpty(pemeta.FilePath) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.FilePath, out matchingProjectId)))
                         {
                             var newProjRef = new ProjectReference(matchingProjectId, pemeta.Properties.Aliases, pemeta.Properties.EmbedInteropTypes);
@@ -1226,20 +1225,16 @@ namespace Microsoft.CodeAnalysis
         {
             var oldDoc = projectChanges.OldProject.GetDocument(documentId);
             var newDoc = projectChanges.NewProject.GetDocument(documentId);
-
             // see whether we can get oldText
-            SourceText oldText;
-            if (!oldDoc.TryGetText(out oldText))
+            if (!oldDoc.TryGetText(out var oldText))
             {
                 // we can't get old text, there is not much we can do except replacing whole text.
                 var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
                 this.ApplyDocumentTextChanged(documentId, currentText);
                 return;
             }
-
             // see whether we can get new text
-            SourceText newText;
-            if (!newDoc.TryGetText(out newText))
+            if (!newDoc.TryGetText(out var newText))
             {
                 // okay, we have old text, but no new text. let document determine text changes
                 var textChanges = newDoc.GetTextChangesAsync(oldDoc, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
@@ -1279,7 +1274,7 @@ namespace Microsoft.CodeAnalysis
                 project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)));
         }
 
-        private SourceText GetTextForced(TextDocument doc)
+        internal SourceText GetTextForced(TextDocument doc)
         {
             return doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait (called during TryApplyChanges)
         }
@@ -1289,7 +1284,7 @@ namespace Microsoft.CodeAnalysis
             return CreateDocumentInfoWithoutText(doc).WithTextLoader(TextLoader.From(TextAndVersion.Create(GetTextForced(doc), VersionStamp.Create(), doc.FilePath)));
         }
 
-        private DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)
+        internal DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)
         {
             var sourceDoc = doc as Document;
             return DocumentInfo.Create(

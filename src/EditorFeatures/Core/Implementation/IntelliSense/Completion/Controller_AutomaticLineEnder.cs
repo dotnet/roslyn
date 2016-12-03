@@ -24,14 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            // We are computing a model.  Commit it if we compute any selected item.
-            bool sendThrough, committed;
-            CommitOnEnter(out sendThrough, out committed);
+            CommitOnEnter(out var sendThrough, out var committed);
 
             // We did not commit based on enter.  So our computation will still be running.  Stop it now.
             if (!committed)
             {
-                this.StopModelComputation();
+                this.DismissSessionIfActive();
                 nextHandler();
             }
         }

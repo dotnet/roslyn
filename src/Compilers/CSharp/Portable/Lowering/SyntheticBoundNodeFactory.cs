@@ -64,7 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             set
             {
                 _currentMethod = value;
-                if ((object)value != null && value.MethodKind != MethodKind.AnonymousFunction)
+                if ((object)value != null &&
+                    value.MethodKind != MethodKind.AnonymousFunction &&
+                    value.MethodKind != MethodKind.LocalFunction)
                 {
                     _topLevelMethod = value;
                     _currentType = value.ContainingType;
@@ -203,9 +205,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundHoistedFieldAccess(Syntax, field, field.Type);
         }
 
-        public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, bool isPublic = false)
+        public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, bool isPublic = false, bool isThis = false)
         {
-            var result = new StateMachineFieldSymbol(CurrentType, type, name, isPublic);
+            var result = new StateMachineFieldSymbol(CurrentType, type, name, isPublic, isThis);
             AddField(CurrentType, result);
             return result;
         }
@@ -421,6 +423,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(Syntax, locals, localFunctions, statements) { WasCompilerGenerated = true };
         }
 
+        public BoundStatementList StatementList()
+        {
+            return StatementList(ImmutableArray<BoundStatement>.Empty);
+        }
+
         public BoundStatementList StatementList(ImmutableArray<BoundStatement> statements)
         {
             return new BoundStatementList(Syntax, statements) { WasCompilerGenerated = true };
@@ -488,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ParameterSymbol SynthesizedParameter(TypeSymbol type, string name, MethodSymbol container = null, int ordinal = 0)
         {
-            return new SynthesizedParameterSymbol(container, type, ordinal, RefKind.None, name);
+            return SynthesizedParameterSymbol.Create(container, type, ordinal, RefKind.None, name);
         }
 
         public BoundBinaryOperator Binary(BinaryOperatorKind kind, TypeSymbol type, BoundExpression left, BoundExpression right)
@@ -956,6 +963,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTypeExpression Type(TypeSymbol type)
         {
+            // This is an attempt to get a repro for https://devdiv.visualstudio.com/DevDiv/_workitems?id=278481
+            if ((object)type == null)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
             return new BoundTypeExpression(Syntax, null, type) { WasCompilerGenerated = true };
         }
 
@@ -1232,6 +1245,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
+            if (refKind == RefKind.Out)
+            {
+                refKind = RefKind.Ref;
+            }
+
             MethodSymbol containingMethod = this.CurrentMethod;
             var syntax = argument.Syntax;
             var type = argument.Type;
@@ -1265,6 +1283,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundStatement NoOp(NoOpStatementFlavor noOpStatementFlavor)
         {
             return new BoundNoOpStatement(Syntax, noOpStatementFlavor);
+        }
+
+        internal BoundLocal MakeTempForDiscard(BoundDiscardedExpression node, ArrayBuilder<LocalSymbol> temps)
+        {
+            LocalSymbol temp;
+            BoundLocal result = MakeTempForDiscard(node, out temp);
+            temps.Add(temp);
+            return result;
+        }
+
+        internal BoundLocal MakeTempForDiscard(BoundDiscardedExpression node, out LocalSymbol temp)
+        {
+            temp = new SynthesizedLocal(this.CurrentMethod, node.Type, SynthesizedLocalKind.LoweringTemp);
+
+            return new BoundLocal(node.Syntax, temp, constantValueOpt: null, type: node.Type) { WasCompilerGenerated = true };
+        }
+
+        internal ImmutableArray<BoundExpression> MakeTempsForDiscardArguments(ImmutableArray<BoundExpression> arguments, ArrayBuilder<LocalSymbol> builder)
+        {
+            var discardsCount = arguments.Count(a => a.Kind == BoundKind.DiscardedExpression);
+
+            if (discardsCount != 0)
+            {
+                arguments = arguments.SelectAsArray(
+                    (arg, t) => arg.Kind == BoundKind.DiscardedExpression ?  t.Item1.MakeTempForDiscard((BoundDiscardedExpression)arg, t.Item2) : arg,
+                    ValueTuple.Create(this, builder));
+            }
+
+            return arguments;
         }
     }
 }

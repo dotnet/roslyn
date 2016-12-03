@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -528,5 +529,184 @@ BC30002: Type 'System.Int32' is not defined.
             Return failingCompilation
         End Function
 
+        <Fact>
+        <WorkItem(14267, "https://github.com/dotnet/roslyn/issues/14267")>
+        Public Sub MissingTypeKindBasisTypes()
+            Dim source1 =
+            <compilation>
+                <file name="a.vb">
+Public Structure A
+End Structure
+
+Public Enum B
+    x
+End Enum
+
+Public Class C
+End Class
+
+Public Delegate Sub D()
+
+Public Interface I1
+End Interface
+    </file>
+            </compilation>
+
+            Dim compilation1 = CreateCompilationWithReferences(source1, options:=TestOptions.ReleaseDll, references:={MinCorlibRef})
+            compilation1.VerifyEmitDiagnostics()
+
+            Assert.Equal(TypeKind.Struct, compilation1.GetTypeByMetadataName("A").TypeKind)
+            Assert.Equal(TypeKind.Enum, compilation1.GetTypeByMetadataName("B").TypeKind)
+            Assert.Equal(TypeKind.Class, compilation1.GetTypeByMetadataName("C").TypeKind)
+            Assert.Equal(TypeKind.Delegate, compilation1.GetTypeByMetadataName("D").TypeKind)
+            Assert.Equal(TypeKind.Interface, compilation1.GetTypeByMetadataName("I1").TypeKind)
+
+            Dim source2 =
+            <compilation>
+                <file name="a.vb">
+Interface I2
+    Function M(a As A, b As B, c As C, d As D) As I1
+End Interface
+    </file>
+            </compilation>
+
+            Dim compilation2 = CreateCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.EmitToImageReference(), MinCorlibRef})
+
+            compilation2.VerifyEmitDiagnostics()
+            CompileAndVerify(compilation2)
+
+            Assert.Equal(TypeKind.Struct, compilation2.GetTypeByMetadataName("A").TypeKind)
+            Assert.Equal(TypeKind.Enum, compilation2.GetTypeByMetadataName("B").TypeKind)
+            Assert.Equal(TypeKind.Class, compilation2.GetTypeByMetadataName("C").TypeKind)
+            Assert.Equal(TypeKind.Delegate, compilation2.GetTypeByMetadataName("D").TypeKind)
+            Assert.Equal(TypeKind.Interface, compilation2.GetTypeByMetadataName("I1").TypeKind)
+
+            Dim compilation3 = CreateCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.ToMetadataReference(), MinCorlibRef})
+
+            compilation3.VerifyEmitDiagnostics()
+            CompileAndVerify(compilation3)
+
+            Assert.Equal(TypeKind.Struct, compilation3.GetTypeByMetadataName("A").TypeKind)
+            Assert.Equal(TypeKind.Enum, compilation3.GetTypeByMetadataName("B").TypeKind)
+            Assert.Equal(TypeKind.Class, compilation3.GetTypeByMetadataName("C").TypeKind)
+            Assert.Equal(TypeKind.Delegate, compilation3.GetTypeByMetadataName("D").TypeKind)
+            Assert.Equal(TypeKind.Interface, compilation3.GetTypeByMetadataName("I1").TypeKind)
+
+            Dim compilation4 = CreateCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.EmitToImageReference()})
+
+            compilation4.AssertTheseDiagnostics(<expected>
+BC30652: Reference required to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' containing the type 'ValueType'. Add one to your project.
+    Function M(a As A, b As B, c As C, d As D) As I1
+                    ~
+BC30652: Reference required to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' containing the type '[Enum]'. Add one to your project.
+    Function M(a As A, b As B, c As C, d As D) As I1
+                            ~
+BC30652: Reference required to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' containing the type 'MulticastDelegate'. Add one to your project.
+    Function M(a As A, b As B, c As C, d As D) As I1
+                                            ~
+                                                </expected>)
+
+            Dim a = compilation4.GetTypeByMetadataName("A")
+            Dim b = compilation4.GetTypeByMetadataName("B")
+            Dim c = compilation4.GetTypeByMetadataName("C")
+            Dim d = compilation4.GetTypeByMetadataName("D")
+            Dim i1 = compilation4.GetTypeByMetadataName("I1")
+            Assert.Equal(TypeKind.Class, a.TypeKind)
+            Assert.NotNull(a.GetUseSiteErrorInfo())
+            Assert.Equal(TypeKind.Class, b.TypeKind)
+            Assert.NotNull(b.GetUseSiteErrorInfo())
+            Assert.Equal(TypeKind.Class, c.TypeKind)
+            Assert.Null(c.GetUseSiteErrorInfo())
+            Assert.Equal(TypeKind.Class, d.TypeKind)
+            Assert.NotNull(d.GetUseSiteErrorInfo())
+            Assert.Equal(TypeKind.Interface, i1.TypeKind)
+            Assert.Null(i1.GetUseSiteErrorInfo())
+
+            Dim compilation5 = CreateCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.ToMetadataReference()})
+
+            compilation5.VerifyEmitDiagnostics()
+            CompileAndVerify(compilation5)
+
+            Assert.Equal(TypeKind.Struct, compilation5.GetTypeByMetadataName("A").TypeKind)
+            Assert.Equal(TypeKind.Enum, compilation5.GetTypeByMetadataName("B").TypeKind)
+            Assert.Equal(TypeKind.Class, compilation5.GetTypeByMetadataName("C").TypeKind)
+            Assert.Equal(TypeKind.Delegate, compilation5.GetTypeByMetadataName("D").TypeKind)
+            Assert.Equal(TypeKind.Interface, compilation5.GetTypeByMetadataName("I1").TypeKind)
+
+            Dim compilation6 = CreateCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.EmitToImageReference(), MscorlibRef})
+
+            compilation6.AssertTheseDiagnostics(<expected>
+BC30652: Reference required to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' containing the type 'ValueType'. Add one to your project.
+    Function M(a As A, b As B, c As C, d As D) As I1
+                    ~
+BC30652: Reference required to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' containing the type '[Enum]'. Add one to your project.
+    Function M(a As A, b As B, c As C, d As D) As I1
+                            ~
+BC30652: Reference required to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' containing the type 'MulticastDelegate'. Add one to your project.
+    Function M(a As A, b As B, c As C, d As D) As I1
+                                            ~
+                                                </expected>)
+
+            a = compilation6.GetTypeByMetadataName("A")
+            b = compilation6.GetTypeByMetadataName("B")
+            c = compilation6.GetTypeByMetadataName("C")
+            d = compilation6.GetTypeByMetadataName("D")
+            i1 = compilation6.GetTypeByMetadataName("I1")
+            Assert.Equal(TypeKind.Class, a.TypeKind)
+            Assert.NotNull(a.GetUseSiteErrorInfo())
+            Assert.Equal(TypeKind.Class, b.TypeKind)
+            Assert.NotNull(b.GetUseSiteErrorInfo())
+            Assert.Equal(TypeKind.Class, c.TypeKind)
+            Assert.Null(c.GetUseSiteErrorInfo())
+            Assert.Equal(TypeKind.Class, d.TypeKind)
+            Assert.NotNull(d.GetUseSiteErrorInfo())
+            Assert.Equal(TypeKind.Interface, i1.TypeKind)
+            Assert.Null(i1.GetUseSiteErrorInfo())
+
+            Dim compilation7 = CreateCompilationWithReferences(source2, options:=TestOptions.ReleaseDll, references:={compilation1.ToMetadataReference(), MscorlibRef})
+
+            compilation7.VerifyEmitDiagnostics()
+            CompileAndVerify(compilation7)
+
+            Assert.Equal(TypeKind.Struct, compilation7.GetTypeByMetadataName("A").TypeKind)
+            Assert.Equal(TypeKind.Enum, compilation7.GetTypeByMetadataName("B").TypeKind)
+            Assert.Equal(TypeKind.Class, compilation7.GetTypeByMetadataName("C").TypeKind)
+            Assert.Equal(TypeKind.Delegate, compilation7.GetTypeByMetadataName("D").TypeKind)
+            Assert.Equal(TypeKind.Interface, compilation7.GetTypeByMetadataName("I1").TypeKind)
+        End Sub
+
+        <Fact, WorkItem(15435, "https://github.com/dotnet/roslyn/issues/15435")>
+        Public Sub TestGettingAssemblyIdsFromDiagnostic1()
+            Dim source =
+            <compilation>
+                <file name="a.vb">
+Class C
+    Inherits ILErrors.ClassMethods
+
+    Public Overrides Function ReturnType1() As Integer
+        Return 0
+    End Function
+
+    Public Overrides Function ReturnType2() As Integer()
+        Return Nothing
+    End Function
+End Class
+    </file>
+            </compilation>
+
+            Dim compilation = CompileWithMissingReference(source)
+            Dim Diagnostics = compilation.GetDiagnostics()
+            Assert.True(Diagnostics.Any(Function(d) d.Code = ERRID.ERR_UnreferencedAssembly3))
+
+            For Each d In Diagnostics
+                If d.Code = ERRID.ERR_UnreferencedAssembly3 Then
+                    Dim actualAssemblyId = compilation.GetUnreferencedAssemblyIdentities(d).Single()
+                    Dim expectedAssemblyId As AssemblyIdentity = Nothing
+                    AssemblyIdentity.TryParseDisplayName("Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", expectedAssemblyId)
+
+                    Assert.Equal(actualAssemblyId, expectedAssemblyId)
+                End If
+            Next
+        End Sub
     End Class
 End Namespace

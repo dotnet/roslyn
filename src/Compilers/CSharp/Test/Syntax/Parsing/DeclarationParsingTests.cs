@@ -5769,16 +5769,13 @@ class C
                                             N(SyntaxKind.OutKeyword);
                                             N(SyntaxKind.DeclarationExpression);
                                             {
-                                                N(SyntaxKind.TypedVariableComponent);
+                                                N(SyntaxKind.IdentifierName);
                                                 {
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken, "var");
-                                                    }
-                                                    N(SyntaxKind.SingleVariableDesignation);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken, "x");
-                                                    }
+                                                    N(SyntaxKind.IdentifierToken, "var");
+                                                }
+                                                N(SyntaxKind.SingleVariableDesignation);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "x");
                                                 }
                                             }
                                         }

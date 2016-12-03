@@ -13,17 +13,41 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal partial class SnapshotService : ServiceHubServiceBase
     {
-        private readonly AssetSource _source;
+        // use gate to make sure same value is seen by multiple threads correctly.
+        // initialize and disconnect can be called concurrently due to the way
+        // we implements cancellation
+        private readonly object _gate;
+        private AssetSource _source;
 
         public SnapshotService(Stream stream, IServiceProvider serviceProvider) :
             base(stream, serviceProvider)
         {
-            _source = new JsonRpcAssetSource(Rpc, Logger, CancellationToken);
+            _gate = new object();
+        }
+
+        public override void Initialize(int sessionId, byte[] solutionChecksum)
+        {
+            base.Initialize(sessionId, solutionChecksum);
+
+            lock (_gate)
+            {
+                if (CancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                _source = new JsonRpcAssetSource(this, sessionId);
+            }
         }
 
         protected override void OnDisconnected(JsonRpcDisconnectedEventArgs e)
         {
-            _source.Done();
+            lock (_gate)
+            {
+                // operation can be cancelled even before initialize is called. 
+                // or in the middle of initialize is running
+                _source?.Done();
+            }
         }
     }
 }

@@ -150,8 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             var returnType = (_semanticModel.GetSymbolInfo(parentLambda).Symbol as IMethodSymbol)?.ReturnType;
                             if (returnType != null)
                             {
-                                ExpressionSyntax newExpressionWithCast;
-                                if (TryCastTo(returnType, node.Expression, newReturnStatement.Expression, out newExpressionWithCast))
+                                if (TryCastTo(returnType, node.Expression, newReturnStatement.Expression, out var newExpressionWithCast))
                                 {
                                     newNode = newReturnStatement.WithExpression(newExpressionWithCast);
                                 }
@@ -170,10 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 if (newNode is ParenthesizedLambdaExpressionSyntax)
                 {
                     var parenthesizedLambda = (ParenthesizedLambdaExpressionSyntax)newNode;
-
                     // First, try to add a cast to the lambda.
-                    ExpressionSyntax newLambdaExpressionBodyWithCast;
-                    if (TryGetLambdaExpressionBodyWithCast(node, parenthesizedLambda, out newLambdaExpressionBodyWithCast))
+                    if (TryGetLambdaExpressionBodyWithCast(node, parenthesizedLambda, out var newLambdaExpressionBodyWithCast))
                     {
                         parenthesizedLambda = parenthesizedLambda.WithBody(newLambdaExpressionBodyWithCast);
                     }
@@ -224,10 +221,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 if (newNode is SimpleLambdaExpressionSyntax)
                 {
                     var simpleLambda = (SimpleLambdaExpressionSyntax)newNode;
-
                     // First, try to add a cast to the lambda.
-                    ExpressionSyntax newLambdaExpressionBodyWithCast;
-                    if (TryGetLambdaExpressionBodyWithCast(node, simpleLambda, out newLambdaExpressionBodyWithCast))
+                    if (TryGetLambdaExpressionBodyWithCast(node, simpleLambda, out var newLambdaExpressionBodyWithCast))
                     {
                         simpleLambda = simpleLambda.WithBody(newLambdaExpressionBodyWithCast);
                     }
@@ -270,8 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     !IsPassedToDelegateCreationExpression(node, argumentType) &&
                     node.Expression.Kind() != SyntaxKind.DeclarationExpression)
                 {
-                    ExpressionSyntax newArgumentExpressionWithCast;
-                    if (TryCastTo(argumentType, node.Expression, newArgument.Expression, out newArgumentExpressionWithCast))
+                    if (TryCastTo(argumentType, node.Expression, newArgument.Expression, out var newArgumentExpressionWithCast))
                     {
                         return newArgument.WithExpression(newArgumentExpressionWithCast);
                     }
@@ -449,8 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                             var firstReplacementToken = replacement.GetFirstToken(true, false, true, true);
                             var firstOriginalToken = originalSimpleName.GetFirstToken(true, false, true, true);
-                            SyntaxToken tokenWithLeadingWhitespace;
-                            if (TryAddLeadingElasticTriviaIfNecessary(firstReplacementToken, firstOriginalToken, out tokenWithLeadingWhitespace))
+                            if (TryAddLeadingElasticTriviaIfNecessary(firstReplacementToken, firstOriginalToken, out var tokenWithLeadingWhitespace))
                             {
                                 replacement = replacement.ReplaceToken(firstOriginalToken, tokenWithLeadingWhitespace);
                             }

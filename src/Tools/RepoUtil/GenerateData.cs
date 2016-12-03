@@ -14,12 +14,12 @@ namespace RepoUtil
     /// </summary>
     internal struct GenerateData
     {
-        internal string RelativeFileName { get; }
+        internal string RelativeFilePath { get; }
         internal ImmutableArray<Regex> Packages { get; }
 
         internal GenerateData(string relativeFileName, ImmutableArray<Regex> packages)
         {
-            RelativeFileName = relativeFileName;
+            RelativeFilePath = relativeFileName;
             Packages = packages;
         }
     }

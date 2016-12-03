@@ -25,6 +25,8 @@ namespace RunTests.Cache
             try
             {
                 var testCacheData = CreateTestCacheData(assemblyInfo, assemblyInfo.ResultsFileName, testResult);
+                Logger.Log($"Source data for ${assemblyInfo.DisplayName}: {JsonConvert.SerializeObject(testCacheData.TestSourceData, Formatting.Indented)}");
+
                 var request = new RestRequest($"api/testData/cache/{contentFile.Checksum}");
                 request.Method = Method.PUT;
                 request.RequestFormat = DataFormat.Json;
@@ -107,13 +109,38 @@ namespace RunTests.Cache
 
         private static TestSourceData CreateTestSourceData(AssemblyInfo assemblyInfo)
         {
-            return new TestSourceData()
+            var data = new TestSourceData()
             {
                 MachineName = Environment.MachineName,
                 EnlistmentRoot = Constants.EnlistmentRoot,
                 AssemblyName = assemblyInfo.DisplayName,
                 IsJenkins = Constants.IsJenkinsRun
             };
+
+            if (data.IsJenkins)
+            {
+                // Add the core git information
+                data.MergeCommitSha = Environment.GetEnvironmentVariable("GIT_COMMIT");
+                data.Repository = Environment.GetEnvironmentVariable("ghprbGhRepository");
+
+                // For PR runs include extra data about the PR.  This enables us to track down bugs server 
+                // side when PRs are believed to hit test / cache issues.
+                var idStr = Environment.GetEnvironmentVariable("ghprbPullId");
+                int id;
+                if (idStr != null && int.TryParse(idStr, out id))
+                {
+                    data.IsPullRequest = true;
+                    data.PullRequestId = id;
+                    data.PullRequestUserName = Environment.GetEnvironmentVariable("ghprbPullAuthorLogin");
+                    data.CommitSha = Environment.GetEnvironmentVariable("ghprbActualCommit");
+                }
+                else
+                {
+                    data.CommitSha = data.MergeCommitSha;
+                }
+            }
+
+            return data;
         }
 
         private static Tuple<int, int, int> GetTestNumbers(string resultsFileName, CachedTestResult testResult)

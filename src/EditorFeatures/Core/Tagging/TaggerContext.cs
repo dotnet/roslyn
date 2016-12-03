@@ -83,18 +83,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         public void SetSpansTagged(IEnumerable<DocumentSnapshotSpan> spansTagged)
         {
-            if (spansTagged == null)
-            {
-                throw new ArgumentNullException(nameof(spansTagged));
-            }
-
-            this._spansTagged = spansTagged;
+            this._spansTagged = spansTagged ?? throw new ArgumentNullException(nameof(spansTagged));
         }
 
         public IEnumerable<ITagSpan<TTag>> GetExistingTags(SnapshotSpan span)
         {
-            TagSpanIntervalTree<TTag> tree;
-            return _existingTags != null && _existingTags.TryGetValue(span.Snapshot.TextBuffer, out tree)
+            return _existingTags != null && _existingTags.TryGetValue(span.Snapshot.TextBuffer, out var tree)
                 ? tree.GetIntersectingSpans(span)
                 : SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
         }

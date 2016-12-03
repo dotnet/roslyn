@@ -106,7 +106,7 @@ namespace RepoUtil
             var packages = ProjectJsonUtil
                 .GetProjectJsonFiles(_sourcesPath)
                 .SelectMany(x => ProjectJsonUtil.GetDependencies(x));
-            var set = new HashSet<NuGetPackage>(packages);
+            var set = new HashSet<NuGetPackage>(packages, default(Constants.IgnoreGenerateNameComparer));
             var allGood = true;
 
             foreach (var package in _repoConfig.FixedPackages)
@@ -131,7 +131,7 @@ namespace RepoUtil
                 var packages = GenerateUtil.GetFilteredPackages(data, repoData);
 
                 // Need to verify the contents of the generated file are correct.
-                var fileName = new FileName(_sourcesPath, data.RelativeFileName);
+                var fileName = new FileName(_sourcesPath, data.RelativeFilePath);
                 var actualContent = File.ReadAllText(fileName.FullPath, GenerateUtil.Encoding);
                 var expectedContent = GenerateUtil.GenerateMSBuildContent(packages);
                 if (actualContent != expectedContent)

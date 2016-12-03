@@ -33,12 +33,12 @@ class C
             const string code = @"
 class C
 {
-    {|hint:{|collapse:[Blah]
+    {|hint:{|textspan:[Blah]
     |}public static explicit operator $$Foo(byte b);|}
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -47,14 +47,14 @@ class C
             const string code = @"
 class C
 {
-    {|hint:{|collapse:// Summary:
+    {|hint:{|textspan:// Summary:
     //     This is a summary.
     [Blah]
     |}public static explicit operator $$Foo(byte b);|}
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

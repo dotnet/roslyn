@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CatchClause:
                 case SyntaxKind.ForStatement:
                 case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                 case SyntaxKind.UsingStatement:
 
                 // ctor parameter captured by a lambda in a ctor initializer

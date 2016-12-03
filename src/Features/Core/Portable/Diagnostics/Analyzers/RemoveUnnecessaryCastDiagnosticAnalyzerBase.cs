@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
             context.RegisterSyntaxNodeAction(
                 (nodeContext) =>
                     {
-                        Diagnostic diagnostic;
-                        if (TryRemoveCastExpression(nodeContext.SemanticModel, nodeContext.Node, out diagnostic, nodeContext.CancellationToken))
+                        if (TryRemoveCastExpression(nodeContext.SemanticModel, nodeContext.Node, out var diagnostic, nodeContext.CancellationToken))
                         {
                             nodeContext.ReportDiagnostic(diagnostic);
                         }

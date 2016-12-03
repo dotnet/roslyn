@@ -20,8 +20,7 @@ namespace Roslyn.Utilities
 
         public override Type GetType(string assemblyName, string typeName)
         {
-            Type type;
-            if (!_typeMap.TryGetValue(new TypeKey(assemblyName, typeName), out type))
+            if (!_typeMap.TryGetValue(new TypeKey(assemblyName, typeName), out var type))
             {
                 Debug.Assert(false, assemblyName + "/" + typeName + " don't exist");
             }
@@ -31,8 +30,7 @@ namespace Roslyn.Utilities
 
         public override Func<ObjectReader, object> GetReader(Type type)
         {
-            Func<ObjectReader, object> reader;
-            if (!_readerMap.TryGetValue(type, out reader))
+            if (!_readerMap.TryGetValue(type, out var reader))
             {
                 Debug.Assert(false, type.ToString() + " reader doesn't exist");
             }

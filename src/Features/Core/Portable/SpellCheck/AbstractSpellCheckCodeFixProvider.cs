@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
 
             SemanticModel semanticModel = null;
-            foreach (var name in node.DescendantNodesAndSelf().OfType<TSimpleName>())
+            foreach (var name in node.DescendantNodesAndSelf(DescendIntoChildren).OfType<TSimpleName>())
             {
                 // Only bother with identifiers that are at least 3 characters long.
                 // We don't want to be too noisy as you're just starting to type something.
@@ -48,6 +49,8 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 }
             }
         }
+
+        protected abstract bool DescendIntoChildren(SyntaxNode arg);
 
         private async Task CreateSpellCheckCodeIssueAsync(CodeFixContext context, TSimpleName nameNode, string nameText, CancellationToken cancellationToken)
         {
@@ -80,8 +83,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                     }
 
                     var candidateText = item.FilterText;
-                    double matchCost;
-                    if (!similarityChecker.AreSimilar(candidateText, out matchCost))
+                    if (!similarityChecker.AreSimilar(candidateText, out var matchCost))
                     {
                         continue;
                     }
@@ -91,12 +93,24 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 }
             }
 
-            var matches = results.OrderBy(kvp => kvp.Key)
-                                 .SelectMany(kvp => kvp.Value.Order())
-                                 .Where(t => t != nameText)
-                                 .Take(3)
-                                 .Select(n => CreateCodeAction(nameNode, nameText, n, document));
-            context.RegisterFixes(matches, context.Diagnostics);
+            var codeActions = results.OrderBy(kvp => kvp.Key)
+                                     .SelectMany(kvp => kvp.Value.Order())
+                                     .Where(t => t != nameText)
+                                     .Take(3)
+                                     .Select(n => CreateCodeAction(nameNode, nameText, n, document))
+                                     .ToImmutableArrayOrEmpty<CodeAction>();
+
+            if (codeActions.Length > 1)
+            {
+                // Wrap the spell checking actions into a single top level suggestion
+                // so as to not clutter the list.
+                context.RegisterCodeFix(new MyCodeAction(
+                    String.Format(FeaturesResources.Spell_check_0, nameText), codeActions), context.Diagnostics);
+            }
+            else
+            {
+                context.RegisterFixes(codeActions, context.Diagnostics);
+            }
         }
 
         private async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
@@ -127,6 +141,14 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         {
             public SpellCheckCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
                 : base(title, createChangedDocument, equivalenceKey)
+            {
+            }
+        }
+
+        private class MyCodeAction : CodeAction.CodeActionWithNestedActions
+        {
+            public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
+                : base(title, nestedActions, isInlinable: true)
             {
             }
         }

@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 {
@@ -51,6 +52,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
             _hintSpan = snapshot.CreateTrackingSpan(BlockSpan.HintSpan.ToSpan(), SpanTrackingMode.EdgeExclusive);
         }
+
+        public override bool Equals(object obj) 
+            => Equals(obj as RoslynOutliningRegionTag);
+
+        public bool Equals(RoslynOutliningRegionTag tag)
+            => tag != null &&
+               IsImplementation == tag.IsImplementation &&
+               Equals(this.CollapsedForm, tag.CollapsedForm);
+
+        public override int GetHashCode() 
+            => Hash.Combine(IsImplementation,
+                            EqualityComparer<object>.Default.GetHashCode(this.CollapsedForm));
 
         public object CollapsedHintForm =>
             new ViewHostingControl(CreateElisionBufferView, CreateElisionBuffer);

@@ -43,6 +43,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
+        public IFieldSymbol CorrespondingTupleField
+        {
+            get
+            {
+                return null;
+            }
+        }
+
         public override SymbolKind Kind
         {
             get

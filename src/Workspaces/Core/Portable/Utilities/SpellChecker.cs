@@ -108,12 +108,7 @@ namespace Roslyn.Utilities
 
         public WordSimilarityChecker(string text, bool substringsAreSimilar)
         {
-            if (text == null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            _source = text;
+            _source = text ?? throw new ArgumentNullException(nameof(text));
             _threshold = GetThreshold(_source);
             _editDistance = new EditDistance(text);
             _substringsAreSimilar = substringsAreSimilar;
@@ -132,8 +127,7 @@ namespace Roslyn.Utilities
 
         public static bool AreSimilar(string originalText, string candidateText, bool substringsAreSimilar)
         {
-            double unused;
-            return AreSimilar(originalText, candidateText, substringsAreSimilar, out unused);
+            return AreSimilar(originalText, candidateText, substringsAreSimilar, out var unused);
         }
 
         public static bool AreSimilar(string originalText, string candidateText, out double similarityWeight)
@@ -163,8 +157,7 @@ namespace Roslyn.Utilities
 
         public bool AreSimilar(string candidateText)
         {
-            double similarityWeight;
-            return AreSimilar(candidateText, out similarityWeight);
+            return AreSimilar(candidateText, out var similarityWeight);
         }
 
         public bool AreSimilar(string candidateText, out double similarityWeight)

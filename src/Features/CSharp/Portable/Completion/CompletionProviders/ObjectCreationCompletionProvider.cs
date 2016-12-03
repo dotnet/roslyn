@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,7 +15,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override async Task<IEnumerable<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var result = await base.GetPreselectedSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
             if (result.Any())
@@ -65,18 +65,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var alias = await type.FindApplicableAlias(position, context.SemanticModel, cancellationToken).ConfigureAwait(false);
                 if (alias != null)
                 {
-                    return SpecializedCollections.SingletonEnumerable(alias);
+                    return ImmutableArray.Create(alias);
                 }
             }
 
             return result;
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
+        protected override (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
         {
             if (symbol is IAliasSymbol)
             {
-                return ValueTuple.Create(symbol.Name, symbol.Name);
+                return (symbol.Name, symbol.Name);
             }
 
             return base.GetDisplayAndInsertionText(symbol, context);

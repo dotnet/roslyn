@@ -12,9 +12,11 @@ vs.localizedResources
                        description="Roslyn Expression Evaluators"
 
 vs.payloads
-  vs.payload source=$(OutputPath)ExpressionEvaluatorPackage.vsix
+  vs.payload source=$(OutputPath)Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix
 
 vs.dependencies
+  vs.dependency id=Microsoft.VisualStudio.MinShell
+  vs.dependency id=Microsoft.Net.PackageGroup.4.6.1.Redist
   vs.dependency id=Microsoft.CodeAnalysis.VisualStudio.Setup
                 version=$(Version)
                 type=Required

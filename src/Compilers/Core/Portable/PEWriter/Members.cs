@@ -777,9 +777,17 @@ namespace Microsoft.Cci
         ImmutableArray<IParameterTypeInformation> GetParameters(EmitContext context);
 
         /// <summary>
-        /// Returns the list of custom modifiers, if any, associated with the returned value. Evaluate this property only if ReturnValueIsModified is true.
+        /// Returns the list of custom modifiers, if any, associated with the return type. 
         /// </summary>
         ImmutableArray<ICustomModifier> ReturnValueCustomModifiers
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Returns the list of custom modifiers, if any, associated with the ref modifier. 
+        /// </summary>
+        ImmutableArray<ICustomModifier> RefCustomModifiers
         {
             get;
         }

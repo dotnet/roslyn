@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             IndexerDeclarationSyntax indexerDeclaration,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
+            OptionSet options,
             CancellationToken cancellationToken)
         {
             CSharpStructureHelpers.CollectCommentBlockSpans(indexerDeclaration, spans);
@@ -25,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
-            spans.Add(CSharpStructureHelpers.CreateBlockSpan(
+            spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 indexerDeclaration,
                 indexerDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
                 autoCollapse: true,
-                type: BlockTypes.Indexer,
+                type: BlockTypes.Member,
                 isCollapsible: true));
         }
     }

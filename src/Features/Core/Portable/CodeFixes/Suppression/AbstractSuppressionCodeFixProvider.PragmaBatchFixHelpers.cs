@@ -58,10 +58,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     var originalpragmaAction = pragmaActions[i];
                     var diagnostic = diagnostics[i];
-
                     // Get the diagnostic span for the diagnostic in latest document snapshot.
-                    TextSpan currentDiagnosticSpan;
-                    if (!currentDiagnosticSpans.TryGetValue(diagnostic, out currentDiagnosticSpan))
+                    if (!currentDiagnosticSpans.TryGetValue(diagnostic, out var currentDiagnosticSpan))
                     {
                         // Diagnostic whose location conflicts with a prior fix.
                         continue;
@@ -92,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     if (newSuppressionFix != null)
                     {
                         var newPragmaAction = newSuppressionFix.Action as IPragmaBasedCodeAction ??
-                            newSuppressionFix.Action.GetCodeActions().OfType<IPragmaBasedCodeAction>().SingleOrDefault();
+                            newSuppressionFix.Action.NestedCodeActions.OfType<IPragmaBasedCodeAction>().SingleOrDefault();
                         if (newPragmaAction != null)
                         {
                             // Get the text changes with pragma suppression add/removals.
@@ -141,8 +139,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     // We use 'originalSpan' to identify if the diagnostic is prior/following/enclosing with respect to each text change.
                     // We use 'currentSpan' to track updates made to the originalSpan by each text change.
-                    TextSpan originalSpan;
-                    if (!currentDiagnosticSpans.TryGetValue(diagnostic, out originalSpan))
+                    if (!currentDiagnosticSpans.TryGetValue(diagnostic, out var originalSpan))
                     {
                         continue;
                     }

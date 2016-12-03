@@ -163,6 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(current != null); // Why were we asked for an enclosing binder for a node outside our root?
                 StatementSyntax stmt = current as StatementSyntax;
                 TypeOfExpressionSyntax typeOfExpression;
+                SyntaxKind kind = current.Kind();
+
                 if (stmt != null)
                 {
                     if (LookupPosition.IsInStatementScope(position, stmt))
@@ -175,14 +177,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (current.Kind() == SyntaxKind.CatchClause)
+                else if (kind == SyntaxKind.CatchClause)
                 {
                     if (LookupPosition.IsInCatchBlockScope(position, (CatchClauseSyntax)current))
                     {
                         binder = rootBinder.GetBinder(current);
                     }
                 }
-                else if (current.Kind() == SyntaxKind.CatchFilterClause)
+                else if (kind == SyntaxKind.CatchFilterClause)
                 {
                     if (LookupPosition.IsInCatchFilterScope(position, (CatchFilterClauseSyntax)current))
                     {
@@ -205,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (current.Kind() == SyntaxKind.TypeOfExpression &&
+                else if (kind == SyntaxKind.TypeOfExpression &&
                     typeOfArgument == null &&
                     LookupPosition.IsBetweenTokens(
                         position,
@@ -215,14 +217,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeOfArgument = typeOfExpression.Type;
                     typeOfEncounteredBeforeUnexpectedAnonymousFunction = unexpectedAnonymousFunction == null;
                 }
-                else if (current.Kind() == SyntaxKind.SwitchSection)
+                else if (kind == SyntaxKind.SwitchSection)
                 {
                     if (LookupPosition.IsInSwitchSectionScope(position, (SwitchSectionSyntax)current))
                     {
                         binder = rootBinder.GetBinder(current);
                     }
                 }
-                else if (current.Kind() == SyntaxKind.ArgumentList)
+                else if (kind == SyntaxKind.ArgumentList)
                 {
                     var argList = (ArgumentListSyntax)current;
 
@@ -231,41 +233,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         binder = rootBinder.GetBinder(current);
                     }
                 }
-                else if (current.Kind() == SyntaxKind.EqualsValueClause)
+                else if (kind == SyntaxKind.EqualsValueClause)
                 {
                     binder = rootBinder.GetBinder(current);
                 }
-                else if (current.Kind() == SyntaxKind.Attribute)
+                else if (kind == SyntaxKind.Attribute)
                 {
                     binder = rootBinder.GetBinder(current);
                 }
-                else if (current.Kind() == SyntaxKind.ArrowExpressionClause)
+                else if (kind == SyntaxKind.ArrowExpressionClause)
                 {
                     binder = rootBinder.GetBinder(current);
                 }
-                else if (current is ExpressionSyntax && 
+                else if (current is ExpressionSyntax &&
                             ((current.Parent as LambdaExpressionSyntax)?.Body == current ||
                              (current.Parent as SwitchStatementSyntax)?.Expression == current ||
                              (current.Parent as CommonForEachStatementSyntax)?.Expression == current))
                 {
                     binder = rootBinder.GetBinder(current);
-                }
-                else if (current is VariableComponentSyntax &&
-                             (current.Parent as ForEachComponentStatementSyntax)?.VariableComponent == current)
-                {
-                    binder = rootBinder.GetBinder(current.Parent);
-                }
-                else if (current is VariableComponentSyntax &&
-                             (current.Parent is VariableComponentAssignmentSyntax) &&
-                             (current.Parent.Parent as ForStatementSyntax)?.Deconstruction == current)
-                {
-                    binder = rootBinder.GetBinder(current.Parent.Parent);
-                }
-                else if (current is VariableComponentSyntax &&
-                             (current.Parent is VariableComponentAssignmentSyntax) &&
-                             (current.Parent.Parent as DeconstructionDeclarationStatementSyntax)?.Assignment.VariableComponent == current)
-                {
-                    binder = rootBinder.GetBinder(current.Parent.Parent);
                 }
                 else
                 {
@@ -323,9 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachComponentStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     var foreachStmt = (CommonForEachStatementSyntax)stmt;
-                    if (LookupPosition.IsBetweenTokens(position, foreachStmt.OpenParenToken, foreachStmt.Statement.GetFirstToken()))
+                    var start = stmt.Kind() == SyntaxKind.ForEachVariableStatement ? foreachStmt.InKeyword : foreachStmt.OpenParenToken;
+                    if (LookupPosition.IsBetweenTokens(position, start, foreachStmt.Statement.GetFirstToken()))
                     {
                         binder = binder.GetBinder(foreachStmt.Expression);
                         Debug.Assert(binder != null);
@@ -347,6 +333,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var csdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("destination");
+
+            if (expression.Kind() == SyntaxKind.DeclarationExpression)
+            {
+                // Conversion from a declaration is unspecified.
+                return Conversion.NoConversion;
+            }
 
             // Special Case: We have to treat anonymous functions differently, because of the way
             // they are cached in the syntax-to-bound node map.  Specifically, UnboundLambda nodes
@@ -589,12 +581,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
-        }
-
-        public override ILocalSymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            CheckSyntaxNode(declarationSyntax);
-            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
         }
 
         public override ILabelSymbol GetDeclaredSymbol(LabeledStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -1448,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   position, unbound.BindForErrorRecovery().Binder, unbound.Syntax);
                     case BoundKind.Lambda:
                         var lambda = (BoundLambda)n;
-                        return GetEnclosingBinder(AdjustStartingNodeAccordingToNewRoot(startingNode, lambda.Body.Syntax), 
+                        return GetEnclosingBinder(AdjustStartingNodeAccordingToNewRoot(startingNode, lambda.Body.Syntax),
                                                   position, lambda.Binder, lambda.Body.Syntax);
                     default:
                         goto done;
@@ -1635,6 +1621,18 @@ done:
 
                     case SyntaxKind.AnonymousObjectMemberDeclarator:
                         return GetBindableSyntaxNode(parent);
+
+                    case SyntaxKind.DeclarationExpression:
+                    case SyntaxKind.TupleExpression:
+                        var assignment = ((ExpressionSyntax)node).GetContainingDeconstruction() as AssignmentExpressionSyntax;
+                        if (assignment != null)
+                        {
+                            return assignment;
+                        }
+                        else
+                        {
+                            goto default;
+                        }
 
                     case SyntaxKind.VariableDeclarator: // declarators are mapped in SyntaxBinder
 

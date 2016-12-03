@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         (int A, int B, (int C, int), int, int, int G, int H, int I) t = (1, 2, (3, 4), 5, 6, 7, 8, 9);
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 @"<symbols>
   <methods>
@@ -63,7 +63,7 @@ class C
         const C<(int A, int B)> c = null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 @"<symbols>
   <methods>
@@ -112,7 +112,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 @"<symbols>
   <methods>
@@ -176,7 +176,7 @@ class C
         (int \u1234, int, int \u005f\u1200\u005f) \u1200 = (1, 2, 3);
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             comp.VerifyPdb(
 string.Format(@"<symbols>
   <methods>
@@ -206,6 +206,62 @@ string.Format(@"<symbols>
     "\u1234",
     "_\u1200_",
     "\u1200"));
+        }
+
+        [Fact]
+        public void DeconstructionForeach()
+        {
+            var source =
+@"class C
+{
+    static void F(System.Collections.Generic.IEnumerable<(int a, int b)> ie)
+    { //4,5
+        foreach (         //5,9
+            var (a, b)    //6,13
+            in            //7,13
+            ie)           //8,13
+        { //9,9
+        } //10,9
+    } //11,5
+}";
+            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            comp.VerifyPdb(
+string.Format(@"<symbols>
+  <methods>
+    <method containingType=""C"" name=""F"" parameterNames=""ie"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""5"" offset=""17"" />
+          <slot kind=""0"" offset=""59"" />
+          <slot kind=""0"" offset=""62"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""16"" />
+        <entry offset=""0x2"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""15"" />
+        <entry offset=""0x9"" hidden=""true"" />
+        <entry offset=""0xb"" startLine=""6"" startColumn=""13"" endLine=""6"" endColumn=""23"" />
+        <entry offset=""0x24"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x25"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
+        <entry offset=""0x26"" startLine=""7"" startColumn=""13"" endLine=""7"" endColumn=""15"" />
+        <entry offset=""0x30"" hidden=""true"" />
+        <entry offset=""0x3b"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x3c"">
+        <scope startOffset=""0xb"" endOffset=""0x26"">
+          <local name=""a"" il_index=""1"" il_start=""0xb"" il_end=""0x26"" attributes=""0"" />
+          <local name=""b"" il_index=""2"" il_start=""0xb"" il_end=""0x26"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>"));
         }
     }
 }

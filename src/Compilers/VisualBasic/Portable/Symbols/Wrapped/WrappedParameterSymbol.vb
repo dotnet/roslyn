@@ -102,6 +102,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return Me._underlyingParameter.RefCustomModifiers
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property MarshallingInformation As MarshalPseudoCustomAttributeData
             Get
                 Return Me._underlyingParameter.MarshallingInformation
@@ -141,12 +147,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
             Get
                 Return Me._underlyingParameter.IsCallerMemberName
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
-            Get
-                Return Me._underlyingParameter.CountOfCustomModifiersPrecedingByRef
             End Get
         End Property
 

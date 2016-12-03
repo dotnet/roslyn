@@ -1,41 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <RestorePackages>true</RestorePackages>
     <ServiceablePackage>true</ServiceablePackage>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <NoStdLib>true</NoStdLib>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutDir>..\..\..\..\Binaries\Release\amd64</OutDir>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Optimize>true</Optimize>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.Native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">
@@ -46,6 +26,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
+    <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerExecutionContext.cs" />
+    <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
+    <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
+    <Compile Include="Symbols\IDiscardedSymbol.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />
     <Compile Include="Syntax\SyntaxList.SeparatedWithManyWeakChildren.cs" />
@@ -145,7 +129,7 @@
     <Compile Include="Text\SourceTextComparer.cs" />
     <Compile Include="Text\SourceTextWriter.cs" />
     <Compile Include="Text\StringTextWriter.cs" />
-    <Compile Include="UnicodeCharacterUtilities.cs" />
+    <Compile Include="InternalUtilities\UnicodeCharacterUtilities.cs" />
     <Compile Include="CodeAnalysisResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -236,7 +220,6 @@
     <Compile Include="DiagnosticAnalyzer\AnalyzerTelemetry.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerActionCounts.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerExecutor.cs" />
-    <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerAndOptions.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerManager.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilationCompletedEvent.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilationEvent.cs" />
@@ -436,9 +419,6 @@
     <Compile Include="InternalUtilities\ThreadSafeFlagOperations.cs" />
     <Compile Include="InternalUtilities\ThreeState.cs" />
     <Compile Include="InternalUtilities\UICultureUtilities.cs" />
-    <Compile Include="InternalUtilities\ValueTuple.cs" />
-    <Compile Include="InternalUtilities\ValueTuple`2.cs" />
-    <Compile Include="InternalUtilities\ValueTuple`3.cs" />
     <Compile Include="InternalUtilities\WeakList.cs" />
     <Compile Include="InternalUtilities\WeakReferenceExtensions.cs" />
     <Compile Include="InternalUtilities\XmlUtilities.cs" />
@@ -625,6 +605,7 @@
     <Compile Include="Symbols\Attributes\WellKnownAttributeData.cs" />
     <Compile Include="Symbols\CommonAttributeDataExtensions.cs" />
     <Compile Include="Symbols\CustomModifier.cs" />
+    <Compile Include="Symbols\CustomModifiersTuple.cs" />
     <Compile Include="Symbols\IAliasSymbol.cs" />
     <Compile Include="Symbols\IArrayTypeSymbol.cs" />
     <Compile Include="Symbols\IAssemblySymbol.cs" />
@@ -814,5 +795,5 @@
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
-  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

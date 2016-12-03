@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMemberOptions.IncludeParameters |
                     SymbolDisplayMemberOptions.IncludeAccessibility |
                     SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeRef |
                     SymbolDisplayMemberOptions.IncludeModifiers,
                 kindOptions:
                     SymbolDisplayKindOptions.IncludeMemberKeyword,
@@ -103,6 +104,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMemberOptions.IncludeParameters |
                     SymbolDisplayMemberOptions.IncludeAccessibility |
                     SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeRef |
                     SymbolDisplayMemberOptions.IncludeModifiers,
                 kindOptions:
                     SymbolDisplayKindOptions.IncludeMemberKeyword,
@@ -141,6 +143,7 @@ namespace Microsoft.CodeAnalysis
                 memberOptions:
                     SymbolDisplayMemberOptions.IncludeParameters |
                     SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeRef |
                     SymbolDisplayMemberOptions.IncludeContainingType,
                 kindOptions:
                     SymbolDisplayKindOptions.IncludeMemberKeyword,
@@ -168,6 +171,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMemberOptions.IncludeParameters |
                     SymbolDisplayMemberOptions.IncludeContainingType |
                     SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeRef |
                     SymbolDisplayMemberOptions.IncludeExplicitInterface,
                 kindOptions:
                     SymbolDisplayKindOptions.IncludeMemberKeyword,
@@ -224,7 +228,7 @@ namespace Microsoft.CodeAnalysis
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType,
+                memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeRef,
                 kindOptions: SymbolDisplayKindOptions.IncludeMemberKeyword,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,

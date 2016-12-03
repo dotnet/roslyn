@@ -301,8 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
             /// </summary>
             private SyntaxNodeOrToken? FindLeafNode(SnapshotSpan span, CancellationToken cancellationToken)
             {
-                SyntaxToken token;
-                if (!TryFindLeafToken(span.Start, out token, cancellationToken))
+                if (!TryFindLeafToken(span.Start, out var token, cancellationToken))
                 {
                     return null;
                 }

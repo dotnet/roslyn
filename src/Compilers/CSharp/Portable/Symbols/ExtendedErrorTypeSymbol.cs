@@ -108,15 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<Symbol> CandidateSymbols
-        {
-            get
-            {
-                return _candidateSymbols.IsDefault
-                    ? ImmutableArray<Symbol>.Empty
-                    : _candidateSymbols;
-            }
-        }
+        public override ImmutableArray<Symbol> CandidateSymbols => _candidateSymbols.NullToEmpty();
 
         internal override bool Unreported
         {

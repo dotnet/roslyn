@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 private sealed class LowPriorityProcessor : AbstractPriorityProcessor
                 {
-                    private readonly Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
                     private readonly AsyncProjectWorkItemQueue _workItemQueue;
 
                     public LowPriorityProcessor(
@@ -31,20 +30,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IGlobalOperationNotificationService globalOperationNotificationService,
                         int backOffTimeSpanInMs,
                         CancellationToken shutdownToken) :
-                        base(listener, processor, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
+                        base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
                     {
-                        _lazyAnalyzers = lazyAnalyzers;
                         _workItemQueue = new AsyncProjectWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
 
                         Start();
-                    }
-
-                    internal ImmutableArray<IIncrementalAnalyzer> Analyzers
-                    {
-                        get
-                        {
-                            return _lazyAnalyzers.Value;
-                        }
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
@@ -58,13 +48,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             // we wait for global operation, higher and normal priority processor to finish its working
                             await WaitForHigherPriorityOperationsAsync().ConfigureAwait(false);
-
                             // process any available project work, preferring the active project.
-                            WorkItem workItem;
-                            CancellationTokenSource projectCancellation;
                             if (_workItemQueue.TryTakeAnyWork(
-                                this.Processor.GetActiveProject(), this.Processor.DependencyGraph, this.Processor.DiagnosticAnalyzerService, 
-                                out workItem, out projectCancellation))
+                                this.Processor.GetActiveProject(), this.Processor.DependencyGraph, this.Processor.DiagnosticAnalyzerService,
+                                out var workItem, out var projectCancellation))
                             {
                                 await ProcessProjectAsync(this.Analyzers, workItem, projectCancellation).ConfigureAwait(false);
                             }

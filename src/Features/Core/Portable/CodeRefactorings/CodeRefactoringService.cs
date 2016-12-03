@@ -59,8 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         private IEnumerable<CodeRefactoringProvider> GetProviders(Document document)
         {
-            Lazy<IEnumerable<CodeRefactoringProvider>> lazyProviders;
-            if (this.LanguageToProvidersMap.TryGetValue(document.Project.Language, out lazyProviders))
+            if (this.LanguageToProvidersMap.TryGetValue(document.Project.Language, out var lazyProviders))
             {
                 return lazyProviders.Value;
             }
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             return false;
         }
 
-        public async Task<IEnumerable<CodeRefactoring>> GetRefactoringsAsync(
+        public async Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
             Document document,
             TextSpan state,
             CancellationToken cancellationToken)
@@ -106,11 +105,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 foreach (var provider in this.GetProviders(document))
                 {
                     tasks.Add(Task.Run(
-                        async () => await GetRefactoringFromProviderAsync(document, state, provider, extensionManager, cancellationToken).ConfigureAwait(false), cancellationToken));
+                        () => GetRefactoringFromProviderAsync(document, state, provider, extensionManager, cancellationToken), cancellationToken));
                 }
 
                 var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-                return results.WhereNotNull();
+                return results.WhereNotNull().ToImmutableArray();
             }
         }
 

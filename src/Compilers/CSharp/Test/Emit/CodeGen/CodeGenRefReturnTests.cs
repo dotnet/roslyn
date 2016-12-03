@@ -140,17 +140,48 @@ class Program
     {
         return ref P;
     }
+
+    public static void Main()
+    {
+        var local = 42;   // must be real local
+        P = local;
+        P = local;  // assign again, should not use stack local
+        System.Console.WriteLine(P);
+    }
 }
 ";
 
-            CompileAndVerifyRef(text).VerifyIL("Program.M()", @"
+            var v = CompileAndVerifyRef(text, expectedOutput: "42");
+
+            v.VerifyIL("Program.M()", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  call       ""ref int Program.P.get""
   IL_0005:  ret
 }");
+
+            v.VerifyIL("Program.Main()", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (int V_0) //local
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  call       ""ref int Program.P.get""
+  IL_0008:  ldloc.0
+  IL_0009:  stind.i4
+  IL_000a:  call       ""ref int Program.P.get""
+  IL_000f:  ldloc.0
+  IL_0010:  stind.i4
+  IL_0011:  call       ""ref int Program.P.get""
+  IL_0016:  ldind.i4
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
+}");
+
         }
+
 
         [Fact]
         public void RefReturnClassInstanceProperty()
@@ -2424,5 +2455,67 @@ class C
             Assert.Equal("ref System.Object B2.P { get; }", property.ToTestDisplayString());
             Assert.Equal("ref System.Object A.P { get; }", property.OverriddenProperty.ToTestDisplayString());
         }
+
+        [WorkItem(12763, "https://github.com/dotnet/roslyn/issues/12763")]
+        [Fact]
+        public void RefReturnFieldUse001()
+        {
+            var text = @"
+public class A<T>
+{
+    private T _f;
+    public ref T F()
+    {
+        return ref _f;
+    }
+
+    private T _p;
+    public ref T P
+    {
+        get { return ref _p; }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                 // no diagnostics expected
+                );
+        }
+
+        [WorkItem(12763, "https://github.com/dotnet/roslyn/issues/12763")]
+        [Fact]
+        public void RefAssignFieldUse001()
+        {
+            var text = @"
+public class A<T>
+{
+    private T _f;
+    public ref T F()
+    {
+        ref var r = ref _f;
+        return ref r;
+    }
+
+    private T _p;
+    public ref T P
+    {
+        get 
+        { 
+            ref var r = ref _p;
+            return ref r;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // no diagnostics expected
+                );
+        }
+
     }
 }

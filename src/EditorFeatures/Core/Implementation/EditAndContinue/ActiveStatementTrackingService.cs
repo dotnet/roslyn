@@ -130,10 +130,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             private void DocumentOpened(object sender, DocumentEventArgs e)
             {
-                ITextSnapshot snapshot;
-                ImmutableArray<ActiveStatementSpan> activeStatements;
-                if (_editSession.BaseActiveStatements.TryGetValue(e.Document.Id, out activeStatements) &&
-                    TryGetSnapshot(e.Document, out snapshot))
+                if (_editSession.BaseActiveStatements.TryGetValue(e.Document.Id, out var activeStatements) &&
+                    TryGetSnapshot(e.Document, out var snapshot))
                 {
                     lock (_trackingSpans)
                     {
@@ -147,8 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             private static bool TryGetSnapshot(Document document, out ITextSnapshot snapshot)
             {
-                SourceText source;
-                if (!document.TryGetText(out source))
+                if (!document.TryGetText(out var source))
                 {
                     snapshot = null;
                     return false;
@@ -166,8 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     {
                         var documentId = entry.Key;
                         Document document = _editSession.BaseSolution.GetDocument(documentId);
-                        ITextSnapshot snapshot;
-                        if (TryGetSnapshot(document, out snapshot))
+                        if (TryGetSnapshot(document, out var snapshot))
                         {
                             TrackActiveSpansNoLock(document, snapshot, entry.Value);
                         }
@@ -180,8 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 ITextSnapshot snapshot,
                 ImmutableArray<ActiveStatementSpan> documentActiveSpans)
             {
-                ITrackingSpan[] documentTrackingSpans;
-                if (!_trackingSpans.TryGetValue(document.Id, out documentTrackingSpans))
+                if (!_trackingSpans.TryGetValue(document.Id, out var documentTrackingSpans))
                 {
                     SetTrackingSpansNoLock(document.Id, CreateTrackingSpans(snapshot, documentActiveSpans));
                 }
@@ -217,8 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 bool updated = false;
                 lock (_trackingSpans)
                 {
-                    ITrackingSpan[] documentTrackingSpans;
-                    if (_trackingSpans.TryGetValue(documentId, out documentTrackingSpans) && documentTrackingSpans == null)
+                    if (_trackingSpans.TryGetValue(documentId, out var documentTrackingSpans) && documentTrackingSpans == null)
                     {
                         SetTrackingSpansNoLock(documentId, CreateTrackingSpans(snapshot, documentActiveSpans));
                         updated = true;
@@ -268,11 +262,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             public bool TryGetSpan(ActiveStatementId id, SourceText source, out TextSpan span)
             {
-                ITrackingSpan[] documentSpans;
-
                 lock (_trackingSpans)
                 {
-                    if (_trackingSpans.TryGetValue(id.DocumentId, out documentSpans) && documentSpans != null)
+                    if (_trackingSpans.TryGetValue(id.DocumentId, out var documentSpans) && documentSpans != null)
                     {
                         var trackingSpan = documentSpans[id.Ordinal];
                         var snapshot = source.FindCorrespondingEditorTextSnapshot();
@@ -344,13 +336,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 bool leafUpdated = false;
                 bool updated = false;
-                ITrackingSpan[] documentSpans;
                 lock (_trackingSpans)
                 {
                     foreach (var span in spans)
                     {
                         ActiveStatementId id = span.Key;
-                        if (_trackingSpans.TryGetValue(id.DocumentId, out documentSpans) && documentSpans != null)
+                        if (_trackingSpans.TryGetValue(id.DocumentId, out var documentSpans) && documentSpans != null)
                         {
                             var snapshot = source.FindCorrespondingEditorTextSnapshot();
 

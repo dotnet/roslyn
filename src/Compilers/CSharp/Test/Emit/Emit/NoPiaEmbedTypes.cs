@@ -1464,7 +1464,7 @@ class UsePia4
 
                     SignatureHeader signatureHeader;
                     BadImageFormatException mrEx;
-                    ParamInfo<TypeSymbol>[] paramInfo = new MetadataDecoder((PEModuleSymbol)module, itest17).GetSignatureForMethod(gapMethodDef, out signatureHeader, out mrEx, allowByRefReturn: true);
+                    ParamInfo<TypeSymbol>[] paramInfo = new MetadataDecoder((PEModuleSymbol)module, itest17).GetSignatureForMethod(gapMethodDef, out signatureHeader, out mrEx);
                     Assert.Null(mrEx);
                     Assert.Equal((byte)SignatureCallingConvention.Default | (byte)SignatureAttributes.Instance, signatureHeader.RawValue);
                     Assert.Equal(1, paramInfo.Length);
@@ -4756,7 +4756,7 @@ class UsePia5
 ";
 
             DiagnosticDescription[] expected = {
-                // error CS1769: Type 'System.Collections.Generic.List<ITest33>' from assembly 'Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+                // error CS1769: Type 'System.Collections.Generic.List<ITest33>' from assembly 'Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
                 Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies).WithArguments("System.Collections.Generic.List<ITest33>", "Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
                                                };
 
@@ -4827,7 +4827,7 @@ class UsePia5
 ";
 
             DiagnosticDescription[] expected = {
-                // (10,17): error CS1769: Type 'System.Collections.Generic.List<ITest33>' from assembly 'Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+                // (10,17): error CS1769: Type 'System.Collections.Generic.List<ITest33>' from assembly 'Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
                 //         ITest34 y = null;
                 Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "y = null").WithArguments("System.Collections.Generic.List<ITest33>", "Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
             };
@@ -4879,8 +4879,6 @@ class UsePia5
             var compilation1 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2, embedInteropTypes: true) });
             compilation1.VerifyEmitDiagnostics(
-                // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1),
                 // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1),
                 // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
@@ -4996,7 +4994,7 @@ class UsePia5
 ";
 
             DiagnosticDescription[] expected = {
-                // error CS1769: Type 'System.Collections.Generic.List<ITest33>' from assembly 'Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+                // error CS1769: Type 'System.Collections.Generic.List<ITest33>' from assembly 'Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
                 Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies).WithArguments("System.Collections.Generic.List<ITest33>", "Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
                                                };
 
@@ -5074,7 +5072,7 @@ public class UsePia5 : ITest34
 ";
 
             DiagnosticDescription[] expected = {
-                // (5,24): error CS1769: Type 'List<ValueTuple<ITest33, ITest33>>' from assembly 'Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+                // (5,24): error CS1769: Type 'List<ValueTuple<ITest33, ITest33>>' from assembly 'Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
                 // public class UsePia5 : ITest34
                 Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "ITest34").WithArguments("System.Collections.Generic.List<ValueTuple<ITest33, ITest33>>", "Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 24)
             };
@@ -5156,7 +5154,7 @@ class UsePia5
 ";
 
             DiagnosticDescription[] expected = {
-                // (10,17): error CS1769: Type 'System.Collections.Generic.List<ITest33>' from assembly 'Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+                // (10,17): error CS1769: Type 'System.Collections.Generic.List<ITest33>' from assembly 'Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
                 //         ITest34 y = null;
                 Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "y = null").WithArguments("System.Collections.Generic.List<ITest33>", "Pia2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
             };

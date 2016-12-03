@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
         public int GetDataCount(TKey key)
         {
-            CacheEntry entry;
-            if (!this.DataCache.TryGetValue(key, out entry))
+            if (!this.DataCache.TryGetValue(key, out var entry))
             {
                 return 0;
             }
@@ -39,8 +38,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
         public async Task<TData> TryGetExistingDataAsync(TValue value, CancellationToken cancellationToken)
         {
-            CacheEntry entry;
-            if (!this.DataCache.TryGetValue(GetCacheKey(value), out entry))
+            if (!this.DataCache.TryGetValue(GetCacheKey(value), out var entry))
             {
                 // we don't have data
                 return default(TData);
@@ -83,8 +81,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
         {
             // remove doesn't actually remove data from the persistent storage
             // that will be automatically managed by the service itself.
-            CacheEntry entry;
-            return this.DataCache.TryRemove(id, out entry);
+            return this.DataCache.TryRemove(id, out var entry);
         }
 
         private async Task<bool> WriteToStreamAsync(TValue value, TData data, CancellationToken cancellationToken)

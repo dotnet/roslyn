@@ -91,11 +91,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<ISymbol> ExplicitInterfaceImplementations(this ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IEventSymbol @event) => @event.ExplicitInterfaceImplementations.As<ISymbol>(),
-                (IMethodSymbol method) => method.ExplicitInterfaceImplementations.As<ISymbol>(),
-                (IPropertySymbol property) => property.ExplicitInterfaceImplementations.As<ISymbol>(),
-                _ => ImmutableArray.Create<ISymbol>());
+            switch (symbol)
+            {
+                case IEventSymbol @event: return ImmutableArray<ISymbol>.CastUp(@event.ExplicitInterfaceImplementations);
+                case IMethodSymbol method: return ImmutableArray<ISymbol>.CastUp(method.ExplicitInterfaceImplementations);
+                case IPropertySymbol property: return ImmutableArray<ISymbol>.CastUp(property.ExplicitInterfaceImplementations);
+                default: return ImmutableArray.Create<ISymbol>();
+            }
         }
 
         public static bool IsOverridable(this ISymbol symbol)
@@ -166,6 +168,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsArrayType(this ISymbol symbol)
         {
             return symbol?.Kind == SymbolKind.ArrayType;
+        }
+
+        public static bool IsTupleType(this ISymbol symbol)
+        {
+            return (symbol as ITypeSymbol)?.IsTupleType ?? false;
         }
 
         public static bool IsAnonymousFunction(this ISymbol symbol)
@@ -370,9 +377,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsThisParameter(this ISymbol symbol)
-        {
-            return symbol != null && symbol.Kind == SymbolKind.Parameter && ((IParameterSymbol)symbol).IsThis;
-        }
+            => symbol?.Kind == SymbolKind.Parameter && ((IParameterSymbol)symbol).IsThis;
 
         public static ISymbol ConvertThisParameterToType(this ISymbol symbol)
         {
@@ -392,31 +397,37 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IMethodSymbol m) => m.Parameters,
-                (IPropertySymbol nt) => nt.Parameters,
-                _ => ImmutableArray.Create<IParameterSymbol>());
+            switch (symbol)
+            {
+                case IMethodSymbol m: return m.Parameters;
+                case IPropertySymbol nt: return nt.Parameters;
+                default: return ImmutableArray.Create<IParameterSymbol>();
+            }
         }
 
         public static ImmutableArray<ITypeParameterSymbol> GetTypeParameters(this ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IMethodSymbol m) => m.TypeParameters,
-                (INamedTypeSymbol nt) => nt.TypeParameters,
-                _ => ImmutableArray.Create<ITypeParameterSymbol>());
+            switch (symbol)
+            {
+                case IMethodSymbol m: return m.TypeParameters;
+                case INamedTypeSymbol nt: return nt.TypeParameters;
+                default: return ImmutableArray.Create<ITypeParameterSymbol>();
+            }
         }
 
         public static ImmutableArray<ITypeSymbol> GetTypeArguments(this ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IMethodSymbol m) => m.TypeArguments,
-                (INamedTypeSymbol nt) => nt.TypeArguments,
-                _ => ImmutableArray.Create<ITypeSymbol>());
+            switch (symbol)
+            {
+                case IMethodSymbol m: return m.TypeArguments;
+                case INamedTypeSymbol nt: return nt.TypeArguments;
+                default: return ImmutableArray.Create<ITypeSymbol>();
+            }
         }
 
         public static ImmutableArray<ITypeSymbol> GetAllTypeArguments(this ISymbol symbol)
         {
-            var results = ImmutableArray.CreateBuilder<ITypeSymbol>();
+            var results = ArrayBuilder<ITypeSymbol>.GetInstance();
             results.AddRange(symbol.GetTypeArguments());
 
             var containingType = symbol.ContainingType;
@@ -426,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 containingType = containingType.ContainingType;
             }
 
-            return results.AsImmutable();
+            return results.ToImmutableAndFree();
         }
 
         public static bool IsAttribute(this ISymbol symbol)
@@ -819,6 +830,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                  method.MethodKind == MethodKind.EventRemove);
         }
 
+        public static bool IsFromSource(this ISymbol symbol)
+        {
+            return symbol.Locations.Any() && symbol.Locations.All(location => location.IsInSource);
+        }
+
         public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
         {
             return new DeclarationModifiers(
@@ -946,7 +962,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// unsupported (e.g. pointer types in VB) or not editor browsable based on the EditorBrowsable
         /// attribute.
         /// </summary>
-        public static IEnumerable<T> FilterToVisibleAndBrowsableSymbols<T>(this IEnumerable<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
+        public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbols<T>(
+            this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
         {
             symbols = symbols.RemoveOverriddenSymbolsWithinSet();
 
@@ -962,7 +979,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
             // check to see if we're referencing a symbol defined in source.
             Func<Location, bool> isSymbolDefinedInSource = l => l.IsInSource;
-            return symbols.Where(s =>
+            return symbols.WhereAsArray(s =>
                 (s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
                 !s.IsDestructor() &&
                 s.IsEditorBrowsable(
@@ -975,9 +992,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     hideModuleNameAttribute));
         }
 
-        private static IEnumerable<T> RemoveOverriddenSymbolsWithinSet<T>(this IEnumerable<T> symbols) where T : ISymbol
+        private static ImmutableArray<T> RemoveOverriddenSymbolsWithinSet<T>(this ImmutableArray<T> symbols) where T : ISymbol
         {
-            HashSet<ISymbol> overriddenSymbols = new HashSet<ISymbol>();
+            var overriddenSymbols = new HashSet<ISymbol>();
 
             foreach (var symbol in symbols)
             {
@@ -987,12 +1004,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return symbols.Where(s => !overriddenSymbols.Contains(s));
+            return symbols.WhereAsArray(s => !overriddenSymbols.Contains(s));
         }
 
-        public static IEnumerable<T> FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols<T>(this IEnumerable<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
+        public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols<T>(
+            this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
         {
-            return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation).Where(s => !s.IsUnsafe());
+            return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation)
+                .WhereAsArray(s => !s.IsUnsafe());
         }
     }
 }
