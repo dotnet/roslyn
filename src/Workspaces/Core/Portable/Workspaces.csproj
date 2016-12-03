@@ -370,6 +370,7 @@
     <Compile Include="Execution\SolutionAsset.cs" />
     <Compile Include="Execution\WellKnownSynchronizationKinds.cs" />
     <Compile Include="Experiments\IExperimentationService.cs" />
+    <Compile Include="NamingStyles\EditorConfig\EditorConfigSeverityStrings.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.NamingRule.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.NamingStyle.cs" />

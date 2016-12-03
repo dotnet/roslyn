@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     return words.Select(CapitalizeFirstLetter);
                 case Capitalization.CamelCase:
                     return words.Take(1).Select(DecapitalizeFirstLetter).Concat(words.Skip(1).Select(CapitalizeFirstLetter));
-                case Capitalization.FirstWordUpper:
+                case Capitalization.FirstUpper:
                     return words.Take(1).Select(CapitalizeFirstLetter).Concat(words.Skip(1).Select(DecapitalizeFirstLetter));
                 case Capitalization.AllUpper:
                     return words.Select(w => w.ToUpper());
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
                         return false;
                     }
-                case Capitalization.FirstWordUpper:
+                case Capitalization.FirstUpper:
                     if (char.IsUpper(words.First()[0]) && words.Skip(1).All(w => char.IsLower(w[0])))
                     {
                         return true;

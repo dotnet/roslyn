@@ -77,37 +77,37 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 #Region "Firstupper"
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestFirstUpperWithZeroWords()
-            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstWordUpper)
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstUpper)
             TestNameCreation(namingStyle, "")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestFirstUpperWithOneConformingWord()
-            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstWordUpper)
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstUpper)
             TestNameCreation(namingStyle, "First", "First")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestFirstUpperWithOneNonconformingWord()
-            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstWordUpper)
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstUpper)
             TestNameCreation(namingStyle, "First", "first")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestFirstUpperCapitalizationOfFirstCharacter()
-            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstWordUpper)
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstUpper)
             TestNameCreation(namingStyle, "Firstupper", "first", "upper")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestFirstUpperDecapitalizationOfAppropriateFirstCharacter()
-            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstWordUpper)
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstUpper)
             TestNameCreation(namingStyle, "Firstupper", "First", "Upper")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestFirstUpperLeavesSubsequentCharactersAlone()
-            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstWordUpper)
+            Dim namingStyle = CreateNamingStyle(capitalizationScheme:=Capitalization.FirstUpper)
             TestNameCreation(namingStyle, "FiRstupper", "fiRst", "upper")
         End Sub
 #End Region

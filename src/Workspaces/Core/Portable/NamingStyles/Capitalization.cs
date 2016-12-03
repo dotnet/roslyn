@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         /// <summary>
         /// Only the first word is capitalized
         /// </summary>
-        FirstWordUpper,
+        FirstUpper,
 
         /// <summary>
         /// Every character is capitalized

@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Roslyn.Utilities;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 WordSeparator = wordSeparator,
                 CapitalizationScheme = capitalization
             };
+
             return true;
         }
 
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             {
                 case "pascal_case": return Capitalization.PascalCase;
                 case "camel_case": return Capitalization.CamelCase;
-                case "first_word_upper": return Capitalization.FirstWordUpper;
+                case "first_word_upper": return Capitalization.FirstUpper;
                 case "all_upper": return Capitalization.AllUpper;
                 case "all_lower": return Capitalization.AllLower;
                 default: return default(Capitalization);

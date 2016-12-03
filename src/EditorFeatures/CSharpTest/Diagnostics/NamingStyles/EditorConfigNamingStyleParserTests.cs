@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Test.Utilities;
@@ -10,9 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
 {
     public partial class EditorConfigNamingStyleParserTests
     {
-
         [Fact]
-        static void TestPascalCaseRule()
+        public static void TestPascalCaseRule()
         {
             var dictionary = new Dictionary<string, object>()
             {
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
-        static void TestAsyncMethodsRule()
+        public static void TestAsyncMethodsRule()
         {
             var dictionary = new Dictionary<string, object>()
             {
@@ -114,9 +115,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal(Capitalization.PascalCase, namingStyle.CapitalizationScheme);
         }
 
-
         [Fact]
-        static void TestPublicMembersCapitalizedRule()
+        public static void TestPublicMembersCapitalizedRule()
         {
             var dictionary = new Dictionary<string, object>()
             {
@@ -172,11 +172,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal("", namingStyle.Prefix);
             Assert.Equal("", namingStyle.Suffix);
             Assert.Equal("", namingStyle.WordSeparator);
-            Assert.Equal(Capitalization.FirstWordUpper, namingStyle.CapitalizationScheme);
+            Assert.Equal(Capitalization.FirstUpper, namingStyle.CapitalizationScheme);
         }
 
         [Fact]
-        static void TestNonPublicMembersLowerCaseRule()
+        public static void TestNonPublicMembersLowerCaseRule()
         {
             var dictionary = new Dictionary<string, object>()
             {
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
-        static void TestNoRulesAreReturned()
+        public static void TestNoRulesAreReturned()
         {
             var dictionary = new Dictionary<string, object>()
             {

@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Roslyn.Utilities;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 NamingStyleID = namingStyle.ID,
                 SymbolSpecificationID = symbolSpec.ID
             };
+
             return true;
         }
 
@@ -39,10 +40,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             switch (ruleSeverity)
             {
-                case "silent": return DiagnosticSeverity.Hidden;
-                case "suggestion": return DiagnosticSeverity.Info;
-                case "warning": return DiagnosticSeverity.Warning;
-                case "error": return DiagnosticSeverity.Error;
+                case EditorConfigSeverityStrings.Silent: return DiagnosticSeverity.Hidden;
+                case EditorConfigSeverityStrings.Suggestion: return DiagnosticSeverity.Info;
+                case EditorConfigSeverityStrings.Warning: return DiagnosticSeverity.Warning;
+                case EditorConfigSeverityStrings.Error: return DiagnosticSeverity.Error;
                 default: return DiagnosticSeverity.Hidden;
             }
         }

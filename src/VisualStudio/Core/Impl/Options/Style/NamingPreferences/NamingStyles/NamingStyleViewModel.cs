@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 {
                     new CapitalizationDisplay(Capitalization.PascalCase, ServicesVSResources.Pascal_Case_Name),
                     new CapitalizationDisplay(Capitalization.CamelCase, ServicesVSResources.camel_Case_Name),
-                    new CapitalizationDisplay(Capitalization.FirstWordUpper, ServicesVSResources.First_word_upper),
+                    new CapitalizationDisplay(Capitalization.FirstUpper, ServicesVSResources.First_word_upper),
                     new CapitalizationDisplay(Capitalization.AllUpper, ServicesVSResources.ALL_UPPER),
                     new CapitalizationDisplay(Capitalization.AllLower, ServicesVSResources.all_lower)
                 };

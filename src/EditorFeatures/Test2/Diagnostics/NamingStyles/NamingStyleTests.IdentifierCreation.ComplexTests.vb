@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Sub TestFirstUpperComplex1()
-            Dim namingStyle = CreateNamingStyle(prefix:="p_", suffix:="_s", wordSeparator:="__", capitalizationScheme:=Capitalization.FirstWordUpper)
+            Dim namingStyle = CreateNamingStyle(prefix:="p_", suffix:="_s", wordSeparator:="__", capitalizationScheme:=Capitalization.FirstUpper)
             TestNameCreation(namingStyle, "p_P_one__two__thRee_s", "p_one", "Two", "thRee")
         End Sub
 
