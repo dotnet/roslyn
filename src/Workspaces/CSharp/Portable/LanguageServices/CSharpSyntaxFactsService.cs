@@ -811,7 +811,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 case SyntaxKind.EventDeclaration:
                     var eventDecl = (EventDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(ExpandExplicitInterfaceName(eventDecl.Identifier.ValueText, eventDecl.ExplicitInterfaceSpecifier),
+                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                        eventDecl.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Event, eventDecl.Identifier.Span,
@@ -836,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        ExpandExplicitInterfaceName(method.Identifier.ValueText, method.ExplicitInterfaceSpecifier),
+                        method.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Method,
@@ -847,7 +848,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(ExpandExplicitInterfaceName(property.Identifier.ValueText, property.ExplicitInterfaceSpecifier),
+                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                        property.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Property, property.Identifier.Span,
@@ -1025,100 +1027,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static string GetSimpleTypeName(SimpleNameSyntax name)
         {
             return name.Identifier.ValueText;
-        }
-
-        private static string ExpandExplicitInterfaceName(string identifier, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
-        {
-            if (explicitInterfaceSpecifier == null)
-            {
-                return identifier;
-            }
-            else
-            {
-                var builder = new StringBuilder();
-                ExpandTypeName(explicitInterfaceSpecifier.Name, builder);
-                builder.Append('.');
-                builder.Append(identifier);
-                return builder.ToString();
-            }
-        }
-
-        private static void ExpandTypeName(TypeSyntax type, StringBuilder builder)
-        {
-            switch (type.Kind())
-            {
-                case SyntaxKind.AliasQualifiedName:
-                    var alias = (AliasQualifiedNameSyntax)type;
-                    builder.Append(alias.Alias.Identifier.ValueText);
-                    break;
-                case SyntaxKind.ArrayType:
-                    var array = (ArrayTypeSyntax)type;
-                    ExpandTypeName(array.ElementType, builder);
-                    for (int i = 0; i < array.RankSpecifiers.Count; i++)
-                    {
-                        var rankSpecifier = array.RankSpecifiers[i];
-                        builder.Append(rankSpecifier.OpenBracketToken.Text);
-                        for (int j = 1; j < rankSpecifier.Sizes.Count; j++)
-                        {
-                            builder.Append(',');
-                        }
-
-                        builder.Append(rankSpecifier.CloseBracketToken.Text);
-                    }
-
-                    break;
-                case SyntaxKind.GenericName:
-                    var generic = (GenericNameSyntax)type;
-                    builder.Append(generic.Identifier.ValueText);
-                    if (generic.TypeArgumentList != null)
-                    {
-                        var arguments = generic.TypeArgumentList.Arguments;
-                        builder.Append(generic.TypeArgumentList.LessThanToken.Text);
-                        for (int i = 0; i < arguments.Count; i++)
-                        {
-                            if (i != 0)
-                            {
-                                builder.Append(',');
-                            }
-
-                            ExpandTypeName(arguments[i], builder);
-                        }
-
-                        builder.Append(generic.TypeArgumentList.GreaterThanToken.Text);
-                    }
-
-                    break;
-                case SyntaxKind.IdentifierName:
-                    var identifierName = (IdentifierNameSyntax)type;
-                    builder.Append(identifierName.Identifier.ValueText);
-                    break;
-                case SyntaxKind.NullableType:
-                    var nullable = (NullableTypeSyntax)type;
-                    ExpandTypeName(nullable.ElementType, builder);
-                    builder.Append(nullable.QuestionToken.Text);
-                    break;
-                case SyntaxKind.OmittedTypeArgument:
-                    // do nothing since it was omitted, but don't reach the default block
-                    break;
-                case SyntaxKind.PointerType:
-                    var pointer = (PointerTypeSyntax)type;
-                    ExpandTypeName(pointer.ElementType, builder);
-                    builder.Append(pointer.AsteriskToken.Text);
-                    break;
-                case SyntaxKind.PredefinedType:
-                    var predefined = (PredefinedTypeSyntax)type;
-                    builder.Append(predefined.Keyword.Text);
-                    break;
-                case SyntaxKind.QualifiedName:
-                    var qualified = (QualifiedNameSyntax)type;
-                    ExpandTypeName(qualified.Left, builder);
-                    builder.Append(qualified.DotToken.Text);
-                    ExpandTypeName(qualified.Right, builder);
-                    break;
-                default:
-                    Debug.Assert(false, "Unexpected type syntax " + type.Kind());
-                    break;
-            }
         }
 
         private string GetContainerDisplayName(SyntaxNode node)
