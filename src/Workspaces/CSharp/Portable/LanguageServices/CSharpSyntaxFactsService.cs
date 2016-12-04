@@ -812,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EventDeclaration:
                     var eventDecl = (EventDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        eventDecl.Identifier.ValueText,
+                        ExpandExplicitInterfaceName(eventDecl.Identifier.ValueText, eventDecl.ExplicitInterfaceSpecifier),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Event, eventDecl.Identifier.Span,
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        method.Identifier.ValueText,
+                        ExpandExplicitInterfaceName(method.Identifier.ValueText, method.ExplicitInterfaceSpecifier),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Method,
@@ -849,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        property.Identifier.ValueText,
+                        ExpandExplicitInterfaceName(property.Identifier.ValueText, property.ExplicitInterfaceSpecifier),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Property, property.Identifier.Span,
@@ -1027,6 +1027,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static string GetSimpleTypeName(SimpleNameSyntax name)
         {
             return name.Identifier.ValueText;
+        }
+
+        private static string ExpandExplicitInterfaceName(string identifier, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
+        {
+            return explicitInterfaceSpecifier == null
+                ? identifier
+                : $"{explicitInterfaceSpecifier.Name.GetNameToken().ValueText}.{identifier}";
         }
 
         private string GetContainerDisplayName(SyntaxNode node)
