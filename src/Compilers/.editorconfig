@@ -1,6 +1,6 @@
-# Project-specific settings:
-# CSharp code style settings:
+# Project-specific CSharp settings:
 [*.cs]
+# Avoid "var"
 csharp_style_var_for_locals = false:none
 csharp_style_var_for_built_in_types = false:none
 csharp_style_var_when_type_is_apparent = false:none
