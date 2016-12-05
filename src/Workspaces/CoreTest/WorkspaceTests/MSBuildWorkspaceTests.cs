@@ -595,7 +595,7 @@ class C1
             Assert.Empty(project.ProjectReferences);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/15102"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_WithXaml()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
