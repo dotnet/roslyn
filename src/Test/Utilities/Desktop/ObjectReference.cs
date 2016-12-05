@@ -53,9 +53,9 @@ namespace Roslyn.Test.Utilities
         /// Asserts that the underlying object has been released.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void AssertReleased()
+        public void AssertReleased(Action waitAction = null)
         {
-            ReleaseAndGarbageCollect();
+            ReleaseAndGarbageCollect(waitAction);
 
             Assert.False(_weakReference.IsAlive, "Reference should have been released but was not.");
         }
@@ -64,9 +64,9 @@ namespace Roslyn.Test.Utilities
         /// Asserts that the underlying object is still being held.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void AssertHeld()
+        public void AssertHeld(Action waitAction = null)
         {
-            ReleaseAndGarbageCollect();
+            ReleaseAndGarbageCollect(waitAction);
 
             // Since we are asserting it's still held, if it is held we can just recover our strong reference again
             _strongReference = (T)_weakReference.Target;
@@ -75,7 +75,7 @@ namespace Roslyn.Test.Utilities
 
         // Ensure the mention of the field doesn't result in any local temporaries being created in the parent
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void ReleaseAndGarbageCollect()
+        private void ReleaseAndGarbageCollect(Action waitAction)
         {
             if (_strongReferenceRetrievedOutsideScopedCall)
             {
@@ -92,6 +92,7 @@ namespace Roslyn.Test.Utilities
             {
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
+                waitAction?.Invoke();
             }
         }
 

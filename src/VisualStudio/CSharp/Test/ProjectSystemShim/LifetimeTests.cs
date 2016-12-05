@@ -2,8 +2,12 @@
 
 using System;
 using System.Linq;
+using System.Threading;
+using System.Windows;
+using System.Windows.Threading;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
@@ -22,7 +26,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 Assert.Single(environment.Workspace.CurrentSolution.Projects);
 
                 project.UseReference(p => p.Disconnect());
-                project.AssertReleased();
+                project.AssertReleased(() => HostWaitHelper.WaitForDispatchedOperationsToComplete(DispatcherPriority.ApplicationIdle));
             }
         }
     }

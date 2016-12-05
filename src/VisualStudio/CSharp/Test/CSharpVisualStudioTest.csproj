@@ -138,6 +138,10 @@
       <Project>{69f853e5-bd04-4842-984f-fc68cc51f402}</Project>
       <Name>VisualStudioTestUtilities2</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\TestUtilities\VisualStudioTestUtilities.csproj">
+      <Project>{3bed15fd-d608-4573-b432-1569c1026f6d}</Project>
+      <Name>VisualStudioTestUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\VisualBasic\Impl\BasicVisualStudio.vbproj">
       <Project>{d49439d7-56d2-450f-a4f0-74cb95d620e6}</Project>
       <Name>BasicVisualStudio</Name>
@@ -185,6 +189,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="VSLangProj, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeModel\AbstractFileCodeElementTests.cs" />
