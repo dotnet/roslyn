@@ -45,7 +45,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, CancellationToken.None));
                 using (var session = await client.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, solution, CancellationToken.None))
                 {
-                    await session.InvokeAsync(WellKnownRemoteHostServices.RemoteHostService_SynchronizeAsync);
+                    await session.InvokeAsync(
+                        WellKnownRemoteHostServices.RemoteHostService_SynchronizePrimaryWorkspaceAsync,
+                        new object[] { (await solution.State.GetChecksumAsync(CancellationToken.None)).ToArray() });
                 }
 
                 var storage = client.AssetStorage;
