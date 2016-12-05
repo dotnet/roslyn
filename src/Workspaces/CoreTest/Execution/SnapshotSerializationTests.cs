@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var workspace = new AdhocWorkspace(hostServices);
             var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
 
-            var serializer = new Serializer(workspace.Services);
+            var serializer = new Serializer(workspace);
             var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
 
             var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public async Task Missing_Metadata_Serailization_Test()
         {
             var workspace = new AdhocWorkspace();
-            var serializer = new Serializer(workspace.Services);
+            var serializer = new Serializer(workspace);
 
             var reference = new MissingMetadataReference();
 
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public async Task Missing_Analyzer_Serailization_Test()
         {
             var workspace = new AdhocWorkspace();
-            var serializer = new Serializer(workspace.Services);
+            var serializer = new Serializer(workspace);
 
             var reference = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
 
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
 
             var workspace = new AdhocWorkspace(hostServices);
-            var serializer = new Serializer(workspace.Services);
+            var serializer = new Serializer(workspace);
 
             var reference = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
 
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public async Task EmptyAssetChecksumTest()
         {
             var document = new AdhocWorkspace().CurrentSolution.AddProject("empty", "empty", LanguageNames.CSharp).AddDocument("empty", SourceText.From(""));
-            var serializer = new Serializer(document.Project.Solution.Workspace.Services);
+            var serializer = new Serializer(document.Project.Solution);
 
             var source = serializer.CreateChecksum(await document.GetTextAsync().ConfigureAwait(false), CancellationToken.None);
             var metadata = serializer.CreateChecksum(new MissingMetadataReference(), CancellationToken.None);
@@ -454,8 +454,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static async Task VerifyOptionSetsAsync(Workspace workspace, string language)
         {
-            var assetBuilder = new CustomAssetBuilder(workspace.CurrentSolution);
-            var serializer = new Serializer(workspace.Services);
+            var assetBuilder = new CustomAssetBuilder(workspace);
+            var serializer = new Serializer(workspace);
 
             var asset = assetBuilder.Build(workspace.Options, language, CancellationToken.None);
 
