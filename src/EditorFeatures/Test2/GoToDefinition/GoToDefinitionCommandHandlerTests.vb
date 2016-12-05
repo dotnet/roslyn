@@ -3,7 +3,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
+Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -94,13 +94,13 @@ class C
                 Dim mockDocumentNavigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
 
                 Dim navigatedTo = False
-                Dim presenter = New MockNavigableItemsPresenter(Sub(i) navigatedTo = True)
-                Dim presenters = {New Lazy(Of INavigableItemsPresenter)(Function() presenter)}
+                Dim presenter = New MockStreamingFindUsagesPresenter(Sub() navigatedTo = True)
+                Dim presenters = {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)}
 
                 Dim cursorBuffer = cursorDocument.TextBuffer
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim goToDefService = New CSharpGoToDefinitionService(presenters, {})
+                Dim goToDefService = New CSharpGoToDefinitionService(presenters)
 
                 Dim waitContext = New TestWaitContext(updatesBeforeCancel)
                 Dim waitIndicator = New TestWaitIndicator(waitContext)

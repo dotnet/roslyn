@@ -13,11 +13,12 @@ namespace RepoUtil
         private sealed class ParsedArgs
         {
             internal string RepoUtilDataPath { get; set; }
-            internal string SourcesPath { get; set; }
+            internal string SourcesDirectory { get; set; }
+            internal string GenerateDirectory { get; set; }
             internal string[] RemainingArgs { get; set; }
         }
 
-        private delegate ICommand CreateCommand(RepoConfig repoConfig, string sourcesPath);
+        private delegate ICommand CreateCommand(RepoConfig repoConfig, string sourcesDir, string generateDir);
 
         internal static int Main(string[] args)
         {
@@ -54,11 +55,12 @@ namespace RepoUtil
             CreateCommand func;
             if (!TryParseCommandLine(args, out parsedArgs, out func))
             {
+                Usage();
                 return false;
             }
 
             var repoConfig = RepoConfig.ReadFrom(parsedArgs.RepoUtilDataPath);
-            var command = func(repoConfig, parsedArgs.SourcesPath);
+            var command = func(repoConfig, parsedArgs.SourcesDirectory, parsedArgs.GenerateDirectory);
             if (command.Run(Console.Out, parsedArgs.RemainingArgs))
             {
                 return true;
@@ -89,8 +91,9 @@ namespace RepoUtil
                 return false;
             }
 
-            parsedArgs.SourcesPath = parsedArgs.SourcesPath ?? GetDirectoryName(AppContext.BaseDirectory, 5);
-            parsedArgs.RepoUtilDataPath = parsedArgs.RepoUtilDataPath ?? Path.Combine(parsedArgs.SourcesPath, @"build\config\RepoUtilData.json");
+            parsedArgs.SourcesDirectory = parsedArgs.SourcesDirectory ?? GetDirectoryName(AppContext.BaseDirectory, 5);
+            parsedArgs.GenerateDirectory = parsedArgs.GenerateDirectory ?? parsedArgs.SourcesDirectory;
+            parsedArgs.RepoUtilDataPath = parsedArgs.RepoUtilDataPath ?? Path.Combine(parsedArgs.SourcesDirectory, @"build\config\RepoUtilData.json");
             parsedArgs.RemainingArgs = index >= args.Length
                 ? Array.Empty<string>()
                 : args.Skip(index).ToArray();
@@ -124,12 +127,26 @@ namespace RepoUtil
                         {
                             if (index < args.Length)
                             {
-                                parsedArgs.SourcesPath = args[index];
+                                parsedArgs.SourcesDirectory = args[index];
                                 index++;
                             }
                             else
                             {
                                 Console.WriteLine($"The -sourcesPath switch needs a value");
+                                return false;
+                            }
+                            break;
+                        }
+                    case "-generatepath":
+                        {
+                            if (index < args.Length)
+                            {
+                                parsedArgs.GenerateDirectory = args[index];
+                                index++;
+                            }
+                            else
+                            {
+                                Console.WriteLine($"The -generatePath switch needs a value");
                                 return false;
                             }
                             break;
@@ -171,19 +188,19 @@ namespace RepoUtil
             switch (name)
             {
                 case "verify":
-                    func = (c, s) => new VerifyCommand(c, s);
+                    func = (c, s, g) => new VerifyCommand(c, s,g );
                     break;
                 case "view":
-                    func = (c, s) => new ViewCommand(c, s);
+                    func = (c, s, g) => new ViewCommand(c, s);
                     break;
                 case "consumes":
-                    func = (c, s) => new ConsumesCommand(RepoData.Create(c, s));
+                    func = (c, s, g) => new ConsumesCommand(RepoData.Create(c, s));
                     break;
                 case "change":
-                    func = (c, s) => new ChangeCommand(RepoData.Create(c, s));
+                    func = (c, s, g) => new ChangeCommand(RepoData.Create(c, s), g);
                     break;
                 case "produces":
-                    func = (c, s) => new ProducesCommand(c, s);
+                    func = (c, s, g) => new ProducesCommand(c, s);
                     break;
                 default:
                     Console.Write($"Command {name} is not recognized");
@@ -192,6 +209,11 @@ namespace RepoUtil
 
             index++;
             return true;
+        }
+
+        private static void Usage()
+        {
+            Console.WriteLine("RepoUtil [-sourcesPath <sources path>] [-generatePath <generate path>] [-config <config path>] [verify|view|consumes|change|produces]");
         }
     }
 }

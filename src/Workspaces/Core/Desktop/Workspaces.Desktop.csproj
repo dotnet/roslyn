@@ -10,7 +10,6 @@
     <AssemblyName>Microsoft.CodeAnalysis.Workspaces.Desktop</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.ComponentModel.Composition" />
@@ -79,7 +78,6 @@
     <Compile Include="Workspace\CommandLineProject.cs" />
     <Compile Include="Workspace\Esent\EsentLogger.cs" />
     <Compile Include="Workspace\Esent\EsentPersistentStorage.cs" />
-    <Compile Include="Workspace\Esent\EsentPersistentStorage_IdentifierTable.cs" />
     <Compile Include="Workspace\Esent\EsentStorage.AbstractTable.cs" />
     <Compile Include="Workspace\Esent\EsentStorage.AbstractTableAccessor.cs" />
     <Compile Include="Workspace\Esent\EsentStorage.cs" />
@@ -146,14 +144,14 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
+    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
-    <InternalsVisibleTo Include="MonoDevelop.Ide" />
-    <InternalsVisibleTo Include="MonoDevelop.Refactoring" />
-    <InternalsVisibleTo Include="MonoDevelop.CSharpBinding" />
-    <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" />
-    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.Ide" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.Refactoring" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.CSharpBinding" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />

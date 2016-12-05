@@ -509,6 +509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim candidateProperty = DirectCast(candidate, PropertySymbol)
                 If candidateProperty.Type.SpecialType <> SpecialType.System_String OrElse
+                    candidateProperty.RefCustomModifiers.Length > 0 OrElse
                     candidateProperty.TypeCustomModifiers.Length > 0 OrElse
                     candidateProperty.ParameterCount <> 1 Then
 
@@ -516,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim parameter = candidateProperty.Parameters(0)
-                If parameter.CustomModifiers.Length > 0 Then
+                If parameter.CustomModifiers.Length > 0 OrElse parameter.RefCustomModifiers.Length > 0 Then
                     Continue For
                 End If
 

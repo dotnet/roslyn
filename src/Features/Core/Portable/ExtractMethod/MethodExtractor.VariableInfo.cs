@@ -128,10 +128,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
             }
 
-            public static int Compare(VariableInfo left, VariableInfo right)
+            public static void SortVariables(Compilation compilation, List<VariableInfo> list)
             {
-                return VariableSymbol.Compare(left._variableSymbol, right._variableSymbol);
+                var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName);
+                list.Sort((v1, v2) => Compare(v1, v2, cancellationTokenType));
             }
+
+            private static int Compare(VariableInfo left, VariableInfo right, INamedTypeSymbol cancellationTokenType)
+                => VariableSymbol.Compare(left._variableSymbol, right._variableSymbol, cancellationTokenType);
         }
     }
 }

@@ -22,15 +22,13 @@ namespace Roslyn.Utilities
 
         public override Type GetType(string assemblyName, string typeName)
         {
-            Type type;
-            _typeMap.TryGetValue(new TypeKey(assemblyName, typeName), out type);
+            _typeMap.TryGetValue(new TypeKey(assemblyName, typeName), out var type);
             return type;
         }
 
         public override Func<ObjectReader, object> GetReader(Type type)
         {
-            Func<ObjectReader, object> reader;
-            _readerMap.TryGetValue(type, out reader);
+            _readerMap.TryGetValue(type, out var reader);
             return reader;
         }
     }

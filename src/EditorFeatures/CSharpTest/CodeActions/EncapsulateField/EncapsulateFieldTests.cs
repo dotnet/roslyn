@@ -170,8 +170,8 @@ class foo
 ";
             await TestAsync(text, expected, 
                 options: OptionsSet(
-                    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
-                    Tuple.Create((IOption)CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
+                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, true, NotificationOption.None),
+                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, false, NotificationOption.None)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]

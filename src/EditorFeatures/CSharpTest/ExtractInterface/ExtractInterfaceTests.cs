@@ -545,12 +545,12 @@ abstract class MyClass$$
             var expectedInterfaceCode = @"interface IMyClass
 {
     int ExtractableProp { get; set; }
-    int ExtractableProp_GetInternal { set; }
     int ExtractableProp_GetOnly { get; }
-    int ExtractableProp_GetPrivate { set; }
-    int ExtractableProp_SetInternal { get; }
     int ExtractableProp_SetOnly { set; }
     int ExtractableProp_SetPrivate { get; }
+    int ExtractableProp_GetPrivate { set; }
+    int ExtractableProp_SetInternal { get; }
+    int ExtractableProp_GetInternal { set; }
     int NotActuallyUnsafeProp { get; set; }
     unsafe int* UnsafeProp { get; set; }
 }";
@@ -574,9 +574,9 @@ abstract class MyClass$$
 
             var expectedInterfaceCode = @"interface IMyClass
 {
-    int this[double x] { get; set; }
-    int this[string x] { get; }
     int this[int x] { set; }
+    int this[string x] { get; }
+    int this[double x] { get; set; }
     int this[int? x, string y = ""42""] { get; set; }
 }";
 

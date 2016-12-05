@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -184,14 +186,17 @@ namespace Microsoft.CodeAnalysis.Simplification
                 throw new ArgumentNullException(nameof(spans));
             }
 
-            return document.Project.LanguageServices.GetService<ISimplificationService>().ReduceAsync(document, spans, optionSet, cancellationToken: cancellationToken);
+            return document.GetLanguageService<ISimplificationService>().ReduceAsync(
+                document, spans, optionSet, cancellationToken: cancellationToken);
         }
 
-        internal static async Task<Document> ReduceAsync(Document document, IEnumerable<AbstractReducer> reducers, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
+        internal static async Task<Document> ReduceAsync(
+            Document document, ImmutableArray<AbstractReducer> reducers, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await document.Project.LanguageServices.GetService<ISimplificationService>()
-                .ReduceAsync(document, SpecializedCollections.SingletonEnumerable(root.FullSpan), optionSet, reducers, cancellationToken).ConfigureAwait(false);
+                .ReduceAsync(document, SpecializedCollections.SingletonEnumerable(root.FullSpan), optionSet, 
+                             reducers, cancellationToken).ConfigureAwait(false);
         }
     }
 }

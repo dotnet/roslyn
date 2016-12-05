@@ -3654,6 +3654,70 @@ System.String
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
+
+Imports System
+        Module C
+            Sub Main()
+                Dim q = "q"
+                Dim a As Object = "a"
+
+                System.Console.WriteLine(Test((q, a)))
+
+                System.Console.WriteLine(q)
+                System.Console.WriteLine(a)
+
+                System.Console.WriteLine(Test((Ps, Po)))
+
+                System.Console.WriteLine(q)
+                System.Console.WriteLine(a)
+            End Sub
+
+            Function Test(Of T)(ByRef x As (T, T)) As (T, T)
+                Console.WriteLine(GetType(T))
+
+                x.Item1 = x.Item2
+
+                Return x
+            End Function
+
+            Public Property Ps As String
+                Get
+                    Return "q"
+                End Get
+                Set(value As String)
+                    System.Console.WriteLine("written1 !!!")
+                End Set
+            End Property
+
+            Public Property Po As Object
+                Get
+                    Return "a"
+                End Get
+                Set(value As Object)
+                    System.Console.WriteLine("written2 !!!")
+                End Set
+            End Property
+        End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+System.Object
+(a, a)
+q
+a
+System.Object
+(a, a)
+q
+a
+            ]]>)
+        End Sub
+
+        <Fact>
+        Public Sub MethodTypeInference004a()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
 Imports System
 Module C
     Sub Main()
@@ -3696,7 +3760,9 @@ Module C
         Dim q = "q"
         Dim a as object = "a"
 
-        System.Console.WriteLine(Test((q, a)))
+        Dim t = (q, a)
+
+        System.Console.WriteLine(Test(t))
 
         System.Console.WriteLine(q)
         System.Console.WriteLine(a)
@@ -3716,7 +3782,7 @@ End Module
             comp.AssertTheseDiagnostics(
 <errors>
 BC36651: Data type(s) of the type parameter(s) in method 'Public Function Test(Of T)(ByRef x As (T, T)) As (T, T)' cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.
-        System.Console.WriteLine(Test((q, a)))
+        System.Console.WriteLine(Test(t))
                                  ~~~~
 </errors>)
 
@@ -5500,7 +5566,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
             Assert.True(mFirst.GetAttributes().IsEmpty)
             'Assert.Null(mFirst.GetUseSiteDiagnostic())
             Assert.False(mFirst.Locations.IsEmpty)
-            Assert.Equal("first", mFirst.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.Equal("first As T1", mFirst.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
             Assert.False(mFirst.IsImplicitlyDeclared)
             Assert.Null(mFirst.TypeLayoutOffset)
 
@@ -13408,7 +13474,6 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
             Assert.Equal("System.ValueType", m1Tuple.BaseType.ToTestDisplayString())
             Assert.False(m1Tuple.HasTypeArgumentsCustomModifiers)
             Assert.False(m1Tuple.IsComImport)
-            Assert.True(m1Tuple.TypeArgumentsCustomModifiers.IsEmpty)
             Assert.True(m1Tuple.TypeArgumentsNoUseSiteDiagnostics.IsEmpty)
             Assert.True(m1Tuple.GetAttributes().IsEmpty)
             Assert.Equal("(a2 As System.Int32, b2 As System.Int32).Item1 As System.Int32", m2Tuple.GetMembers("Item1").Single().ToTestDisplayString())
@@ -13487,7 +13552,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
             Assert.True(m2a2.GetAttributes().IsEmpty)
             Assert.Null(m2a2.GetUseSiteErrorInfo())
             Assert.False(m2a2.Locations.IsEmpty)
-            Assert.Equal("a2", m2a2.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.Equal("a2 As Integer", m2a2.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
             Assert.Equal("Item1", m2a2.TupleUnderlyingField.Name)
             Assert.False(m2a2.IsImplicitlyDeclared)
             Assert.Null(m2a2.TypeLayoutOffset)
@@ -14115,7 +14180,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
             Assert.True(m5Item8.GetAttributes().IsEmpty)
             Assert.Null(m5Item8.GetUseSiteErrorInfo())
             Assert.False(m5Item8.Locations.IsEmpty)
-            Assert.Equal("Item8", m5Item8.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.Equal("Item8 As Integer", m5Item8.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
             Assert.Equal("Item1", m5Item8.TupleUnderlyingField.Name)
             Assert.False(m5Item8.IsImplicitlyDeclared)
             Assert.Null(m5Item8.TypeLayoutOffset)
@@ -14626,7 +14691,6 @@ options:=TestOptions.DebugExe)
             Assert.Equal("System.ValueType", m1Tuple.BaseType.ToTestDisplayString())
             Assert.False(m1Tuple.HasTypeArgumentsCustomModifiers)
             Assert.False(m1Tuple.IsComImport)
-            Assert.True(m1Tuple.TypeArgumentsCustomModifiers.IsEmpty)
             Assert.True(m1Tuple.TypeArgumentsNoUseSiteDiagnostics.IsEmpty)
             Assert.True(m1Tuple.GetAttributes().IsEmpty)
             Assert.Equal("(a2 As System.Int32, b2 As System.Int32).Item1 As System.Int32", m2Tuple.GetMembers("Item1").Single().ToTestDisplayString())
@@ -17905,6 +17969,205 @@ BC42024: Unused local variable: 'x6'.
             ~~
 </errors>)
 
+        End Sub
+
+        <Fact>
+        <WorkItem(15198, "https://github.com/dotnet/roslyn/issues/15198")>
+        Public Sub TuplePropertyArgs001()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class C
+    Shared Sub Main()
+        dim inst = new C
+        dim f As (Integer, Integer) = (inst.P1, inst.P1)
+        System.Console.WriteLine(f)
+    End Sub
+
+    public readonly Property P1 as integer
+        Get 
+            return 42
+        End Get
+    end Property
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(42, 42)")
+        End Sub
+
+        <Fact>
+        <WorkItem(15198, "https://github.com/dotnet/roslyn/issues/15198")>
+        Public Sub TuplePropertyArgs002()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class C
+    Shared Sub Main()
+        dim inst = new C
+        dim f As IComparable(of (Integer, Integer)) = (inst.P1, inst.P1)
+        System.Console.WriteLine(f)
+    End Sub
+
+    public readonly Property P1 as integer
+        Get 
+            return 42
+        End Get
+    end Property
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(42, 42)")
+        End Sub
+
+        <Fact>
+        <WorkItem(15198, "https://github.com/dotnet/roslyn/issues/15198")>
+        Public Sub TuplePropertyArgs003()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class C
+    Shared Sub Main()
+        dim inst as Object = new C
+        dim f As (Integer, Integer) = (inst.P1, inst.P1)
+        System.Console.WriteLine(f)
+    End Sub
+
+    public readonly Property P1 as integer
+        Get 
+            return 42
+        End Get
+    end Property
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(42, 42)")
+        End Sub
+
+        <Fact>
+        <WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")>
+        Public Sub InterfaceImplAttributesAreNotSharedAcrossTypeRefs()
+            Dim src1 = <compilation>
+                           <file name="a.vb">
+                               <![CDATA[
+Public Interface I1(Of T)
+End Interface
+
+Public Interface I2 
+    Inherits I1(Of (a As Integer, b As Integer))
+End Interface
+Public Interface I3 
+    Inherits I1(Of (c As Integer, d As Integer))
+End Interface
+]]>
+                           </file>
+                       </compilation>
+
+            Dim src2 = <compilation>
+                           <file name="a.vb">
+                               <![CDATA[
+Class C1 
+    Implements I2
+    Implements I1(Of (a As Integer, b As Integer))
+End Class
+Class C2
+    Implements I3
+    Implements I1(Of (c As Integer, d As Integer))
+End Class
+]]>
+                           </file>
+                       </compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib(src1, references:=s_valueTupleRefs)
+            AssertTheseDiagnostics(comp1)
+
+            Dim comp2 = CreateCompilationWithMscorlib(src2,
+                references:={SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference()})
+            AssertTheseDiagnostics(comp2)
+
+            Dim comp3 = CreateCompilationWithMscorlib(src2,
+                references:={SystemRuntimeFacadeRef, ValueTupleRef, comp1.EmitToImageReference()})
+            AssertTheseDiagnostics(comp3)
+        End Sub
+
+        <Fact()>
+        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        Public Sub TupleElementVsLocal()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+
+    Sub Main()
+        Dim tuple As (Integer, elem2 As Integer)
+        Dim elem2 As Integer
+
+        tuple = (5, 6)
+        tuple.elem2 = 23
+        elem2 = 10
+
+        Console.WriteLine(tuple.elem2)
+        Console.WriteLine(elem2)
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.First()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "elem2").ToArray()
+
+            Assert.Equal(4, nodes.Length)
+
+            Assert.Equal("tuple.elem2 = 23", nodes(0).Parent.Parent.ToString())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).elem2 As System.Int32", model.GetSymbolInfo(nodes(0)).Symbol.ToTestDisplayString())
+
+            Assert.Equal("elem2 = 10", nodes(1).Parent.ToString())
+            Assert.Equal("elem2 As System.Int32", model.GetSymbolInfo(nodes(1)).Symbol.ToTestDisplayString())
+
+            Assert.Equal("(tuple.elem2)", nodes(2).Parent.Parent.Parent.ToString())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).elem2 As System.Int32", model.GetSymbolInfo(nodes(2)).Symbol.ToTestDisplayString())
+
+            Assert.Equal("(elem2)", nodes(3).Parent.Parent.ToString())
+            Assert.Equal("elem2 As System.Int32", model.GetSymbolInfo(nodes(3)).Symbol.ToTestDisplayString())
+
+            Dim type = tree.GetRoot().DescendantNodes().OfType(Of TupleTypeSyntax)().Single()
+
+            Dim symbolInfo = model.GetSymbolInfo(type)
+            Assert.Equal("(System.Int32, elem2 As System.Int32)", symbolInfo.Symbol.ToTestDisplayString())
+
+            Dim typeInfo = model.GetTypeInfo(type)
+            Assert.Equal("(System.Int32, elem2 As System.Int32)", typeInfo.Type.ToTestDisplayString())
+
+            Assert.Same(symbolInfo.Symbol, typeInfo.Type)
+
+            Assert.Equal(SyntaxKind.TypedTupleElement, type.Elements.First().Kind())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).Item1 As System.Int32", model.GetDeclaredSymbol(type.Elements.First()).ToTestDisplayString())
+            Assert.Equal(SyntaxKind.NamedTupleElement, type.Elements.Last().Kind())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).elem2 As System.Int32", model.GetDeclaredSymbol(type.Elements.Last()).ToTestDisplayString())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).Item1 As System.Int32", model.GetDeclaredSymbol(DirectCast(type.Elements.First(), SyntaxNode)).ToTestDisplayString())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).elem2 As System.Int32", model.GetDeclaredSymbol(DirectCast(type.Elements.Last(), SyntaxNode)).ToTestDisplayString())
         End Sub
 
     End Class

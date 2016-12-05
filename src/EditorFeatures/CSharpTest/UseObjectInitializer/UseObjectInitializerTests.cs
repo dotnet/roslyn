@@ -305,7 +305,83 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-        public async Task TestFixAllInDocument()
+        public async Task TestFixAllInDocument1()
+        {
+            await TestAsync(
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var v = {|FixAllInDocument:new|} C(() => {
+            var v2 = new C();
+            v2.i = 1;
+        });
+        v.j = 2;
+    }
+}",
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var v = new C(() => {
+            var v2 = new C()
+            {
+                i = 1
+            };
+        })
+        {
+            j = 2
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestFixAllInDocument2()
+        {
+            await TestAsync(
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var v = {|FixAllInDocument:new|} C();
+        v.j = () => {
+            var v2 = new C();
+            v2.i = 1;
+        };
+    }
+}",
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var v = new C()
+        {
+            j = () => {
+                var v2 = new C()
+                {
+                    i = 1
+                };
+            }
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestFixAllInDocument3()
         {
             await TestAsync(
 @"class C
@@ -377,6 +453,21 @@ class C
     }
 }",
 compareTokens: false);
+        }
+
+        [WorkItem(15459, "https://github.com/dotnet/roslyn/issues/15459")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestMissingInNonTopLevelObjectInitializer()
+        {
+            await TestMissingAsync(
+@"class C {
+	int a;
+	C Add(int x) {
+		var c = Add([||]new int());
+		c.a = 1;
+		return c;
+	}
+}");
         }
     }
 }

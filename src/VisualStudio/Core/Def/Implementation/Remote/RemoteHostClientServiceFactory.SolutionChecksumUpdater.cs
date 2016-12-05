@@ -17,17 +17,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             private readonly RemoteHostClientService _service;
             private readonly SemaphoreSlim _event;
+            private readonly object _gate;
 
             private CancellationTokenSource _globalOperationCancellationSource;
 
+            // hold last async token
+            private IAsyncToken _lastToken;
+
             public SolutionChecksumUpdater(RemoteHostClientService service, CancellationToken shutdownToken) :
-                base(AggregateAsynchronousOperationListener.CreateEmptyListener(),
+                base(service.Listener,
                      service.Workspace.Services.GetService<IGlobalOperationNotificationService>(),
                      service.Workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
             {
                 _service = service;
 
                 _event = new SemaphoreSlim(initialCount: 0);
+                _gate = new object();
 
                 // start listening workspace change event
                 _service.Workspace.WorkspaceChanged += OnWorkspaceChanged;
@@ -42,6 +47,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             protected override async Task ExecuteAsync()
             {
+                lock (_gate)
+                {
+                    _lastToken?.Dispose();
+                    _lastToken = null;
+                }
+
                 // wait for global operation to finish
                 await GlobalOperationTask.ConfigureAwait(false);
 
@@ -91,6 +102,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 if (_event.CurrentCount > 0)
                 {
                     return;
+                }
+
+                lock (_gate)
+                {
+                    _lastToken = _lastToken ?? Listener.BeginAsyncOperation(nameof(SolutionChecksumUpdater));
                 }
 
                 _event.Release();

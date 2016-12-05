@@ -27,8 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public IRuleSetFile GetOrCreateRuleSet(string ruleSetFileFullPath)
         {
-            RuleSetFile ruleSetFile;
-            if (!_ruleSetFileMap.TryGetValue(ruleSetFileFullPath, out ruleSetFile))
+            if (!_ruleSetFileMap.TryGetValue(ruleSetFileFullPath, out var ruleSetFile))
             {
                 ruleSetFile = new RuleSetFile(ruleSetFileFullPath, _fileChangeService, this);
                 _ruleSetFileMap.Add(ruleSetFileFullPath, ruleSetFile);

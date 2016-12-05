@@ -2297,10 +2297,10 @@ class Student : Person { public double GPA; }
           <slot kind=""temp"" />
           <slot kind=""temp"" />
           <slot kind=""1"" offset=""11"" />
-          <slot kind=""0"" offset=""51"" />
+          <slot kind=""0"" offset=""59"" />
           <slot kind=""21"" offset=""0"" />
-          <slot kind=""0"" offset=""155"" />
-          <slot kind=""0"" offset=""242"" />
+          <slot kind=""0"" offset=""163"" />
+          <slot kind=""0"" offset=""250"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>

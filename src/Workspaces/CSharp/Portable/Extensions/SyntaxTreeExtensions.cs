@@ -16,7 +16,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     internal static partial class SyntaxTreeExtensions
     {
         public static ISet<SyntaxKind> GetPrecedingModifiers(
-            this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
+            this SyntaxTree syntaxTree,
+            int position,
+            SyntaxToken tokenOnLeftOfPosition,
+            CancellationToken cancellationToken)
+            => syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition, out var _);
+
+        public static ISet<SyntaxKind> GetPrecedingModifiers(
+            this SyntaxTree syntaxTree,
+            int position,
+            SyntaxToken tokenOnLeftOfPosition,
+            out int positionBeforeModifiers)
         {
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
@@ -58,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 break;
             }
 
+            positionBeforeModifiers = token.FullSpan.End;
             return result;
         }
 
@@ -549,9 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsInPartiallyWrittenGeneric(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            SyntaxToken genericIdentifier;
-            SyntaxToken lessThanToken;
-            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out lessThanToken);
+            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out var genericIdentifier, out var lessThanToken);
         }
 
         public static bool IsInPartiallyWrittenGeneric(
@@ -560,8 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken,
             out SyntaxToken genericIdentifier)
         {
-            SyntaxToken lessThanToken;
-            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out lessThanToken);
+            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out var lessThanToken);
         }
 
         public static bool IsInPartiallyWrittenGeneric(

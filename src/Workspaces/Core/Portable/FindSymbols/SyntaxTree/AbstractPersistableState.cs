@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 using (var reader = new ObjectReader(stream))
                 {
-                    VersionStamp persistVersion;
-                    if (TryReadVersion(reader, formatVersion, out persistVersion) &&
+                    if (TryReadVersion(reader, formatVersion, out var persistVersion) &&
                         document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion))
                     {
                         return readFrom(reader, syntaxVersion);
@@ -102,8 +101,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     using (var reader = new ObjectReader(stream))
                     {
-                        VersionStamp persistVersion;
-                        return TryReadVersion(reader, formatVersion, out persistVersion) &&
+                        return TryReadVersion(reader, formatVersion, out var persistVersion) &&
                                document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion);
                     }
                 }

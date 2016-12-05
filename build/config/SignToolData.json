@@ -1,5 +1,5 @@
 ﻿{
-    sign: [
+    "sign": [
         {
             "certificate": "Microsoft402",
             "strongName": "MsSharedLib72",
@@ -42,6 +42,7 @@
                 "Dlls\\VisualStudioInteractiveServices\\Microsoft.VisualStudio.InteractiveServices.dll",
                 "Dlls\\Workspaces.Desktop\\Microsoft.CodeAnalysis.Workspaces.Desktop.dll",
                 "Dlls\\Workspaces\\Microsoft.CodeAnalysis.Workspaces.dll",
+                "Dlls\\XamlVisualStudio\\Microsoft.VisualStudio.LanguageServices.Xaml.dll",
                 "Exes\\InteractiveHost\\InteractiveHost.exe",
                 "Exes\\VBCSCompiler\\VBCSCompiler.exe",
                 "Exes\\csc\\csc.exe",
@@ -57,8 +58,7 @@
                 "Vsix\\CompilerExtension\\Roslyn.Compilers.Extension.dll",
                 "Vsix\\Templates\\Roslyn.Templates.dll",
                 "Vsix\\VisualStudioDiagnosticsWindow\\Roslyn.VisualStudio.DiagnosticsWindow.dll",
-                "Vsix\\VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.dll",
-                "Vsix\\XamlVisualStudio\\Microsoft.VisualStudio.LanguageServices.Xaml.dll"
+                "Vsix\\VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.dll"
             ]
         },
         {
@@ -66,6 +66,7 @@
             "strongName": "MsSharedLib72",
             "values": [
                 "Dlls\\ExpressionCompiler\\Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll",
+                "Dlls\\FunctionResolver\\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.dll",
                 "Dlls\\ResultProvider.Portable\\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll",
                 "Dlls\\CSharpExpressionCompiler\\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.dll",
                 "Dlls\\CSharpResultProvider.Portable\\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll",
@@ -100,8 +101,7 @@
         }
     ],
 
-    // Binaries which are included in VSIX above which are not to be signed.
-    exclude: [
+    "exclude": [
         "Esent.Interop.dll",
         "Microsoft.CodeAnalysis.Elfie.dll",
         "Microsoft.DiaSymReader.dll",

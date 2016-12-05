@@ -155,27 +155,22 @@
       <Project>{c0e80510-4fbe-4b0c-af2c-4f473787722c}</Project>
       <Name>ServicesVisualStudioImpl</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Dependencies\VisualStudio\VisualStudio.csproj">
-      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
-      <Name>VisualStudio</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
-      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
-      <Name>VisualStudioEditor</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj">
       <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
       <Name>WorkspacesTestUtilities</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'"></PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'"></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Threading.Tasks.Dataflow" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
@@ -188,7 +183,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="RemoteWorkspace\" />
-    <Folder Include="ServiceHub\" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
@@ -197,6 +191,7 @@
     <Compile Include="Mocks\TestHostServices.cs" />
     <Compile Include="Mocks\InProcRemoteHostClientFactory.cs" />
     <Compile Include="Remote\RemoteHostClientServiceFactoryTests.cs" />
+    <Compile Include="ServiceHub\CalculateDiagnosticsTests.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
@@ -50,10 +51,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal virtual CodeActionPriority Priority => CodeActionPriority.Medium;
 
         /// <summary>
-        /// Will map this int to the Glyph enum in 'Features'.  Once a proper image abstration moves
-        /// to the workspace layer we can appropriately use that here instead of a raw int.
+        /// Descriptive tags from <see cref="WellKnownTags"/>.
+        /// These tags may influence how the item is displayed.
         /// </summary>
-        internal virtual int? Glyph => null;
+        public virtual ImmutableArray<string> Tags => ImmutableArray<string>.Empty;
 
         internal virtual ImmutableArray<CodeAction> NestedCodeActions
             => ImmutableArray<CodeAction>.Empty;

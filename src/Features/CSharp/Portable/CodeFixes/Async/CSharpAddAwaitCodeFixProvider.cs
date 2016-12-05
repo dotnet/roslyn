@@ -1,7 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -13,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -93,14 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 
         private static bool DoesExpressionReturnTask(ExpressionSyntax expression, SemanticModel semanticModel)
         {
-            INamedTypeSymbol taskType = null;
-            if (!TryGetTaskType(semanticModel, out taskType))
+            if (!TryGetTaskType(semanticModel, out var taskType))
             {
                 return false;
             }
 
-            INamedTypeSymbol returnType = null;
-            return TryGetExpressionType(expression, semanticModel, out returnType) &&
+            return TryGetExpressionType(expression, semanticModel, out var returnType) &&
             semanticModel.Compilation.ClassifyConversion(taskType, returnType).Exists;
         }
 
@@ -111,10 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 return false;
             }
 
-            INamedTypeSymbol taskType = null;
-            INamedTypeSymbol rightSideType = null;
-            if (!TryGetTaskType(semanticModel, out taskType) ||
-                !TryGetExpressionType(expression, semanticModel, out rightSideType))
+            if (!TryGetTaskType(semanticModel, out var taskType) ||
+                !TryGetExpressionType(expression, semanticModel, out var rightSideType))
             {
                 return false;
             }

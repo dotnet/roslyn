@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -187,10 +188,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
         internal protected CompletionProvider GetProvider(CompletionItem item)
         {
-            string name;
             CompletionProvider provider = null;
 
-            if (item.Properties.TryGetValue("Provider", out name))
+            if (item.Properties.TryGetValue("Provider", out var name))
             {
                 lock (_gate)
                 {
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var defaultItemSpan = this.GetDefaultCompletionListSpan(text, caretPosition);
 
-            options = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);;
+            options = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var providers = GetFilteredProviders(roles, trigger, options);
 
             var completionProviderToIndex = GetCompletionProviderToIndex(providers);
@@ -220,38 +220,43 @@ namespace Microsoft.CodeAnalysis.Completion
             var triggeredProviders = ImmutableArray<CompletionProvider>.Empty;
             switch (trigger.Kind)
             {
-            case CompletionTriggerKind.Insertion:
-            case CompletionTriggerKind.Deletion:
-                if (this.ShouldTriggerCompletion(text, caretPosition, trigger, roles, options))
-                {
-                    triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
-                    if (triggeredProviders.Length == 0)
+                case CompletionTriggerKind.Insertion:
+                case CompletionTriggerKind.Deletion:
+                    if (this.ShouldTriggerCompletion(text, caretPosition, trigger, roles, options))
                     {
-                        triggeredProviders = providers;
+                        triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
+                        if (triggeredProviders.Length == 0)
+                        {
+                            triggeredProviders = providers;
+                        }
                     }
-                }
-                break;
-            default:
-                triggeredProviders = providers;
-                break;
+                    break;
+                default:
+                    triggeredProviders = providers;
+                    break;
             }
 
-            // Now, ask all the triggered providers if they can provide a group.
-            var completionContexts = new List<CompletionContext>();
-            foreach (var provider in triggeredProviders)
+            // Now, ask all the triggered providers, in parallel, to populate a completion context.
+            // Note: we keep any context with items *or* with a suggested item.  
+            var triggeredCompletionContexts = await ComputeNonEmptyCompletionContextsAsync(
+                document, caretPosition, trigger, options,
+                defaultItemSpan, triggeredProviders, 
+                cancellationToken).ConfigureAwait(false);
+
+            // If we didn't even get any back with items, then there's nothing to do.
+            // i.e. if only got items back that had only suggestion items, then we don't
+            // want to show any completion.
+            if (!triggeredCompletionContexts.Any(cc => cc.Items.Count > 0))
             {
-                var completionContext = await GetContextAsync(
-                    provider, document, caretPosition, trigger,
-                    options, defaultItemSpan, cancellationToken).ConfigureAwait(false);
-                if (completionContext != null)
-                {
-                    completionContexts.Add(completionContext);
-                }
+                return null;
             }
 
-            // See if there was a group provided that was exclusive and had items in it.  If so, then
+            // All the contexts should be non-empty or have a suggestion item.
+            Debug.Assert(triggeredCompletionContexts.All(HasAnyItems));
+
+            // See if there was a completion context provided that was exclusive.  If so, then
             // that's all we'll return.
-            var firstExclusiveContext = completionContexts.FirstOrDefault(t => t.IsExclusive && t.Items.Any());
+            var firstExclusiveContext = triggeredCompletionContexts.FirstOrDefault(t => t.IsExclusive);
 
             if (firstExclusiveContext != null)
             {
@@ -261,41 +266,51 @@ namespace Microsoft.CodeAnalysis.Completion
                     isExclusive: true);
             }
 
-            // If no exclusive providers provided anything, then go through the remaining
-            // triggered list and see if any provide items.
-            var nonExclusiveLists = completionContexts.Where(t => !t.IsExclusive).ToList();
+            // Shouldn't be any exclusive completion contexts at this point.
+            Debug.Assert(triggeredCompletionContexts.All(cc => !cc.IsExclusive));
 
-            // If we still don't have any items, then we're definitely done.
-            if (!nonExclusiveLists.Any(g => g.Items.Any()))
-            {
-                return null;
-            }
+            // Great!  We had some items.  Now we want to see if any of the other providers 
+            // would like to augment the completion list.  For example, we might trigger
+            // enum-completion on space.  If enum completion results in any items, then 
+            // we'll want to augment the list with all the regular symbol completion items.
+            var augmentingProviders = providers.Except(triggeredProviders).ToImmutableArray();
 
-            // If we do have items, then ask all the other (non exclusive providers) if they
-            // want to augment the items.
-            var usedProviders = nonExclusiveLists.Select(g => g.Provider);
-            var nonUsedProviders = providers.Except(usedProviders);
-            var nonUsedNonExclusiveLists = new List<CompletionContext>();
-            foreach (var provider in nonUsedProviders)
-            {
-                var completionList = await GetContextAsync(provider, document, caretPosition, trigger, options, defaultItemSpan, cancellationToken).ConfigureAwait(false);
-                if (completionList != null && !completionList.IsExclusive)
-                {
-                    nonUsedNonExclusiveLists.Add(completionList);
-                }
-            }
+            var augmentingCompletionContexts = await ComputeNonEmptyCompletionContextsAsync(
+                document, caretPosition, trigger, options, defaultItemSpan,
+                augmentingProviders, cancellationToken).ConfigureAwait(false);
 
-            var allProvidersAndLists = nonExclusiveLists.Concat(nonUsedNonExclusiveLists).ToList();
-            if (allProvidersAndLists.Count == 0)
-            {
-                return null;
-            }
+            var allContexts = triggeredCompletionContexts.Concat(augmentingCompletionContexts);
+            Debug.Assert(allContexts.Length > 0);
 
             // Providers are ordered, but we processed them in our own order.  Ensure that the
             // groups are properly ordered based on the original providers.
-            allProvidersAndLists.Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
+            allContexts = allContexts.Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
 
-            return MergeAndPruneCompletionLists(allProvidersAndLists, defaultItemSpan, isExclusive: false);
+            return MergeAndPruneCompletionLists(allContexts, defaultItemSpan, isExclusive: false);
+        }
+
+        private static bool HasAnyItems(CompletionContext cc)
+        {
+            return cc.Items.Count > 0 || cc.SuggestionModeItem != null;
+        }
+
+        private async Task<ImmutableArray<CompletionContext>> ComputeNonEmptyCompletionContextsAsync(
+            Document document, int caretPosition, CompletionTrigger trigger,
+            OptionSet options, TextSpan defaultItemSpan,
+            ImmutableArray<CompletionProvider> providers,
+            CancellationToken cancellationToken)
+        {
+            var completionContextTasks = new List<Task<CompletionContext>>();
+            foreach (var provider in providers)
+            {
+                completionContextTasks.Add(GetContextAsync(
+                    provider, document, caretPosition, trigger,
+                    options, defaultItemSpan, cancellationToken));
+            }
+
+            var completionContexts = await Task.WhenAll(completionContextTasks).ConfigureAwait(false);
+            var nonEmptyContexts = completionContexts.Where(HasAnyItems).ToImmutableArray();
+            return nonEmptyContexts;
         }
 
         private CompletionList MergeAndPruneCompletionLists(

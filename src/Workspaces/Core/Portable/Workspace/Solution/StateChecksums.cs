@@ -29,10 +29,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
             // verify input
-            SolutionStateChecksums stateChecksum;
-            Contract.ThrowIfFalse(state.TryGetStateChecksums(out stateChecksum));
+            Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksum));
             Contract.ThrowIfFalse(this == stateChecksum);
 
             if (searchingChecksumsLeft.Remove(Checksum))
@@ -53,10 +51,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             foreach (var kv in state.ProjectStates)
             {
                 var projectState = kv.Value;
-
                 // solution state checksum can't be created without project state checksums created first
-                ProjectStateChecksums projectStateChecksums;
-                Contract.ThrowIfFalse(projectState.TryGetStateChecksums(out projectStateChecksums));
+                Contract.ThrowIfFalse(projectState.TryGetStateChecksums(out var projectStateChecksums));
 
                 projectStateChecksums.Find(projectState, searchingChecksumsLeft, result, cancellationToken);
                 if (searchingChecksumsLeft.Count == 0)
@@ -113,10 +109,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
             // verify input
-            ProjectStateChecksums stateChecksum;
-            Contract.ThrowIfFalse(state.TryGetStateChecksums(out stateChecksum));
+            Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksum));
             Contract.ThrowIfFalse(this == stateChecksum);
 
             if (searchingChecksumsLeft.Remove(Checksum))
@@ -180,9 +174,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             foreach (var kv in values)
             {
                 var state = kv.Value;
-
-                DocumentStateChecksums stateChecksums;
-                Contract.ThrowIfFalse(state.TryGetStateChecksums(out stateChecksums));
+                Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
 
                 stateChecksums.Find(state, searchingChecksumsLeft, result, cancellationToken);
                 if (searchingChecksumsLeft.Count == 0)
@@ -242,10 +234,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
             // verify input
-            DocumentStateChecksums stateChecksum;
-            Contract.ThrowIfFalse(state.TryGetStateChecksums(out stateChecksum));
+            Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksum));
             Contract.ThrowIfFalse(this == stateChecksum);
 
             if (searchingChecksumsLeft.Remove(Checksum))

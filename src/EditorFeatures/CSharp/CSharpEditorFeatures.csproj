@@ -8,7 +8,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.EditorFeatures</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -111,6 +110,7 @@
     <Compile Include="ExtractInterface\ExtractInterfaceCommandHandler.cs" />
     <Compile Include="ExtractMethod\ExtractMethodCommandHandler.cs" />
     <Compile Include="FindReferences\CSharpFindReferencesService.cs" />
+    <Compile Include="FindUsages\CSharpFindUsagesService.cs" />
     <Compile Include="Formatting\CSharpEditorFormattingService.cs" />
     <Compile Include="Formatting\Indentation\CSharpIndentationService.cs" />
     <Compile Include="Formatting\Indentation\CSharpIndentationService.Indenter.cs" />
@@ -119,7 +119,6 @@
     <Compile Include="Formatting\Indentation\WhitespaceExtensions.cs" />
     <Compile Include="Formatting\CSharpEditorFormattingService.PasteFormattingRule.cs" />
     <Compile Include="GoToDefinition\CSharpGoToDefinitionService.cs" />
-    <Compile Include="GoToImplementation\CSharpGoToImplementationService.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AbstractAsyncHighlighter.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AsyncAnonymousMethodHighlighter.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\AsyncMethodHighlighter.cs" />

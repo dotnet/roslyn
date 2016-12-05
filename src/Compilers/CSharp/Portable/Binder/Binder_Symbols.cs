@@ -432,16 +432,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 string name =  null;
-                IdentifierNameSyntax nameSyntax = argumentSyntax.Name;
+                SyntaxToken nameToken = argumentSyntax.Identifier;
 
-                if (nameSyntax != null)
+                if (nameToken.Kind() == SyntaxKind.IdentifierToken)
                 {
-                    name = nameSyntax.Identifier.ValueText;
+                    name = nameToken.ValueText;
 
                     // validate name if we have one
                     hasExplicitNames = true;
-                    CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames);
-                    locations.Add(nameSyntax.Location);
+                    CheckTupleMemberName(name, i, nameToken, diagnostics, uniqueFieldNames);
+                    locations.Add(nameToken.GetLocation());
                 }
                 else
                 {
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool CheckTupleMemberName(string name, int index, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, PooledHashSet<string> uniqueFieldNames)
+        private static bool CheckTupleMemberName(string name, int index, SyntaxNodeOrToken syntax, DiagnosticBag diagnostics, PooledHashSet<string> uniqueFieldNames)
         {
             int reserved = TupleTypeSymbol.IsElementNameReserved(name);
             if (reserved == 0)

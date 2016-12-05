@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public static string GetInsertionText(ISymbol symbol, SyntaxContext context)
         {
-            string name;
-
-            if (CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context, out name))
+            if (CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context, out var name))
             {
                 // Cannot escape Attribute name with the suffix removed. Only use the name with
                 // the suffix removed if it does not need to be escaped.
@@ -92,18 +90,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
+        protected override (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
         {
             var insertionText = GetInsertionText(symbol, context);
             var displayText = symbol.GetArity() == 0 ? insertionText : string.Format("{0}<>", insertionText);
 
-            return ValueTuple.Create(displayText, insertionText);
+            return (displayText, insertionText);
         }
 
         protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
         {
-            CompletionItemRules rule;
-            cachedRules.TryGetValue(ValueTuple.Create(context.IsInImportsDirective, preselect, context.IsPossibleTupleContext), out rule);
+            cachedRules.TryGetValue(ValueTuple.Create(context.IsInImportsDirective, preselect, context.IsPossibleTupleContext), out var rule);
 
             return rule ?? CompletionItemRules.Default;
         }

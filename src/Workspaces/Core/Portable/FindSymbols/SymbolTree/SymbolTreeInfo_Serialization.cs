@@ -81,9 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // See if we can even use serialization.  If not, we'll just have to make the value
             // from scratch.
-            string prefix;
-            VersionStamp version;
-            if (ShouldCreateFromScratch(solution, filePath, out prefix, out version, cancellationToken))
+            if (ShouldCreateFromScratch(solution, filePath, out var prefix, out var version, cancellationToken))
             {
                 return loadOnly ? null : create(VersionStamp.Default);
             }

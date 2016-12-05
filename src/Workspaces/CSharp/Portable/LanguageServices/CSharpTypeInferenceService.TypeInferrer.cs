@@ -69,9 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> GetTypesComplex(ExpressionSyntax expression)
             {
-                SyntaxToken operatorToken;
-                ExpressionSyntax left, right;
-                if (DecomposeBinaryOrAssignmentExpression(expression, out operatorToken, out left, out right))
+                if (DecomposeBinaryOrAssignmentExpression(expression,
+                        out var operatorToken, out var left, out var right))
                 {
                     var types = InferTypeInBinaryOrAssignmentExpression(expression, operatorToken, left, right, left).Where(IsUsableTypeFunc);
                     if (types.IsEmpty())
@@ -752,8 +751,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var currentTypes = InferTypes(arrayType);
                 for (var i = 0; i < arrayType.RankSpecifiers.Count; i++)
                 {
-                    currentTypes = currentTypes.Where(c => c.InferredType is IArrayTypeSymbol)
-                        .Select(c => new TypeInferenceInfo(((IArrayTypeSymbol)c.InferredType).ElementType));
+                    currentTypes = currentTypes.WhereAsArray(c => c.InferredType is IArrayTypeSymbol)
+                                               .SelectAsArray(c => new TypeInferenceInfo(((IArrayTypeSymbol)c.InferredType).ElementType));
                 }
                 return currentTypes;
             }
@@ -1743,12 +1742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, yieldStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
 
-                var memberType = (ITypeSymbol)null;
-                switch (memberSymbol)
-                {
-                    case IMethodSymbol method: memberType = method.ReturnType; break;
-                    case IPropertySymbol property: memberType = property.Type; break;
-                }
+                var memberType = GetMemberType(memberSymbol);
 
                 if (memberType is INamedTypeSymbol)
                 {
@@ -1762,12 +1756,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
+            private static ITypeSymbol GetMemberType(ISymbol memberSymbol)
+            {
+                switch (memberSymbol)
+                {
+                    case IMethodSymbol method: return method.ReturnType; 
+                    case IPropertySymbol property: return property.Type; 
+                }
+
+                return null;
+            }
+
             private IEnumerable<TypeInferenceInfo> InferTypeForReturnStatement(ReturnStatementSyntax returnStatement, SyntaxToken? previousToken = null)
             {
-                bool isAsync;
-                IEnumerable<TypeInferenceInfo> types;
-
-                InferTypeForReturnStatement(returnStatement, previousToken, out isAsync, out types);
+                InferTypeForReturnStatement(returnStatement, previousToken,
+                    out var isAsync, out var types);
 
                 if (!isAsync)
                 {
@@ -1994,10 +1997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ITypeSymbol GetTupleType(
                 TupleExpressionSyntax tuple)
             {
-                ImmutableArray<ITypeSymbol> elementTypes;
-                ImmutableArray<string> elementNames;
-
-                if (!TryGetTupleTypesAndNames(tuple.Arguments, out elementTypes, out elementNames))
+                if (!TryGetTupleTypesAndNames(tuple.Arguments, out var elementTypes, out var elementNames))
                 {
                     return null;
                 }
@@ -2030,7 +2030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    if (elementTypesBuilder.Contains(null))
+                    if (elementTypesBuilder.Contains(null) || elementTypesBuilder.Count != arguments.Count)
                     {
                         return false;
                     }

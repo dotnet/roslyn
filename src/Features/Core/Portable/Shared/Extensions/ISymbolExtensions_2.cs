@@ -170,19 +170,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static IEnumerable<TaggedText> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
         {
-            var documentation = (string)null;
-            switch (symbol)
-            {
-                case IParameterSymbol parameter: documentation = parameter.ContainingSymbol.OriginalDefinition.GetDocumentationComment(cancellationToken: cancellationToken).GetParameterText(symbol.Name); break;
-                case ITypeParameterSymbol typeParam: documentation = typeParam.ContainingSymbol.GetDocumentationComment(cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name); break;
-                case IMethodSymbol method: documentation = GetMethodDocumentation(method); break;
-                case IAliasSymbol alias: documentation = alias.Target.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText; break;
-                default: documentation = symbol.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText; break;
-            }
+            string documentation = GetDocumentation(symbol, cancellationToken);
 
             return documentation != null
                 ? formatter.Format(documentation, semanticModel, position, CrefFormat)
                 : SpecializedCollections.EmptyEnumerable<TaggedText>();
+        }
+
+        private static string GetDocumentation(ISymbol symbol, CancellationToken cancellationToken)
+        {
+            switch (symbol)
+            {
+                case IParameterSymbol parameter: return parameter.ContainingSymbol.OriginalDefinition.GetDocumentationComment(cancellationToken: cancellationToken).GetParameterText(symbol.Name);
+                case ITypeParameterSymbol typeParam: return typeParam.ContainingSymbol.GetDocumentationComment(cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name);
+                case IMethodSymbol method: return GetMethodDocumentation(method);
+                case IAliasSymbol alias: return alias.Target.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText;
+                default: return symbol.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText;
+            }
         }
 
         public static Func<CancellationToken, IEnumerable<TaggedText>> GetDocumentationPartsFactory(

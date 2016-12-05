@@ -5,6 +5,12 @@
     <XUnitPath>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools\xunit.console.x86.exe</XUnitPath>
     <XUnitTestResultsDirectory>$(OutDir)\xUnitResults</XUnitTestResultsDirectory>
     <XUnitArguments>"$(OutDir)\$(AssemblyName).dll" -html "$(XUnitTestResultsDirectory)\$(AssemblyName).html" -noshadow</XUnitArguments>
+
+    <StartAction Condition="'$(StartActions)' == ''">Program</StartAction>
+    <StartProgram Condition="'$(StartProgram)' == ''">$(XUnitPath)</StartProgram>
+    <StartArguments Condition="'$(StartArguments)' == ''">$(XUnitArguments)</StartArguments>
+
+    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
   </PropertyGroup>
 
   <Target Name="Test" DependsOnTargets="Build">
@@ -12,24 +18,16 @@
     <Exec Command="&quot;$(XUnitPath)&quot; $(XUnitArguments)" />
   </Target>
 
-  <PropertyGroup>
-    <StartAction Condition="'$(StartActions)' == ''">Program</StartAction>
-    <StartProgram Condition="'$(StartProgram)' == ''">$(XUnitPath)</StartProgram>
-    <StartArguments Condition="'$(StartArguments)' == ''">$(XUnitArguments)</StartArguments>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
-  </PropertyGroup>
-
   <!-- Add a default test app.config, if the project doesn't already have one-->
   <Target Name="AddDefaultTestAppConfig">
     <PropertyGroup>
       <_AlreadyHasAppConfig Condition="'%(None.Filename)%(None.Extension)' == 'app.config'">true</_AlreadyHasAppConfig>
+      <_DefaultAppConfigFile Condition="'$(RoslynProjectType)' == 'UnitTest'">$(MSBuildThisFileDirectory)..\Defaults\Desktop\app.config</_DefaultAppConfigFile>
+      <_DefaultAppConfigFile Condition="'$(RoslynProjectType)' != 'UnitTest'">$(MSBuildThisFileDirectory)..\Defaults\Portable\app.config</_DefaultAppConfigFile>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(_AlreadyHasAppConfig)' != 'true'">
-      <None Include="$(MSBuildThisFileDirectory)..\Defaults\app.config">
+      <None Include="$(_DefaultAppConfigFile)">
         <Link>app.config</Link>
       </None>
     </ItemGroup>

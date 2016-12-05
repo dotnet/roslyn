@@ -10,7 +10,6 @@
     <AssemblyName>Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System" />
@@ -54,6 +53,7 @@
     <Compile Include="ExpressionCompilerTestHelpers.cs" />
     <Compile Include="MethodDebugInfoBytes.cs" />
     <Compile Include="MethodDebugInfoValidation.cs" />
+    <Compile Include="NamespaceTypeDefinitionNoBase.cs" />
     <Compile Include="NotImplementedSymUnmanaged.cs" />
     <Compile Include="ModuleInstance.cs" />
     <Compile Include="MockSymUnmanaged.cs" />

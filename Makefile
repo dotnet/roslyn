@@ -10,7 +10,7 @@ RESTORE_SEMAPHORE_PATH = $(BINARIES_PATH)/restore.semaphore
 BOOTSTRAP_PATH = $(BINARIES_PATH)/Bootstrap
 BUILD_LOG_PATH =
 HOME_DIR = $(shell cd ~ && pwd)
-DOTNET_VERSION = 1.0.0-preview2-002911
+DOTNET_VERSION = 1.0.0-preview2-003131
 NUGET_VERSION = 3.5.0-beta2
 NUGET_EXE = $(shell pwd)/nuget.exe
 

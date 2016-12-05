@@ -66,14 +66,17 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
             }
 
-            // if we can't find a member then we can't do anything
-            if (memberReference.Member == null)
+            // if we can't find a member then we can't do anything.  Also, we shouldn't qualify
+            // accesses to static members.  
+            if (memberReference.Member == null ||
+                memberReference.Member.IsStatic)
             {
                 return;
             }
 
-            // get the option
-            var optionSet = context.Options.GetOptionSet();
+            var syntaxTree = context.Operation.Syntax.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 if (severity != DiagnosticSeverity.Hidden)
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
-                        CreateDescriptorWithSeverity(severity), 
+                        GetDescriptorWithSeverity(severity), 
                         context.Operation.Syntax.GetLocation()));
                 }
             }

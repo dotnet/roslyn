@@ -18,9 +18,11 @@ using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tags;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -54,6 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public readonly IAsynchronousOperationListener OperationListener;
         public readonly IWaitIndicator WaitIndicator;
 
+        public readonly ImmutableArray<Lazy<IImageMonikerService, OrderableMetadata>> ImageMonikerServices;
+
         [ImportingConstructor]
         public SuggestedActionsSourceProvider(
             ICodeRefactoringService codeRefactoringService,
@@ -61,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
+            [ImportMany] IEnumerable<Lazy<IImageMonikerService, OrderableMetadata>> imageMonikerServices)
         {
             _codeRefactoringService = codeRefactoringService;
             _diagnosticService = diagnosticService;
@@ -69,6 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             EditHandler = editHandler;
             WaitIndicator = waitIndicator;
             OperationListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LightBulb);
+
+            ImageMonikerServices = ExtensionOrderer.Order(imageMonikerServices).ToImmutableArray();
         }
 
         public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
@@ -159,15 +166,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
                 {
-                    var documentAndSnapshot = GetMatchingDocumentAndSnapshotAsync(range.Snapshot, cancellationToken).WaitAndGetResult(cancellationToken);
-                    if (!documentAndSnapshot.HasValue)
+                    var document = GetMatchingDocumentAsync(range.Snapshot, cancellationToken).WaitAndGetResult(cancellationToken);
+                    if (document == null)
                     {
                         // this is here to fail test and see why it is failed.
                         Trace.WriteLine("given range is not current");
                         return null;
                     }
 
-                    var document = documentAndSnapshot.Value.Item1;
                     var workspace = document.Project.Solution.Workspace;
                     var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
 
@@ -586,15 +592,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (var asyncToken = provider.OperationListener.BeginAsyncOperation("HasSuggestedActionsAsync"))
                 {
-                    var documentAndSnapshot = await GetMatchingDocumentAndSnapshotAsync(range.Snapshot, cancellationToken).ConfigureAwait(false);
-                    if (!documentAndSnapshot.HasValue)
+                    var document = await GetMatchingDocumentAsync(range.Snapshot, cancellationToken).ConfigureAwait(false);
+                    if (document == null)
                     {
                         // this is here to fail test and see why it is failed.
                         Trace.WriteLine("given range is not current");
                         return false;
                     }
 
-                    var document = documentAndSnapshot.Value.Item1;
                     var workspace = document.Project.Solution.Workspace;
                     var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
 
@@ -728,7 +733,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return translatedSpan.Span.ToTextSpan();
             }
 
-            private static async Task<ValueTuple<Document, ITextSnapshot>?> GetMatchingDocumentAndSnapshotAsync(ITextSnapshot givenSnapshot, CancellationToken cancellationToken)
+            private static async Task<Document> GetMatchingDocumentAsync(ITextSnapshot givenSnapshot, CancellationToken cancellationToken)
             {
                 var buffer = givenSnapshot.TextBuffer;
                 if (buffer == null)
@@ -763,7 +768,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
                 }
 
-                return ValueTuple.Create(document, snapshot);
+                return document;
             }
 
             private void OnTextViewClosed(object sender, EventArgs e)

@@ -10,7 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Inter
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface ICSharpTempPECompilerService
     {
-        void CompileTempPE(
+        [PreserveSig]
+        int CompileTempPE(
             [MarshalAs(UnmanagedType.LPWStr)] string pszOutputFileName,
             int sourceCount,
             [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 1)] string[] fileNames,

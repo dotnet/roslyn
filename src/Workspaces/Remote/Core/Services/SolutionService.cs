@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-<<<<<<< HEAD
-=======
 using System.Collections.Generic;
->>>>>>> bed3959c19858e55cc0c7fca9601cf0034b61f72
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -66,6 +63,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, OptionSet optionSet, CancellationToken cancellationToken)
         {
+            if (optionSet == null)
+            {
+                return await GetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            }
+
             // get solution
             var baseSolution = await GetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 

@@ -26,8 +26,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
+    <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerExecutionContext.cs" />
     <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
+    <Compile Include="Symbols\IDiscardedSymbol.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />
     <Compile Include="Syntax\SyntaxList.SeparatedWithManyWeakChildren.cs" />
@@ -218,7 +220,6 @@
     <Compile Include="DiagnosticAnalyzer\AnalyzerTelemetry.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerActionCounts.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerExecutor.cs" />
-    <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerAndOptions.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerManager.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilationCompletedEvent.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilationEvent.cs" />
@@ -604,6 +605,7 @@
     <Compile Include="Symbols\Attributes\WellKnownAttributeData.cs" />
     <Compile Include="Symbols\CommonAttributeDataExtensions.cs" />
     <Compile Include="Symbols\CustomModifier.cs" />
+    <Compile Include="Symbols\CustomModifiersTuple.cs" />
     <Compile Include="Symbols\IAliasSymbol.cs" />
     <Compile Include="Symbols\IArrayTypeSymbol.cs" />
     <Compile Include="Symbols\IAssemblySymbol.cs" />

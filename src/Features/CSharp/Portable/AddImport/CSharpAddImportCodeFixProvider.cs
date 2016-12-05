@@ -521,8 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             SyntaxNode contextNode,
             bool checkForExistingExternAlias)
         {
-            string externAliasString;
-            if (TryGetExternAliasString(namespaceSymbol, semanticModel, contextNode, checkForExistingExternAlias, out externAliasString))
+            if (TryGetExternAliasString(namespaceSymbol, semanticModel, contextNode, checkForExistingExternAlias, out var externAliasString))
             {
                 return SyntaxFactory.ExternAliasDirective(SyntaxFactory.Identifier(externAliasString))
                                     .WithAdditionalAnnotations(Formatter.Annotation);
@@ -711,7 +710,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
         protected override bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
-            var leftExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(expression);
+            var leftExpression = 
+                syntaxFacts.GetExpressionOfMemberAccessExpression(expression) ??
+                syntaxFacts.GetTargetOfMemberBinding(expression);
             if (leftExpression == null)
             {
                 if (expression.IsKind(SyntaxKind.CollectionInitializerExpression))

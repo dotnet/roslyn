@@ -1464,7 +1464,7 @@ class UsePia4
 
                     SignatureHeader signatureHeader;
                     BadImageFormatException mrEx;
-                    ParamInfo<TypeSymbol>[] paramInfo = new MetadataDecoder((PEModuleSymbol)module, itest17).GetSignatureForMethod(gapMethodDef, out signatureHeader, out mrEx, allowByRefReturn: true);
+                    ParamInfo<TypeSymbol>[] paramInfo = new MetadataDecoder((PEModuleSymbol)module, itest17).GetSignatureForMethod(gapMethodDef, out signatureHeader, out mrEx);
                     Assert.Null(mrEx);
                     Assert.Equal((byte)SignatureCallingConvention.Default | (byte)SignatureAttributes.Instance, signatureHeader.RawValue);
                     Assert.Equal(1, paramInfo.Length);
@@ -4879,8 +4879,6 @@ class UsePia5
             var compilation1 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2, embedInteropTypes: true) });
             compilation1.VerifyEmitDiagnostics(
-                // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1),
                 // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1),
                 // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)

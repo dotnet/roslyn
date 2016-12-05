@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         {
         }
     }
-}", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+}", options: new UseImplicitTypeTests().ImplicitTypeEverywhere());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         {
         }
     }
-}", options: UseImplicitTypeTests.ImplicitTypeButKeepIntrinsics());
+}", options: new UseImplicitTypeTests().ImplicitTypeButKeepIntrinsics());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M2(out string s)
     {
     }
-}", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+}", options: new UseImplicitTypeTests().ImplicitTypeEverywhere());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M2(out string s)
     {
     }
-}", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+}", options: new UseImplicitTypeTests().ImplicitTypeEverywhere());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M2<T>(out T i)
     {
     }
-}", options: UseImplicitTypeTests.ImplicitTypeEverywhere());
+}", options: new UseImplicitTypeTests().ImplicitTypeEverywhere());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -921,6 +921,135 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
     }
 }", compareTokens: false);
+        }
+
+        [WorkItem(15336, "https://github.com/dotnet/roslyn/issues/15336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotMissingIfCapturedInLambdaAndNotUsedAfterwards()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        string [|s|];  
+        Bar(() => Baz(out s));
+    }
+
+    void Baz(out string s) { }
+
+    void Bar(Action a) { }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        Bar(() => Baz(out string s));
+    }
+
+    void Baz(out string s) { }
+
+    void Bar(Action a) { }
+}");
+        }
+
+        [WorkItem(15336, "https://github.com/dotnet/roslyn/issues/15336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingIfCapturedInLambdaAndUsedAfterwards()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        string [|s|];  
+        Bar(() => Baz(out s));
+        Console.WriteLine(s);
+    }
+
+    void Baz(out string s) { }
+
+    void Bar(Action a) { }
+}");
+        }
+
+        [WorkItem(15408, "https://github.com/dotnet/roslyn/issues/15408")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestDataFlow1()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    void Foo(string x)
+    {
+        object [|s|] = null; 
+        if (x != null || TryBaz(out s))
+        {
+            Console.WriteLine(s); 
+        }
+    }
+
+    private bool TryBaz(out object s)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(15408, "https://github.com/dotnet/roslyn/issues/15408")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestDataFlow2()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void Foo(string x)
+    {
+        object [|s|] = null; 
+        if (x != null && TryBaz(out s))
+        {
+            Console.WriteLine(s); 
+        }
+    }
+
+    private bool TryBaz(out object s)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void Foo(string x)
+    {
+        if (x != null && TryBaz(out object s))
+        {
+            Console.WriteLine(s); 
+        }
+    }
+
+    private bool TryBaz(out object s)
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
     }
 }

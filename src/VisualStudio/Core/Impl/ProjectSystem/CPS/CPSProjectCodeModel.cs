@@ -66,8 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 return null;
             }
 
-            string filePath;
-            if (!item.TryGetFullPath(out filePath))
+            if (!item.TryGetFullPath(out var filePath))
             {
                 return null;
             }

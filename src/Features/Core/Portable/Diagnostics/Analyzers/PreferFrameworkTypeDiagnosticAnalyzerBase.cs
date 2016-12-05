@@ -74,14 +74,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
 
         protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            var optionSet = context.Options.GetOptionSet();
+            var syntaxTree = context.Node.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;
             }
-
+            
             var semanticModel = context.SemanticModel;
-            var cancellationToken = context.CancellationToken;
             var language = semanticModel.Language;
 
             // if the user never prefers this style, do not analyze at all.
@@ -105,12 +106,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             {
                 return;
             }
-
             // earlier we did a context insensitive check to see if this style was preferred in *any* context at all.
             // now, we have to make a context sensitive check to see if options settings for our context requires us to report a diagnostic.
-            string diagnosticId;
-            DiagnosticSeverity diagnosticSeverity;
-            if (ShouldReportDiagnostic(predefinedTypeNode, optionSet, language, out diagnosticId, out diagnosticSeverity))
+            if (ShouldReportDiagnostic(predefinedTypeNode, optionSet, language, out var diagnosticId, out var diagnosticSeverity))
             {
                 var descriptor = new DiagnosticDescriptor(diagnosticId,
                         s_preferFrameworkTypeTitle,

@@ -96,22 +96,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             private static IVsDropdownBar GetDropdownBar(IVsDropdownBarManager dropdownManager)
             {
-                IVsDropdownBar existingDropdownBar = null;
-                ErrorHandler.ThrowOnFailure(dropdownManager.GetDropdownBar(out existingDropdownBar));
+                ErrorHandler.ThrowOnFailure(dropdownManager.GetDropdownBar(out var existingDropdownBar));
                 return existingDropdownBar;
             }
 
             private static IVsDropdownBarClient GetDropdownBarClient(IVsDropdownBar dropdownBar)
             {
-                IVsDropdownBarClient dropdownBarClient = null;
-                ErrorHandler.ThrowOnFailure(dropdownBar.GetClient(out dropdownBarClient));
+                ErrorHandler.ThrowOnFailure(dropdownBar.GetClient(out var dropdownBarClient));
                 return dropdownBarClient;
             }
 
             private void AdddropdownBar(IVsDropdownBarManager dropdownManager)
             {
-                IVsTextLines buffer;
-                if (ErrorHandler.Failed(_codeWindow.GetBuffer(out buffer)))
+                if (ErrorHandler.Failed(_codeWindow.GetBuffer(out var buffer)))
                 {
                     return;
                 }
@@ -149,18 +146,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             public int AddAdornments()
             {
-                IVsTextView primaryView;
                 int hr;
-                if (ErrorHandler.Failed(hr = _codeWindow.GetPrimaryView(out primaryView)))
+                if (ErrorHandler.Failed(hr = _codeWindow.GetPrimaryView(out var primaryView)))
                 {
                     Debug.Fail("GetPrimaryView failed in IVsCodeWindowManager.AddAdornments");
                     return hr;
                 }
 
                 SetupView(primaryView);
-
-                IVsTextView secondaryView;
-                if (ErrorHandler.Succeeded(_codeWindow.GetSecondaryView(out secondaryView)))
+                if (ErrorHandler.Succeeded(_codeWindow.GetSecondaryView(out var secondaryView)))
                 {
                     SetupView(secondaryView);
                 }

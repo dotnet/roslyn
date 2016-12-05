@@ -122,9 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         // called from an edit filter if an edit of a read-only buffer is attempted:
         internal bool OnEdit(DocumentId documentId)
         {
-            SessionReadOnlyReason sessionReason;
-            ProjectReadOnlyReason projectReason;
-            if (_encService.IsProjectReadOnly(documentId.ProjectId, out sessionReason, out projectReason))
+            if (_encService.IsProjectReadOnly(documentId.ProjectId, out var sessionReason, out var projectReason))
             {
                 OnReadOnlyDocumentEditAttempt(documentId, sessionReason, projectReason);
                 return true;
@@ -723,11 +721,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     var session = _encService.EditSession;
                     var ids = _activeStatementIds;
-
                     // Can be called anytime, even outside of an edit/debug session.
                     // We might not have an active statement available if PDB got out of sync with the source.
-                    ActiveStatementId id;
-                    if (session == null || ids == null || !ids.TryGetValue(vsId, out id))
+                    if (session == null || ids == null || !ids.TryGetValue(vsId, out var id))
                     {
                         log.Write("GetCurrentActiveStatementPosition failed for AS {0}.", vsId);
                         return VSConstants.E_FAIL;
@@ -735,14 +731,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     Document document = _vsProject.Workspace.CurrentSolution.GetDocument(id.DocumentId);
                     SourceText text = document.GetTextAsync(default(CancellationToken)).Result;
-
+                    LinePositionSpan lineSpan;
                     // Try to get spans from the tracking service first.
                     // We might get an imprecise result if the document analysis hasn't been finished yet and 
                     // the active statement has structurally changed, but that's ok. The user won't see an updated tag
                     // for the statement until the analysis finishes anyways.
-                    TextSpan span;
-                    LinePositionSpan lineSpan;
-                    if (_trackingService.TryGetSpan(id, text, out span) && span.Length > 0)
+                    if (_trackingService.TryGetSpan(id, text, out var span) && span.Length > 0)
                     {
                         lineSpan = text.Lines.GetLinePositionSpan(span);
                     }
@@ -1089,9 +1083,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             {
                 // Unmarshal the symbol reader (being marshalled cross thread from STA -> MTA).
                 Debug.Assert(_pdbReaderObjAsStream != IntPtr.Zero);
-                object pdbReaderObjMta;
-
-                var exception = Marshal.GetExceptionForHR(NativeMethods.GetObjectForStream(_pdbReaderObjAsStream, out pdbReaderObjMta));
+                var exception = Marshal.GetExceptionForHR(NativeMethods.GetObjectForStream(_pdbReaderObjAsStream, out var pdbReaderObjMta));
                 if (exception != null)
                 {
                     // likely a bug in the compiler/debugger
@@ -1224,11 +1216,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             // Another way to achieve this would be for the symbol reader to implement IAgileObject,
             // but the symbol reader we use today does not.  If that changes, we should consider
             // removing this marshal/unmarshal code.
-            IENCDebugInfo debugInfo;
-            updater.GetENCDebugInfo(out debugInfo);
+            updater.GetENCDebugInfo(out var debugInfo);
             var symbolReaderProvider = (IENCSymbolReaderProvider)debugInfo;
-            object pdbReaderObjSta;
-            symbolReaderProvider.GetSymbolReader(out pdbReaderObjSta);
+            symbolReaderProvider.GetSymbolReader(out var pdbReaderObjSta);
             int hr = NativeMethods.GetStreamForObject(pdbReaderObjSta, out pdbReaderPointer);
             Marshal.ReleaseComObject(pdbReaderObjSta);
             return hr;

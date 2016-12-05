@@ -969,21 +969,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private static bool IsIndirectAssignment(BoundAssignmentOperator node)
         {
             var lhs = node.Left;
+
+            Debug.Assert(node.RefKind == RefKind.None || (lhs as BoundLocal)?.LocalSymbol.RefKind == RefKind.Ref,
+                                "only ref locals can be a target of a ref assignment");
+            
             switch (lhs.Kind)
             {
                 case BoundKind.ThisReference:
-                    Debug.Assert(lhs.Type.IsValueType && node.RefKind == RefKind.None);
+                    Debug.Assert(lhs.Type.IsValueType, "'this' is assignable only in structs");
                     return true;
 
                 case BoundKind.Parameter:
                     if (((BoundParameter)lhs).ParameterSymbol.RefKind != RefKind.None)
                     {
                         bool isIndirect = node.RefKind == RefKind.None;
-                        Debug.Assert(isIndirect, "direct assignment to a ref/out parameter is highly suspicious");
                         return isIndirect;
                     }
 
-                    break;
+                    return false;
 
                 case BoundKind.Local:
                     if (((BoundLocal)lhs).LocalSymbol.RefKind != RefKind.None)
@@ -992,21 +995,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         return isIndirect;
                     }
 
-                    break;
+                    return false;
 
                 case BoundKind.Call:
                     Debug.Assert(((BoundCall)lhs).Method.RefKind == RefKind.Ref, "only ref returning methods are assignable");
-                    Debug.Assert(node.RefKind == RefKind.None, "methods cannot be ref-assignable");
                     return true;
 
                 case BoundKind.AssignmentOperator:
                     Debug.Assert(((BoundAssignmentOperator)lhs).RefKind == RefKind.Ref, "only ref assignments are assignable");
-                    Debug.Assert(node.RefKind == RefKind.None, "assignments cannot be ref-assignable");
                     return true;
-            }
 
-            Debug.Assert(node.RefKind == RefKind.None, "this is not something that can be assigned indirectly");
-            return false;
+                case BoundKind.Sequence:
+                    Debug.Assert(!IsIndirectAssignment(node.Update(((BoundSequence)node.Left).Value, node.Right, node.RefKind, node.Type)), 
+                        "indirect assignment to a sequence is unexpected");
+                    return false;
+
+                case BoundKind.RefValueOperator:
+                case BoundKind.PointerIndirectionOperator:
+                case BoundKind.PseudoVariable:
+                    return true;
+
+                case BoundKind.ModuleVersionId:
+                case BoundKind.InstrumentationPayloadRoot:
+                    // these are just stores into special static fields
+                    goto case BoundKind.FieldAccess;
+
+                case BoundKind.FieldAccess:
+                case BoundKind.ArrayAccess:
+                    // always symbolic stores
+                    return false;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(lhs.Kind);
+            }
         }
         private static bool IsIndirectOrInstanceFieldAssignment(BoundAssignmentOperator node)
         {
@@ -1958,12 +1979,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // indirect local store is not special. (operands still could be rewritten) 
             // NOTE: if Lhs is a stack local, it will be handled as a read and possibly duped.
-            var indirectStore = left.LocalSymbol.RefKind != RefKind.None && node.RefKind == RefKind.None;
-            if (indirectStore)
+            var isIndirectLocalStore = left.LocalSymbol.RefKind != RefKind.None && node.RefKind == RefKind.None;
+            if (isIndirectLocalStore)
             {
                 return base.VisitAssignmentOperator(node);
             }
-
 
             // ==  here we have a regular write to a stack local
             //

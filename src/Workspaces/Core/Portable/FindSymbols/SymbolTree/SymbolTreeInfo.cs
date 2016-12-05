@@ -498,9 +498,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             string filePath, ImmutableArray<BuilderNode> unsortedNodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap)
         {
-            string concatenatedNames;
-            Node[] sortedNodes;
-            SortNodes(unsortedNodes, out concatenatedNames, out sortedNodes);
+            SortNodes(unsortedNodes, out var concatenatedNames, out var sortedNodes);
             var createSpellCheckerTask = GetSpellCheckerTask(
                 solution, version, filePath, concatenatedNames, sortedNodes);
 
