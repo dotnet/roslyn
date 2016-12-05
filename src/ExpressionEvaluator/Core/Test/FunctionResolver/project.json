@@ -1,9 +1,9 @@
 {
     "dependencies": {
         "Microsoft.VisualStudio.Debugger.Engine": "14.3.25422",
-        "xunit": "2.1.0",
-        "xunit.runner.console": "2.2.0-beta1-build3239",
-        "xunit.runner.visualstudio": "2.2.0-beta1-build1144"
+        "xunit": "2.2.0-beta4-build3444",
+        "xunit.runner.console": "2.2.0-beta4-build3444",
+        "xunit.runner.visualstudio": "2.2.0-beta4-build1194"
     },
     "frameworks": {
         "net46": { }
