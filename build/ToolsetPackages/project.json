@@ -11,6 +11,7 @@
     "FakeSign": "0.9.2",
     "xunit.assert": "2.1.0",
     "xunit.runner.console": "2.2.0-beta1-build3239",
+    "xunit.runner.visualstudio": "2.2.0-beta1-build1144",
     "Roslyn.Build.Util": "0.9.4-portable",
     "RoslynDependencies.OptimizationData": "2.0.0-rc-61101-16",
     "RoslynTools.Microsoft.LocateVS": "0.2.2-beta",

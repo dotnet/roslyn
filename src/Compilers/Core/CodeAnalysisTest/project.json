@@ -2,6 +2,7 @@
     "dependencies": {
         "xunit": "2.1.0",
         "xunit.runner.console": "2.2.0-beta1-build3239",
+        "xunit.runner.visualstudio": "2.2.0-beta1-build1144",
         "Moq": "4.2.1402.2112"
     },
     "frameworks": {
