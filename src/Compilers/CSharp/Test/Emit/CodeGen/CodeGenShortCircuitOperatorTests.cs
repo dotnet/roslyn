@@ -7017,7 +7017,7 @@ class Program
         }
 
         [Fact, WorkItem(15670, "https://github.com/dotnet/roslyn/issues/15670")]
-        public void ConditionalAccessOffOfClassconstrainedDefault1()
+        public void ConditionalAccessOffOfClassConstrainedDefault1()
         {
             var source = @"
 using System;
