@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             CreateCompletionListBuilder(selectedItem, suggestionModeItem, suggestionMode);
             CreateNormalCompletionListItems(completionItems);
 
-            var selectedCompletionItem = GetVSCompletion(selectedItem);
+            var selectedCompletionItem = selectedItem != null ? GetVSCompletion(selectedItem) : null;
             VsCompletionSet.SelectionStatus = new CompletionSelectionStatus(
                 selectedCompletionItem, 
                 isSelected: !isSoftSelected, isUnique: selectedCompletionItem != null);
@@ -137,8 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private VSCompletion GetVSCompletion(CompletionItem item, string displayText = null)
         {
-            VSCompletion value;
-            if (!CompletionItemMap.TryGetValue(item, out value))
+            if (!CompletionItemMap.TryGetValue(item, out var value))
             {
                 value = new CustomCommitCompletion(CompletionPresenterSession, item);
                 CompletionItemMap.Add(item, value);

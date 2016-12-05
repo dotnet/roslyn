@@ -1091,5 +1091,61 @@ class C
 }");
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(15298, "https://github.com/dotnet/roslyn/issues/15298")]
+        public void UnassignedUndefinedVariable()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    void M()
+    {
+        {
+            Foo();
+            int x = 0;
+            void Foo() => x++;
+        }
+        {
+            System.Action a = Foo;
+            int x = 0;
+            void Foo() => x++;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0165: Use of unassigned local variable 'x'
+                //             Foo();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Foo()").WithArguments("x").WithLocation(7, 13),
+                // (12,31): error CS0165: Use of unassigned local variable 'x'
+                //             System.Action a = Foo;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Foo").WithArguments("x").WithLocation(12, 31));
+        }
+
+        [Fact]
+        [WorkItem(15322, "https://github.com/dotnet/roslyn/issues/15322")]
+        public void UseBeforeDeclarationInSwitch()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Program
+{
+    static void Main(object[] args)
+    {
+        switch(args[0])
+        {
+            case string x:
+                Foo(); 
+                break;
+            case int x:
+                void Foo() => System.Console.WriteLine(x);
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,17): error CS0165: Use of unassigned local variable 'x'
+                //                 Foo();
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Foo()").WithArguments("x").WithLocation(9, 17));
+        }
     }
 }

@@ -216,8 +216,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(
             Workspace workspace, ProjectId projectId, string language, string fullPath, AnalyzerLoadFailureEventArgs e)
         {
-            string id, message, messageFormat, description;
-            if (!TryGetErrorMessage(language, fullPath, e, out id, out message, out messageFormat, out description))
+            if (!TryGetErrorMessage(language, fullPath, e, out var id, out var message, out var messageFormat, out var description))
             {
                 return null;
             }

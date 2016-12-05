@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SynthesizedStringSwitchHashMethod(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplType, TypeSymbol returnType, TypeSymbol paramType)
             : base(containingModule, privateImplType, returnType, PrivateImplementationDetails.SynthesizedStringHashFunctionName)
         {
-            this.SetParameters(ImmutableArray.Create<ParameterSymbol>(new SynthesizedParameterSymbol(this, paramType, 0, RefKind.None, "s")));
+            this.SetParameters(ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this, paramType, 0, RefKind.None, "s")));
         }
     }
 }

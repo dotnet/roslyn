@@ -89,8 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 return false;
             }
 
-            SyntaxNode parameterNode;
-            if (!CodeModelService.TryGetParameterNode(parentNode, _name, out parameterNode))
+            if (!CodeModelService.TryGetParameterNode(parentNode, _name, out var parameterNode))
             {
                 return false;
             }

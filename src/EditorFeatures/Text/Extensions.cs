@@ -67,9 +67,7 @@ namespace Microsoft.CodeAnalysis.Text
         public static Workspace GetWorkspace(this ITextBuffer buffer)
         {
             var container = buffer.AsTextContainer();
-
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(container, out workspace))
+            if (Workspace.TryGetWorkspace(container, out var workspace))
             {
                 return workspace;
             }
@@ -128,8 +126,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         internal static bool CanApplyChangeDocumentToWorkspace(this ITextBuffer buffer)
         {
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(buffer.AsTextContainer(), out workspace))
+            if (Workspace.TryGetWorkspace(buffer.AsTextContainer(), out var workspace))
             {
                 return workspace.CanApplyChange(ApplyChangesKind.ChangeDocument);
             }
@@ -149,8 +146,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         internal static Encoding GetEncodingOrUTF8(this ITextBuffer textBuffer)
         {
-            ITextDocument textDocument;
-            if (textBuffer.Properties.TryGetProperty(typeof(ITextDocument), out textDocument))
+            if (textBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument textDocument))
             {
                 return textDocument.Encoding;
             }

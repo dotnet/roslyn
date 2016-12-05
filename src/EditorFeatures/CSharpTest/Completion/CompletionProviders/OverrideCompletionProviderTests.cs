@@ -702,10 +702,7 @@ public class SomeClass : Base
 {
     override $$
 }";
-
-            string code;
-            int position;
-            MarkupTestFile.GetPosition(markup, out code, out position);
+            MarkupTestFile.GetPosition(markup, out var code, out int position);
 
             await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Regular, false, false, null, null);
             await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Script, false, false, null, null);
@@ -723,10 +720,7 @@ public class SomeClass : Base
 {
     override $$
 }";
-
-            string code;
-            int position;
-            MarkupTestFile.GetPosition(markup, out code, out position);
+            MarkupTestFile.GetPosition(markup, out var code, out int position);
 
             await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Regular, false, false, null, null);
             await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Script, false, false, null, null);
@@ -2144,10 +2138,7 @@ End Class
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                     string actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                     var caretPosition = textView.Caret.Position.BufferPosition.Position;
-
-                    int expectedCaretPosition;
-                    string actualExpectedCode = null;
-                    MarkupTestFile.GetPosition(csharpFileAfterCommit, out actualExpectedCode, out expectedCaretPosition);
+                    MarkupTestFile.GetPosition(csharpFileAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
                     Assert.Equal(actualExpectedCode, actualCodeAfterCommit);
                     Assert.Equal(expectedCaretPosition, caretPosition);
@@ -2404,10 +2395,7 @@ int bar;
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                     string actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                     var caretPosition = textView.Caret.Position.BufferPosition.Position;
-
-                    int expectedCaretPosition;
-                    string actualExpectedCode = null;
-                    MarkupTestFile.GetPosition(csharpFileAfterCommit, out actualExpectedCode, out expectedCaretPosition);
+                    MarkupTestFile.GetPosition(csharpFileAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
                     Assert.Equal(actualExpectedCode, actualCodeAfterCommit);
                     Assert.Equal(expectedCaretPosition, caretPosition);
@@ -2463,10 +2451,7 @@ int bar;
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                     string actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                     var caretPosition = textView.Caret.Position.BufferPosition.Position;
-
-                    int expectedCaretPosition;
-                    string actualExpectedCode = null;
-                    MarkupTestFile.GetPosition(csharpFileAfterCommit, out actualExpectedCode, out expectedCaretPosition);
+                    MarkupTestFile.GetPosition(csharpFileAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
                     Assert.Equal(actualExpectedCode, actualCodeAfterCommit);
                     Assert.Equal(expectedCaretPosition, caretPosition);

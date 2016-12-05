@@ -1523,6 +1523,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code)
+            => code == (int)ErrorCode.ERR_NoTypeDef;
+
         internal class EntryPoint
         {
             public readonly MethodSymbol MethodSymbol;

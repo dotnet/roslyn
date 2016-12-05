@@ -343,9 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             object fixProviderData,
             CodeActionPriority? priority)
         {
-            string expected;
-            IDictionary<string, IList<TextSpan>> spanMap;
-            MarkupTestFile.GetSpans(expectedMarkup.NormalizeLineEndings(), out expected, out spanMap);
+            MarkupTestFile.GetSpans(expectedMarkup.NormalizeLineEndings(), out var expected, out IDictionary<string, IList<TextSpan>> spanMap);
 
             var conflictSpans = spanMap.GetOrAdd("Conflict", _ => new List<TextSpan>());
             var renameSpans = spanMap.GetOrAdd("Rename", _ => new List<TextSpan>());
@@ -537,6 +535,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected (OptionKey, object) SingleOption(Option<bool> option, bool enabled)
             => (new OptionKey(option), enabled);
 
+        protected (OptionKey, object) SingleOption<T>(PerLanguageOption<T> option, T value)
+            => (new OptionKey(option, this.GetLanguage()), value);
+
         protected (OptionKey, object) SingleOption(Option<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
             => SingleOption(option, new CodeStyleOption<bool>(enabled, notification));
 
@@ -560,6 +561,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected IDictionary<OptionKey, object> Option(PerLanguageOption<CodeStyleOption<bool>> option, bool enabled, NotificationOption notification)
             => OptionsSet(SingleOption(option, enabled, notification));
+
+        protected IDictionary<OptionKey, object> Option<T>(PerLanguageOption<T> option, T value)
+            => OptionsSet(SingleOption(option, value));
 
         protected IDictionary<OptionKey, object> Option(PerLanguageOption<CodeStyleOption<bool>> option, CodeStyleOption<bool> codeStyle)
             => OptionsSet(SingleOption(option, codeStyle));

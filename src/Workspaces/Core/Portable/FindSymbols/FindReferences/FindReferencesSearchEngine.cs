@@ -15,6 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    using ProjectToDocumentMap = Dictionary<Project, MultiDictionary<Document, (SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>;
+
     internal partial class FindReferencesSearchEngine
     {
         private readonly Solution _solution;
@@ -59,8 +61,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var symbols = await DetermineAllSymbolsAsync(symbolAndProjectId).ConfigureAwait(false);
 
                 var projectMap = await CreateProjectMapAsync(symbols).ConfigureAwait(false);
-                var documentMap = await CreateDocumentMapAsync(projectMap).ConfigureAwait(false);
-                await ProcessAsync(documentMap).ConfigureAwait(false);
+                var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap).ConfigureAwait(false);
+                ValidateProjectToDocumentMap(projectToDocumentMap);
+
+                await ProcessAsync(projectToDocumentMap).ConfigureAwait(false);
             }
             finally
             {
@@ -69,72 +73,59 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private async Task ProcessAsync(
-            ConcurrentDictionary<Document, ConcurrentQueue<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>> documentMap)
+        private async Task ProcessAsync(ProjectToDocumentMap projectToDocumentMap)
         {
             using (Logger.LogBlock(FunctionId.FindReference_ProcessAsync, _cancellationToken))
             {
                 // quick exit
-                if (documentMap.Count == 0)
+                if (projectToDocumentMap.Count == 0)
                 {
                     return;
                 }
 
-                var wrapper = new ProgressWrapper(_progress, documentMap.Count);
-
                 // Get the connected components of the dependency graph and process each individually.
                 // That way once a component is done we can throw away all the memory associated with
                 // it.
+                // For each connected component, we'll process the individual projects from bottom to
+                // top.  i.e. we'll first process the projects with no dependencies.  Then the projects
+                // that depend on those projects, and so and.  This way we always have creates the 
+                // dependent compilations when they're needed by later projects.  If we went the other
+                // way (i.e. processed the projects with lots of project dependencies first), then we'd
+                // have to create all their depedent compilations in order to get their compilation.
+                // This would be very expensive and would take a lot of time before we got our first
+                // result.
                 var connectedProjects = _dependencyGraph.GetDependencySets(_cancellationToken);
-                var projectMap = CreateProjectMap(documentMap);
 
-                await _progressTracker.AddItemsAsync(connectedProjects.Flatten().Count()).ConfigureAwait(false);
-                foreach (var projectSet in connectedProjects)
+                // Add a progress item for each (document, symbol, finder) set that we will execute.
+                // We'll mark the item as completed in "ProcessDocumentAsync".
+                var totalFindCount = projectToDocumentMap.Sum(
+                    kvp1 => kvp1.Value.Sum(kvp2 => kvp2.Value.Count));
+                await _progressTracker.AddItemsAsync(totalFindCount).ConfigureAwait(false);
+
+                // Now, go through each connected project set and process it independently.
+                foreach (var connectedProjectSet in connectedProjects)
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    await ProcessProjectsAsync(projectSet, projectMap, wrapper).ConfigureAwait(false);
+                    await ProcessProjectsAsync(
+                        connectedProjectSet, projectToDocumentMap).ConfigureAwait(false);
                 }
             }
         }
 
-        private static readonly Func<Project, Dictionary<Document, List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>> s_documentMapGetter =
-            _ => new Dictionary<Document, List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>();
-
-        private static readonly Func<Document, List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>> s_queueGetter =
-            _ => new List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>();
-
-        private static Dictionary<Project, Dictionary<Document, List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>> CreateProjectMap(
-            ConcurrentDictionary<Document, ConcurrentQueue<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>> map)
-        {
-            Contract.Requires(map.Count > 0);
-
-            var projectMap = new Dictionary<Project, Dictionary<Document, List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>>();
-            foreach (var kv in map)
-            {
-                var documentMap = projectMap.GetOrAdd(kv.Key.Project, s_documentMapGetter);
-                var queue = documentMap.GetOrAdd(kv.Key, s_queueGetter);
-
-                queue.AddRange(kv.Value);
-            }
-
-            ValidateProjectMap(projectMap);
-            return projectMap;
-        }
-
         [Conditional("DEBUG")]
-        private static void ValidateProjectMap(
-            Dictionary<Project, Dictionary<Document, List<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>> projectMap)
+        private static void ValidateProjectToDocumentMap(
+            ProjectToDocumentMap projectToDocumentMap)
         {
             var set = new HashSet<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>();
 
-            foreach (var map in projectMap.Values)
+            foreach (var documentMap in projectToDocumentMap.Values)
             {
-                foreach (var finderList in map.Values)
+                foreach (var documentToFinderList in documentMap)
                 {
                     set.Clear();
 
-                    foreach (var finder in finderList)
+                    foreach (var finder in documentToFinderList.Value)
                     {
                         Contract.Requires(set.Add(finder));
                     }

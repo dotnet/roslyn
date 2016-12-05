@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(
                 elements.Select(Function(element) If(Not element.IsImplicitlyDeclared,
                                                         SyntaxFactory.NamedTupleElement(
-                                                                        SyntaxFactory.IdentifierName(element.Name),
+                                                                        SyntaxFactory.Identifier(element.Name),
                                                                         SyntaxFactory.SimpleAsClause(
                                                                                     SyntaxFactory.Token(SyntaxKind.AsKeyword),
                                                                                     Nothing,

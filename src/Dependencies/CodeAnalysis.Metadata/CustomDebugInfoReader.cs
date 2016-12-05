@@ -72,10 +72,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             }
 
             int offset = 0;
-
-            byte globalVersion;
-            byte globalCount;
-            ReadGlobalHeader(customDebugInfo, ref offset, out globalVersion, out globalCount);
+            ReadGlobalHeader(customDebugInfo, ref offset, out var globalVersion, out var globalCount);
 
             if (globalVersion != CustomDebugInfoConstants.Version)
             {
@@ -84,12 +81,7 @@ namespace Microsoft.CodeAnalysis.Debugging
 
             while (offset <= customDebugInfo.Length - CustomDebugInfoConstants.RecordHeaderSize)
             {
-                byte version;
-                CustomDebugInfoKind kind;
-                int size;
-                int alignmentSize;
-
-                ReadRecordHeader(customDebugInfo, ref offset, out version, out kind, out size, out alignmentSize);
+                ReadRecordHeader(customDebugInfo, ref offset, out var version, out var kind, out var size, out var alignmentSize);
                 if (size < CustomDebugInfoConstants.RecordHeaderSize)
                 {
                     throw new InvalidOperationException("Invalid header.");
@@ -503,8 +495,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 char ch1 = importString[1];
                 if ('0' <= ch1 && ch1 <= '9')
                 {
-                    int tempMethodToken;
-                    if (int.TryParse(importString.Substring(1), NumberStyles.None, CultureInfo.InvariantCulture, out tempMethodToken))
+                    if (int.TryParse(importString.Substring(1), NumberStyles.None, CultureInfo.InvariantCulture, out var tempMethodToken))
                     {
                         importStrings = getMethodImportStrings(tempMethodToken, arg);
                         Debug.Assert(!importStrings.IsDefault);

@@ -71,9 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         {
             var isBing = false;
             helpLinkToolTipText = string.Empty;
-
-            Uri helpLink;
-            if (!BrowserHelper.TryGetUri(diagnostic.HelpLink, out helpLink))
+            if (!BrowserHelper.TryGetUri(diagnostic.HelpLink, out var helpLink))
             {
                 // We use the ENU version of the message for bing search.
                 helpLink = BrowserHelper.CreateBingQueryUri(diagnostic.Id, diagnostic.ENUMessageForBingSearch, language, projectType);
@@ -114,11 +112,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             Uri helpLink = GetHelpLink(diagnostic, language, projectType, out helpLinkToolTipText);
 
             Guid optionPageGuid = default(Guid);
-            string optionName;
-            if (diagnostic.Properties.TryGetValue("OptionName", out optionName))
+            if (diagnostic.Properties.TryGetValue("OptionName", out var optionName))
             {
-                string optionLanguage = null;
-                diagnostic.Properties.TryGetValue("OptionLanguage", out optionLanguage);
+                diagnostic.Properties.TryGetValue("OptionLanguage", out var optionLanguage);
                 optionPageGuid = GetOptionPageGuidForOptionName(optionName, optionLanguage);
             }
 

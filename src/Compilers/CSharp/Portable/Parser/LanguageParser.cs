@@ -6647,11 +6647,11 @@ tryAgain:
         private TupleElementSyntax ParseTupleElement()
         {
             var type = ParseType();
-            IdentifierNameSyntax name = null;
+            SyntaxToken name = null;
 
-            if (CurrentToken.Kind == SyntaxKind.IdentifierToken)
+            if (IsTrueIdentifier())
             {
-                name = ParseIdentifierName();
+                name = this.ParseIdentifierToken();
             }
 
             return _syntaxFactory.TupleElement(type, name);
@@ -8605,6 +8605,12 @@ tryAgain:
             }
             else
             {
+                if (this.CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken &&
+                    (this.PeekToken(1).Kind == SyntaxKind.CommaToken || this.PeekToken(1).Kind == SyntaxKind.CloseParenToken))
+                {
+                    return this.ParseIdentifierName();
+                }
+
                 TypeSyntax type;
                 bool reportMissingType = false;
                 if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
@@ -8662,6 +8668,8 @@ tryAgain:
 
                         return true;
                     }
+                case SyntaxKind.IdentifierName:
+                    return false;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);
             }
@@ -8695,11 +8703,28 @@ tryAgain:
             }
             else
             {
-                var identifier = this.EatToken(SyntaxKind.IdentifierToken);
-                result = _syntaxFactory.SingleVariableDesignation(identifier);
+                result = ParseSimpleDesignation();
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Parse a single variable designation (e.g. `x`) or a wildcard designation (e.g. `_`)
+        /// </summary>
+        /// <returns></returns>
+        private VariableDesignationSyntax ParseSimpleDesignation()
+        {
+            if (CurrentToken.ContextualKind == SyntaxKind.UnderscoreToken)
+            {
+                var underscore = this.EatContextualToken(SyntaxKind.UnderscoreToken);
+                return _syntaxFactory.DiscardedDesignation(underscore);
+            }
+            else
+            {
+                var identifier = this.EatToken(SyntaxKind.IdentifierToken);
+                return _syntaxFactory.SingleVariableDesignation(identifier);
+            }
         }
 
         /// <summary>
@@ -9949,10 +9974,10 @@ tryAgain:
                 if (refOrOutKeyword?.Kind == SyntaxKind.OutKeyword && IsPossibleOutVarDeclaration())
                 {
                     TypeSyntax typeSyntax = ParseType();
-                    SyntaxToken identifier = CheckFeatureAvailability(this.ParseIdentifierToken(), MessageID.IDS_FeatureOutVar);
+                    var designation = CheckFeatureAvailability(ParseSimpleDesignation(), MessageID.IDS_FeatureOutVar);
                     expression = _syntaxFactory.DeclarationExpression(
                                                     typeSyntax,
-                                                    _syntaxFactory.SingleVariableDesignation(identifier));
+                                                    designation);
                 }
                 else
                 {

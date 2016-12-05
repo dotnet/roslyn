@@ -8,10 +8,7 @@
       "version": "14.3.25407",
       "suppressParent": "all"
     },
-    "Microsoft.VisualStudio.Setup.Configuration.Interop": {
-      "version": "1.1.142-preview4-29265",
-      "suppressParent": "all"
-    }
+    "Microsoft.VisualStudio.Setup.Configuration.Interop": "1.1.142-preview4-29265"
   },
   "frameworks": {
     "net46": { }

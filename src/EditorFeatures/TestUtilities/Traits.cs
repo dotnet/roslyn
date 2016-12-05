@@ -153,6 +153,7 @@ namespace Roslyn.Test.Utilities
             public const string SmartTokenFormatting = nameof(SmartTokenFormatting);
             public const string Snippets = nameof(Snippets);
             public const string SplitStringLiteral = nameof(SplitStringLiteral);
+            public const string SuggestionTags = nameof(SuggestionTags);
             public const string TextStructureNavigator = nameof(TextStructureNavigator);
             public const string TodoComments = nameof(TodoComments);
             public const string TypeInferenceService = nameof(TypeInferenceService);

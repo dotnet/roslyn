@@ -316,9 +316,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Return 0
+                Return ImmutableArray(Of CustomModifier).Empty
             End Get
         End Property
 
@@ -735,6 +735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         fakeParamsBuilder.Add(New SignatureOnlyParameterSymbol(
                                                 param.Type,
                                                 ImmutableArray(Of CustomModifier).Empty,
+                                                ImmutableArray(Of CustomModifier).Empty,
                                                 defaultConstantValue:=Nothing,
                                                 isParamArray:=False,
                                                 isByRef:=param.IsByRef,
@@ -749,7 +750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                             returnsByRef:=False,
                                                                             [type]:=retType,
                                                                             typeCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
-                                                                            countOfCustomModifiersPrecedingByRef:=0,
+                                                                            refCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
                                                                             isOverrides:=True, isWithEvents:=Me.IsWithEvents))
                 End If
 

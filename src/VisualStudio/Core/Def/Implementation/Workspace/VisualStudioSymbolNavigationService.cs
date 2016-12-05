@@ -117,12 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
 
             var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
-
-            IVsUIHierarchy hierarchy;
-            uint itemId;
-            IOleServiceProvider localServiceProvider;
-            IVsWindowFrame windowFrame;
-            openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out localServiceProvider, out hierarchy, out itemId, out windowFrame);
+            openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out var localServiceProvider, out var hierarchy, out var itemId, out var windowFrame);
 
             var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
 
@@ -162,22 +157,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private bool TryNotifyForSpecificSymbol(ISymbol symbol, Solution solution)
         {
             AssertIsForeground();
-
-            IVsHierarchy hierarchy;
-            IVsSymbolicNavigationNotify navigationNotify;
-            string rqname;
-            uint itemID;
-            if (!TryGetNavigationAPIRequiredArguments(symbol, solution, out hierarchy, out itemID, out navigationNotify, out rqname))
+            if (!TryGetNavigationAPIRequiredArguments(symbol, solution, out var hierarchy, out var itemID, out var navigationNotify, out var rqname))
             {
                 return false;
             }
 
-            int navigationHandled;
             int returnCode = navigationNotify.OnBeforeNavigateToSymbol(
                 hierarchy,
                 itemID,
                 rqname,
-                out navigationHandled);
+                out var navigationHandled);
 
             if (returnCode == VSConstants.S_OK && navigationHandled == 1)
             {
@@ -214,29 +203,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             filePath = null;
             lineNumber = 0;
             charOffset = 0;
-
-            IVsHierarchy hierarchy;
-            IVsSymbolicNavigationNotify navigationNotify;
-            string rqname;
-            uint itemID;
-            if (!TryGetNavigationAPIRequiredArguments(symbol, solution, out hierarchy, out itemID, out navigationNotify, out rqname))
+            if (!TryGetNavigationAPIRequiredArguments(symbol, solution, out var hierarchy, out var itemID, out var navigationNotify, out var rqname))
             {
                 return false;
             }
 
-            IVsHierarchy navigateToHierarchy;
-            uint navigateToItem;
-            int wouldNavigate;
             var navigateToTextSpan = new Microsoft.VisualStudio.TextManager.Interop.TextSpan[1];
 
             int queryNavigateStatusCode = navigationNotify.QueryNavigateToSymbol(
                 hierarchy,
                 itemID,
                 rqname,
-                out navigateToHierarchy,
-                out navigateToItem,
+                out var navigateToHierarchy,
+                out var navigateToItem,
                 navigateToTextSpan,
-                out wouldNavigate);
+                out var wouldNavigate);
 
             if (queryNavigateStatusCode == VSConstants.S_OK && wouldNavigate == 1)
             {

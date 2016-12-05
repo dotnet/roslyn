@@ -2709,14 +2709,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract ISymbol GetDeclaredSymbol(SingleVariableDesignationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Given a declaration pattern syntax, get the corresponding symbol.
-        /// </summary>
-        /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The symbol that was declared.</returns>
-        public abstract ISymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
         /// Given a labeled statement syntax, get the corresponding label symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node of the labeled statement.</param>
@@ -4610,8 +4602,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol((VariableDeclaratorSyntax)node, cancellationToken);
                 case SyntaxKind.SingleVariableDesignation:
                     return this.GetDeclaredSymbol((SingleVariableDesignationSyntax)node, cancellationToken);
-                case SyntaxKind.DeclarationPattern:
-                    return this.GetDeclaredSymbol((DeclarationPatternSyntax)node, cancellationToken);
+                case SyntaxKind.TupleElement:
+                    return this.GetDeclaredSymbol((TupleElementSyntax)node, cancellationToken);
                 case SyntaxKind.NamespaceDeclaration:
                     return this.GetDeclaredSymbol((NamespaceDeclarationSyntax)node, cancellationToken);
                 case SyntaxKind.Parameter:
@@ -4634,6 +4626,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol((JoinIntoClauseSyntax)node, cancellationToken);
                 case SyntaxKind.QueryContinuation:
                     return this.GetDeclaredSymbol((QueryContinuationSyntax)node, cancellationToken);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Given a tuple element syntax, get the corresponding symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a tuple element.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public ISymbol GetDeclaredSymbol(TupleElementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declarationSyntax);
+
+            var tupleTypeSyntax = declarationSyntax.Parent as TupleTypeSyntax;
+            if (tupleTypeSyntax != null)
+            {
+                return (GetSymbolInfo(tupleTypeSyntax).Symbol as TupleTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(declarationSyntax));
             }
 
             return null;

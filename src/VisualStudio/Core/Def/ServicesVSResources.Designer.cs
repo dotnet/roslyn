@@ -245,6 +245,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to at the end.
+        /// </summary>
+        internal static string at_the_end {
+            get {
+                return ResourceManager.GetString("at_the_end", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Base Types.
         /// </summary>
         internal static string Base_Types {
@@ -915,6 +924,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Implement Interface or Abstract Class.
+        /// </summary>
+        internal static string Implement_Interface_or_Abstract_Class {
+            get {
+                return ResourceManager.GetString("Implement_Interface_or_Abstract_Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implemented By.
         /// </summary>
         internal static string Implemented_By {
@@ -1391,6 +1409,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Path_cannot_have_empty_filename {
             get {
                 return ResourceManager.GetString("Path_cannot_have_empty_filename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer braces.
+        /// </summary>
+        internal static string Prefer_braces {
+            get {
+                return ResourceManager.GetString("Prefer_braces", resourceCulture);
             }
         }
         
@@ -2121,6 +2148,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Visual_Studio_has_suspended_some_advanced_features_to_improve_performance {
             get {
                 return ResourceManager.GetString("Visual_Studio_has_suspended_some_advanced_features_to_improve_performance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When inserting properties, events and methods, place them:.
+        /// </summary>
+        internal static string When_inserting_properties_events_and_methods_place_them {
+            get {
+                return ResourceManager.GetString("When_inserting_properties_events_and_methods_place_them", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to with other members of the same kind.
+        /// </summary>
+        internal static string with_other_members_of_the_same_kind {
+            get {
+                return ResourceManager.GetString("with_other_members_of_the_same_kind", resourceCulture);
             }
         }
         

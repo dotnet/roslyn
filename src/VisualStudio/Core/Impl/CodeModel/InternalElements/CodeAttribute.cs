@@ -60,8 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 return false;
             }
 
-            SyntaxNode attributeNode;
-            if (!CodeModelService.TryGetAttributeNode(parentNode, _name, _ordinal, out attributeNode))
+            if (!CodeModelService.TryGetAttributeNode(parentNode, _name, _ordinal, out var attributeNode))
             {
                 return false;
             }

@@ -3072,6 +3072,20 @@ class Program
             VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true));
         }
 
+        [Fact]
+        [WorkItem(15322, "https://github.com/dotnet/roslyn/issues/15322")]
+        public void UseBeforeDeclaration()
+        {
+            var src = @"
+Assign();
+Local();
+int x;
+void Local() => System.Console.WriteLine(x);
+void Assign() { x = 5; }";
+
+            VerifyOutputInMain(src, "5");
+        }
+
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options);

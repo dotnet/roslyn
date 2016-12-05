@@ -521,8 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             SyntaxNode contextNode,
             bool checkForExistingExternAlias)
         {
-            string externAliasString;
-            if (TryGetExternAliasString(namespaceSymbol, semanticModel, contextNode, checkForExistingExternAlias, out externAliasString))
+            if (TryGetExternAliasString(namespaceSymbol, semanticModel, contextNode, checkForExistingExternAlias, out var externAliasString))
             {
                 return SyntaxFactory.ExternAliasDirective(SyntaxFactory.Identifier(externAliasString))
                                     .WithAdditionalAnnotations(Formatter.Annotation);

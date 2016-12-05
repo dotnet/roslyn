@@ -294,5 +294,62 @@ Class C
 End Class",
 compareTokens:=False)
         End Function
+
+        <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestTrivia2() As Task
+            Await TestAsync(
+"
+Class C
+    Sub M()
+        Dim XmlAppConfigReader As [||]New XmlTextReader(Reader)
+
+        ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
+        XmlAppConfigReader.DtdProcessing = DtdProcessing.Prohibit
+        XmlAppConfigReader.WhitespaceHandling = WhitespaceHandling.All
+    End Sub
+End Class",
+"
+Class C
+    Sub M()
+        ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
+        Dim XmlAppConfigReader As New XmlTextReader(Reader) With {
+            .DtdProcessing = DtdProcessing.Prohibit,
+            .WhitespaceHandling = WhitespaceHandling.All
+        }
+    End Sub
+End Class",
+compareTokens:=False)
+        End Function
+
+        <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestTrivia3() As Task
+            Await TestAsync(
+"
+Class C
+    Sub M()
+        Dim XmlAppConfigReader As [||]New XmlTextReader(Reader)
+
+        ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
+        XmlAppConfigReader.DtdProcessing = DtdProcessing.Prohibit
+
+        ' Bar
+        XmlAppConfigReader.WhitespaceHandling = WhitespaceHandling.All
+    End Sub
+End Class",
+"
+Class C
+    Sub M()
+        ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
+        ' Bar
+        Dim XmlAppConfigReader As New XmlTextReader(Reader) With {
+            .DtdProcessing = DtdProcessing.Prohibit,
+            .WhitespaceHandling = WhitespaceHandling.All
+        }
+    End Sub
+End Class",
+compareTokens:=False)
+        End Function
     End Class
 End Namespace

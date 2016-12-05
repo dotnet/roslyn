@@ -115,9 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             while (true)
             {
                 Debug.Assert(leftNode.RawKind == rightNode.RawKind);
-
-                int childIndex;
-                var leftChild = leftNode.ChildThatContainsPosition(leftPosition, out childIndex);
+                var leftChild = leftNode.ChildThatContainsPosition(leftPosition, out var childIndex);
                 if (leftChild.IsToken)
                 {
                     return;
@@ -142,9 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             while (leftNode != originalLeftNode)
             {
                 Debug.Assert(leftNode.RawKind == rightNode.RawKind);
-
-                int childIndex;
-                var leftChild = leftNode.ChildThatContainsPosition(leftPosition, out childIndex);
+                var leftChild = leftNode.ChildThatContainsPosition(leftPosition, out var childIndex);
 
                 // Can only happen when searching for zero-width node.
                 Debug.Assert(!leftChild.IsToken);

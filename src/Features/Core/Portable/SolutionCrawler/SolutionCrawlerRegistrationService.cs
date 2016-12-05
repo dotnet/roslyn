@@ -104,9 +104,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     var workspace = kv.Key;
                     var coordinator = kv.Value;
-
-                    Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata> picked;
-                    if (!TryGetProvider(workspace.Kind, lazyProviders, out picked) || picked != lazyProvider)
+                    if (!TryGetProvider(workspace.Kind, lazyProviders, out var picked) || picked != lazyProvider)
                     {
                         // check whether new provider belong to current workspace
                         continue;
@@ -122,8 +120,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             lock (_gate)
             {
-                var coordinator = default(WorkCoordinator);
-                if (!_documentWorkCoordinatorMap.TryGetValue(workspace, out coordinator))
+                if (!_documentWorkCoordinatorMap.TryGetValue(workspace, out var coordinator))
                 {
                     // this can happen if solution crawler is already unregistered from workspace.
                     // one of those example will be VS shutting down so roslyn package is disposed but there is a pending
@@ -171,13 +168,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         private IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> GetAnalyzerProviders(Workspace workspace)
         {
-            Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata> lazyProvider;
             foreach (var kv in _analyzerProviders)
             {
                 var lazyProviders = kv.Value;
 
                 // try get provider for the specific workspace kind
-                if (TryGetProvider(workspace.Kind, lazyProviders, out lazyProvider))
+                if (TryGetProvider(workspace.Kind, lazyProviders, out var lazyProvider))
                 {
                     yield return lazyProvider;
                     continue;

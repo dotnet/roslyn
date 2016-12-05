@@ -6739,7 +6739,7 @@ End Class
                             For i As Integer = 0 To thisProperty.ParameterCount - 1
                                 Assert.True(overriddenProperty.Parameters(i).CustomModifiers.SequenceEqual(thisProperty.Parameters(i).CustomModifiers))
                                 Assert.Equal(overriddenProperty.Parameters(i).Type, thisProperty.Parameters(i).Type)
-                                Assert.Equal(overriddenProperty.Parameters(i).CountOfCustomModifiersPrecedingByRef, thisProperty.Parameters(i).CountOfCustomModifiersPrecedingByRef)
+                                Assert.True(overriddenProperty.Parameters(i).RefCustomModifiers.SequenceEqual(thisProperty.Parameters(i).RefCustomModifiers))
                             Next
                         End If
                     Next

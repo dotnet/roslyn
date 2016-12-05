@@ -896,37 +896,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// Check that the given variable is definitely assigned.  If not, produce an error.
-        /// </summary>
-        /// <remarks>
-        /// Specifying the slot manually may be necessary if the symbol is a field,
-        /// in which case <see cref="VariableSlot(Symbol, int)"/> will not know
-        /// which containing slot to look for.
-        /// </remarks>
-        private void CheckAssigned(Symbol symbol, SyntaxNode node, int slot)
-        {
-            Debug.Assert(!IsConditionalState);
-            if ((object)symbol != null)
-            {
-                NoteRead(symbol);
-
-                if (this.State.Reachable)
-                {
-                    if (slot >= this.State.Assigned.Capacity)
-                    {
-                        Normalize(ref this.State);
-                    }
-
-                    if (slot > 0 && !this.State.IsAssigned(slot))
-                    {
-                        ReportUnassigned(symbol, node, slot);
-                    }
-                }
-            }
-        }
-
-        private void ReportUnassigned(Symbol symbol, SyntaxNode node, int? slotOpt)
+        /// <param name="symbol">Symbol to variable that is unassigned.</param>
+        /// <param name="node">Syntax where read occurs.</param>
+        /// <param name="slotOpt">Optional slot where variable is located.</param>
+        /// <param name="skipIfUseBeforeDeclaration">
+        /// True if error reporting should consider the location where the
+        /// variable is declared (for instance, eliding errors about reading
+        /// variables that have not yet been declared).
+        /// </param>
+        private void ReportUnassigned(Symbol symbol, SyntaxNode node, int? slotOpt, bool skipIfUseBeforeDeclaration = true)
         {
             int slot = slotOpt ?? VariableSlot(symbol);
             if (slot <= 0) return;
@@ -949,7 +927,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (slot >= _alreadyReported.Capacity) _alreadyReported.EnsureCapacity(nextVariableSlot);
-            if (symbol.Kind == SymbolKind.Local && (symbol.Locations.Length == 0 || node.Span.End < symbol.Locations[0].SourceSpan.Start))
+            if (skipIfUseBeforeDeclaration &&
+                symbol.Kind == SymbolKind.Local &&
+                (symbol.Locations.Length == 0 || node.Span.End < symbol.Locations[0].SourceSpan.Start))
             {
                 // We've already reported the use of a local before its declaration.  No need to emit
                 // another diagnostic for the same issue.

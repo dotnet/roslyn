@@ -56,8 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public static SyntaxToken GetFirstTokenAfterAttributes(this SyntaxNode node)
         {
-            SyntaxList<AttributeListSyntax> attributeLists;
-            if (node.TryGetAttributeLists(out attributeLists) && attributeLists.Count > 0)
+            if (node.TryGetAttributeLists(out var attributeLists) && attributeLists.Count > 0)
             {
                 return attributeLists.Last().GetLastToken().GetNextToken();
             }

@@ -275,10 +275,10 @@
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests_Dialog.cs" />
     <Compile Include="Diagnostics\GenerateVariable\GenerateVariableTests.cs" />
     <Compile Include="Diagnostics\HideBase\HideBaseTests.cs" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests.cs" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests.cs" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests.cs" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
+    <Compile Include="ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />
+    <Compile Include="ImplementInterface\ImplementInterfaceTests.cs" />
     <Compile Include="Diagnostics\Iterator\AddYieldTests.cs" />
     <Compile Include="Diagnostics\Iterator\ChangeToIEnumerableTests.cs" />
     <Compile Include="Diagnostics\MockDiagnosticAnalyzerTests.cs" />
@@ -333,6 +333,7 @@
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests.cs" />
     <Compile Include="Structure\ArrowExpressionClauseStructureTests.cs" />
     <Compile Include="Structure\InitializerExpressionStructureTests.cs" />
+    <Compile Include="SuggestionTags\SuggestionTagProducerTests.cs" />
     <Compile Include="UseCollectionInitializer\UseCollectionInitializerTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.cs" />

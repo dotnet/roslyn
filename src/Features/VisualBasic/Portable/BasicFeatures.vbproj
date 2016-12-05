@@ -50,8 +50,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
-    <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
@@ -60,6 +60,7 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />
@@ -102,8 +103,7 @@
     <Compile Include="CodeFixes\GenerateParameterizedMember\GenerateParameterizedMemberCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateType\GenerateTypeCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateVariable\GenerateVariableCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\ImplementAbstractClass\ImplementAbstractClassCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\ImplementInterface\ImplementInterfaceCodeFixProvider.vb" />
+    <Compile Include="ImplementAbstractClass\VisualBasicImplementAbstractClassCodeFixProvider.vb" />
     <Compile Include="CodeFixes\IncorrectExitContinue\IncorrectExitContinueCodeFixProvider.AddKeywordCodeAction.vb" />
     <Compile Include="CodeFixes\IncorrectExitContinue\IncorrectExitContinueCodeFixProvider.ReplaceKeywordCodeAction.vb" />
     <Compile Include="CodeFixes\IncorrectExitContinue\IncorrectExitContinueCodeFixProvider.ReplaceTokenKeywordCodeAction.vb" />
@@ -113,6 +113,7 @@
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.AddOverloads.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
+    <Compile Include="ImplementInterface\VisualBasicImplementInterfaceCodeFixProvider.vb" />
     <Compile Include="Structure\Providers\CollectionInitializerStructureProvider.vb" />
     <Compile Include="Structure\Providers\ObjectCreationInitializerStructureProvider.vb" />
     <Compile Include="QualifyMemberAccess\VisualBasicQualifyMemberAccessCodeFixProvider.vb" />

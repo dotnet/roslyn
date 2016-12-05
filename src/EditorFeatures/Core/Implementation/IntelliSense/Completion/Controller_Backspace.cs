@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 var textBeforeDeletion = SubjectBuffer.AsTextContainer().CurrentText;
                 var documentBeforeDeletion = textBeforeDeletion.GetDocumentWithFrozenPartialSemanticsAsync(CancellationToken.None)
-                                                                .WaitAndGetResult(CancellationToken.None);
+                                                               .WaitAndGetResult(CancellationToken.None);
 
                 this.TextView.TextBuffer.PostChanged -= OnTextViewBufferPostChanged;
                 this.TextView.Caret.PositionChanged -= OnCaretPositionChanged;
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     (model != null && model.OriginalList.Rules.DismissIfLastCharacterDeleted && AllFilterTextsEmpty(model, GetCaretPointInViewBuffer())))
                 {
                     // If the caret moved out of bounds of our items, then we want to dismiss the list. 
-                    this.StopModelComputation();
+                    this.DismissSessionIfActive();
                     return;
                 }
                 else if (model != null)
@@ -156,8 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
            Dictionary<TextSpan, ViewTextSpan> textSpanToViewSpan)
         {
             // Easy first check.  See if the caret point is before the start of the item.
-            ViewTextSpan filterSpanInViewBuffer;
-            if (!textSpanToViewSpan.TryGetValue(item.Span, out filterSpanInViewBuffer))
+            if (!textSpanToViewSpan.TryGetValue(item.Span, out var filterSpanInViewBuffer))
             {
                 filterSpanInViewBuffer = model.GetViewBufferSpan(item.Span);
                 textSpanToViewSpan[item.Span] = filterSpanInViewBuffer;

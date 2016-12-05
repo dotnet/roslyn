@@ -123,8 +123,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 using (_stateLock.DisposableWrite())
                 {
-                    CancellationTokenSource cancellationTokenSource;
-                    if (_workMap.TryGetValue(documentId, out cancellationTokenSource))
+                    if (_workMap.TryGetValue(documentId, out var cancellationTokenSource))
                     {
                         cancellationTokenSource.Cancel();
                         _workMap = _workMap.Remove(documentId);

@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tt = (TupleTypeSyntax)ds.Declaration.Type;
 
             Assert.Equal(SyntaxKind.PredefinedType, tt.Elements[0].Type.Kind());
-            Assert.Null(tt.Elements[1].Name);
+            Assert.Equal(SyntaxKind.None, tt.Elements[1].Identifier.Kind());
             Assert.Equal(2, tt.Elements.Count);
 
             Assert.NotNull(ds.Declaration.Variables[0].Identifier);
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tt = (TupleTypeSyntax)ds.Declaration.Type;
 
             Assert.Equal(SyntaxKind.IdentifierName, tt.Elements[0].Type.Kind());
-            Assert.Equal("y", tt.Elements[1].Name.ToString());
+            Assert.Equal("y", tt.Elements[1].Identifier.ToString());
             Assert.Equal(2, tt.Elements.Count);
 
 
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal("(U k, V l, W m)", tt.ToString());
             Assert.Equal(SyntaxKind.IdentifierName, tt.Elements[0].Type.Kind());
-            Assert.Equal("l", tt.Elements[1].Name.ToString());
+            Assert.Equal("l", tt.Elements[1].Identifier.ToString());
             Assert.Equal(3, tt.Elements.Count);
 
             Assert.NotNull(ds.Declaration.Variables[0].Identifier);

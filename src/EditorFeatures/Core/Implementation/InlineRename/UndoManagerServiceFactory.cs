@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public void CreateStartRenameUndoTransaction(Workspace workspace, ITextBuffer subjectBuffer, InlineRenameSession inlineRenameSession)
             {
                 var textUndoHistoryService = workspace.Services.GetService<ITextUndoHistoryWorkspaceService>();
-                ITextUndoHistory undoHistory;
-                Contract.ThrowIfFalse(textUndoHistoryService.TryGetTextUndoHistory(workspace, subjectBuffer, out undoHistory));
+                Contract.ThrowIfFalse(textUndoHistoryService.TryGetTextUndoHistory(workspace, subjectBuffer, out var undoHistory));
                 UndoManagers[subjectBuffer] = new BufferUndoState() { TextUndoHistory = undoHistory };
                 CreateStartRenameUndoTransaction(subjectBuffer);
             }
@@ -93,8 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             protected override void UndoTemporaryEdits(ITextBuffer subjectBuffer, bool disconnect, bool undoConflictResolution)
             {
-                BufferUndoState bufferUndoState;
-                if (!this.UndoManagers.TryGetValue(subjectBuffer, out bufferUndoState))
+                if (!this.UndoManagers.TryGetValue(subjectBuffer, out var bufferUndoState))
                 {
                     return;
                 }

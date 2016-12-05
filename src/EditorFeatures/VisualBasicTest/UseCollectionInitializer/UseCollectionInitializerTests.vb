@@ -289,5 +289,35 @@ Class C
 End Class",
 compareTokens:=False)
         End Function
+
+        <WorkItem(15528, "https://github.com/dotnet/roslyn/pull/15528")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>
+        Public Async Function TestTrivia2() As Task
+            Await TestAsync(
+"
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        Dim c = [||]New List(Of Integer)()
+        ' Foo
+        c.Add(1)
+        ' Bar
+        c.Add(2)
+    End Sub
+End Class",
+"
+Imports System.Collections.Generic
+Class C
+    Sub M()
+        ' Foo
+        ' Bar
+        Dim c = New List(Of Integer) From {
+            1,
+            2
+        }
+    End Sub
+End Class",
+compareTokens:=False)
+        End Function
     End Class
 End Namespace

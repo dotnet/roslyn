@@ -271,11 +271,11 @@
         <summary>Gets the type of the tuple element.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Name" Type="IdentifierNameSyntax" Optional="true">
+    <Field Name="Identifier" Type="SyntaxToken" Optional="true">
       <PropertyComment>
         <summary>Gets the name of the tuple element.</summary>
       </PropertyComment>
-      <Kind Name="IdentifierName"/>
+      <Kind Name="IdentifierToken"/>
     </Field>
   </Node>
   <Node Name="OmittedTypeArgumentSyntax" Base="TypeSyntax">
@@ -1712,8 +1712,9 @@
   <Node Name="DeclarationPatternSyntax" Base="PatternSyntax">
     <Kind Name="DeclarationPattern" />
     <Field Name="Type" Type="TypeSyntax" />
-    <Field Name="Identifier" Type="SyntaxToken">
-      <Kind Name="IdentifierToken"/>
+    <Field Name="Designation" Type="VariableDesignationSyntax">
+      <Kind Name="SingleVariableDesignation"/>
+      <Kind Name="DiscardedDesignation"/>
     </Field>
   </Node>
   <Node Name="ConstantPatternSyntax" Base="PatternSyntax">
@@ -1848,6 +1849,12 @@
     <Kind Name="SingleVariableDesignation"/>
     <Field Name="Identifier" Type="SyntaxToken">
       <Kind Name="IdentifierToken"/>
+    </Field>
+  </Node>
+  <Node Name="DiscardedDesignationSyntax" Base="VariableDesignationSyntax">
+    <Kind Name="DiscardedDesignation"/>
+    <Field Name="UnderscoreToken" Type="SyntaxToken">
+      <Kind Name="UnderscoreToken"/>
     </Field>
   </Node>
   <Node Name="ParenthesizedVariableDesignationSyntax" Base="VariableDesignationSyntax">

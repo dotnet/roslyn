@@ -3241,7 +3241,7 @@ class C
             Assert.True(mFirst.GetAttributes().IsEmpty);
             Assert.Null(mFirst.GetUseSiteDiagnostic());
             Assert.False(mFirst.Locations.IsEmpty);
-            Assert.Equal("first", mFirst.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.Equal("T1 first", mFirst.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.False(mFirst.IsImplicitlyDeclared);
             Assert.Null(mFirst.TypeLayoutOffset);
 
@@ -8837,7 +8837,7 @@ class C
             Assert.True(m2a2.GetAttributes().IsEmpty);
             Assert.Null(m2a2.GetUseSiteDiagnostic());
             Assert.False(m2a2.Locations.IsEmpty);
-            Assert.Equal("a2", m2a2.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.Equal("int a2", m2a2.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.Equal("Item1", m2a2.TupleUnderlyingField.Name);
             Assert.False(m2a2.IsImplicitlyDeclared);
             Assert.Null(m2a2.TypeLayoutOffset);
@@ -9264,7 +9264,7 @@ class C
             Assert.True(m4h4.GetAttributes().IsEmpty);
             Assert.Null(m4h4.GetUseSiteDiagnostic());
             Assert.False(m4h4.Locations.IsEmpty);
-            Assert.Equal("h4", m4h4.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.Equal("int h4", m4h4.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.Equal("Item1", m4h4.TupleUnderlyingField.Name);
             Assert.False(m4h4.IsImplicitlyDeclared);
             Assert.Null(m4h4.TypeLayoutOffset);
@@ -9494,7 +9494,7 @@ class C
             Assert.True(m5Item8.GetAttributes().IsEmpty);
             Assert.Null(m5Item8.GetUseSiteDiagnostic());
             Assert.False(m5Item8.Locations.IsEmpty);
-            Assert.Equal("Item8", m5Item8.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.Equal("int Item8", m5Item8.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.Equal("Item1", m5Item8.TupleUnderlyingField.Name);
             Assert.False(m5Item8.IsImplicitlyDeclared);
             Assert.Null(m5Item8.TypeLayoutOffset);
@@ -20257,6 +20257,69 @@ public struct S { }
                 //         (S, (S, S)) t14 = (new S(), (new S() { /* object initializer */ }, new S()));
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t14").WithArguments("t14").WithLocation(32, 21)
                 );
+        }
+
+        [Fact]
+        [WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")]
+        [WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")]
+        public void TupleElementVsLocal()
+        {
+            var source = @"
+using System;
+
+static class Program
+{
+    static void Main()
+    {
+        (int elem1, int elem2) tuple;
+        int elem2;
+
+        tuple = (5, 6);
+        tuple.elem2 = 23;
+        elem2 = 10;
+
+        Console.WriteLine(tuple.elem2);
+        Console.WriteLine(elem2);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "elem2").ToArray();
+
+            Assert.Equal(4, nodes.Length);
+
+            Assert.Equal("tuple.elem2 = 23", nodes[0].Parent.Parent.ToString());
+            Assert.Equal("System.Int32 (System.Int32 elem1, System.Int32 elem2).elem2", model.GetSymbolInfo(nodes[0]).Symbol.ToTestDisplayString());
+
+            Assert.Equal("elem2 = 10", nodes[1].Parent.ToString());
+            Assert.Equal("System.Int32 elem2", model.GetSymbolInfo(nodes[1]).Symbol.ToTestDisplayString());
+
+            Assert.Equal("(tuple.elem2)", nodes[2].Parent.Parent.Parent.ToString());
+            Assert.Equal("System.Int32 (System.Int32 elem1, System.Int32 elem2).elem2", model.GetSymbolInfo(nodes[2]).Symbol.ToTestDisplayString());
+
+            Assert.Equal("(elem2)", nodes[3].Parent.Parent.ToString());
+            Assert.Equal("System.Int32 elem2", model.GetSymbolInfo(nodes[3]).Symbol.ToTestDisplayString());
+
+            var type = tree.GetRoot().DescendantNodes().OfType<TupleTypeSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(type);
+            Assert.Equal("(System.Int32 elem1, System.Int32 elem2)", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(type);
+            Assert.Equal("(System.Int32 elem1, System.Int32 elem2)", typeInfo.Type.ToTestDisplayString());
+
+            Assert.Same(symbolInfo.Symbol, typeInfo.Type);
+
+            Assert.Equal("System.Int32 (System.Int32 elem1, System.Int32 elem2).elem1", model.GetDeclaredSymbol(type.Elements.First()).ToTestDisplayString());
+            Assert.Equal("System.Int32 (System.Int32 elem1, System.Int32 elem2).elem2", model.GetDeclaredSymbol(type.Elements.Last()).ToTestDisplayString());
+            Assert.Equal("System.Int32 (System.Int32 elem1, System.Int32 elem2).elem1", model.GetDeclaredSymbol((SyntaxNode)type.Elements.First()).ToTestDisplayString());
+            Assert.Equal("System.Int32 (System.Int32 elem1, System.Int32 elem2).elem2", model.GetDeclaredSymbol((SyntaxNode)type.Elements.Last()).ToTestDisplayString());
         }
     }
 }

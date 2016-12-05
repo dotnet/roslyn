@@ -707,7 +707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim argumentType As TypeSymbol = Nothing
                     Dim name As String = Nothing
-                    Dim nameSyntax As IdentifierNameSyntax = Nothing
+                    Dim nameSyntax As SyntaxToken = Nothing
 
                     If argumentSyntax.Kind = SyntaxKind.TypedTupleElement Then
                         Dim typedElement = DirectCast(argumentSyntax, TypedTupleElementSyntax)
@@ -716,9 +716,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         Dim namedElement = DirectCast(argumentSyntax, NamedTupleElementSyntax)
                         nameSyntax = namedElement.Identifier
-                        name = nameSyntax.Identifier.GetIdentifierText()
+                        name = nameSyntax.GetIdentifierText()
 
-                        argumentType = binder.DecodeIdentifierType(nameSyntax.Identifier, namedElement.AsClause, getRequireTypeDiagnosticInfoFunc:=Nothing, diagBag:=diagnostics)
+                        argumentType = binder.DecodeIdentifierType(nameSyntax, namedElement.AsClause, getRequireTypeDiagnosticInfoFunc:=Nothing, diagBag:=diagnostics)
                     End If
 
                     types.Add(argumentType)
@@ -728,7 +728,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
 
-                    If nameSyntax IsNot Nothing Then
+                    If nameSyntax.Kind() = SyntaxKind.IdentifierToken Then
                         ' validate name if we have one
                         hasExplicitNames = True
                         Binder.CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames)

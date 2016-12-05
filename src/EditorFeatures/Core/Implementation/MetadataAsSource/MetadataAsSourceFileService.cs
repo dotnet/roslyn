@@ -163,9 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         {
             // We need to relocate the symbol in the already existing file. If the file is open, we can just
             // reuse that workspace. Otherwise, we have to go spin up a temporary project to do the binding.
-
-            DocumentId openDocumentId;
-            if (_openedDocumentIds.TryGetValue(fileInfo, out openDocumentId))
+            if (_openedDocumentIds.TryGetValue(fileInfo, out var openDocumentId))
             {
                 // Awesome, it's already open. Let's try to grab a document for it
                 var document = _workspace.CurrentSolution.GetDocument(openDocumentId);
@@ -185,9 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         {
             using (_gate.DisposableWait())
             {
-                MetadataAsSourceGeneratedFileInfo fileInfo;
-
-                if (_generatedFilenameToInformation.TryGetValue(filePath, out fileInfo))
+                if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
                 {
                     Contract.ThrowIfTrue(_openedDocumentIds.ContainsKey(fileInfo));
 
@@ -210,9 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         {
             using (_gate.DisposableWait())
             {
-                MetadataAsSourceGeneratedFileInfo fileInfo;
-
-                if (_generatedFilenameToInformation.TryGetValue(filePath, out fileInfo))
+                if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
                 {
                     if (_openedDocumentIds.ContainsKey(fileInfo))
                     {
@@ -326,10 +320,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                         // Let's look through directories to delete.
                         foreach (var directoryInfo in new DirectoryInfo(_rootTemporaryPath).EnumerateDirectories())
                         {
-                            Mutex acquiredMutex;
 
                             // Is there a mutex for this one?
-                            if (Mutex.TryOpenExisting(CreateMutexName(directoryInfo.Name), out acquiredMutex))
+                            if (Mutex.TryOpenExisting(CreateMutexName(directoryInfo.Name), out var acquiredMutex))
                             {
                                 acquiredMutex.Dispose();
                                 deletedEverything = false;

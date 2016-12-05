@@ -420,44 +420,54 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     switch (node.Kind())
                     {
                         case SyntaxKind.DeclarationExpression:
-
-                            var declaration = (DeclarationExpressionSyntax)node;
-                            if (declaration.Designation.Kind() != SyntaxKind.SingleVariableDesignation)
                             {
+                                var declaration = (DeclarationExpressionSyntax)node;
+                                if (declaration.Designation.Kind() != SyntaxKind.SingleVariableDesignation)
+                                {
+                                    break;
+                                }
+
+                                var designation = (SingleVariableDesignationSyntax)declaration.Designation;
+                                var name = designation.Identifier.ValueText;
+                                if (variablesToRemove.HasSyntaxAnnotation(designation))
+                                {
+                                    var newLeadingTrivia = new SyntaxTriviaList();
+                                    newLeadingTrivia = newLeadingTrivia.AddRange(declaration.Type.GetLeadingTrivia());
+                                    newLeadingTrivia = newLeadingTrivia.AddRange(declaration.Type.GetTrailingTrivia());
+                                    newLeadingTrivia = newLeadingTrivia.AddRange(designation.GetLeadingTrivia());
+
+                                    replacements.Add(declaration, SyntaxFactory.IdentifierName(designation.Identifier)
+                                        .WithLeadingTrivia(newLeadingTrivia));
+                                }
+
                                 break;
                             }
-
-                            var designation = (SingleVariableDesignationSyntax)declaration.Designation;
-                            var name = designation.Identifier.ValueText;
-                            if (variablesToRemove.HasSyntaxAnnotation(designation))
-                            {
-                                var newLeadingTrivia = new SyntaxTriviaList();
-                                newLeadingTrivia = newLeadingTrivia.AddRange(declaration.Type.GetLeadingTrivia());
-                                newLeadingTrivia = newLeadingTrivia.AddRange(declaration.Type.GetTrailingTrivia());
-                                newLeadingTrivia = newLeadingTrivia.AddRange(designation.GetLeadingTrivia());
-
-                                replacements.Add(declaration, SyntaxFactory.IdentifierName(designation.Identifier)
-                                    .WithLeadingTrivia(newLeadingTrivia));
-                            }
-
-                            break;
 
                         case SyntaxKind.DeclarationPattern:
-                            var pattern = (DeclarationPatternSyntax)node;
-                            if (!variablesToRemove.HasSyntaxAnnotation(pattern))
                             {
+                                var pattern = (DeclarationPatternSyntax)node;
+                                if (!variablesToRemove.HasSyntaxAnnotation(pattern))
+                                {
+                                    break;
+                                }
+
+                                // We don't have a good refactoring for this, so we just annotate the conflict
+                                // For instance, when a local declared by a pattern declaration (`3 is int i`) is
+                                // used outside the block we're trying to extract.
+                                var designation = pattern.Designation as SingleVariableDesignationSyntax;
+                                if (designation == null)
+                                {
+                                    break;
+                                }
+
+                                var identifier = designation.Identifier;
+                                var annotation = ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
+                                var newIdentifier = identifier.WithAdditionalAnnotations(annotation);
+                                var newDesignation = designation.WithIdentifier(newIdentifier);
+                                replacements.Add(pattern, pattern.WithDesignation(newDesignation));
+
                                 break;
                             }
-
-                            // We don't have a good refactoring for this, so we just annotate the conflict
-                            // For instance, when a local declared by a pattern declaration (`3 is int i`) is
-                            // used outside the block we're trying to extract.
-                            var identifier = pattern.Identifier;
-                            var annotation = ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
-                            var newIdentifier = identifier.WithAdditionalAnnotations(annotation);
-                            replacements.Add(pattern, pattern.WithIdentifier(newIdentifier));
-
-                            break;
                     }
                 }
 

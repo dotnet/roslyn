@@ -23,7 +23,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax>
     {
-        protected override ObjectCreationExpressionSyntax GetNewObjectCreation(
+        protected override StatementSyntax GetNewStatement(
+            StatementSyntax statement,
+            ObjectCreationExpressionSyntax objectCreation,
+            ImmutableArray<ExpressionStatementSyntax> matches)
+        {
+            return statement.ReplaceNode(
+                objectCreation,
+                GetNewObjectCreation(objectCreation, matches));
+        }
+
+        private ObjectCreationExpressionSyntax GetNewObjectCreation(
             ObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
