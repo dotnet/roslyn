@@ -13,19 +13,21 @@
     <Nonshipping>true</Nonshipping>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'"></PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'"></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+  </PropertyGroup>
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractIntegrationTest.cs" />
     <Compile Include="AbstractInteractiveWindowTest.cs" />
-    <Compile Include="CSharp\CSharpAsyncOutput.cs" />
+    <Compile Include="CSharp\CSharpInteractiveAsyncOutput.cs" />
     <Compile Include="CSharp\CSharpAutomaticBraceCompletion.cs" />
     <Compile Include="CSharp\CSharpBuild.cs" />
     <Compile Include="CSharp\CSharpIntelliSense.cs" />
-    <Compile Include="CSharp\CSharpInteractiveDemo.cs" />
+    <Compile Include="CSharp\CSharpInteractive.cs" />
     <Compile Include="AbstractEditorTest.cs" />
     <Compile Include="SharedIntegrationHostFixture.cs" />
     <Compile Include="VisualBasic\BasicAutomaticBraceCompletion.cs" />
