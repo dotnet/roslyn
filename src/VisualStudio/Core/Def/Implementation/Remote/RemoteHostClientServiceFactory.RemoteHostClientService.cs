@@ -160,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_AddGlobalAssetsAsync, cancellationToken))
                 {
                     var snapshotService = _workspace.Services.GetService<ISolutionSynchronizationService>();
-                    var assetBuilder = new CustomAssetBuilder(_workspace.CurrentSolution);
+                    var assetBuilder = new CustomAssetBuilder(_workspace);
 
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
                     {

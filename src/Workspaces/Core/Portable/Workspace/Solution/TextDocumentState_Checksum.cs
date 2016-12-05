@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var textTask = GetTextAsync(cancellationToken);
 
-                var serializer = new Serializer(solutionServices.Workspace.Services);
+                var serializer = new Serializer(solutionServices.Workspace);
 
                 var infoChecksum = serializer.CreateChecksum(Info.Attributes, cancellationToken);
                 var textChecksum = serializer.CreateChecksum(await textTask.ConfigureAwait(false), cancellationToken);

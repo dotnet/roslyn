@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
                 var documentChecksumsTasks = DocumentIds.Select(id => DocumentStates[id].GetChecksumAsync(cancellationToken));
                 var additionalDocumentChecksumTasks = AdditionalDocumentIds.Select(id => AdditionalDocumentStates[id].GetChecksumAsync(cancellationToken));
 
-                var serializer = new Serializer(_solutionServices.Workspace.Services);
+                var serializer = new Serializer(_solutionServices.Workspace);
 
                 var infoChecksum = serializer.CreateChecksum(ProjectInfo.Attributes, cancellationToken);
 

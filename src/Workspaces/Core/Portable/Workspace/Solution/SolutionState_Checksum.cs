@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
                 // get states by id order to have deterministic checksum
                 var projectChecksumTasks = ProjectIds.Select(id => ProjectStates[id].GetChecksumAsync(cancellationToken));
 
-                var serializer = new Serializer(_solutionServices.Workspace.Services);
+                var serializer = new Serializer(_solutionServices.Workspace);
                 var infoChecksum = serializer.CreateChecksum(SolutionInfo.Attributes, cancellationToken);
 
                 var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);

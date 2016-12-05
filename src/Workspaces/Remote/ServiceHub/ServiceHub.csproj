@@ -78,8 +78,6 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Storage\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
