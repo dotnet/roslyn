@@ -6907,12 +6907,20 @@ class Program
 {
     static void Main()
     {
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
         Console.WriteLine(new Test<int>().Run());
+        Console.WriteLine(""--"");
     }
 }
 ";
             var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
-@"0");
+@"--
+
+--
+0
+--");
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
@@ -6969,12 +6977,20 @@ class Program
 {
     static void Main()
     {
+        Console.WriteLine(""--"");
+        Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
         Console.WriteLine(new Test<int>().Run());
+        Console.WriteLine(""--"");
     }
 }
 ";
             var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
-@"0");
+@"--
+
+--
+0
+--");
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
@@ -7018,12 +7034,16 @@ class Program
 {
     static void Main()
     {
+        Console.WriteLine(""--"");
         Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
     }
 }
 ";
             var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
-@"");
+@"--
+
+--");
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
@@ -7058,12 +7078,16 @@ class Program
 {
     static void Main()
     {
+        Console.WriteLine(""--"");
         Console.WriteLine(new Test<string>().Run());
+        Console.WriteLine(""--"");
     }
 }
 ";
             var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput:
-@"");
+@"--
+
+--");
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
