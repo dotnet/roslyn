@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class CrefCompletionProvider
@@ -62,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 
-            Dim items = CreateCompletionItems(workspace, semanticModel, symbols, token.SpanStart)
+            Dim items = CreateCompletionItems(workspace, semanticModel, symbols, position)
             context.AddItems(items)
 
             If IsFirstCrefParameterContext(token) Then
@@ -197,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim displayString = builder.ToString()
 
-            Return SymbolCompletionItem.Create(
+            Return SymbolCompletionItem.CreateWithNameAndKind(
                 displayText:=displayString,
                 insertionText:=Nothing,
                 symbol:=symbol,
@@ -205,12 +206,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 rules:=GetRules(displayString))
         End Function
 
-        Protected Overrides Function GetDescriptionWorkerAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
-            If CommonCompletionItem.HasDescription(item) Then
-                Return Task.FromResult(CommonCompletionItem.GetDescription(item))
-            Else
-                Return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken)
+        Protected Overrides Async Function GetDescriptionWorkerAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
+            Dim position = SymbolCompletionItem.GetContextPosition(item)
+            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim token = tree.GetTargetToken(position, cancellationToken)
+
+
+            If IsCrefTypeParameterContext(token) Then
+                Return Nothing
             End If
+
+            ' To get a Speculative SemanticModel (which is much faster), we need to 
+            ' walk up to the node the DocumentationTrivia is attached to.
+            Dim parentNode = token.Parent?.FirstAncestorOrSelf(Of DocumentationCommentTriviaSyntax)()?.ParentTrivia.Token.Parent
+            _testSpeculativeNodeCallbackOpt?.Invoke(parentNode)
+            If parentNode Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
+            Dim workspace = document.Project.Solution.Workspace
+
+            Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
+            Dim symbolName = SymbolCompletionItem.GetSymbolName(item)
+            Dim symbolKind = SymbolCompletionItem.GetKind(item).GetValueOrDefault()
+            Dim bestSymbols = symbols.Where(Function(s) s.Kind = symbolKind AndAlso s.Name = symbolName).ToImmutableArray()
+            Return Await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Function CreateOfCompletionItem() As CompletionItem
