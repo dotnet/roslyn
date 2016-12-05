@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal abstract partial class BoundNode
     {
         private readonly BoundKind _kind;
@@ -162,5 +163,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TreeDumper.DumpCompact(BoundTreeDumperNodeProducer.MakeTree(this));
         }
 #endif
+
+        private string GetDebuggerDisplay()
+        {
+            var result = GetType().Name;
+            if (Syntax != null)
+            {
+                result += " " + Syntax.ToString();
+            }
+            return result;
+        }
     }
 }
