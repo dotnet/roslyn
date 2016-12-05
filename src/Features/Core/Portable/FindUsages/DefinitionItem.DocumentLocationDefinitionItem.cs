@@ -18,9 +18,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
             public DocumentLocationDefinitionItem(
                 ImmutableArray<string> tags,
                 ImmutableArray<TaggedText> displayParts,
+                ImmutableArray<TaggedText> nameDisplayParts,
                 ImmutableArray<DocumentSpan> sourceSpans,
                 bool displayIfNoReferences)
-                : base(tags, displayParts, 
+                : base(tags, displayParts, nameDisplayParts,
                       ImmutableArray.Create(new TaggedText(TextTags.Text, sourceSpans[0].Document.Project.Name)),
                       sourceSpans, displayIfNoReferences)
             {
