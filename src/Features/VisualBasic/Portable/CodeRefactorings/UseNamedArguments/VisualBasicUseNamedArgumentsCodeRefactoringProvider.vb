@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.UseNamedArguments
         End Function
 
         Private Shared Iterator Function GetNamedAruments(parameters As ImmutableArray(Of IParameterSymbol),
-                                                 argumentList As ArgumentListSyntax, index As Integer) As IEnumerable(Of SyntaxNode)
+                                                          argumentList As ArgumentListSyntax, index As Integer) As IEnumerable(Of SyntaxNode)
             Dim arguments = argumentList.Arguments
             For i As Integer = 0 To arguments.Count - 1
                 Dim argument = DirectCast(arguments(i), ArgumentSyntax)

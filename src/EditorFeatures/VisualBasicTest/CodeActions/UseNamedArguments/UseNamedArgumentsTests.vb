@@ -19,15 +19,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.UseNam
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestFirstArgument() As Task
             Await TestAsync(
-NewLines("Class C \n Sub M(arg1 As Integer, arg2 As Integer) \n M([||]1, 2) \n End Sub \n End Class"),
-NewLines("Class C \n Sub M(arg1 As Integer, arg2 As Integer) \n M(arg1:=1, arg2:=2) \n End Sub \n End Class"))
+"Class C
+    Sub M(arg1 As Integer, arg2 As Integer)
+        M([||]1, 2)
+    End Sub
+End Class",
+"Class C
+    Sub M(arg1 As Integer, arg2 As Integer)
+        M(arg1:=1, arg2:=2)
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestNonFirstArgument() As Task
             Await TestAsync(
-NewLines("Class C \n Sub M(arg1 As Integer, arg2 As Integer) \n M(1, [||]2) \n End Sub \n End Class"),
-NewLines("Class C \n Sub M(arg1 As Integer, arg2 As Integer) \n M(1, arg2:=2) \n End Sub \n End Class"))
+"Class C
+    Sub M(arg1 As Integer, arg2 As Integer)
+        M(1, [||]2)
+    End Sub
+End Class",
+"Class C
+    Sub M(arg1 As Integer, arg2 As Integer)
+        M(1, arg2:=2)
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
@@ -71,8 +87,16 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestConditionalMethod() As Task
             Await TestAsync(
-NewLines("Class C \n Sub M(arg1 as Integer, arg2 as Integer) \n Me?.M([||]1, 2) \n End Sub \n End Class"),
-NewLines("Class C \n Sub M(arg1 as Integer, arg2 as Integer) \n Me?.M(arg1:=1, arg2:=2) \n End Sub \n End Class"))
+"Class C
+    Sub M(arg1 as Integer, arg2 as Integer)
+        Me?.M([||]1, 2)
+    End Sub
+End Class",
+"Class C
+    Sub M(arg1 as Integer, arg2 as Integer)
+        Me?.M(arg1:=1, arg2:=2)
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
@@ -93,8 +117,16 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestConstructor() As Task
             Await TestAsync(
-NewLines("Class C \n Sub New(arg1 As Integer, arg2 As Integer) \n Dim c = New C([||]1, 2) \n End Sub \n End Class"),
-NewLines("Class C \n Sub New(arg1 As Integer, arg2 As Integer) \n Dim c = New C(arg1:=1, arg2:=2) \n End Sub \n End Class"))
+"Class C
+    Sub New(arg1 As Integer, arg2 As Integer)
+        Dim c = New C([||]1, 2)
+    End Sub
+End Class",
+"Class C
+    Sub New(arg1 As Integer, arg2 As Integer)
+        Dim c = New C(arg1:=1, arg2:=2)
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
@@ -135,39 +167,71 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestMissingOnEmptyArgumentList() As Task
             Await TestMissingAsync(
-NewLines("Class C \n Sub M() \n M([||]) \n End Sub \n End Class"))
+"Class C
+    Sub M()
+        M([||])
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestMissingOnNamedArgument() As Task
             Await TestMissingAsync(
-NewLines("Class C \n Sub M(arg as Integer) \n M([||]arg:=1) \n End Sub \n End Class"))
+"Class C
+    Sub M(arg as Integer)
+        M([||]arg:=1)
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestMissingOnParamArray() As Task
             Await TestMissingAsync(
-NewLines("Class C \n Sub M(ParamArray arg1 As Integer()) \n M([||]1) \n  End Sub \n End Class"))
+"Class C
+    Sub M(ParamArray arg1 As Integer())
+        M([||]1)
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestEmptyParamArray() As Task
             Await TestAsync(
-NewLines("Class C \n Sub M(arg1 As Integer, ParamArray arg2 As Integer()) \n M([||]1) \n End Sub \n End Class"),
-NewLines("Class C \n Sub M(arg1 As Integer, ParamArray arg2 As Integer()) \n M(arg1:=1) \n End Sub \n End Class"))
+"Class C
+    Sub M(arg1 As Integer, ParamArray arg2 As Integer())
+        M([||]1)
+    End Sub
+End Class",
+"Class C
+    Sub M(arg1 As Integer, ParamArray arg2 As Integer())
+        M(arg1:=1)
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestOmittedArguments() As Task
             Await TestAsync(
-NewLines("Class C \n Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1) \n M([||]1,,3) \n End Sub \n End Class"),
-NewLines("Class C \n Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1) \n M(arg1:=1, arg3:=3) \n End Sub \n End Class"))
+"Class C
+    Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
+        M([||]1,,3)
+    End Sub
+End Class",
+"Class C
+    Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
+        M(arg1:=1, arg3:=3)
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestMissingOnOmittedArgument() As Task
             Await TestMissingAsync(
-NewLines("Class C \n Sub M(optional arg1 As Integer=1, optional arg2 As Integer=1) \n M([||], arg2:=2) \n End Sub \n End Class"))
+"Class C
+    Sub M(optional arg1 As Integer=1, optional arg2 As Integer=1)
+        M([||], arg2:=2)
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
