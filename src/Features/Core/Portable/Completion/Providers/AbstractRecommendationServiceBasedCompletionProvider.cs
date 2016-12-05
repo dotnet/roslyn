@@ -1,16 +1,16 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+﻿using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -106,13 +106,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
             var name = SymbolCompletionItem.GetSymbolName(item);
-            var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken)
+                .ConfigureAwait(false);
             var symbols = await Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
-                semanticModel, position, document.Project.Solution.Workspace, document.Project.Solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
+                semanticModel, position, document.Project.Solution.Workspace, 
+                document.Project.Solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
 
             var kind = SymbolCompletionItem.GetKind(item);
 
-            var bestSymbols = symbols.Where(s => (kind != null && s.Kind == kind) && s.Name == name).ToImmutableArray();
+            var bestSymbols = symbols.Where(s => kind != null && s.Kind == kind && s.Name == name).ToImmutableArray();
             return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, cancellationToken).ConfigureAwait(false);
         }
     }

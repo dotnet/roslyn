@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static CompletionItem CreateWithSymbolId(
             string displayText,
             IReadOnlyList<ISymbol> symbols,
-            int contextPosition = -1,
+            int contextPosition,
             string sortText = null,
             string insertionText = null,
             Glyph? glyph = null,
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static CompletionItem CreateWithSymbolId(
             string displayText,
             ISymbol symbol,
-            int contextPosition = -1,
+            int contextPosition,
             string sortText = null,
             string insertionText = null,
             Glyph? glyph = null,
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static CompletionItem CreateWithNameAndKind(
             string displayText,
             IReadOnlyList<ISymbol> symbols,
-            int contextPosition = -1,
+            int contextPosition,
             string sortText = null,
             string insertionText = null,
             Glyph? glyph = null,
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static CompletionItem CreateWithNameAndKind(
             string displayText,
             ISymbol symbol,
-            int contextPosition = -1,
+            int contextPosition,
             string sortText = null,
             string insertionText = null,
             Glyph? glyph = null,
@@ -338,6 +338,60 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return CreateWorker(displayText, symbol, AddSymbolNameAndKind, contextPosition, sortText, insertionText, glyph,
                           filterText, matchPriority, supportedPlatforms, properties, rules: rules);
+        }
+
+        internal static string GetSymbolName(CompletionItem item)
+        {
+            if (item.Properties.TryGetValue("SymbolName", out var name))
+            {
+                return name;
+            }
+
+            return null;
+        }
+
+        internal static SymbolKind? GetKind(CompletionItem item)
+        {
+            if (item.Properties.TryGetValue("SymbolKind", out var kind))
+            {
+                return (SymbolKind)int.Parse(kind);
+            }
+
+            return null;
+        }
+
+        public static async Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, CancellationToken cancellationToken)
+        {
+            var workspace = document.Project.Solution.Workspace;
+
+            var position = SymbolCompletionItem.GetDescriptionPosition(item);
+            if (position == -1)
+            {
+                position = item.Span.Start;
+            }
+
+            var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(item, workspace);
+
+            // find appropriate document for descripton context
+            var contextDocument = document;
+            if (supportedPlatforms != null && supportedPlatforms.InvalidProjects.Contains(document.Id.ProjectId))
+            {
+                var contextId = document.GetLinkedDocumentIds().FirstOrDefault(id => !supportedPlatforms.InvalidProjects.Contains(id.ProjectId));
+                if (contextId != null)
+                {
+                    contextDocument = document.Project.Solution.GetDocument(contextId);
+                }
+            }
+
+            var semanticModel = await contextDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (symbols.Length != 0)
+            {
+                return await CommonCompletionUtilities.CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                return CompletionDescription.Empty;
+            }
         }
     }
 }

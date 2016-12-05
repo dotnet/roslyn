@@ -74,6 +74,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             context.IsExclusive = True
         End Function
 
+        Private Async Function GetSymbols(position As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of (SyntaxToken, SemanticModel, ImmutableArray(Of ISymbol)))
+            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim token = tree.GetTargetToken(position, cancellationToken)
+
+            If IsCrefTypeParameterContext(token) Then
+                Return (Nothing, Nothing, Nothing)
+            End If
+
+            ' To get a Speculative SemanticModel (which is much faster), we need to 
+            ' walk up to the node the DocumentationTrivia is attached to.
+            Dim parentNode = token.Parent?.FirstAncestorOrSelf(Of DocumentationCommentTriviaSyntax)()?.ParentTrivia.Token.Parent
+                _testSpeculativeNodeCallbackOpt?.Invoke(parentNode)
+                If parentNode Is Nothing Then
+                Return (Nothing, Nothing, Nothing)
+            End If
+
+            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
+            Dim workspace = document.Project.Solution.Workspace
+
+            Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
+            Return (token, semanticModel, symbols.ToImmutableArray())
+        End Function
+
         Private Shared Function IsCrefTypeParameterContext(token As SyntaxToken) As Boolean
             Return (token.IsChildToken(Function(t As TypeArgumentListSyntax) t.OfKeyword) OrElse
                 token.IsChildSeparatorToken(Function(t As TypeArgumentListSyntax) t.Arguments)) AndAlso

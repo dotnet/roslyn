@@ -21,6 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal sealed class CrefCompletionProvider : CommonCompletionProvider
     {
+        private class CrefCompletionState
+        {
+            public SemanticModel SemanticModel { get; set; }
+            public SyntaxToken SyntaxToken {get; set;}
+            public ImmutableArray<ISymbol> Symbols { get; set; }
+        }
+
         public static readonly SymbolDisplayFormat QualifiedCrefFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
@@ -60,10 +67,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
 
+            var (token, semanticModel, symbols) = await GetSymbols(document, position, cancellationToken).ConfigureAwait(false);
+            var filteredSymbols = symbols.FilterToVisibleAndBrowsableSymbols(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation);
+
+            if (!filteredSymbols.Any())
+            {
+                return;
+            }
+
+            context.IsExclusive = true;
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var span = GetCompletionItemSpan(text, position);
+
+            var items = CreateCompletionItems(document.Project.Solution.Workspace, semanticModel, filteredSymbols, token, span, position);
+            context.AddItems(items);
+        }
+
+        private async Task<(SyntaxToken, SemanticModel, ImmutableArray<ISymbol>)> GetSymbols(Document document, int position, CancellationToken cancellationToken)
+        {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (!tree.IsEntirelyWithinCrefSyntax(position, cancellationToken))
             {
-                return;
+                return (default(SyntaxToken), null, ImmutableArray<ISymbol>.Empty);
             }
 
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments: true)
@@ -75,28 +101,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             _testSpeculativeNodeCallbackOpt?.Invoke(parentNode);
             if (parentNode == null)
             {
-                return;
+                return (default(SyntaxToken), null, ImmutableArray<ISymbol>.Empty);
             }
 
             var semanticModel = await document.GetSemanticModelForNodeAsync(
                 parentNode, cancellationToken).ConfigureAwait(false);
 
             var symbols = GetSymbols(token, semanticModel, cancellationToken);
-
-            symbols = symbols.FilterToVisibleAndBrowsableSymbols(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation);
-
-            if (!symbols.Any())
-            {
-                return;
-            }
-
-            context.IsExclusive = true;
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var span = GetCompletionItemSpan(text, position);
-
-            var items = CreateCompletionItems(document.Project.Solution.Workspace, semanticModel, symbols, token, span, position);
-            context.AddItems(items);
+            return (token, semanticModel, symbols);
         }
 
         private static bool IsCrefStartContext(SyntaxToken token)
@@ -313,32 +325,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            if (!tree.IsEntirelyWithinCrefSyntax(position, cancellationToken))
-            {
-                return null;
-            }
 
-            var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments: true)
-                            .GetPreviousTokenIfTouchingWord(position);
-
-            // To get a Speculative SemanticModel (which is much faster), we need to 
-            // walk up to the node the DocumentationTrivia is attached to.
-            var parentNode = token.Parent.FirstAncestorOrSelf<DocumentationCommentTriviaSyntax>()?.ParentTrivia.Token.Parent;
-            _testSpeculativeNodeCallbackOpt?.Invoke(parentNode);
-            if (parentNode == null)
-            {
-                return null;
-            }
-
-            var semanticModel = await document.GetSemanticModelForNodeAsync(
-                parentNode, cancellationToken).ConfigureAwait(false);
-
-            var symbols = GetSymbols(token, semanticModel, cancellationToken);
-
+            var (token, semanticModel, symbols) = await GetSymbols(document, position, cancellationToken).ConfigureAwait(false);
             var name = SymbolCompletionItem.GetSymbolName(item);
             var kind = SymbolCompletionItem.GetKind(item);
-            var bestSymbols = symbols.Where(s => s.Kind == kind && s.Name == name).ToImmutableArray();
+            var bestSymbols = symbols.WhereAsArray(s => s.Kind == kind && s.Name == name);
             return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, cancellationToken).ConfigureAwait(false);
         }
 
