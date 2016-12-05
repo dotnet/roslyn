@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            // We need to find the leftmost expression in teh if-condition.  If this is a
-            // "x != null" expression the we can replace it with "o as Type x".  
+            // We need to find the leftmost expression in the if-condition.  If this is a
+            // "x != null" expression, then we can replace it with "o is Type x".  
             var condition = GetLeftmostCondition(ifStatement.Condition);
             if (!condition.IsKind(SyntaxKind.NotEqualsExpression))
             {
