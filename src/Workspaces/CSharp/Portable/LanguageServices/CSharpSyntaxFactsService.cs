@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsCaseSensitive => true;
 
-        public bool SupportsIndexingInitializer(ParseOptions options) 
+        public bool SupportsIndexingInitializer(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
 
         public bool IsAwaitKeyword(SyntaxToken token)
@@ -1115,6 +1115,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Append(qualified.DotToken.Text);
                     ExpandTypeName(qualified.Right, builder);
                     break;
+                case SyntaxKind.TupleType:
+                    var tupleType = (TupleTypeSyntax)type;
+                    builder.Append(tupleType.OpenParenToken.Text);
+                    var elements = tupleType.Elements;
+                    for (int i = 0; i < elements.Count; i++)
+                    {
+                        if (i != 0)
+                        {
+                            builder.Append(',');
+                        }
+
+                        ExpandTypeName(elements[i].Type, builder);
+                        if (!string.IsNullOrEmpty(elements[i].Identifier.Text))
+                        {
+                            builder.Append(' ');
+                            builder.Append(elements[i].Identifier.Text);
+                        }
+                    }
+                    builder.Append(tupleType.CloseParenToken.Text);
+                    break;
                 default:
                     Debug.Assert(false, "Unexpected type syntax " + type.Kind());
                     break;
@@ -1756,7 +1776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
         public void AddFirstMissingCloseBrace(
-            SyntaxNode root, SyntaxNode contextNode, 
+            SyntaxNode root, SyntaxNode contextNode,
             out SyntaxNode newRoot, out SyntaxNode newContextNode)
         {
             // First, annotate the context node in the tree so that we can find it again
@@ -1893,9 +1913,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
             => ((PrefixUnaryExpressionSyntax)node).Operand;
 
-        private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
+        private class AddFirstMissingCloseBaceRewriter : CSharpSyntaxRewriter
         {
-            private readonly SyntaxNode _contextNode; 
+            private readonly SyntaxNode _contextNode;
             private bool _seenContextNode = false;
             private bool _addedFirstCloseCurly = false;
 
@@ -1932,7 +1952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // then still ask to format its close curly to make sure all the 
                 // curlies up the stack are properly formatted.
                 var braces = rewritten.GetBraces();
-                if (braces.Item1.Kind() == SyntaxKind.None && 
+                if (braces.Item1.Kind() == SyntaxKind.None &&
                     braces.Item2.Kind() == SyntaxKind.None)
                 {
                     // Not an item with braces.  Just pass it up.
