@@ -148,8 +148,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
             }
 
-            SyntaxNode left, right;
-            syntaxFacts.GetPartsOfBinaryExpression(node, out left, out right);
+            syntaxFacts.GetPartsOfBinaryExpression(node, out var left, out var right);
 
             CollectPiecesDown(syntaxFacts, pieces, left, semanticModel, cancellationToken);
             pieces.Add(right);

@@ -118,6 +118,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If invokeMethod.ReturnsVoid Then
                         AddKeyword(SyntaxKind.SubKeyword)
                     Else
+                        If invokeMethod.ReturnsByRef AndAlso format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef) Then
+                            AddKeyword(SyntaxKind.ByRefKeyword)
+                            AddSpace()
+                        End If
+
                         AddKeyword(SyntaxKind.FunctionKeyword)
                     End If
 
@@ -173,11 +178,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If symbol.IsAnonymousType OrElse format.DelegateStyle = SymbolDisplayDelegateStyle.NameAndSignature Then
                     Dim invokeMethod = symbol.DelegateInvokeMethod
                     If Not invokeMethod.ReturnsVoid Then
-                        If invokeMethod.ReturnsByRef AndAlso format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef) Then
-                            AddSpace()
-                            AddKeyword(SyntaxKind.ByRefKeyword)
-                        End If
-
                         AddSpace()
                         AddKeyword(SyntaxKind.AsKeyword)
                         AddSpace()

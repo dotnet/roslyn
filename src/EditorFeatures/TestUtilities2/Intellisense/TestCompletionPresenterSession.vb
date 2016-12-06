@@ -40,6 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.SelectedItem = selectedItem
             Me.IsSoftSelected = isSoftSelected
             Me.SuggestionModeItem = suggestionModeItem
+            Me._completionFilters = completionItemFilters
         End Sub
 
         Public Sub Dismiss() Implements ICompletionPresenterSession.Dismiss
@@ -73,6 +74,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Private Const s_itemsPerPage = 9
+        Private _completionFilters As ImmutableArray(Of CompletionItemFilter)
+
+        Public ReadOnly Property CompletionItemFilters As ImmutableArray(Of CompletionItemFilter)
+            Get
+                Return _completionFilters
+            End Get
+        End Property
 
         Public Sub SelectPreviousPageItem() Implements ICompletionPresenterSession.SelectPreviousPageItem
             SetSelectedItem(GetFilteredItemAt(CompletionItems.IndexOf(SelectedItem) - s_itemsPerPage))
@@ -80,6 +88,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Sub SelectNextPageItem() Implements ICompletionPresenterSession.SelectNextPageItem
             SetSelectedItem(GetFilteredItemAt(CompletionItems.IndexOf(SelectedItem) + s_itemsPerPage))
+        End Sub
+
+        Public Sub RaiseFiltersChanged(args As CompletionItemFilterStateChangedEventArgs)
+            RaiseEvent CompletionFiltersChanged(Me, args)
         End Sub
     End Class
 End Namespace

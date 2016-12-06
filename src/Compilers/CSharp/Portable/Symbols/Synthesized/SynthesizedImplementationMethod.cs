@@ -72,9 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _interfaceMethod.ReturnTypeCustomModifiers; }
         }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
         {
-            get { return _interfaceMethod.CountOfCustomModifiersPrecedingByRef; }
+            get { return _interfaceMethod.RefCustomModifiers; }
         }
 
         #endregion
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
             if (this.ReturnType.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
 
             if (ReturnType.ContainsTupleNames() &&

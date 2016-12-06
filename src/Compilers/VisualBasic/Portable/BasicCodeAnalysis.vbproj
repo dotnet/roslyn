@@ -396,6 +396,7 @@
     <Compile Include="Errors\VBDiagnostic.vb" />
     <Compile Include="GlobalImport.ImportDiagnosticInfo.vb" />
     <Compile Include="GlobalImport.vb" />
+    <Compile Include="GlobalSuppressions.vb" />
     <Compile Include="LanguageVersion.vb" />
     <Compile Include="Locations\EmbeddedTreeLocation.vb" />
     <Compile Include="Locations\LocationExtensions.vb" />

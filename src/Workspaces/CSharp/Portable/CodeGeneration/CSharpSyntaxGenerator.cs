@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     {
         internal override SyntaxTrivia CarriageReturnLineFeed => SyntaxFactory.CarriageReturnLineFeed;
 
+        public static readonly SyntaxGenerator Instance = new CSharpSyntaxGenerator();
+
         #region Declarations
         public override SyntaxNode CompilationUnit(IEnumerable<SyntaxNode> declarations)
         {
@@ -907,8 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override IReadOnlyList<SyntaxNode> GetAttributes(SyntaxNode declaration)
         {
-            IReadOnlyList<SyntaxNode> attrs;
-            if (!s_declAttributes.TryGetValue(declaration, out attrs))
+            if (!s_declAttributes.TryGetValue(declaration, out var attrs))
             {
                 var tmp = this.Flatten(GetAttributeLists(declaration).Where(al => !IsReturnAttribute(al)).ToImmutableReadOnlyListOrEmpty());
                 attrs = s_declAttributes.GetValue(declaration, _d => tmp);
@@ -922,8 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override IReadOnlyList<SyntaxNode> GetReturnAttributes(SyntaxNode declaration)
         {
-            IReadOnlyList<SyntaxNode> attrs;
-            if (!s_declReturnAttributes.TryGetValue(declaration, out attrs))
+            if (!s_declReturnAttributes.TryGetValue(declaration, out var attrs))
             {
                 var tmp = this.Flatten(GetAttributeLists(declaration).Where(al => IsReturnAttribute(al)).ToImmutableReadOnlyListOrEmpty());
                 attrs = s_declReturnAttributes.GetValue(declaration, _d => tmp);
@@ -1443,9 +1443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var modifierTokens = GetModifierTokens(declaration);
-            Accessibility accessibility;
-            DeclarationModifiers modifiers;
-            GetAccessibilityAndModifiers(modifierTokens, out accessibility, out modifiers);
+            GetAccessibilityAndModifiers(modifierTokens, out var accessibility, out var modifiers);
             return accessibility;
         }
 
@@ -1459,9 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return Isolate(declaration, d =>
             {
                 var tokens = GetModifierTokens(d);
-                Accessibility tmp;
-                DeclarationModifiers modifiers;
-                this.GetAccessibilityAndModifiers(tokens, out tmp, out modifiers);
+                this.GetAccessibilityAndModifiers(tokens, out var tmp, out var modifiers);
                 var newTokens = this.Merge(tokens, AsModifierList(accessibility, modifiers));
                 return SetModifierTokens(d, newTokens);
             });
@@ -1539,9 +1535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override DeclarationModifiers GetModifiers(SyntaxNode declaration)
         {
             var modifierTokens = GetModifierTokens(declaration);
-            Accessibility accessibility;
-            DeclarationModifiers modifiers;
-            GetAccessibilityAndModifiers(modifierTokens, out accessibility, out modifiers);
+            GetAccessibilityAndModifiers(modifierTokens, out var accessibility, out var modifiers);
             return modifiers;
         }
 
@@ -1560,9 +1554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return Isolate(declaration, d =>
                 {
                     var tokens = GetModifierTokens(d);
-                    Accessibility accessibility;
-                    DeclarationModifiers tmp;
-                    this.GetAccessibilityAndModifiers(tokens, out accessibility, out tmp);
+                    this.GetAccessibilityAndModifiers(tokens, out var accessibility, out var tmp);
                     var newTokens = this.Merge(tokens, AsModifierList(accessibility, modifiers));
                     return SetModifierTokens(d, newTokens);
                 });

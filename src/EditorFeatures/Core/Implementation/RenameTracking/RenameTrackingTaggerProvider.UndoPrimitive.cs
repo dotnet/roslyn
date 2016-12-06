@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             public void Do()
             {
-                StateMachine stateMachine;
-                if (TryGetStateMachine(out stateMachine))
+                if (TryGetStateMachine(out var stateMachine))
                 {
                     stateMachine.ClearTrackingSession();
                 }
@@ -56,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             public void Undo()
             {
-                StateMachine stateMachine;
-                if (TryGetStateMachine(out stateMachine))
+                if (TryGetStateMachine(out var stateMachine))
                 {
                     if (_shouldRestoreStateOnUndo)
                     {
@@ -73,8 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private bool TryGetStateMachine(out StateMachine stateMachine)
             {
                 stateMachine = null;
-                ITextBuffer textBuffer;
-                return _weakTextBuffer.TryGetTarget(out textBuffer) &&
+                return _weakTextBuffer.TryGetTarget(out var textBuffer) &&
                     textBuffer.Properties.TryGetProperty(typeof(StateMachine), out stateMachine);
             }
 

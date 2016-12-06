@@ -29,6 +29,13 @@ namespace Microsoft.CodeAnalysis.Editing
             _changes = new List<Change>();
         }
 
+        internal SyntaxEditor(SyntaxNode root, SyntaxGenerator generator)
+        {
+            OriginalRoot = root ?? throw new ArgumentNullException(nameof(root));
+            _generator = generator;
+            _changes = new List<Change>();
+        }
+
         /// <summary>
         /// The <see cref="SyntaxNode"/> that was specified when the <see cref="SyntaxEditor"/> was constructed.
         /// </summary>

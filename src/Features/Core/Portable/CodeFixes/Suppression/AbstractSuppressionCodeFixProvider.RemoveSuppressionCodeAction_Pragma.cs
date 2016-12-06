@@ -128,8 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                     foreach (var trivia in filteredTriviaList)
                     {
-                        bool isEnableDirective, hasMultipleIds;
-                        if (fixer.IsAnyPragmaDirectiveForId(trivia, diagnostic.Id, out isEnableDirective, out hasMultipleIds))
+                        if (fixer.IsAnyPragmaDirectiveForId(trivia, diagnostic.Id, out var isEnableDirective, out var hasMultipleIds))
                         {
                             if (hasMultipleIds)
                             {

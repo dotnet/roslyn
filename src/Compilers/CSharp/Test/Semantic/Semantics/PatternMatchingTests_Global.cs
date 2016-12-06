@@ -6089,7 +6089,8 @@ class H
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            var x1 = (DeclarationPatternSyntax)x1Decl.Parent;
+            Assert.Null(model.GetAliasInfo(x1.Type));
         }
 
         [Fact]
@@ -6113,7 +6114,8 @@ class H
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            Assert.Equal("var=System.Int32", model.GetAliasInfo(x1Decl.Type).ToTestDisplayString());
+            var x1 = (DeclarationPatternSyntax)x1Decl.Parent;
+            Assert.Equal("var=System.Int32", model.GetAliasInfo(x1.Type).ToTestDisplayString());
         }
 
         [Fact]
@@ -6137,7 +6139,8 @@ class H
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            Assert.Equal("a=System.Int32", model.GetAliasInfo(x1Decl.Type).ToTestDisplayString());
+            var x1 = (DeclarationPatternSyntax)x1Decl.Parent;
+            Assert.Equal("a=System.Int32", model.GetAliasInfo(x1.Type).ToTestDisplayString());
         }
 
         [Fact]
@@ -6159,7 +6162,8 @@ class H
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
-            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            var x1 = (DeclarationPatternSyntax)x1Decl.Parent;
+            Assert.Null(model.GetAliasInfo(x1.Type));
         }
 
     }

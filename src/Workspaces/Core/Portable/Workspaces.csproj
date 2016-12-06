@@ -161,6 +161,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs">
       <Link>InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StackGuard.cs">
+      <Link>InternalUtilities\StackGuard.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs">
       <Link>InternalUtilities\StringExtensions.cs</Link>
     </Compile>
@@ -169,39 +172,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\WeakReferenceExtensions.cs">
       <Link>InternalUtilities\WeakReferenceExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\FixedObjectBinder.cs">
-      <Link>Serialization\FixedObjectBinder.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\IObjectReadable.cs">
-      <Link>Serialization\IObjectReadable.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\IObjectWritable.cs">
-      <Link>Serialization\IObjectWritable.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinder.cs">
-      <Link>Serialization\ObjectBinder.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs">
-      <Link>Serialization\ObjectReader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReaderData.cs">
-      <Link>Serialization\ObjectReaderData.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReaderWriterBase.cs">
-      <Link>Serialization\ObjectReaderWriterBase.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs">
-      <Link>Serialization\ObjectWriter.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectWriterData.cs">
-      <Link>Serialization\ObjectWriterData.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\RecordingObjectBinder.cs">
-      <Link>Serialization\RecordingObjectBinder.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\SimpleRecordingObjectBinder.cs">
-      <Link>Serialization\SimpleRecordingObjectBinder.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs">
       <Link>InternalUtilities\FileUtilities.cs</Link>
@@ -233,6 +203,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Orchestrator" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Orchestrator.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
@@ -248,17 +220,15 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
+    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.Ide" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.Refactoring" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.CSharpBinding" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
-    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
-    <InternalsVisibleTo Include="MonoDevelop.Ide" />
-    <InternalsVisibleTo Include="MonoDevelop.Refactoring" />
-    <InternalsVisibleTo Include="MonoDevelop.CSharpBinding" />
-    <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
@@ -286,6 +256,39 @@
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>InternalUtilities\UnicodeCharacterUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\FixedObjectBinder.cs">
+      <Link>Serialization\FixedObjectBinder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\IObjectReadable.cs">
+      <Link>Serialization\IObjectReadable.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\IObjectWritable.cs">
+      <Link>Serialization\IObjectWritable.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinder.cs">
+      <Link>Serialization\ObjectBinder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectData.cs">
+      <Link>Serialization\ObjectData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs">
+      <Link>Serialization\ObjectReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs">
+      <Link>Serialization\ObjectWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\RecordingObjectBinder.cs">
+      <Link>Serialization\RecordingObjectBinder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectReader.cs">
+      <Link>Serialization\StreamObjectReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.cs">
+      <Link>Serialization\StreamObjectWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\TypeKey.cs">
+      <Link>Serialization\TypeKey.cs</Link>
     </Compile>
     <Compile Include="AddImports\AbstractAddImportsService.cs" />
     <Compile Include="AddImports\IAddImportsService.cs" />
@@ -345,13 +348,16 @@
     <Compile Include="CodeStyle\CodeStyleOptions.cs" />
     <Compile Include="CodeStyle\NotificationOption.cs" />
     <Compile Include="CodeStyle\CodeStyleOption.cs" />
+    <Compile Include="Diagnostics\AbstractDiagnosticPropertiesService.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalysisResult.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalysisResultMap.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalysisResultBuilder.cs" />
     <Compile Include="Diagnostics\DiagnosticData.cs" />
     <Compile Include="Diagnostics\DiagnosticDataSerializer.cs" />
+    <Compile Include="Diagnostics\DiagnosticPropertyConstants.cs" />
     <Compile Include="Diagnostics\DiagnosticProvider.cs" />
     <Compile Include="Diagnostics\Extensions.cs" />
+    <Compile Include="Diagnostics\IDiagnosticPropertiesService.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptions.cs" />
     <Compile Include="Diagnostics\InternalRuntimeDiagnosticOptions.cs" />
     <Compile Include="Execution\AssetStorages.Storage.cs" />
@@ -634,7 +640,6 @@
     <Compile Include="FindSymbols\FindReferences\FindReferenceCache.cs" />
     <Compile Include="FindSymbols\FindReferences\FindReferencesProgress.cs" />
     <Compile Include="FindSymbols\FindReferences\FindReferencesSearchEngine.cs" />
-    <Compile Include="FindSymbols\FindReferences\FindReferencesSearchEngine.ProgressWrapper.cs" />
     <Compile Include="FindSymbols\FindReferences\FindReferencesSearchEngine_DocumentProcessing.cs" />
     <Compile Include="FindSymbols\FindReferences\FindReferencesSearchEngine_MapCreation.cs" />
     <Compile Include="FindSymbols\FindReferences\FindReferencesSearchEngine_ProjectProcessing.cs" />

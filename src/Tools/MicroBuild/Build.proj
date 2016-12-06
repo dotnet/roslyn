@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildThisFileDirectory)..\..\..\build\Targets\Versions.props" />
 
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -23,14 +24,15 @@
     <Exec Command="Restore.cmd /clean" WorkingDirectory="$(ProjectDir)" Condition="'$(SkipRestore)' != 'true'" />
 
     <MSBuild Projects="$(ProjectDir)Roslyn.sln" BuildInParallel="true" Properties="DeployExtension=false" />
-    <MSBuild Projects="$(ProjectDir)src\Dependencies\Dependencies.sln" BuildInParallel="true" />
+
+    <Exec Command="$(NuGetPackageRoot)\GitLink\$(GitLinkVersion)\lib\net45\GitLink.exe $(ProjectDir) -u https://github.com/dotnet/roslyn -f Roslyn.sln -c $(Configuration)" />
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\check-nuspec.ps1 &quot;$(MSBuildThisFileDirectory)..\..\..&quot; &quot;$(BinariesPath)&quot;" />
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\create-perftests.ps1 &quot;$(BinariesPath)&quot;" />
 
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep1.proj" Properties="DeployExtension=false" />
 
-    <MSBuild Projects="$(MSBuildThisFileDirectory)RunSignTool.proj" Properties="SignRoslynArgs=$(SignRoslynArgs)" />
+    <Exec Command="$(NuGetPackageRoot)\RoslynTools.Microsoft.SignTool\$(RoslynToolsMicrosoftSignToolVersion)\tools\SignTool.exe $(SignRoslynArgs) &quot;$(BinariesPath)&quot;" WorkingDirectory="$(ProjectDir)" />
 
     <MSBuild Projects="$(ProjectDir)src\NuGet\NuGet.proj" />
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep2.proj" Properties="$(SetupStep2Properties);DeployExtension=false" />

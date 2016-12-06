@@ -92,9 +92,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 }
 
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
-                var newStatement = statement.ReplaceNode(
-                    objectCreation,
-                    GetNewObjectCreation(objectCreation, matches.Value)).WithAdditionalAnnotations(Formatter.Annotation);
+                var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
+                    .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var subEditor = new SyntaxEditor(currentRoot, workspace);
 
@@ -111,8 +110,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             return SpecializedTasks.EmptyTask;
         }
 
-        protected abstract TObjectCreationExpressionSyntax GetNewObjectCreation(
-            TObjectCreationExpressionSyntax objectCreation,
+        protected abstract TStatementSyntax GetNewStatement(
+            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, 
             ImmutableArray<TExpressionStatementSyntax> matches);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

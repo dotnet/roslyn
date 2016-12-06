@@ -65,10 +65,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             }
 
             var syntaxFacts = this.GetSyntaxFactsService();
-
-            SyntaxNode conditionNode, whenTrueNode, whenFalseNode;
             syntaxFacts.GetPartsOfConditionalExpression(
-                conditionalExpression, out conditionNode, out whenTrueNode, out whenFalseNode);
+                conditionalExpression, out var conditionNode, out var whenTrueNode, out var whenFalseNode);
 
             conditionNode = syntaxFacts.WalkDownParentheses(conditionNode);
 
@@ -85,9 +83,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            SyntaxNode conditionLeft;
-            SyntaxNode conditionRight;
-            syntaxFacts.GetPartsOfBinaryExpression(condition, out conditionLeft, out conditionRight);
+            syntaxFacts.GetPartsOfBinaryExpression(condition, out var conditionLeft, out var conditionRight);
 
             var conditionLeftIsNull = syntaxFacts.IsNullLiteralExpression(conditionLeft);
             var conditionRightIsNull = syntaxFacts.IsNullLiteralExpression(conditionRight);
@@ -99,6 +95,19 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             }
 
             if (!conditionRightIsNull && !conditionLeftIsNull)
+            {
+                return;
+            }
+
+            // Needs to be of the forme:
+            //      x == null ? null : ...    or
+            //      x != null ? ...  : null;
+            if (isEquals && !syntaxFacts.IsNullLiteralExpression(whenTrueNode))
+            {
+                return;
+            }
+
+            if (isNotEquals && !syntaxFacts.IsNullLiteralExpression(whenFalseNode))
             {
                 return;
             }
@@ -118,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 whenPartToCheck.GetLocation());
 
             context.ReportDiagnostic(Diagnostic.Create(
-                this.CreateDescriptorWithSeverity(option.Notification.Value),
+                this.GetDescriptorWithSeverity(option.Notification.Value),
                 conditionalExpression.GetLocation(),
                 locations));
         }

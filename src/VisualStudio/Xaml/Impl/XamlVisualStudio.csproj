@@ -17,10 +17,8 @@
     <DeployExtension>false</DeployExtension>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

@@ -189,8 +189,7 @@ namespace Microsoft.CodeAnalysis
                     // we prevent the recursion, we still hit List<Z> twice.  After writing
                     // the innermost one out, we'll give it a reference ID.  When we
                     // then hit the outermost one, we want to just reuse that one.
-                    int existingId;
-                    if (_symbolToId.TryGetValue(symbol, out existingId))
+                    if (_symbolToId.TryGetValue(symbol, out var existingId))
                     {
                         // While we recursed, we already hit this symbol.  Use its ID as our
                         // ID.

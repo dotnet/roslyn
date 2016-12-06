@@ -2030,7 +2030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    if (elementTypesBuilder.Contains(null))
+                    if (elementTypesBuilder.Contains(null) || elementTypesBuilder.Count != arguments.Count)
                     {
                         return false;
                     }

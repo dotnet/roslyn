@@ -15,7 +15,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.Input
             _visualStudioInstance = visualStudioInstance;
         }
 
-        public void Send(object[] keys)
+        public void Send(params object[] keys)
         {
             var inputs = new List<NativeMethods.INPUT>(keys.Length);
 
@@ -203,6 +203,8 @@ namespace Roslyn.VisualStudio.Test.Utilities.Input
                     IntegrationHelper.UnblockInput();
                 }
             }
+
+            _visualStudioInstance.WaitForApplicationIdle();
         }
     }
 }

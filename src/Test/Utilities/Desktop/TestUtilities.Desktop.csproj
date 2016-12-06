@@ -10,9 +10,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.Test.Utilities</RootNamespace>
     <AssemblyName>Roslyn.Test.Utilities.Desktop</AssemblyName>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

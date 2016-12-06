@@ -560,9 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsInPartiallyWrittenGeneric(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            SyntaxToken genericIdentifier;
-            SyntaxToken lessThanToken;
-            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out lessThanToken);
+            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out var genericIdentifier, out var lessThanToken);
         }
 
         public static bool IsInPartiallyWrittenGeneric(
@@ -571,8 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken,
             out SyntaxToken genericIdentifier)
         {
-            SyntaxToken lessThanToken;
-            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out lessThanToken);
+            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out var lessThanToken);
         }
 
         public static bool IsInPartiallyWrittenGeneric(

@@ -434,17 +434,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     // should ensure that parent nodes are not processed in the same batch as child nodes.
                     if (previous == default(TextSpan) || !previous.IntersectsWith(span))
                     {
-                        SyntaxNode currentNode;
-                        SyntaxToken currentToken;
-                        SyntaxTrivia currentTrivia;
-
-                        if (nodesToReplace.TryGetValue(span, out currentNode))
+                        if (nodesToReplace.TryGetValue(span, out var currentNode))
                         {
                             var original = (SyntaxNode)retryAnnotations.GetAnnotations(currentNode).SingleOrDefault() ?? currentNode;
                             var newNode = await computeReplacementNodeAsync(original, currentNode, cancellationToken).ConfigureAwait(false);
                             nodeReplacements[currentNode] = newNode;
                         }
-                        else if (tokensToReplace.TryGetValue(span, out currentToken))
+                        else if (tokensToReplace.TryGetValue(span, out var currentToken))
                         {
                             var original = (SyntaxToken)retryAnnotations.GetAnnotations(currentToken).SingleOrDefault();
                             if (original == default(SyntaxToken))
@@ -455,7 +451,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             var newToken = await computeReplacementTokenAsync(original, currentToken, cancellationToken).ConfigureAwait(false);
                             tokenReplacements[currentToken] = newToken;
                         }
-                        else if (triviaToReplace.TryGetValue(span, out currentTrivia))
+                        else if (triviaToReplace.TryGetValue(span, out var currentTrivia))
                         {
                             var original = (SyntaxTrivia)retryAnnotations.GetAnnotations(currentTrivia).SingleOrDefault();
                             if (original == default(SyntaxTrivia))
@@ -481,8 +477,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         nodes: nodesToReplace.Values,
                         computeReplacementNode: (original, rewritten) =>
                             {
-                                SyntaxNode replaced;
-                                if (rewritten != original || !nodeReplacements.TryGetValue(original, out replaced))
+                                if (rewritten != original || !nodeReplacements.TryGetValue(original, out var replaced))
                                 {
                                     // the subtree did change, or we didn't have a replacement for it in this batch
                                     // so we need to add an annotation so we can find this node again for the next batch.
@@ -495,8 +490,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         tokens: tokensToReplace.Values,
                         computeReplacementToken: (original, rewritten) =>
                             {
-                                SyntaxToken replaced;
-                                if (rewritten != original || !tokenReplacements.TryGetValue(original, out replaced))
+                                if (rewritten != original || !tokenReplacements.TryGetValue(original, out var replaced))
                                 {
                                     // the subtree did change, or we didn't have a replacement for it in this batch
                                     // so we need to add an annotation so we can find this node again for the next batch.
@@ -509,8 +503,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         trivia: triviaToReplace.Values,
                         computeReplacementTrivia: (original, rewritten) =>
                             {
-                                SyntaxTrivia replaced;
-                                if (!triviaReplacements.TryGetValue(original, out replaced))
+                                if (!triviaReplacements.TryGetValue(original, out var replaced))
                                 {
                                     // the subtree did change, or we didn't have a replacement for it in this batch
                                     // so we need to add an annotation so we can find this node again for the next batch.

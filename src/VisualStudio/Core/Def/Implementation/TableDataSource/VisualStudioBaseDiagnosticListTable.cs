@@ -58,8 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public static string GetHelpLink(DiagnosticData item)
         {
-            Uri link;
-            if (BrowserHelper.TryGetUri(item.HelpLink, out link))
+            if (BrowserHelper.TryGetUri(item.HelpLink, out var link))
             {
                 return link.AbsoluteUri;
             }
@@ -75,8 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public static string GetHelpLinkToolTipText(DiagnosticData item)
         {
             var isBing = false;
-            Uri helpUri = null;
-            if (!BrowserHelper.TryGetUri(item.HelpLink, out helpUri) && !string.IsNullOrWhiteSpace(item.Id))
+            if (!BrowserHelper.TryGetUri(item.HelpLink, out var helpUri) && !string.IsNullOrWhiteSpace(item.Id))
             {
                 helpUri = BrowserHelper.CreateBingQueryUri(item);
                 isBing = true;

@@ -160,19 +160,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ElseIf typeFrom.IsNullableType Then
                     Debug.Assert(typeTo.IsReferenceType)
 
+                    EmitExpression(conversion.Operand, used:=True)
+
                     If (conversion.ConversionKind And ConversionKind.Narrowing) <> 0 Then
-                        EmitExpression(conversion.Operand, True)
                         EmitBox(typeFrom, conversion.Operand.Syntax)
                         _builder.EmitOpCode(ILOpCode.Castclass)
                         EmitSymbolToken(typeTo, conversion.Syntax)
-
-                    Else
+                    ElseIf used Then
                         ' boxing itself is CLR-widening, so no need to emit unused boxing
-                        EmitExpression(conversion.Operand, used)
-                        If used Then
-                            EmitBox(typeFrom, conversion.Operand.Syntax)
-                        End If
-
+                        EmitBox(typeFrom, conversion.Operand.Syntax)
                     End If
 
                 ElseIf typeTo.IsNullableType Then

@@ -401,10 +401,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 //
                 // after initial deserialization, we track actual document/project that actually have diagnostics so no data won't be a common
                 // case.
-
                 // check cache first
-                CacheEntry entry;
-                if (InMemoryStorage.TryGetValue(_owner.Analyzer, ValueTuple.Create(key, stateKey), out entry) && serializer.Version == entry.Version)
+                if (InMemoryStorage.TryGetValue(_owner.Analyzer, ValueTuple.Create(key, stateKey), out var entry) && serializer.Version == entry.Version)
                 {
                     if (entry.Diagnostics.Length == 0)
                     {

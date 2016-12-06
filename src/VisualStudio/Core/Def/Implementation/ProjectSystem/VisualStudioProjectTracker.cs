@@ -119,19 +119,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _vsSolution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-
-            uint solutionEventsCookie;
-            _vsSolution.AdviseSolutionEvents(this, out solutionEventsCookie);
+            _vsSolution.AdviseSolutionEvents(this, out var solutionEventsCookie);
             _solutionEventsCookie = solutionEventsCookie;
 
             // It's possible that we're loading after the solution has already fully loaded, so see if we missed the event
             var shellMonitorSelection = (IVsMonitorSelection)serviceProvider.GetService(typeof(SVsShellMonitorSelection));
-
-            uint fullyLoadedContextCookie;
-            if (ErrorHandler.Succeeded(shellMonitorSelection.GetCmdUIContextCookie(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, out fullyLoadedContextCookie)))
+            if (ErrorHandler.Succeeded(shellMonitorSelection.GetCmdUIContextCookie(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, out var fullyLoadedContextCookie)))
             {
-                int fActive;
-                if (ErrorHandler.Succeeded(shellMonitorSelection.IsCmdUIContextActive(fullyLoadedContextCookie, out fActive)) && fActive != 0)
+                if (ErrorHandler.Succeeded(shellMonitorSelection.IsCmdUIContextActive(fullyLoadedContextCookie, out var fActive)) && fActive != 0)
                 {
                     _solutionLoadComplete = true;
                 }
@@ -174,12 +169,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             try
             {
                 var solutionWorkingFolder = (IVsSolutionWorkingFolders)_vsSolution;
-
-                bool temporary;
-                string workingFolderPath;
                 solutionWorkingFolder.GetFolder(
                     (uint)__SolutionWorkingFolder.SlnWF_StatePersistence, Guid.Empty, fVersionSpecific: true, fEnsureCreated: true,
-                    pfIsTemporary: out temporary, pszBstrFullPath: out workingFolderPath);
+                    pfIsTemporary: out var temporary, pszBstrFullPath: out var workingFolderPath);
 
                 if (!temporary && !string.IsNullOrWhiteSpace(workingFolderPath))
                 {
@@ -203,8 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public string GetWorkingFolderPath(Solution solution)
         {
-            string workingFolderPath;
-            if (s_workingFolderPathMap.TryGetValue(solution.Id, out workingFolderPath))
+            if (s_workingFolderPathMap.TryGetValue(solution.Id, out var workingFolderPath))
             {
                 return workingFolderPath;
             }
@@ -292,9 +283,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                AbstractProject project;
-                _projectMap.TryGetValue(id, out project);
+                _projectMap.TryGetValue(id, out var project);
                 return project;
+            }
+        }
+
+        internal bool ContainsProject(AbstractProject project)
+        {
+            lock (_gate)
+            {
+                return _projectMap.ContainsKey(project.Id);
             }
         }
 
@@ -345,6 +343,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private void StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground(IEnumerable<AbstractProject> projects)
         {
             AssertIsForeground();
+
+            // StartPushingToWorkspaceAndNotifyOfOpenDocuments might be invoked from a background thread,
+            // and hence StartPushingToWorkspaceAndNotifyOfOpenDocuments_Foreground scheduled to be executed later on the foreground task scheduler.
+            // By the time it gets scheduled, we might have removed some project(s) from the tracker on the UI thread.
+            // So, we filter out the projects that have been removed from the tracker.
+            projects = projects.Where(p => this.ContainsProject(p));
 
             using (Dispatcher.CurrentDispatcher.DisableProcessing())
             {
@@ -416,16 +420,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private void UpdateReferencesForBinPathChange(string path, Action updateProjects)
         {
             AssertIsForeground();
-
             // If we already have a single project that points to this path, we'll either be:
             // 
             // (1) removing it, where it no longer exists, or
             // (2) adding another path, where it's now ambiguous
             //
             // in either case, we want to undo file-to-P2P reference conversion
-            ImmutableArray<AbstractProject> existingProjects;
 
-            if (TryGetProjectsByBinPath(path, out existingProjects))
+            if (TryGetProjectsByBinPath(path, out var existingProjects))
             {
                 if (existingProjects.Length == 1)
                 {
@@ -459,8 +461,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 string key = projectPath + projectSystemName;
-                ProjectId id;
-                if (!_projectPathToIdMap.TryGetValue(key, out id))
+                if (!_projectPathToIdMap.TryGetValue(key, out var id))
                 {
                     id = ProjectId.CreateNewId(debugName: projectPath);
                     _projectPathToIdMap[key] = id;
@@ -507,9 +508,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 project = null;
-
-                ImmutableArray<AbstractProject> projects;
-                if (_projectsByBinPath.TryGetValue(filePath, out projects))
+                if (_projectsByBinPath.TryGetValue(filePath, out var projects))
                 {
                     // If for some reason we have more than one referencing project, it's ambiguous so bail
                     if (projects.Length == 1)
@@ -545,8 +544,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                ImmutableArray<AbstractProject> projects;
-                if (!_projectsByBinPath.TryGetValue(filePath, out projects))
+                if (!_projectsByBinPath.TryGetValue(filePath, out var projects))
                 {
                     projects = ImmutableArray<AbstractProject>.Empty;
                 }
@@ -559,8 +557,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                ImmutableArray<AbstractProject> projects;
-                if (_projectsByBinPath.TryGetValue(filePath, out projects) && projects.Contains(project))
+                if (_projectsByBinPath.TryGetValue(filePath, out var projects) && projects.Contains(project))
                 {
                     if (projects.Length == 1)
                     {

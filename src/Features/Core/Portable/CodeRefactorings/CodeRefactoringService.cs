@@ -59,8 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         private IEnumerable<CodeRefactoringProvider> GetProviders(Document document)
         {
-            Lazy<IEnumerable<CodeRefactoringProvider>> lazyProviders;
-            if (this.LanguageToProvidersMap.TryGetValue(document.Project.Language, out lazyProviders))
+            if (this.LanguageToProvidersMap.TryGetValue(document.Project.Language, out var lazyProviders))
             {
                 return lazyProviders.Value;
             }

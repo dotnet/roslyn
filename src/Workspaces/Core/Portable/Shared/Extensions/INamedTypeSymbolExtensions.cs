@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedMembers(
+        public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembers(
             this INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
             CancellationToken cancellationToken)
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 cancellationToken: cancellationToken);
         }
 
-        public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedMembersInThis(
+        public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembersInThis(
             this INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
             CancellationToken cancellationToken)
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 cancellationToken: cancellationToken);
         }
 
-        public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedMembersInThis(
+        public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembersInThis(
             this INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
             Func<INamedTypeSymbol, ISymbol, ImmutableArray<ISymbol>> interfaceMemberGetter,
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 cancellationToken: cancellationToken);
         }
 
-        public static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedExplicitMembers(
+        public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedExplicitMembers(
             this INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> interfaces,
             CancellationToken cancellationToken)
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 cancellationToken: cancellationToken);
         }
 
-        private static IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> GetAllUnimplementedMembers(
+        private static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembers(
             this INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
             Func<INamedTypeSymbol, ISymbol, Func<INamedTypeSymbol, ISymbol, bool>, CancellationToken, bool> isImplemented,
@@ -261,27 +261,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (classOrStructType.TypeKind != TypeKind.Class && classOrStructType.TypeKind != TypeKind.Struct)
             {
-                return SpecializedCollections.EmptyList<Tuple<INamedTypeSymbol, IList<ISymbol>>>();
+                return ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
             }
 
             if (!interfacesOrAbstractClasses.Any())
             {
-                return SpecializedCollections.EmptyList<Tuple<INamedTypeSymbol, IList<ISymbol>>>();
+                return ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
             }
 
             if (!interfacesOrAbstractClasses.All(i => i.TypeKind == TypeKind.Interface) &&
                 !interfacesOrAbstractClasses.All(i => i.IsAbstractClass()))
             {
-                return SpecializedCollections.EmptyList<Tuple<INamedTypeSymbol, IList<ISymbol>>>();
+                return ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
             }
 
             var typesToImplement = GetTypesToImplement(classOrStructType, interfacesOrAbstractClasses, allowReimplementation, cancellationToken);
-            return typesToImplement.Select(s => Tuple.Create(s, GetUnimplementedMembers(classOrStructType, s, isImplemented, isValidImplementation, interfaceMemberGetter, cancellationToken)))
-                                        .Where(t => t.Item2.Count > 0)
-                                        .ToList();
+            return typesToImplement.SelectAsArray(s => (s, members: GetUnimplementedMembers(classOrStructType, s, isImplemented, isValidImplementation, interfaceMemberGetter, cancellationToken)))
+                                   .WhereAsArray(t => t.members.Length > 0);
         }
 
-        private static IList<INamedTypeSymbol> GetTypesToImplement(
+        private static ImmutableArray<INamedTypeSymbol> GetTypesToImplement(
             INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> interfacesOrAbstractClasses,
             bool allowReimplementation,
@@ -292,17 +291,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : GetAbstractClassesToImplement(classOrStructType, interfacesOrAbstractClasses, cancellationToken);
         }
 
-        private static IList<INamedTypeSymbol> GetAbstractClassesToImplement(
+        private static ImmutableArray<INamedTypeSymbol> GetAbstractClassesToImplement(
             INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> abstractClasses,
             CancellationToken cancellationToken)
         {
             return abstractClasses.SelectMany(a => a.GetBaseTypesAndThis())
                                   .Where(t => t.IsAbstractClass())
-                                  .ToList();
+                                  .ToImmutableArray();
         }
 
-        private static IList<INamedTypeSymbol> GetInterfacesToImplement(
+        private static ImmutableArray<INamedTypeSymbol> GetInterfacesToImplement(
             INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> interfaces,
             bool allowReimplementation,
@@ -323,10 +322,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             cancellationToken.ThrowIfCancellationRequested();
             interfacesToImplement.RemoveRange(alreadyImplementedInterfaces);
-            return interfacesToImplement;
+            return interfacesToImplement.ToImmutableArray();
         }
 
-        private static IList<ISymbol> GetUnimplementedMembers(
+        private static ImmutableArray<ISymbol> GetUnimplementedMembers(
             this INamedTypeSymbol classOrStructType,
             INamedTypeSymbol interfaceType,
             Func<INamedTypeSymbol, ISymbol, Func<INamedTypeSymbol, ISymbol, bool>, CancellationToken, bool> isImplemented,
@@ -342,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     where !isImplemented(classOrStructType, m, isValidImplementation, cancellationToken)
                     select m;
 
-            return q.ToList();
+            return q.ToImmutableArray();
         }
 
         public static IEnumerable<ISymbol> GetAttributeNamedParameters(

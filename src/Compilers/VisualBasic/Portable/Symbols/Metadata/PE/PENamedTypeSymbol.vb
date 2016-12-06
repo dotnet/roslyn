@@ -1202,7 +1202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         Dim setMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, methods.Setter)
 
                         If (getMethod IsNot Nothing) OrElse (setMethod IsNot Nothing) Then
-                            members.Add(New PEPropertySymbol(moduleSymbol, Me, propertyDef, getMethod, setMethod))
+                            members.Add(PEPropertySymbol.Create(moduleSymbol, Me, propertyDef, getMethod, setMethod))
                         End If
                     Catch mrEx As BadImageFormatException
                     End Try

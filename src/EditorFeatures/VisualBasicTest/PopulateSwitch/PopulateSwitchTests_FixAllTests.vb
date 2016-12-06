@@ -454,7 +454,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+            Await TestAsync(input, expected, compareTokens:=False)
         End Function
     End Class
 End Namespace

@@ -54,8 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     var newDescriptorTuples = _diagnosticService.GetDiagnosticDescriptors(project);
                     foreach (var kvp in newDescriptorTuples)
                     {
-                        IEnumerable<DiagnosticDescriptor> existingDescriptors;
-                        if (descriptorsMap.TryGetValue(kvp.Key, out existingDescriptors))
+                        if (descriptorsMap.TryGetValue(kvp.Key, out var existingDescriptors))
                         {
                             descriptorsMap[kvp.Key] = existingDescriptors.Concat(kvp.Value).Distinct();
                         }

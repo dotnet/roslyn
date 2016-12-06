@@ -218,8 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return FormatStructuredTrivia(lineColumn, trivia, changes, cancellationToken);
             }
 
-            var newComment = default(SyntaxTrivia);
-            if (TryFormatMultiLineCommentTrivia(lineColumn, trivia, out newComment))
+            if (TryFormatMultiLineCommentTrivia(lineColumn, trivia, out var newComment))
             {
                 changes.Add(newComment);
                 return GetLineColumnDelta(lineColumn, newComment);
@@ -237,8 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return FormatStructuredTrivia(lineColumn, trivia, changes, cancellationToken);
             }
 
-            var newComment = default(SyntaxTrivia);
-            if (TryFormatMultiLineCommentTrivia(lineColumn, trivia, out newComment))
+            if (TryFormatMultiLineCommentTrivia(lineColumn, trivia, out var newComment))
             {
                 changes.Add(new TextChange(trivia.FullSpan, newComment.ToFullString()));
                 return GetLineColumnDelta(lineColumn, newComment);

@@ -583,12 +583,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override ISymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            CheckSyntaxNode(declarationSyntax);
-            return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
-        }
-
         public override ILabelSymbol GetDeclaredSymbol(LabeledStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
@@ -1630,7 +1624,7 @@ done:
 
                     case SyntaxKind.DeclarationExpression:
                     case SyntaxKind.TupleExpression:
-                        var assignment = GetContainingDeconstruction((ExpressionSyntax)node);
+                        var assignment = ((ExpressionSyntax)node).GetContainingDeconstruction() as AssignmentExpressionSyntax;
                         if (assignment != null)
                         {
                             return assignment;
@@ -1674,40 +1668,6 @@ done:
             }
 
             return node;
-        }
-
-        /// <summary>
-        /// If this declaration is part of a deconstruction, find the deconstruction.
-        /// Returns null otherwise.
-        /// </summary>
-        private static AssignmentExpressionSyntax GetContainingDeconstruction(ExpressionSyntax expr)
-        {
-            while (true)
-            {
-                Debug.Assert(expr.Kind() == SyntaxKind.TupleExpression || expr.Kind() == SyntaxKind.DeclarationExpression);
-                var parent = expr.Parent;
-                if (parent == null) { return null; }
-
-                if (parent.Kind() == SyntaxKind.Argument)
-                {
-                    if (parent.Parent?.Kind() == SyntaxKind.TupleExpression)
-                    {
-                        expr = (TupleExpressionSyntax)parent.Parent;
-                        continue;
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
-                else if (parent.Kind() == SyntaxKind.SimpleAssignmentExpression &&
-                        (object)((AssignmentExpressionSyntax)parent).Left == expr)
-                {
-                    return (AssignmentExpressionSyntax)parent;
-                }
-
-                return null;
-            }
         }
 
         /// <summary>

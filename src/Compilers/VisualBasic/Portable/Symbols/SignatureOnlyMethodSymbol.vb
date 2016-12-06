@@ -25,12 +25,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _returnsByRef As Boolean
         Private ReadOnly _returnType As TypeSymbol
         Private ReadOnly _returnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
-        Private ReadOnly _countOfCustomModifiersPrecedingByRef As UShort
+        Private ReadOnly _refCustomModifiers As ImmutableArray(Of CustomModifier)
         Private ReadOnly _explicitInterfaceImplementations As ImmutableArray(Of MethodSymbol)
         Private ReadOnly _isOverrides As Boolean
 
         Public Sub New(ByVal name As String, ByVal m_containingType As TypeSymbol, ByVal methodKind As MethodKind, ByVal callingConvention As CallingConvention, ByVal typeParameters As ImmutableArray(Of TypeParameterSymbol), ByVal parameters As ImmutableArray(Of ParameterSymbol),
-                       ByVal returnsByRef As Boolean, ByVal returnType As TypeSymbol, ByVal returnTypeCustomModifiers As ImmutableArray(Of CustomModifier), countOfCustomModifiersPrecedingByRef As UShort,
+                       ByVal returnsByRef As Boolean, ByVal returnType As TypeSymbol, ByVal returnTypeCustomModifiers As ImmutableArray(Of CustomModifier), refCustomModifiers As ImmutableArray(Of CustomModifier),
                        ByVal explicitInterfaceImplementations As ImmutableArray(Of MethodSymbol),
                        Optional isOverrides As Boolean = False)
             _callingConvention = callingConvention
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _returnsByRef = returnsByRef
             _returnType = returnType
             _returnTypeCustomModifiers = returnTypeCustomModifiers
-            _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef
+            _refCustomModifiers = refCustomModifiers
             _parameters = parameters
             _explicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty()
             _containingType = m_containingType
@@ -95,9 +95,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
+        Public Overrides ReadOnly Property RefCustomModifiers() As ImmutableArray(Of CustomModifier)
             Get
-                Return _countOfCustomModifiersPrecedingByRef
+                Return _refCustomModifiers
             End Get
         End Property
 

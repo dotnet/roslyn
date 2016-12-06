@@ -238,10 +238,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var isOpenMetadataAsSource = openDocument != null && openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
 
             ConditionallyCollapseOutliningRegions(textView, wpfTextView, workspace, isOpenMetadataAsSource);
-
             // If this is a metadata-to-source view, we want to consider the file read-only
-            IVsTextLines vsTextLines;
-            if (isOpenMetadataAsSource && ErrorHandler.Succeeded(textView.GetBuffer(out vsTextLines)))
+            if (isOpenMetadataAsSource && ErrorHandler.Succeeded(textView.GetBuffer(out var vsTextLines)))
             {
                 ((IVsTextBuffer)vsTextLines).SetStateFlags((uint)BUFFERSTATEFLAGS.BSF_USER_READONLY);
 

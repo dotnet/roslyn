@@ -438,8 +438,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public bool SupportedDiagnosticId(ProjectId projectId, string id)
             {
-                HashSet<string> ids;
-                if (_diagnosticIdMap.TryGetValue(projectId, out ids))
+                if (_diagnosticIdMap.TryGetValue(projectId, out var ids))
                 {
                     return ids.Contains(id);
                 }

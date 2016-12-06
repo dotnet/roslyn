@@ -47,18 +47,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             this.Workspace = componentModel.GetService<VisualStudioWorkspace>();
             _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-
             // Get the ITextBuffer for the secondary buffer
-            IVsTextLines secondaryTextLines;
-            Marshal.ThrowExceptionForHR(bufferCoordinator.GetSecondaryBuffer(out secondaryTextLines));
+            Marshal.ThrowExceptionForHR(bufferCoordinator.GetSecondaryBuffer(out var secondaryTextLines));
             var secondaryVsTextBuffer = (IVsTextBuffer)secondaryTextLines;
             SetSubjectBuffer(_editorAdaptersFactoryService.GetDocumentBuffer(secondaryVsTextBuffer));
 
             var bufferTagAggregatorFactory = ComponentModel.GetService<IBufferTagAggregatorFactoryService>();
             _bufferTagAggregator = bufferTagAggregatorFactory.CreateTagAggregator<ITag>(SubjectBuffer);
-
-            IVsTextLines primaryTextLines;
-            Marshal.ThrowExceptionForHR(bufferCoordinator.GetPrimaryBuffer(out primaryTextLines));
+            Marshal.ThrowExceptionForHR(bufferCoordinator.GetPrimaryBuffer(out var primaryTextLines));
             var primaryVsTextBuffer = (IVsTextBuffer)primaryTextLines;
             var dataBuffer = _editorAdaptersFactoryService.GetDataBuffer(primaryVsTextBuffer);
             SetDataBuffer(dataBuffer);

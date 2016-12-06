@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,15 +56,14 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     cancellationToken).ConfigureAwait(false);
             }
 
-            private IList<ISymbol> GenerateMembers(
-                IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers,
+            private ImmutableArray<ISymbol> GenerateMembers(
+                ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
                 CancellationToken cancellationToken)
             {
-                return
-                    unimplementedMembers.SelectMany(t => t.Item2)
-                                        .Select(m => GenerateMember(m, cancellationToken))
-                                        .WhereNotNull()
-                                        .ToList();
+                return unimplementedMembers.SelectMany(t => t.members)
+                                           .Select(m => GenerateMember(m, cancellationToken))
+                                           .WhereNotNull()
+                                           .ToImmutableArray();
             }
 
             private ISymbol GenerateMember(

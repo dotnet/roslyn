@@ -23,9 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var line = point.GetContainingLine();
                 var column = point.Position - line.Start + point.VirtualSpaces;
-
-                object textPoint;
-                Marshal.ThrowExceptionForHR(vsTextLines.CreateTextPoint(line.LineNumber, column, out textPoint));
+                Marshal.ThrowExceptionForHR(vsTextLines.CreateTextPoint(line.LineNumber, column, out var textPoint));
                 return (EnvDTE.TextPoint)textPoint;
             }
         }

@@ -197,8 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            DeferredProjectInformation projectInfo;
-            if (!allProjectInfos.TryGetValue(projectFilename, out projectInfo))
+            if (!allProjectInfos.TryGetValue(projectFilename, out var projectInfo))
             {
                 // This could happen if we were called recursively about a dangling P2P reference
                 // that isn't actually in the solution.
@@ -221,11 +220,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var projectId = File.Exists(projectFilename)
                 ? GetOrCreateProjectIdForPath(projectFilename, projectName)
                 : GetOrCreateProjectIdForPath(projectName, projectName);
-
             // See if we've already created this project and we're now in a recursive call to
             // hook up a P2P ref.
-            AbstractProject project;
-            if (_projectMap.TryGetValue(projectId, out project))
+            if (_projectMap.TryGetValue(projectId, out var project))
             {
                 return project;
             }
@@ -335,9 +332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var path = unresolvedReference == null
                     ? ((PortableExecutableReference)reference).FilePath
                     : unresolvedReference.Reference;
-
-                string possibleProjectReference;
-                if (targetPathsToProjectPaths.TryGetValue(path, out possibleProjectReference) &&
+                if (targetPathsToProjectPaths.TryGetValue(path, out var possibleProjectReference) &&
                     addedProjectReferences.Contains(possibleProjectReference))
                 {
                     // We already added a P2P reference for this, we don't need to add the file reference too.

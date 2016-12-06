@@ -94,9 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         int IVsReadOnlyViewNotification.OnDisabledEditingCommand(ref Guid pguidCmdGuid, uint dwCmdId)
         {
             var container = GetSubjectBufferContainingCaret().AsTextContainer();
-
-            Workspace workspace;
-            if (!Workspace.TryGetWorkspace(container, out workspace))
+            if (!Workspace.TryGetWorkspace(container, out var workspace))
             {
                 return VSConstants.S_OK;
             }

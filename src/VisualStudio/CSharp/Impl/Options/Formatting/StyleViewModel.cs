@@ -451,6 +451,30 @@ class Customer
 }
 ";
 
+        private static readonly string s_preferBraces = @"
+using System;
+
+class Customer
+{
+    private int Age;
+
+    public int GetAge()
+    {
+//[
+        // Prefer: 
+        if (test)
+        {
+            this.Display();
+        }
+        
+        // Over:
+        if (test)
+            this.Display();
+//]
+    }
+}
+";
+
         private static readonly string s_preferExpressionBodyForMethods = @"
 using System;
 
@@ -668,6 +692,7 @@ class List<T>
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.Elsewhere, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
 
             // Code block
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferBraces, ServicesVSResources.Prefer_braces, s_preferBraces, s_preferBraces, this, optionSet, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, ServicesVSResources.For_methods, s_preferExpressionBodyForMethods, s_preferBlockBodyForMethods, this, optionSet, codeBlockPreferencesGroupTitle, codeBlockPreferences));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, ServicesVSResources.For_constructors, s_preferExpressionBodyForConstructors, s_preferBlockBodyForConstructors, this, optionSet, codeBlockPreferencesGroupTitle, codeBlockPreferences));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, ServicesVSResources.For_operators, s_preferExpressionBodyForOperators, s_preferBlockBodyForOperators, this, optionSet, codeBlockPreferencesGroupTitle, codeBlockPreferences));

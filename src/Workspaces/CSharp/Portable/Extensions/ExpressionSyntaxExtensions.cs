@@ -661,8 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            TypeSyntax replacementTypeNode;
-            if (expression.TryReduceExplicitName(semanticModel, out replacementTypeNode, out issueSpan, optionSet, cancellationToken))
+            if (expression.TryReduceExplicitName(semanticModel, out var replacementTypeNode, out issueSpan, optionSet, cancellationToken))
             {
                 replacementNode = replacementTypeNode;
                 return true;
@@ -746,8 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (!memberAccess.IsRightSideOfDot())
             {
                 // Check if we need to replace this syntax with an alias identifier
-                IAliasSymbol aliasReplacement;
-                if (memberAccess.TryReplaceWithAlias(semanticModel, optionSet.GetOption(SimplificationOptions.PreferAliasToQualification), cancellationToken, out aliasReplacement))
+                if (memberAccess.TryReplaceWithAlias(semanticModel, optionSet.GetOption(SimplificationOptions.PreferAliasToQualification), cancellationToken, out var aliasReplacement))
                 {
                     // get the token text as it appears in source code to preserve e.g. unicode character escaping
                     var text = aliasReplacement.Name;
@@ -1033,14 +1031,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            IAliasSymbol aliasSymbol;
             var namespaceId = GetNamespaceIdForAliasSearch(semanticModel, token, cancellationToken);
             if (namespaceId < 0)
             {
                 return null;
             }
 
-            if (!AliasSymbolCache.TryGetAliasSymbol(originalSemanticModel, namespaceId, symbol, out aliasSymbol))
+            if (!AliasSymbolCache.TryGetAliasSymbol(originalSemanticModel, namespaceId, symbol, out var aliasSymbol))
             {
                 // add cache
                 AliasSymbolCache.AddAliasSymbols(originalSemanticModel, namespaceId, semanticModel.LookupNamespacesAndTypes(token.SpanStart).OfType<IAliasSymbol>());
@@ -1235,8 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (!name.IsRightSideOfDotOrColonColon())
                 {
-                    IAliasSymbol aliasReplacement;
-                    if (name.TryReplaceWithAlias(semanticModel, optionSet.GetOption(SimplificationOptions.PreferAliasToQualification), cancellationToken, out aliasReplacement))
+                    if (name.TryReplaceWithAlias(semanticModel, optionSet.GetOption(SimplificationOptions.PreferAliasToQualification), cancellationToken, out var aliasReplacement))
                     {
                         // get the token text as it appears in source code to preserve e.g. unicode character escaping
                         var text = aliasReplacement.Name;
@@ -1305,14 +1301,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         {
                             // in case this alias name ends with "Attribute", we're going to see if we can also 
                             // remove that suffix.
-                            TypeSyntax replacementNodeWithoutAttributeSuffix;
-                            TextSpan issueSpanWithoutAttributeSuffix;
                             if (TryReduceAttributeSuffix(
                                 name,
                                 identifierToken,
                                 semanticModel,
-                                out replacementNodeWithoutAttributeSuffix,
-                                out issueSpanWithoutAttributeSuffix,
+                                out var replacementNodeWithoutAttributeSuffix,
+                                out var issueSpanWithoutAttributeSuffix,
                                 cancellationToken))
                             {
                                 if (name.CanReplaceWithReducedName(replacementNodeWithoutAttributeSuffix, semanticModel, cancellationToken))
@@ -1666,14 +1660,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.SimpleMemberAccessExpression:
                     {
                         var memberAccess = (MemberAccessExpressionSyntax)expression;
-                        ExpressionSyntax newLeft;
-
                         if (IsMemberAccessADynamicInvocation(memberAccess, semanticModel))
                         {
                             return false;
                         }
 
-                        if (TrySimplifyMemberAccessOrQualifiedName(memberAccess.Expression, memberAccess.Name, semanticModel, optionSet, out newLeft, out issueSpan))
+                        if (TrySimplifyMemberAccessOrQualifiedName(memberAccess.Expression, memberAccess.Name, semanticModel, optionSet, out var newLeft, out issueSpan))
                         {
                             // replacement node might not be in it's simplest form, so add simplify annotation to it.
                             replacementNode = memberAccess.Update(newLeft, memberAccess.OperatorToken, memberAccess.Name)
@@ -1689,8 +1681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.QualifiedName:
                     {
                         var qualifiedName = (QualifiedNameSyntax)expression;
-                        ExpressionSyntax newLeft;
-                        if (TrySimplifyMemberAccessOrQualifiedName(qualifiedName.Left, qualifiedName.Right, semanticModel, optionSet, out newLeft, out issueSpan))
+                        if (TrySimplifyMemberAccessOrQualifiedName(qualifiedName.Left, qualifiedName.Right, semanticModel, optionSet, out var newLeft, out issueSpan))
                         {
                             // replacement node might not be in it's simplest form, so add simplify annotation to it.
                             replacementNode = qualifiedName.Update((NameSyntax)newLeft, qualifiedName.DotToken, qualifiedName.Right)

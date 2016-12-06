@@ -191,5 +191,59 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                         : this.ContextLocation;
             }
         }
+
+        public CodeGenerationOptions With(
+            Optional<Location> contextLocation = default(Optional<Location>),
+            Optional<Location> afterThisLocation = default(Optional<Location>),
+            Optional<Location> beforeThisLocation = default(Optional<Location>),
+            Optional<bool> addImports = default(Optional<bool>),
+            Optional<bool> placeSystemNamespaceFirst = default(Optional<bool>),
+            Optional<IEnumerable<INamespaceSymbol>> additionalImports = default(Optional<IEnumerable<INamespaceSymbol>>),
+            Optional<bool> generateMembers = default(Optional<bool>),
+            Optional<bool> mergeNestedNamespaces = default(Optional<bool>),
+            Optional<bool> mergeAttributes = default(Optional<bool>),
+            Optional<bool> generateDefaultAccessibility = default(Optional<bool>),
+            Optional<bool> generateMethodBodies = default(Optional<bool>),
+            Optional<bool> generateDocumentationComments = default(Optional<bool>),
+            Optional<bool> autoInsertionLocation = default(Optional<bool>),
+            Optional<bool> sortMembers = default(Optional<bool>),
+            Optional<bool> reuseSyntax = default(Optional<bool>),
+            Optional<ParseOptions> parseOptions = default(Optional<ParseOptions>))
+        {
+            var newContextLocation = contextLocation.HasValue ? contextLocation.Value : this.ContextLocation;
+            var newAfterThisLocation = afterThisLocation.HasValue ? afterThisLocation.Value : this.AfterThisLocation;
+            var newBeforeThisLocation = beforeThisLocation.HasValue ? beforeThisLocation.Value : this.BeforeThisLocation;
+            var newAddImports = addImports.HasValue ? addImports.Value : this.AddImports;
+            var newPlaceSystemNamespaceFirst = placeSystemNamespaceFirst.HasValue ? placeSystemNamespaceFirst.Value : this.PlaceSystemNamespaceFirst;
+            var newAdditionalImports = additionalImports.HasValue ? additionalImports.Value : this.AdditionalImports;
+            var newGenerateMembers = generateMembers.HasValue ? generateMembers.Value : this.GenerateMembers;
+            var newMergeNestedNamespaces = mergeNestedNamespaces.HasValue ? mergeNestedNamespaces.Value : this.MergeNestedNamespaces;
+            var newMergeAttributes = mergeAttributes.HasValue ? mergeAttributes.Value : this.MergeAttributes;
+            var newGenerateDefaultAccessibility = generateDefaultAccessibility.HasValue ? generateDefaultAccessibility.Value : this.GenerateDefaultAccessibility;
+            var newGenerateMethodBodies = generateMethodBodies.HasValue ? generateMethodBodies.Value : this.GenerateMethodBodies;
+            var newGenerateDocumentationComments = generateDocumentationComments.HasValue ? generateDocumentationComments.Value : this.GenerateDocumentationComments;
+            var newAutoInsertionLocation = autoInsertionLocation.HasValue ? autoInsertionLocation.Value : this.AutoInsertionLocation;
+            var newSortMembers = sortMembers.HasValue ? sortMembers.Value : this.SortMembers;
+            var newReuseSyntax = reuseSyntax.HasValue ? reuseSyntax.Value : this.ReuseSyntax;
+            var newParseOptions = parseOptions.HasValue ? parseOptions.Value : this.ParseOptions;
+
+            return new CodeGenerationOptions(
+                newContextLocation,
+                newAfterThisLocation,
+                newBeforeThisLocation,
+                newAddImports,
+                newPlaceSystemNamespaceFirst,
+                newAdditionalImports,
+                newGenerateMembers,
+                newMergeNestedNamespaces,
+                newMergeAttributes,
+                newGenerateDefaultAccessibility,
+                newGenerateMethodBodies,
+                newGenerateDocumentationComments,
+                newAutoInsertionLocation,
+                newSortMembers,
+                newReuseSyntax,
+                newParseOptions);
+        }
     }
 }

@@ -51,8 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containingSymbol = GetEnclosingMethodOrPropertyOrField(semanticModel, reference);
                 if (containingSymbol != null)
                 {
-                    List<Location> locations;
-                    if (!result.TryGetValue(containingSymbol, out locations))
+                    if (!result.TryGetValue(containingSymbol, out var locations))
                     {
                         locations = new List<Location>();
                         result.Add(containingSymbol, locations);

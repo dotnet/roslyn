@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 var list = SharedPools.Default<List<TodoItem>>().AllocateAndClear();
                 try
                 {
-                    using (var reader = new ObjectReader(stream))
+                    using (var reader = new StreamObjectReader(stream))
                     {
                         var format = reader.ReadString();
                         if (!string.Equals(format, FormatVersion))
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
             protected override void WriteTo(Stream stream, Data data, CancellationToken cancellationToken)
             {
-                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+                using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
                 {
                     writer.WriteString(FormatVersion);
                     data.TextVersion.WriteTo(writer);
@@ -96,8 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
             public ImmutableArray<TodoItem> GetItems_TestingOnly(DocumentId documentId)
             {
-                CacheEntry entry;
-                if (this.DataCache.TryGetValue(documentId, out entry) && entry.HasCachedData)
+                if (this.DataCache.TryGetValue(documentId, out var entry) && entry.HasCachedData)
                 {
                     return entry.Data.Items;
                 }

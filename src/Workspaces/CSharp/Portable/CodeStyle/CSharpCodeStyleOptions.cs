@@ -88,6 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 new EditorConfigStorageLocation("csharp_style_expression_bodied_accessors", ParseEditorConfigCodeStyleOption),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferExpressionBodiedAccessors)}")});
 
+        public static readonly Option<CodeStyleOption<bool>> PreferBraces = new Option<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions), nameof(PreferBraces), defaultValue: CodeStyleOptions.TrueWithNoneEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                new EditorConfigStorageLocation("csharp_prefer_braces", ParseEditorConfigCodeStyleOption),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferBraces)}")});
+
         public static IEnumerable<Option<CodeStyleOption<bool>>> GetCodeStyleOptions()
         {
             yield return UseImplicitTypeForIntrinsicTypes;
@@ -102,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferExpressionBodiedProperties;
             yield return PreferExpressionBodiedIndexers;
             yield return PreferExpressionBodiedAccessors;
+            yield return PreferBraces;
         }
     }
 }
