@@ -125,7 +125,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                 {
                     // Let the presented know we're starging a search.  It will give us back
                     // the context object that the FAR service will push results into.
-                    var context = presenter.StartSearch(EditorFeaturesResources.Find_References);
+                    var context = presenter.StartSearch(
+                        EditorFeaturesResources.Find_References, alwaysShowDeclarations: false);
                     await findUsagesService.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
 
                     // Note: we don't need to put this in a finally.  The only time we might not hit

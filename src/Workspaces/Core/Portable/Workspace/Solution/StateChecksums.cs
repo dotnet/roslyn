@@ -265,6 +265,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
             // verify input
             Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksum));
             Contract.ThrowIfFalse(this == stateChecksum);

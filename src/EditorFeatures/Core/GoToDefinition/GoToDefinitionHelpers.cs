@@ -71,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var presenter = GetFindUsagesPresenter(streamingPresenters);
             return presenter.TryNavigateToOrPresentItemsAsync(
                 EditorFeaturesResources.Go_to_Definition,
-                definitions.ToImmutableAndFree()).WaitAndGetResult(cancellationToken);
+                definitions.ToImmutableAndFree(),
+                alwaysShowDeclarations: true).WaitAndGetResult(cancellationToken);
         }
 
         private static IStreamingFindUsagesPresenter GetFindUsagesPresenter(

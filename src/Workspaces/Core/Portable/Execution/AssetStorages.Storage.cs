@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 SolutionState = solutionState;
 
-                _serializer = new Serializer(SolutionState.Workspace.Services);
+                _serializer = new Serializer(SolutionState.Workspace);
             }
 
             public SolutionState SolutionState { get; }

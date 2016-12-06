@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class AssetStorage
     {
-        public static readonly AssetStorage Default = new AssetStorage();
+        public static readonly AssetStorage Default = new AssetStorage(enableCleanup: true);
 
         private const int CleanupInterval = 3; // 3 minutes
         private const int PurgeAfter = 30; // 30 minutes
@@ -30,9 +30,12 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly ConcurrentDictionary<Checksum, Entry> _assets =
             new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
 
-        public AssetStorage()
+        public AssetStorage(bool enableCleanup)
         {
-            Task.Run(CleanAssetsAsync, CancellationToken.None);
+            if (enableCleanup)
+            {
+                Task.Run(CleanAssetsAsync, CancellationToken.None);
+            }
         }
 
         public AssetSource TryGetAssetSource(int sessionId)

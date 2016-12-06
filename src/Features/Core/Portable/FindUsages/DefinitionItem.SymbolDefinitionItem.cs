@@ -30,12 +30,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
             public MetadataDefinitionItem(
                 ImmutableArray<string> tags,
                 ImmutableArray<TaggedText> displayParts,
+                ImmutableArray<TaggedText> nameDisplayParts,
                 bool displayIfNoReferences,
                 Solution solution, ISymbol definition)
-                : base(tags, displayParts,
-                      GetOriginationParts(definition),
-                      ImmutableArray<DocumentSpan>.Empty,
-                      displayIfNoReferences)
+                : base(tags, displayParts, nameDisplayParts,
+                       GetOriginationParts(definition),
+                       ImmutableArray<DocumentSpan>.Empty,
+                       displayIfNoReferences)
             {
                 _workspace = solution.Workspace;
                 _symbolKey = definition.GetSymbolKey();
