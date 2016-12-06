@@ -16622,7 +16622,7 @@ public class Derived : Base
 
             var m3 = comp.GetMember<MethodSymbol>("Derived.M3").ReturnType;
             Assert.Equal("(System.Int32 notA, System.Int32 notB)[]", m3.ToTestDisplayString());
-            Assert.Equal(new []{"System.Collections.Generic.IList<(System.Int32 notA, System.Int32 notB)>"},
+            Assert.Equal(new[] { "System.Collections.Generic.IList<(System.Int32 notA, System.Int32 notB)>" },
                          m3.Interfaces.SelectAsArray(t => t.ToTestDisplayString()));
         }
 
@@ -17082,6 +17082,8 @@ public interface I0<T> { }
 public class C1 : I0<(int a, int b)>, I0<(int notA, int notB)> { }
 public class C2 : I0<(int a, int b)>, I0<(int a, int b)> { }
 public class C3 : I0<int>, I0<int> { }
+public class C4<T, U> : I0<(int a, int b)>, I0<(T a, U b)> { }
+public class C5<T, U> : I0<(int a, int b)>, I0<(T notA, U notB)> { }
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
@@ -17093,7 +17095,13 @@ public class C3 : I0<int>, I0<int> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I0<(int a, int b)>").WithArguments("I0<(int a, int b)>").WithLocation(4, 39),
                 // (3,14): error CS8140: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C1' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public class C1 : I0<(int a, int b)>, I0<(int notA, int notB)> { }
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C1").WithLocation(3, 14)
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C1").WithLocation(3, 14),
+                // (6,14): error CS0695: 'C4<T, U>' cannot implement both 'I0<(int a, int b)>' and 'I0<(T a, U b)>' because they may unify for some type parameter substitutions
+                // public class C4<T, U> : I0<(int a, int b)>, I0<(T a, U b)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C4").WithArguments("C4<T, U>", "I0<(int a, int b)>", "I0<(T a, U b)>").WithLocation(6, 14),
+                // (7,14): error CS0695: 'C5<T, U>' cannot implement both 'I0<(int a, int b)>' and 'I0<(T notA, U notB)>' because they may unify for some type parameter substitutions
+                // public class C5<T, U> : I0<(int a, int b)>, I0<(T notA, U notB)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C5").WithArguments("C5<T, U>", "I0<(int a, int b)>", "I0<(T notA, U notB)>").WithLocation(7, 14)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -19382,7 +19390,7 @@ namespace System
     }").WithArguments("ValueTuple`2").WithLocation(9, 5)
             );
 
-        }        
+        }
 
         [Fact]
         [WorkItem(13472, "https://github.com/dotnet/roslyn/issues/13472")]
@@ -19625,7 +19633,7 @@ namespace ConsoleApplication5
 
             var libCompRef = AssemblyMetadata.CreateFromImage(libComp.EmitToArray()).GetReference();
 
-            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify:false);
+            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: false);
 
             var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Foo").First());
             Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Foo(System.Int32 arg)", m.ToTestDisplayString());
@@ -19792,7 +19800,7 @@ class AA
 
             var comp = CompileAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
-                parseOptions: TestOptions.Regular, expectedOutput:@"(1, 2)");
+                parseOptions: TestOptions.Regular, expectedOutput: @"(1, 2)");
         }
 
         [Fact]
@@ -20568,7 +20576,7 @@ class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var derived = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().ElementAt(1);
-            var derivedSymbol = model.GetDeclaredSymbol(derived);
+            var derivedSymbol = model.GetDeclaredSymbol(derived) as NamedTypeSymbol;
             Assert.Equal("Derived<T>", derivedSymbol.ToTestDisplayString());
 
             Assert.Equal(new[] {
@@ -20585,6 +20593,8 @@ class C
                     "System.Collections.Generic.IEnumerable<(System.Int32 notA, System.Int32 notB)>",
                     "System.Collections.IEnumerable" },
                 collectionSymbol.AllInterfaces.Select(i => i.ToTestDisplayString()));
+
+            Assert.Empty(derivedSymbol.AsUnboundGenericType().AllInterfaces);
         }
 
         [Fact]
@@ -20761,6 +20771,176 @@ class Derived : Base<I2<(int notA, int notB)>> {}
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void CanReImplementInterfaceWithDifferentTupleNames()
+        {
+            var source = @"
+interface I<T>
+{
+    T M();
+}
+class Base : I<(int a, int b)>
+{
+    (int a, int b) I<(int a, int b)>.M() { return (1, 2); } // explicit implementation
+}
+class Derived : Base, I<(int notA, int notB)>
+{
+    public (int notA, int notB) M() { return (3, 4); }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void CannotOverrideWithDifferentTupleNames()
+        {
+            var source = @"
+interface I<T>
+{
+    T M();
+}
+class Base : I<(int a, int b)>
+{
+    public virtual (int a, int b) M() { return (1, 2); }
+}
+class Derived : Base, I<(int notA, int notB)>
+{
+    public override (int notA, int notB) M() { return (3, 4); }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (12,42): error CS8139: 'Derived.M()': cannot change tuple element names when overriding inherited member 'Base.M()'
+                //     public override (int notA, int notB) M() { return (3, 4); }
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("Derived.M()", "Base.M()").WithLocation(12, 42)
+                );
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void CanShadowWithDifferentTupleNames()
+        {
+            var source = @"
+interface I<T>
+{
+    T M();
+}
+class Base : I<(int a, int b)>
+{
+    public (int a, int b) M() { return (1, 2); }
+}
+class Derived : Base, I<(int notA, int notB)>
+{
+    public new (int notA, int notB) M() { return (3, 4); }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames()
+        {
+            var source = @"
+interface I<T>
+{
+    T M();
+}
+class Base : I<(int a, int b)>
+{
+    (int a, int b) I<(int a, int b)>.M() { return (1, 2); } // explicit implementation
+}
+class Derived1 : Base, I<(int notA, int notB)>
+{
+    // error
+}
+class Derived2 : Base, I<(int a, int b)>
+{
+    // ok
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (10,24): error CS0535: 'Derived1' does not implement interface member 'I<(int notA, int notB)>.M()'
+                // class Derived1 : Base, I<(int notA, int notB)> { }
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<(int notA, int notB)>").WithArguments("Derived1", "I<(int notA, int notB)>.M()").WithLocation(10, 24)
+                );
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void ImplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames()
+        {
+            var source = @"
+interface I<T>
+{
+    T M();
+}
+class Base : I<(int a, int b)>
+{
+    public (int a, int b) M() { return (1, 2); }
+}
+class Derived : Base, I<(int notA, int notB)>
+{
+    // error
+}
+";
+            // issue https://github.com/dotnet/roslyn/issues/15709 tracks whether we should allow this to succeed instead
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (8,27): error CS8141: The tuple element names in the signature of method 'Base.M()' must match the tuple element names of interface method 'I<(int notA, int notB)>.M()' (including on the return type).
+                //     public (int a, int b) M() { return (1, 2); }
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("Base.M()", "I<(int notA, int notB)>.M()").WithLocation(8, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void ReImplementationAndInference()
+        {
+            var source = @"
+interface I<T>
+{
+    T M();
+}
+class Base : I<(int a, int b)>
+{
+    (int a, int b) I<(int a, int b)>.M() { return (1, 2); }
+}
+class Derived : Base, I<(int notA, int notB)>
+{
+    public (int notA, int notB) M() { return (3, 4); }
+}
+class C
+{
+    static void Main()
+    {
+        Base b = new Derived();
+        var x = Test(b); // tuple names from Base, implementation from Derived
+        System.Console.Write(x.a);
+    }
+    static T Test<T>(I<T> t) { return t.M(); }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "3");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+            Assert.Equal("x", x.Identifier.ToString());
+            var xSymbol = (model.GetDeclaredSymbol(x) as LocalSymbol)?.Type;
+            Assert.Equal("(System.Int32 a, System.Int32 b)", xSymbol.ToTestDisplayString());
         }
     }
 }
