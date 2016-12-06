@@ -39,6 +39,7 @@
                 "ManagedEsent",
                 "Microsoft.CodeAnalysis.Elfie",
                 "xunit",
+                "PdbGit",
                 "RoslynTools.*",
                 "^Microsoft.?Build.*",
                 "GitLink"

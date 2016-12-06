@@ -2,6 +2,9 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildThisFileDirectory)..\..\..\build\Targets\Versions.props" />
 
+  <!-- Need the NuGet package versions -->
+  <Import Project="$(MSBuildThisFileDirectory)..\..\..\build\Targets\Versions.props" />
+
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <ProjectDir>$(MSBuildThisFileDirectory)..\..\..\</ProjectDir>
@@ -44,6 +47,8 @@
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)write-test-sentinel-file.ps1 -binariesPath &quot;$(BinariesPath)&quot;" />
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)stop-compiler-server.ps1" />
+
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)run-pdbgit.ps1 -sourcePath $(ProjectDir) -binariesPath &quot;$(BinariesPath)&quot;" />
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)publish-assets.ps1 -binariesPath &quot;$(BinariesPath)&quot; -branchName $(BranchName) -apiKey $(RoslynNuGetApiKey) $(PublishAssetsArgs)" />
 
