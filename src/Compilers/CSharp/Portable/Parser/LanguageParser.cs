@@ -9750,7 +9750,7 @@ tryAgain:
                 this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
             {
                 // convert `[` into `(` or vice versa for error recovery
-                openToken = this.ConsumeOneToken(openKind);
+                openToken = this.EatTokenAsKind(openKind);
             }
             else
             {
@@ -9821,7 +9821,7 @@ tryAgain:
                     this.CurrentToken.Kind == SyntaxKind.CloseBracketToken)
                 {
                     // convert `]` into `)` or vice versa for error recovery
-                    closeToken = this.ConsumeOneToken(closeKind);
+                    closeToken = this.EatTokenAsKind(closeKind);
                 }
                 else
                 {

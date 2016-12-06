@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     while (true)
                     {
                         this.EatToken(); // consume the `(` or `,`
-                        if (!ScanDesignation(true))
+                        if (!ScanDesignation(permitTuple: true))
                         {
                             return false;
                         }

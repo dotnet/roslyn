@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // Consume a token if it is the right kind. Otherwise skip a token and replace it with one of the correct kind.
-        protected SyntaxToken ConsumeOneToken(SyntaxKind expected)
+        protected SyntaxToken EatTokenAsKind(SyntaxKind expected)
         {
             Debug.Assert(SyntaxFacts.IsAnyToken(expected));
 
