@@ -1147,8 +1147,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_AddrOnReadOnlyLocal;
                 case BindValueKind.IncrementDecrement:
                     return ErrorCode.ERR_IncrementLvalueExpected;
-                case BindValueKind.RefReturn:
-                    return ErrorCode.ERR_RefReturnStructThis;
             }
         }
 
@@ -1572,9 +1570,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var thisref = expr as BoundThisReference;
             if (thisref != null)
             {
+                if (kind == BindValueKind.RefReturn)
+                {
+                    Error(diagnostics, thisref.Type.IsValueType ? ErrorCode.ERR_RefReturnStructThis : ErrorCode.ERR_RefReadonlyLocal, node, ThisParameterSymbol.SymbolName);
+                    return false;
+                }
+
                 // We will already have given an error for "this" used outside of a constructor, 
                 // instance method, or instance accessor. Assume that "this" is a variable if it is in a struct.
-                if (!thisref.Type.IsValueType || kind == BindValueKind.RefReturn)
+                if (!thisref.Type.IsValueType)
                 {
                     // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
                     Error(diagnostics, GetThisLvalueError(kind), node, ThisParameterSymbol.SymbolName);
