@@ -57,12 +57,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static CompletionItem AddSymbolEncoding(IReadOnlyList<ISymbol> symbols, CompletionItem item)
         {
-            return item.AddProperty("Symbol", EncodeSymbols(symbols));
+            return item.AddProperty("Symbols", EncodeSymbols(symbols));
         }
 
         public static CompletionItem AddSymbolEncoding(ISymbol symbol, CompletionItem item)
         {
-            return item.AddProperty("Symbol", EncodeSymbol(symbol));
+            return item.AddProperty("Symbols", EncodeSymbol(symbol));
         }
 
         public static CompletionItem AddSymbolNameAndKind(IReadOnlyList<ISymbol> symbols, CompletionItem item)
