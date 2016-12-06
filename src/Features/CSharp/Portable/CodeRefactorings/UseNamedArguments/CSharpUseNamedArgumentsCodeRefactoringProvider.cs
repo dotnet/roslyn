@@ -18,19 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseNamedArguments
             ArgumentSyntax, ArgumentSyntax, AttributeArgumentSyntax,
             BaseArgumentListSyntax, AttributeArgumentListSyntax>
     {
-        private abstract class BaseAnalyzer<TSyntax, TSyntaxList> 
-            : Analyzer<TSyntax, TSyntax, TSyntaxList>
+        private abstract class BaseAnalyzer<TSyntax, TSyntaxList> : Analyzer<TSyntax, TSyntax, TSyntaxList>
             where TSyntax : SyntaxNode
             where TSyntaxList : SyntaxNode 
         {
             protected override SyntaxNode GetReceiver(SyntaxNode argument)
                 => argument.Parent.Parent;
 
-            protected override bool IsLegalToAddNamedArguments(
-                ImmutableArray<IParameterSymbol> parameters, int argumentCount)
-            {
-                return !parameters.Last().IsParams || parameters.Length >= argumentCount;
-            }
+            protected override bool IsLegalToAddNamedArguments(ImmutableArray<IParameterSymbol> parameters, int argumentCount)
+                => !parameters.Last().IsParams || parameters.Length >= argumentCount;
         }
 
         private class ArgumentAnalyzer :
