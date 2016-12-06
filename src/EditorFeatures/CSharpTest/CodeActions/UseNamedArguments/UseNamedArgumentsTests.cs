@@ -11,9 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
     public class UseNamedArgumentsTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
-        {
-            return new CSharpUseNamedArgumentsCodeRefactoringProvider();
-        }
+            => new CSharpUseNamedArgumentsCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestFirstArgument()
@@ -183,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNam
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
-        public async Task TestAttirbute()
+        public async Task TestAttribute()
         {
             await TestAsync(
 @"[C([||]1, 2)]
@@ -193,7 +191,7 @@ class C : System.Attribute { public C(int arg1, int arg2) {} }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
-        public async Task TestAttirbuteWithNamedProperties()
+        public async Task TestAttributeWithNamedProperties()
         {
             await TestAsync(
 @"[C([||]1, P = 2)]

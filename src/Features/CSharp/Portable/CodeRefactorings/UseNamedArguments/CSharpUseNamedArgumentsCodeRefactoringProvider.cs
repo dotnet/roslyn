@@ -1,120 +1,78 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Composition;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseNamedArguments
 {
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpUseNamedArgumentsCodeRefactoringProvider)), Shared]
-    internal class CSharpUseNamedArgumentsCodeRefactoringProvider : AbstractUseNamedArgumentsCodeRefactoringProvider
+    internal class CSharpUseNamedArgumentsCodeRefactoringProvider : 
+        AbstractUseNamedArgumentsCodeRefactoringProvider<
+            ArgumentSyntax, ArgumentSyntax, AttributeArgumentSyntax,
+            BaseArgumentListSyntax, AttributeArgumentListSyntax>
     {
-        protected override SyntaxNode GetOrSynthesizeNamedArguments(ImmutableArray<IParameterSymbol> parameters, SyntaxNode argumentList, int index)
+        private abstract class BaseAnalyzer<TSyntax, TSyntaxList> 
+            : Analyzer<TSyntax, TSyntax, TSyntaxList>
+            where TSyntax : SyntaxNode
+            where TSyntaxList : SyntaxNode 
         {
-            switch (argumentList.Kind())
+            protected override SyntaxNode GetReceiver(SyntaxNode argument)
+                => argument.Parent.Parent;
+
+            protected override bool IsLegalToAddNamedArguments(
+                ImmutableArray<IParameterSymbol> parameters, int argumentCount)
             {
-                case SyntaxKind.ArgumentList:
-                    {
-                        var node = (ArgumentListSyntax)argumentList;
-                        var namedArguments = node.Arguments
-                            .Select((argument, i) => i < index || argument.NameColon != null
-                                ? argument : argument.WithNameColon(SyntaxFactory.NameColon(parameters[i].Name)
-                                    .WithTriviaFrom(argument)));
-
-                        return node.WithArguments(SyntaxFactory.SeparatedList(namedArguments));
-                    }
-
-                case SyntaxKind.BracketedArgumentList:
-                    {
-                        var node = (BracketedArgumentListSyntax)argumentList;
-                        var namedArguments = node.Arguments
-                            .Select((argument, i) => i < index || argument.NameColon != null
-                                ? argument : argument.WithNameColon(SyntaxFactory.NameColon(parameters[i].Name)
-                                    .WithTriviaFrom(argument)));
-
-                        return node.WithArguments(SyntaxFactory.SeparatedList(namedArguments));
-                    }
-
-                case SyntaxKind.AttributeArgumentList:
-                    {
-                        var node = (AttributeArgumentListSyntax)argumentList;
-                        var namedArguments = node.Arguments
-                            .Select((argument, i) => i < index || argument.NameColon != null || argument.NameEquals != null
-                                ? argument : argument.WithNameColon(SyntaxFactory.NameColon(parameters[i].Name)
-                                    .WithTriviaFrom(argument)));
-
-                        return node.WithArguments(SyntaxFactory.SeparatedList(namedArguments));
-                    }
-
-                default:
-                    return null;
+                return !parameters.Last().IsParams || parameters.Length >= argumentCount;
             }
         }
 
-        protected override SyntaxNode GetReceiver(SyntaxNode argument)
+        private class ArgumentAnalyzer :
+            BaseAnalyzer<ArgumentSyntax, BaseArgumentListSyntax>
         {
-            switch (argument.Parent.Kind())
-            {
-                case SyntaxKind.ArgumentList:
-                case SyntaxKind.BracketedArgumentList:
-                case SyntaxKind.AttributeArgumentList:
-                    return argument.Parent.Parent;
+            protected override bool IsPositionalArgument(ArgumentSyntax node)
+                => node.NameColon == null;
 
-                default:
-                    return null;
-            }
+            protected override SeparatedSyntaxList<ArgumentSyntax> GetArguments(BaseArgumentListSyntax argumentList)
+                => argumentList.Arguments;
+
+            protected override BaseArgumentListSyntax WithArguments(
+                BaseArgumentListSyntax argumentList, IEnumerable<ArgumentSyntax> namedArguments, IEnumerable<SyntaxToken> separators)
+                => argumentList.WithArguments(SyntaxFactory.SeparatedList(namedArguments, separators));
+
+            protected override ArgumentSyntax WithName(ArgumentSyntax argument, string name)
+                => argument.WithNameColon(SyntaxFactory.NameColon(name));
         }
 
-        protected override ValueTuple<int, int> GetArgumentListIndexAndCount(SyntaxNode node)
+        private class AttributeArgumentAnalyzer :
+            BaseAnalyzer<AttributeArgumentSyntax, AttributeArgumentListSyntax>
         {
-            switch (node.Parent.Kind())
-            {
-                case SyntaxKind.ArgumentList:
-                case SyntaxKind.BracketedArgumentList:
-                    var argumentListSyntax = (BaseArgumentListSyntax)node.Parent;
-                    return ValueTuple.Create(argumentListSyntax.Arguments.IndexOf((ArgumentSyntax)node), argumentListSyntax.Arguments.Count);
+            protected override bool IsPositionalArgument(AttributeArgumentSyntax argument)
+                => argument.NameColon == null && argument.NameEquals == null;
 
-                case SyntaxKind.AttributeArgumentList:
-                    var attributeArgumentSyntax = (AttributeArgumentListSyntax)node.Parent;
-                    return ValueTuple.Create(attributeArgumentSyntax.Arguments.IndexOf((AttributeArgumentSyntax)node), attributeArgumentSyntax.Arguments.Count);
+            protected override SyntaxNode GetReceiver(SyntaxNode argument)
+                => argument.Parent.Parent;
 
-                default:
-                    return default(ValueTuple<int, int>);
-            }
+            protected override SeparatedSyntaxList<AttributeArgumentSyntax> GetArguments(AttributeArgumentListSyntax argumentList)
+                => argumentList.Arguments;
+
+            protected override AttributeArgumentListSyntax WithArguments(
+                AttributeArgumentListSyntax argumentList, IEnumerable<AttributeArgumentSyntax> namedArguments, IEnumerable<SyntaxToken> separators)
+                => argumentList.WithArguments(SyntaxFactory.SeparatedList(namedArguments, separators));
+
+            protected override AttributeArgumentSyntax WithName(AttributeArgumentSyntax argument, string name)
+                => argument.WithNameColon(SyntaxFactory.NameColon(name));
         }
 
-        protected override bool IsCandidate(SyntaxNode node)
+        public CSharpUseNamedArgumentsCodeRefactoringProvider()
+            : base(new ArgumentAnalyzer(), new AttributeArgumentAnalyzer())
         {
-            return node.IsKind(SyntaxKind.Argument)
-                || node.IsKind(SyntaxKind.AttributeArgument);
-        }
-
-        protected override bool IsPositionalArgument(SyntaxNode node)
-        {
-            switch (node.Kind())
-            {
-                case SyntaxKind.Argument:
-                    var argument = (ArgumentSyntax)node;
-                    return argument.NameColon == null;
-
-                case SyntaxKind.AttributeArgument:
-                    var attributeArgument = (AttributeArgumentSyntax)node;
-                    return attributeArgument.NameColon == null
-                        && attributeArgument.NameEquals == null;
-
-                default:
-                    return false;
-            }
-        }
-
-        protected override bool IsLegalToAddNamedArguments(ImmutableArray<IParameterSymbol> parameters, int argumentCount)
-        {
-            return !parameters.LastOrDefault().IsParams || parameters.Length >= argumentCount;
         }
     }
 }

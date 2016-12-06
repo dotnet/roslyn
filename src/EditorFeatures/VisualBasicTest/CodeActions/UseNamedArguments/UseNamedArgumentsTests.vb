@@ -1,12 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.UseNamedArguments
-Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.UseNamedArguments
     Public Class UseNamedArgumentsTests
@@ -188,7 +184,7 @@ End Class")
         Public Async Function TestMissingOnParamArray() As Task
             Await TestMissingAsync(
 "Class C
-    Sub M(ParamArray arg1 As Integer()
+    Sub M(ParamArray arg1 As Integer())
         M([||]1)
     End Sub
 End Class")
@@ -210,16 +206,26 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
-        Public Async Function TestOmittedArguments() As Task
-            Await TestAsync(
+        Public Async Function TestOmittedArguments1() As Task
+            Await TestMissingAsync(
 "Class C
     Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
         M([||]1,,3)
     End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        Public Async Function TestOmittedArguments2() As Task
+            Await TestAsync(
+"Class C
+    Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
+        M(1,,[||]3)
+    End Sub
 End Class",
 "Class C
     Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
-        M(arg1:=1, arg3:=3)
+        M(1,,arg3:=3)
     End Sub
 End Class")
         End Function
