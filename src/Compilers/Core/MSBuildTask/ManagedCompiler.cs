@@ -379,6 +379,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #endregion
 
+        /// <summary>
+        /// Return the path to the tool to execute.
+        /// </summary>
+        protected override string GenerateFullPathToTool()
+        {
+            var pathToTool = Utilities.GenerateFullPathToTool(ToolName);
+
+            if (null == pathToTool)
+            {
+                Log.LogErrorWithCodeFromResources("General_ToolFileNotFound", ToolName);
+            }
+
+            return pathToTool;
+        }
+
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
             if (ProvideCommandLineArgs)
@@ -406,11 +421,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
                     CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
-                    // Try to get the location of the user-provided build client and server,
-                    // which should be located next to the build task. If not, fall back to
-                    // "pathToTool", which is the compiler in the MSBuild default bin directory.
-                    var clientDir = TryGetClientDir() ?? Path.GetDirectoryName(pathToTool);
-                    pathToTool = Path.Combine(clientDir, ToolExe);
+                    var clientDir = Path.GetDirectoryName(pathToTool);
 
                     // Note: we can't change the "tool path" printed to the console when we run
                     // the Csc/Vbc task since MSBuild logs it for us before we get here. Instead,
@@ -460,60 +471,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return ExitCode;
-        }
-
-        /// <summary>
-        /// Try to get the directory this assembly is in. Returns null if assembly
-        /// was in the GAC or DLL location can not be retrieved.
-        /// </summary>
-        private static string TryGetClientDir()
-        {
-            var buildTask = typeof(ManagedCompiler).GetTypeInfo().Assembly;
-
-            var inGac = (bool?)typeof(Assembly)
-                .GetTypeInfo()
-                .GetDeclaredProperty("GlobalAssemblyCache")
-                ?.GetMethod.Invoke(buildTask, parameters: null);
-
-            if (inGac != false)
-            {
-                return null;
-            }
-
-            var codeBase = (string)typeof(Assembly)
-                .GetTypeInfo()
-                .GetDeclaredProperty("CodeBase")
-                ?.GetMethod.Invoke(buildTask, parameters: null);
-
-            if (codeBase == null)
-            {
-                return null;
-            }
-
-            var uri = new Uri(codeBase);
-
-            string assemblyPath;
-            if (uri.IsFile)
-            {
-                assemblyPath = uri.LocalPath;
-            }
-            else
-            {
-                var callingAssembly = (Assembly)typeof(Assembly)
-                    .GetTypeInfo()
-                    .GetDeclaredMethod("GetCallingAssembly")
-                    ?.Invoke(null, null);
-
-                var location = Utilities.GetLocation(callingAssembly);
-                if (location == null)
-                {
-                    return null;
-                }
-
-                assemblyPath = location;
-            }
-
-            return Path.GetDirectoryName(assemblyPath);
         }
 
         /// <summary>
