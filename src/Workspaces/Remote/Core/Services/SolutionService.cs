@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -41,9 +40,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 return currentSolution;
             }
 
-            if (s_lastSolution?.Item1 == solutionChecksum)
+            var lastSolution = s_lastSolution;
+            if (lastSolution?.Item1 == solutionChecksum)
             {
-                return s_lastSolution.Item2;
+                return lastSolution.Item2;
             }
 
             // make sure there is always only one that creates a new solution
@@ -82,12 +82,12 @@ namespace Microsoft.CodeAnalysis.Remote
             return tempWorkspace.CurrentSolution;
         }
 
-        public async Task UpdatePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
+        public async Task UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             var currentSolution = s_primaryWorkspace.CurrentSolution;
 
             var primarySolutionChecksum = await currentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-            if (primarySolutionChecksum == checksum)
+            if (primarySolutionChecksum == solutionChecksum)
             {
                 // nothing changed
                 return;
@@ -97,18 +97,18 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var updater = new SolutionCreator(_assetService, currentSolution, cancellationToken);
 
-                if (await updater.IsIncrementalUpdateAsync(checksum).ConfigureAwait(false))
+                if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
                 {
                     // solution has updated
-                    s_primaryWorkspace.UpdateSolution(await updater.CreateSolutionAsync(checksum).ConfigureAwait(false));
+                    s_primaryWorkspace.UpdateSolution(await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false));
                     return;
                 }
 
                 // new solution. bulk sync all asset for the solution
-                await _assetService.SynchronizeSolutionAssetsAsync(checksum, cancellationToken).ConfigureAwait(false);
+                await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
                 s_primaryWorkspace.ClearSolution();
-                s_primaryWorkspace.AddSolution(await updater.CreateSolutionInfoAsync(checksum).ConfigureAwait(false));
+                s_primaryWorkspace.AddSolution(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
             }
         }
 

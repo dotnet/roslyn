@@ -9,7 +9,8 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class CodeAnalysisService : IRemoteNavigateToSearchService
     {
-        public async Task<SerializableNavigateToSearchResult[]> SearchDocumentAsync(SerializableDocumentId documentId, string searchPattern)
+        public async Task<SerializableNavigateToSearchResult[]> SearchDocumentAsync(
+            SerializableDocumentId documentId, string searchPattern)
         {
             var solution = await GetSolutionAsync().ConfigureAwait(false);
 
@@ -20,7 +21,8 @@ namespace Microsoft.CodeAnalysis.Remote
             return Convert(result);
         }
 
-        public async Task<SerializableNavigateToSearchResult[]> SearchProjectAsync(SerializableProjectId projectId, string searchPattern)
+        public async Task<SerializableNavigateToSearchResult[]> SearchProjectAsync(
+            SerializableProjectId projectId, string searchPattern)
         {
             var solution = await GetSolutionAsync().ConfigureAwait(false);
 
@@ -31,7 +33,8 @@ namespace Microsoft.CodeAnalysis.Remote
             return Convert(result);
         }
 
-        private SerializableNavigateToSearchResult[] Convert(ImmutableArray<INavigateToSearchResult> result)
+        private SerializableNavigateToSearchResult[] Convert(
+            ImmutableArray<INavigateToSearchResult> result)
         {
             return result.Select(SerializableNavigateToSearchResult.Dehydrate).ToArray();
         }

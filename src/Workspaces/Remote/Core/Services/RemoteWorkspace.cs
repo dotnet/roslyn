@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public const string WorkspaceKind_RemoteWorkspace = "RemoteWorkspace";
 
+        // REVIEW: I am using semaphoreSlim since workspace is using it, but not sure why it uses
+        //         semaphore rather than just object since workspace is not using anything specific
+        //         to semaphore
+        private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
+
         public RemoteWorkspace()
             : base(RoslynServices.HostServices, workspaceKind: RemoteWorkspace.WorkspaceKind_RemoteWorkspace)
         {
@@ -22,27 +27,23 @@ namespace Microsoft.CodeAnalysis.Remote
             Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
         }
 
-        public override bool CanApplyChange(ApplyChangesKind feature)
-        {
-            // apply change is not allowed
-            return false;
-        }
+        // this workspace doesn't allow modification by calling TryApplyChanges.
+        // consumer of solution is still free to fork solution as they want, they just can't apply those changes
+        // back to primary workspace. only solution service can update primary workspace
+        public override bool CanApplyChange(ApplyChangesKind feature) => false;
 
-        public override bool CanOpenDocuments
-        {
-            get
-            {
-                // enables simulation of having documents open.
-                return true;
-            }
-        }
+        // enables simulation of having documents open.
+        public override bool CanOpenDocuments => true;
 
         /// <summary>
         /// Clears all projects and documents from the workspace.
         /// </summary>
         public new void ClearSolution()
         {
-            base.ClearSolution();
+            using (_serializationLock.DisposableWait())
+            {
+                base.ClearSolution();
+            }
         }
 
         /// <summary>
@@ -55,10 +56,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 throw new ArgumentNullException(nameof(solutionInfo));
             }
 
-            this.OnSolutionAdded(solutionInfo);
-            this.UpdateReferencesAfterAdd();
+            using (_serializationLock.DisposableWait())
+            {
+                this.OnSolutionAdded(solutionInfo);
+                this.UpdateReferencesAfterAdd();
 
-            return this.CurrentSolution;
+                return this.CurrentSolution;
+            }
         }
 
         /// <summary>
@@ -71,18 +75,18 @@ namespace Microsoft.CodeAnalysis.Remote
                 throw new ArgumentNullException(nameof(solution));
             }
 
-            var oldSolution = this.CurrentSolution;
-            Contract.ThrowIfFalse(oldSolution.Id == solution.Id && oldSolution.FilePath == solution.FilePath);
+            using (_serializationLock.DisposableWait())
+            {
+                var oldSolution = this.CurrentSolution;
+                Contract.ThrowIfFalse(oldSolution.Id == solution.Id && oldSolution.FilePath == solution.FilePath);
 
-            // this is not under serialization lock for events. but apply changes are not allowed. so no conflict.
-            // no one except this method can update primary workspace. they can still freely fork solution. just
-            // can't update current solution of workspace.
-            var newSolution = this.SetCurrentSolution(solution);
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+                var newSolution = this.SetCurrentSolution(solution);
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
 
-            this.UpdateReferencesAfterAdd();
+                this.UpdateReferencesAfterAdd();
 
-            return this.CurrentSolution;
+                return this.CurrentSolution;
+            }
         }
 
         /// <summary>
@@ -90,11 +94,14 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public override void OpenDocument(DocumentId documentId, bool activate = true)
         {
-            var doc = this.CurrentSolution.GetDocument(documentId);
-            if (doc != null)
+            using (_serializationLock.DisposableWait())
             {
-                var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-                this.OnDocumentOpened(documentId, text.Container, activate);
+                var doc = this.CurrentSolution.GetDocument(documentId);
+                if (doc != null)
+                {
+                    var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                    this.OnDocumentOpened(documentId, text.Container, activate);
+                }
             }
         }
 
@@ -103,13 +110,16 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public override void CloseDocument(DocumentId documentId)
         {
-            var doc = this.CurrentSolution.GetDocument(documentId);
-            if (doc != null)
+            using (_serializationLock.DisposableWait())
             {
-                var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-                var version = doc.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-                var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
-                this.OnDocumentClosed(documentId, loader);
+                var doc = this.CurrentSolution.GetDocument(documentId);
+                if (doc != null)
+                {
+                    var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                    var version = doc.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                    var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
+                    this.OnDocumentClosed(documentId, loader);
+                }
             }
         }
 
@@ -118,11 +128,14 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
         {
-            var doc = this.CurrentSolution.GetAdditionalDocument(documentId);
-            if (doc != null)
+            using (_serializationLock.DisposableWait())
             {
-                var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-                this.OnAdditionalDocumentOpened(documentId, text.Container, activate);
+                var doc = this.CurrentSolution.GetAdditionalDocument(documentId);
+                if (doc != null)
+                {
+                    var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                    this.OnAdditionalDocumentOpened(documentId, text.Container, activate);
+                }
             }
         }
 
@@ -131,13 +144,16 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public override void CloseAdditionalDocument(DocumentId documentId)
         {
-            var doc = this.CurrentSolution.GetAdditionalDocument(documentId);
-            if (doc != null)
+            using (_serializationLock.DisposableWait())
             {
-                var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-                var version = doc.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-                var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
-                this.OnAdditionalDocumentClosed(documentId, loader);
+                var doc = this.CurrentSolution.GetAdditionalDocument(documentId);
+                if (doc != null)
+                {
+                    var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                    var version = doc.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                    var loader = TextLoader.From(TextAndVersion.Create(text, version, doc.FilePath));
+                    this.OnAdditionalDocumentClosed(documentId, loader);
+                }
             }
         }
     }

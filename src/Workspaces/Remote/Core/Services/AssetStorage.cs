@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static readonly AssetStorage Default = new AssetStorage(enableCleanup: true);
 
+        // TODO: think of a way to use roslyn option service in OOP
         private const int CleanupInterval = 1; // 1 minutes
         private const int PurgeAfter = 3; // 3 minutes
 

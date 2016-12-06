@@ -5,7 +5,9 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// this let us have isolated workspace services between solutions such as option services
+    /// this lets us have isolated workspace services between solutions such as option services.
+    /// 
+    /// otherwise, mutating service in one service call such as changing options, can affect result of other service call
     /// </summary>
     internal class TemporaryWorkspace : Workspace
     {
@@ -27,11 +29,9 @@ namespace Microsoft.CodeAnalysis.Remote
             this.OnSolutionAdded(solutionInfo);
         }
 
-        public override bool CanApplyChange(ApplyChangesKind feature)
-        {
-            // apply change is not allowed
-            return false;
-        }
+        // for now, temproary workspace is not mutable. consumer can still freely fork solution as they wish
+        // they just can't apply thsoe changes back to the workspace.
+        public override bool CanApplyChange(ApplyChangesKind feature) => false;
 
         public override bool CanOpenDocuments => false;
     }
