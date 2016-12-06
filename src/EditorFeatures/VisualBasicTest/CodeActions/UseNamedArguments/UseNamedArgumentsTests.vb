@@ -114,14 +114,14 @@ End Class")
         Public Async Function TestConstructor() As Task
             Await TestAsync(
 "Class C
-Sub New(arg1 As Integer, arg2 As Integer)
-Dim c = New C([||]1, 2)
-End Sub
+    Sub New(arg1 As Integer, arg2 As Integer)
+        Dim c = New C([||]1, 2)
+    End Sub
 End Class",
 "Class C
-Sub New(arg1 As Integer, arg2 As Integer)
-Dim c = New C(arg1:=1, arg2:=2)
-End Sub
+    Sub New(arg1 As Integer, arg2 As Integer)
+        Dim c = New C(arg1:=1, arg2:=2)
+    End Sub
 End Class")
         End Function
 
@@ -164,9 +164,9 @@ End Class")
         Public Async Function TestMissingOnEmptyArgumentList() As Task
             Await TestMissingAsync(
 "Class C
-Sub M()
-M([||])
-End Sub
+    Sub M()
+        M([||])
+    End Sub
 End Class")
         End Function
 
@@ -194,12 +194,12 @@ End Class")
         Public Async Function TestEmptyParamArray() As Task
             Await TestAsync(
 "Class C
-    Sub M(arg1 As Integer, ParamArray arg2 As Integer()
+    Sub M(arg1 As Integer, ParamArray arg2 As Integer())
         M([||]1)
     End Sub
 End Class",
 "Class C
-    Sub M(arg1 As Integer, ParamArray arg2 As Integer()
+    Sub M(arg1 As Integer, ParamArray arg2 As Integer())
         M(arg1:=1)
     End Sub
 End Class")
@@ -234,9 +234,9 @@ End Class")
         Public Async Function TestMissingOnOmittedArgument() As Task
             Await TestMissingAsync(
 "Class C
-Sub M(optional arg1 As Integer=1, optional arg2 As Integer=1)
-M([||], arg2:=2)
-End Sub
+    Sub M(optional arg1 As Integer=1, optional arg2 As Integer=1)
+        M([||], arg2:=2)
+    End Sub
 End Class")
         End Function
 
