@@ -355,12 +355,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var receiver = expression.Receiver;
 
-            if (receiver.IsDefaultValue() && receiver.Type.IsReferenceType)
-            {
-                EmitDefaultValue(expression.Type, used, expression.Syntax);
-                return;
-            }
-
             var receiverType = receiver.Type;
             LocalDefinition receiverTemp = null;
             Debug.Assert(!receiverType.IsValueType ||
