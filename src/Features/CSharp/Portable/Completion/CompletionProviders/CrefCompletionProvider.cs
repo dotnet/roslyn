@@ -19,14 +19,8 @@ using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal sealed class CrefCompletionProvider : CommonCompletionProvider
+    internal sealed class CrefCompletionProvider : AbstractCrefCompletionProvider
     {
-        private class CrefCompletionState
-        {
-            public SemanticModel SemanticModel { get; set; }
-            public SyntaxToken SyntaxToken {get; set;}
-            public ImmutableArray<ISymbol> Symbols { get; set; }
-        }
 
         public static readonly SymbolDisplayFormat QualifiedCrefFormat =
             new SymbolDisplayFormat(
@@ -67,10 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
 
-            var (token, semanticModel, symbols) = await GetSymbols(document, position, cancellationToken).ConfigureAwait(false);
-            var filteredSymbols = symbols.FilterToVisibleAndBrowsableSymbols(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation);
+            var (token, semanticModel, symbols) = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);
 
-            if (!filteredSymbols.Any())
+            if (symbols.Length == 0)
             {
                 return;
             }
@@ -79,12 +72,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var span = GetCompletionItemSpan(text, position);
+            var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language);
+            var serializedOptions = ImmutableDictionary<string, string>.Empty.Add(HideAdvancedMembers, hideAdvancedMembers.ToString());
 
-            var items = CreateCompletionItems(document.Project.Solution.Workspace, semanticModel, filteredSymbols, token, span, position);
+            var items = CreateCompletionItems(document.Project.Solution.Workspace, semanticModel, symbols, token, span, position, serializedOptions);
             context.AddItems(items);
         }
 
-        private async Task<(SyntaxToken, SemanticModel, ImmutableArray<ISymbol>)> GetSymbols(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<(SyntaxToken, SemanticModel, ImmutableArray<ISymbol>)> GetSymbolsAsync(
+            Document document, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (!tree.IsEntirelyWithinCrefSyntax(position, cancellationToken))
@@ -107,7 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var semanticModel = await document.GetSemanticModelForNodeAsync(
                 parentNode, cancellationToken).ConfigureAwait(false);
 
-            var symbols = GetSymbols(token, semanticModel, cancellationToken);
+            var symbols = GetSymbols(token, semanticModel, cancellationToken)
+                .FilterToVisibleAndBrowsableSymbols(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation);
+
             return (token, semanticModel, symbols);
         }
 
@@ -242,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private IEnumerable<CompletionItem> CreateCompletionItems(
-            Workspace workspace, SemanticModel semanticModel, IEnumerable<ISymbol> symbols, SyntaxToken token, TextSpan itemSpan, int position)
+            Workspace workspace, SemanticModel semanticModel, IEnumerable<ISymbol> symbols, SyntaxToken token, TextSpan itemSpan, int position, ImmutableDictionary<string, string> options)
         {
             var builder = SharedPools.Default<StringBuilder>().Allocate();
             try
@@ -250,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 foreach (var symbol in symbols)
                 {
                     builder.Clear();
-                    yield return CreateItem(workspace, semanticModel, symbol, token, position, builder);
+                    yield return CreateItem(workspace, semanticModel, symbol, token, position, builder, options);
                 }
             }
             finally
@@ -260,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private CompletionItem CreateItem(
-            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder)
+            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, ImmutableDictionary<string, string> options)
         {
             if (symbol is INamespaceOrTypeSymbol && token.IsKind(SyntaxKind.DotToken))
             {
@@ -316,22 +314,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return SymbolCompletionItem.CreateWithNameAndKind(
                 displayText: insertionText,
                 insertionText: insertionText,
-                symbol: symbol,
+                symbols: ImmutableArray.Create(symbol),
                 contextPosition: position,
                 sortText: symbolText,
+                properties: options,
                 rules: GetRules(insertionText));
         }
 
-        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            var position = SymbolCompletionItem.GetContextPosition(item);
-
-            var (token, semanticModel, symbols) = await GetSymbols(document, position, cancellationToken).ConfigureAwait(false);
-            var name = SymbolCompletionItem.GetSymbolName(item);
-            var kind = SymbolCompletionItem.GetKind(item);
-            var bestSymbols = symbols.WhereAsArray(s => s.Kind == kind && s.Name == name);
-            return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, cancellationToken).ConfigureAwait(false);
-        }
+        
 
         private static readonly CharacterSetModificationRule s_WithoutOpenBrace = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '{');
         private static readonly CharacterSetModificationRule s_WithoutOpenParen = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '(');

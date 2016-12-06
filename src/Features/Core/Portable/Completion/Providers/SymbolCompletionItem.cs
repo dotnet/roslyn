@@ -195,16 +195,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var supportedPlatforms = GetSupportedPlatforms(item, workspace);
 
-            // find appropriate document for descripton context
-            var contextDocument = document;
-            if (supportedPlatforms != null && supportedPlatforms.InvalidProjects.Contains(document.Id.ProjectId))
-            {
-                var contextId = document.GetLinkedDocumentIds().FirstOrDefault(id => !supportedPlatforms.InvalidProjects.Contains(id.ProjectId));
-                if (contextId != null)
-                {
-                    contextDocument = document.Project.Solution.GetDocument(contextId);
-                }
-            }
+            Document contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
 
             var semanticModel = await contextDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbols = await GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
@@ -216,6 +207,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 return CompletionDescription.Empty;
             }
+        }
+
+        private static Document FindAppropriateDocumentForDescriptionContext(Document document, SupportedPlatformData supportedPlatforms)
+        {
+            var contextDocument = document;
+            if (supportedPlatforms != null && supportedPlatforms.InvalidProjects.Contains(document.Id.ProjectId))
+            {
+                var contextId = document.GetLinkedDocumentIds().FirstOrDefault(id => !supportedPlatforms.InvalidProjects.Contains(id.ProjectId));
+                if (contextId != null)
+                {
+                    contextDocument = document.Project.Solution.GetDocument(contextId);
+                }
+            }
+
+            return contextDocument;
         }
 
         private static CompletionItem WithSupportedPlatforms(CompletionItem completionItem, SupportedPlatformData supportedPlatforms)
@@ -235,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly char[] projectSeperators = new[] { ';' };
         public static SupportedPlatformData GetSupportedPlatforms(CompletionItem item, Workspace workspace)
         {
-            if (item.Properties.TryGetValue("InvalidProjects", out var invalidProjects) 
+            if (item.Properties.TryGetValue("InvalidProjects", out var invalidProjects)
                 && item.Properties.TryGetValue("CandidateProjects", out var candidateProjects))
             {
                 return new SupportedPlatformData(
@@ -323,23 +329,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             filterText, matchPriority, supportedPlatforms, properties, tags, rules);
         }
 
-        public static CompletionItem CreateWithNameAndKind(
-            string displayText,
-            ISymbol symbol,
-            int contextPosition,
-            string sortText = null,
-            string insertionText = null,
-            Glyph? glyph = null,
-            string filterText = null,
-            int? matchPriority = null,
-            SupportedPlatformData supportedPlatforms = null,
-            ImmutableDictionary<string, string> properties = null,
-            CompletionItemRules rules = null)
-        {
-            return CreateWorker(displayText, symbol, AddSymbolNameAndKind, contextPosition, sortText, insertionText, glyph,
-                          filterText, matchPriority, supportedPlatforms, properties, rules: rules);
-        }
-
         internal static string GetSymbolName(CompletionItem item)
         {
             if (item.Properties.TryGetValue("SymbolName", out var name))
@@ -365,27 +354,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var workspace = document.Project.Solution.Workspace;
 
             var position = SymbolCompletionItem.GetDescriptionPosition(item);
-            if (position == -1)
-            {
-                position = item.Span.Start;
-            }
-
             var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(item, workspace);
 
-            // find appropriate document for descripton context
-            var contextDocument = document;
-            if (supportedPlatforms != null && supportedPlatforms.InvalidProjects.Contains(document.Id.ProjectId))
-            {
-                var contextId = document.GetLinkedDocumentIds().FirstOrDefault(id => !supportedPlatforms.InvalidProjects.Contains(id.ProjectId));
-                if (contextId != null)
-                {
-                    contextDocument = document.Project.Solution.GetDocument(contextId);
-                }
-            }
+            var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
 
-            var semanticModel = await contextDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (symbols.Length != 0)
             {
+                var semanticModel = await contextDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 return await CommonCompletionUtilities.CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);
             }
             else
