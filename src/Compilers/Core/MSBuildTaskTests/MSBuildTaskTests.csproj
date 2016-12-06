@@ -22,6 +22,10 @@
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\CSharp\csc\csc.csproj">
+      <Project>{4b45ca0c-03a0-400f-b454-3d4bcb16af38}</Project>
+      <Name>csc</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\CSharp\Portable\CSharpCodeAnalysis.csproj">
       <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
       <Name>CSharpCodeAnalysis</Name>
@@ -33,6 +37,10 @@
     <ProjectReference Include="..\..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>TestUtilities.FX45</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\VisualBasic\vbc\vbc.csproj">
+      <Project>{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}</Project>
+      <Name>vbc</Name>
     </ProjectReference>
     <ProjectReference Include="..\MSBuildTask\MSBuildTask.csproj">
       <Project>{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}</Project>

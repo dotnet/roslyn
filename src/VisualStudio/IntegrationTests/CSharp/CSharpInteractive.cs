@@ -8,9 +8,9 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpInteractiveDemo : AbstractInteractiveWindowTest
+    public class CSharpInteractive : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveDemo(VisualStudioInstanceFactory instanceFactory)
+        public CSharpInteractive(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
         }
@@ -92,6 +92,21 @@ w.Content = g;");
             WaitForReplOutput("Hello, World!");
             VerifyLastReplOutput("Hello, World!");
             SubmitText("b = null; w.Close(); w = null;");
+        }
+
+        [Fact]
+        public void TypingHelpDirectiveWorks()
+        {
+            InteractiveWindow.ShowWindow(waitForPrompt: true);
+
+            // Directly type #help, rather than sending it through SubmitText. We want to actually test
+            // that completion doesn't interfere and there aren't problems with the content-type switching.
+            VisualStudio.Instance.SendKeys.Send("#help");
+
+            Assert.EndsWith("#help", InteractiveWindow.GetReplText());
+
+            VisualStudio.Instance.SendKeys.Send("\n");
+            InteractiveWindow.WaitForReplOutputContains("REPL commands");
         }
     }
 }
