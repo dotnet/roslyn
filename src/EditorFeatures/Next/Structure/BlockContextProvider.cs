@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
@@ -135,16 +136,24 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
 
                 for (var i = 0; i < blockTags.Count; i++)
                 {
+                    var blockTag = blockTags[i];
+                    var fullStatementSpan = blockTag.StatementSpan;
+                    
+                    if (blockTag.Parent != null &&
+                        textSnapshot.AreOnSameLine(fullStatementSpan.Start, blockTag.Parent.StatementSpan.Start))
+                    {
+                        // Ignore block tags on the same line as their parent.  We'll have already included
+                        // the contents of the line when we added the parent tag, and the editor will crash
+                        // if we create overlapping spans in the projection buffer.
+                        continue;
+                    }
+
                     if (i > 0)
                     {
                         objects.Add("\r\n");
                     }
 
-                    var blockTag = blockTags[i];
-                    var fullStatementSpan = blockTag.StatementSpan;
-                    var collapseSpan = blockTag.Span;
-
-                    var statementLine = textSnapshot.GetLineFromPosition(blockTag.StatementSpan.Start);
+                    var statementLine = textSnapshot.GetLineFromPosition(fullStatementSpan.Start);
 
                     var lineStart = statementLine.Start.Position;
                     var lineEnd = statementLine.End.Position;
@@ -153,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                     var mappingSpan = headerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeExclusive);
 
                     objects.Add(mappingSpan);
-                    if (statementLine.End.Position < collapseSpan.Start)
+                    if (lineEnd < blockTag.Span.Start)
                     {
                         // If we had to cut off the line, then add a ... to indicate as such.
                         objects.Add("...");
