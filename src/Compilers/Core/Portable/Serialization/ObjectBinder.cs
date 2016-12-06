@@ -1,39 +1,52 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Reflection;
 
 namespace Roslyn.Utilities
 {
+    /// <summary>
+    /// A type that provides object and type encoding/decoding.
+    /// </summary>
     internal abstract class ObjectBinder
     {
-        public abstract Type GetType(string assemblyName, string typeName);
-        public abstract Func<ObjectReader, object> GetReader(Type type);
+        /// <summary>
+        /// Gets the <see cref="Type"/> corresponding to the specified <see cref="TypeKey"/>.
+        /// Returns false if no type corresponds to the key.
+        /// </summary>
+        public abstract bool TryGetType(TypeKey key, out Type type);
 
-        internal struct TypeKey : IEquatable<TypeKey>
+        /// <summary>
+        /// Gets the <see cref="TypeKey"/> for the specified <see cref="Type"/>.
+        /// Returns false if the type cannot be serialized. 
+        /// </summary>
+        public virtual bool TryGetTypeKey(Type type, out TypeKey key)
         {
-            internal readonly string AssemblyName;
-            internal readonly string TypeName;
+            key = new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName);
+            return true;
+        }
 
-            public TypeKey(string assemblyName, string typeName)
+        /// <summary>
+        /// Gets a function that reads an type's members from an <see cref="ObjectReader"/> and constructs an instance with those members.
+        /// Returns false if the type cannot be deserialized.
+        /// </summary>
+        public abstract bool TryGetReader(Type type, out Func<ObjectReader, object> reader);
+
+        /// <summary>
+        /// Gets a function that writes an object's members to a <see cref="ObjectWriter"/>.
+        /// Returns false if the type cannot be serialized.
+        /// </summary>
+        public virtual bool TryGetWriter(object instance, out Action<ObjectWriter, object> writer)
+        {          
+            if (instance is IObjectWritable)
             {
-                this.AssemblyName = assemblyName;
-                this.TypeName = typeName;
+                writer = (w, i) => ((IObjectWritable)i).WriteTo(w); // static delegate should be cached
+                return true;
             }
-
-            public bool Equals(TypeKey other)
+            else
             {
-                return this.AssemblyName == other.AssemblyName
-                    && this.TypeName == other.TypeName;
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj is TypeKey && this.Equals((TypeKey)obj);
-            }
-
-            public override int GetHashCode()
-            {
-                return Hash.Combine(this.AssemblyName.GetHashCode(), this.TypeName.GetHashCode());
+                writer = null;
+                return false;
             }
         }
     }
