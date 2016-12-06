@@ -75,7 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language);
             var serializedOptions = ImmutableDictionary<string, string>.Empty.Add(HideAdvancedMembers, hideAdvancedMembers.ToString());
 
-            var items = CreateCompletionItems(document.Project.Solution.Workspace, semanticModel, symbols, token, span, position, serializedOptions);
+            var items = CreateCompletionItems(document.Project.Solution.Workspace, 
+                semanticModel, symbols, token, span, position, serializedOptions);
+
             context.AddItems(items);
         }
 
@@ -104,7 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 parentNode, cancellationToken).ConfigureAwait(false);
 
             var symbols = GetSymbols(token, semanticModel, cancellationToken)
-                .FilterToVisibleAndBrowsableSymbols(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation);
+                .FilterToVisibleAndBrowsableSymbols(
+                    options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), 
+                    semanticModel.Compilation);
 
             return (token, semanticModel, symbols);
         }
@@ -321,8 +325,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 rules: GetRules(insertionText));
         }
 
-        
-
         private static readonly CharacterSetModificationRule s_WithoutOpenBrace = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '{');
         private static readonly CharacterSetModificationRule s_WithoutOpenParen = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '(');
 
@@ -349,7 +351,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return CompletionItemRules.Default.WithCommitCharacterRules(commitRules);
             }
         }
-
 
         private static readonly string InsertionTextProperty = "insertionText";
 

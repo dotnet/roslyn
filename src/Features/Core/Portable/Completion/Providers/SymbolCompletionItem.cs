@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var supportedPlatforms = GetSupportedPlatforms(item, workspace);
 
-            Document contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
+            var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
 
             var semanticModel = await contextDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbols = await GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);

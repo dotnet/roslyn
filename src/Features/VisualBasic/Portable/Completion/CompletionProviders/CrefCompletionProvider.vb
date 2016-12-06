@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim token = tree.GetTargetToken(position, cancellationToken)
 
             If IsCrefTypeParameterContext(token) Then
-                Return (Nothing, Nothing, Nothing)
+                Return Nothing
             End If
 
             ' To get a Speculative SemanticModel (which is much faster), we need to 
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim parentNode = token.Parent?.FirstAncestorOrSelf(Of DocumentationCommentTriviaSyntax)()?.ParentTrivia.Token.Parent
             _testSpeculativeNodeCallbackOpt?.Invoke(parentNode)
             If parentNode Is Nothing Then
-                Return (Nothing, Nothing, Nothing)
+                Return Nothing
             End If
 
             Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)

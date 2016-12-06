@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.LanguageServices;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -102,7 +104,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SymbolMatchPriority.PreferType;
         }
 
-        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(
+            Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
             var name = SymbolCompletionItem.GetSymbolName(item);
