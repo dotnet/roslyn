@@ -65,6 +65,11 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
             _inProc.WaitForReplOutput(outputText);
         }
 
+        public void WaitForReplOutputContains(string outputText)
+        {
+            _inProc.WaitForReplOutputContains(outputText);
+        }
+
         public void CleanUpInteractiveWindow()
         {
             _inProc.CloseWindow();
