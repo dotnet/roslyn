@@ -11,19 +11,15 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
 {
-    internal abstract class AbstractUseNamedArgumentsCodeRefactoringProvider<
-        TBaseArgumentSyntax,
-        TArgumentSyntax,
-        TAttributeArgumentSyntax,
-        TArgumentListSyntax,
-        TAttributeArgumentListSyntax> : CodeRefactoringProvider
-        where TBaseArgumentSyntax : SyntaxNode
-        where TArgumentSyntax : TBaseArgumentSyntax
-        where TAttributeArgumentSyntax : SyntaxNode
-        where TArgumentListSyntax : SyntaxNode
-        where TAttributeArgumentListSyntax : SyntaxNode
+    internal abstract class AbstractUseNamedArgumentsCodeRefactoringProvider : CodeRefactoringProvider
     {
-        protected abstract class Analyzer<TBaseSyntax, TSyntax, TListSyntax>
+        protected interface IAnalyzer
+        {
+            Task ComputeRefactoringsAsync(
+                CodeRefactoringContext context, SyntaxNode root, CancellationToken cancellationToken);
+        }
+
+        protected abstract class Analyzer<TBaseSyntax, TSyntax, TListSyntax> : IAnalyzer
             where TBaseSyntax : SyntaxNode
             where TSyntax : TBaseSyntax
             where TListSyntax : SyntaxNode
@@ -135,12 +131,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
             protected abstract SyntaxNode GetReceiver(SyntaxNode argument);
         }
 
-        private readonly Analyzer<TBaseArgumentSyntax, TArgumentSyntax, TArgumentListSyntax> _argumentAnalyzer;
-        private readonly Analyzer<TAttributeArgumentSyntax, TAttributeArgumentSyntax, TAttributeArgumentListSyntax> _attributeArgumentAnalyzer;
+        private readonly IAnalyzer _argumentAnalyzer;
+        private readonly IAnalyzer _attributeArgumentAnalyzer;
 
         protected AbstractUseNamedArgumentsCodeRefactoringProvider(
-            Analyzer<TBaseArgumentSyntax, TArgumentSyntax, TArgumentListSyntax> argumentAnalyzer,
-            Analyzer<TAttributeArgumentSyntax, TAttributeArgumentSyntax, TAttributeArgumentListSyntax> attributeArgumentAnalyzer)
+            IAnalyzer argumentAnalyzer,
+            IAnalyzer attributeArgumentAnalyzer)
         {
             _argumentAnalyzer = argumentAnalyzer;
             _attributeArgumentAnalyzer = attributeArgumentAnalyzer;

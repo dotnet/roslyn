@@ -13,10 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseNamedArguments
 {
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpUseNamedArgumentsCodeRefactoringProvider)), Shared]
-    internal class CSharpUseNamedArgumentsCodeRefactoringProvider : 
-        AbstractUseNamedArgumentsCodeRefactoringProvider<
-            ArgumentSyntax, ArgumentSyntax, AttributeArgumentSyntax,
-            BaseArgumentListSyntax, AttributeArgumentListSyntax>
+    internal class CSharpUseNamedArgumentsCodeRefactoringProvider : AbstractUseNamedArgumentsCodeRefactoringProvider
     {
         private abstract class BaseAnalyzer<TSyntax, TSyntaxList> : Analyzer<TSyntax, TSyntax, TSyntaxList>
             where TSyntax : SyntaxNode

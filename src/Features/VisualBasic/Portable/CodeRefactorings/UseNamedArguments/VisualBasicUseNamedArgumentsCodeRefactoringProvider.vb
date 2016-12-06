@@ -10,8 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.UseNamedArguments
     <ExtensionOrder(After:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicUseNamedArgumentsCodeRefactoringProvider)), [Shared]>
     Friend Class VisualBasicUseNamedArgumentsCodeRefactoringProvider
-        Inherits AbstractUseNamedArgumentsCodeRefactoringProvider(Of
-             ArgumentSyntax, SimpleArgumentSyntax, ArgumentSyntax, ArgumentListSyntax, ArgumentListSyntax)
+        Inherits AbstractUseNamedArgumentsCodeRefactoringProvider
 
         Private Class ArgumentAnalyzer
             Inherits Analyzer(Of ArgumentSyntax, SimpleArgumentSyntax, ArgumentListSyntax)
