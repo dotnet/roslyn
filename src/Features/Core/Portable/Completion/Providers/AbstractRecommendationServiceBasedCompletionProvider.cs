@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var symbols = await recommender.GetRecommendedSymbolsAtPositionAsync(
                 context.Workspace, 
                 context.SemanticModel, 
-                position, 
+                context.LeftToken.SpanStart, 
                 options, 
                 cancellationToken).ConfigureAwait(false);
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var kind = SymbolCompletionItem.GetKind(item);
 
             var bestSymbols = symbols.Where(s => kind != null && s.Kind == kind && s.Name == name).ToImmutableArray();
-            return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, cancellationToken).ConfigureAwait(false);
+            return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, semanticModel, cancellationToken).ConfigureAwait(false);
         }
     }
 }
