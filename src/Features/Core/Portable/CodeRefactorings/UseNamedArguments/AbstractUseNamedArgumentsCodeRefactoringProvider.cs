@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                     }
                 }
 
-
                 if (!IsLegalToAddNamedArguments(parameters, count))
                 {
                     return;

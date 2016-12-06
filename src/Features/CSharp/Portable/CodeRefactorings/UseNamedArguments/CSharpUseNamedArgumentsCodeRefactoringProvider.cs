@@ -49,9 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseNamedArguments
             protected override bool IsPositionalArgument(AttributeArgumentSyntax argument)
                 => argument.NameColon == null && argument.NameEquals == null;
 
-            protected override SyntaxNode GetReceiver(SyntaxNode argument)
-                => argument.Parent.Parent;
-
             protected override SeparatedSyntaxList<AttributeArgumentSyntax> GetArguments(AttributeArgumentListSyntax argumentList)
                 => argumentList.Arguments;
 
