@@ -2,5 +2,5 @@
 # CSharp code style settings:
 [*.cs]
 csharp_style_var_for_built_in_types = false:none
-csharp_style_var_when_type_is_apparent = false:none
+csharp_style_var_when_type_is_apparent = true:none
 csharp_style_var_elsewhere = false:none
