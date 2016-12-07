@@ -232,17 +232,5 @@ End Class";
 
             public override Workspace Workspace => _workspace;
         }
-
-        private class TestAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
-        {
-            public void AddDependencyLocation(string fullPath)
-            {
-            }
-
-            public Assembly LoadFromPath(string fullPath)
-            {
-                return Assembly.LoadFrom(fullPath);
-            }
-        }
     }
 }
