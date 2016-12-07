@@ -3014,6 +3014,19 @@ class C { }";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestOpenProject_WildcardsWithLink()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_Wildcards.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+            var proj = await ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
+
+            // prove that the file identified with a wildcard and remapped to a computed link is named correctly.
+            Assert.True(proj.Documents.Any(d => d.Name == "AssemblyInfo.cs"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_CommandLineArgsHaveNoErrors()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
