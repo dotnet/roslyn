@@ -1721,6 +1721,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_NewWithTupleTypeSyntax = 37280
         ERR_PredefinedValueTupleTypeMustBeStruct = 37281
+        ERR_DuplicateInterfaceWithTupleNamesInBaseList3 = 37282
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

@@ -379,7 +379,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         diagnostics As DiagnosticBag)
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            type.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Dim tupleDiagnosticsBuilder As ArrayBuilder(Of DiagnosticInfo) = Nothing
+            type.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, tupleDiagnosticsBuilder)
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -389,7 +390,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 diagnostics.Add(diagnostic.DiagnosticInfo, loc)
             Next
 
+            If tupleDiagnosticsBuilder IsNot Nothing Then
+                For Each diagnostic In tupleDiagnosticsBuilder
+                    diagnostics.Add(diagnostic, loc)
+                Next
+            End If
+
             diagnosticsBuilder.Free()
+
         End Sub
 
         ''' <summary>
@@ -398,29 +406,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' on generic types within the type (such as B(Of T) in A(Of B(Of T)())).
         ''' </summary>
         <Extension()>
-        Public Sub CheckAllConstraints(
+        Private Sub CheckAllConstraints(
                                         type As TypeSymbol,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo))
+                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        <[In], Out> ByRef tupleDiagnosticsBuilder As ArrayBuilder(Of DiagnosticInfo))
             Dim diagnostics As New CheckConstraintsDiagnosticsBuilders()
             diagnostics.diagnosticsBuilder = diagnosticsBuilder
             diagnostics.useSiteDiagnosticsBuilder = useSiteDiagnosticsBuilder
+            diagnostics.tupleDiagnosticsBuilder = tupleDiagnosticsBuilder
 
             type.VisitType(s_checkConstraintsSingleTypeFunc, diagnostics)
 
             useSiteDiagnosticsBuilder = diagnostics.useSiteDiagnosticsBuilder
+            tupleDiagnosticsBuilder = diagnostics.tupleDiagnosticsBuilder
         End Sub
 
         Private Class CheckConstraintsDiagnosticsBuilders
             Public diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)
             Public useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)
+            Public tupleDiagnosticsBuilder As ArrayBuilder(Of DiagnosticInfo)
         End Class
 
         Private ReadOnly s_checkConstraintsSingleTypeFunc As Func(Of TypeSymbol, CheckConstraintsDiagnosticsBuilders, Boolean) = AddressOf CheckConstraintsSingleType
 
         Private Function CheckConstraintsSingleType(type As TypeSymbol, diagnostics As CheckConstraintsDiagnosticsBuilders) As Boolean
             If type.Kind = SymbolKind.NamedType Then
-                DirectCast(type, NamedTypeSymbol).CheckConstraints(diagnostics.diagnosticsBuilder, diagnostics.useSiteDiagnosticsBuilder)
+                DirectCast(type, NamedTypeSymbol).CheckConstraints(diagnostics.diagnosticsBuilder, diagnostics.useSiteDiagnosticsBuilder, diagnostics.tupleDiagnosticsBuilder)
             End If
             Return False ' continue walking types
         End Function
@@ -429,6 +441,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Function CheckConstraints(
                                         type As NamedTypeSymbol,
                                         typeArgumentsSyntax As SeparatedSyntaxList(Of TypeSyntax),
+                                        syntaxNode As SyntaxNode,
                                         diagnostics As DiagnosticBag) As Boolean
             Debug.Assert(typeArgumentsSyntax.Count = type.Arity)
             If Not RequiresChecking(type) Then
@@ -437,7 +450,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            Dim result = CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Dim tupleDiagnosticsBuilder As ArrayBuilder(Of DiagnosticInfo) = Nothing
+            Dim result = CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder, tupleDiagnosticsBuilder)
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -449,19 +463,61 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 diagnostics.Add(diagnostic.DiagnosticInfo, location)
             Next
 
+            If tupleDiagnosticsBuilder IsNot Nothing Then
+                For Each diagnostic In tupleDiagnosticsBuilder
+                    Dim location = New SourceLocation(syntaxNode)
+                    diagnostics.Add(diagnostic, location)
+                Next
+            End If
+
             diagnosticsBuilder.Free()
+
             Return result
         End Function
 
         <Extension()>
         Public Function CheckConstraints(
                                         type As NamedTypeSymbol,
-                                        diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+                                        diagnosticLocation As Location,
+                                        diagnostics As DiagnosticBag) As Boolean
             If Not RequiresChecking(type) Then
                 Return True
             End If
-            Return CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+
+            Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
+            Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
+            Dim tupleDiagnosticsBuilder As ArrayBuilder(Of DiagnosticInfo) = Nothing
+            Dim result = CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder, tupleDiagnosticsBuilder)
+
+            If useSiteDiagnosticsBuilder IsNot Nothing Then
+                diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
+            End If
+
+            For Each diagnostic In diagnosticsBuilder
+                diagnostics.Add(diagnostic.DiagnosticInfo, diagnosticLocation)
+            Next
+
+            If tupleDiagnosticsBuilder IsNot Nothing Then
+                For Each diagnostic In tupleDiagnosticsBuilder
+                    diagnostics.Add(diagnostic, diagnosticLocation)
+                Next
+            End If
+
+            diagnosticsBuilder.Free()
+
+            Return result
+        End Function
+
+        <Extension()>
+        Private Function CheckConstraints(
+                                        type As NamedTypeSymbol,
+                                        diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        <[In], Out> ByRef tupleDiagnosticsBuilder As ArrayBuilder(Of DiagnosticInfo)) As Boolean
+            If Not RequiresChecking(type) Then
+                Return True
+            End If
+            Return CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder, tupleDiagnosticsBuilder)
         End Function
 
         <Extension()>
@@ -475,7 +531,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            Dim result = CheckMethodConstraints(method, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Dim tupleDiagnosticsBuilder As ArrayBuilder(Of DiagnosticInfo) = Nothing
+            Dim result = CheckMethodConstraints(method, diagnosticsBuilder, useSiteDiagnosticsBuilder, tupleDiagnosticsBuilder)
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -485,6 +542,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 diagnostics.Add(diagnostic.DiagnosticInfo, diagnosticLocation)
             Next
 
+            If tupleDiagnosticsBuilder IsNot Nothing Then
+                For Each diagnostic In tupleDiagnosticsBuilder
+                    diagnostics.Add(diagnostic, diagnosticLocation)
+                Next
+            End If
+
             diagnosticsBuilder.Free()
             Return result
         End Function
@@ -493,27 +556,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Function CheckConstraints(
                                         method As MethodSymbol,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        <[In], Out> ByRef tupleDiagnosticsBuilder As ArrayBuilder(Of DiagnosticInfo)) As Boolean
             If Not RequiresChecking(method) Then
                 Return True
             End If
-            Return CheckMethodConstraints(method, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Return CheckMethodConstraints(method, diagnosticsBuilder, useSiteDiagnosticsBuilder, tupleDiagnosticsBuilder)
         End Function
 
         Private Function CheckTypeConstraints(
                                         type As NamedTypeSymbol,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        <[In], Out> ByRef tupleDiagnosticsBuilder As ArrayBuilder(Of DiagnosticInfo)) As Boolean
             Dim substitution = type.TypeSubstitution
-            Return CheckConstraints(type, substitution, type.OriginalDefinition.TypeParameters, type.TypeArgumentsNoUseSiteDiagnostics, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Return CheckConstraints(type, substitution, type.OriginalDefinition.TypeParameters, type.TypeArgumentsNoUseSiteDiagnostics, diagnosticsBuilder, useSiteDiagnosticsBuilder) AndAlso
+                CheckTupleNamesAgainstBase(type, tupleDiagnosticsBuilder)
         End Function
 
         Private Function CheckMethodConstraints(
                                         method As MethodSymbol,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                        <[In], Out> ByRef tupleDiagnosticsBuilder As ArrayBuilder(Of DiagnosticInfo)) As Boolean
             Dim substitution = DirectCast(method, SubstitutedMethodSymbol).TypeSubstitution
-            Return CheckConstraints(method, substitution, method.OriginalDefinition.TypeParameters, method.TypeArguments, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+            Dim result = CheckConstraints(method, substitution, method.OriginalDefinition.TypeParameters, method.TypeArguments, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+
+            For Each param In method.Parameters
+                If Not CheckTupleNamesAgainstBase(param.Type, tupleDiagnosticsBuilder) Then
+                    result = False
+                End If
+            Next
+
+            If Not CheckTupleNamesAgainstBase(method.ReturnType, tupleDiagnosticsBuilder) Then
+                result = False
+            End If
+
+            Return result
         End Function
 
         ''' <summary>
@@ -608,6 +687,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
             Return succeeded
+        End Function
+
+        Private Function CheckTupleNamesAgainstBase(type As TypeSymbol, <[In], Out> ByRef diagnosticsBuilder As ArrayBuilder(Of DiagnosticInfo)) As Boolean
+
+            Dim baseType As NamedTypeSymbol = type.BaseTypeNoUseSiteDiagnostics
+            If baseType Is Nothing Then
+                Return True
+            End If
+
+            Dim interfaces = type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics
+            Dim baseInterfaces = New Dictionary(Of NamedTypeSymbol, NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
+
+            For Each baseInterface In baseType.AllInterfacesNoUseSiteDiagnostics
+                If Not baseInterfaces.ContainsKey(baseInterface) Then
+                    baseInterfaces.Add(baseInterface, baseInterface)
+                    ' Note: because AllInterfaces is sorted, if somehow conflicting tuple names already exist in baseInterfaces
+                    '       (for instance in specially-crafted metadata), then only the most derived re-implementation matters
+                End If
+            Next
+
+            Dim result As Boolean = True
+
+            Dim found As NamedTypeSymbol = Nothing
+            For Each [interface] In interfaces
+                If baseInterfaces.TryGetValue([interface], found) AndAlso
+                    Not [interface].IsSameType(found, TypeCompareKind.ConsiderEverything) Then
+
+                    If diagnosticsBuilder Is Nothing Then
+                        diagnosticsBuilder = New ArrayBuilder(Of DiagnosticInfo)()
+                    End If
+
+                    diagnosticsBuilder.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateInterfaceWithTupleNamesInBaseList3, [interface], found, type))
+                    result = False
+                End If
+            Next
+
+            Return result
         End Function
 
         Private Function AppendUseSiteDiagnostics(

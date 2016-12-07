@@ -3054,6 +3054,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &apos;{0}&apos; is already listed in the interface list on the base of type &apos;{2}&apos; with different tuple element names, as &apos;{1}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_DuplicateInterfaceWithTupleNamesInBaseList3() As String
+            Get
+                Return ResourceManager.GetString("ERR_DuplicateInterfaceWithTupleNamesInBaseList3", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Local variable &apos;{0}&apos; is already declared in the current block..
         '''</summary>
         Friend ReadOnly Property ERR_DuplicateLocals1() As String

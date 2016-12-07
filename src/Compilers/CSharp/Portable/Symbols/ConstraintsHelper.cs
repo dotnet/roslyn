@@ -406,7 +406,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = !typeSyntax.HasErrors && CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            ArrayBuilder<DiagnosticInfo> tupleDiagnosticsBuilder = null;
+            var result = !typeSyntax.HasErrors &&
+                            CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder,
+                                ref useSiteDiagnosticsBuilder, ref tupleDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -418,6 +421,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int ordinal = pair.TypeParameter.Ordinal;
                 var location = new SourceLocation(ordinal < typeArgumentsSyntax.Count ? typeArgumentsSyntax[ordinal] : typeSyntax);
                 diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
+            }
+
+            if (tupleDiagnosticsBuilder != null)
+            {
+                foreach (var diagnosticInfo in tupleDiagnosticsBuilder)
+                {
+                    var location = new SourceLocation(typeSyntax);
+                    diagnostics.Add(new CSDiagnostic(diagnosticInfo, location));
+                }
             }
 
             diagnosticsBuilder.Free();
@@ -445,7 +457,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            ArrayBuilder<DiagnosticInfo> tupleDiagnosticsBuilder = null;
+            var result = CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder,
+                            ref useSiteDiagnosticsBuilder, ref tupleDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -455,6 +469,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var pair in diagnosticsBuilder)
             {
                 diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
+            }
+
+            if (tupleDiagnosticsBuilder != null)
+            {
+                foreach (var diagnosticInfo in tupleDiagnosticsBuilder)
+                {
+                    diagnostics.Add(new CSDiagnostic(diagnosticInfo, location));
+                }
             }
 
             diagnosticsBuilder.Free();
@@ -511,12 +533,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     set.Free();
                     return false;
             }
-            
+
             // very rare case. 
             // some implemented interfaces are related
             // will have to instantiate interfaces and check
             hasRelatedInterfaces:
             return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer);
+        }
+
+        internal static bool CheckTupleNamesAgainstBase(TypeSymbol type, Location location, DiagnosticBag diagnostics)
+        {
+            ArrayBuilder<DiagnosticInfo> builder = null;
+
+            bool result = CheckTupleNamesAgainstBase(type, ref builder);
+
+            if (builder != null)
+            {
+                foreach (var diagnosticInfo in builder)
+                {
+                    diagnostics.Add(new CSDiagnostic(diagnosticInfo, location));
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Check interfaces for tuple name differences with AllInterfaces from base type.
+        /// Returns false if there was a problem.
+        /// </summary>
+        internal static bool CheckTupleNamesAgainstBase(TypeSymbol type, ref ArrayBuilder<DiagnosticInfo> builder)
+        {
+            NamedTypeSymbol baseType = type.BaseTypeNoUseSiteDiagnostics;
+            if ((object)baseType == null)
+            {
+                return true;
+            }
+
+            var interfaces = type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics;
+
+            var baseInterfaces = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(TypeSymbol.EqualsIgnoringComparer.InstanceIgnoringTupleNames);
+            foreach (var baseInterface in baseType.AllInterfacesNoUseSiteDiagnostics)
+            {
+                if (!baseInterfaces.ContainsKey(baseInterface))
+                {
+                    baseInterfaces.Add(baseInterface, baseInterface);
+                    // Note: because AllInterfaces is sorted, if somehow conflicting tuple names already exist in baseInterfaces
+                    //       (for instance in specially-crafted metadata), then only the most derived re-implementation matters
+                }
+            }
+
+            bool result = true;
+            foreach (var @interface in interfaces)
+            {
+                if (baseInterfaces.TryGetValue(@interface, out NamedTypeSymbol found))
+                {
+                    if (!@interface.Equals(found)) // tuple names differ
+                    {
+                        if (builder == null)
+                        {
+                            builder = new ArrayBuilder<DiagnosticInfo>();
+                        }
+
+                        builder.Add(new CSDiagnosticInfo(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, @interface, found, type));
+                        result = false;
+                    }
+                }
+            }
+
+            return result;
         }
 
         public static bool CheckConstraints(
@@ -534,7 +619,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder, skipParameters);
+            ArrayBuilder<DiagnosticInfo> tupleDiagnosticsBuilder = null;
+            var result = CheckMethodConstraints(method, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder, ref tupleDiagnosticsBuilder, skipParameters);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -547,7 +633,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
             }
 
+            if (tupleDiagnosticsBuilder != null)
+            {
+                foreach (var diagnosticInfo in tupleDiagnosticsBuilder)
+                {
+                    var location = new SourceLocation(syntaxNode);
+                    diagnostics.Add(new CSDiagnostic(diagnosticInfo, location));
+                }
+            }
+
             diagnosticsBuilder.Free();
+
             return result;
         }
 
@@ -565,7 +661,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            ArrayBuilder<DiagnosticInfo> tupleDiagnosticsBuilder = null;
+            var result = CheckMethodConstraints(method, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder, ref tupleDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -577,6 +674,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
             }
 
+            if (tupleDiagnosticsBuilder != null)
+            {
+                foreach (var diagnosticInfo in tupleDiagnosticsBuilder)
+                {
+                    diagnostics.Add(new CSDiagnostic(diagnosticInfo, location));
+                }
+            }
+
             diagnosticsBuilder.Free();
             return result;
         }
@@ -586,17 +691,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConversionsBase conversions,
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
-            ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder)
+            ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
+            ref ArrayBuilder<DiagnosticInfo> tupleDiagnosticsBuilder)
         {
-            return CheckConstraints(
-                type,
-                conversions,
-                type.TypeSubstitution,
-                type.OriginalDefinition.TypeParameters,
-                type.TypeArgumentsNoUseSiteDiagnostics,
-                currentCompilation,
-                diagnosticsBuilder,
-                ref useSiteDiagnosticsBuilder);
+            bool result = CheckConstraints(
+                            type,
+                            conversions,
+                            type.TypeSubstitution,
+                            type.OriginalDefinition.TypeParameters,
+                            type.TypeArgumentsNoUseSiteDiagnostics,
+                            currentCompilation,
+                            diagnosticsBuilder,
+                            ref useSiteDiagnosticsBuilder);
+
+            result &= CheckTupleNamesAgainstBase(type, ref tupleDiagnosticsBuilder);
+
+            return result;
         }
 
         private static bool CheckMethodConstraints(
@@ -605,18 +715,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
+            ref ArrayBuilder<DiagnosticInfo> tupleDiagnosticsBuilder,
             BitVector skipParameters = default(BitVector))
         {
-            return CheckConstraints(
-                method,
-                conversions,
-                method.TypeSubstitution,
-                ((MethodSymbol)method.OriginalDefinition).TypeParameters,
-                method.TypeArguments,
-                currentCompilation,
-                diagnosticsBuilder,
-                ref useSiteDiagnosticsBuilder,
-                skipParameters);
+            bool result = CheckConstraints(
+                            method,
+                            conversions,
+                            method.TypeSubstitution,
+                            ((MethodSymbol)method.OriginalDefinition).TypeParameters,
+                            method.TypeArguments,
+                            currentCompilation,
+                            diagnosticsBuilder,
+                            ref useSiteDiagnosticsBuilder,
+                            skipParameters);
+
+            foreach (var parameter in method.Parameters)
+            {
+                result &= CheckTupleNamesAgainstBase(parameter.Type, ref tupleDiagnosticsBuilder);
+            }
+            result &= CheckTupleNamesAgainstBase(method.ReturnType, ref tupleDiagnosticsBuilder);
+
+            return result;
         }
 
         /// <summary>

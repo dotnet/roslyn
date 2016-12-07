@@ -3511,6 +3511,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is already listed in the interface list on type &apos;{2}&apos; with different tuple element names, as &apos;{1}&apos;..
         /// </summary>
+        internal static string ERR_DuplicateInterfaceWithTupleNames {
+            get {
+                return ResourceManager.GetString("ERR_DuplicateInterfaceWithTupleNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is already listed in the interface list on the base of type &apos;{2}&apos; with different tuple element names, as &apos;{1}&apos;..
+        /// </summary>
         internal static string ERR_DuplicateInterfaceWithTupleNamesInBaseList {
             get {
                 return ResourceManager.GetString("ERR_DuplicateInterfaceWithTupleNamesInBaseList", resourceCulture);

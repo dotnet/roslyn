@@ -6,6 +6,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -2660,7 +2661,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If propertySymbol.IsAutoProperty AndAlso
                         propertySymbol.ContainingType.TypeKind = TypeKind.Structure Then
 
-                        Binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_AutoPropertyInitializedInStructure)
+                        binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_AutoPropertyInitializedInStructure)
                     End If
 
                     AddInitializer(instanceInitializers, initializer, members.InstanceSyntaxLength)
@@ -3753,22 +3754,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub CheckInterfaceUnificationAndVariance(diagnostics As DiagnosticBag)
             Dim interfaces = Me.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics
 
-            If interfaces.Count < 2 Then
-                Return ' can't have any conflicts
-            End If
-
-            ' Check no duplicate interfaces (ignoring tuple names)
             Dim declaringSyntax = Me.GetDeclaringSyntaxNode(Of VisualBasicSyntaxNode)()
             If declaringSyntax IsNot Nothing Then
-                Dim seenInterfaces = New Dictionary(Of NamedTypeSymbol, NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
-                For Each [interface] In interfaces
-                    Dim other As NamedTypeSymbol = Nothing
-                    If seenInterfaces.TryGetValue([interface], other) Then
-                        ReportDuplicateInterfaceWithDifferentTupleNames(diagnostics, [interface], other)
-                    Else
-                        seenInterfaces.Add([interface], [interface])
-                    End If
-                Next
+                Dim reportedError As Boolean = False
+
+                If interfaces.Count > 1 Then
+                    ' Check no duplicate interfaces with different tuple names on this inheritance level
+                    Dim seenInterfaces = New Dictionary(Of NamedTypeSymbol, NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
+                    For Each [interface] In interfaces
+                        Dim other As NamedTypeSymbol = Nothing
+                        If seenInterfaces.TryGetValue([interface], other) Then
+                            ReportDuplicateInterfaceWithDifferentTupleNames(diagnostics, [interface], other)
+                            reportedError = True
+                        Else
+                            seenInterfaces.Add([interface], [interface])
+                        End If
+                    Next
+                End If
+
+                If Not reportedError Then
+                    ' Check no duplicate interfaces with different tuple names with base
+                    CheckTupleNamesAgainstBase(Me, diagnostics)
+                End If
             End If
 
             ' We only need to check pairs of generic interfaces that have the same original definition. Put the interfaces
@@ -3806,6 +3813,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             Next
 
+        End Sub
+
+        Private Sub CheckTupleNamesAgainstBase(type As NamedTypeSymbol, diagnostics As DiagnosticBag)
+            Dim baseType As NamedTypeSymbol = type.BaseTypeNoUseSiteDiagnostics
+            If baseType Is Nothing Then
+                Return
+            End If
+            Dim interfaces = type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics
+            Dim baseInterfaces = New Dictionary(Of NamedTypeSymbol, NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
+
+            For Each baseInterface In baseType.AllInterfacesNoUseSiteDiagnostics
+                If Not baseInterfaces.ContainsKey(baseInterface) Then
+                    baseInterfaces.Add(baseInterface, baseInterface)
+                    ' Note: because AllInterfaces is sorted, if somehow conflicting tuple names already exist in baseInterfaces
+                    '       (for instance in specially-crafted metadata), then only the most derived re-implementation matters
+                End If
+            Next
+
+            Dim found As NamedTypeSymbol = Nothing
+            For Each [interface] In interfaces
+                If baseInterfaces.TryGetValue([interface], found) AndAlso
+                    Not [interface].IsSameType(found, TypeCompareKind.ConsiderEverything) Then
+
+                    Dim location As Location = Me.GetInheritsOrImplementsLocation([interface], getInherits:=True)
+                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateInterfaceWithTupleNamesInBaseList3, [interface], found, type), location)
+                End If
+            Next
         End Sub
 
         Private Sub ReportOverloadsErrors(comparisonResults As SymbolComparisonResults, firstMember As Symbol, secondMember As Symbol, location As Location, diagnostics As DiagnosticBag)
