@@ -15421,21 +15421,21 @@ BC31033: Interface 'I0(Of Integer)' can be implemented only once by this type.
             Dim model = comp.GetSemanticModel(tree)
             Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
 
-            Dim c1 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().Skip(1).First())
+            Dim c1 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().ElementAt(1))
             Assert.Equal("C1", c1.Name)
-            Assert.Equal(2, c1.AllInterfaces.Count)
-            Assert.Equal("I0(Of (a As System.Int32, b As System.Int32))", c1.Interfaces(0).ToTestDisplayString())
-            Assert.Equal("I0(Of (notA As System.Int32, notB As System.Int32))", c1.Interfaces(1).ToTestDisplayString())
+            Assert.Equal(1, c1.AllInterfaces.Count)
+            ' Note: the second set of names is the one listed in AllInterfaces
+            Assert.Equal("I0(Of (notA As System.Int32, notB As System.Int32))", c1.AllInterfaces(0).ToTestDisplayString())
 
-            Dim c2 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().Skip(2).First())
+            Dim c2 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().ElementAt(2))
             Assert.Equal("C2", c2.Name)
             Assert.Equal(1, c2.AllInterfaces.Count)
-            Assert.Equal("I0(Of (a As System.Int32, b As System.Int32))", c2.Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I0(Of (a As System.Int32, b As System.Int32))", c2.AllInterfaces(0).ToTestDisplayString())
 
-            Dim c3 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().Skip(3).First())
+            Dim c3 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().ElementAt(3))
             Assert.Equal("C3", c3.Name)
             Assert.Equal(1, c3.AllInterfaces.Count)
-            Assert.Equal("I0(Of System.Int32)", c3.Interfaces(0).ToTestDisplayString())
+            Assert.Equal("I0(Of System.Int32)", c3.AllInterfaces(0).ToTestDisplayString())
         End Sub
 
         <Fact>
@@ -18168,6 +18168,536 @@ End Module
             Assert.Equal("(System.Int32, elem2 As System.Int32).elem2 As System.Int32", model.GetDeclaredSymbol(type.Elements.Last()).ToTestDisplayString())
             Assert.Equal("(System.Int32, elem2 As System.Int32).Item1 As System.Int32", model.GetDeclaredSymbol(DirectCast(type.Elements.First(), SyntaxNode)).ToTestDisplayString())
             Assert.Equal("(System.Int32, elem2 As System.Int32).elem2 As System.Int32", model.GetDeclaredSymbol(DirectCast(type.Elements.Last(), SyntaxNode)).ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub ImplementSameInterfaceViaBaseWithDifferentTupleNames()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Interface ITest(Of T)
+End Interface
+
+Class Base
+    Implements ITest(Of (a As Integer, b As Integer))
+End Class
+
+Class Derived
+    Inherits Base
+    Implements ITest(Of (notA As Integer, notB As Integer))
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.First()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim derived = tree.GetRoot().DescendantNodes().OfType(Of ClassStatementSyntax)().ElementAt(1)
+            Dim derivedSymbol = model.GetDeclaredSymbol(derived)
+            Assert.Equal("Derived", derivedSymbol.ToTestDisplayString())
+
+            Assert.Equal(New String() {"ITest(Of (notA As System.Int32, notB As System.Int32))"},
+                derivedSymbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub ImplementSameInterfaceViaBase()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Interface ITest(Of T)
+End Interface
+
+Class Base
+    Implements ITest(Of Integer)
+End Class
+
+Class Derived
+    Inherits Base
+    Implements ITest(Of Integer)
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.First()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim derived = tree.GetRoot().DescendantNodes().OfType(Of ClassStatementSyntax)().ElementAt(1)
+            Dim derivedSymbol = model.GetDeclaredSymbol(derived)
+            Assert.Equal("Derived", derivedSymbol.ToTestDisplayString())
+
+            Assert.Equal(New String() {"ITest(Of System.Int32)"},
+                derivedSymbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub GenericImplementSameInterfaceViaBaseWithoutTuples()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Interface ITest(Of T)
+End Interface
+
+Class Base
+    Implements ITest(Of Integer)
+End Class
+
+Class Derived(Of T)
+    Inherits Base
+    Implements ITest(Of T)
+End Class
+
+Module M
+    Sub Main()
+        Dim instance1 = New Derived(Of Integer)
+        Dim instance2 = New Derived(Of String)
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.First()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim derived = tree.GetRoot().DescendantNodes().OfType(Of ClassStatementSyntax)().ElementAt(1)
+            Dim derivedSymbol = DirectCast(model.GetDeclaredSymbol(derived), NamedTypeSymbol)
+            Assert.Equal("Derived(Of T)", derivedSymbol.ToTestDisplayString())
+
+            Assert.Equal(New String() {"ITest(Of System.Int32)", "ITest(Of T)"},
+                derivedSymbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+            Dim instance1 = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().ElementAt(0).Names(0)
+            Dim instance1Symbol = DirectCast(model.GetDeclaredSymbol(instance1), LocalSymbol).Type
+            Assert.Equal("Derived(Of Integer)", instance1Symbol.ToString())
+
+            Assert.Equal(New String() {"ITest(Of System.Int32)"},
+                instance1Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+            Dim instance2 = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().ElementAt(1).Names(0)
+            Dim instance2Symbol = DirectCast(model.GetDeclaredSymbol(instance2), LocalSymbol).Type
+            Assert.Equal("Derived(Of String)", instance2Symbol.ToString())
+
+            Assert.Equal(New String() {"ITest(Of System.Int32)", "ITest(Of System.String)"},
+                instance2Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+            Assert.Empty(derivedSymbol.AsUnboundGenericType().AllInterfaces)
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub GenericImplementSameInterfaceViaBase()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Interface ITest(Of T)
+End Interface
+
+Class Base
+    Implements ITest(Of (a As Integer, b As Integer))
+End Class
+
+Class Derived(Of T)
+    Inherits Base
+    Implements ITest(Of T)
+End Class
+
+Module M
+    Sub Main()
+        Dim instance1 = New Derived(Of (notA As Integer, notB As Integer))
+        Dim instance2 = New Derived(Of (notA As String, notB As String))
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.First()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim derived = tree.GetRoot().DescendantNodes().OfType(Of ClassStatementSyntax)().ElementAt(1)
+            Dim derivedSymbol = model.GetDeclaredSymbol(derived)
+            Assert.Equal("Derived(Of T)", derivedSymbol.ToTestDisplayString())
+
+            Assert.Equal(New String() {"ITest(Of (a As System.Int32, b As System.Int32))", "ITest(Of T)"},
+                derivedSymbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+            Dim instance1 = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().ElementAt(0).Names(0)
+            Dim instance1Symbol = DirectCast(model.GetDeclaredSymbol(instance1), LocalSymbol).Type
+            Assert.Equal("Derived(Of (notA As Integer, notB As Integer))", instance1Symbol.ToString())
+
+            Assert.Equal(New String() {"ITest(Of (notA As System.Int32, notB As System.Int32))"},
+                instance1Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+            Dim instance2 = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().ElementAt(1).Names(0)
+            Dim instance2Symbol = DirectCast(model.GetDeclaredSymbol(instance2), LocalSymbol).Type
+            Assert.Equal("Derived(Of (notA As String, notB As String))", instance2Symbol.ToString())
+
+            Assert.Equal(New String() {
+                         "ITest(Of (a As System.Int32, b As System.Int32))",
+                         "ITest(Of (notA As System.String, notB As System.String))"},
+                instance2Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub GenericExplicitIEnumerableImplementationUsedWithDifferentTypesAndTupleNames()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+
+Class Base
+    Implements IEnumerable(Of (a As Integer, b As Integer))
+
+    Function GetEnumerator1() As IEnumerator Implements IEnumerable.GetEnumerator
+        Throw New Exception()
+    End Function
+    Function GetEnumerator2() As IEnumerator(Of (a As Integer, b As Integer)) Implements IEnumerable(Of (a As Integer, b As Integer)).GetEnumerator
+        Throw New Exception()
+    End Function
+End Class
+
+Class Derived(Of T)
+    Inherits Base
+    Implements IEnumerable(Of T)
+
+    Public Dim state As T
+
+    Function GetEnumerator3() As IEnumerator Implements IEnumerable.GetEnumerator
+        Throw New Exception()
+    End Function
+    Function GetEnumerator4() As IEnumerator(Of T) Implements IEnumerable(Of T).GetEnumerator
+        Return New DerivedEnumerator With {.state = state}
+    End Function
+
+    Public Class DerivedEnumerator
+        Implements IEnumerator(Of T)
+
+        Public Dim state As T
+        Dim done As Boolean = False
+
+        Function MoveNext() As Boolean Implements IEnumerator.MoveNext
+            If done Then
+                Return False
+            Else
+                done = True
+                Return True
+            End If
+        End Function
+
+        ReadOnly Property Current As T Implements IEnumerator(Of T).Current
+            Get
+                Return state
+            End Get
+        End Property
+
+        ReadOnly Property Current2 As Object Implements IEnumerator.Current
+            Get
+                Throw New Exception()
+            End Get
+        End Property
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+
+        Public Sub Reset() Implements IEnumerator.Reset
+        End Sub
+    End Class
+End Class
+
+Module M
+    Sub Main()
+        Dim collection = New Derived(Of (notA As String, notB As String)) With {.state = (42, 43)}
+        For Each x In collection
+            Console.Write(x.notA)
+        Next
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            compilation.AssertTheseDiagnostics(<errors>
+BC32096: 'For Each' on type 'Derived(Of (notA As String, notB As String))' is ambiguous because the type implements multiple instantiations of 'System.Collections.Generic.IEnumerable(Of T)'.
+        For Each x In collection
+                      ~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub GenericExplicitIEnumerableImplementationUsedWithDifferentTupleNames()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+
+Class Base
+    Implements IEnumerable(Of (a As Integer, b As Integer))
+
+    Function GetEnumerator1() As IEnumerator Implements IEnumerable.GetEnumerator
+        Throw New Exception()
+    End Function
+    Function GetEnumerator2() As IEnumerator(Of (a As Integer, b As Integer)) Implements IEnumerable(Of (a As Integer, b As Integer)).GetEnumerator
+        Throw New Exception()
+    End Function
+End Class
+
+Class Derived(Of T)
+    Inherits Base
+    Implements IEnumerable(Of T)
+
+    Public Dim state As T
+
+    Function GetEnumerator3() As IEnumerator Implements IEnumerable.GetEnumerator
+        Throw New Exception()
+    End Function
+    Function GetEnumerator4() As IEnumerator(Of T) Implements IEnumerable(Of T).GetEnumerator
+        Return New DerivedEnumerator With {.state = state}
+    End Function
+
+    Public Class DerivedEnumerator
+        Implements IEnumerator(Of T)
+
+        Public Dim state As T
+        Dim done As Boolean = False
+
+        Function MoveNext() As Boolean Implements IEnumerator.MoveNext
+            If done Then
+                Return False
+            Else
+                done = True
+                Return True
+            End If
+        End Function
+
+        ReadOnly Property Current As T Implements IEnumerator(Of T).Current
+            Get
+                Return state
+            End Get
+        End Property
+
+        ReadOnly Property Current2 As Object Implements IEnumerator.Current
+            Get
+                Throw New Exception()
+            End Get
+        End Property
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+
+        Public Sub Reset() Implements IEnumerator.Reset
+        End Sub
+    End Class
+End Class
+
+Module M
+    Sub Main()
+        Dim collection = New Derived(Of (notA As Integer, notB As Integer)) With {.state = (42, 43)}
+        For Each x In collection
+            Console.Write(x.notA)
+        Next
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            compilation.AssertTheseDiagnostics()
+            CompileAndVerify(compilation, expectedOutput:="42")
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14843, "https://github.com/dotnet/roslyn/issues/14843")>
+        Public Sub TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I1(Of T)
+End Interface
+
+Class Base(Of U As I1(Of (a As Integer, b As Integer)))
+End Class
+
+Class Derived
+    Inherits Base(Of I1(Of (notA As Integer, notB As Integer)))
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14843, "https://github.com/dotnet/roslyn/issues/14843")>
+        Public Sub TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion2()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I1(Of T)
+End Interface
+
+Interface I2(Of T)
+    Inherits I1(Of T)
+End Interface
+
+Class Base(Of U As I1(Of (a As Integer, b As Integer)))
+End Class
+
+Class Derived
+    Inherits Base(Of I2(Of (notA As Integer, notB As Integer)))
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub CanReImplementInterfaceWithDifferentTupleNames()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface ITest(Of T)
+    Function M() As T
+End Interface
+
+Class Base
+    Implements ITest(Of (a As Integer, b As Integer))
+
+    Function M() As (a As Integer, b As Integer) Implements ITest(Of (a As Integer, b As Integer)).M
+        Return (1, 2)
+    End Function
+End Class
+
+Class Derived
+    Inherits Base
+    Implements ITest(Of (notA As Integer, notB As Integer))
+
+    Overloads Function M() As (notA As Integer, notB As Integer) Implements ITest(Of (notA As Integer, notB As Integer)).M
+        Return (3, 4)
+    End Function
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface ITest(Of T)
+    Function M() As T
+End Interface
+
+Class Base
+    Implements ITest(Of (a As Integer, b As Integer))
+
+    Function M() As (a As Integer, b As Integer) Implements ITest(Of (a As Integer, b As Integer)).M
+        Return (1, 2)
+    End Function
+End Class
+
+Class Derived1
+    Inherits Base
+    Implements ITest(Of (notA As Integer, notB As Integer))
+End Class
+Class Derived2
+    Inherits Base
+    Implements ITest(Of (a As Integer, b As Integer))
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics(<errors>
+BC30149: Class 'Derived1' must implement 'Function M() As (notA As Integer, notB As Integer)' for interface 'ITest(Of (notA As Integer, notB As Integer))'.
+    Implements ITest(Of (notA As Integer, notB As Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub ReImplementationAndInference()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface ITest(Of T)
+    Function M() As T
+End Interface
+
+Class Base
+    Implements ITest(Of (a As Integer, b As Integer))
+
+    Function M() As (a As Integer, b As Integer) Implements ITest(Of (a As Integer, b As Integer)).M
+        Return (1, 2)
+    End Function
+End Class
+
+Class Derived
+    Inherits Base
+    Implements ITest(Of (notA As Integer, notB As Integer))
+
+    Overloads Function M() As (notA As Integer, notB As Integer) Implements ITest(Of (notA As Integer, notB As Integer)).M
+        Return (3, 4)
+    End Function
+End Class
+
+Class C
+    Shared Sub Main()
+        Dim b As Base = New Derived()
+        Dim x = Test(b) ' tuple names from Base, implementation from Derived
+        System.Console.WriteLine(x.a)
+    End Sub
+
+    Shared Function Test(Of T)(t1 As ITest(Of T)) As T
+        Return t1.M()
+    End Function
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            comp.AssertTheseDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="3")
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
+            Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(1).Names(0)
+            Assert.Equal("x", x.Identifier.ToString())
+            Dim xSymbol = DirectCast(model.GetDeclaredSymbol(x), LocalSymbol).Type
+            Assert.Equal("(a As System.Int32, b As System.Int32)", xSymbol.ToTestDisplayString())
         End Sub
 
     End Class
