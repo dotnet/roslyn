@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 // Handle unqualified namespace and type names, or member names.
 
-                builder.Append(symbol.ToMinimalDisplayString(semanticModel, position, CrefFormat));
+                builder.Append(symbol.ToMinimalDisplayString(semanticModel, token.SpanStart, CrefFormat));
 
                 var parameters = symbol.GetParameters();
                 if (!parameters.IsDefaultOrEmpty)

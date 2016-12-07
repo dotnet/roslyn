@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var symbols = await recommender.GetRecommendedSymbolsAtPositionAsync(
-                context.Workspace, 
-                context.SemanticModel, 
-                context.LeftToken.SpanStart, 
-                options, 
+                context.Workspace,
+                context.SemanticModel,
+                context.Position,
+                options,
                 cancellationToken).ConfigureAwait(false);
 
             // Don't preselect intrinsic type symbols so we can preselect their keywords instead.
@@ -109,16 +109,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
             var name = SymbolCompletionItem.GetSymbolName(item);
-            var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken)
-                .ConfigureAwait(false);
-            var symbols = await Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
-                semanticModel, position, document.Project.Solution.Workspace, 
-                document.Project.Solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
-
             var kind = SymbolCompletionItem.GetKind(item);
+            var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id).Concat(document.Id);
+            var options = document.Project.Solution.Workspace.Options;
+            var totalSymbols = await base.GetPerContextSymbols(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            foreach (var info in totalSymbols)
+            {
+                var bestSymbols = info.Item3.Where(s => kind != null && s.Kind == kind && s.Name == name).ToImmutableArray();
+                if (bestSymbols.Any())
+                {
+                    return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, info.Item2.SemanticModel, cancellationToken).ConfigureAwait(false);
+                }
+            }
 
-            var bestSymbols = symbols.Where(s => kind != null && s.Kind == kind && s.Name == name).ToImmutableArray();
-            return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            return CompletionDescription.Empty;
         }
     }
 }
