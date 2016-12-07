@@ -515,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             If wellKnownAttributeData?.ForwardedTypes?.Count > 0 Then
                 ' (type, index of the parent exported type in builder, or -1 if the type is a top-level type)
-                Dim stack = ArrayBuilder(Of ValueTuple(Of NamedTypeSymbol, Integer)).GetInstance()
+                Dim stack = ArrayBuilder(Of (type As NamedTypeSymbol, parentIndex As Integer)).GetInstance()
 
                 For Each forwardedType As NamedTypeSymbol In wellKnownAttributeData.ForwardedTypes
                     Dim originalDefinition As NamedTypeSymbol = forwardedType.OriginalDefinition
@@ -529,15 +529,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     ' Return all nested types.
                     ' Note the order: depth first, children in reverse order (to match dev10, not a requirement).
                     Debug.Assert(stack.Count = 0)
-                    stack.Push(ValueTuple.Create(originalDefinition, -1))
+                    stack.Push((originalDefinition, -1))
 
                     While stack.Count > 0
                         Dim entry = stack.Pop()
-                        Dim type As NamedTypeSymbol = entry.Item1
-                        Dim parentIndex As Integer = entry.Item2
 
                         ' In general, we don't want private types to appear in the ExportedTypes table.
-                        If type.DeclaredAccessibility = Accessibility.Private Then
+                        If entry.type.DeclaredAccessibility = Accessibility.Private Then
                             ' NOTE: this will also exclude nested types of curr.
                             Continue While
                         End If
@@ -545,12 +543,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         ' NOTE: not bothering to put nested types in seenTypes - the top-level type is adequate protection.
 
                         Dim index = builder.Count
-                        builder.Add(New Cci.ExportedType(type, parentIndex, isForwarder:=True))
+                        builder.Add(New Cci.ExportedType(entry.type, entry.parentIndex, isForwarder:=True))
 
                         ' Iterate backwards so they get popped in forward order.
-                        Dim nested As ImmutableArray(Of NamedTypeSymbol) = type.GetTypeMembers() ' Ordered.
+                        Dim nested As ImmutableArray(Of NamedTypeSymbol) = entry.type.GetTypeMembers() ' Ordered.
                         For i As Integer = nested.Length - 1 To 0 Step -1
-                            stack.Push(ValueTuple.Create(nested(i), index))
+                            stack.Push((nested(i), index))
                         Next
                     End While
                 Next
