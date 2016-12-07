@@ -164,7 +164,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 SymbolDisplayMemberOptions.IncludeType |
                 SymbolDisplayMemberOptions.IncludeExplicitInterface |
                 SymbolDisplayMemberOptions.IncludeAccessibility |
-                SymbolDisplayMemberOptions.IncludeModifiers);
+                SymbolDisplayMemberOptions.IncludeModifiers |
+                SymbolDisplayMemberOptions.IncludeRef);
 
         private static SymbolDisplayFormat s_parameterDisplayFormat = new SymbolDisplayFormat(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
