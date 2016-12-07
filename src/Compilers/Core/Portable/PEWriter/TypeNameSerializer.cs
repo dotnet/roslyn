@@ -82,7 +82,7 @@ namespace Microsoft.Cci
 
             if (typeReference.IsTypeSpecification())
             {
-                ITypeReference uninstantiatedTypeReference = typeReference.GetUninstantiatedGenericType();
+                ITypeReference uninstantiatedTypeReference = typeReference.GetUninstantiatedGenericType(context);
 
                 ArrayBuilder<ITypeReference> consolidatedTypeArguments = ArrayBuilder<ITypeReference>.GetInstance();
                 typeReference.GetConsolidatedTypeArguments(consolidatedTypeArguments, context);
@@ -158,7 +158,7 @@ namespace Microsoft.Cci
             IGenericTypeInstanceReference genInst = typeReference.AsGenericTypeInstanceReference;
             if (genInst != null)
             {
-                AppendAssemblyQualifierIfNecessary(sb, genInst.GenericType, out isAssemQualified, context);
+                AppendAssemblyQualifierIfNecessary(sb, genInst.GetGenericType(context), out isAssemQualified, context);
                 return;
             }
 

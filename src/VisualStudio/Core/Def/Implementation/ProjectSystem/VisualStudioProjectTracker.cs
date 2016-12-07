@@ -136,7 +136,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private void ScheduleForegroundAffinitizedAction(Action action)
         {
             AssertIsBackground();
+            ScheduleForegroundAffinitizedAction_NoBackgroundAssert(action);
+        }
 
+        private void ScheduleForegroundAffinitizedAction_NoBackgroundAssert(Action action)
+        {
             lock (_gate)
             {
                 _taskForForegroundAffinitizedActions = _taskForForegroundAffinitizedActions.SafeContinueWith(_ => action(), ForegroundTaskScheduler);
@@ -364,7 +368,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         internal void RemoveProject(AbstractProject project)
         {
-            ExecuteOrScheduleForegroundAffinitizedAction(() => RemoveProject_Foreground(project));
+            // always schedule on queue so removal happens after other queued actions.
+            ScheduleForegroundAffinitizedAction_NoBackgroundAssert(() => RemoveProject_Foreground(project));
         }
 
         /// <summary>
