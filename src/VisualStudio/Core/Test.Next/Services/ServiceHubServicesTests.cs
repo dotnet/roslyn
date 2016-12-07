@@ -3,10 +3,8 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.Remote;
 using Xunit;
@@ -42,7 +40,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 var solution = workspace.CurrentSolution;
 
-                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, CancellationToken.None));
+                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, forTesting: true, cancellationToken: CancellationToken.None));
                 using (var session = await client.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, solution, CancellationToken.None))
                 {
                     await session.InvokeAsync(
@@ -65,7 +63,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private static RemoteHostService CreateService()
         {
             var stream = new MemoryStream();
-            return new RemoteHostService(stream, new InProcRemoteHostClient.ServiceProvider());
+            return new RemoteHostService(stream, new InProcRemoteHostClient.ServiceProvider(forTesting: true));
         }
     }
 }

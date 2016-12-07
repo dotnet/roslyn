@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class TemporaryWorkspace : Workspace
     {
-        private const string WorkspaceKind_TemporaryWorkspace = "TemporaryWorkspace";
+        public const string WorkspaceKind_TemporaryWorkspace = "TemporaryWorkspace";
 
         public TemporaryWorkspace(Solution solution)
             : base(RoslynServices.HostServices, workspaceKind: TemporaryWorkspace.WorkspaceKind_TemporaryWorkspace)

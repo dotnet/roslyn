@@ -16,14 +16,11 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class AssetStorage
     {
-        public static readonly AssetStorage Default = new AssetStorage(enableCleanup: true);
-
         // TODO: think of a way to use roslyn option service in OOP
-        private const int CleanupInterval = 1; // 1 minutes
-        private const int PurgeAfter = 3; // 3 minutes
+        public static readonly AssetStorage Default = new AssetStorage(cleanupInterval: TimeSpan.FromMinutes(1), purgeAfter: TimeSpan.FromMinutes(3));
 
-        private static readonly TimeSpan s_purgeAfterTimeSpan = TimeSpan.FromMinutes(PurgeAfter);
-        private static readonly TimeSpan s_cleanupIntervalTimeSpan = TimeSpan.FromMinutes(CleanupInterval);
+        private readonly TimeSpan _cleanupIntervalTimeSpan;
+        private readonly TimeSpan _purgeAfterTimeSpan;
 
         private readonly ConcurrentDictionary<int, AssetSource> _assetSources =
             new ConcurrentDictionary<int, AssetSource>(concurrencyLevel: 4, capacity: 10);
@@ -31,12 +28,17 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly ConcurrentDictionary<Checksum, Entry> _assets =
             new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
 
-        public AssetStorage(bool enableCleanup)
+        public AssetStorage()
         {
-            if (enableCleanup)
-            {
-                Task.Run(CleanAssetsAsync, CancellationToken.None);
-            }
+            // constructor for testing
+        }
+
+        public AssetStorage(TimeSpan cleanupInterval, TimeSpan purgeAfter)
+        {
+            _cleanupIntervalTimeSpan = cleanupInterval;
+            _purgeAfterTimeSpan = purgeAfter;
+
+            Task.Run(CleanAssetsAsync, CancellationToken.None);
         }
 
         public AssetSource TryGetAssetSource(int sessionId)
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 CleanAssets();
 
-                await Task.Delay(s_cleanupIntervalTimeSpan).ConfigureAwait(false);
+                await Task.Delay(_cleanupIntervalTimeSpan).ConfigureAwait(false);
             }
         }
 
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 foreach (var kvp in _assets.ToArray())
                 {
-                    if (current - kvp.Value.LastAccessed <= s_purgeAfterTimeSpan)
+                    if (current - kvp.Value.LastAccessed <= _purgeAfterTimeSpan)
                     {
                         continue;
                     }
