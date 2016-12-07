@@ -2,6 +2,8 @@
 
 using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,7 +15,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [WorkItem(10358, "https://github.com/dotnet/roslyn/issues/10358")]
-        public void DisconnectingAProjectDoesNotLeak()
+        public async Task DisconnectingAProjectDoesNotLeak()
         {
             using (var environment = new TestEnvironment())
             {
@@ -22,7 +24,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 Assert.Single(environment.Workspace.CurrentSolution.Projects);
 
                 project.UseReference(p => p.Disconnect());
-                project.AssertReleased();
+                await project.AssertReleasedAsync().ConfigureAwait(false);
             }
         }
     }

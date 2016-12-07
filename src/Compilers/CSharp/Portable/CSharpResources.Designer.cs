@@ -12984,7 +12984,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The member &apos;{0}&apos; does not hide an inherited member. The new keyword is not required..
+        ///   Looks up a localized string similar to The member &apos;{0}&apos; does not hide an accessible member. The new keyword is not required..
         /// </summary>
         internal static string WRN_NewNotRequired {
             get {
