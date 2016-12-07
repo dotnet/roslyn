@@ -529,12 +529,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 if (string.IsNullOrEmpty(s_frameworkRoot))
                 {
-                    s_frameworkRoot = Environment.GetEnvironmentVariable("FrameworkDir");
-
-                    if (string.IsNullOrEmpty(s_frameworkRoot))
-                    {
-                        s_frameworkRoot = Path.Combine(Environment.GetEnvironmentVariable("SystemRoot"), "Microsoft.Net", "Framework");
-                    }
+                    var runtimeDir = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
+                    s_frameworkRoot = Path.GetDirectoryName(runtimeDir); // back out one directory level to be root path of all framework versions
                 }
 
                 return s_frameworkRoot;
