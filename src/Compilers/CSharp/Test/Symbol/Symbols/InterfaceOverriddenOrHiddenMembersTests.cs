@@ -38,7 +38,7 @@ interface I0 : I1, I2
 ";
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (13,14): warning CS0109: The member 'I0.foo(int)' does not hide an inherited member. The new keyword is not required.
+                // (13,14): warning CS0109: The member 'I0.foo(int)' does not hide an accessible member. The new keyword is not required.
                 //     new void foo(int x);
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "foo").WithArguments("I0.foo(int)"));
         }
