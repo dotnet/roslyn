@@ -497,19 +497,40 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 if (IsInGAC(peRef.FilePath) && identity != null)
                 {
+                    // Since the location of the reference is in GAC, need to use full identity name to find it again.
+                    // This typically happens when you base the reference off of a reflection assembly location.
                     _loadedProject.AddItem("Reference", identity.GetDisplayName(), metadata);
                 }
-                else
+                else if (IsReferenceAssembly(peRef.FilePath))
+                {
+                    // just use short name since this will be resolved by msbuild relative to the known reference assemblies.
+                    var fileName = identity != null ? identity.Name : Path.GetFileNameWithoutExtension(peRef.FilePath);
+                    _loadedProject.AddItem("Reference", fileName, metadata);
+                }
+                else // other location -- need hint to find correct assembly
                 {
                     string relativePath = FilePathUtilities.GetRelativePath(_loadedProject.DirectoryPath, peRef.FilePath);
-                    _loadedProject.AddItem("Reference", relativePath, metadata);
+                    var fileName = Path.GetFileNameWithoutExtension(peRef.FilePath);
+                    metadata.Add("HintPath", relativePath);
+                    _loadedProject.AddItem("Reference", fileName, metadata);
                 }
             }
         }
 
+        private static readonly string s_GAC = $"{Path.DirectorySeparatorChar}GAC_MSIL{Path.DirectorySeparatorChar}";
+        private static readonly string s_ALTGAC = $"{Path.AltDirectorySeparatorChar}GAC_MSIL{Path.AltDirectorySeparatorChar}";
+
         private bool IsInGAC(string filePath)
         {
-            return filePath.Contains(@"\GAC_MSIL\");
+            return filePath.Contains(s_GAC) || filePath.Contains(s_ALTGAC);
+        }
+
+        private static readonly string s_RefAssembly = $"{Path.DirectorySeparatorChar}Reference Assemblies{Path.DirectorySeparatorChar}";
+        private static readonly string s_AltRefAssembly = $"{Path.AltDirectorySeparatorChar}Reference Assemblies{Path.AltDirectorySeparatorChar}";
+
+        private bool IsReferenceAssembly(string filePath)
+        {
+            return filePath.Contains(s_RefAssembly) || filePath.Contains(s_AltRefAssembly);
         }
 
         public void RemoveMetadataReference(MetadataReference reference, AssemblyIdentity identity)
@@ -529,6 +550,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             var references = _loadedProject.GetItems("Reference");
             MSB.Evaluation.ProjectItem item = null;
+
+            var fileName = Path.GetFileNameWithoutExtension(filePath);
 
             if (identity != null)
             {
@@ -551,7 +574,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 string relativePath = FilePathUtilities.GetRelativePath(_loadedProject.DirectoryPath, filePath);
 
                 item = references.FirstOrDefault(it => FilePathUtilities.PathsEqual(it.EvaluatedInclude, filePath)
-                                                    || FilePathUtilities.PathsEqual(it.EvaluatedInclude, relativePath));
+                                                    || FilePathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
+                                                    || FilePathUtilities.PathsEqual(GetHintPath(it), filePath)
+                                                    || FilePathUtilities.PathsEqual(GetHintPath(it), relativePath));
             }
 
             // check for partial name match
@@ -566,6 +591,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             return item;
+        }
+
+        private string GetHintPath(MSB.Evaluation.ProjectItem item)
+        {
+            return item.Metadata.FirstOrDefault(m => m.Name == "HintPath")?.EvaluatedValue ?? "";
         }
 
         public void AddProjectReference(string projectName, ProjectFileReference reference)
