@@ -22,8 +22,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 Assert.Contains(New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), options.PreprocessorSymbols)
                 Assert.Contains(New KeyValuePair(Of String, Object)("TARGET", "exe"), options.PreprocessorSymbols)
-
-                project.Disconnect()
             End Using
         End Sub
 
@@ -42,8 +40,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
                 Assert.Equal(DocumentationMode.Diagnose, options.DocumentationMode)
-
-                project.Disconnect()
             End Using
         End Sub
 
@@ -62,8 +58,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
                 Assert.Equal(DocumentationMode.Parse, options.DocumentationMode)
-
-                project.Disconnect()
             End Using
         End Sub
 
@@ -92,8 +86,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 options = DirectCast(workspaceProject.CompilationOptions, VisualBasicCompilationOptions)
 
                 Assert.False(options.SpecificDiagnosticOptions.ContainsKey("BC1234"))
-
-                project.Disconnect()
             End Using
         End Sub
     End Class

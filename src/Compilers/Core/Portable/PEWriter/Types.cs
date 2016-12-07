@@ -209,11 +209,8 @@ namespace Microsoft.Cci
         /// Returns the generic type of which this type is an instance.
         /// Equivalent to Symbol.OriginalDefinition
         /// </summary>
-        INamedTypeReference GenericType
-        {
-            get;
-            // ^ ensures result.ResolvedType.IsGeneric;
-        }
+        INamedTypeReference GetGenericType(EmitContext context);
+        // ^ ensures result.ResolvedType.IsGeneric;
     }
 
     /// <summary>
@@ -323,10 +320,7 @@ namespace Microsoft.Cci
         /// type of a generic type instance), then the unspecialized member refers to a member from the unspecialized containing type. (I.e. the unspecialized member always
         /// corresponds to a definition that is not obtained via specialization.)
         /// </summary>
-        INestedTypeReference/*!*/ UnspecializedVersion
-        {
-            get;
-        }
+        INestedTypeReference/*!*/ GetUnspecializedVersion(EmitContext context);
     }
 
     /// <summary>

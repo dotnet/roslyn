@@ -98,7 +98,7 @@ namespace Microsoft.Cci
                 }
             }
 
-            this.Visit(genericTypeInstanceReference.GenericType);
+            this.Visit(genericTypeInstanceReference.GetGenericType(Context));
             this.Visit(genericTypeInstanceReference.GetGenericArguments(Context));
         }
 
@@ -421,7 +421,7 @@ namespace Microsoft.Cci
                 ISpecializedNestedTypeReference/*?*/ specializedNestedTypeReference = nestedTypeReference?.AsSpecializedNestedTypeReference;
                 if (specializedNestedTypeReference != null)
                 {
-                    INestedTypeReference unspecializedNestedTypeReference = specializedNestedTypeReference.UnspecializedVersion;
+                    INestedTypeReference unspecializedNestedTypeReference = specializedNestedTypeReference.GetUnspecializedVersion(Context);
                     if (_alreadyHasToken.Add(unspecializedNestedTypeReference))
                     {
                         RecordTypeReference(unspecializedNestedTypeReference);

@@ -20,8 +20,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.True(workspaceProject.HasMetadataReference(MockCompilerHost.FullFrameworkCompilerHost.GetWellKnownDllName("Microsoft.VisualBasic.dll")))
                 Assert.True(workspaceProject.HasMetadataReference(MockCompilerHost.FullFrameworkCompilerHost.GetWellKnownDllName("mscorlib.dll")))
                 Assert.True(workspaceProject.HasMetadataReference(MockCompilerHost.FullFrameworkCompilerHost.GetWellKnownDllName("System.dll")))
-
-                project.Disconnect()
             End Using
         End Sub
 
@@ -40,8 +38,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.True(workspaceProject.HasMetadataReference(MockCompilerHost.FullFrameworkCompilerHost.GetWellKnownDllName("Microsoft.VisualBasic.dll")))
                 Assert.True(workspaceProject.HasMetadataReference(MockCompilerHost.FullFrameworkCompilerHost.GetWellKnownDllName("mscorlib.dll")))
                 Assert.False(workspaceProject.HasMetadataReference(MockCompilerHost.FullFrameworkCompilerHost.GetWellKnownDllName("System.dll")))
-
-                project.Disconnect()
             End Using
         End Sub
 
@@ -60,8 +56,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.False(workspaceProject.HasMetadataReference(MockCompilerHost.FullFrameworkCompilerHost.GetWellKnownDllName("Microsoft.VisualBasic.dll")))
                 Assert.True(workspaceProject.HasMetadataReference(MockCompilerHost.FullFrameworkCompilerHost.GetWellKnownDllName("mscorlib.dll")))
                 Assert.True(workspaceProject.HasMetadataReference(MockCompilerHost.FullFrameworkCompilerHost.GetWellKnownDllName("System.dll")))
-
-                project.Disconnect()
             End Using
         End Sub
 
@@ -91,8 +85,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 ' It should still reference the VB runtime
                 workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Assert.True(workspaceProject.HasMetadataReference(MockCompilerHost.FullFrameworkCompilerHost.GetWellKnownDllName("Microsoft.VisualBasic.dll")))
-
-                project.Disconnect()
             End Using
         End Sub
 
@@ -108,8 +100,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 ' We should have no references
                 Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Assert.Empty(workspaceProject.MetadataReferences)
-
-                project.Disconnect()
             End Using
         End Sub
 
@@ -137,8 +127,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 ' It still should be referencing it since we're implicitly adding it as a part of the options
                 workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Assert.True(workspaceProject.HasMetadataReference(MockCompilerHost.FullFrameworkCompilerHost.GetWellKnownDllName("Microsoft.VisualBasic.dll")))
-
-                project.Disconnect()
             End Using
         End Sub
 
@@ -157,9 +145,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 project2.AddMetaDataReference("c:\project1.dll", True)
 
                 Assert.Equal(True, project2.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project1.Id))
-
-                project2.Disconnect()
-                project1.Disconnect()
             End Using
         End Sub
 
@@ -181,9 +166,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 Assert.Equal(True, project1.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project2.Id))
                 Assert.Equal(False, project2.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project1.Id))
-
-                project2.Disconnect()
-                project1.Disconnect()
             End Using
         End Sub
 
@@ -200,9 +182,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 Assert.Equal(True, project1.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project2.Id))
                 Assert.Equal(False, project2.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project1.Id))
-
-                project2.Disconnect()
-                project1.Disconnect()
             End Using
         End Sub
 
@@ -225,11 +204,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.Equal(True, project2.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project3.Id))
                 Assert.Equal(True, project3.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project4.Id))
                 Assert.Equal(False, project4.GetCurrentProjectReferences().Any(Function(pr) pr.ProjectId = project1.Id))
-
-                project4.Disconnect()
-                project3.Disconnect()
-                project2.Disconnect()
-                project1.Disconnect()
             End Using
         End Sub
 
