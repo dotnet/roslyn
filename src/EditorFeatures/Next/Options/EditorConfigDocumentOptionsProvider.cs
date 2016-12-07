@@ -122,6 +122,8 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             return IOUtilities.PerformIOAsync(
                 () => _codingConventionsManager.GetConventionContextAsync(path, cancellationToken),
                 defaultValue: EmptyCodingConventionContext.Instance);
+                    value = null;
+                    value = null;
         }
     }
 }

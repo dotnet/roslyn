@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         public ObservableCollection<SymbolSpecification> Specifications { get; set; }
         public ObservableCollection<NamingStyle> NamingStyles { get; set; }
 
-        public NamingStyleOptionPageViewModel(SerializableNamingStylePreferencesInfo info)
+        public NamingStyleOptionPageViewModel(NamingStylePreferences info)
         {
             var viewModels = new List<NamingRuleViewModel>();
             foreach (var namingRule in info.NamingRules)

@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         internal override void SaveSettings()
         {
-            var info = new SerializableNamingStylePreferencesInfo();
+            var info = new NamingStylePreferences();
 
             foreach (var item in _viewModel.CodeStyleItems)
             {

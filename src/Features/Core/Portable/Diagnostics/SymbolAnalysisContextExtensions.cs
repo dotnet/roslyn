@@ -16,18 +16,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
-            var cancellationToken = context.CancellationToken;
-            var syntaxTree = location.SourceTree;
-            var options = context.Options;
-            var optionSet = await options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).ConfigureAwait(false);
-            string language = context.Compilation.Language;
-            var viewModel = optionSet.GetOption(SimplificationOptions.NamingPreferences, language);
-            if (viewModel == null)
+            var optionSet = await context.Options.GetDocumentOptionSetAsync(location.SourceTree, context.CancellationToken).ConfigureAwait(false);
+            var namimgStylePreferences = optionSet.GetOption(SimplificationOptions.NamingPreferences, context.Compilation.Language);
+            if (namimgStylePreferences == null)
             {
                 return null;
             }
 
-            var preferences = viewModel.GetPreferencesInfo();
+            var preferences = namimgStylePreferences.GetPreferencesInfo();
             return preferences;
         }
     }

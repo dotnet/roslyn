@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// This option describes the naming rules that should be applied to specified categories of symbols, 
         /// and the level to which those rules should be enforced.
         /// </summary>
-        internal static PerLanguageOption<SerializableNamingStylePreferencesInfo> NamingPreferences { get; } = new PerLanguageOption<SerializableNamingStylePreferencesInfo>(nameof(SimplificationOptions), nameof(NamingPreferences), defaultValue: SerializableNamingStylePreferencesInfo.Default,
+        internal static PerLanguageOption<NamingStylePreferences> NamingPreferences { get; } = new PerLanguageOption<NamingStylePreferences>(nameof(SimplificationOptions), nameof(NamingPreferences), defaultValue: NamingStylePreferences.Default,
             storageLocations: new OptionStorageLocation[]{
                 new NamingEditorConfigStorageLocation(),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences")});

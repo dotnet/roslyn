@@ -50,28 +50,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         }
 
         private static string GetNamingRequiredPrefix(string namingStyleName, IReadOnlyDictionary<string, object> conventionsDictionary)
-        {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_style.{namingStyleName}.required_prefix", out var result))
-            {
-                return result as string ?? string.Empty;
-            }
-
-            return string.Empty;
-        }
+            => GetStringFromConventionsDictionary(namingStyleName, "required_prefix", conventionsDictionary);
 
         private static string GetNamingRequiredSuffix(string namingStyleName, IReadOnlyDictionary<string, object> conventionsDictionary)
-        {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_style.{namingStyleName}.required_suffix", out object result))
-            {
-                return result as string ?? string.Empty;
-            }
-
-            return string.Empty;
-        }
+            => GetStringFromConventionsDictionary(namingStyleName, "required_suffix", conventionsDictionary);
 
         private static string GetNamingWordSeparator(string namingStyleName, IReadOnlyDictionary<string, object> conventionsDictionary)
+            => GetStringFromConventionsDictionary(namingStyleName, "word_separator", conventionsDictionary);
+
+        private static string GetStringFromConventionsDictionary(string namingStyleName, string optionName, IReadOnlyDictionary<string, object> conventionsDictionary)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_style.{namingStyleName}.word_separator", out object result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_style.{namingStyleName}.{optionName}", out object result))
             {
                 return result as string ?? string.Empty;
             }

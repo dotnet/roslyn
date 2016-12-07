@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
         }
 
-        public class SymbolKindOrTypeKind : IEquatable<SymbolKindOrTypeKind>
+        public struct SymbolKindOrTypeKind : IEquatable<SymbolKindOrTypeKind>
         {
             public SymbolKind? SymbolKind { get; set; }
             public TypeKind? TypeKind { get; set; }
@@ -188,10 +188,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             public SymbolKindOrTypeKind(SymbolKind symbolKind)
             {
                 SymbolKind = symbolKind;
+                TypeKind = null;
             }
 
             public SymbolKindOrTypeKind(TypeKind typeKind)
             {
+                SymbolKind = null;
                 TypeKind = typeKind;
             }
 
@@ -232,28 +234,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             public override bool Equals(object obj)
             {
-                return Equals(obj as SymbolKindOrTypeKind);
+                return Equals((SymbolKindOrTypeKind)obj);
             }
 
             public bool Equals(SymbolKindOrTypeKind other)
             {
-                return other != null &&
-                       this.SymbolKind == other.SymbolKind &&
-                       this.TypeKind == other.TypeKind;
+                return SymbolKind == other.SymbolKind &&
+                       TypeKind == other.TypeKind;
             }
 
             public override int GetHashCode()
             {
-                if (this.SymbolKind.HasValue && this.TypeKind.HasValue)
-                {
-                    return Hash.Combine(this.SymbolKind.Value.GetHashCode(), this.TypeKind.Value.GetHashCode());
-                }
-                else if (this.SymbolKind.HasValue)
-                {
-                    return this.SymbolKind.Value.GetHashCode();
-                }
-
-                return this.TypeKind.Value.GetHashCode();
+                return Hash.Combine(SymbolKind.GetHashCode(), TypeKind.GetHashCode());
             }
         }
 
@@ -288,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             public bool Equals(AccessibilityKind other)
             {
-                return this.Accessibility == other.Accessibility;
+                return Accessibility == other.Accessibility;
             }
 
             public static bool operator ==(AccessibilityKind left, AccessibilityKind right)
@@ -299,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             public override int GetHashCode()
             {
-                return this.Accessibility.GetHashCode();
+                return Accessibility.GetHashCode();
             }
         }
 
@@ -359,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             {
                 ModifierKindWrapper = default(ModifierKindEnum);
                 _modifier = default(DeclarationModifiers);
-                this.Modifier = modifier;
+                Modifier = modifier;
             }
 
             public ModifierKind(ModifierKindEnum modifierKind)
@@ -426,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             public override int GetHashCode()
             {
-                return this.Modifier.GetHashCode();
+                return Modifier.GetHashCode();
             }
         }
         public enum ModifierKindEnum

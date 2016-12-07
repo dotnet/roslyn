@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             IReadOnlyDictionary<string, object> conventionsDictionary,
             out SerializableNamingRule serializableNamingRule)
         {
-            var severity= GetRuleSeverity(namingRuleTitle, conventionsDictionary);
+            var severity = GetRuleSeverity(namingRuleTitle, conventionsDictionary);
             serializableNamingRule = new SerializableNamingRule()
             {
                 EnforcementLevel = severity,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return ParseEnforcementLevel(result as string ?? string.Empty);
             }
 
-            return default(DiagnosticSeverity); ;
+            return default(DiagnosticSeverity);
         }
 
         private static DiagnosticSeverity ParseEnforcementLevel(string ruleSeverity)

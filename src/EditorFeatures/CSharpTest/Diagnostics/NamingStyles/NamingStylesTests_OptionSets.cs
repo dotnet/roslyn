@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             return options;
         }
 
-        private SerializableNamingStylePreferencesInfo ClassNamesArePascalCaseOptionString()
+        private NamingStylePreferences ClassNamesArePascalCaseOptionString()
         {
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             namingRule.NamingStyleID = namingStyle.ID;
             namingRule.EnforcementLevel = DiagnosticSeverity.Error;
 
-            var info = new SerializableNamingStylePreferencesInfo();
+            var info = new NamingStylePreferences();
             info.SymbolSpecifications.Add(symbolSpecification);
             info.NamingStyles.Add(namingStyle);
             info.NamingRules.Add(namingRule);
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             return info;
         }
 
-        private SerializableNamingStylePreferencesInfo MethodNamesArePascalCaseOptionString()
+        private NamingStylePreferences MethodNamesArePascalCaseOptionString()
         {
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             namingRule.NamingStyleID = namingStyle.ID;
             namingRule.EnforcementLevel = DiagnosticSeverity.Error;
 
-            var info = new SerializableNamingStylePreferencesInfo();
+            var info = new NamingStylePreferences();
             info.SymbolSpecifications.Add(symbolSpecification);
             info.NamingStyles.Add(namingStyle);
             info.NamingRules.Add(namingRule);

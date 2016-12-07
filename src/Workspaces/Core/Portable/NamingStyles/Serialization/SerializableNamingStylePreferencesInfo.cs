@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     /// 2. Name Style
     /// 3. Naming Rule (points to Symbol Specification IDs)
     /// </summary>
-    internal class SerializableNamingStylePreferencesInfo : IEquatable<SerializableNamingStylePreferencesInfo>
+    internal class NamingStylePreferences : IEquatable<NamingStylePreferences>
     {
         public List<SymbolSpecification> SymbolSpecifications;
         public List<NamingStyle> NamingStyles;
@@ -23,21 +23,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private readonly static int s_serializationVersion = 3;
 
 
-        internal SerializableNamingStylePreferencesInfo(List<SymbolSpecification> symbolSpecifications, List<NamingStyle> namingStyles, List<SerializableNamingRule> namingRules)
+        internal NamingStylePreferences(List<SymbolSpecification> symbolSpecifications, List<NamingStyle> namingStyles, List<SerializableNamingRule> namingRules)
         {
             SymbolSpecifications = symbolSpecifications;
             NamingStyles = namingStyles;
             NamingRules = namingRules;
         }
 
-        internal SerializableNamingStylePreferencesInfo()
+        internal NamingStylePreferences()
         {
             SymbolSpecifications = new List<SymbolSpecification>();
             NamingStyles = new List<NamingStyle>();
             NamingRules = new List<SerializableNamingRule>();
         }
 
-        public static SerializableNamingStylePreferencesInfo Default => FromXElement(XElement.Parse(DefaultNamingPreferencesString));
+        public static NamingStylePreferences Default => FromXElement(XElement.Parse(DefaultNamingPreferencesString));
 
         public static string DefaultNamingPreferencesString => _defaultNamingPreferencesString;
 
@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return symbolSpecificationsElement;
         }
 
-        internal static SerializableNamingStylePreferencesInfo FromXElement(XElement namingPreferencesInfoElement)
+        internal static NamingStylePreferences FromXElement(XElement namingPreferencesInfoElement)
         {
-            var namingPreferencesInfo = new SerializableNamingStylePreferencesInfo();
+            var namingPreferencesInfo = new NamingStylePreferences();
 
             var serializationVersion = int.Parse(namingPreferencesInfoElement.Attribute("SerializationVersion").Value);
             if (serializationVersion != s_serializationVersion)
@@ -143,9 +143,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         }
 
         public override bool Equals(object obj)
-            => Equals(obj as SerializableNamingStylePreferencesInfo);
+            => Equals(obj as NamingStylePreferences);
 
-        public bool Equals(SerializableNamingStylePreferencesInfo other)
+        public bool Equals(NamingStylePreferences other)
         {
             if (object.ReferenceEquals(other, null))
             {
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return this.CreateXElement().ToString() == other.CreateXElement().ToString();
         }
 
-        public static bool operator ==(SerializableNamingStylePreferencesInfo left, SerializableNamingStylePreferencesInfo right)
+        public static bool operator ==(NamingStylePreferences left, NamingStylePreferences right)
         {
             bool leftIsNull = object.ReferenceEquals(left, null);
             bool rightIsNull = object.ReferenceEquals(right, null);
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return left.Equals(right);
         }
 
-        public static bool operator !=(SerializableNamingStylePreferencesInfo left, SerializableNamingStylePreferencesInfo right)
+        public static bool operator !=(NamingStylePreferences left, NamingStylePreferences right)
             => !(left == right);
 
         public override int GetHashCode()

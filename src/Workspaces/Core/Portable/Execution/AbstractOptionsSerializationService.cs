@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return options.WithChangedOption(option, language, value);
         }
 
-        protected void WriteOptionTo(OptionSet options, Option<SerializableNamingStylePreferencesInfo> option, ObjectWriter writer, CancellationToken cancellationToken)
+        protected void WriteOptionTo(OptionSet options, Option<NamingStylePreferences> option, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -298,17 +298,17 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteString(value.CreateXElement().ToString());
         }
 
-        protected OptionSet ReadOptionFrom(OptionSet options, Option<SerializableNamingStylePreferencesInfo> option, ObjectReader reader, CancellationToken cancellationToken)
+        protected OptionSet ReadOptionFrom(OptionSet options, Option<NamingStylePreferences> option, ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var xmlText = reader.ReadString();
-            var value = SerializableNamingStylePreferencesInfo.FromXElement(XElement.Parse(xmlText));
+            var value = NamingStylePreferences.FromXElement(XElement.Parse(xmlText));
 
             return options.WithChangedOption(option, value);
         }
 
-        private void WriteOptionTo(OptionSet options, string language, PerLanguageOption<SerializableNamingStylePreferencesInfo> option, ObjectWriter writer, CancellationToken cancellationToken)
+        private void WriteOptionTo(OptionSet options, string language, PerLanguageOption<NamingStylePreferences> option, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -316,12 +316,12 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteString(value.CreateXElement().ToString());
         }
 
-        private OptionSet ReadOptionFrom(OptionSet options, string language, PerLanguageOption<SerializableNamingStylePreferencesInfo> option, ObjectReader reader, CancellationToken cancellationToken)
+        private OptionSet ReadOptionFrom(OptionSet options, string language, PerLanguageOption<NamingStylePreferences> option, ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var xmlText = reader.ReadString();
-            var value = SerializableNamingStylePreferencesInfo.FromXElement(XElement.Parse(xmlText));
+            var value = NamingStylePreferences.FromXElement(XElement.Parse(xmlText));
 
             return options.WithChangedOption(option, language, value);
         }

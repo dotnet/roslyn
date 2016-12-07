@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.symbols", out object result))
             {
                 symbolSpecName = result as string;
-                return symbolSpecName != null; ;
+                return symbolSpecName != null;
             }
 
             return false;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static readonly SymbolKindOrTypeKind _namespace = new SymbolKindOrTypeKind(SymbolKind.Namespace);
         private static readonly SymbolKindOrTypeKind _delegate = new SymbolKindOrTypeKind(TypeKind.Delegate);
         private static readonly SymbolKindOrTypeKind _typeParameter = new SymbolKindOrTypeKind(SymbolKind.TypeParameter);
-
+        private static readonly ImmutableArray<SymbolKindOrTypeKind> _all = ImmutableArray.Create(_class, _struct, _interface, _enum, _property, _method, _field, _event, _namespace, _delegate, _typeParameter);
         private static ImmutableArray<SymbolKindOrTypeKind> ParseSymbolKindList(string symbolSpecApplicableKinds)
         {
             if (symbolSpecApplicableKinds == null)
@@ -83,8 +83,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             var builder = ArrayBuilder<SymbolKindOrTypeKind>.GetInstance();
             if (symbolSpecApplicableKinds.Trim() == "*")
             {
-                builder.AddRange(_class, _struct, _interface, _enum, _property, _method, _field, _event, _namespace, _delegate, _typeParameter);
-                return builder.ToImmutableAndFree();
+                return _all;
             }
 
             foreach (var symbolSpecApplicableKind in symbolSpecApplicableKinds.Split(',').Select(x => x.Trim()))

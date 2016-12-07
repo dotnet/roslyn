@@ -11,26 +11,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         /// <remarks>
         /// The dictionary we get from the VS editorconfig API uses the same dictionary object if there are no changes, so we can cache based on dictionary
         /// </remarks>
-        private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, object>, SerializableNamingStylePreferencesInfo> _cache = new ConditionalWeakTable<IReadOnlyDictionary<string, object>, SerializableNamingStylePreferencesInfo>();
+        private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, object>, NamingStylePreferences> _cache = new ConditionalWeakTable<IReadOnlyDictionary<string, object>, NamingStylePreferences>();
         private static readonly object _cacheLock = new object();
 
-        public static SerializableNamingStylePreferencesInfo GetNamingStylesStringFromDictionary(IReadOnlyDictionary<string, object> allRawConventions)
+        public static NamingStylePreferences GetNamingStylesStringFromDictionary(IReadOnlyDictionary<string, object> allRawConventions)
         {
-            if (!_cache.TryGetValue(allRawConventions, out var value))
+            if (_cache.TryGetValue(allRawConventions, out var value))
             {
-                lock (_cacheLock)
-                {
-                    if (!_cache.TryGetValue(allRawConventions, out value))
-                    {
-                        value = ParseDictionary(allRawConventions);
-                        _cache.Add(allRawConventions, value);
-                    }
-                }
+                return value;
             }
-            return value;
+
+            lock (_cacheLock)
+            {
+                if (!_cache.TryGetValue(allRawConventions, out value))
+                {
+                    value = ParseDictionary(allRawConventions);
+                    _cache.Add(allRawConventions, value);
+                }
+
+                return value;
+            }
         }
 
-        public static SerializableNamingStylePreferencesInfo ParseDictionary(IReadOnlyDictionary<string, object> allRawConventions)
+        public static NamingStylePreferences ParseDictionary(IReadOnlyDictionary<string, object> allRawConventions)
         {
             var symbolSpecifications = new List<SymbolSpecification>();
             var namingStyles = new List<NamingStyle>();
@@ -56,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 }
             }
 
-            return new SerializableNamingStylePreferencesInfo(symbolSpecifications, namingStyles, namingRules);
+            return new NamingStylePreferences(symbolSpecifications, namingStyles, namingRules);
         }
 
         private static IEnumerable<string> GetRuleTitles(IReadOnlyDictionary<string, object> allRawConventions)
