@@ -501,9 +501,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     // This typically happens when you base the reference off of a reflection assembly location.
                     _loadedProject.AddItem("Reference", identity.GetDisplayName(), metadata);
                 }
-                else if (IsReferenceAssembly(peRef.FilePath))
+                else if (IsFrameworkReferenceAssembly(peRef.FilePath))
                 {
-                    // just use short name since this will be resolved by msbuild relative to the known reference assemblies.
+                    // just use short name since this will be resolved by msbuild relative to the known framework reference assemblies.
                     var fileName = identity != null ? identity.Name : Path.GetFileNameWithoutExtension(peRef.FilePath);
                     _loadedProject.AddItem("Reference", fileName, metadata);
                 }
@@ -517,20 +517,33 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private static readonly string s_GAC = $"{Path.DirectorySeparatorChar}GAC_MSIL{Path.DirectorySeparatorChar}";
-        private static readonly string s_ALTGAC = $"{Path.AltDirectorySeparatorChar}GAC_MSIL{Path.AltDirectorySeparatorChar}";
-
         private bool IsInGAC(string filePath)
         {
-            return filePath.Contains(s_GAC) || filePath.Contains(s_ALTGAC);
+            return GlobalAssemblyCacheLocation.RootLocations.Any(gloc => FilePathUtilities.IsNestedPath(gloc, filePath));
         }
 
-        private static readonly string s_RefAssembly = $"{Path.DirectorySeparatorChar}Reference Assemblies{Path.DirectorySeparatorChar}";
-        private static readonly string s_AltRefAssembly = $"{Path.AltDirectorySeparatorChar}Reference Assemblies{Path.AltDirectorySeparatorChar}";
-
-        private bool IsReferenceAssembly(string filePath)
+        private static string s_frameworkRoot;
+        private static string FrameworkRoot
         {
-            return filePath.Contains(s_RefAssembly) || filePath.Contains(s_AltRefAssembly);
+            get
+            {
+                if (string.IsNullOrEmpty(s_frameworkRoot))
+                {
+                    s_frameworkRoot = Environment.GetEnvironmentVariable("FrameworkDir");
+
+                    if (string.IsNullOrEmpty(s_frameworkRoot))
+                    {
+                        s_frameworkRoot = Path.Combine(Environment.GetEnvironmentVariable("SystemRoot"), "Microsoft.Net", "Framework");
+                    }
+                }
+
+                return s_frameworkRoot;
+            }
+        }
+
+        private bool IsFrameworkReferenceAssembly(string filePath)
+        {
+            return FilePathUtilities.IsNestedPath(FrameworkRoot, filePath);
         }
 
         public void RemoveMetadataReference(MetadataReference reference, AssemblyIdentity identity)
