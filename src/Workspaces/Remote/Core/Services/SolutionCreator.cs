@@ -74,6 +74,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 solution = await UpdateProjectsAsync(solution, oldSolutionChecksums.Projects, newSolutionChecksums.Projects).ConfigureAwait(false);
             }
 
+            // make sure created solution has same checksum as given one
+            Contract.ThrowIfFalse(newSolutionChecksum == await solution.State.GetChecksumAsync(_cancellationToken).ConfigureAwait(false));
+
             return solution;
         }
 

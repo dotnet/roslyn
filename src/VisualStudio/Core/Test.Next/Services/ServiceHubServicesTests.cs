@@ -178,10 +178,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var (project, document) = GetProjectAndDocument(solution, projectName, documentName);
 
-            return document.WithText(GetNameText(document, csAddition, vbAddition)).Project.Solution;
+            return document.WithText(GetNewText(document, csAddition, vbAddition)).Project.Solution;
         }
 
-        private static SourceText GetNameText(Document document, string csAddition, string vbAddition)
+        private static SourceText GetNewText(Document document, string csAddition, string vbAddition)
         {
             if (document.Project.Language == LanguageNames.CSharp)
             {
