@@ -14,10 +14,8 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public const string WorkspaceKind_RemoteWorkspace = "RemoteWorkspace";
 
-        // REVIEW: I am using semaphoreSlim since workspace is using it, but not sure why it uses
-        //         semaphore rather than just object since workspace is not using anything specific
-        //         to semaphore
-        private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
+        // guard to make sure host API doesn't run concurrently
+        private readonly object _gate = new object();
 
         public RemoteWorkspace()
             : base(RoslynServices.HostServices, workspaceKind: RemoteWorkspace.WorkspaceKind_RemoteWorkspace)
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public new void ClearSolution()
         {
-            using (_serializationLock.DisposableWait())
+            lock (_gate)
             {
                 base.ClearSolution();
             }
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 throw new ArgumentNullException(nameof(solutionInfo));
             }
 
-            using (_serializationLock.DisposableWait())
+            lock (_gate)
             {
                 this.OnSolutionAdded(solutionInfo);
                 this.UpdateReferencesAfterAdd();
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 throw new ArgumentNullException(nameof(solution));
             }
 
-            using (_serializationLock.DisposableWait())
+            lock (_gate)
             {
                 var oldSolution = this.CurrentSolution;
                 Contract.ThrowIfFalse(oldSolution.Id == solution.Id && oldSolution.FilePath == solution.FilePath);
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public override void OpenDocument(DocumentId documentId, bool activate = true)
         {
-            using (_serializationLock.DisposableWait())
+            lock (_gate)
             {
                 var doc = this.CurrentSolution.GetDocument(documentId);
                 if (doc != null)
@@ -110,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public override void CloseDocument(DocumentId documentId)
         {
-            using (_serializationLock.DisposableWait())
+            lock (_gate)
             {
                 var doc = this.CurrentSolution.GetDocument(documentId);
                 if (doc != null)
@@ -128,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
         {
-            using (_serializationLock.DisposableWait())
+            lock (_gate)
             {
                 var doc = this.CurrentSolution.GetAdditionalDocument(documentId);
                 if (doc != null)
@@ -144,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public override void CloseAdditionalDocument(DocumentId documentId)
         {
-            using (_serializationLock.DisposableWait())
+            lock (_gate)
             {
                 var doc = this.CurrentSolution.GetAdditionalDocument(documentId);
                 if (doc != null)

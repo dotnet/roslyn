@@ -546,6 +546,7 @@ namespace Microsoft.CodeAnalysis.Execution
             if (image != null)
             {
                 // TODO: think a way to support this or a way to deal with this kind of situation.
+                // https://github.com/dotnet/roslyn/issues/15783
                 throw new NotSupportedException(nameof(AnalyzerImageReference));
             }
 
