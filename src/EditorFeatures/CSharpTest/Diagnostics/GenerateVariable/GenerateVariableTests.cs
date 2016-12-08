@@ -4297,8 +4297,7 @@ index: 2);
         int undefined = 1;
     }
 }",
-index: 2,
-options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
+index: 2);
         }
 
         [WorkItem(545273, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545273")]
