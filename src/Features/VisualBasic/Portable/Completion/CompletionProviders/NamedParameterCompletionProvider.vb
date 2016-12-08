@@ -67,11 +67,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             For Each parameter In unspecifiedParameters
                 context.AddItem(
-                    SymbolCompletionItem.Create(
+                    SymbolCompletionItem.CreateWithSymbolId(
                         displayText:=parameter.Name & s_colonEquals,
                         insertionText:=parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
                         span:=context.DefaultItemSpan,
-                        symbol:=parameter,
+                        symbols:=ImmutableArray(Of ISymbol).Empty.Add(parameter),
                         descriptionPosition:=position,
                         contextPosition:=position,
                         isArgumentName:=True,

@@ -96,11 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var displayText = member.ToMinimalDisplayString(semanticModel, namePosition, s_signatureDisplayFormat);
                 var insertionText = displayText;
 
-                context.AddItem(SymbolCompletionItem.Create(
+                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText,
                     insertionText: insertionText,
                     span: context.DefaultItemSpan,
-                    symbol: member,
+                    symbols: ImmutableArray<ISymbol>.Empty.Add(member),
                     contextPosition: position,
                     descriptionPosition: position,
                     rules: CompletionItemRules.Default));

@@ -124,11 +124,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 insertionText = displayAndInsertionText.Item2
             End If
 
-            Return SymbolCompletionItem.Create(
+            Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
                 insertionText:=insertionText,
                 span:=textSpan,
-                symbol:=symbol,
+                symbols:=ImmutableArray(Of ISymbol).Empty.Add(symbol),
                 contextPosition:=context.Position,
                 descriptionPosition:=position,
                 rules:=CompletionItemRules.Default)

@@ -144,11 +144,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var text = await semanticModel.SyntaxTree.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
             return from p in attributeNamedParameters
                    where !existingNamedParameters.Contains(p.Name)
-                   select SymbolCompletionItem.Create(
+                   select SymbolCompletionItem.CreateWithSymbolId(
                        displayText: p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
                        insertionText: null,
                        span: context.DefaultItemSpan,
-                       symbol: p,
+                       symbols: ImmutableArray<ISymbol>.Empty.Add(p),
                        descriptionPosition: token.SpanStart,
                        sortText: p.Name,
                        rules: CompletionItemRules.Default);
@@ -164,11 +164,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return from pl in parameterLists
                    from p in pl
                    where !existingNamedParameters.Contains(p.Name)
-                   select SymbolCompletionItem.Create(
+                   select SymbolCompletionItem.CreateWithSymbolId(
                        displayText: p.Name.ToIdentifierToken().ToString() + ColonString,
                        insertionText: null,
                        span: context.DefaultItemSpan,
-                       symbol: p,
+                       symbols: ImmutableArray<ISymbol>.Empty.Add(p),
                        descriptionPosition: token.SpanStart,
                        sortText: p.Name,
                        rules: CompletionItemRules.Default);

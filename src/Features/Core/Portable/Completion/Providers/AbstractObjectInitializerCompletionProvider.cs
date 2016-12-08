@@ -62,11 +62,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             foreach (var uninitializedMember in uninitializedMembers)
             {
-                context.AddItem(SymbolCompletionItem.Create(
+                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: uninitializedMember.Name,
                     insertionText: null,
                     span: context.DefaultItemSpan,
-                    symbol: uninitializedMember,
+                    symbols: ImmutableArray<ISymbol>.Empty.Add(uninitializedMember),
                     descriptionPosition: initializerLocation.SourceSpan.Start,
                     rules: s_rules
                     ));
