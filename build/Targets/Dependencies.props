@@ -6,7 +6,7 @@
     <ManagedEsentVersion>1.9.4</ManagedEsentVersion>
     <MicroBuildCoreVersion>0.2.0</MicroBuildCoreVersion>
     <MicroBuildCoreSentinelVersion>1.0.0</MicroBuildCoreSentinelVersion>
-    <MicroBuildPluginsSwixBuildVersion>1.0.71</MicroBuildPluginsSwixBuildVersion>
+    <MicroBuildPluginsSwixBuildVersion>1.0.101</MicroBuildPluginsSwixBuildVersion>
     <MicrosoftBuildVersion>15.1.0-preview-000370-00</MicrosoftBuildVersion>
     <MicrosoftBuild14Version>14.3.0</MicrosoftBuild14Version>
     <MicrosoftBuildLoggingStructuredLoggerVersion>1.0.58</MicrosoftBuildLoggingStructuredLoggerVersion>

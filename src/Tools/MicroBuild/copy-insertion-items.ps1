@@ -15,7 +15,7 @@ try
         "Microsoft.CodeAnalysis.ExpressionEvaluator.json",
         "Microsoft.CodeAnalysis.VisualStudio.Setup.json",
         "Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json",
-        "Microsoft.CodeAnalysis.VisualStudioInteractiveComponents.json",
+        "Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.json",
         "Microsoft.CodeAnalysis.LanguageServices.vsman",
         "Microsoft.CodeAnalysis.Compilers.json",
         "Microsoft.CodeAnalysis.Compilers.vsix",

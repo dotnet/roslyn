@@ -145,7 +145,7 @@ Class Program
 End Class
 ]]></a>.Value
 
-        Private Shared ReadOnly s_preferObjectInitializer As String = "
+        Private Shared ReadOnly s_preferObjectInitializer As String = $"
 Imports System
 
 Class Customer
@@ -153,33 +153,33 @@ Class Customer
 
     Sub New()
 //[
-        ' Prefer:
-        Dim c = New Customer() With {
+        ' {ServicesVSResources.Prefer_colon}
+        Dim c = New Customer() With {{
             .Age = 21
-        }
+        }}
 
-        ' Over:
+        ' {ServicesVSResources.Over_colon}
         Dim c = New Customer()
         c.Age = 21
 //]
     End Sub
 End Class"
 
-        Private Shared ReadOnly s_preferCollectionInitializer As String = "
+        Private Shared ReadOnly s_preferCollectionInitializer As String = $"
 
 Class Customer
     Private Age As Integer
 
     Sub New()
 //[
-        ' Prefer:
-        Dim list = New List(Of Integer) From {
+        ' {ServicesVSResources.Prefer_colon}
+        Dim list = New List(Of Integer) From {{
             1,
             2,
             3
-        }
+        }}
 
-        ' Over:
+        ' {ServicesVSResources.Over_colon}
         Dim list = New List(Of Integer)()
         list.Add(1)
         list.Add(2)
@@ -188,16 +188,16 @@ Class Customer
     End Sub
 End Class"
 
-        Private Shared ReadOnly s_preferExplicitTupleName As String = "
+        Private Shared ReadOnly s_preferExplicitTupleName As String = $"
 Class Customer
     Public Sub New()
 //[
-        ' Prefer:
+        ' {ServicesVSResources.Prefer_colon}
         Dim customer As (name As String, age As Integer)
         Dim name = customer.name
         Dim age = customer.age
 
-        ' Over
+        ' {ServicesVSResources.Over_colon}
         Dim customer As (name As String, age As Integer)
         Dim name = customer.Item1
         Dim age = customer.Item2
@@ -206,7 +206,7 @@ Class Customer
 end class
 "
 
-        Private Shared ReadOnly s_preferCoalesceExpression As String = "
+        Private Shared ReadOnly s_preferCoalesceExpression As String = $"
 Imports System
 
 Class Customer
@@ -214,17 +214,17 @@ Class Customer
 
     Sub New()
 //[
-        ' Prefer:
+        ' {ServicesVSResources.Prefer_colon}
         Dim v = If(x, y)
 
-        ' Over:
-        Dim v = If(x Is Nothing, y, x)    ' or
+        ' {ServicesVSResources.Over_colon}
+        Dim v = If(x Is Nothing, y, x)    ' {ServicesVSResources.or}
         Dim v = If(x IsNot Nothing, x, y)
 //]
     End Sub
 End Class"
 
-        Private Shared ReadOnly s_preferNullPropagation As String = "
+        Private Shared ReadOnly s_preferNullPropagation As String = $"
 Imports System
 
 Class Customer
@@ -232,11 +232,11 @@ Class Customer
 
     Sub New()
 //[
-        ' Prefer:
+        ' {ServicesVSResources.Prefer_colon}
         Dim v = o?.ToString()
 
-        ' Over:
-        Dim v = If(o Is Nothing, Nothing, o.ToString())    ' or
+        ' {ServicesVSResources.Over_colon}
+        Dim v = If(o Is Nothing, Nothing, o.ToString())    ' {ServicesVSResources.or}
         Dim v = If(o IsNot Nothing, o.ToString(), Nothing)
 //]
     End Sub
