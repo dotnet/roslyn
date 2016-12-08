@@ -135,5 +135,8 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
             var lineText = line.GetText();
             return lineText.Substring(0, linePosition.Value - line.Start);
         }
+
+        public static bool AreOnSameLine(this ITextSnapshot snapshot, int x1, int x2)
+            => snapshot.GetLineNumberFromPosition(x1) == snapshot.GetLineNumberFromPosition(x2);
     }
 }

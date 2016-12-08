@@ -290,6 +290,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to built-in types.
+        /// </summary>
+        internal static string built_in_types {
+            get {
+                return ResourceManager.GetString("built_in_types", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to camel Case Name.
         /// </summary>
         internal static string camel_Case_Name {
@@ -666,6 +675,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Event_type_is_invalid {
             get {
                 return ResourceManager.GetString("Event_type_is_invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to everywhere else.
+        /// </summary>
+        internal static string everywhere_else {
+            get {
+                return ResourceManager.GetString("everywhere_else", resourceCulture);
             }
         }
         
@@ -1314,11 +1332,29 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to or.
+        /// </summary>
+        internal static string or {
+            get {
+                return ResourceManager.GetString("or", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Outlining.
         /// </summary>
         internal static string Outlining {
             get {
                 return ResourceManager.GetString("Outlining", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Over:.
+        /// </summary>
+        internal static string Over_colon {
+            get {
+                return ResourceManager.GetString("Over_colon", resourceCulture);
             }
         }
         
@@ -1436,6 +1472,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_collection_initializer {
             get {
                 return ResourceManager.GetString("Prefer_collection_initializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer:.
+        /// </summary>
+        internal static string Prefer_colon {
+            get {
+                return ResourceManager.GetString("Prefer_colon", resourceCulture);
             }
         }
         
@@ -2038,6 +2083,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Type_Details_colon {
             get {
                 return ResourceManager.GetString("Type_Details_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type is apparent from assignment expression.
+        /// </summary>
+        internal static string type_is_apparent_from_assignment_expression {
+            get {
+                return ResourceManager.GetString("type_is_apparent_from_assignment_expression", resourceCulture);
             }
         }
         

@@ -843,4 +843,22 @@ Additional information: {1}</value>
   <data name="Prefer_braces" xml:space="preserve">
     <value>Prefer braces</value>
   </data>
+  <data name="Over_colon" xml:space="preserve">
+    <value>Over:</value>
+  </data>
+  <data name="Prefer_colon" xml:space="preserve">
+    <value>Prefer:</value>
+  </data>
+  <data name="or" xml:space="preserve">
+    <value>or</value>
+  </data>
+  <data name="built_in_types" xml:space="preserve">
+    <value>built-in types</value>
+  </data>
+  <data name="everywhere_else" xml:space="preserve">
+    <value>everywhere else</value>
+  </data>
+  <data name="type_is_apparent_from_assignment_expression" xml:space="preserve">
+    <value>type is apparent from assignment expression</value>
+  </data>
 </root>

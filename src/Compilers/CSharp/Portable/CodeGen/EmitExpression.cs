@@ -355,12 +355,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var receiver = expression.Receiver;
 
-            if (receiver.IsDefaultValue())
-            {
-                EmitDefaultValue(expression.Type, used, expression.Syntax);
-                return;
-            }
-
             var receiverType = receiver.Type;
             LocalDefinition receiverTemp = null;
             Debug.Assert(!receiverType.IsValueType ||
@@ -384,15 +378,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             object doneLabel = new object();
             LocalDefinition cloneTemp = null;
 
+            var unconstrainedReceiver = !receiverType.IsReferenceType && !receiverType.IsValueType;
+
             // we need a copy if we deal with nonlocal value (to capture the value)
             // or if we have a ref-constrained T (to do box just once) 
             // or if we deal with stack local (reads are destructive)
+            // or if we have default(T) (to do box just once)
             var nullCheckOnCopy = LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                    (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ||
-                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
-
-            var unconstrainedReceiver = !receiverType.IsReferenceType && !receiverType.IsValueType;
-
+                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol)) ||
+                                   (receiver.IsDefaultValue() && unconstrainedReceiver);
 
             // ===== RECEIVER
             if (nullCheckOnCopy)

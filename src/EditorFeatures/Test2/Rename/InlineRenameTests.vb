@@ -1451,5 +1451,46 @@ End Class
                 Await VerifyTagsAreCorrect(workspace, "xield1")
             End Using
         End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(14554, "https://github.com/dotnet/roslyn/issues/14554")>
+        Public Sub VerifyVBRenameDoesNotCrashOnAsNewClause()
+            Using workspace = CreateWorkspaceWithWaiter(
+                                <Workspace>
+                                    <Project Language="Visual Basic" CommonReferences="true">
+                                        <Document>
+Class C
+    Sub New(a As Action)
+    End Sub
+
+    Public ReadOnly Property Vm As C
+
+    Public ReadOnly Property Crash As New C(Sub()
+                                                Vm.Sav()
+                                            End Sub)
+
+    Public Function Sav$$() As Boolean
+        Return False
+    End Function
+
+    Public Function Save() As Boolean
+        Return False
+    End Function
+End Class
+                                        </Document>
+                                    </Project>
+                                </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().TextBuffer
+
+                ' Ensure the rename doesn't crash
+                textBuffer.Insert(caretPosition, "e")
+                session.Commit()
+            End Using
+        End Sub
     End Class
 End Namespace
