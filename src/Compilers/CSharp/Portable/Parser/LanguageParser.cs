@@ -9143,6 +9143,9 @@ tryAgain:
             return false;
         }
 
+        /// <summary>
+        /// Parse a subexpression of the enclosing operator of the given precedence.
+        /// </summary>
         private ExpressionSyntax ParseSubExpression(Precedence precedence)
         {
             _recursionDepth++;
@@ -9369,7 +9372,7 @@ tryAgain:
 
         private ExpressionSyntax ParseIsExpression(ExpressionSyntax leftOperand, SyntaxToken opToken)
         {
-            var node = this.ParseTypeOrPattern();
+            var node = this.ParseTypeOrPatternForIsOperator();
             if (node is PatternSyntax)
             {
                 var result = _syntaxFactory.IsPatternExpression(leftOperand, opToken, (PatternSyntax)node);
