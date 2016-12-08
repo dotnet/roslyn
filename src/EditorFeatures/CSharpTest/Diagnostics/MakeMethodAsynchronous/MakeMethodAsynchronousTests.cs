@@ -1,22 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
-using System;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MakeMethodAsynchronous
 {
     public partial class MakeMethodAsynchronousTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                null, new CSharpMakeMethodAsynchronousCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new CSharpMakeMethodAsynchronousCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public async Task AwaitInVoidMethodWithModifiers()

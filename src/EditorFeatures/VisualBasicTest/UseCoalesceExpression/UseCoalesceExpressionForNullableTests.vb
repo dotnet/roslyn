@@ -10,10 +10,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCoalesceExpress
     Public Class UseCoalesceExpressionForNullableTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                New VisualBasicUseCoalesceExpressionForNullableDiagnosticAnalyzer(),
-                New UseCoalesceExpressionForNullableCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (New VisualBasicUseCoalesceExpressionForNullableDiagnosticAnalyzer(),
+                    New UseCoalesceExpressionForNullableCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)>

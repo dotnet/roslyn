@@ -12,10 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
     Partial Public Class AddImportTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                Nothing,
-                New VisualBasicAddImportCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New VisualBasicAddImportCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -2329,10 +2327,9 @@ End Namespace")
         Public Class AddImportTestsWithAddImportDiagnosticProvider
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-                Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                    New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
-                    New VisualBasicAddImportCodeFixProvider())
+            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+                Return (New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
+                        New VisualBasicAddImportCodeFixProvider())
             End Function
 
             <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>

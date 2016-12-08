@@ -35,6 +35,11 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             SemanticModel semanticModel = null;
             foreach (var name in node.DescendantNodesAndSelf(DescendIntoChildren).OfType<TSimpleName>())
             {
+                if (!ShouldSpellCheck(name))
+                {
+                    continue;
+                }
+
                 // Only bother with identifiers that are at least 3 characters long.
                 // We don't want to be too noisy as you're just starting to type something.
                 var nameText = name.GetFirstToken().ValueText;
@@ -50,6 +55,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
         }
 
+        protected abstract bool ShouldSpellCheck(TSimpleName name);
         protected abstract bool DescendIntoChildren(SyntaxNode arg);
 
         private async Task CreateSpellCheckCodeIssueAsync(CodeFixContext context, TSimpleName nameNode, string nameText, CancellationToken cancellationToken)

@@ -9,9 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
     Public Class GenerateVariableTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                Nothing, New GenerateVariableCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New GenerateVariableCodeFixProvider())
         End Function
 
         Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
@@ -2472,6 +2471,5 @@ End Class",
  End Sub
 End Class")
         End Function
-
     End Class
 End Namespace

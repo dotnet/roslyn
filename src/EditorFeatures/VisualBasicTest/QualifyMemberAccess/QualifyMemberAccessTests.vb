@@ -3,16 +3,17 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAccess
     Partial Public Class QualifyMemberAccessTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicQualifyMemberAccessDiagnosticAnalyzer(), New VisualBasicQualifyMemberAccessCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (New VisualBasicQualifyMemberAccessDiagnosticAnalyzer(),
+                    New VisualBasicQualifyMemberAccessCodeFixProvider())
         End Function
 
         Private Function TestAsyncWithOption(code As String, expected As String, opt As PerLanguageOption(Of CodeStyleOption(Of Boolean))) As Task

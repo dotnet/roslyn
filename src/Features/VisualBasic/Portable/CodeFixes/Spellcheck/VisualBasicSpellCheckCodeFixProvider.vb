@@ -40,6 +40,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
             End Get
         End Property
 
+        Protected Overrides Function ShouldSpellCheck(name As SimpleNameSyntax) As Boolean
+            Return True
+        End Function
+
         Protected Overrides Function DescendIntoChildren(arg As SyntaxNode) As Boolean
             Return TypeOf arg IsNot TypeArgumentListSyntax
         End Function
