@@ -2570,7 +2570,7 @@ class C
                 expectedIndentation: 8);
         }
 
-        [WpfFact(Skip = "PROTOYPE(wildcard): parse tree changed invalidating this test"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WpfFact(Skip = "test is no longer correct due to language changes"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task DontCreateIndentOperationForBrokenBracketedArgumentList()
         {
             var code = @"

@@ -673,13 +673,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
                 }
 
-                if ((object)this._type == null)
-                {
-                    diagnostics.Add(this.ForbiddenDiagnostic, Locations[0], Name);
-                    SetType(new ExtendedErrorTypeSymbol(
-                        ((SourceModuleSymbol)this.ContainingModule).DeclaringCompilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true));
-                }
-
                 return this._type;
             }
 
@@ -762,9 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)this._type == null)
                 {
-                    diagnostics.Add(this.ForbiddenDiagnostic, Locations[0], Name);
-                    SetType(new ExtendedErrorTypeSymbol(
-                        ((SourceModuleSymbol)this.ContainingModule).DeclaringCompilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true));
+                    SetType(_nodeBinder.CreateErrorType("var"));
                 }
 
                 return this._type;

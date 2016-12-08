@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IdentifierName:
                     break;
                 default:
+                    // In broken code, we can have an arbitrary expression here. Collect its expression variables.
                     ExpressionVariableFinder.FindExpressionVariables(this, locals, declaration);
                     break;
             }

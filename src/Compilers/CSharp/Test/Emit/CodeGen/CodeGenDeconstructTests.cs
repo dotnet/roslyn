@@ -5690,6 +5690,39 @@ class Program
         }
 
         [Fact]
+        public void ForeachIntoExpression()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach (M(out var x1) in new[] { 1, 2, 3 })
+        {
+            System.Console.WriteLine(x1);
+        }
+    }
+    static int _M;
+    static ref int M(out int x) { x = 2; return ref _M; }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            compilation.VerifyDiagnostics(
+                // (6,32): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (M(out var x1) in new[] { 1, 2, 3 })
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(6, 32)
+                );
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            Assert.Equal("int", model.GetTypeInfo(x1Ref).Type.ToDisplayString());
+
+            VerifyModelForLocal(model, x1, LocalDeclarationKind.RegularVariable, x1Ref);
+        }
+
+        [Fact]
         public void MixedDeconstruction_06()
         {
             string source = @"
