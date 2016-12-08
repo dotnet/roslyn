@@ -119,7 +119,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return node;
             }
 
-            // TODO: file bug about this: var invocation = csnode.Ancestors().FirstOrDefault(a => a.Kind == SyntaxKind.InvocationExpression);
             var matchingNode = node.AncestorsAndSelf().FirstOrDefault(n => _updatableAncestorKinds.Contains(n.Kind()));
             if (matchingNode == null)
             {
