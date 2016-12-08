@@ -204,16 +204,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected override string GenerateFullPathToTool()
         {
-            string pathToTool = ToolLocationHelper.GetPathToBuildToolsFile(ToolName, ToolLocationHelper.CurrentToolsVersion);
+            var pathToTool = Utilities.GenerateFullPathToTool(ToolName);
 
-            if (pathToTool == null)
+            if (null == pathToTool)
             {
-                pathToTool = ToolLocationHelper.GetPathToDotNetFrameworkFile(ToolName, TargetDotNetFrameworkVersion.VersionLatest);
-
-                if (pathToTool == null)
-                {
-                    Log.LogErrorWithCodeFromResources("General_FrameworksFileNotFound", ToolName, ToolLocationHelper.GetDotNetFrameworkVersionFolderPrefix(TargetDotNetFrameworkVersion.VersionLatest));
-                }
+                Log.LogErrorWithCodeFromResources("General_ToolFileNotFound", ToolName);
             }
 
             return pathToTool;

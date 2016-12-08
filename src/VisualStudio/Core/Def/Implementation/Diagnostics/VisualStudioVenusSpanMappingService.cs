@@ -36,11 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             {
                 return;
             }
-
             // Update the original source span, if required.
-            LinePositionSpan originalSpan;
-            LinePositionSpan mappedSpan;
-            if (!TryAdjustSpanIfNeededForVenus(documentId, originalLineInfo, mappedLineInfo, out originalSpan, out mappedSpan))
+            if (!TryAdjustSpanIfNeededForVenus(documentId, originalLineInfo, mappedLineInfo, out var originalSpan, out var mappedSpan))
             {
                 return;
             }
@@ -66,16 +63,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             DocumentId documentId, FileLinePositionSpan originalLineInfo, FileLinePositionSpan mappedLineInfo, out LinePositionSpan originalSpan, out LinePositionSpan mappedSpan)
         {
             var startChanged = true;
-            MappedSpan startLineColumn;
-            if (!TryAdjustSpanIfNeededForVenus(_workspace, documentId, originalLineInfo.StartLinePosition.Line, originalLineInfo.StartLinePosition.Character, out startLineColumn))
+            if (!TryAdjustSpanIfNeededForVenus(_workspace, documentId, originalLineInfo.StartLinePosition.Line, originalLineInfo.StartLinePosition.Character, out var startLineColumn))
             {
                 startChanged = false;
                 startLineColumn = new MappedSpan(originalLineInfo.StartLinePosition.Line, originalLineInfo.StartLinePosition.Character, mappedLineInfo.StartLinePosition.Line, mappedLineInfo.StartLinePosition.Character);
             }
 
             var endChanged = true;
-            MappedSpan endLineColumn;
-            if (!TryAdjustSpanIfNeededForVenus(_workspace, documentId, originalLineInfo.EndLinePosition.Line, originalLineInfo.EndLinePosition.Character, out endLineColumn))
+            if (!TryAdjustSpanIfNeededForVenus(_workspace, documentId, originalLineInfo.EndLinePosition.Line, originalLineInfo.EndLinePosition.Character, out var endLineColumn))
             {
                 endChanged = false;
                 endLineColumn = new MappedSpan(originalLineInfo.EndLinePosition.Line, originalLineInfo.EndLinePosition.Character, mappedLineInfo.EndLinePosition.Line, mappedLineInfo.EndLinePosition.Character);
@@ -112,8 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 return new LinePosition(mappedLine, mappedColumn);
             }
 
-            MappedSpan span;
-            if (TryAdjustSpanIfNeededForVenus(vsWorkspace, documentId, originalLine, originalColumn, out span))
+            if (TryAdjustSpanIfNeededForVenus(vsWorkspace, documentId, originalLine, originalColumn, out var span))
             {
                 return span.MappedLinePosition;
             }
@@ -192,8 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 return true;
             }
 
-            LinePosition adjustedPosition;
-            if (TryFixUpNearestVisibleSpan(containedLanguageHost, bufferCoordinator, nearestVisibleSpanOnSecondaryBuffer.iStartLine, nearestVisibleSpanOnSecondaryBuffer.iStartIndex, out adjustedPosition))
+            if (TryFixUpNearestVisibleSpan(containedLanguageHost, bufferCoordinator, nearestVisibleSpanOnSecondaryBuffer.iStartLine, nearestVisibleSpanOnSecondaryBuffer.iStartIndex, out var adjustedPosition))
             {
                 // span has changed yet again, re-calculate span
                 return TryAdjustSpanIfNeededForVenus(workspace, documentId, adjustedPosition.Line, adjustedPosition.Character, out mappedSpan);
@@ -217,10 +210,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             if (originalLine > 1)
             {
-                TextManager.Interop.IVsTextLines secondaryBuffer;
-                int length;
-                if (VSConstants.S_OK == bufferCoordinator.GetSecondaryBuffer(out secondaryBuffer) &&
-                    VSConstants.S_OK == secondaryBuffer.GetLengthOfLine(originalLine - 1, out length))
+                if (VSConstants.S_OK == bufferCoordinator.GetSecondaryBuffer(out var secondaryBuffer) &&
+                    VSConstants.S_OK == secondaryBuffer.GetLengthOfLine(originalLine - 1, out var length))
                 {
                     adjustedPosition = new LinePosition(originalLine - 1, length);
                     return true;

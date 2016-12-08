@@ -26,14 +26,6 @@
       <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
-      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
-      <Name>VisualStudioEditor</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Dependencies\VisualStudio\VisualStudio.csproj">
-      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
-      <Name>VisualStudio</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities2\ServicesTestUtilities2.vbproj">
       <Project>{3dfb4701-e3d6-4435-9f70-a6e35822c4f2}</Project>
       <Name>ServicesTestUtilities2</Name>
@@ -226,6 +218,7 @@
     <Compile Include="ProjectSystemShim\LegacyProject\CSharpReferencesTests.cs" />
     <Compile Include="ProjectSystemShim\CPS\SourceFileHandlingTests.cs" />
     <Compile Include="ProjectSystemShim\LegacyProject\SourceFileHandlingTests.cs" />
+    <Compile Include="ProjectSystemShim\TempPECompilerServiceTests.cs" />
     <Content Include="Debugging\ProximityExpressionsGetterTestFile.cs" />
     <Compile Include="Debugging\ProximityExpressionsGetterTests.cs" />
     <Compile Include="Debugging\ProximityExpressionsGetterTests.Lines.cs" />

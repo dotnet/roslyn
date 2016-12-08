@@ -58,9 +58,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
             var documentsWithType = await FindDocumentsAsync(project, documents, symbol.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
-
-            string simpleName;
-            var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(symbol.Name, project.LanguageServices.GetService<ISyntaxFactsService>(), out simpleName)
+            var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(symbol.Name, project.LanguageServices.GetService<ISyntaxFactsService>(), out var simpleName)
                 ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
 
@@ -73,10 +71,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISyntaxFactsService syntaxFacts,
             SyntaxToken token)
         {
-            PredefinedType actualType;
-
             return
-                syntaxFacts.TryGetPredefinedType(token, out actualType) &&
+                syntaxFacts.TryGetPredefinedType(token, out var actualType) &&
                 predefinedType == actualType;
         }
 
@@ -185,7 +181,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return FindReferencesInDocumentAsync(symbol, document, t =>
                 IsPotentialReference(predefinedType, syntaxFacts, t),
-                (t, m) => ValueTuple.Create(true, CandidateReason.None),
+                (t, m) => (matched: true, reason: CandidateReason.None),
                 cancellationToken);
         }
 
@@ -196,9 +192,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            string simpleName;
-            return TryGetNameWithoutAttributeSuffix(namedType.Name, syntaxFacts, out simpleName)
+            return TryGetNameWithoutAttributeSuffix(namedType.Name, syntaxFacts, out var simpleName)
                 ? FindReferencesInDocumentUsingIdentifierAsync(simpleName, document, symbolsMatch, cancellationToken)
                 : SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
         }

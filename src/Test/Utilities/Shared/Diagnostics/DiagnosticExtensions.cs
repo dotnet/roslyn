@@ -97,7 +97,36 @@ namespace Microsoft.CodeAnalysis
         {
             var diagnostics = c.GetDiagnostics();
             diagnostics.Verify(expected);
+            VerifyAssemblyIds(c, diagnostics);
+
             return c;
+        }
+
+        private static void VerifyAssemblyIds<TCompilation>(
+            TCompilation c, ImmutableArray<Diagnostic> diagnostics) where TCompilation : Compilation
+        {
+            foreach (var diagnostic in diagnostics)
+            {
+                // If this is a diagnostic about a missing assembly, make sure that we can get back
+                // an AssemblyIdentity when we query the compiler.  If it's not a diagnostic about
+                // a missing assembly, make sure we get no results back.
+                if (c.IsUnreferencedAssemblyIdentityDiagnosticCode(diagnostic.Code))
+                {
+                    var assemblyIds = c.GetUnreferencedAssemblyIdentities(diagnostic);
+                    Assert.False(assemblyIds.IsEmpty);
+
+                    var diagnosticMessage = diagnostic.GetMessage();
+                    foreach (var id in assemblyIds)
+                    {
+                        Assert.Contains(id.GetDisplayName(), diagnosticMessage);
+                    }
+                }
+                else
+                {
+                    var assemblyIds = c.GetUnreferencedAssemblyIdentities(diagnostic);
+                    Assert.True(assemblyIds.IsEmpty);
+                }
+            }
         }
 
         public static void VerifyAnalyzerOccurrenceCount<TCompilation>(

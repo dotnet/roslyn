@@ -893,22 +893,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<Microsoft.Cci.ITypeReference>.GetInstance();
             Debug.Assert(((Cci.ITypeReference)this).AsGenericTypeInstanceReference != null);
 
-            var modifiers = default(ImmutableArray<ImmutableArray<CustomModifier>>);
-
-            if (this.HasTypeArgumentsCustomModifiers)
-            {
-                modifiers = this.TypeArgumentsCustomModifiers;
-            }
-
+            bool hasModifiers = this.HasTypeArgumentsCustomModifiers;
             var arguments = this.TypeArgumentsNoUseSiteDiagnostics;
 
             for (int i = 0; i < arguments.Length; i++)
             {
                 var arg = moduleBeingBuilt.Translate(arguments[i], syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
 
-                if (!modifiers.IsDefault && !modifiers[i].IsDefaultOrEmpty)
+                if (hasModifiers)
                 {
-                    arg = new Cci.ModifiedTypeReference(arg, modifiers[i].As<Cci.ICustomModifier>());
+                    var modifiers = this.GetTypeArgumentCustomModifiers(i);
+
+                    if (!modifiers.IsDefaultOrEmpty)
+                    {
+                        arg = new Cci.ModifiedTypeReference(arg, modifiers.As<Cci.ICustomModifier>());
+                    }
                 }
 
                 builder.Add(arg);
@@ -917,33 +916,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return builder.ToImmutableAndFree();
         }
 
-        Cci.INamedTypeReference Cci.IGenericTypeInstanceReference.GenericType
+        Cci.INamedTypeReference Cci.IGenericTypeInstanceReference.GetGenericType(EmitContext context)
         {
-            get
-            {
-                Debug.Assert(((Cci.ITypeReference)this).AsGenericTypeInstanceReference != null);
-                return GenericTypeImpl;
-            }
+            Debug.Assert(((Cci.ITypeReference)this).AsGenericTypeInstanceReference != null);
+            return GenericTypeImpl(context);
         }
 
-        private Cci.INamedTypeReference GenericTypeImpl
+        private Cci.INamedTypeReference GenericTypeImpl(EmitContext context)
         {
-            get
-            {
-                return this.OriginalDefinition;
-            }
+            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
+            return moduleBeingBuilt.Translate(this.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, 
+                                              diagnostics: context.Diagnostics, needDeclaration:true); 
         }
 
-        Cci.INestedTypeReference Cci.ISpecializedNestedTypeReference.UnspecializedVersion
+        Cci.INestedTypeReference Cci.ISpecializedNestedTypeReference.GetUnspecializedVersion(EmitContext context)
         {
-            get
-            {
-                Debug.Assert(((Cci.ITypeReference)this).AsSpecializedNestedTypeReference != null);
-                var result = GenericTypeImpl.AsNestedTypeReference;
+            Debug.Assert(((Cci.ITypeReference)this).AsSpecializedNestedTypeReference != null);
+            var result = GenericTypeImpl(context).AsNestedTypeReference;
 
-                Debug.Assert(result != null);
-                return result;
-            }
+            Debug.Assert(result != null);
+            return result;
         }
     }
 }

@@ -1197,10 +1197,9 @@ End Class
         Friend Overrides Function CreateCommandHandler(
             waitIndicator As IWaitIndicator,
             undoHistoryRegistry As ITextUndoHistoryRegistry,
-            editorOperationsFactoryService As IEditorOperationsFactoryService,
-            completionService As IAsyncCompletionService) As ICommandHandler
+            editorOperationsFactoryService As IEditorOperationsFactoryService) As ICommandHandler
 
-            Return New DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService, completionService)
+            Return New DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
         End Function
 
         Protected Overrides Function CreateTestWorkspaceAsync(code As String) As Task(Of TestWorkspace)

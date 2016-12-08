@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantOverrideNonEvent = 72,
         ERR_AddRemoveMustHaveBody = 73,
         ERR_AbstractEventInitializer = 74,
-        //ERR_PossibleBadNegCast = 75,      Not used in Roslyn. Occurs so infrequently, not worth reimplementing.
+        ERR_PossibleBadNegCast = 75,
         ERR_ReservedEnumerator = 76,
         ERR_AsMustHaveReferenceType = 77,
         WRN_LowercaseEllSuffix = 78,
@@ -1430,8 +1430,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SemiOrLBraceOrArrowExpected = 8180,
         ERR_NewWithTupleTypeSyntax = 8181,
         ERR_PredefinedValueTupleTypeMustBeStruct = 8182,
+        ERR_DiscardTypeInferenceFailed = 8183,
+        ERR_MixedDeconstructionDisallowed = 8184,
 
-        // Available  = 8183-8195
+        // Available  = 8185-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,

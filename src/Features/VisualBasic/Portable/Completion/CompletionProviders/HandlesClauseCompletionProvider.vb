@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetDisplayAndInsertionText(
-                symbol As ISymbol, context As SyntaxContext) As ValueTuple(Of String, String)
+                symbol As ISymbol, context As SyntaxContext) As (displayText As String, insertionText As String)
 
             Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
         End Function

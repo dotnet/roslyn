@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Is this expression composed only of declaration expressions nested in tuple expressions?
+        /// Is this expression composed only of declaration expressions and discards nested in tuple expressions?
         /// </summary>
         private static bool IsDeconstructionDeclarationLeft(this ExpressionSyntax self)
         {
@@ -218,13 +218,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.TupleExpression:
                     var tuple = (TupleExpressionSyntax)self;
                     return tuple.Arguments.All(a => IsDeconstructionDeclarationLeft(a.Expression));
+                case SyntaxKind.IdentifierName:
+                    // Underscore is the only expression that is not clearly a declaration that we tolerate for now
+                    var identifier = (IdentifierNameSyntax)self;
+                    return identifier.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken;
                 default:
                     return false;
             }
         }
 
         /// <summary>
-        /// Returns true if the expression is composed only of nested tuple and declaration expressions.
+        /// Returns true if the expression is composed only of nested tuple, declaration expressions and discards.
         /// </summary>
         internal static bool IsDeconstructionDeclarationLeft(this Syntax.InternalSyntax.ExpressionSyntax node)
         {
@@ -240,6 +244,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 case SyntaxKind.DeclarationExpression:
                     return true;
+                case SyntaxKind.IdentifierName:
+                    // Underscore is the only expression that is not clearly a declaration that we tolerate for now
+                    return node.RawContextualKind == (int)SyntaxKind.UnderscoreToken;
                 default:
                     return false;
             }
@@ -352,6 +359,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                 block,
                 default(ArrowExpressionClauseSyntax),
                 semicolonToken);
+        }
+
+        /// <summary>
+        /// If this declaration or identifier is part of a deconstruction, find the deconstruction.
+        /// If found, returns either an assignment expression or a foreach variable statement.
+        /// Returns null otherwise.
+        /// </summary>
+        internal static CSharpSyntaxNode GetContainingDeconstruction(this ExpressionSyntax expr)
+        {
+            var kind = expr.Kind();
+            if (kind != SyntaxKind.TupleExpression && kind != SyntaxKind.DeclarationExpression && kind != SyntaxKind.IdentifierName)
+            {
+                return null;
+            }
+
+            while (true)
+            {
+                Debug.Assert(expr.Kind() == SyntaxKind.TupleExpression || expr.Kind() == SyntaxKind.DeclarationExpression || expr.Kind() == SyntaxKind.IdentifierName);
+                var parent = expr.Parent;
+                if (parent == null) { return null; }
+
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.Argument:
+                        if (parent.Parent?.Kind() == SyntaxKind.TupleExpression)
+                        {
+                            expr = (TupleExpressionSyntax)parent.Parent;
+                            continue;
+                        }
+                        return null;
+                    case SyntaxKind.SimpleAssignmentExpression:
+                        if ((object)((AssignmentExpressionSyntax)parent).Left == expr)
+                        {
+                            return parent;
+                        }
+                        return null;
+                    case SyntaxKind.ForEachVariableStatement:
+                        if ((object)((ForEachVariableStatementSyntax)parent).Variable == expr)
+                        {
+                            return parent;
+                        }
+                        return null;
+                    default:
+                        return null;
+                }
+            }
         }
     }
 }

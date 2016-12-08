@@ -65,9 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
         {
             var text = args.TextView.TextBuffer.CurrentSnapshot.AsText();
             var cancellationToken = waitContext.CancellationToken;
-
-            Workspace workspace;
-            if (!Workspace.TryGetWorkspace(text.Container, out workspace))
+            if (!Workspace.TryGetWorkspace(text.Container, out var workspace))
             {
                 return false;
             }

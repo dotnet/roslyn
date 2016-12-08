@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.DocumentationComments
@@ -63,10 +64,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
             Return _memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document))
         End Function
 
-        Protected Overrides Iterator Function GetReducers() As IEnumerable(Of AbstractReducer)
-            Yield New VisualBasicNameReducer
-            Yield New VisualBasicEscapingReducer
-            Yield New VisualBasicParenthesesReducer
+        Protected Overrides Function GetReducers() As ImmutableArray(Of AbstractReducer)
+            Return ImmutableArray.Create(Of AbstractReducer)(
+                New VisualBasicNameReducer(),
+                New VisualBasicEscapingReducer(),
+                New VisualBasicParenthesesReducer())
         End Function
 
         Private Class FormattingRule

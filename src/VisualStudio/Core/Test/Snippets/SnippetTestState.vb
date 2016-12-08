@@ -6,13 +6,10 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Commands
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
-Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Editor
@@ -51,7 +48,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                     GetService(Of IEditorOperationsFactoryService)(),
                     UndoHistoryRegistry,
                     GetService(Of IInlineRenameService)(),
-                    GetService(Of IWaitIndicator)(),
                     New TestCompletionPresenter(Me),
                     GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
                     GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())

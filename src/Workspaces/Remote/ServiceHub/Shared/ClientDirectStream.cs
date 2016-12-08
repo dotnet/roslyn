@@ -74,6 +74,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 set { _stream.WriteTimeout = value; }
             }
 
+            public override void Close()
+            {
+                if (_pipe.IsConnected)
+                {
+                    // calling close on disconnected pipe will
+                    // throw an exception
+                    _stream.Close();
+                }
+            }
+
             public override bool CanRead => _stream.CanRead;
             public override bool CanSeek => _stream.CanSeek;
             public override bool CanWrite => _stream.CanWrite;
@@ -100,8 +110,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback callback, object state) => _stream.BeginWrite(buffer, offset, count, callback, state);
             public override void EndWrite(IAsyncResult asyncResult) => _stream.EndWrite(asyncResult);
-
-            public override void Close() => _stream.Close();
 
             public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => _stream.CopyToAsync(destination, bufferSize, cancellationToken);
 

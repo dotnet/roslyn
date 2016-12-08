@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 If Not Me._isProcessingComplexifiedSpans Then
                     _renameSpansTracker.AddModifiedSpan(_documentId, oldSpan, newSpan)
                 Else
-                    Me._modifiedSubSpans.Add(ValueTuple.Create(oldSpan, newSpan))
+                    Me._modifiedSubSpans.Add((oldSpan, newSpan))
                 End If
             End Sub
 
@@ -173,6 +173,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 newNode = speculativeTree.GetAnnotatedNodes(Of SyntaxNode)(annotation).First()
                 Me._speculativeModel = GetSemanticModelForNode(newNode, Me._semanticModel)
                 Debug.Assert(_speculativeModel IsNot Nothing, "expanding a syntax node which cannot be speculated?")
+
+                ' There are cases when we change the type of node to make speculation work (e.g.,
+                ' for AsNewClauseSyntax), so getting the newNode from the _speculativeModel 
+                ' ensures the final node replacing the original node is found.
+                newNode = Me._speculativeModel.SyntaxTree.GetRoot(_cancellationToken).GetAnnotatedNodes(Of SyntaxNode)(annotation).First()
 
                 Dim oldSpan = originalNode.Span
 

@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, fixProviderData);
 
             var provider = providerAndFixer.Item1;
-            TextSpan span;
-            var document = GetDocumentAndSelectSpan(workspace, out span);
+            var document = GetDocumentAndSelectSpan(workspace, out var span);
             var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(provider, document, span);
             AssertNoAnalyzerExceptionDiagnostics(allDiagnostics);
             return allDiagnostics;
@@ -59,10 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, fixProviderData);
 
             var provider = providerAndFixer.Item1;
-            Document document;
-            TextSpan span;
             string annotation = null;
-            if (!TryGetDocumentAndSelectSpan(workspace, out document, out span))
+            if (!TryGetDocumentAndSelectSpan(workspace, out var document, out var span))
             {
                 document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
             }

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol.Name, document, symbolsMatch, cancellationToken);
         }
 
-        private Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> GetParameterSymbolsMatchFunction(
+        private Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> GetParameterSymbolsMatchFunction(
             IParameterSymbol parameter, Solution solution, CancellationToken cancellationToken)
         {
             // Get the standard function for comparing parameters.  This function will just 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 // First try the standard function.
                 var result = standardFunction(token, model);
-                if (!result.Item1)
+                if (!result.matched)
                 {
                     // If it fails, fall back to the anon-delegate function.
                     result = anonParameterFunc(token, model);

@@ -195,6 +195,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             refKind: refKind);
                     }
 
+                case BoundKind.DiscardedExpression:
+                    {
+                        return rewrittenRight;
+                    }
+
                 default:
                     {
                         Debug.Assert(refKind == RefKind.None);

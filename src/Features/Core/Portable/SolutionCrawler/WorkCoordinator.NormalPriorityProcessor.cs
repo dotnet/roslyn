@@ -156,13 +156,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 // successfully processed a high priority document.
                                 return;
                             }
-
                             // process one of documents remaining
-                            var documentCancellation = default(CancellationTokenSource);
-                            WorkItem workItem;
                             if (!_workItemQueue.TryTakeAnyWork(
                                 _currentProjectProcessing, this.Processor.DependencyGraph, this.Processor.DiagnosticAnalyzerService,
-                                out workItem, out documentCancellation))
+                                out var workItem, out var documentCancellation))
                             {
                                 return;
                             }
@@ -275,22 +272,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         try
                         {
-                            // this is a best effort algorithm with some shortcomings.
-                            //
-                            // the most obvious issue is if there is a new work item (without a solution change - but very unlikely) 
-                            // for a opened document we already processed, the work item will be treated as a regular one rather than higher priority one
-                            // (opened document)
-                            CancellationTokenSource documentCancellation;
                             foreach (var documentId in this.GetPrioritizedPendingDocuments())
                             {
                                 if (this.CancellationToken.IsCancellationRequested)
                                 {
                                     return true;
                                 }
-
+                                // this is a best effort algorithm with some shortcomings.
+                                //
+                                // the most obvious issue is if there is a new work item (without a solution change - but very unlikely) 
+                                // for a opened document we already processed, the work item will be treated as a regular one rather than higher priority one
+                                // (opened document)
                                 // see whether we have work item for the document
-                                WorkItem workItem;
-                                if (!_workItemQueue.TryTake(documentId, out workItem, out documentCancellation))
+                                if (!_workItemQueue.TryTake(documentId, out var workItem, out var documentCancellation))
                                 {
                                     RemoveHigherPriorityDocument(documentId);
                                     continue;
@@ -314,8 +308,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private void RemoveHigherPriorityDocument(DocumentId documentId)
                     {
                         // remove opened document processed
-                        IDisposable projectCache;
-                        if (_higherPriorityDocumentsNotProcessed.TryRemove(documentId, out projectCache))
+                        if (_higherPriorityDocumentsNotProcessed.TryRemove(documentId, out var projectCache))
                         {
                             DisposeProjectCache(projectCache);
                         }

@@ -17,6 +17,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IParameterTypeInformationRefCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements IParameterTypeInformation.RefCustomModifiers
+            Get
+                Return Me.RefCustomModifiers.As(Of Cci.ICustomModifier)
+            End Get
+        End Property
+
         Private ReadOnly Property IParameterTypeInformationIsByReference As Boolean Implements IParameterTypeInformation.IsByReference
             Get
                 Return Me.IsByRef
@@ -28,12 +34,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim paramType As TypeSymbol = Me.Type
             Return moduleBeingBuilt.Translate(paramType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
-
-        Private ReadOnly Property IParameterTypeInformationCountOfCustomModifiersPrecedingByRef As UShort Implements IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
-            Get
-                Return Me.CountOfCustomModifiersPrecedingByRef
-            End Get
-        End Property
 
         Private ReadOnly Property IParameterListEntryIndex As UShort Implements IParameterListEntry.Index
             Get

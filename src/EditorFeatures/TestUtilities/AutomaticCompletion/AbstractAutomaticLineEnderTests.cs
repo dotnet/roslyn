@@ -59,9 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
         private void Test(ITextView view, ITextBuffer buffer, string expectedWithAnnotations)
         {
-            string expected;
-            int expectedPosition;
-            MarkupTestFile.GetPosition(expectedWithAnnotations, out expected, out expectedPosition);
+            MarkupTestFile.GetPosition(expectedWithAnnotations, out var expected, out int expectedPosition);
 
             // Remove any virtual space from the expected text.
             var virtualPosition = view.Caret.Position.VirtualBufferPosition;

@@ -83,8 +83,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                     }
 
                     var candidateText = item.FilterText;
-                    double matchCost;
-                    if (!similarityChecker.AreSimilar(candidateText, out matchCost))
+                    if (!similarityChecker.AreSimilar(candidateText, out var matchCost))
                     {
                         continue;
                     }

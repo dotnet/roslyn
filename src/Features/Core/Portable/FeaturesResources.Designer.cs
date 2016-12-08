@@ -126,6 +126,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add document &apos;{0}&apos;.
+        /// </summary>
+        internal static string Add_document_0 {
+            get {
+                return ResourceManager.GetString("Add_document_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add missing cases.
         /// </summary>
         internal static string Add_missing_cases {
@@ -492,15 +501,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Awaited_task_returns {
             get {
                 return ResourceManager.GetString("Awaited_task_returns", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Camel Case.
-        /// </summary>
-        internal static string Camel_Case {
-            get {
-                return ResourceManager.GetString("Camel_Case", resourceCulture);
             }
         }
         
@@ -2131,6 +2131,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer explicitly provided tuple element name.
+        /// </summary>
+        internal static string Prefer_explicitly_provided_tuple_element_name {
+            get {
+                return ResourceManager.GetString("Prefer_explicitly_provided_tuple_element_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Project.
         /// </summary>
         internal static string Project {
@@ -2208,6 +2217,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Remarks_colon {
             get {
                 return ResourceManager.GetString("Remarks_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove document &apos;{0}&apos;.
+        /// </summary>
+        internal static string Remove_document_0 {
+            get {
+                return ResourceManager.GetString("Remove_document_0", resourceCulture);
             }
         }
         
@@ -3070,6 +3088,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_coalesce_expression {
             get {
                 return ResourceManager.GetString("Use_coalesce_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use explicitly provided tuple name.
+        /// </summary>
+        internal static string Use_explicitly_provided_tuple_name {
+            get {
+                return ResourceManager.GetString("Use_explicitly_provided_tuple_name", resourceCulture);
             }
         }
         

@@ -64,17 +64,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                 if (token.RawKind == _openBrace.Kind && AllowedForToken(token))
                 {
                     var leftToken = token;
-                    SyntaxToken rightToken;
-                    if (TryFindMatchingToken(leftToken, out rightToken))
+                    if (TryFindMatchingToken(leftToken, out var rightToken))
                     {
                         return new BraceMatchingResult(leftToken.Span, rightToken.Span);
                     }
                 }
                 else if (token.RawKind == _closeBrace.Kind && AllowedForToken(token))
                 {
-                    SyntaxToken leftToken;
                     var rightToken = token;
-                    if (TryFindMatchingToken(rightToken, out leftToken))
+                    if (TryFindMatchingToken(rightToken, out var leftToken))
                     {
                         return new BraceMatchingResult(leftToken.Span, rightToken.Span);
                     }

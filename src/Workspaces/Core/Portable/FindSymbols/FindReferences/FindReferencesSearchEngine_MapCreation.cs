@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,118 +11,78 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    using DocumentMap = MultiDictionary<Document, (SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>;
+    using ProjectMap = MultiDictionary<Project, (SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>;
+    using ProjectToDocumentMap = Dictionary<Project, MultiDictionary<Document, (SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>;
+
     internal partial class FindReferencesSearchEngine
     {
-        private async Task<ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>> CreateDocumentMapAsync(
-            ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>> projectMap)
+        private async Task<ProjectToDocumentMap> CreateProjectToDocumentMapAsync(ProjectMap projectMap)
         {
             using (Logger.LogBlock(FunctionId.FindReference_CreateDocumentMapAsync, _cancellationToken))
             {
-                Func<Document, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>> createQueue = 
-                    d => new ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>();
+                var finalMap = new ProjectToDocumentMap();
 
-                var documentMap = new ConcurrentDictionary<Document, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>();
-
-#if PARALLEL
-            Roslyn.Utilities.TaskExtensions.RethrowIncorrectAggregateExceptions(cancellationToken, () =>
-                {
-                    projectMap.AsParallel().WithCancellation(cancellationToken).ForAll(kvp =>
-                    {
-                        var project = kvp.Key;
-                        var projectQueue = kvp.Value;
-
-                        projectQueue.AsParallel().WithCancellation(cancellationToken).ForAll(symbolAndFinder =>
-                        {
-                            var symbol = symbolAndFinder.Item1;
-                            var finder = symbolAndFinder.Item2;
-
-                            var documents = finder.DetermineDocumentsToSearch(symbol, project, cancellationToken) ?? SpecializedCollections.EmptyEnumerable<Document>();
-                            foreach (var document in documents.Distinct().WhereNotNull())
-                            {
-                                if (includeDocument(document))
-                                {
-                                    documentMap.GetOrAdd(document, createQueue).Enqueue(symbolAndFinder);
-                                }
-                            }
-                        });
-                    });
-                });
-#else
                 foreach (var kvp in projectMap)
                 {
                     var project = kvp.Key;
                     var projectQueue = kvp.Value;
 
+                    var documentMap = new DocumentMap();
+
                     foreach (var symbolAndFinder in projectQueue)
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        var symbolAndProjectId = symbolAndFinder.Item1;
+                        var symbolAndProjectId = symbolAndFinder.symbolAndProjectId;
                         var symbol = symbolAndProjectId.Symbol;
-                        var finder = symbolAndFinder.Item2;
+                        var finder = symbolAndFinder.finder;
 
                         var documents = await finder.DetermineDocumentsToSearchAsync(symbol, project, _documents, _cancellationToken).ConfigureAwait(false);
                         foreach (var document in documents.Distinct().WhereNotNull())
                         {
                             if (_documents == null || _documents.Contains(document))
                             {
-                                documentMap.GetOrAdd(document, createQueue).Enqueue(symbolAndFinder);
+                                documentMap.Add(document, symbolAndFinder);
                             }
                         }
                     }
-                }
-#endif
 
-                Contract.ThrowIfTrue(documentMap.Any(kvp => kvp.Value.Count != kvp.Value.ToSet().Count));
-                return documentMap;
+                    Contract.ThrowIfTrue(documentMap.Any(kvp1 => kvp1.Value.Count != kvp1.Value.ToSet().Count));
+
+                    if (documentMap.Count > 0)
+                    {
+                        finalMap.Add(project, documentMap);
+                    }
+                }
+
+                return finalMap;
             }
         }
 
-        private async Task<ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>> CreateProjectMapAsync(
-            ConcurrentSet<SymbolAndProjectId> symbols)
+        private async Task<ProjectMap> CreateProjectMapAsync(ConcurrentSet<SymbolAndProjectId> symbols)
         {
             using (Logger.LogBlock(FunctionId.FindReference_CreateProjectMapAsync, _cancellationToken))
             {
-                Func<Project, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>> createQueue = 
-                    p => new ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>();
+                var projectMap = new ProjectMap();
 
-                var projectMap = new ConcurrentDictionary<Project, ConcurrentQueue<ValueTuple<SymbolAndProjectId, IReferenceFinder>>>();
-
-#if PARALLEL
-            Roslyn.Utilities.TaskExtensions.RethrowIncorrectAggregateExceptions(cancellationToken, () =>
+                var scope = _documents?.Select(d => d.Project).ToImmutableHashSet();
+                foreach (var symbolAndProjectId in symbols)
                 {
-                    symbols.AsParallel().WithCancellation(cancellationToken).ForAll(s =>
-                    {
-                        finders.AsParallel().WithCancellation(cancellationToken).ForAll(f =>
-                        {
-                            var projects = f.DetermineProjectsToSearch(s, solution, cancellationToken) ?? SpecializedCollections.EmptyEnumerable<Project>();
-                            foreach (var project in projects.Distinct())
-                            {
-                                projectMap.GetOrAdd(project, createQueue).Enqueue(ValueTuple.Create(s, f));
-                            }
-                        });
-                    });
-                });
-#else
-
-                var scope = _documents != null ? _documents.Select(d => d.Project).ToImmutableHashSet() : null;
-                foreach (var s in symbols)
-                {
-                    foreach (var f in _finders)
+                    foreach (var finder in _finders)
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        var projects = await f.DetermineProjectsToSearchAsync(s.Symbol, _solution, scope, _cancellationToken).ConfigureAwait(false);
+                        var projects = await finder.DetermineProjectsToSearchAsync(symbolAndProjectId.Symbol, _solution, scope, _cancellationToken).ConfigureAwait(false);
                         foreach (var project in projects.Distinct().WhereNotNull())
                         {
                             if (scope == null || scope.Contains(project))
                             {
-                                projectMap.GetOrAdd(project, createQueue).Enqueue(ValueTuple.Create(s, f));
+                                projectMap.Add(project, (symbolAndProjectId, finder));
                             }
                         }
                     }
                 }
-#endif
 
                 Contract.ThrowIfTrue(projectMap.Any(kvp => kvp.Value.Count != kvp.Value.ToSet().Count));
                 return projectMap;

@@ -2,7 +2,11 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!--Generated file, do not directly edit.  Run "RepoUtil change" to regenerate-->
   <PropertyGroup>
+    <GitLinkVersion>2.3.0</GitLinkVersion>
     <ManagedEsentVersion>1.9.4</ManagedEsentVersion>
+    <MicroBuildCoreVersion>0.2.0</MicroBuildCoreVersion>
+    <MicroBuildCoreSentinelVersion>1.0.0</MicroBuildCoreSentinelVersion>
+    <MicroBuildPluginsSwixBuildVersion>1.0.71</MicroBuildPluginsSwixBuildVersion>
     <MicrosoftBuildVersion>15.1.0-preview-000370-00</MicrosoftBuildVersion>
     <MicrosoftBuild14Version>14.3.0</MicrosoftBuild14Version>
     <MicrosoftBuildLoggingStructuredLoggerVersion>1.0.58</MicrosoftBuildLoggingStructuredLoggerVersion>
@@ -10,14 +14,17 @@
     <MicrosoftBuildTasksCoreVersion>15.1.0-preview-000370-00</MicrosoftBuildTasksCoreVersion>
     <MicrosoftBuildTasksCore14Version>14.3.0</MicrosoftBuildTasksCore14Version>
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
+    <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
     <MicrosoftCompositionVersion>1.0.27</MicrosoftCompositionVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
+    <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>
     <MicrosoftDiaSymReaderVersion>1.1.0-beta1-60625-03</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.5.0-beta1</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0-beta1-60831-01</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftVisualBasicVersion>10.0.1</MicrosoftVisualBasicVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.0-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsMicrosoftSignToolVersion>0.2.0-beta</RoslynToolsMicrosoftSignToolVersion>
+    <RoslynToolsMicrosoftVSIXExpInstallerVersion>0.2.1-beta</RoslynToolsMicrosoftVSIXExpInstallerVersion>
     <SystemAppContextVersion>4.1.0</SystemAppContextVersion>
     <SystemCollectionsVersion>4.0.11</SystemCollectionsVersion>
     <SystemCollectionsConcurrentVersion>4.0.12</SystemCollectionsConcurrentVersion>
@@ -29,10 +36,13 @@
     <SystemDiagnosticsProcessVersion>4.1.0</SystemDiagnosticsProcessVersion>
     <SystemDiagnosticsStackTraceVersion>4.0.1</SystemDiagnosticsStackTraceVersion>
     <SystemDiagnosticsToolsVersion>4.0.1</SystemDiagnosticsToolsVersion>
+    <SystemDiagnosticsTraceSourceVersion>4.0.0</SystemDiagnosticsTraceSourceVersion>
     <SystemDynamicRuntimeVersion>4.0.11</SystemDynamicRuntimeVersion>
     <SystemGlobalizationVersion>4.0.11</SystemGlobalizationVersion>
+    <SystemIdentityModelTokensJwtVersion>5.0.0</SystemIdentityModelTokensJwtVersion>
     <SystemIOVersion>4.1.0</SystemIOVersion>
     <SystemIOCompressionVersion>4.1.0</SystemIOCompressionVersion>
+    <SystemIOCompressionZipFileVersion>4.0.1</SystemIOCompressionZipFileVersion>
     <SystemIOFileSystemVersion>4.0.1</SystemIOFileSystemVersion>
     <SystemIOFileSystemDriveInfoVersion>4.0.0</SystemIOFileSystemDriveInfoVersion>
     <SystemIOFileSystemPrimitivesVersion>4.0.1</SystemIOFileSystemPrimitivesVersion>

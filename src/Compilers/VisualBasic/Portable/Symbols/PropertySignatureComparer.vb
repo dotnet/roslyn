@@ -168,9 +168,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If (comparisons And (SymbolComparisonResults.ReturnTypeMismatch Or SymbolComparisonResults.CustomModifierMismatch Or SymbolComparisonResults.TupleNamesMismatch)) <> 0 Then
                 results = results Or MethodSignatureComparer.DetailedReturnTypeCompare(prop1.ReturnsByRef,
                                                                                        New TypeWithModifiers(prop1.Type, prop1.TypeCustomModifiers),
+                                                                                       prop1.RefCustomModifiers,
                                                                                        Nothing,
                                                                                        prop2.ReturnsByRef,
                                                                                        New TypeWithModifiers(prop2.Type, prop2.TypeCustomModifiers),
+                                                                                       prop2.RefCustomModifiers,
                                                                                        Nothing,
                                                                                        comparisons,
                                                                                        stopIfAny)
@@ -211,7 +213,8 @@ Done:
 
             ' the runtime compares custom modifiers using (effectively) SequenceEqual
             If (comparison And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 AndAlso
-                Not prop1.TypeCustomModifiers.SequenceEqual(prop2.TypeCustomModifiers) Then
+                (Not prop1.TypeCustomModifiers.SequenceEqual(prop2.TypeCustomModifiers) OrElse
+                Not prop1.RefCustomModifiers.SequenceEqual(prop2.RefCustomModifiers)) Then
 
                 Return False
             End If

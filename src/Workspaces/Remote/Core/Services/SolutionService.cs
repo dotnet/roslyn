@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, OptionSet optionSet, CancellationToken cancellationToken)
         {
+            if (optionSet == null)
+            {
+                return await GetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            }
+
             // since option belong to workspace, we can't share solution
 
             // create new solution

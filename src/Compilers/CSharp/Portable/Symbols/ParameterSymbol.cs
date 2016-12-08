@@ -55,9 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract RefKind RefKind { get; }
 
         /// <summary>
-        /// The list of custom modifiers, if any, associated with the parameter.
+        /// The list of custom modifiers, if any, associated with the parameter type.
         /// </summary>
         public abstract ImmutableArray<CustomModifier> CustomModifiers { get; }
+
+        /// <summary>
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        /// </summary>
+        public abstract ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
         /// Describes how the parameter is marshalled when passed to native code.
@@ -387,14 +392,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// The CLI spec says that custom modifiers must precede the ByRef type code in the encoding of a parameter.
-        /// Unfortunately, the managed C++ compiler emits them in the reverse order.  In order to avoid breaking
-        /// interop scenarios, we need to support such signatures.
-        /// Should be 0 for non-ref parameters.
-        /// </summary>
-        internal abstract ushort CountOfCustomModifiersPrecedingByRef { get; }
-
         #region IParameterSymbol Members
 
         ITypeSymbol IParameterSymbol.Type
@@ -405,6 +402,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
         {
             get { return this.CustomModifiers; }
+        }
+
+        ImmutableArray<CustomModifier> IParameterSymbol.RefCustomModifiers
+        {
+            get { return this.RefCustomModifiers; }
         }
 
         IParameterSymbol IParameterSymbol.OriginalDefinition

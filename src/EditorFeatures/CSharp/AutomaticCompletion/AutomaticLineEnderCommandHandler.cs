@@ -117,8 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             // Go through the set of owning nodes in leaf to root chain.
             foreach (var owningNode in GetOwningNodes(root, position))
             {
-                SyntaxToken lastToken;
-                if (!TryGetLastToken(text, position, owningNode, out lastToken))
+                if (!TryGetLastToken(text, position, owningNode, out var lastToken))
                 {
                     // If we can't get last token, there is nothing more to do, just skip
                     // the other owning nodes and return.
@@ -136,21 +135,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 var textToParse = owningNode.NormalizeWhitespace().ToFullString() + semicolon;
 
                 // currently, Parsing a field is not supported. as a workaround, wrap the field in a type and parse
-                var node = (SyntaxNode)null;
-                switch (owningNode)
-                {
-                    case BaseFieldDeclarationSyntax n: node = SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options); break;
-                    case BaseMethodDeclarationSyntax n: node = SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options); break;
-                    case BasePropertyDeclarationSyntax n: node = SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options); break;
-                    case StatementSyntax n: node = SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options); break;
-                    case UsingDirectiveSyntax n: node = SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options); break;
-                }
+                var node = ParseNode(tree, owningNode, textToParse);
 
                 // Insert line ender if we didn't introduce any diagnostics, if not try the next owning node.
                 if (node != null && !node.ContainsDiagnostics)
                 {
                     return semicolon;
                 }
+            }
+
+            return null;
+        }
+
+        private SyntaxNode ParseNode(SyntaxTree tree, SyntaxNode owningNode, string textToParse)
+        {
+            switch (owningNode)
+            {
+                case BaseFieldDeclarationSyntax n: return SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options);
+                case BaseMethodDeclarationSyntax n: return SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options);
+                case BasePropertyDeclarationSyntax n: return SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options);
+                case StatementSyntax n: return SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options);
+                case UsingDirectiveSyntax n: return SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options);
             }
 
             return null;

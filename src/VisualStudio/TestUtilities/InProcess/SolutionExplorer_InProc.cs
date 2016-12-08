@@ -3,7 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis;
+using System.Threading;
+using EnvDTE80;
+using System.Text.RegularExpressions;
+using Microsoft.VisualStudio.Language.Intellisense;
+using System.Text;
 
 namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 {
@@ -186,6 +192,168 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
                 {
                     IntegrationHelper.TryDeleteDirectoryRecursively(directoryToDelete);
                 }
+            }
+        }
+
+        private EnvDTE.Project GetProject(string nameOrFileName)
+        {
+            return _solution.Projects.OfType<EnvDTE.Project>().First(p => 
+                string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0 
+                || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
+        }
+
+        public void AddFile(string projectName, string fileName, string contents = null, bool open = false)
+        {
+            var project = GetProject(projectName);
+
+            var projectDirectory = Path.GetDirectoryName(project.FullName);
+            var filePath = Path.Combine(projectDirectory, fileName);
+
+            if (contents != null)
+            {
+                File.WriteAllText(filePath, contents);
+            }
+            else if (!File.Exists(filePath))
+            {
+                File.Create(filePath).Dispose();
+            }
+
+            var projectItem = project.ProjectItems.AddFromFile(filePath);
+
+            if (open)
+            {
+                projectItem.Open();
+            }
+        }
+
+        public void SetFileContents(string projectName, string relativeFilePath, string contents)
+        {
+            var project = GetProject(projectName);
+            var projectPath = Path.GetDirectoryName(project.FullName);
+            var filePath = Path.Combine(projectPath, relativeFilePath);
+
+            System.IO.File.WriteAllText(filePath, contents);
+        }
+
+        public string GetFileContents(string projectName, string relativeFilePath)
+        {
+            var project = GetProject(projectName);
+            var projectPath = Path.GetDirectoryName(project.FullName);
+            var filePath = Path.Combine(projectPath, relativeFilePath);
+
+            return System.IO.File.ReadAllText(filePath);
+        }
+
+        public void BuildSolution(bool waitForBuildToFinish)
+        {
+            var dte = (DTE2)GetDTE();
+            var outputWindow = dte.ToolWindows.OutputWindow;
+
+            var buildOutputWindowPane = outputWindow.OutputWindowPanes.Item("Build");
+            buildOutputWindowPane.Clear();
+
+            ExecuteCommand("Build.BuildSolution");
+
+            if (waitForBuildToFinish)
+            {
+                var textDocument = buildOutputWindowPane.TextDocument;
+                var textDocumentSelection = textDocument.Selection;
+
+                var buildFinishedRegex = new Regex(@"^========== Build: \d+ succeeded, \d+ failed, \d+ up-to-date, \d+ skipped ==========$", RegexOptions.Compiled);
+
+                do
+                {
+                    Thread.Yield();
+
+                    try
+                    {
+                        textDocumentSelection.GotoLine(textDocument.EndPoint.Line - 1, Select: true);
+                    }
+                    catch (ArgumentException)
+                    {
+                        // Its possible that the window will still be initializing, clearing,
+                        // etc... We should ignore those errors and just try again
+                    }
+                }
+                while (!buildFinishedRegex.IsMatch(textDocumentSelection.Text));
+            }
+        }
+
+        public int GetErrorListErrorCount()
+        {
+            var dte = (DTE2)GetDTE();
+            var errorList = dte.ToolWindows.ErrorList;
+
+            var errorItems = errorList.ErrorItems;
+            var errorItemsCount = errorItems.Count;
+
+            var errorCount = 0;
+
+            try
+            {
+                for (var index = 1; index <= errorItemsCount; index++)
+                {
+                    var errorItem = errorItems.Item(index);
+
+                    if (errorItem.ErrorLevel == vsBuildErrorLevel.vsBuildErrorLevelHigh)
+                    {
+                        errorCount += 1;
+                    }
+                }
+            }
+            catch (IndexOutOfRangeException)
+            {
+                // It is entirely possible that the items in the error list are modified
+                // after we start iterating, in which case we want to try again.
+                return GetErrorListErrorCount();
+            }
+
+            return errorCount;
+        }
+
+        public void OpenFile(string projectName, string relativeFilePath)
+        {
+            var project = _solution.Projects.Item(projectName);
+            var projectPath = Path.GetDirectoryName(project.FullName);
+
+            var filePath = Path.Combine(projectPath, relativeFilePath);
+            ExecuteCommand("File.OpenFile", filePath);
+
+            var dte = GetDTE();
+            var fileName = Path.GetFileName(filePath);
+
+            while (!dte.ActiveWindow.Caption.Contains(fileName))
+            {
+                Thread.Yield();
+            }
+        }
+
+        public void ReloadProject(string projectName)
+        {
+            var solutionPath = Path.GetDirectoryName(_solution.FullName);
+            var projectPath = Path.Combine(solutionPath, projectName);
+            _solution.AddFromFile(projectPath);
+        }
+
+        public void RestoreNuGetPackages() => ExecuteCommand("ProjectAndSolutionContextMenus.Solution.RestoreNuGetPackages");
+
+        public void SaveAll() => ExecuteCommand("File.SaveAll");
+
+        public void ShowErrorList() => ExecuteCommand("View.ErrorList");
+
+        public void ShowOutputWindow() => ExecuteCommand("View.Output");
+
+        public void UnloadProject(string projectName)
+        {
+            var project = _solution.Projects.Item(projectName);
+            _solution.Remove(project);
+        }
+
+        public void WaitForNoErrorsInErrorList()
+        {
+            while (GetErrorListErrorCount() != 0)
+            {
+                Thread.Yield();
             }
         }
     }

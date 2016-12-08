@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -46,8 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken)
         {
-            TypeDeclarationSyntax declaration;
-            return tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out declaration) ? declaration : null;
+            return tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out var declaration) ? declaration : null;
         }
 
         protected override Task<SyntaxContext> CreateSyntaxContextAsync(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -55,11 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return Task.FromResult<SyntaxContext>(CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken));
         }
 
-        protected override ValueTuple<string, string> GetDisplayAndInsertionText(
+        protected override (string displayText, string insertionText) GetDisplayAndInsertionText(
             INamedTypeSymbol symbol, SyntaxContext context)
         {
             var displayAndInsertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, _symbolFormatWithGenerics);
-            return ValueTuple.Create(displayAndInsertionText, displayAndInsertionText);
+            return (displayAndInsertionText, displayAndInsertionText);
         }
 
         protected override IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(SyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
@@ -88,8 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             if (ch == '<')
             {
-                string insertionText;
-                if (selectedItem.Properties.TryGetValue(InsertionTextOnLessThan, out insertionText))
+                if (selectedItem.Properties.TryGetValue(InsertionTextOnLessThan, out var insertionText))
                 {
                     return new TextChange(selectedItem.Span, insertionText);
                 }

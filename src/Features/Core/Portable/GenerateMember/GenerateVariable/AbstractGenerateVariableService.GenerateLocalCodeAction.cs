@@ -49,12 +49,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
             private async Task<SyntaxNode> GetNewRoot(CancellationToken cancellationToken)
             {
-                SyntaxNode newRoot;
-
                 var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var documentOptions = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, documentOptions, semanticModel, cancellationToken, out newRoot))
+                if (_service.TryConvertToLocalDeclaration(_state.LocalType, _state.IdentifierToken, documentOptions, semanticModel, cancellationToken, out var newRoot))
                 {
                     return newRoot;
                 }

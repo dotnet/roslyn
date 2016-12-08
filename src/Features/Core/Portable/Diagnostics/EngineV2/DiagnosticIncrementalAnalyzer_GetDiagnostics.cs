@@ -296,8 +296,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return null;
                 }
 
-                ActiveFileState state;
-                if (!stateSet.TryGetActiveFileState(documentId, out state))
+                if (!stateSet.TryGetActiveFileState(documentId, out var state))
                 {
                     return null;
                 }
@@ -308,8 +307,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private async Task<ImmutableArray<DiagnosticData>?> GetProjectStateDiagnosticsAsync(
                 StateSet stateSet, Project project, DocumentId documentId, AnalysisKind kind, CancellationToken cancellationToken)
             {
-                ProjectState state;
-                if (!stateSet.TryGetProjectState(project.Id, out state))
+                if (!stateSet.TryGetProjectState(project.Id, out var state))
                 {
                     // never analyzed this project yet.
                     return null;

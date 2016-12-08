@@ -130,17 +130,20 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     var symbol = new Symbol(database, matches[i]);
                     if (symbol.Type == SymbolType.Assembly)
                     {
-                        result.Add(new PackageWithAssemblyResult(
-                            symbol.PackageName.ToString(),
-                            database.GetPackageVersion(symbol.Index).ToString(),
-                            GetRank(symbol)));
+                        // Ignore any reference assembly results.
+                        if (symbol.PackageName.ToString() != MicrosoftAssemblyReferencesName)
+                        {
+                            result.Add(new PackageWithAssemblyResult(
+                                symbol.PackageName.ToString(),
+                                database.GetPackageVersion(symbol.Index).ToString(),
+                                GetRank(symbol)));
+                        }
                     }
                 }
             }
 
             return Task.FromResult(result.ToImmutableAndFree());
         }
-
 
         public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity)

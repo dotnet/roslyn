@@ -5,7 +5,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Text.Classification;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindReferences
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     /// <summary>
     /// Event processor that we export so we can control how navigation works in the streaming
@@ -14,11 +14,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
     /// ourselves so that we can do things like navigate to MetadataAsSource.
     /// </summary>
     [Export(typeof(ITableControlEventProcessorProvider))]
-    [DataSourceType(StreamingFindReferencesPresenter.RoslynFindReferencesTableDataSourceSourceTypeIdentifier)]
-    [DataSource(StreamingFindReferencesPresenter.RoslynFindReferencesTableDataSourceIdentifier)]
-    [Name(nameof(FindReferencesTableControlEventProcessorProvider))]
+    [DataSourceType(StreamingFindUsagesPresenter.RoslynFindUsagesTableDataSourceSourceTypeIdentifier)]
+    [DataSource(StreamingFindUsagesPresenter.RoslynFindUsagesTableDataSourceIdentifier)]
+    [Name(nameof(FindUsagesTableControlEventProcessorProvider))]
     [Order(Before = Priority.Default)]
-    internal class FindReferencesTableControlEventProcessorProvider : ITableControlEventProcessorProvider
+    internal class FindUsagesTableControlEventProcessorProvider : ITableControlEventProcessorProvider
     {
         public ITableControlEventProcessor GetAssociatedEventProcessor(
             IWpfTableControl tableControl)

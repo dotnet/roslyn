@@ -74,8 +74,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             var throwOperation = (IThrowStatement)context.Operation;
             var throwStatement = throwOperation.Syntax;
-
-            var optionSet = context.Options.GetOptionSet();
+            var options = context.Options;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+            
             var option = optionSet.GetOption(CodeStyleOptions.PreferThrowExpression, throwStatement.Language);
             if (!option.Value)
             {
@@ -141,7 +146,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 throwOperation.ThrownObject.Syntax.GetLocation(),
                 assignmentExpression.Value.Syntax.GetLocation());
 
-            var descriptor = CreateDescriptorWithSeverity(option.Notification.Value);
+            var descriptor = GetDescriptorWithSeverity(option.Notification.Value);
 
             context.ReportDiagnostic(
                 Diagnostic.Create(descriptor, throwStatement.GetLocation(), additionalLocations: allLocations));

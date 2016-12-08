@@ -254,14 +254,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsPredefinedType(SyntaxToken token)
         {
-            PredefinedType actualType;
-            return TryGetPredefinedType(token, out actualType) && actualType != PredefinedType.None;
+            return TryGetPredefinedType(token, out var actualType) && actualType != PredefinedType.None;
         }
 
         public bool IsPredefinedType(SyntaxToken token, PredefinedType type)
         {
-            PredefinedType actualType;
-            return TryGetPredefinedType(token, out actualType) && actualType == type;
+            return TryGetPredefinedType(token, out var actualType) && actualType == type;
         }
 
         public bool TryGetPredefinedType(SyntaxToken token, out PredefinedType type)
@@ -313,14 +311,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsPredefinedOperator(SyntaxToken token)
         {
-            PredefinedOperator actualOperator;
-            return TryGetPredefinedOperator(token, out actualOperator) && actualOperator != PredefinedOperator.None;
+            return TryGetPredefinedOperator(token, out var actualOperator) && actualOperator != PredefinedOperator.None;
         }
 
         public bool IsPredefinedOperator(SyntaxToken token, PredefinedOperator op)
         {
-            PredefinedOperator actualOperator;
-            return TryGetPredefinedOperator(token, out actualOperator) && actualOperator == op;
+            return TryGetPredefinedOperator(token, out var actualOperator) && actualOperator == op;
         }
 
         public bool TryGetPredefinedOperator(SyntaxToken token, out PredefinedOperator op)
@@ -532,21 +528,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsSimpleMemberAccessExpression(SyntaxNode node)
-        {
-            return node is MemberAccessExpressionSyntax &&
-                ((MemberAccessExpressionSyntax)node).Kind() == SyntaxKind.SimpleMemberAccessExpression;
-        }
+            => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.SimpleMemberAccessExpression;
 
         public bool IsConditionalMemberAccessExpression(SyntaxNode node)
-        {
-            return node is ConditionalAccessExpressionSyntax;
-        }
+            => node is ConditionalAccessExpressionSyntax;
 
         public bool IsPointerMemberAccessExpression(SyntaxNode node)
-        {
-            return node is MemberAccessExpressionSyntax &&
-                ((MemberAccessExpressionSyntax)node).Kind() == SyntaxKind.PointerMemberAccessExpression;
-        }
+            => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.PointerMemberAccessExpression;
 
         public void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity)
         {
@@ -561,12 +549,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.MemberBindingExpression)
-                ? GetExpressionOfConditionalAccessExpression(node.GetParentConditionalAccessExpression())
-                : (node as MemberAccessExpressionSyntax)?.Expression;
-        }
+        public SyntaxNode GetTargetOfMemberBinding(SyntaxNode node)
+            => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
+
+        public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget)
+            => (node as MemberAccessExpressionSyntax)?.Expression;
 
         public SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node)
             => (node as ConditionalAccessExpressionSyntax)?.Expression;
@@ -679,8 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node)
         {
-            SyntaxNode unused;
-            return IsObjectInitializerNamedAssignmentIdentifier(node, out unused);
+            return IsObjectInitializerNamedAssignmentIdentifier(node, out var unused);
         }
 
         public bool IsObjectInitializerNamedAssignmentIdentifier(
@@ -825,7 +811,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 case SyntaxKind.EventDeclaration:
                     var eventDecl = (EventDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(ExpandExplicitInterfaceName(eventDecl.Identifier.ValueText, eventDecl.ExplicitInterfaceSpecifier),
+                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                        ExpandExplicitInterfaceName(eventDecl.Identifier.ValueText, eventDecl.ExplicitInterfaceSpecifier),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Event, eventDecl.Identifier.Span,
@@ -861,7 +848,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;
-                    declaredSymbolInfo = new DeclaredSymbolInfo(ExpandExplicitInterfaceName(property.Identifier.ValueText, property.ExplicitInterfaceSpecifier),
+                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                        ExpandExplicitInterfaceName(property.Identifier.ValueText, property.ExplicitInterfaceSpecifier),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Property, property.Identifier.Span,
@@ -1005,8 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var currentName = name;
                 foreach (var aliasMap in aliasMaps)
                 {
-                    string mappedName;
-                    if (aliasMap.TryGetValue(currentName, out mappedName))
+                    if (aliasMap.TryGetValue(currentName, out var mappedName))
                     {
                         // Looks like this could be an alias.  Also include the name the alias points to
                         builder.Add(mappedName);
@@ -1044,96 +1031,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string ExpandExplicitInterfaceName(string identifier, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
         {
-            if (explicitInterfaceSpecifier == null)
-            {
-                return identifier;
-            }
-            else
-            {
-                var builder = new StringBuilder();
-                ExpandTypeName(explicitInterfaceSpecifier.Name, builder);
-                builder.Append('.');
-                builder.Append(identifier);
-                return builder.ToString();
-            }
-        }
-
-        private static void ExpandTypeName(TypeSyntax type, StringBuilder builder)
-        {
-            switch (type.Kind())
-            {
-                case SyntaxKind.AliasQualifiedName:
-                    var alias = (AliasQualifiedNameSyntax)type;
-                    builder.Append(alias.Alias.Identifier.ValueText);
-                    break;
-                case SyntaxKind.ArrayType:
-                    var array = (ArrayTypeSyntax)type;
-                    ExpandTypeName(array.ElementType, builder);
-                    for (int i = 0; i < array.RankSpecifiers.Count; i++)
-                    {
-                        var rankSpecifier = array.RankSpecifiers[i];
-                        builder.Append(rankSpecifier.OpenBracketToken.Text);
-                        for (int j = 1; j < rankSpecifier.Sizes.Count; j++)
-                        {
-                            builder.Append(',');
-                        }
-
-                        builder.Append(rankSpecifier.CloseBracketToken.Text);
-                    }
-
-                    break;
-                case SyntaxKind.GenericName:
-                    var generic = (GenericNameSyntax)type;
-                    builder.Append(generic.Identifier.ValueText);
-                    if (generic.TypeArgumentList != null)
-                    {
-                        var arguments = generic.TypeArgumentList.Arguments;
-                        builder.Append(generic.TypeArgumentList.LessThanToken.Text);
-                        for (int i = 0; i < arguments.Count; i++)
-                        {
-                            if (i != 0)
-                            {
-                                builder.Append(',');
-                            }
-
-                            ExpandTypeName(arguments[i], builder);
-                        }
-
-                        builder.Append(generic.TypeArgumentList.GreaterThanToken.Text);
-                    }
-
-                    break;
-                case SyntaxKind.IdentifierName:
-                    var identifierName = (IdentifierNameSyntax)type;
-                    builder.Append(identifierName.Identifier.ValueText);
-                    break;
-                case SyntaxKind.NullableType:
-                    var nullable = (NullableTypeSyntax)type;
-                    ExpandTypeName(nullable.ElementType, builder);
-                    builder.Append(nullable.QuestionToken.Text);
-                    break;
-                case SyntaxKind.OmittedTypeArgument:
-                    // do nothing since it was omitted, but don't reach the default block
-                    break;
-                case SyntaxKind.PointerType:
-                    var pointer = (PointerTypeSyntax)type;
-                    ExpandTypeName(pointer.ElementType, builder);
-                    builder.Append(pointer.AsteriskToken.Text);
-                    break;
-                case SyntaxKind.PredefinedType:
-                    var predefined = (PredefinedTypeSyntax)type;
-                    builder.Append(predefined.Keyword.Text);
-                    break;
-                case SyntaxKind.QualifiedName:
-                    var qualified = (QualifiedNameSyntax)type;
-                    ExpandTypeName(qualified.Left, builder);
-                    builder.Append(qualified.DotToken.Text);
-                    ExpandTypeName(qualified.Right, builder);
-                    break;
-                default:
-                    Debug.Assert(false, "Unexpected type syntax " + type.Kind());
-                    break;
-            }
+            return explicitInterfaceSpecifier == null
+                ? identifier
+                : $"{explicitInterfaceSpecifier.Name.GetNameToken().ValueText}.{identifier}";
         }
 
         private string GetContainerDisplayName(SyntaxNode node)
@@ -1392,8 +1292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Contract.Requires(root.SyntaxTree == node.SyntaxTree);
 
             int currentId = 0;
-            SyntaxNode currentNode;
-            Contract.ThrowIfFalse(TryGetMethodLevelMember(root, (n, i) => n == node, ref currentId, out currentNode));
+            Contract.ThrowIfFalse(TryGetMethodLevelMember(root, (n, i) => n == node, ref currentId, out var currentNode));
 
             Contract.ThrowIfFalse(currentId >= 0);
             CheckMemberId(root, node, currentId);
@@ -1403,8 +1302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetMethodLevelMember(SyntaxNode root, int memberId)
         {
             int currentId = 0;
-            SyntaxNode currentNode;
-            if (!TryGetMethodLevelMember(root, (n, i) => i == memberId, ref currentId, out currentNode))
+            if (!TryGetMethodLevelMember(root, (n, i) => i == memberId, ref currentId, out var currentNode))
             {
                 return null;
             }

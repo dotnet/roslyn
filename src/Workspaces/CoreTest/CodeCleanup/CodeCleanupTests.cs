@@ -304,10 +304,9 @@ End Module";
 
         private void VerifyRange(string codeWithMarker, string language = LanguageNames.CSharp)
         {
-            var codeWithoutMarker = default(string);
             var namedSpans = (IDictionary<string, IList<TextSpan>>)new Dictionary<string, IList<TextSpan>>();
 
-            MarkupTestFile.GetSpans(codeWithMarker, out codeWithoutMarker, out namedSpans);
+            MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out namedSpans);
 
             var expectedResult = namedSpans.ContainsKey("r") ? namedSpans["r"] as IEnumerable<TextSpan> : SpecializedCollections.EmptyEnumerable<TextSpan>();
 
@@ -316,10 +315,9 @@ End Module";
 
         private void VerifyRange(string codeWithMarker, ICodeCleanupProvider transformer, ref IEnumerable<TextSpan> expectedResult, string language = LanguageNames.CSharp)
         {
-            var codeWithoutMarker = default(string);
             var namedSpans = (IDictionary<string, IList<TextSpan>>)new Dictionary<string, IList<TextSpan>>();
 
-            MarkupTestFile.GetSpans(codeWithMarker, out codeWithoutMarker, out namedSpans);
+            MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out namedSpans);
 
             VerifyRange(codeWithoutMarker, SpecializedCollections.SingletonEnumerable(transformer), namedSpans["b"], ref expectedResult, language);
         }
