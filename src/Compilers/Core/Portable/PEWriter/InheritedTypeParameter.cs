@@ -232,9 +232,9 @@ namespace Microsoft.Cci
             throw ExceptionUtilities.Unreachable;
         }
 
-        public PrimitiveTypeCode TypeCode(EmitContext context)
+        public PrimitiveTypeCode TypeCode
         {
-            return PrimitiveTypeCode.NotPrimitive;
+            get { return PrimitiveTypeCode.NotPrimitive; }
         }
 
         #endregion

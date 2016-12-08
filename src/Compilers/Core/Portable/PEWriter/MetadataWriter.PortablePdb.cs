@@ -159,7 +159,7 @@ namespace Microsoft.Cci
             SerializeCustomModifiers(encoder, localConstant.CustomModifiers);
 
             var type = localConstant.Type;
-            var typeCode = type.TypeCode(Context);
+            var typeCode = type.TypeCode;
 
             object value = localConstant.CompileTimeValue.Value;
 

@@ -1235,7 +1235,7 @@ namespace Microsoft.Cci
 
         internal PrimitiveTypeCode GetConstantTypeCode(ILocalDefinition constant)
         {
-            return constant.CompileTimeValue.Type.TypeCode(Context);
+            return constant.CompileTimeValue.Type.TypeCode;
         }
 
         private BlobHandle GetPermissionSetBlobHandle(ImmutableArray<ICustomAttribute> permissionSet)
@@ -3635,7 +3635,7 @@ namespace Microsoft.Cci
 
                 // TYPEDREF is only allowed in RetType, Param, LocalVarSig signatures
                 Debug.Assert(!module.IsPlatformType(typeReference, PlatformType.SystemTypedReference));
-				
+
                 var modifiedTypeReference = typeReference as IModifiedTypeReference;
                 if (modifiedTypeReference != null)
                 {
@@ -3644,7 +3644,7 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                var primitiveType = typeReference.TypeCode(Context);
+                var primitiveType = typeReference.TypeCode;
                 if (primitiveType != PrimitiveTypeCode.Pointer && primitiveType != PrimitiveTypeCode.NotPrimitive)
                 {
                     SerializePrimitiveType(encoder, primitiveType);
@@ -3837,7 +3837,7 @@ namespace Microsoft.Cci
             // ELEMENT_TYPE_U4, ELEMENT_TYPE_I8, ELEMENT_TYPE_U8, ELEMENT_TYPE_R4, ELEMENT_TYPE_R8, ELEMENT_TYPE_STRING.
             // An enum is specified as a single byte 0x55 followed by a SerString.
 
-            var primitiveType = typeReference.TypeCode(Context);
+            var primitiveType = typeReference.TypeCode;
             if (primitiveType != PrimitiveTypeCode.NotPrimitive)
             {
                 SerializePrimitiveType(encoder, primitiveType);

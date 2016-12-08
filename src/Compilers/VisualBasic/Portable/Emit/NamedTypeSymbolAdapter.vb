@@ -42,14 +42,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return AsTypeDefinitionImpl(moduleBeingBuilt)
         End Function
 
-        Private Function ITypeReferenceTypeCode(context As EmitContext) As Cci.PrimitiveTypeCode Implements ITypeReference.TypeCode
-            Debug.Assert(Not Me.IsAnonymousType)
-            Debug.Assert(Me.IsDefinitionOrDistinct())
-            If Me.IsDefinition Then
-                Return Me.PrimitiveTypeCode
-            End If
-            Return Cci.PrimitiveTypeCode.NotPrimitive
-        End Function
+        Private ReadOnly Property ITypeReferenceTypeCode As Cci.PrimitiveTypeCode Implements ITypeReference.TypeCode
+            Get
+                Debug.Assert(Not Me.IsAnonymousType)
+                Debug.Assert(Me.IsDefinitionOrDistinct())
+                If Me.IsDefinition Then
+                    Return Me.PrimitiveTypeCode
+                End If
+                Return Cci.PrimitiveTypeCode.NotPrimitive
+            End Get
+        End Property
 
         Private ReadOnly Property ITypeReferenceTypeDef As TypeDefinitionHandle Implements ITypeReference.TypeDef
             Get

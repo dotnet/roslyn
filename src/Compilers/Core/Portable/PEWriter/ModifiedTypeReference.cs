@@ -55,9 +55,9 @@ namespace Microsoft.Cci
             throw ExceptionUtilities.Unreachable;
         }
 
-        PrimitiveTypeCode ITypeReference.TypeCode(EmitContext context)
+        PrimitiveTypeCode ITypeReference.TypeCode
         {
-            return PrimitiveTypeCode.NotPrimitive;
+            get { return PrimitiveTypeCode.NotPrimitive; }
         }
 
         TypeDefinitionHandle ITypeReference.TypeDef

@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         bool Cci.ITypeReference.IsValueType => false;
 
         TypeDefinitionHandle Cci.ITypeReference.TypeDef => default(TypeDefinitionHandle);
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context) => Cci.PrimitiveTypeCode.NotPrimitive;
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode => Cci.PrimitiveTypeCode.NotPrimitive;
 
         Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context) => null;
         Cci.IGenericMethodParameterReference Cci.ITypeReference.AsGenericMethodParameterReference => null;
