@@ -35,6 +35,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim workspace = document.Project.Solution.Workspace
 
             Dim info = Await GetSymbolsAsync(document, position, workspace.Options, cancellationToken).ConfigureAwait(False)
+            If info Is Nothing Then
+                Return
+            End If
+
             Dim token = info.Item1
             Dim semanticModel = info.Item2
             Dim symbols = info.Item3

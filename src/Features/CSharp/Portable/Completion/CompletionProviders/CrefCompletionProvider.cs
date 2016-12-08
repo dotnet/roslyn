@@ -54,6 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var cancellationToken = context.CancellationToken;
 
             var info = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);
+            if (info == null)
+            {
+                return;
+            }
+
             var token = info.Item1;
             var semanticModel = info.Item2;
             var symbols = info.Item3;
