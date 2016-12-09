@@ -117,7 +117,8 @@ namespace Roslyn.Utilities
                 return null;
             }
 
-            if (stream.ReadByte() != VersionByte1 || stream.ReadByte() != VersionByte2)
+            if (stream.ReadByte() != VersionByte1 ||
+                stream.ReadByte() != VersionByte2)
             {
                 return null;
             }
