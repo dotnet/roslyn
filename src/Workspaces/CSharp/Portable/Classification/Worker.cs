@@ -185,6 +185,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     ClassifyDocumentationComment((DocumentationCommentTriviaSyntax)trivia.GetStructure());
                     return;
 
+                case SyntaxKind.DocumentationCommentExteriorTrivia:
+                    AddClassification(trivia, ClassificationTypeNames.XmlDocCommentDelimiter);
+                    return;
+
                 case SyntaxKind.IfDirectiveTrivia:
                 case SyntaxKind.ElifDirectiveTrivia:
                 case SyntaxKind.ElseDirectiveTrivia:
