@@ -321,6 +321,12 @@
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
   <Import Project="GenerateInternalsVisibleTo.targets" />
   <Import Project="GenerateCompilerInternals.targets" />
+  
+  <ItemDefinitionGroup>
+    <VSIXSourceItem>
+      <Visible>false</Visible>
+    </VSIXSourceItem>
+  </ItemDefinitionGroup>
 
   <ImportGroup Condition="'$(ImportVSSDKTargets)' == 'true'">
     <Import Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.targets" />

@@ -17,6 +17,7 @@
   </metadata>
   <files>
     <file src="Dlls\VisualStudioIntegrationTestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.dll" target="lib\net46" />
-    <file src="Dlls\VisualStudioIntegrationTestUtilities\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" target="lib\net46" />
+    <file src="Vsix\VisualStudioTestSetup\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" target="lib\net46" />
+    <file src="Vsix\VisualStudioTestSetup\Microsoft.VisualStudio.Setup.Configuration.Native.x86.dll" target="lib\net46" />
   </files>
 </package>

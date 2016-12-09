@@ -12,6 +12,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
         public string Name { get; set; }
         public string Documentation { get; set; }
 
+        public Parameter() { }
+
         public Parameter(IParameter actual)
         {
             Name = actual.Name;

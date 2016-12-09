@@ -17,6 +17,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
         public Parameter[] Parameters { get; set; }
         public string PrettyPrintedContent { get; set; }
 
+        public Signature() { }
+
         public Signature(ISignature actual)
         {
             Content = actual.Content;
