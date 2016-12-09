@@ -136,8 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     return;
                 }
 
-                var trivia = enumerator.Current;
-                if (trivia.FullSpan.End > classificationSpanStart)
+                if (enumerator.Current.FullSpan.End > classificationSpanStart)
                 {
                     // Found trivia that is after the text span we're classifying.  
                     break;
