@@ -129,6 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             var enumerator = list.GetEnumerator();
             while (true)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
+
                 if (!enumerator.MoveNext())
                 {
                     // Reached the end of the trivia.  It was all before the text span we care about
@@ -146,6 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             // Continue processing trivia from this point on until we get past the 
             do
             {
+                _cancellationToken.ThrowIfCancellationRequested();
+
                 var trivia = enumerator.Current;
                 if (trivia.SpanStart >= _textSpan.End)
                 {
