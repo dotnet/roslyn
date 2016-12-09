@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor
@@ -10,8 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
     Public Class GenerateConstructorTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New GenerateConstructorCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New GenerateConstructorCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
@@ -1473,8 +1472,9 @@ End Class")
         Public Class GenerateConstructorTestsWithFindMissingIdentifiersAnalyzer
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-                Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(), New GenerateConstructorCodeFixProvider())
+            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+                Return (New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
+                        New GenerateConstructorCodeFixProvider())
             End Function
 
             <WorkItem(1241, "https://github.com/dotnet/roslyn/issues/1241")>

@@ -1,4 +1,5 @@
-using System;
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces;
@@ -11,12 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
 {
     public partial class AddBracesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpAddBracesDiagnosticAnalyzer(),
-                new CSharpAddBracesCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpAddBracesDiagnosticAnalyzer(), new CSharpAddBracesCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task DoNotFireForIfWithBraces()

@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -17,10 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
     public class UseExpressionBodyForPropertiesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new UseExpressionBodyForPropertiesDiagnosticAnalyzer(),
-                new UseExpressionBodyForPropertiesCodeFixProvider());
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new UseExpressionBodyForPropertiesDiagnosticAnalyzer(), new UseExpressionBodyForPropertiesCodeFixProvider());
 
         private static readonly Dictionary<OptionKey, object> UseExpressionBody =
             new Dictionary<OptionKey, object>

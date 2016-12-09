@@ -16,11 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
 {
     public partial class GenerateTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                null, new GenerateTypeCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new GenerateTypeCodeFixProvider());
 
         protected override IList<CodeAction> MassageActions(IList<CodeAction> codeActions)
             => FlattenActions(codeActions);
@@ -4752,11 +4749,8 @@ index: 2);
 
     public partial class GenerateTypeWithUnboundAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new GenerateTypeCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new GenerateTypeCodeFixProvider());
 
         protected override IList<CodeAction> MassageActions(IList<CodeAction> codeActions)
             => FlattenActions(codeActions);

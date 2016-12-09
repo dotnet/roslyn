@@ -8,10 +8,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseCol
     Public Class UseCollectionInitializerTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                New VisualBasicUseCollectionInitializerDiagnosticAnalyzer(),
-                New VisualBasicUseCollectionInitializerCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (New VisualBasicUseCollectionInitializerDiagnosticAnalyzer(),
+                    New VisualBasicUseCollectionInitializerCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)>

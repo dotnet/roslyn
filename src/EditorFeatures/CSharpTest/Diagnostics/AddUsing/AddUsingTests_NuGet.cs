@@ -38,13 +38,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
                 return workspace;
             }
 
-            internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(
+            internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(
                 Workspace workspace, object fixProviderData)
             {
                 var data = (FixProviderData)fixProviderData;
-                return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(
-                        null,
-                        new CSharpAddImportCodeFixProvider(data.Item1, data.Item2));
+                return (null, new CSharpAddImportCodeFixProvider(data.Item1, data.Item2));
             }
 
             protected override IList<CodeAction> MassageActions(IList<CodeAction> actions)

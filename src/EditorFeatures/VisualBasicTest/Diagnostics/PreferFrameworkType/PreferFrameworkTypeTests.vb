@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 
@@ -17,8 +16,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
         Private ReadOnly onWithInfo = New CodeStyleOption(Of Boolean)(True, NotificationOption.Suggestion)
         Private ReadOnly offWithInfo = New CodeStyleOption(Of Boolean)(False, NotificationOption.Suggestion)
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicPreferFrameworkTypeDiagnosticAnalyzer(), New PreferFrameworkTypeCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (New VisualBasicPreferFrameworkTypeDiagnosticAnalyzer(),
+                    New PreferFrameworkTypeCodeFixProvider())
         End Function
 
         Private ReadOnly Property NoFrameworkType As IDictionary(Of OptionKey, Object)
@@ -555,6 +555,5 @@ Class C
     End Sub
 End Class", options:=FrameworkTypeInDeclaration, compareTokens:=False)
         End Function
-
     End Class
 End Namespace

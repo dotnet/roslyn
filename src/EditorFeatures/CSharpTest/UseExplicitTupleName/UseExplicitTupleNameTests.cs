@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -13,12 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExplicitTupleName
 {
     public class UseExplicitTupleNameTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(
-                new UseExplicitTupleNameDiagnosticAnalyzer(),
-                new UseExplicitTupleNameCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new UseExplicitTupleNameDiagnosticAnalyzer(), new UseExplicitTupleNameCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
         public async Task TestNamedTuple1()
