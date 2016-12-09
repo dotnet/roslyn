@@ -122,22 +122,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             // We may have long lists of trivia (for example a huge list of // comments after someone
             // comments out a file).  Try to skip as many as possible if they're not actually in the span
             // we care about classifying.
-            foreach (var trivia in list)
+
+
+            var classificationSpanStart = _textSpan.Start;
+            var classificationSpanEnd = _textSpan.End;
+
+            // First, skip all the trivia before the span we care about.
+            var enumerator = list.GetEnumerator();
+            while (true)
             {
-                var triviaSpan = trivia.FullSpan;
-                if (ShouldAddSpan(triviaSpan))
+                if (!enumerator.MoveNext())
                 {
-                    ClassifyTrivia(trivia);
+                    // Reached the end of the trivia.  It was all before the text span we care about
+                    // Stop immediately.
+                    return;
+                }
+
+                var trivia = enumerator.Current;
+                if (trivia.FullSpan.End <= classificationSpanStart)
+                {
+                    // Trivia is entirely before the span we're classifying, ignore and move to the next.
+                    continue;
                 }
                 else
                 {
-                    // Stop once we get to any trivia that is past the span we're classifying
-                    if (triviaSpan.Start >= _textSpan.End)
-                    {
-                        return;
-                    }
+                    // Found trivia that is after the text span we're classifying.  
+                    break;
                 }
             }
+
+            // Continue processing trivia from this point on until we get past the 
+            do
+            {
+                var trivia = enumerator.Current;
+                if (trivia.SpanStart >= _textSpan.End)
+                {
+                    // reached trivia that is past what we are classifying.  Stop immediately.
+                    return;
+                }
+
+                ClassifyTrivia(trivia);
+            }
+            while (enumerator.MoveNext());
         }
 
         private void ClassifyTrivia(SyntaxTrivia trivia)
