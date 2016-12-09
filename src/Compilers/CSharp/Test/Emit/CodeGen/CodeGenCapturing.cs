@@ -8,6 +8,8 @@ using System.Text;
 using Xunit;
 using System.Collections;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -354,13 +356,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             }
         }
 
-        private void SerializeMethod(MethodInfo methodInfo, StringBuilder builder, ref int methodIndex)
+        private void SerializeMethod(MethodInfo methodInfo, StringBuilder builder, int methodIndex)
         {
             int totalLocalFuncs = methodInfo.TotalLocalFuncs;
-            if (totalLocalFuncs == 0)
-            {
-                return;
-            }
 
             var methodText = new StringBuilder();
             var localFuncs = methodInfo.LocalFuncs;
@@ -404,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             }
 
             builder.Append($@"
-    public void M_{methodIndex++}()
+    public void M_{methodIndex}()
     {{
 {methodText.ToString()}
     }}");
@@ -414,65 +412,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         [Fact]
         public void AllCaptureTests()
         {
-            var methods = MakeAllMethods();
+            var methods = MakeAllMethods().ToList();
 
             var fields = methods.First().CaptureContext.VariablesByScope[0];
-            var fieldClass = $@"
-partial class C
-{{
-    {string.Join("\r\n", fields.Select(f => $"int {f} = 0;"))}
-}}";
 
-            const int ChunkSize = 50;
-
-            var methodsText = new StringBuilder();
-            int methodIndex = 0;
-
-            int chunkStart = 0;
-
-            foreach (var methodInfo in methods)
-            {
-                SerializeMethod(methodInfo, methodsText, ref methodIndex);
-
-                if (methodIndex % ChunkSize == 0)
-                {
-                    RunChunkedTest(methodsText.ToString(),
-                                   chunkStart,
-                                   methodIndex - chunkStart);
-
-                    methodsText = new StringBuilder();
-                    chunkStart = methodIndex;
-                }
-            }
-
-            if (methodIndex % ChunkSize != 0)
-            {
-                RunChunkedTest(methodsText.ToString(),
-                               chunkStart,
-                               methodIndex - chunkStart);
-            }
-
-            void RunChunkedTest(string text, int chunkStartIndex, int numMethods)
-            {
-                var src = $@"
+            const string ClassFmt = @"
 using System;
-partial class C
+public class C
 {{
-    {text}
+    {0}";
+            StringBuilder GetClassStart()
+                => new StringBuilder(string.Format(ClassFmt,
+                    string.Join("\r\n", fields.Select(f => $"public int {f} = 0;"))));
 
-    public static void Main(string[] args)
-    {{
-        var c = new C();
-        {string.Join("\r\n        ",
-                Enumerable.Range(chunkStartIndex, numMethods)
-                          .Select(i => $"c.M_{i}();"))}
-    }}
-}}
-{fieldClass}";
-                CompileAndVerify(src,
-                    expectedOutput: string.Join("\r\n", Enumerable.Repeat("0", numMethods)));
-            }
+            Parallel.ForEach(Partitioner.Create(0, methods.Count), (range, state) =>
+            {
+                var methodsText = GetClassStart();
+
+                for (int methodIndex = range.Item1; methodIndex < range.Item2; methodIndex++)
+                {
+                    var methodInfo = methods[methodIndex];
+
+                    if (methodInfo.TotalLocalFuncs == 0)
+                    {
+                        continue;
+                    }
+
+                    SerializeMethod(methodInfo, methodsText, methodIndex);
+                }
+
+                methodsText.AppendLine("\r\n}");
+                CreateCompilationWithMscorlib(methodsText.ToString()).VerifyEmitDiagnostics();
+            });
         }
-
     }
 }

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         internal CompilationVerifier CompileAndVerify(
-            string[] sources,
+            IEnumerable<string> sources,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
             Action<IModuleSymbol> sourceSymbolValidator = null,
