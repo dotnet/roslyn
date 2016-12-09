@@ -214,6 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
             if (hierarchy.TryGetParentHierarchy(out var parentHierarchy) && !(parentHierarchy is IVsSolution))
             {
                 var builder = SharedPools.Default<StringBuilder>().AllocateAndClear();
+                builder.Append(result);
 
                 while (parentHierarchy != null && !(parentHierarchy is IVsSolution))
                 {

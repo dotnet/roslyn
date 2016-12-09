@@ -25969,5 +25969,42 @@ BC36716: Visual Basic 12.0 does not support implementing read-only or write-only
 </expected>)
         End Sub
 
+        <Fact(), WorkItem(13617, "https://github.com/dotnet/roslyn/issues/13617")>
+        Public Sub MissingTypeArgumentInGenericExtensionMethod()
+            Dim source =
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Module FooExtensions
+    <Extension()>
+    Public Function Foo(Of T)(ByVal obj As Object)
+        Return GetType(T)
+    End Function
+End Module
+
+Module Module1
+    Sub Main()
+        Dim typeA As Type = "a".Foo()
+        Dim typeB As Type = "b".Foo()()
+    End Sub
+End Module
+        ]]></file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef})
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC36589: Type parameter 'T' for extension method 'Public Function Foo(Of T)() As Object' defined in 'FooExtensions' cannot be inferred.
+        Dim typeA As Type = "a".Foo()
+                                ~~~
+BC36589: Type parameter 'T' for extension method 'Public Function Foo(Of T)() As Object' defined in 'FooExtensions' cannot be inferred.
+        Dim typeB As Type = "b".Foo()()
+                                ~~~
+</expected>)
+        End Sub
+
     End Class
 End Namespace
