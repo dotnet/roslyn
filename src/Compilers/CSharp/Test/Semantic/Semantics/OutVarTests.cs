@@ -787,7 +787,7 @@ public class Cls
         private static IEnumerable<DeclarationExpressionSyntax> GetOutVarDeclarations(SyntaxTree tree, string name)
         {
             return tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
-                    .Where(p => IsOutVarDeclaration(p) && p.Identifier().ValueText == name);
+                    .Where(p => p.IsOutVarDeclaration() && p.Identifier().ValueText == name);
         }
 
         private static IEnumerable<DiscardDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
@@ -800,17 +800,10 @@ public class Cls
             return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
         }
 
-        private static bool IsOutVarDeclaration(DeclarationExpressionSyntax p)
-        {
-            return p.Designation.Kind() == SyntaxKind.SingleVariableDesignation
-                && p.Parent.Kind() == SyntaxKind.Argument
-                && ((ArgumentSyntax)p.Parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword;
-        }
-
         private static IEnumerable<DeclarationExpressionSyntax> GetOutVarDeclarations(SyntaxTree tree)
         {
             return tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
-                    .Where(p => IsOutVarDeclaration(p));
+                    .Where(p => p.IsOutVarDeclaration());
         }
 
         [Fact]
@@ -1042,7 +1035,7 @@ public class Cls
                 var local = (SourceLocalSymbol)symbol;
                 var parent = local.IdentifierToken.Parent;
 
-                Assert.Empty(parent.Ancestors().OfType<DeclarationExpressionSyntax>().Where(e => IsOutVarDeclaration(e)));
+                Assert.Empty(parent.Ancestors().OfType<DeclarationExpressionSyntax>().Where(e => e.IsOutVarDeclaration()));
 
                 if (parent.Kind() == SyntaxKind.VariableDeclarator)
                 {

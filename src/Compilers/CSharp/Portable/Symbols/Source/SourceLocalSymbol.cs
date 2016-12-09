@@ -673,6 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
                 }
 
+                Debug.Assert((object)this._type != null);
                 return this._type;
             }
 
@@ -755,10 +756,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)this._type == null)
                 {
+                    AssertNoOutOrPatternVariable();
                     SetType(_nodeBinder.CreateErrorType("var"));
                 }
 
                 return this._type;
+            }
+
+            [Conditional("DEBUG")]
+            private void AssertNoOutOrPatternVariable()
+            {
+                var parent = this._typeSyntax.Parent;
+
+                if (parent?.Kind() == SyntaxKind.DeclarationExpression && ((DeclarationExpressionSyntax)parent).IsOutVarDeclaration())
+                {
+                    Debug.Assert(false);
+                }
+                else if (parent?.Kind() == SyntaxKind.DeclarationPattern)
+                {
+                    Debug.Assert(false);
+                }
             }
         }
     }
