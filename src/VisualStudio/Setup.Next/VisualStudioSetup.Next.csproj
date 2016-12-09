@@ -14,7 +14,7 @@
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-    <!-- This VSIX must be compiled with the Dev15 SDK due to the specific 
+    <!-- This VSIX must be compiled with the Dev15 SDK due to the specific
          set of references it uses.  Yet when doing so it can't link in all
          of the Dev14 VSIX that we are creating.  Hence when building specifically
          for Dev14 do not build this as a VSIX.  -->
@@ -23,8 +23,8 @@
     <DeployExtension Condition="'$(VisualStudioVersion)' == '14.0'">false</DeployExtension>
     <RoslynProjectType>Vsix</RoslynProjectType>
     <IsProductComponent>true</IsProductComponent>
-    <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot> 
-    <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\LanguageServicesNext</ExtensionInstallationFolder> 
+    <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
+    <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\LanguageServicesNext</ExtensionInstallationFolder>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\EditorFeatures\Next\EditorFeatures.Next.csproj">
@@ -33,7 +33,6 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <Ngen>true</Ngen>
-      <NgenApplication>vsn.exe</NgenApplication>
       <NgenArchitecture>All</NgenArchitecture>
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
@@ -55,7 +54,6 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <Ngen>true</Ngen>
-      <NgenApplication>vsn.exe</NgenApplication>
       <NgenArchitecture>All</NgenArchitecture>
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
@@ -69,7 +67,6 @@
       <Name>XamlVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <Ngen>true</Ngen>
-      <NgenApplication>vsn.exe</NgenApplication>
       <NgenArchitecture>All</NgenArchitecture>
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
