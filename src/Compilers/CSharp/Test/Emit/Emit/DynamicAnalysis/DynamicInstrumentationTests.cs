@@ -761,13 +761,13 @@ using System;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                  // Method 1
     {
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
     
-    static void TestMain()
+    static void TestMain()                                                  // Method 2
     {
         int x = Count;
         x += Prop;
@@ -807,6 +807,7 @@ True
 True
 True
 True
+True
 Method 3
 File 1
 True
@@ -835,6 +836,94 @@ Method 11
 File 1
 True
 Method 13
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            verifier.VerifyDiagnostics();
+            verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunctionWithLambdaCoverage()
+        {
+            string source = @"
+using System;
+
+public class Program
+{
+    public static void Main(string[] args)                                  // Method 1
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+    
+    static void TestMain()                                                  // Method 2
+    {
+        new D().M1();
+    } 
+}
+
+public class D
+{
+    public void M1()                                                        // Method 4
+    {
+        L1();
+        void L1()
+        {
+            var f = new Func<int>(
+                () => 1
+            );
+
+            var f1 = new Func<int>(
+                () => 1
+            );
+
+            f();
+        }
+    }
+
+    // Method 5 is the synthesized instance constructor for D.
+}
+";
+
+            string expectedOutput = @"Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+Method 4
+File 1
+True
+True
+True
+True
+False
+True
+True
+Method 5
+File 1
+Method 7
 File 1
 True
 True
@@ -1651,18 +1740,18 @@ using System.Threading.Tasks;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                  // Method 1
     {
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 
-    static void TestMain()
+    static void TestMain()                                                  // Method 2
     {
         Console.WriteLine(Outer(""Goo"").Result);
     }
 
-    async static Task<string> Outer(string s)
+    async static Task<string> Outer(string s)                               // Method 3
     {
         string s1 = await First(s);
         string s2 = await Second(s);
@@ -1670,7 +1759,7 @@ public class Program
         return s1 + s2;
     }
 
-    async static Task<string> First(string s)
+    async static Task<string> First(string s)                               // Method 4
     {
         string result = await Second(s) + ""Glue"";
         if (result.Length > 2)
@@ -1679,7 +1768,7 @@ public class Program
             return ""Too short"";
     }
 
-    async static Task<string> Second(string s)
+    async static Task<string> Second(string s)                              // Method 5
     {
         string doubled = """";
         if (s.Length > 2)
@@ -1720,6 +1809,7 @@ True
 True
 True
 False
+True
 True
 True
 Method 8

@@ -804,6 +804,66 @@ partial struct E
         }
 
         [Fact]
+        public void TestLocalFunctionWithLambdaSpans()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()                                   // Method 0
+    {
+        TestMain();
+    }
+
+    static void TestMain()                                      // Method 1
+    {
+        new D().M1();
+    }
+}
+
+public class D
+{
+    public void M1()                                            // Method 3
+    {
+        L1();
+        void L1()
+        {
+            var f = new Func<int>(
+                () => 1
+            );
+
+            f();
+        }
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlib(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
+
+            string[] sourceLines = source.Split('\n');
+
+            VerifySpans(reader, reader.Methods[0], sourceLines,
+                new SpanResult(5, 4, 8, 5, "public static void Main()"),
+                new SpanResult(7, 8, 7, 19, "TestMain()"));
+
+            VerifySpans(reader, reader.Methods[1], sourceLines,
+                new SpanResult(10, 4, 13, 5, "static void TestMain()"),
+                new SpanResult(12, 8, 12, 21, "new D().M1()"));
+
+            VerifySpans(reader, reader.Methods[3], sourceLines,
+                new SpanResult(18, 4, 29, 5, "public void M1()"),
+                new SpanResult(20, 8, 20, 13, "L1()"),
+                new SpanResult(24, 22, 24, 23, "1"),
+                new SpanResult(23, 12, 25, 14, "var f = new Func<int>"),
+                new SpanResult(27, 12, 27, 16, "f()"));
+        }
+
+        [Fact]
         public void TestDynamicAnalysisResourceMissingWhenInstrumentationFlagIsDisabled()
         {
             var c = CreateCompilationWithMscorlib(Parse(ExampleSource + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));

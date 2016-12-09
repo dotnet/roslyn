@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // A synthesized return statement that does not return a value never requires instrumentation.
             // A property set method defined without a block has such a synthesized return statement.
-            if (!_methodHasExplicitBlock && ((BoundReturnStatement)original).ExpressionOpt != null)
+            if ((!_methodHasExplicitBlock || _methodBodyFactory.CurrentMethod.MethodKind == MethodKind.LambdaMethod) && ((BoundReturnStatement)original).ExpressionOpt != null)
             {
                 // The return statement for value-returning methods defined without a block is compiler generated, but requires instrumentation.
                 return CollectDynamicAnalysis(original, rewritten);
