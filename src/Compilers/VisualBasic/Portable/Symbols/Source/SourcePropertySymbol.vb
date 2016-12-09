@@ -576,6 +576,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
                     arguments.GetOrCreateData(Of CommonPropertyWellKnownAttributeData).HasSpecialNameAttribute = True
                     Return
+                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
+                    arguments.GetOrCreateData(Of CommonPropertyWellKnownAttributeData).HasExcludeFromCodeCoverageAttribute = True
+                    Return
                 ElseIf Not IsWithEvents AndAlso attrData.IsTargetAttribute(Me, AttributeDescription.DebuggerHiddenAttribute) Then
                     ' if neither getter or setter is marked by DebuggerHidden Dev11 reports a warning
                     If Not (_getMethod IsNot Nothing AndAlso DirectCast(_getMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute OrElse
@@ -588,6 +591,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             MyBase.DecodeWellKnownAttribute(arguments)
         End Sub
+
+        Friend Overrides ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
+            Get
+                Dim data = GetDecodedWellKnownAttributeData()
+                Return data IsNot Nothing AndAlso data.HasExcludeFromCodeCoverageAttribute
+            End Get
+        End Property
 
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get

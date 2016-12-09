@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal TypeWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        private TypeWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -652,6 +652,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SerializableAttribute))
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasSerializableAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
+            {
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.StructLayoutAttribute))
             {
@@ -860,6 +864,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return data != null && data.HasSerializableAttribute;
             }
         }
+
+        internal override bool IsDirectlyExcludedFromCodeCoverage =>
+            GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
 
         private bool HasInstanceFields()
         {
