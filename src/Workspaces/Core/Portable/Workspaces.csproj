@@ -655,7 +655,6 @@
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.Node.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Serialization.cs" />
-    <Compile Include="FindSymbols\SyntaxTree\AbstractPersistableState.cs" />
     <Compile Include="Formatting\AbstractSyntaxFormattingService.cs" />
     <Compile Include="Formatting\BottomUpBaseIndentationFinder.cs" />
     <Compile Include="Formatting\Context\FormattingContext.AnchorData.cs" />

@@ -6,6 +6,10 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
@@ -129,6 +133,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
+            // If we convert this to 'if (o is Type x)' then 'x' will not be definitely assigned 
+            // in the Else branch of the IfStatement, or after the IfStatement.  Make sure 
+            // that doesn't cause definite assignment issues.
+            if (IsAccessedBeforeAssignment(syntaxContext, declarator, ifStatement, cancellationToken))
+            {
+                return;
+            }
+
             // Looks good!
             var additionalLocations = ImmutableArray.Create(
                 localDeclarationStatement.GetLocation(),
@@ -141,6 +153,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 GetDescriptorWithSeverity(severity),
                 localDeclarationStatement.GetLocation(),
                 additionalLocations));
+        }
+
+        private bool IsAccessedBeforeAssignment(
+            SyntaxNodeAnalysisContext syntaxContext,
+            VariableDeclaratorSyntax declarator,
+            IfStatementSyntax ifStatement,
+            CancellationToken cancellationToken)
+        {
+            var semanticModel = syntaxContext.SemanticModel;
+            var localVariable = semanticModel.GetDeclaredSymbol(declarator);
+
+            var isAssigned = false;
+            var isAccessedBeforeAssignment = false;
+
+            CheckDefiniteAssignment(
+                semanticModel, localVariable, ifStatement.Else,
+                out isAssigned, out isAccessedBeforeAssignment,
+                cancellationToken);
+
+            if (isAccessedBeforeAssignment)
+            {
+                return true;
+            }
+
+            var parentBlock = (BlockSyntax)ifStatement.Parent;
+            var ifIndex = parentBlock.Statements.IndexOf(ifStatement);
+            for (int i = ifIndex + 1, n = parentBlock.Statements.Count; i < n; i++)
+            {
+                if (!isAssigned)
+                {
+                    CheckDefiniteAssignment(
+                        semanticModel, localVariable, parentBlock.Statements[i],
+                        out isAssigned, out isAccessedBeforeAssignment,
+                        cancellationToken);
+
+                    if (isAccessedBeforeAssignment)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private void CheckDefiniteAssignment(
+            SemanticModel semanticModel, ISymbol localVariable, SyntaxNode node,
+            out bool isAssigned, out bool isAccessedBeforeAssignment,
+            CancellationToken cancellationToken)
+        {
+            if (node != null)
+            {
+                foreach (var id in node.DescendantNodes().OfType<IdentifierNameSyntax>())
+                {
+                    var symbol = semanticModel.GetSymbolInfo(id, cancellationToken).GetAnySymbol();
+                    if (localVariable.Equals(symbol))
+                    {
+                        isAssigned = id.IsOnlyWrittenTo();
+                        isAccessedBeforeAssignment = !isAssigned;
+                        return;
+                    }
+                }
+            }
+
+            isAssigned = false;
+            isAccessedBeforeAssignment = false;
         }
 
         private BinaryExpressionSyntax GetLeftmostCondition(ExpressionSyntax condition)

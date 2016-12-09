@@ -63,6 +63,8 @@
     <Compile Include="IntelliSense\Completion\Presentation\Roslyn15CompletionSet.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSetFactory.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSet.cs" />
+    <Compile Include="Options\EditorConfigDocumentOptionsProvider.DocumentOptions.cs" />
+    <Compile Include="Options\EditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" />
     <Compile Include="Structure\BlockContextProvider.cs" />
     <Compile Include="Structure\VisualStudio15StructureTaggerProvider.cs" />
     <Compile Include="Options\EditorConfigDocumentOptionsProviderFactory.cs" />

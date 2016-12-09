@@ -1,18 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.CodingConventions;
-using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
     // NOTE: this type depends on Dev15 assemblies, which is why the type is in EditorFeatures.Next. But, that library
     // is rehostable and once we move .editorconfig support fully through the system, it should be moved to Workspaces
     // or perhaps even lower.
-    internal sealed class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
+    internal sealed partial class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
     {
         private readonly object _gate = new object();
 
@@ -36,9 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         {
             lock (_gate)
             {
-                Task<ICodingConventionContext> contextTask;
-
-                if (_openDocumentContexts.TryGetValue(e.Document.Id, out contextTask))
+                if (_openDocumentContexts.TryGetValue(e.Document.Id, out var contextTask))
                 {
                     _openDocumentContexts.Remove(e.Document.Id);
 
@@ -56,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         {
             lock (_gate)
             {
-                _openDocumentContexts.Add(e.Document.Id, Task.Run(() => _codingConventionsManager.GetConventionContextAsync(e.Document.FilePath, CancellationToken.None)));
+                _openDocumentContexts.Add(e.Document.Id, Task.Run(() => GetConventionContextAsync(e.Document.FilePath, CancellationToken.None)));
             }
         }
 
@@ -104,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 // We don't have anything cached, so we'll just get it now lazily and not hold onto it. The workspace layer will ensure
                 // that we maintain snapshot rules for the document options. We'll also run it on the thread pool
                 // as in some builds the ICodingConventionsManager captures the thread pool.
-                var conventionsAsync = Task.Run(() => _codingConventionsManager.GetConventionContextAsync(path, cancellationToken));
+                var conventionsAsync = Task.Run(() => GetConventionContextAsync(path, cancellationToken));
 
                 using (var context = await conventionsAsync.ConfigureAwait(false))
                 {
@@ -113,43 +110,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             }
         }
 
-        private class DocumentOptions : IDocumentOptions
+        private Task<ICodingConventionContext> GetConventionContextAsync(string path, CancellationToken cancellationToken)
         {
-            private ICodingConventionsSnapshot _codingConventionSnapshot;
-
-            public DocumentOptions(ICodingConventionsSnapshot codingConventionSnapshot)
-            {
-                _codingConventionSnapshot = codingConventionSnapshot;
-            }
-
-            public bool TryGetDocumentOption(Document document, OptionKey option, out object value)
-            {
-                var editorConfigPersistence = option.Option.StorageLocations.OfType<EditorConfigStorageLocation>().SingleOrDefault();
-
-                if (editorConfigPersistence == null)
-                {
-                    value = null;
-                    return false;
-                }
-
-                if (_codingConventionSnapshot.TryGetConventionValue(editorConfigPersistence.KeyName, out value))
-                {
-                    try
-                    {
-                        value = editorConfigPersistence.ParseValue(value.ToString(), option.Option.Type);
-                        return true;
-                    }
-                    catch (Exception)
-                    {
-                        // TODO: report this somewhere?
-                        return false;
-                    }
-                }
-                else
-                {
-                    return false;
-                }
-            }
+            return IOUtilities.PerformIOAsync(
+                () => _codingConventionsManager.GetConventionContextAsync(path, cancellationToken),
+                defaultValue: EmptyCodingConventionContext.Instance);
         }
     }
 }

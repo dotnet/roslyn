@@ -6,13 +6,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Versions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal sealed partial class SyntaxTreeIndex : AbstractPersistableState, IObjectWritable
+    internal sealed partial class SyntaxTreeIndex : IObjectWritable
     {
         private const string PersistenceName = "<TreeInfoPersistence>";
-        private const string SerializationFormat = "1";
+        private const string SerializationFormat = "2";
 
         /// <summary>
         /// in memory cache will hold onto any info related to opened documents in primary branch or all documents in forked branch
@@ -21,6 +23,121 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, SyntaxTreeIndex>> s_cache =
             new ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, SyntaxTreeIndex>>();
+
+        public readonly VersionStamp Version;
+
+        private void WriteVersion(ObjectWriter writer, string formatVersion)
+        {
+            writer.WriteString(formatVersion);
+            this.Version.WriteTo(writer);
+        }
+
+        private static bool TryReadVersion(ObjectReader reader, string formatVersion, out VersionStamp version)
+        {
+            version = VersionStamp.Default;
+            if (reader.ReadString() != formatVersion)
+            {
+                return false;
+            }
+
+            version = VersionStamp.ReadFrom(reader);
+            return true;
+        }
+
+        private static async Task<SyntaxTreeIndex> LoadAsync(
+            Document document, string persistenceName, string formatVersion,
+            Func<ObjectReader, VersionStamp, SyntaxTreeIndex> readFrom, CancellationToken cancellationToken)
+        {
+            var persistentStorageService = document.Project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
+            var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                // attempt to load from persisted state
+                using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
+                using (var stream = await storage.ReadStreamAsync(document, persistenceName, cancellationToken).ConfigureAwait(false))
+                {
+                    if (stream == null)
+                    {
+                        return null;
+                    }
+
+                    using (var reader = new StreamObjectReader(stream))
+                    {
+                        if (TryReadVersion(reader, formatVersion, out var persistVersion) &&
+                            document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion))
+                        {
+                            return readFrom(reader, syntaxVersion);
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Storage APIs can throw arbitrary exceptions.
+            }
+
+            return null;
+        }
+
+        private static async Task<bool> SaveAsync(
+            Document document, string persistenceName, string formatVersion, SyntaxTreeIndex data, CancellationToken cancellationToken)
+        {
+            Contract.Requires(!await document.IsForkedDocumentWithSyntaxChangesAsync(cancellationToken).ConfigureAwait(false));
+
+            var persistentStorageService = document.Project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
+
+            try
+            {
+                using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
+                using (var stream = SerializableBytes.CreateWritableStream())
+                using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+                {
+                    data.WriteVersion(writer, formatVersion);
+                    data.WriteTo(writer);
+
+                    stream.Position = 0;
+                    return await storage.WriteStreamAsync(document, persistenceName, stream, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            catch (Exception)
+            {
+                // Storage APIs can throw arbitrary exceptions.
+            }
+
+            return false;
+        }
+
+        private static async Task<bool> PrecalculatedAsync(Document document, string persistenceName, string formatVersion, CancellationToken cancellationToken)
+        {
+            Contract.Requires(document.IsFromPrimaryBranch());
+
+            var persistentStorageService = document.Project.Solution.Workspace.Services.GetService<IPersistentStorageService>();
+            var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
+
+            // check whether we already have info for this document
+            try
+            {
+                using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
+                using (var stream = await storage.ReadStreamAsync(document, persistenceName, cancellationToken).ConfigureAwait(false))
+                {
+                    if (stream != null)
+                    {
+                        using (var reader = new StreamObjectReader(stream))
+                        {
+                            return TryReadVersion(reader, formatVersion, out var persistVersion) &&
+                                   document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion);
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Storage APIs can throw arbitrary exceptions.
+            }
+
+            return false;
+        }
 
         public void WriteTo(ObjectWriter writer)
         {
