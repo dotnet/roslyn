@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ifConditionGotoStart; 
         }
 
-        public virtual BoundStatement InstrumentWhileStatementConditionalGotoStart(BoundWhileStatement original, BoundStatement ifConditionGotoStart)
+        public virtual BoundStatement InstrumentWhileStatementConditionalGotoStartOrBreak(BoundWhileStatement original, BoundStatement ifConditionGotoStart)
         {
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.WhileStatement);
@@ -260,20 +260,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.UsingStatement);
             return usingTargetCapture;
-        }
-
-        public virtual BoundStatement InstrumentWhileStatementGotoContinue(BoundWhileStatement original, BoundStatement gotoContinue)
-        {
-            Debug.Assert(!original.WasCompilerGenerated);
-            Debug.Assert(original.Syntax.Kind() == SyntaxKind.WhileStatement);
-            return gotoContinue;
-        }
-
-        public virtual BoundStatement InstrumentForEachStatementGotoContinue(BoundForEachStatement original, BoundStatement gotoContinue)
-        {
-            Debug.Assert(!original.WasCompilerGenerated);
-            Debug.Assert(original.Syntax is CommonForEachStatementSyntax);
-            return gotoContinue;
         }
 
         public virtual BoundExpression InstrumentCatchClauseFilter(BoundCatchBlock original, BoundExpression rewrittenFilter, SyntheticBoundNodeFactory factory)

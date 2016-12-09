@@ -6864,7 +6864,7 @@ public class X
         var x4 = 11;
         Dummy(x4);
 
-        while (true is var x4 && x4 > 0)
+        while (true is var x4 && x4)
             Dummy(x4);
     }
 
@@ -6947,18 +6947,18 @@ public class X
     // (87,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
     //             var y12 = 12;
     Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var y12 = 12;").WithLocation(87, 13),
-    // (29,28): error CS0128: A local variable named 'x4' is already defined in this scope
-    //         while (true is var x4 && x4 > 0)
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(29, 28),
+    // (29,28): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         while (true is var x4 && x4)
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(29, 28),
     // (35,16): error CS0841: Cannot use local variable 'x6' before it is declared
     //         while (x6 && true is var x6)
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(35, 16),
     // (43,17): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //             var x7 = 12;
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(43, 17),
-    // (60,19): error CS0841: Cannot use local variable 'x9' before it is declared
-    //             Dummy(x9);
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x9").WithArguments("x9").WithLocation(60, 19),
+    // (53,34): error CS0103: The name 'x8' does not exist in the current context
+    //         System.Console.WriteLine(x8);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(53, 34),
     // (61,32): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //             while (true is var x9 && x9) // 2
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(61, 32),
@@ -6971,7 +6971,7 @@ public class X
     // (87,17): warning CS0219: The variable 'y12' is assigned but its value is never used
     //             var y12 = 12;
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(87, 17),
-    // (99,31): error CS0128: A local variable named 'x14' is already defined in this scope
+    // (99,31): error CS0128: A local variable or function named 'x14' is already defined in this scope
     //                      2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 31)
                 );
@@ -6993,9 +6993,7 @@ public class X
             var x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
-            VerifyNotAPatternLocal(model, x4Ref[1]);
-            VerifyNotAPatternLocal(model, x4Ref[2]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1], x4Ref[2]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").Single();
             var x6Ref = GetReferences(tree, "x6").ToArray();
@@ -7011,14 +7009,15 @@ public class X
             var x8Decl = GetPatternDeclarations(tree, "x8").Single();
             var x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
-            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref);
+            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref[0], x8Ref[1]);
+            VerifyNotInScope(model, x8Ref[2]);
 
             var x9Decl = GetPatternDeclarations(tree, "x9").ToArray();
             var x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
-            VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[0]);
-            VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[1], x9Ref[2], x9Ref[3]);
+            VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[0], x9Ref[1]);
+            VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
             var y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
@@ -7154,7 +7153,7 @@ public class X
 
         do
             Dummy(x4);
-        while (true is var x4 && x4 > 0);
+        while (true is var x4 && x4);
     }
 
     void Test6()
@@ -7252,9 +7251,12 @@ public class X
     // (22,19): error CS0841: Cannot use local variable 'x2' before it is declared
     //             Dummy(x2);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(22, 19),
-    // (33,28): error CS0128: A local variable named 'x4' is already defined in this scope
-    //         while (true is var x4 && x4 > 0);
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(33, 28),
+    // (33,28): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         while (true is var x4 && x4);
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(33, 28),
+    // (32,19): error CS0841: Cannot use local variable 'x4' before it is declared
+    //             Dummy(x4);
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(32, 19),
     // (40,16): error CS0841: Cannot use local variable 'x6' before it is declared
     //         while (x6 && true is var x6);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(40, 16),
@@ -7267,6 +7269,9 @@ public class X
     // (56,19): error CS0841: Cannot use local variable 'x8' before it is declared
     //             Dummy(x8);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x8").WithArguments("x8").WithLocation(56, 19),
+    // (59,34): error CS0103: The name 'x8' does not exist in the current context
+    //         System.Console.WriteLine(x8);
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(59, 34),
     // (66,19): error CS0841: Cannot use local variable 'x9' before it is declared
     //             Dummy(x9);
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x9").WithArguments("x9").WithLocation(66, 19),
@@ -7285,7 +7290,7 @@ public class X
     // (97,17): warning CS0219: The variable 'y12' is assigned but its value is never used
     //             var y12 = 12;
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(97, 17),
-    // (115,31): error CS0128: A local variable named 'x14' is already defined in this scope
+    // (115,31): error CS0128: A local variable or function named 'x14' is already defined in this scope
     //                      2 is var x14, 
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(115, 31),
     // (112,19): error CS0841: Cannot use local variable 'x14' before it is declared
@@ -7310,9 +7315,7 @@ public class X
             var x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAPatternLocal(model, x4Ref[0]);
-            VerifyNotAPatternLocal(model, x4Ref[1]);
-            VerifyNotAPatternLocal(model, x4Ref[2]);
-            VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl);
+            VerifyModelForDeclarationPattern(model, x4Decl, x4Ref[1], x4Ref[2]);
 
             var x6Decl = GetPatternDeclarations(tree, "x6").Single();
             var x6Ref = GetReferences(tree, "x6").ToArray();
@@ -7328,14 +7331,15 @@ public class X
             var x8Decl = GetPatternDeclarations(tree, "x8").Single();
             var x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
-            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref);
+            VerifyModelForDeclarationPattern(model, x8Decl, x8Ref[0], x8Ref[1]);
+            VerifyNotInScope(model, x8Ref[2]);
 
             var x9Decl = GetPatternDeclarations(tree, "x9").ToArray();
             var x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
-            VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[0], x9Ref[1], x9Ref[2]);
-            VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[3]);
+            VerifyModelForDeclarationPattern(model, x9Decl[0], x9Ref[1], x9Ref[2]);
+            VerifyModelForDeclarationPattern(model, x9Decl[1], x9Ref[0], x9Ref[3]);
 
             var y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
@@ -11323,11 +11327,16 @@ public class X
         switch (val)
         {
             case 1 when Dummy(123, Data is var x1):
-                while (Dummy(x1 is var y1)) break;
-                System.Console.WriteLine(y1);
+                while (Dummy(x1 is var y1) && Print(y1)) break;
                 break;
         }
     }
+
+    static bool Print(int x)
+    {
+        System.Console.WriteLine(x);
+        return true;
+    } 
 
     static bool Dummy(params object[] data) 
     {
@@ -11368,11 +11377,16 @@ public class X
             case 1 when Dummy(123, Data is var x1):
                 do
                     val = 0;
-                while (Dummy(x1 is var y1) && false);
-                System.Console.WriteLine(y1);
+                while (Dummy(x1 is var y1) && Print(y1));
                 break;
         }
     }
+
+    static bool Print(int x)
+    {
+        System.Console.WriteLine(x);
+        return false;
+    } 
 
     static bool Dummy(params object[] data)
     {

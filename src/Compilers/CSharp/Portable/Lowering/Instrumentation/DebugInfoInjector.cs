@@ -170,14 +170,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequencePointWithSpan(doSyntax, base.InstrumentDoStatementConditionalGotoStart(original, ifConditionGotoStart), span);
         }
 
-        public override BoundStatement InstrumentWhileStatementConditionalGotoStart(BoundWhileStatement original, BoundStatement ifConditionGotoStart)
+        public override BoundStatement InstrumentWhileStatementConditionalGotoStartOrBreak(BoundWhileStatement original, BoundStatement ifConditionGotoStart)
         {
             WhileStatementSyntax whileSyntax = (WhileStatementSyntax)original.Syntax;
             TextSpan conditionSequencePointSpan = TextSpan.FromBounds(
                 whileSyntax.WhileKeyword.SpanStart,
                 whileSyntax.CloseParenToken.Span.End);
 
-            return new BoundSequencePointWithSpan(whileSyntax, base.InstrumentWhileStatementConditionalGotoStart(original, ifConditionGotoStart), conditionSequencePointSpan);
+            return new BoundSequencePointWithSpan(whileSyntax, base.InstrumentWhileStatementConditionalGotoStartOrBreak(original, ifConditionGotoStart), conditionSequencePointSpan);
         }
 
         private static BoundExpression AddConditionSequencePoint(BoundExpression condition, BoundStatement containingStatement, SyntheticBoundNodeFactory factory)
@@ -397,16 +397,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return AddSequencePoint((UsingStatementSyntax)original.Syntax, 
                                     base.InstrumentUsingTargetCapture(original, usingTargetCapture));
-        }
-
-        public override BoundStatement InstrumentForEachStatementGotoContinue(BoundForEachStatement original, BoundStatement gotoContinue)
-        {
-            return new BoundSequencePoint(null, base.InstrumentForEachStatementGotoContinue(original, gotoContinue));
-        }
-
-        public override BoundStatement InstrumentWhileStatementGotoContinue(BoundWhileStatement original, BoundStatement gotoContinue)
-        {
-            return new BoundSequencePoint(null, base.InstrumentWhileStatementGotoContinue(original, gotoContinue));
         }
 
         public override BoundExpression InstrumentCatchClauseFilter(BoundCatchBlock original, BoundExpression rewrittenFilter, SyntheticBoundNodeFactory factory)
