@@ -48,12 +48,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
         }
 
-        public static bool ShouldRunForFullProject(this DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, Project project)
+        public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, Workspace workspace)
         {
             var builtInAnalyzer = analyzer as IBuiltInAnalyzer;
             if (builtInAnalyzer != null)
             {
-                return !builtInAnalyzer.OpenFileOnly(project.Solution.Workspace);
+                return builtInAnalyzer.OpenFileOnly(workspace);
+            }
+
+            return false;
+        }
+
+        public static bool ShouldRunForFullProject(this DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, Project project)
+        {
+            if (analyzer.IsBuiltInAnalyzer())
+            {
+                // always return true for builtin analyzer. we can't use
+                // descriptor check since many builtin analyzer always return 
+                // hidden descriptor regardless what descriptor it actually
+                // return on runtime. they do this so that they can control
+                // severity through option page rather than rule set editor.
+                // this is special behavior only ide analyzer can do. we hope
+                // once we support editorconfig fully, third party can use this
+                // ability as well and we can remove this kind special treatment on builtin
+                // analyzer.
+                return true;
             }
 
             if (analyzer.IsWorkspaceDiagnosticAnalyzer())
