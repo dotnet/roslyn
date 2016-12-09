@@ -108,44 +108,79 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 }
             }
 
-            foreach (var trivia in token.LeadingTrivia)
+            ClassifyTriviaList(token.LeadingTrivia);
+            ClassifyTriviaList(token.TrailingTrivia);
+        }
+
+        private void ClassifyTriviaList(SyntaxTriviaList list)
+        {
+            if (list.Count == 0)
             {
-                _cancellationToken.ThrowIfCancellationRequested();
-                ClassifyTrivia(trivia);
+                return;
             }
 
-            foreach (var trivia in token.TrailingTrivia)
+            // We may have long lists of trivia (for example a huge list of // comments after someone
+            // comments out a file).  Try to skip as many as possible if they're not actually in the span
+            // we care about classifying.
+            foreach (var trivia in list)
             {
-                _cancellationToken.ThrowIfCancellationRequested();
-                ClassifyTrivia(trivia);
+                var triviaSpan = trivia.FullSpan;
+                if (ShouldAddSpan(triviaSpan))
+                {
+                    ClassifyTrivia(trivia);
+                }
+                else
+                {
+                    // Stop once we get to any trivia that is past the span we're classifying
+                    if (triviaSpan.Start >= _textSpan.End)
+                    {
+                        return;
+                    }
+                }
             }
         }
 
         private void ClassifyTrivia(SyntaxTrivia trivia)
         {
-            if (trivia.IsRegularComment())
+            switch (trivia.Kind())
             {
-                AddClassification(trivia, ClassificationTypeNames.Comment);
-            }
-            else if (trivia.Kind() == SyntaxKind.DisabledTextTrivia)
-            {
-                AddClassification(trivia, ClassificationTypeNames.ExcludedCode);
-            }
-            else if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia)
-            {
-                ClassifySkippedTokens((SkippedTokensTriviaSyntax)trivia.GetStructure());
-            }
-            else if (trivia.IsDocComment())
-            {
-                ClassifyDocumentationComment((DocumentationCommentTriviaSyntax)trivia.GetStructure());
-            }
-            else if (trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia)
-            {
-                AddClassification(trivia, ClassificationTypeNames.XmlDocCommentDelimiter);
-            }
-            else if (SyntaxFacts.IsPreprocessorDirective(trivia.Kind()))
-            {
-                ClassifyPreprocessorDirective((DirectiveTriviaSyntax)trivia.GetStructure());
+                case SyntaxKind.SingleLineCommentTrivia:
+                case SyntaxKind.MultiLineCommentTrivia:
+                case SyntaxKind.ShebangDirectiveTrivia:
+                    AddClassification(trivia, ClassificationTypeNames.Comment);
+                    return;
+
+                case SyntaxKind.DisabledTextTrivia:
+                    AddClassification(trivia, ClassificationTypeNames.ExcludedCode);
+                    return;
+
+                case SyntaxKind.SkippedTokensTrivia:
+                    ClassifySkippedTokens((SkippedTokensTriviaSyntax)trivia.GetStructure());
+                    return;
+
+                case SyntaxKind.SingleLineDocumentationCommentTrivia:
+                case SyntaxKind.MultiLineDocumentationCommentTrivia:
+                    ClassifyDocumentationComment((DocumentationCommentTriviaSyntax)trivia.GetStructure());
+                    return;
+
+                case SyntaxKind.IfDirectiveTrivia:
+                case SyntaxKind.ElifDirectiveTrivia:
+                case SyntaxKind.ElseDirectiveTrivia:
+                case SyntaxKind.EndIfDirectiveTrivia:
+                case SyntaxKind.RegionDirectiveTrivia:
+                case SyntaxKind.EndRegionDirectiveTrivia:
+                case SyntaxKind.DefineDirectiveTrivia:
+                case SyntaxKind.UndefDirectiveTrivia:
+                case SyntaxKind.ErrorDirectiveTrivia:
+                case SyntaxKind.WarningDirectiveTrivia:
+                case SyntaxKind.LineDirectiveTrivia:
+                case SyntaxKind.PragmaWarningDirectiveTrivia:
+                case SyntaxKind.PragmaChecksumDirectiveTrivia:
+                case SyntaxKind.ReferenceDirectiveTrivia:
+                case SyntaxKind.LoadDirectiveTrivia:
+                case SyntaxKind.BadDirectiveTrivia:
+                    ClassifyPreprocessorDirective((DirectiveTriviaSyntax)trivia.GetStructure());
+                    return;
             }
         }
 
