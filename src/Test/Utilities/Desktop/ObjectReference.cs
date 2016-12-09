@@ -2,8 +2,6 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -96,54 +94,6 @@ namespace Roslyn.Test.Utilities
                 GC.WaitForPendingFinalizers();
             }
         }
-
-        #region Async
-        /// <summary>
-        /// Asserts that the underlying object has been released.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public async Task AssertReleasedAsync()
-        {
-            await ReleaseAndGarbageCollectAsync().ConfigureAwait(false);
-
-            Assert.False(_weakReference.IsAlive, "Reference should have been released but was not.");
-        }
-
-        /// <summary>
-        /// Asserts that the underlying object is still being held.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public async Task AssertHeldAsync()
-        {
-            await ReleaseAndGarbageCollectAsync().ConfigureAwait(false);
-
-            // Since we are asserting it's still held, if it is held we can just recover our strong reference again
-            _strongReference = (T)_weakReference.Target;
-            Assert.True(_strongReference != null, "Reference should still be held.");
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private async Task ReleaseAndGarbageCollectAsync()
-        {
-            if (_strongReferenceRetrievedOutsideScopedCall)
-            {
-                throw new InvalidOperationException($"The strong reference being held by the {nameof(ObjectReference<T>)} was retrieved via a call to {nameof(GetReference)}. Since the CLR might have cached a temporary somewhere in your stack, assertions can no longer be made about the correctness of lifetime.");
-            }
-
-            _strongReference = null;
-
-            // We'll loop 1000 times, or until the weak reference disappears. When we're trying to assert that the
-            // object is released, once the weak reference goes away, we know we're good. But if we're trying to assert
-            // that the object is held, our only real option is to know to do it "enough" times; but if it goes away then
-            // we are definitely done.
-            for (var i = 0; i < 1000 && _weakReference.IsAlive; i++)
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                await Task.Yield();
-            }
-        }
-        #endregion
 
         /// <summary>
         /// Provides the underlying strong refernce to the given action. This method is marked not be inlined, to ensure that no temporaries are left
