@@ -28,6 +28,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
                 project2.OnImportAdded(@"c:\project1.dll", "project1");
 
                 Assert.Equal(true, project2.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project1.Id));
+
+                project2.Disconnect();
+                project1.Disconnect();
             }
         }
 
@@ -50,6 +53,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
                 Assert.Equal(true, project1.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project2.Id));
                 Assert.Equal(false, project2.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project1.Id));
+
+                project2.Disconnect();
+                project1.Disconnect();
             }
         }
 
@@ -67,6 +73,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
                 Assert.Equal(true, project1.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project2.Id));
                 Assert.Equal(false, project2.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project1.Id));
+
+                project2.Disconnect();
+                project1.Disconnect();
             }
         }
 
@@ -90,6 +99,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
                 Assert.Equal(true, project2.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project3.Id));
                 Assert.Equal(true, project3.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project4.Id));
                 Assert.Equal(false, project4.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project1.Id));
+
+                project4.Disconnect();
+                project3.Disconnect();
+                project2.Disconnect();
+                project1.Disconnect();
             }
         }
 
@@ -116,6 +130,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
                 // Verify project reference updated after bin path change.
                 Assert.Equal(true, project2.GetCurrentProjectReferences().Any(pr => pr.ProjectId == project1.Id));
+
+                project2.Disconnect();
+                project1.Disconnect();
             }
         }
     }

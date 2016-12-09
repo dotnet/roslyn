@@ -5,7 +5,6 @@ Imports Roslyn.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.VisualBasicHelpers
 Imports Microsoft.CodeAnalysis
-Imports System.Threading.Tasks
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class VisualBasicProjectTests
@@ -28,7 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        Public Async Function DisconnectingAProjectDoesNotLeak() As Task
+        Public Sub DisconnectingAProjectDoesNotLeak()
             Using environment = New TestEnvironment()
                 Dim project = ObjectReference.CreateFromFactory(Function() CreateVisualBasicProject(environment, "Test"))
 
@@ -36,8 +35,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 project.UseReference(Sub(p) p.Disconnect())
 
-                Await project.AssertReleasedAsync().ConfigureAwait(False)
+                project.AssertReleased()
             End Using
-        End Function
+        End Sub
     End Class
 End Namespace
