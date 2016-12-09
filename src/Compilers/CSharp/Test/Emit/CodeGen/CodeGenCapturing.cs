@@ -416,6 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
             var fields = methods.First().CaptureContext.VariablesByScope[0];
 
+            const int PartitionSize = 50;
             const string ClassFmt = @"
 using System;
 public class C
@@ -425,7 +426,7 @@ public class C
                 => new StringBuilder(string.Format(ClassFmt,
                     string.Join("\r\n", fields.Select(f => $"public int {f} = 0;"))));
 
-            Parallel.ForEach(Partitioner.Create(0, methods.Count), (range, state) =>
+            Parallel.ForEach(Partitioner.Create(0, methods.Count, PartitionSize), (range, state) =>
             {
                 var methodsText = GetClassStart();
 
