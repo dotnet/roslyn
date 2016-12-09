@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     Assert.Equal(expected.Length, stream.Length);
 
-                    var random = new Random(Environment.TickCount);
+                    var random = new Random(0);
                     for (var i = 0; i < 100; i++)
                     {
                         var position = random.Next((int)expected.Length);
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 using (var stream = SerializableBytes.CreateWritableStream())
                 {
-                    var random = new Random(Environment.TickCount);
+                    var random = new Random(0);
                     for (var i = 0; i < 100; i++)
                     {
                         var position = random.Next(10000);
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 using (var stream = SerializableBytes.CreateWritableStream())
                 {
-                    var random = new Random(Environment.TickCount);
+                    var random = new Random(0);
                     for (var i = 0; i < 100; i++)
                     {
                         var position = random.Next(10000);
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             Assert.Equal(expected.Length, stream.Length);
 
-            var random = new Random(Environment.TickCount);
+            var random = new Random(0);
 
             expected.Position = 0;
             stream.Position = 0;
