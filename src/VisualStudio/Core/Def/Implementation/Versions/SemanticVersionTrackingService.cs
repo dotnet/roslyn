@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
 
@@ -142,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Versions
                     }
                 }
             }
-            catch (IOException)
+            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
             {
             }
 
