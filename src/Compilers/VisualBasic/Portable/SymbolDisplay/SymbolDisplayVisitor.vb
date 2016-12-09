@@ -181,10 +181,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim myCaseCorrectedNSName As String = symbol.Name
             Dim myCaseCorrectedParentNSName As String = String.Empty
 
-            If Not symbol.IsGlobalNamespace AndAlso myCaseCorrectedNSName.IsEmpty() Then
-                myCaseCorrectedNSName = StringConstants.NamedSymbolErrorName
-            End If
-
             If Not emittedName.IsEmpty Then
                 Dim nsIdx = emittedName.LastIndexOf("."c)
                 If nsIdx > -1 Then
