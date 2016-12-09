@@ -46,6 +46,14 @@ namespace Roslyn.Utilities
             _dataMap = new ObjectWriterData(defaultData);
             _binder = binder ?? new SimpleRecordingObjectBinder();
             _cancellationToken = cancellationToken;
+
+            WriteVersion();
+        }
+
+        private void WriteVersion()
+        {
+            _writer.Write(ObjectReader.VersionByte1);
+            _writer.Write(ObjectReader.VersionByte2);
         }
 
         public ObjectBinder Binder

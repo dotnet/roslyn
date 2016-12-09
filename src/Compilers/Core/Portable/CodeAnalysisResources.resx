@@ -591,4 +591,7 @@
   <data name="TheStreamCannotBeReadFrom" xml:space="preserve">
     <value>The stream cannot be read from.</value>
   </data>
+  <data name="Stream_contains_invalid_data" xml:space="preserve">
+    <value>Stream contains invalid data</value>
+  </data>
 </root>

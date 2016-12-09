@@ -56,19 +56,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // attempt to load from persisted state
                 using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
                 using (var stream = await storage.ReadStreamAsync(document, persistenceName, cancellationToken).ConfigureAwait(false))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
-                    if (stream == null)
+                    if (reader == null)
                     {
                         return null;
                     }
 
-                    using (var reader = new ObjectReader(stream))
+                    if (TryReadVersion(reader, formatVersion, out var persistVersion) &&
+                        document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion))
                     {
-                        if (TryReadVersion(reader, formatVersion, out var persistVersion) &&
-                            document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion))
-                        {
-                            return readFrom(reader, syntaxVersion);
-                        }
+                        return readFrom(reader, syntaxVersion);
                     }
                 }
             }
@@ -120,14 +118,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
                 using (var stream = await storage.ReadStreamAsync(document, persistenceName, cancellationToken).ConfigureAwait(false))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
-                    if (stream != null)
+                    if (reader != null)
                     {
-                        using (var reader = new ObjectReader(stream))
-                        {
-                            return TryReadVersion(reader, formatVersion, out var persistVersion) &&
-                                   document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion);
-                        }
+                        return TryReadVersion(reader, formatVersion, out var persistVersion) &&
+                               document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion);
                     }
                 }
             }

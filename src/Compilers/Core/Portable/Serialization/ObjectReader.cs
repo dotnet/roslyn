@@ -14,11 +14,19 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed class ObjectReader : ObjectReaderWriterBase, IDisposable
     {
+        /// <summary>
+        /// We start the version at something reasonably random.  That way an older file, with 
+        /// some random start-bytes, has little chance of matching our version.  When incrementing
+        /// this version, just change VersionByte2.
+        /// </summary>
+        internal const byte VersionByte1 = 0b10101010;
+        internal const byte VersionByte2 = 0b00000001;
+
         private readonly BinaryReader _reader;
         private readonly ObjectReaderData _dataMap;
         private readonly ObjectBinder _binder;
 
-        internal ObjectReader(
+        private ObjectReader(
             Stream stream,
             ObjectReaderData defaultData = null,
             ObjectBinder binder = null)
@@ -30,6 +38,30 @@ namespace Roslyn.Utilities
             _reader = new BinaryReader(stream, Encoding.UTF8);
             _dataMap = new ObjectReaderData(defaultData);
             _binder = binder;
+        }
+
+        /// <summary>
+        /// Attempts to create a <see cref="StreamObjectReader"/> from the provided <paramref name="stream"/>.
+        /// If the <paramref name="stream"/> does not start with a valid header, then <code>null</code> will
+        /// be returned.
+        /// </summary>
+        public static ObjectReader TryGetReader(
+            Stream stream,
+            ObjectReaderData defaultData = null,
+            ObjectBinder binder = null)
+        {
+            if (stream == null)
+            {
+                return null;
+            }
+
+            if (stream.ReadByte() != VersionByte1 ||
+                stream.ReadByte() != VersionByte2)
+            {
+                return null;
+            }
+
+            return new ObjectReader(stream, defaultData, binder);
         }
 
         public void Dispose()

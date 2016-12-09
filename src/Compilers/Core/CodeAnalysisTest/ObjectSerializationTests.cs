@@ -14,6 +14,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public sealed class ObjectSerializationTests
     {
         [Fact]
+        private void TestInvalidStreamVersion()
+        {
+            var stream = new MemoryStream();
+            stream.WriteByte(0);
+            stream.WriteByte(0);
+
+            stream.Position = 0;
+
+            var reader = ObjectReader.TryGetReader(stream);
+            Assert.Null(reader);
+        }
+
+        [Fact]
         public void TestRoundTripPrimitiveArray()
         {
             var inputBool = new bool[] { true, false };
@@ -52,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.Dispose();
 
             stream.Position = 0;
-            var reader = new ObjectReader(stream);
+            var reader = ObjectReader.TryGetReader(stream);
             Assert.True(Enumerable.SequenceEqual(inputBool, (bool[])reader.ReadValue()));
             Assert.True(Enumerable.SequenceEqual(inputByte, (byte[])reader.ReadValue()));
             Assert.True(Enumerable.SequenceEqual(inputChar, (char[])reader.ReadValue()));
@@ -91,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 writer.Dispose();
 
                 stream.Position = 0;
-                var reader = new ObjectReader(stream);
+                var reader = ObjectReader.TryGetReader(stream);
                 Assert.True(Enumerable.SequenceEqual(inputBool, (bool[])reader.ReadValue()));
 
                 reader.Dispose();
@@ -111,7 +124,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.Dispose();
 
             stream.Position = 0;
-            var reader = new ObjectReader(stream);
+            var reader = ObjectReader.TryGetReader(stream);
             Assert.True(Enumerable.SequenceEqual(inputBool, (bool[])reader.ReadValue()));
 
             reader.Dispose();
@@ -150,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.Dispose();
 
             stream.Position = 0;
-            var reader = new ObjectReader(stream);
+            var reader = ObjectReader.TryGetReader(stream);
             Assert.Equal(true, reader.ReadBoolean());
             Assert.Equal(false, reader.ReadBoolean());
             Assert.Equal(Byte.MaxValue, reader.ReadByte());
@@ -219,7 +232,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.Dispose();
 
             stream.Position = 0;
-            var reader = new ObjectReader(stream, binder: writer.Binder);
+            var reader = ObjectReader.TryGetReader(stream, binder: writer.Binder);
             Assert.Equal(true, (bool)reader.ReadValue());
             Assert.Equal(false, (bool)reader.ReadValue());
             Assert.Equal(Byte.MaxValue, (Byte)reader.ReadValue());
@@ -313,7 +326,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.Dispose();
 
             stream.Position = 0;
-            var reader = new ObjectReader(stream);
+            var reader = ObjectReader.TryGetReader(stream);
             var readch = reader.ReadChar();
             reader.Dispose();
 
@@ -347,7 +360,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.Dispose();
 
             stream.Position = 0;
-            var reader = new ObjectReader(stream);
+            var reader = ObjectReader.TryGetReader(stream);
             var readText = reader.ReadString();
             reader.Dispose();
 
@@ -379,7 +392,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.Dispose();
 
             stream.Position = 0;
-            var reader = new ObjectReader(stream, binder: writer.Binder);
+            var reader = ObjectReader.TryGetReader(stream, binder: writer.Binder);
             var readValues = (T[])reader.ReadValue();
             reader.Dispose();
 
@@ -397,7 +410,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.Dispose();
 
             stream.Position = 0;
-            var reader = new ObjectReader(stream, binder: writer.Binder);
+            var reader = ObjectReader.TryGetReader(stream, binder: writer.Binder);
             var instance2 = (WritableClass)reader.ReadValue();
             reader.Dispose();
 
@@ -433,7 +446,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 writer.Dispose();
 
                 stream.Position = 0;
-                using (var reader = new ObjectReader(stream, binder: binder))
+                using (var reader = ObjectReader.TryGetReader(stream, binder: binder))
                 {
                     for (int pass = 0; pass < 2; pass++)
                     {
@@ -671,7 +684,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.Dispose();
 
             stream.Position = 0;
-            var reader = new ObjectReader(stream, binder: writer.Binder);
+            var reader = ObjectReader.TryGetReader(stream, binder: writer.Binder);
             var newGraph = (Node)reader.ReadValue();
             reader.Dispose();
 
