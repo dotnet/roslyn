@@ -20510,15 +20510,16 @@ class C
     static void Main()
     {
         M7(null, (notA: 1, notB: 2)); // the generic overload is rejected, and the non-generic one is selected
+        M7(null, (a: 10, b: 20));
     }
-    static void M7<T>(Generic<T> g, T t) { }
-    static void M7(object o1, object o2) { System.Console.Write(""Selected""); }
+    static void M7<T>(Generic<T> g, T t) { System.Console.Write($""Generic {t}.""); }
+    static void M7(object o1, object o2) { System.Console.Write($""Object {o2}. ""); }
 }
 ";
 
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Selected");
+            CompileAndVerify(comp, expectedOutput: "Object (1, 2). Generic (10, 20).");
         }
 
         [Fact]
@@ -20549,6 +20550,29 @@ class C
                 //         M6((notA: 1, notB: 2));
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "M6").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(9, 9)
                 );
+
+            var source2 = @"
+interface I<T> { }
+class Base : I<(int a, int b)> { }
+class Generic<U> : Base, I<U> { }
+class C
+{
+    static void Main()
+    {
+        M6((a: 1, b: 2)); // generic overload is selected and passes final validation
+    }
+    static Generic<T> M6<T>(T t)
+    {
+        System.Console.Write(""Selected"");
+        return null;
+    }
+    static void M6(object o) { }
+}
+";
+
+            var comp2 = CreateCompilationWithMscorlib(source2, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "Selected");
         }
 
         [Fact]

@@ -2874,8 +2874,9 @@ Bailout:
                 If method.IsGenericMethod Then
                     Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
                     Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-                    Dim tupleDiagnosticsBuilder As ArrayBuilder(Of DiagnosticInfo) = Nothing
-                    Dim satisfiedConstraints = method.CheckConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, tupleDiagnosticsBuilder)
+                    Dim ignoredTupleDiagnosticsBuilder As ArrayBuilder(Of DiagnosticInfo) = Nothing
+
+                    Dim satisfiedConstraints = method.CheckConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, ignoredTupleDiagnosticsBuilder)
                     diagnosticsBuilder.Free()
 
                     If useSiteDiagnosticsBuilder IsNot Nothing AndAlso useSiteDiagnosticsBuilder.Count > 0 Then

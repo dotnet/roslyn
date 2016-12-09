@@ -406,7 +406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' on generic types within the type (such as B(Of T) in A(Of B(Of T)())).
         ''' </summary>
         <Extension()>
-        Private Sub CheckAllConstraints(
+        Public Sub CheckAllConstraints(
                                         type As TypeSymbol,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                         <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),

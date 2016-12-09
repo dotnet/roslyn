@@ -18381,19 +18381,21 @@ Class Generic(Of U)
 End Class
 Class C
     Shared Sub Main()
-        M7(Nothing, (notA:=1, notB:=2))
+        M7(Nothing, (notA:=1, notB:=2)) ' Generic candidate is eliminated during overload resolution
+        M7(Nothing, (a:=10, b:=20))
     End Sub
-    Shared Sub M7(Of T)(g As Generic(Of T), x As T) ' Candidate is eliminated during overload resolution
+    Shared Sub M7(Of T)(g As Generic(Of T), x As T)
+        System.Console.Write($"Generic {x}. ")
     End Sub
     Shared Sub M7(o1 As Object, o2 As Object)
-        System.Console.Write("Selected")
+        System.Console.Write($"Object {o2}. ")
     End Sub
 End Class
 ]]></file>
 </compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
 
             comp.AssertTheseDiagnostics()
-            CompileAndVerify(comp, expectedOutput:="Selected")
+            CompileAndVerify(comp, expectedOutput:="Object (1, 2). Generic (10, 20).")
 
         End Sub
 
@@ -18415,13 +18417,15 @@ Class Generic(Of U)
 End Class
 Class C
     Shared Sub Main()
-        M6((notA:=1, notB:=2))
+        M6((notA:=1, notB:=2)) ' Generic candidate is eliminated during overload resolution
+        M6((a:=1, b:=2))
     End Sub
-    Shared Function M6(Of T)(x As T) As Generic(Of T) ' Candidate is eliminated during overload resolution
+    Shared Function M6(Of T)(x As T) As Generic(Of T)
+        System.Console.Write($"Generic {x}.")
         Return Nothing
     End Function
     Shared Sub M6(o As Object)
-        System.Console.Write("Selected")
+        System.Console.Write($"Object {o}. ")
     End Sub
 End Class
 ]]></file>
@@ -18429,8 +18433,9 @@ End Class
 
             ' Note this is different than C#, which only checks constraints on parameters when considering candidates,
             ' but then checks the return type during final validation
+            ' In VB, each candidate method (with substitutions) gets a full constraint check.
             comp.AssertTheseDiagnostics()
-            CompileAndVerify(comp, expectedOutput:="Selected")
+            CompileAndVerify(comp, expectedOutput:="Object (1, 2). Generic (1, 2).")
 
         End Sub
 

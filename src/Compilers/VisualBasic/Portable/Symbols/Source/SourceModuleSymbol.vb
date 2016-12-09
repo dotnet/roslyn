@@ -481,7 +481,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' constraints are checked for generic type references.
         ''' </summary>
         Private Shared Sub ValidateImport(type As TypeSymbol, info As GlobalImportInfo, diagnostics As DiagnosticBag)
-            type.CheckAllConstraints(info.SyntaxReference.GetLocation(), diagnostics)
+            Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
+            Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
+            Dim tupleDiagnosticsBuilder As ArrayBuilder(Of DiagnosticInfo) = Nothing
+
+            type.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, tupleDiagnosticsBuilder)
+
+            If useSiteDiagnosticsBuilder IsNot Nothing Then
+                diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
+            End If
+
+            For Each pair In diagnosticsBuilder
+                diagnostics.Add(info.Import.MapDiagnostic(New VBDiagnostic(pair.DiagnosticInfo, info.SyntaxReference.GetLocation())))
+            Next
+
+            If tupleDiagnosticsBuilder IsNot Nothing Then
+                For Each diagnostic In tupleDiagnosticsBuilder
+                    diagnostics.Add(info.Import.MapDiagnostic(New VBDiagnostic(diagnostic, info.SyntaxReference.GetLocation())))
+                Next
+            End If
+
+            diagnosticsBuilder.Free()
         End Sub
 
         ' Get the project-level member imports, or Nothing if none.
