@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writeAction(writer);
             writer.Dispose();
 
-            stream.Position = 0;
+            stream.Position = 2;
             Assert.Equal(recursive, StreamObjectReader.IsRecursive(stream));
 
             stream.Position = 0;
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writeAction(writer, value);
             writer.Dispose();
 
-            stream.Position = 0;
+            stream.Position = 2;
             Assert.Equal(recursive, StreamObjectReader.IsRecursive(stream));
 
             stream.Position = 0;
