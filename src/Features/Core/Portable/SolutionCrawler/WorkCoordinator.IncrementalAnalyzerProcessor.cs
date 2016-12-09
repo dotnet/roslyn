@@ -111,18 +111,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _lowPriorityProcessor.Shutdown();
                 }
 
-                // TODO: delete this once prototyping is done
-                public void ChangeDiagnosticsEngine(bool useV2Engine)
-                {
-                    var diagnosticAnalyzer = Analyzers.FirstOrDefault(a => a is BaseDiagnosticIncrementalAnalyzer) as DiagnosticAnalyzerService.IncrementalAnalyzerDelegatee;
-                    if (diagnosticAnalyzer == null)
-                    {
-                        return;
-                    }
-
-                    diagnosticAnalyzer.TurnOff(useV2Engine);
-                }
-
                 public ImmutableArray<IIncrementalAnalyzer> Analyzers => _normalPriorityProcessor.Analyzers;
 
                 private Solution CurrentSolution => _registration.CurrentSolution;

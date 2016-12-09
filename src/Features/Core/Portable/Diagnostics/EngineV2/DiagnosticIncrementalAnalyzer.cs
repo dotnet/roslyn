@@ -6,8 +6,12 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -54,6 +58,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             return false;
+        }
+
+        public override bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
+        {
+            return e.Option.Feature == nameof(SimplificationOptions) ||
+                   e.Option.Feature == nameof(CodeStyleOptions) ||
+                   e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic ||
+                   e.Option == RuntimeOptions.FullSolutionAnalysis;
         }
 
         private bool SupportAnalysisKind(DiagnosticAnalyzer analyzer, string language, AnalysisKind kind)
