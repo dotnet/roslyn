@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                 if (!enumerator.MoveNext())
                 {
-                    // Reached the end of the trivia.  It was all before the text span we care about
+                    // Reached the end of the trivia.  It was all before the span we want to classify.
                     // Stop immediately.
                     return;
                 }
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 }
             }
 
-            // Continue processing trivia from this point on until we get past the 
+            // Continue processing trivia from this point on until we get past the span we want to classify.
             do
             {
                 _cancellationToken.ThrowIfCancellationRequested();
