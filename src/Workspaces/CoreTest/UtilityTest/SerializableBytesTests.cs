@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class SerializableBytesTests
     {
         [Fact]
-        public void ReadableStreamTest1()
+        public void ReadableStreamTestReadAByteAtATime()
         {
             using (var expected = new MemoryStream())
             {
@@ -36,32 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void ReadableStreamTest2()
-        {
-            using (var expected = new MemoryStream())
-            {
-                for (var i = 0; i < 10000; i++)
-                {
-                    expected.WriteByte((byte)(i % byte.MaxValue));
-                }
-
-                expected.Position = 0;
-                using (var stream = SerializableBytes.CreateReadableStream(expected, 1000, CancellationToken.None))
-                {
-                    Assert.Equal(1000, stream.Length);
-
-                    expected.Position = 0;
-                    stream.Position = 0;
-                    for (var i = 0; i < 1000; i++)
-                    {
-                        Assert.Equal(expected.ReadByte(), stream.ReadByte());
-                    }
-                }
-            }
-        }
-
-        [Fact]
-        public void ReadableStreamTest3()
+        public void ReadableStreamTestReadChunks()
         {
             using (var expected = new MemoryStream())
             {
@@ -96,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void ReadableStreamTest4()
+        public void ReadableStreamTestReadRandomBytes()
         {
             using (var expected = new MemoryStream())
             {

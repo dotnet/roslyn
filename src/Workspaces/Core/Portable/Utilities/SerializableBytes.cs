@@ -26,15 +26,7 @@ namespace Roslyn.Utilities
 
         internal static PooledStream CreateReadableStream(Stream stream, CancellationToken cancellationToken)
         {
-            return CreateReadableStream(stream, /*length*/ -1, cancellationToken);
-        }
-
-        internal static PooledStream CreateReadableStream(Stream stream, long length, CancellationToken cancellationToken)
-        {
-            if (length == -1)
-            {
-                length = stream.Length;
-            }
+            long length = stream.Length;
 
             long chunkCount = (length + ChunkSize - 1) / ChunkSize;
             byte[][] chunks = new byte[chunkCount][];
@@ -76,17 +68,9 @@ namespace Roslyn.Utilities
             }
         }
 
-        internal static Task<PooledStream> CreateReadableStreamAsync(Stream stream, CancellationToken cancellationToken)
+        internal async static Task<PooledStream> CreateReadableStreamAsync(Stream stream, CancellationToken cancellationToken)
         {
-            return CreateReadableStreamAsync(stream, /*length*/ -1, cancellationToken);
-        }
-
-        internal static async Task<PooledStream> CreateReadableStreamAsync(Stream stream, long length, CancellationToken cancellationToken)
-        {
-            if (length == -1)
-            {
-                length = stream.Length;
-            }
+            long length = stream.Length;
 
             long chunkCount = (length + ChunkSize - 1) / ChunkSize;
             byte[][] chunks = new byte[chunkCount][];
