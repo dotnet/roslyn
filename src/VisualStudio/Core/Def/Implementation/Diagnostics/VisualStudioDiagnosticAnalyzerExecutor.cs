@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             // handling of cancellation and exception
             var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-            using (var reader = new StreamObjectReader(stream))
+            using (var reader = StreamObjectReader.TryGetReader(stream))
             {
                 return DiagnosticResultSerializer.Deserialize(reader, analyzerMap, project, version, cancellationToken);
             }

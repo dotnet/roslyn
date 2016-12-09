@@ -12,6 +12,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public sealed class ObjectSerializationTests
     {
+        [Fact]
+        private void TestInvalidStreamVersion()
+        {
+            var stream = new MemoryStream();
+            stream.WriteByte(0);
+            stream.WriteByte(0);
+
+            stream.Position = 0;
+
+            var reader = StreamObjectReader.TryGetReader(stream);
+            Assert.Null(reader);
+        }
+
         private void RoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction, bool recursive)
         {
             var stream = new MemoryStream();
@@ -25,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(recursive, StreamObjectReader.IsRecursive(stream));
 
             stream.Position = 0;
-            using (var reader = new StreamObjectReader(stream, binder: binder))
+            using (var reader = StreamObjectReader.TryGetReader(stream, binder: binder))
             {
                 readAction(reader);
             }
@@ -50,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(recursive, StreamObjectReader.IsRecursive(stream));
 
             stream.Position = 0;
-            using (var reader = new StreamObjectReader(stream, binder: binder))
+            using (var reader = StreamObjectReader.TryGetReader(stream, binder: binder))
             {
                 return (T)readAction(reader);
             }
@@ -978,7 +991,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 writer.Dispose();
 
                 stream.Position = 0;
-                using (var reader = new StreamObjectReader(stream, binder: binder))
+                using (var reader = StreamObjectReader.TryGetReader(stream, binder: binder))
                 {
                     for (int pass = 0; pass < 2; pass++)
                     {

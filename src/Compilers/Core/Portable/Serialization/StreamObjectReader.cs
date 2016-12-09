@@ -27,6 +27,14 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed partial class StreamObjectReader : ObjectReader, IDisposable
     {
+        /// <summary>
+        /// We start the version at something reasonably random.  That way an older file, with 
+        /// some random start-bytes, has little chance of matching our version.  When incrementing
+        /// this version, just change VersionByte2.
+        /// </summary>
+        internal const byte VersionByte1 = 0b10101010;
+        internal const byte VersionByte2 = 0b00000001;
+
         private readonly BinaryReader _reader;
         private readonly ObjectBinder _binder;
         private readonly bool _recursive;
@@ -67,11 +75,11 @@ namespace Roslyn.Utilities
         /// <param name="knownObjects">An optional list of objects assumed known by the corresponding <see cref="StreamObjectWriter"/>.</param>
         /// <param name="binder">A binder that provides object and type decoding.</param>
         /// <param name="cancellationToken"></param>
-        public StreamObjectReader(
+        private StreamObjectReader(
             Stream stream,
-            ObjectData knownObjects = null,
-            ObjectBinder binder = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            ObjectData knownObjects,
+            ObjectBinder binder,
+            CancellationToken cancellationToken)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.
@@ -91,6 +99,30 @@ namespace Roslyn.Utilities
                 _memberList = SOW.s_variantListPool.Allocate();
                 _memberReader = new VariantListReader(_memberList);
             }
+        }
+
+        /// <summary>
+        /// Attempts to create a <see cref="StreamObjectReader"/> from the provided <paramref name="stream"/>.
+        /// If the <paramref name="stream"/> does not start with a valid header, then <code>null</code> will
+        /// be returned.
+        /// </summary>
+        public static StreamObjectReader TryGetReader(
+            Stream stream,
+            ObjectData knownObjects = null,
+            ObjectBinder binder = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (stream == null)
+            {
+                return null;
+            }
+
+            if (stream.ReadByte() != VersionByte1 && stream.ReadByte() != VersionByte2)
+            {
+                return null;
+            }
+
+            return new StreamObjectReader(stream, knownObjects, binder, cancellationToken);
         }
 
         internal static bool IsRecursive(Stream stream)

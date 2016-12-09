@@ -204,8 +204,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom);
             }
 
-            using (var reader = new StreamObjectReader(stream, knownObjects: GetDeserializationObjectData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
+
+            using (var reader = StreamObjectReader.TryGetReader(stream, knownObjects: GetDeserializationObjectData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
             {
+                if (reader == null)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.Stream_contains_invalid_data, nameof(stream));
+                }
+
                 var root = (Syntax.InternalSyntax.CSharpSyntaxNode)reader.ReadValue();
                 return root.CreateRed();
             }

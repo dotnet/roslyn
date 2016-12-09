@@ -2,6 +2,7 @@
 
 using System;
 using System.Composition;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -121,36 +122,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Versions
                 return false;
             }
 
-            using (var storage = service.GetStorage(project.Solution))
-            using (var stream = storage.ReadStreamAsync(keyName, CancellationToken.None).WaitAndGetResult(CancellationToken.None))
+            try
             {
-                if (stream == null)
+                using (var storage = service.GetStorage(project.Solution))
+                using (var stream = storage.ReadStreamAsync(keyName, CancellationToken.None).WaitAndGetResult(CancellationToken.None))
+                using (var reader = StreamObjectReader.TryGetReader(stream))
                 {
-                    return false;
-                }
-
-                try
-                {
-                    using (var reader = new StreamObjectReader(stream))
+                    if (reader != null)
                     {
                         var formatVersion = reader.ReadInt32();
-                        if (formatVersion != SerializationFormat)
+                        if (formatVersion == SerializationFormat)
                         {
-                            return false;
+                            var persistedProjectVersion = VersionStamp.ReadFrom(reader);
+                            var persistedSemanticVersion = VersionStamp.ReadFrom(reader);
+
+                            versions = new Versions(persistedProjectVersion, persistedSemanticVersion);
+                            return true;
                         }
-
-                        var persistedProjectVersion = VersionStamp.ReadFrom(reader);
-                        var persistedSemanticVersion = VersionStamp.ReadFrom(reader);
-
-                        versions = new Versions(persistedProjectVersion, persistedSemanticVersion);
-                        return true;
                     }
                 }
-                catch (Exception)
-                {
-                    return false;
-                }
             }
+            catch (IOException)
+            {
+            }
+
+            return false;
         }
 
         public async Task RecordSemanticVersionsAsync(Project project, CancellationToken cancellationToken)

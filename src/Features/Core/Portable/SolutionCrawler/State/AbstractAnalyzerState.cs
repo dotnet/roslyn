@@ -54,16 +54,22 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
             var solution = GetSolution(value);
             var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
 
-            using (var storage = persistService.GetStorage(solution))
-            using (var stream = await ReadStreamAsync(storage, value, cancellationToken).ConfigureAwait(false))
+            try
             {
-                if (stream == null)
+                using (var storage = persistService.GetStorage(solution))
+                using (var stream = await ReadStreamAsync(storage, value, cancellationToken).ConfigureAwait(false))
                 {
-                    return default(TData);
+                    if (stream != null)
+                    {
+                        return TryGetExistingData(stream, value, cancellationToken);
+                    }
                 }
-
-                return TryGetExistingData(stream, value, cancellationToken);
             }
+            catch (IOException)
+            {
+            }
+
+            return default(TData);
         }
 
         public async Task PersistAsync(TValue value, TData data, CancellationToken cancellationToken)
