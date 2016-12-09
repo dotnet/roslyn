@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         private readonly HubClient _hubClient;
         private readonly JsonRpc _rpc;
-        private readonly string _hostGroup;
+        private readonly HostGroup _hostGroup;
 
         public static async Task<RemoteHostClient> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
@@ -31,9 +31,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
                 var current = $"VS ({Process.GetCurrentProcess().Id})";
 
-                var remoteHostStream = await RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, current, cancellationToken).ConfigureAwait(false);
+                var hostGroup = new HostGroup(current);
+                var remoteHostStream = await RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, cancellationToken).ConfigureAwait(false);
 
-                var instance = new ServiceHubRemoteHostClient(workspace, primary, current, remoteHostStream);
+                var instance = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, remoteHostStream);
 
                 // make sure connection is done right
                 var host = await instance._rpc.InvokeAsync<string>(WellKnownRemoteHostServices.RemoteHostService_Connect, current).ConfigureAwait(false);
@@ -65,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         }
 
         private ServiceHubRemoteHostClient(
-            Workspace workspace, HubClient hubClient, string hostGroup, Stream stream) :
+            Workspace workspace, HubClient hubClient, HostGroup hostGroup, Stream stream) :
             base(workspace)
         {
             _hubClient = hubClient;
@@ -104,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             Disconnected();
         }
 
-        private static async Task<Stream> RequestServiceAsync(HubClient client, string serviceName, string hostGroup, CancellationToken cancellationToken = default(CancellationToken))
+        private static async Task<Stream> RequestServiceAsync(HubClient client, string serviceName, HostGroup hostGroup, CancellationToken cancellationToken = default(CancellationToken))
         {
             const int max_retry = 10;
             const int retry_delayInMS = 50;
@@ -117,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 try
                 {
-                    var descriptor = new ServiceDescriptor(serviceName) { HostGroup = new HostGroup(hostGroup) };
+                    var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
                     return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
                 }
                 catch (RemoteInvocationException ex)

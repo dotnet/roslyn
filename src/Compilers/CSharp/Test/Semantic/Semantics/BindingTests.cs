@@ -3412,5 +3412,35 @@ class Program
             Assert.Null(symbolInfo1.Symbol);
             Assert.True(symbolInfo1.CandidateSymbols.IsEmpty);
         }
+
+        [Fact, WorkItem(13617, "https://github.com/dotnet/roslyn/issues/13617")]
+        public void MissingTypeArgumentInGenericExtensionMethod()
+        {
+            var source =
+@"
+public static class FooExtensions
+{
+    public static T Foo<T>(this object obj) => default(T);
+}
+
+public class Class1
+{
+    public void Test()
+    {
+        var defaultA = ""a"".Foo<>();
+        var defaultB = FooExtensions.Foo<>(""b"");
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+
+            compilation.VerifyDiagnostics(
+                // (11,24): error CS0305: Using the generic method group 'Foo' requires 1 type arguments
+                //         var defaultA = "a".Foo<>();
+                Diagnostic(ErrorCode.ERR_BadArity, @"""a"".Foo<>").WithArguments("Foo", "method group", "1").WithLocation(11, 24),
+                // (12,24): error CS0305: Using the generic method group 'Foo' requires 1 type arguments
+                //         var defaultB = FooExtensions.Foo<>("b");
+                Diagnostic(ErrorCode.ERR_BadArity, "FooExtensions.Foo<>").WithArguments("Foo", "method group", "1").WithLocation(12, 24));
+        }
     }
 }
