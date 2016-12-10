@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim stream = New MemoryStream()
             root.SerializeTo(stream)
 
-            stream.Position = 0
+            stream.Position = 2
             Assert.Equal(expectRecursive, Roslyn.Utilities.StreamObjectReader.IsRecursive(stream))
 
             stream.Position = 0

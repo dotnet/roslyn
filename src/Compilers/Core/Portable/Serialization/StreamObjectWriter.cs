@@ -82,6 +82,8 @@ namespace Roslyn.Utilities
             _recursive = recursive;
             _cancellationToken = cancellationToken;
 
+            WriteVersion();
+
             if (_recursive)
             {
                 _writer.Write((byte)EncodingKind.Recursive);
@@ -93,6 +95,12 @@ namespace Roslyn.Utilities
                 _memberList = s_variantListPool.Allocate();
                 _memberWriter = new VariantListWriter(_memberList);
             }
+        }
+
+        private void WriteVersion()
+        {
+            _writer.Write(StreamObjectReader.VersionByte1);
+            _writer.Write(StreamObjectReader.VersionByte2);
         }
 
         public void Dispose()
