@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol createPayload = GetCreatePayload(methodBodyFactory.Compilation, methodBody.Syntax, diagnostics);
 
             // Do not instrument any methods if CreatePayload is not present.
-            if (createPayload is null)
+            if ((object)createPayload == null)
             {
                 return null;
             }
@@ -99,9 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Skip lambdas and local functions. They can't have custom attributes.
-            method = method.ContainingNonLambdaMember() as MethodSymbol;
-            if ((object)method != null)
+            var nonLambda = method.ContainingNonLambdaMember();
+            if (nonLambda?.Kind == SymbolKind.Method)
             {
+                method = (MethodSymbol)nonLambda;
+
                 if (method.IsDirectlyExcludedFromCodeCoverage)
                 {
                     return true;

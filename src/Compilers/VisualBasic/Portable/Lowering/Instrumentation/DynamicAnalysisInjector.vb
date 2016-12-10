@@ -103,8 +103,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End While
 
             ' Skip lambdas. They can't have custom attributes.
-            method = TryCast(method.ContainingNonLambdaMember(), MethodSymbol)
-            If method IsNot Nothing Then
+            Dim nonLambda = method.ContainingNonLambdaMember()
+            If nonLambda?.Kind = SymbolKind.Method Then
+                method = DirectCast(nonLambda, MethodSymbol)
+
                 If method.IsDirectlyExcludedFromCodeCoverage Then
                     Return True
                 End If
