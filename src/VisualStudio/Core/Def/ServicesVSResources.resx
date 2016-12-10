@@ -708,9 +708,6 @@ Additional information: {1}</value>
   <data name="Close" xml:space="preserve">
     <value>Close</value>
   </data>
-  <data name="in_0_line_1" xml:space="preserve">
-    <value>in {0}:line {1}</value>
-  </data>
   <data name="Unknown_parameters" xml:space="preserve">
     <value>&lt;Unknown Parameters&gt;</value>
   </data>

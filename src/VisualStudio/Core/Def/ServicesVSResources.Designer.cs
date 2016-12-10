@@ -969,15 +969,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to in {0}:line {1}.
-        /// </summary>
-        internal static string in_0_line_1 {
-            get {
-                return ResourceManager.GetString("in_0_line_1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Inherited By.
         /// </summary>
         internal static string Inherited_By {
