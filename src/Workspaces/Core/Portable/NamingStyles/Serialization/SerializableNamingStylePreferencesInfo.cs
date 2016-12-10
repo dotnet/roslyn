@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return SymbolSpecifications.Single(s => s.ID == symbolSpecificationID);
         }
 
-        public NamingStylePreferencesInfo GetPreferencesInfo()
+        public NamingStyleRules GetNamingStyleRules()
         {
-            return new NamingStylePreferencesInfo(NamingRules.Select(r => r.GetRule(this)).ToImmutableArray());
+            return new NamingStyleRules(NamingRules.Select(r => r.GetRule(this)).ToImmutableArray());
         }
 
         internal XElement CreateXElement()
@@ -152,13 +152,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return false;
             }
 
-            return this.CreateXElement().ToString() == other.CreateXElement().ToString();
+            return CreateXElement().ToString() == other.CreateXElement().ToString();
         }
 
         public static bool operator ==(NamingStylePreferences left, NamingStylePreferences right)
         {
-            bool leftIsNull = object.ReferenceEquals(left, null);
-            bool rightIsNull = object.ReferenceEquals(right, null);
+            var leftIsNull = object.ReferenceEquals(left, null);
+            var rightIsNull = object.ReferenceEquals(right, null);
             if (leftIsNull && rightIsNull)
             {
                 return true;
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             => !(left == right);
 
         public override int GetHashCode()
-            => this.CreateXElement().ToString().GetHashCode();
+            => CreateXElement().ToString().GetHashCode();
 
         private static readonly string _defaultNamingPreferencesString = $@"
 <NamingPreferencesInfo SerializationVersion=""3"">

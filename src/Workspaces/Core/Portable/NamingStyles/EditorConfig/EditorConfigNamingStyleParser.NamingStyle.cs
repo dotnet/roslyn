@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return false;
             }
 
-            string requiredPrefix = GetNamingRequiredPrefix(namingStyleTitle, allRawConventions);
-            string requiredSuffix = GetNamingRequiredSuffix(namingStyleTitle, allRawConventions);
-            string wordSeparator = GetNamingWordSeparator(namingStyleTitle, allRawConventions);
+            var requiredPrefix = GetNamingRequiredPrefix(namingStyleTitle, allRawConventions);
+            var requiredSuffix = GetNamingRequiredSuffix(namingStyleTitle, allRawConventions);
+            var wordSeparator = GetNamingWordSeparator(namingStyleTitle, allRawConventions);
             var capitalization = GetNamingCapitalization(namingStyleTitle, allRawConventions);
 
             namingStyle = new NamingStyle()
@@ -58,6 +58,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static string GetNamingWordSeparator(string namingStyleName, IReadOnlyDictionary<string, object> conventionsDictionary)
             => GetStringFromConventionsDictionary(namingStyleName, "word_separator", conventionsDictionary);
 
+        private static Capitalization GetNamingCapitalization(string namingStyleName, IReadOnlyDictionary<string, object> conventionsDictionary)
+        {
+            var result = GetStringFromConventionsDictionary(namingStyleName, "capitalization", conventionsDictionary);
+            return ParseCapitalizationScheme(result);
+        }
+
         private static string GetStringFromConventionsDictionary(string namingStyleName, string optionName, IReadOnlyDictionary<string, object> conventionsDictionary)
         {
             if (conventionsDictionary.TryGetValue($"dotnet_naming_style.{namingStyleName}.{optionName}", out object result))
@@ -66,16 +72,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             return string.Empty;
-        }
-
-        private static Capitalization GetNamingCapitalization(string namingStyleName, IReadOnlyDictionary<string, object> conventionsDictionary)
-        {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_style.{namingStyleName}.capitalization", out object result))
-            {
-                return ParseCapitalizationScheme(result as string ?? string.Empty);
-            }
-
-            return default(Capitalization);
         }
 
         private static Capitalization ParseCapitalizationScheme(string namingStyleCapitalization)

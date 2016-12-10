@@ -26,10 +26,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             var requiredModifiers = GetSymbolsRequiredModifiers(symbolSpecName, conventionsDictionary);
 
             symbolSpec = new SymbolSpecification(
-                Guid.NewGuid(),
                 symbolSpecName,
                 symbolKindList: applicableKinds,
-                accessibilityKindList: applicableAccessibilities,
+                accessibilityList: applicableAccessibilities,
                 modifiers: requiredModifiers);
             return true;
         }
@@ -131,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return builder.ToImmutableAndFree();
         }
 
-        private static ImmutableArray<AccessibilityKind> GetSymbolsApplicableAccessibilities(
+        private static ImmutableArray<Accessibility> GetSymbolsApplicableAccessibilities(
             string symbolSpecName,
             IReadOnlyDictionary<string, object> conventionsDictionary)
         {
@@ -140,26 +139,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return ParseAccessibilityKindList(result as string ?? string.Empty);
             }
 
-            return ImmutableArray<AccessibilityKind>.Empty;
+            return ImmutableArray<Accessibility>.Empty;
         }
 
-        private static readonly AccessibilityKind _publicAccessibilityKind = new AccessibilityKind(Accessibility.Public);
-        private static readonly AccessibilityKind _internalAccessibilityKind = new AccessibilityKind(Accessibility.Internal);
-        private static readonly AccessibilityKind _privateAccessibilityKind = new AccessibilityKind(Accessibility.Private);
-        private static readonly AccessibilityKind _protectedAccessibilityKind = new AccessibilityKind(Accessibility.Protected);
-        private static readonly AccessibilityKind _protectedOrInternalAccessibilityKind = new AccessibilityKind(Accessibility.ProtectedOrInternal);
-
-        private static ImmutableArray<AccessibilityKind> ParseAccessibilityKindList(string symbolSpecApplicableAccessibilities)
+        private static ImmutableArray<Accessibility> ParseAccessibilityKindList(string symbolSpecApplicableAccessibilities)
         {
             if (symbolSpecApplicableAccessibilities == null)
             {
-                return ImmutableArray<AccessibilityKind>.Empty;
+                return ImmutableArray<Accessibility>.Empty;
             }
 
-            var builder = ArrayBuilder<AccessibilityKind>.GetInstance();
+            var builder = ArrayBuilder<Accessibility>.GetInstance();
             if (symbolSpecApplicableAccessibilities.Trim() == "*")
             {
-                builder.AddRange(_publicAccessibilityKind, _internalAccessibilityKind, _privateAccessibilityKind, _protectedAccessibilityKind, _protectedOrInternalAccessibilityKind);
+                builder.AddRange(Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal);
                 return builder.ToImmutableAndFree();
             }
 
@@ -168,19 +161,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 switch (symbolSpecApplicableAccessibility)
                 {
                     case "public":
-                        builder.Add(_publicAccessibilityKind);
+                        builder.Add(Accessibility.Public);
                         break;
                     case "internal":
-                        builder.Add(_internalAccessibilityKind);
+                        builder.Add(Accessibility.Internal);
                         break;
                     case "private":
-                        builder.Add(_privateAccessibilityKind);
+                        builder.Add(Accessibility.Private);
                         break;
                     case "protected":
-                        builder.Add(_protectedAccessibilityKind);
+                        builder.Add(Accessibility.Protected);
                         break;
                     case "protected_internal":
-                        builder.Add(_protectedOrInternalAccessibilityKind);
+                        builder.Add(Accessibility.ProtectedOrInternal);
                         break;
                     default:
                         break;

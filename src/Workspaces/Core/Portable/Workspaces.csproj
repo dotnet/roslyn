@@ -375,6 +375,7 @@
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.NamingRule.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.NamingStyle.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.SymbolSpec.cs" />
+    <Compile Include="NamingStyles\Serialization\AccessibilityExtensions.cs" />
     <Compile Include="Options\NamingEditorConfigStorageLocation.cs" />
     <Compile Include="LanguageServices\TypeInferenceService\AbstractTypeInferenceService.AbstractTypeInferrer.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex_Persistence.cs" />

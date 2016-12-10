@@ -24,44 +24,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 ["dotnet_naming_symbols.method_and_property_symbols.applicable_accessibilities"] = "*",
                 ["dotnet_naming_style.pascal_case_style.capitalization"] = "pascal_case"
             };
-
             var result = ParseDictionary(dictionary);
-
             Assert.Single(result.NamingRules);
             var namingRule = result.NamingRules.Single();
-
             Assert.Single(result.NamingStyles);
             var namingStyle = result.NamingStyles.Single();
-
             Assert.Single(result.SymbolSpecifications);
             var symbolSpec = result.SymbolSpecifications.Single();
-
             Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
             Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
-
             Assert.Equal(DiagnosticSeverity.Warning, namingRule.EnforcementLevel);
-
             Assert.Equal("method_and_property_symbols", symbolSpec.Name);
-
             var expectedApplicableSymbolKindList = new[]
             {
                 new SymbolKindOrTypeKind(SymbolKind.Method),
                 new SymbolKindOrTypeKind(SymbolKind.Property)
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
-
             Assert.Empty(symbolSpec.RequiredModifierList);
-
             var expectedApplicableAccessibilityList = new[]
             {
-                new AccessibilityKind(Accessibility.Public),
-                new AccessibilityKind(Accessibility.Internal),
-                new AccessibilityKind(Accessibility.Private),
-                new AccessibilityKind(Accessibility.Protected),
-                new AccessibilityKind(Accessibility.ProtectedOrInternal)
+                Accessibility.Public,
+                Accessibility.Internal,
+                Accessibility.Private,
+                Accessibility.Protected,
+                Accessibility.ProtectedOrInternal
             };
             AssertEx.SetEqual(expectedApplicableAccessibilityList, symbolSpec.ApplicableAccessibilityList);
-
             Assert.Equal("pascal_case_style", namingStyle.Name);
             Assert.Equal("", namingStyle.Prefix);
             Assert.Equal("", namingStyle.Suffix);
@@ -82,32 +71,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 ["dotnet_naming_style.end_in_async_style.capitalization "] = "pascal_case",
                 ["dotnet_naming_style.end_in_async_style.required_suffix"] = "Async",
             };
-
             var result = ParseDictionary(dictionary);
-
             Assert.Single(result.NamingRules);
             var namingRule = result.NamingRules.Single();
-
             Assert.Single(result.NamingStyles);
             var namingStyle = result.NamingStyles.Single();
-
             Assert.Single(result.SymbolSpecifications);
             var symbolSpec = result.SymbolSpecifications.Single();
-
             Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
             Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
             Assert.Equal(DiagnosticSeverity.Error, namingRule.EnforcementLevel);
-
             Assert.Equal("method_symbols", symbolSpec.Name);
-
             Assert.Single(symbolSpec.ApplicableSymbolKindList);
             Assert.Contains(new SymbolKindOrTypeKind(SymbolKind.Method), symbolSpec.ApplicableSymbolKindList);
-
             Assert.Single(symbolSpec.RequiredModifierList);
             Assert.Contains(new ModifierKind(ModifierKindEnum.IsAsync), symbolSpec.RequiredModifierList);
-
             Assert.Empty(symbolSpec.ApplicableAccessibilityList);
-
             Assert.Equal("end_in_async_style", namingStyle.Name);
             Assert.Equal("", namingStyle.Prefix);
             Assert.Equal("Async", namingStyle.Suffix);
@@ -127,25 +106,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 ["dotnet_naming_symbols.public_symbols.applicable_accessibilities"] = "public,internal,protected,protected_internal",
                 ["dotnet_naming_style.first_word_upper_case_style.capitalization"] = "first_word_upper",
             };
-
             var result = ParseDictionary(dictionary);
-
             Assert.Single(result.NamingRules);
             var namingRule = result.NamingRules.Single();
-
             Assert.Single(result.NamingStyles);
             var namingStyle = result.NamingStyles.Single();
-
             Assert.Single(result.SymbolSpecifications);
             var symbolSpec = result.SymbolSpecifications.Single();
-
             Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
             Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
             Assert.Equal(DiagnosticSeverity.Info, namingRule.EnforcementLevel);
-
             Assert.Equal("public_symbols", symbolSpec.Name);
-
-
             var expectedApplicableSymbolKindList = new[]
             {
                 new SymbolKindOrTypeKind(SymbolKind.Property),
@@ -155,19 +126,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 new SymbolKindOrTypeKind(TypeKind.Delegate)
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
-
-
             var expectedApplicableAccessibilityList = new[]
             {
-                new AccessibilityKind(Accessibility.Public),
-                new AccessibilityKind(Accessibility.Internal),
-                new AccessibilityKind(Accessibility.Protected),
-                new AccessibilityKind(Accessibility.ProtectedOrInternal)
+                Accessibility.Public,
+                Accessibility.Internal,
+                Accessibility.Protected,
+                Accessibility.ProtectedOrInternal
             };
             AssertEx.SetEqual(expectedApplicableAccessibilityList, symbolSpec.ApplicableAccessibilityList);
-
             Assert.Empty(symbolSpec.RequiredModifierList);
-
             Assert.Equal("first_word_upper_case_style", namingStyle.Name);
             Assert.Equal("", namingStyle.Prefix);
             Assert.Equal("", namingStyle.Suffix);
@@ -187,9 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 ["dotnet_naming_symbols.non_public_symbols.applicable_accessibilities"] = "private",
                 ["dotnet_naming_style.all_lower_case_style.capitalization"] = "all_lower",
             };
-
             var result = ParseDictionary(dictionary);
-
             Assert.Single(result.NamingRules);
             var namingRule = result.NamingRules.Single();
             Assert.Single(result.NamingStyles);
@@ -199,9 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
             Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
             Assert.Equal(DiagnosticSeverity.Hidden, namingRule.EnforcementLevel);
-
             Assert.Equal("non_public_symbols", symbolSpec.Name);
-
             var expectedApplicableSymbolKindList = new[]
             {
                 new SymbolKindOrTypeKind(SymbolKind.Property),
@@ -211,12 +174,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 new SymbolKindOrTypeKind(TypeKind.Delegate)
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
-
             Assert.Single(symbolSpec.ApplicableAccessibilityList);
-            Assert.Contains(new AccessibilityKind(Accessibility.Private), symbolSpec.ApplicableAccessibilityList);
-
+            Assert.Contains(Accessibility.Private, symbolSpec.ApplicableAccessibilityList);
             Assert.Empty(symbolSpec.RequiredModifierList);
-
             Assert.Equal("all_lower_case_style", namingStyle.Name);
             Assert.Equal("", namingStyle.Prefix);
             Assert.Equal("", namingStyle.Suffix);
@@ -233,9 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 ["dotnet_naming_symbols.non_public_symbols.applicable_accessibilities"] = "private",
                 ["dotnet_naming_style.all_lower_case_style.capitalization"] = "all_lower",
             };
-
             var result = ParseDictionary(dictionary);
-
             Assert.Empty(result.NamingRules);
             Assert.Empty(result.NamingStyles);
             Assert.Empty(result.SymbolSpecifications);

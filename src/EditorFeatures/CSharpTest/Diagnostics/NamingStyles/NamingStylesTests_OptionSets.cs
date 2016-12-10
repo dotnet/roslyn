@@ -15,40 +15,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
     public partial class NamingStylesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         private IDictionary<OptionKey, object> ClassNamesArePascalCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), ClassNamesArePascalCaseOptionString());
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), ClassNamesArePascalCaseOption());
 
         private IDictionary<OptionKey, object> MethodNamesArePascalCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), MethodNamesArePascalCaseOptionString());
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), MethodNamesArePascalCaseOption());
 
         private IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
-            var options = new Dictionary<OptionKey, object>();
-            options.Add(option, value);
+            var options = new Dictionary<OptionKey, object>
+            {
+                { option, value }
+            };
             return options;
         }
 
-        private NamingStylePreferences ClassNamesArePascalCaseOptionString()
+        private NamingStylePreferences ClassNamesArePascalCaseOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
                 "Name",
                 SpecializedCollections.SingletonEnumerable(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)).ToList(),
-                SpecializedCollections.EmptyList<SymbolSpecification.AccessibilityKind>(),
+                SpecializedCollections.EmptyList<Accessibility>(),
                 SpecializedCollections.EmptyList<SymbolSpecification.ModifierKind>());
 
-            var namingStyle = new NamingStyle();
-            namingStyle.CapitalizationScheme = Capitalization.PascalCase;
-            namingStyle.Name = "Name";
-            namingStyle.Prefix = "";
-            namingStyle.Suffix = "";
-            namingStyle.WordSeparator = "";
-
-
-            var namingRule = new SerializableNamingRule();
-            namingRule.SymbolSpecificationID = symbolSpecification.ID;
-            namingRule.NamingStyleID = namingStyle.ID;
-            namingRule.EnforcementLevel = DiagnosticSeverity.Error;
-
+            var namingStyle = new NamingStyle()
+            {
+                CapitalizationScheme = Capitalization.PascalCase,
+                Name = "Name",
+                Prefix = "",
+                Suffix = "",
+                WordSeparator = ""
+            };
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = DiagnosticSeverity.Error
+            };
             var info = new NamingStylePreferences();
             info.SymbolSpecifications.Add(symbolSpecification);
             info.NamingStyles.Add(namingStyle);
@@ -57,28 +59,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             return info;
         }
 
-        private NamingStylePreferences MethodNamesArePascalCaseOptionString()
+        private NamingStylePreferences MethodNamesArePascalCaseOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
                 "Name",
                 SpecializedCollections.SingletonEnumerable(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Method)).ToList(),
-                SpecializedCollections.EmptyList<SymbolSpecification.AccessibilityKind>(),
+                SpecializedCollections.EmptyList<Accessibility>(),
                 SpecializedCollections.EmptyList<SymbolSpecification.ModifierKind>());
 
-            var namingStyle = new NamingStyle();
-            namingStyle.CapitalizationScheme = Capitalization.PascalCase;
-            namingStyle.Name = "Name";
-            namingStyle.Prefix = "";
-            namingStyle.Suffix = "";
-            namingStyle.WordSeparator = "";
-
-
-            var namingRule = new SerializableNamingRule();
-            namingRule.SymbolSpecificationID = symbolSpecification.ID;
-            namingRule.NamingStyleID = namingStyle.ID;
-            namingRule.EnforcementLevel = DiagnosticSeverity.Error;
-
+            var namingStyle = new NamingStyle()
+            {
+                CapitalizationScheme = Capitalization.PascalCase,
+                Name = "Name",
+                Prefix = "",
+                Suffix = "",
+                WordSeparator = ""
+            };
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = DiagnosticSeverity.Error
+            };
             var info = new NamingStylePreferences();
             info.SymbolSpecifications.Add(symbolSpecification);
             info.NamingStyles.Add(namingStyle);

@@ -10,13 +10,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal class SymbolSpecification
+    internal partial class SymbolSpecification
     {
         public Guid ID { get; private set; }
         public string Name { get; private set; }
 
         public IList<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; private set; }
-        public IList<AccessibilityKind> ApplicableAccessibilityList { get; private set; }
+        public IList<Accessibility> ApplicableAccessibilityList { get; private set; }
         public IList<ModifierKind> RequiredModifierList { get; private set; }
 
         internal SymbolSpecification()
@@ -40,27 +40,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     new SymbolKindOrTypeKind(SymbolKind.Event),
                 };
 
-            ApplicableAccessibilityList = new List<AccessibilityKind>
+            ApplicableAccessibilityList = new List<Accessibility>
                 {
-                    new AccessibilityKind(Accessibility.Public),
-                    new AccessibilityKind(Accessibility.Internal),
-                    new AccessibilityKind(Accessibility.Private),
-                    new AccessibilityKind(Accessibility.Protected),
-                    new AccessibilityKind(Accessibility.ProtectedAndInternal),
-                    new AccessibilityKind(Accessibility.ProtectedOrInternal),
+                    Accessibility.Public,
+                    Accessibility.Internal,
+                    Accessibility.Private,
+                    Accessibility.Protected,
+                    Accessibility.ProtectedAndInternal,
+                    Accessibility.ProtectedOrInternal,
                 };
 
             RequiredModifierList = new List<ModifierKind>();
         }
 
-        public SymbolSpecification(Guid id, string symbolSpecName,
+        public SymbolSpecification(string symbolSpecName,
             IList<SymbolKindOrTypeKind> symbolKindList,
-            IList<AccessibilityKind> accessibilityKindList,
-            IList<ModifierKind> modifiers)
+            IList<Accessibility> accessibilityList,
+            IList<ModifierKind> modifiers,
+            Guid? id = null)
         {
-            ID = id;
+            ID = id ?? Guid.NewGuid();
             Name = symbolSpecName;
-            ApplicableAccessibilityList = accessibilityKindList;
+            ApplicableAccessibilityList = accessibilityList;
             RequiredModifierList = modifiers;
             ApplicableSymbolKindList = symbolKindList;
         }
@@ -163,10 +164,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private void PopulateAccessibilityListFromXElement(XElement accessibilityListElement)
         {
-            var applicableAccessibilityList = new List<AccessibilityKind>();
-            foreach (var accessibilityElement in accessibilityListElement.Elements(nameof(AccessibilityKind)))
+            var applicableAccessibilityList = new List<Accessibility>();
+            foreach (var accessibilityElement in accessibilityListElement.Elements("AccessibilityKind"))
             {
-                applicableAccessibilityList.Add(AccessibilityKind.FromXElement(accessibilityElement));
+                applicableAccessibilityList.Add(AccessibilityExtensions.FromXElement(accessibilityElement));
             }
             ApplicableAccessibilityList = applicableAccessibilityList;
         }
@@ -246,52 +247,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             public override int GetHashCode()
             {
                 return Hash.Combine(SymbolKind.GetHashCode(), TypeKind.GetHashCode());
-            }
-        }
-
-        public struct AccessibilityKind : IEquatable<AccessibilityKind>
-        {
-            public Accessibility Accessibility { get; set; }
-
-            public AccessibilityKind(Accessibility accessibility)
-            {
-                Accessibility = accessibility;
-            }
-
-            public bool MatchesSymbol(ISymbol symbol)
-            {
-                return symbol.DeclaredAccessibility == Accessibility;
-            }
-
-            internal XElement CreateXElement()
-            {
-                return new XElement(nameof(AccessibilityKind), Accessibility);
-            }
-
-            internal static AccessibilityKind FromXElement(XElement accessibilityElement)
-            {
-                return new AccessibilityKind((Accessibility)Enum.Parse(typeof(Accessibility), accessibilityElement.Value));
-            }
-
-            public override bool Equals(object obj)
-            {
-                return Equals((AccessibilityKind)obj);
-            }
-
-            public bool Equals(AccessibilityKind other)
-            {
-                return Accessibility == other.Accessibility;
-            }
-
-            public static bool operator ==(AccessibilityKind left, AccessibilityKind right)
-                => left.Equals(right);
-
-            public static bool operator !=(AccessibilityKind left, AccessibilityKind right)
-                => !left.Equals(right);
-
-            public override int GetHashCode()
-            {
-                return Accessibility.GetHashCode();
             }
         }
 
@@ -407,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             public bool Equals(ModifierKind other)
             {
-                return this.Modifier == other.Modifier;
+                return Modifier == other.Modifier;
             }
 
             public static bool operator ==(ModifierKind left, ModifierKind right)

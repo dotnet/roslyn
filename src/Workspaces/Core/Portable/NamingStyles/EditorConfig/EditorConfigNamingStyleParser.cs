@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, object>, NamingStylePreferences> _cache = new ConditionalWeakTable<IReadOnlyDictionary<string, object>, NamingStylePreferences>();
         private static readonly object _cacheLock = new object();
 
-        public static NamingStylePreferences GetNamingStylesStringFromDictionary(IReadOnlyDictionary<string, object> allRawConventions)
+        public static NamingStylePreferences GetNamingStylesFromDictionary(IReadOnlyDictionary<string, object> allRawConventions)
         {
             if (_cache.TryGetValue(allRawConventions, out var value))
             {

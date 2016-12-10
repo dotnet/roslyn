@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 {
                     if (namingEditorConfigPersistence != null)
                     {
-                        value = EditorConfigNamingStyleParser.GetNamingStylesStringFromDictionary(allRawConventions);
+                        value = EditorConfigNamingStyleParser.GetNamingStylesFromDictionary(allRawConventions);
                         return true;
                     }
                     else
