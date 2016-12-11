@@ -155,10 +155,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
         {
             return new RuntimeMetadataReferenceResolver(
-                new RelativePathResolver(arguments.ReferencePaths, arguments.BaseDirectory),
-                null,
-                GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
-                (path, properties) =>
+                pathResolver: new RelativePathResolver(arguments.ReferencePaths, arguments.BaseDirectory),
+                packageResolver: null,
+                gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
+                corLibDirectoryOpt: RuntimeMetadataReferenceResolver.DefaultCorLibDirectoryOpt,
+                fileReferenceProvider: (path, properties) =>
                 {
                     loggerOpt?.AddRead(path);
                     return MetadataReference.CreateFromFile(path, properties);

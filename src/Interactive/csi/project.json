@@ -1,6 +1,8 @@
 {
   "dependencies": {
-    "System.ValueTuple": "4.0.1-beta-24425-02"
+    "System.ValueTuple": "4.0.1-beta-24425-02",
+    "System.Dynamic.Runtime": "4.0.11",
+    "Microsoft.CSharp": "4.0.1"
   },
   "frameworks": {
     "net46": {}

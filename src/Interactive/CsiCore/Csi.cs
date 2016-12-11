@@ -1,11 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
@@ -21,8 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
                 var buildPaths = new BuildPaths(
                     clientDir: AppContext.BaseDirectory,
                     workingDir: Directory.GetCurrentDirectory(),
-                    sdkDir: CorLightup.Desktop.TryGetRuntimeDirectory(),
+                    sdkDir: RuntimeMetadataReferenceResolver.GetCorLibDirectory(),
                     tempDir: Path.GetTempPath());
+
                 var compiler = new CSharpInteractiveCompiler(
                     responseFile: responseFile,
                     buildPaths: buildPaths,

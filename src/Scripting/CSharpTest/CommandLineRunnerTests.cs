@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,8 +12,8 @@ using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Xunit;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -26,9 +27,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         // default csi.rsp
         private static readonly string[] s_defaultArgs = new[]
         {
-            "/r:System;System.Core;Microsoft.CSharp;System.ValueTuple.dll",
+            "/r:" + string.Join(";", GetReferences()),
             "/u:System;System.IO;System.Collections.Generic;System.Diagnostics;System.Dynamic;System.Linq;System.Linq.Expressions;System.Text;System.Threading.Tasks",
         };
+
+        private static IEnumerable<string> GetReferences()
+        {
+            if (RuntimeMetadataReferenceResolver.DefaultCorLibDirectoryOpt != null)
+            {
+                // keep in sync with list in core csi.rsp
+                yield return "System.Collections";
+                yield return "System.Collections.Concurrent";
+                yield return "System.Console";
+                yield return "System.Diagnostics.Debug";
+                yield return "System.Diagnostics.Process";
+                yield return "System.Diagnostics.StackTrace";
+                yield return "System.Globalization";
+                yield return "System.IO";
+                yield return "System.IO.FileSystem";
+                yield return "System.IO.FileSystem.Primitives";
+                yield return "System.Reflection";
+                yield return "System.Reflection.Primitives";
+                yield return "System.Runtime";
+                yield return "System.Runtime.InteropServices";
+                yield return "System.Text.Encoding";
+                yield return "System.Text.Encoding.CodePages";
+                yield return "System.Text.Encoding.Extensions";
+                yield return "System.Text.RegularExpressions";
+                yield return "System.Threading";
+                yield return "System.Threading.Tasks";
+                yield return "System.Threading.Tasks.Parallel";
+                yield return "System.Threading.Thread";
+                yield return "System.Linq";
+                yield return "System.Linq.Expressions";
+                yield return "System.Runtime.Numerics";
+                yield return "System.Dynamic.Runtime";
+                yield return "System.ValueTuple";
+                yield return "Microsoft.CSharp";
+            }
+            else
+            {
+                // keep in sync with list in csi.rsp
+                yield return "System";
+                yield return "System.Core";
+                yield return "Microsoft.CSharp";
+                yield return "System.ValueTuple.dll";
+            }
+        }
 
         private static CommandLineRunner CreateRunner(
             string[] args = null,
@@ -40,13 +85,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             var buildPaths = new BuildPaths(
                 clientDir: AppContext.BaseDirectory,
                 workingDir: workingDirectory ?? AppContext.BaseDirectory,
-                sdkDir: null,
+                sdkDir: RuntimeMetadataReferenceResolver.GetCorLibDirectory(),
                 tempDir: Path.GetTempPath());
 
             var compiler = new CSharpInteractiveCompiler(
                 responseFile,
                 buildPaths,
-                args ?? s_defaultArgs,
+                args?.Where(a => a != null).ToArray() ?? s_defaultArgs,
                 new NotImplementedAnalyzerLoader());
 
             return new CommandLineRunner(io, compiler, CSharpScriptCompiler.Instance, CSharpObjectFormatter.Instance);
@@ -94,10 +139,10 @@ Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
         public void TestDisplayResultsWithCurrentUICulture()
         {
             var runner = CreateRunner(input:
-@"using static System.Globalization.CultureInfo;
-DefaultThreadCurrentUICulture = GetCultureInfo(""en-GB"")
+@"using System.Globalization;
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"")
 Math.PI
-DefaultThreadCurrentUICulture = GetCultureInfo(""de-DE"")
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""de-DE"")
 Math.PI
 ");
             runner.RunInteractive();
@@ -107,12 +152,12 @@ $@"Microsoft (R) Visual C# Interactive Compiler version {s_compilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
-> using static System.Globalization.CultureInfo;
-> DefaultThreadCurrentUICulture = GetCultureInfo(""en-GB"")
+> using System.Globalization;
+> CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"")
 [en-GB]
 > Math.PI
 3.1415926535897931
-> DefaultThreadCurrentUICulture = GetCultureInfo(""de-DE"")
+> CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""de-DE"")
 [de-DE]
 > Math.PI
 3,1415926535897931
@@ -120,11 +165,11 @@ Type ""#help"" for more information.
 
             // Tests that DefaultThreadCurrentUICulture is respected and not DefaultThreadCurrentCulture.
             runner = CreateRunner(input:
-@"using static System.Globalization.CultureInfo;
-DefaultThreadCurrentUICulture = GetCultureInfo(""en-GB"")
-DefaultThreadCurrentCulture = GetCultureInfo(""en-GB"")
+@"using System.Globalization;
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"")
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""en-GB"")
 Math.PI
-DefaultThreadCurrentCulture = GetCultureInfo(""de-DE"")
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""de-DE"")
 Math.PI
 ");
             runner.RunInteractive();
@@ -134,14 +179,14 @@ $@"Microsoft (R) Visual C# Interactive Compiler version {s_compilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
-> using static System.Globalization.CultureInfo;
-> DefaultThreadCurrentUICulture = GetCultureInfo(""en-GB"")
+> using System.Globalization;
+> CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"")
 [en-GB]
-> DefaultThreadCurrentCulture = GetCultureInfo(""en-GB"")
+> CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""en-GB"")
 [en-GB]
 > Math.PI
 3.1415926535897931
-> DefaultThreadCurrentCulture = GetCultureInfo(""de-DE"")
+> CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""de-DE"")
 [de-DE]
 > Math.PI
 3.1415926535897931
@@ -482,11 +527,16 @@ Options:
         {
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("WriteLine(42);");
 
-            var runner = CreateRunner(new[] { "/u:System.Console;Foo.Bar", script.Path });
+            var runner = CreateRunner(new[]
+            {
+                (RuntimeMetadataReferenceResolver.DefaultCorLibDirectoryOpt != null) ? "/r:System.Console" : null,
+                "/u:System.Console;Alpha.Beta",
+                script.Path
+            });
 
             Assert.Equal(1, runner.RunInteractive());
 
-            const string error = @"error CS0246: The type or namespace name 'Foo' could not be found (are you missing a using directive or an assembly reference?)";
+            const string error = @"error CS0246: The type or namespace name 'Alpha' could not be found (are you missing a using directive or an assembly reference?)";
             AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Out.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Error.ToString());
         }
@@ -577,16 +627,16 @@ Print(new C4());
 ");
 
             var dir1 = Temp.CreateDirectory();
-            dir1.CreateFile("1.dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib("public class C1 {}", "1").EmitToArray());
+            dir1.CreateFile("1.dll").WriteAllBytes(CreateCSharpCompilationWithCorlib("public class C1 {}", "1").EmitToArray());
 
             var dir2 = Temp.CreateDirectory();
-            dir2.CreateFile("2.dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib("public class C2 {}", "2").EmitToArray());
+            dir2.CreateFile("2.dll").WriteAllBytes(CreateCSharpCompilationWithCorlib("public class C2 {}", "2").EmitToArray());
 
             var dir3 = Temp.CreateDirectory();
-            dir3.CreateFile("3.dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib("public class C3 {}", "3").EmitToArray());
+            dir3.CreateFile("3.dll").WriteAllBytes(CreateCSharpCompilationWithCorlib("public class C3 {}", "3").EmitToArray());
 
             var dir4 = Temp.CreateDirectory();
-            dir4.CreateFile("4.dll").WriteAllBytes(CreateCSharpCompilationWithMscorlib("public class C4 {}", "4").EmitToArray());
+            dir4.CreateFile("4.dll").WriteAllBytes(CreateCSharpCompilationWithCorlib("public class C4 {}", "4").EmitToArray());
 
             var runner = CreateRunner(new[] { "/r:4.dll", $"/lib:{dir1.Path}", $"/libpath:{dir2.Path}", $"/libpaths:{dir3.Path};{dir4.Path}", main.Path });
 

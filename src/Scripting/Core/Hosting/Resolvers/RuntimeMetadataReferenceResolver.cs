@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
@@ -19,23 +20,33 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     internal sealed class RuntimeMetadataReferenceResolver : MetadataReferenceResolver, IEquatable<RuntimeMetadataReferenceResolver>
     {
         // Ideally we'd use properties with no aliases, but currently that's not possible since empty aliases mean {global}.
-        private static readonly MetadataReferenceProperties s_resolvedMissingAssemblyReferenceProperties = MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("<implicit>"));
+        private static readonly MetadataReferenceProperties s_resolvedMissingAssemblyReferenceProperties = 
+            MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("<implicit>"));
 
-        public static readonly RuntimeMetadataReferenceResolver Default = new RuntimeMetadataReferenceResolver(ImmutableArray<string>.Empty, baseDirectory: null);
+        internal static readonly string DefaultCorLibDirectoryOpt = GacFileResolver.IsAvailable ? null : GetCorLibDirectory();
+
+        internal static string GetCorLibDirectory() => 
+            PathUtilities.GetDirectoryName(typeof(object).GetTypeInfo().Assembly.ManifestModule.FullyQualifiedName);
+
+        public static readonly RuntimeMetadataReferenceResolver Default = 
+            new RuntimeMetadataReferenceResolver(ImmutableArray<string>.Empty, baseDirectory: null);
 
         internal readonly RelativePathResolver PathResolver;
         internal readonly NuGetPackageResolver PackageResolver;
         internal readonly GacFileResolver GacFileResolver;
         private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _fileReferenceProvider;
+        private readonly string _corLibDirectoryOpt;
 
         // TODO: Look for .winmd, but only if the identity has content WindowsRuntime (https://github.com/dotnet/roslyn/issues/6483)
         // The extensions are in order in which the CLR loader looks for assembly files.
         internal static ImmutableArray<string> AssemblyExtensions = ImmutableArray.Create(".dll", ".exe");
 
-        internal RuntimeMetadataReferenceResolver(
-            ImmutableArray<string> searchPaths,
-            string baseDirectory)
-            : this(new RelativePathResolver(searchPaths, baseDirectory), null, GacFileResolver.IsAvailable ? new GacFileResolver() : null)
+        internal RuntimeMetadataReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
+            : this(pathResolver: new RelativePathResolver(searchPaths, baseDirectory),
+                   packageResolver: null, 
+                   gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver() : null,
+                   corLibDirectoryOpt: DefaultCorLibDirectoryOpt,
+                   fileReferenceProvider: null)
         {
         }
 
@@ -43,11 +54,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             RelativePathResolver pathResolver,
             NuGetPackageResolver packageResolver,
             GacFileResolver gacFileResolver,
+            string corLibDirectoryOpt,
             Func<string, MetadataReferenceProperties, PortableExecutableReference> fileReferenceProvider = null)
         {
             PathResolver = pathResolver;
             PackageResolver = packageResolver;
             GacFileResolver = gacFileResolver;
+            _corLibDirectoryOpt = corLibDirectoryOpt;
             _fileReferenceProvider = fileReferenceProvider ??
                 new Func<string, MetadataReferenceProperties, PortableExecutableReference>((path, properties) => MetadataReference.CreateFromFile(path, properties));
         }
@@ -66,14 +79,24 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
             }
 
+            // look into a directory containing CorLib:
+            if (_corLibDirectoryOpt != null)
+            {
+                string fullPath = PathUtilities.CombinePathsUnchecked(_corLibDirectoryOpt, referenceIdentity.Name + ".dll");
+                if (File.Exists(fullPath))
+                {
+                    return CreateResolvedMissingReference(fullPath);
+                }
+            }
+
             // look in the directory of the requesting definition:
-            var definitionPath = (definition as PortableExecutableReference)?.FilePath;
+            string definitionPath = (definition as PortableExecutableReference)?.FilePath;
             if (definitionPath != null)
             {
-                var pathWithoutExtension = PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(definitionPath), referenceIdentity.Name);
-                foreach (var extension in AssemblyExtensions)
+                string pathWithoutExtension = PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(definitionPath), referenceIdentity.Name);
+                foreach (string extension in AssemblyExtensions)
                 {
-                    var fullPath = pathWithoutExtension + extension;
+                    string fullPath = pathWithoutExtension + extension;
                     if (File.Exists(fullPath))
                     {
                         return CreateResolvedMissingReference(fullPath);
@@ -91,9 +114,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
         {
-            string packageName;
-            string packageVersion;
-            if (NuGetPackageResolver.TryParsePackageReference(reference, out packageName, out packageVersion))
+            if (NuGetPackageResolver.TryParsePackageReference(reference, out string packageName, out string packageVersion))
             {
                 if (PackageResolver != null)
                 {
@@ -106,19 +127,33 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 if (PathResolver != null)
                 {
-                    var resolvedPath = PathResolver.ResolvePath(reference, baseFilePath);
+                    string resolvedPath = PathResolver.ResolvePath(reference, baseFilePath);
                     if (resolvedPath != null)
                     {
                         return ImmutableArray.Create(_fileReferenceProvider(resolvedPath, properties));
                     }
                 }
             }
-            else if (GacFileResolver != null)
+            else
             {
-                var path = GacFileResolver.Resolve(reference);
-                if (path != null)
+                if (GacFileResolver != null)
                 {
-                    return ImmutableArray.Create(_fileReferenceProvider(path, properties));
+                    string path = GacFileResolver.Resolve(reference);
+                    if (path != null)
+                    {
+                        return ImmutableArray.Create(_fileReferenceProvider(path, properties));
+                    }
+                }
+
+                // look into a directory containing CorLib:
+                if (_corLibDirectoryOpt != null)
+                {
+                    // reference is required to be a simple name
+                    string fullPath = PathUtilities.CombinePathsUnchecked(_corLibDirectoryOpt, reference + ".dll");
+                    if (File.Exists(fullPath))
+                    {
+                        return ImmutableArray.Create(_fileReferenceProvider(fullPath, properties));
+                    }
                 }
             }
 
@@ -144,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         internal RuntimeMetadataReferenceResolver WithRelativePathResolver(RelativePathResolver resolver)
         {
             return Equals(resolver, PathResolver) ? this :
-                new RuntimeMetadataReferenceResolver(resolver, PackageResolver, GacFileResolver, _fileReferenceProvider);
+                new RuntimeMetadataReferenceResolver(resolver, PackageResolver, GacFileResolver, _corLibDirectoryOpt, _fileReferenceProvider);
         }
     }
 }

@@ -264,9 +264,10 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             return new RuntimeMetadataReferenceResolver(
                 new RelativePathResolver(searchPaths, baseDirectory),
-                null,
-                GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
-                (path, properties) => metadataService.GetReference(path, properties));
+                packageResolver: null,
+                gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
+                corLibDirectoryOpt: null, // TODO: specify when .NET Core is supported
+                fileReferenceProvider: (path, properties) => metadataService.GetReference(path, properties));
         }
 
         private static SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
