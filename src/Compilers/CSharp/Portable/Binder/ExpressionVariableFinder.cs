@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ReturnStatement:
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.ExpressionStatement:
-                case SyntaxKind.WhileStatement:
-                case SyntaxKind.DoStatement:
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.SwitchStatement:
@@ -164,16 +162,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitExpressionStatement(ExpressionStatementSyntax node)
         {
             VisitNodeToBind(node.Expression);
-        }
-
-        public override void VisitWhileStatement(WhileStatementSyntax node)
-        {
-            VisitNodeToBind(node.Condition);
-        }
-
-        public override void VisitDoStatement(DoStatementSyntax node)
-        {
-            VisitNodeToBind(node.Condition);
         }
 
         public override void VisitLockStatement(LockStatementSyntax node)

@@ -849,11 +849,13 @@
   </AbstractNode>
 
   <Node Name="BoundDoStatement" Base="BoundLoopStatement">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Body" Type="BoundStatement"/>
   </Node>
 
   <Node Name="BoundWhileStatement" Base="BoundLoopStatement">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Body" Type="BoundStatement"/>
   </Node>

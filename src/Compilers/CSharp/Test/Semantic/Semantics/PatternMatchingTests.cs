@@ -1632,8 +1632,6 @@ public class X
             System.Console.WriteLine(x1);
             f = false;
         }
-
-        System.Console.WriteLine(x1);
     }
 
     static bool Dummy(bool x, object y, object z) 
@@ -1647,7 +1645,6 @@ public class X
             CompileAndVerify(compilation, expectedOutput:
 @"1
 1
-2
 2");
 
             var tree = compilation.SyntaxTrees.Single();
@@ -1656,7 +1653,7 @@ public class X
             var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
-            Assert.Equal(3, x1Ref.Length);
+            Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
         }
 
@@ -1706,6 +1703,170 @@ public class X
         }
 
         [Fact]
+        public void While_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        int f = 1;
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        while (Dummy(f < 3, f is var x1, x1))
+        {
+            l.Add(() => System.Console.WriteLine(x1));
+            f++;
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+2
+3
+--
+1
+2
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void While_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        int f = 1;
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        while (Dummy(f < 3, f is var x1, x1, l, () => System.Console.WriteLine(x1)))
+        {
+            f++;
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z, System.Collections.Generic.List<System.Action> l, System.Action d) 
+    {
+        l.Add(d);
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+2
+3
+--
+1
+2
+3
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void While_05()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        int f = 1;
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        while (Dummy(f < 3, f is var x1, x1, l, () => System.Console.WriteLine(x1)))
+        {
+            l.Add(() => System.Console.WriteLine(x1));
+            f++;
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z, System.Collections.Generic.List<System.Action> l, System.Action d) 
+    {
+        l.Add(d);
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+2
+3
+--
+1
+1
+2
+2
+3
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
         public void Do_01()
         {
             var source =
@@ -1721,8 +1882,6 @@ public class X
             f = false;
         }
         while (Dummy(f, (f ? 1 : 2) is var x1, x1));
-
-        System.Console.WriteLine(x1);
     }
 
     static bool Dummy(bool x, object y, object z) 
@@ -1733,8 +1892,7 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput: @"2
-2");
+            CompileAndVerify(compilation, expectedOutput: @"2");
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1742,7 +1900,7 @@ public class X
             var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
-            Assert.Equal(2, x1Ref.Length);
+            Assert.Equal(1, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
         }
 
@@ -1791,6 +1949,59 @@ public class X
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[0]);
             VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+        }
+
+        [Fact]
+        public void Do_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        int f = 1;
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        do
+        {
+            ;
+        }
+        while (Dummy(f < 3, (f++) is var x1, x1, l, () => System.Console.WriteLine(x1)));
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z, System.Collections.Generic.List<System.Action> l, System.Action d) 
+    {
+        l.Add(d);
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: @"1
+2
+3
+--
+1
+2
+3");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]

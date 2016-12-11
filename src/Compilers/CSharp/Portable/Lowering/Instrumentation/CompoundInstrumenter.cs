@@ -183,19 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentWhileStatementCondition(original, rewrittenCondition, factory);
         }
 
-        public override BoundStatement InstrumentWhileStatementConditionalGotoStart(BoundWhileStatement original, BoundStatement ifConditionGotoStart)
+        public override BoundStatement InstrumentWhileStatementConditionalGotoStartOrBreak(BoundWhileStatement original, BoundStatement ifConditionGotoStart)
         {
-            return Previous.InstrumentWhileStatementConditionalGotoStart(original, ifConditionGotoStart);
-        }
-
-        public override BoundStatement InstrumentWhileStatementGotoContinue(BoundWhileStatement original, BoundStatement gotoContinue)
-        {
-            return Previous.InstrumentWhileStatementGotoContinue(original, gotoContinue);
-        }
-
-        public override BoundStatement InstrumentForEachStatementGotoContinue(BoundForEachStatement original, BoundStatement gotoContinue)
-        {
-            return Previous.InstrumentForEachStatementGotoContinue(original, gotoContinue);
+            return Previous.InstrumentWhileStatementConditionalGotoStartOrBreak(original, ifConditionGotoStart);
         }
 
         public override BoundExpression InstrumentCatchClauseFilter(BoundCatchBlock original, BoundExpression rewrittenFilter, SyntheticBoundNodeFactory factory)
