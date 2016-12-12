@@ -334,6 +334,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_WithSystemNumerics.csproj">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_Wildcards.csproj">
       <SubType>Designer</SubType>
     </EmbeddedResource>
