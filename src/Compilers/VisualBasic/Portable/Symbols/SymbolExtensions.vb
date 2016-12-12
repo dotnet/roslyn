@@ -415,5 +415,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return vbSymbol
         End Function
 
+        <Extension>
+        Friend Function ContainingNonLambdaMember(member As Symbol) As Symbol
+            While member?.Kind = SymbolKind.Method AndAlso DirectCast(member, MethodSymbol).MethodKind = MethodKind.AnonymousFunction
+                member = member.ContainingSymbol
+            End While
+
+            Return member
+        End Function
     End Module
 End Namespace
