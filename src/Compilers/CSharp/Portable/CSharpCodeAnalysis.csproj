@@ -173,7 +173,7 @@
     <Compile Include="BoundTree\DecisionTreeBuilder.cs" />
     <Compile Include="BoundTree\Expression.cs" />
     <Compile Include="BoundTree\DeconstructionVariablePendingInference.cs" />
-    <Compile Include="BoundTree\BoundDiscardedExpression.cs" />
+    <Compile Include="BoundTree\BoundDiscardExpression.cs" />
     <Compile Include="BoundTree\OutVariablePendingInference.cs" />
     <Compile Include="BoundTree\OutDeconstructVarPendingInference.cs" />
     <Compile Include="BoundTree\PseudoVariableExpressions.cs" />
@@ -498,7 +498,7 @@
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TemplateSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.ToStringMethodSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TypeParameterSymbol.cs" />
-    <Compile Include="Symbols\DiscardedSymbol.cs" />
+    <Compile Include="Symbols\DiscardSymbol.cs" />
     <Compile Include="Symbols\Metadata\PE\TupleTypeDecoder.cs" />
     <Compile Include="Symbols\Source\GlobalExpressionVariable.cs" />
     <Compile Include="Symbols\Tuples\TupleEventSymbol.cs" />
@@ -750,6 +750,7 @@
     <Compile Include="Syntax\CSharpSyntaxTree.DebuggerSyntaxTree.cs" />
     <Compile Include="Syntax\IdentifierNameSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\CSharpSyntaxNodeCache.cs" />
+    <Compile Include="Syntax\InternalSyntax\TypeSyntax.cs" />
     <Compile Include="Syntax\PropertyDeclarationSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\DirectiveTriviaSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\IdentifierNameSyntax.cs" />

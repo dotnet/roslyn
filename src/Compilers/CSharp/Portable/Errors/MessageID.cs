@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum MessageID
     {
+        None = 0,
         MessageBase = 1200,
         IDS_SK_METHOD = MessageBase + 2000,
         IDS_SK_TYPE = MessageBase + 2001,

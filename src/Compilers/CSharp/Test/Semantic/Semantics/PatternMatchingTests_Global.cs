@@ -5646,13 +5646,13 @@ class H
                 compilation.VerifyDiagnostics(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // bool a, b("5948" is var x1);
-                Diagnostic(ErrorCode.ERR_BadVarDecl, @"(""5948"" is var x1)").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, @"(""5948"" is var x1").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b("5948" is var x1);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,28): error CS1003: Syntax error, ']' expected
+                // (3,27): error CS1003: Syntax error, ']' expected
                 // bool a, b("5948" is var x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 28)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 27)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -5679,13 +5679,13 @@ class H
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // bool a, b("5948" is var x1);
-                Diagnostic(ErrorCode.ERR_BadVarDecl, @"(""5948"" is var x1)").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, @"(""5948"" is var x1").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b("5948" is var x1);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,28): error CS1003: Syntax error, ']' expected
+                // (3,27): error CS1003: Syntax error, ']' expected
                 // bool a, b("5948" is var x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 27),
                 // (8,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
@@ -5727,13 +5727,13 @@ class H
                 compilation.VerifyDiagnostics(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // bool a, b((1 is var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "((1 is var x1))").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "((1 is var x1)").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b((1 is var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,25): error CS1003: Syntax error, ']' expected
+                // (3,24): error CS1003: Syntax error, ']' expected
                 // bool a, b((1 is var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 24),
                 // (2,1): warning CS0164: This label has not been referenced
                 // label: 
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(2, 1)
@@ -5762,13 +5762,13 @@ class H
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // bool a, b((1 is var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "((1 is var x1))").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "((1 is var x1)").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b((1 is var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,25): error CS1003: Syntax error, ']' expected
+                // (3,24): error CS1003: Syntax error, ']' expected
                 // bool a, b((1 is var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 24),
                 // (8,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
@@ -5810,13 +5810,13 @@ class H
                 compilation.VerifyDiagnostics(
                 // (3,25): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // event System.Action a, b(H.Dummy(1 is var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.Dummy(1 is var x1))").WithLocation(3, 25),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.Dummy(1 is var x1)").WithLocation(3, 25),
                 // (3,25): error CS1003: Syntax error, '[' expected
                 // event System.Action a, b(H.Dummy(1 is var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 25),
-                // (3,47): error CS1003: Syntax error, ']' expected
+                // (3,46): error CS1003: Syntax error, ']' expected
                 // event System.Action a, b(H.Dummy(1 is var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 47)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 46)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -5843,13 +5843,13 @@ class H
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (3,25): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // event System.Action a, b(H.Dummy(1 is var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.Dummy(1 is var x1))").WithLocation(3, 25),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.Dummy(1 is var x1)").WithLocation(3, 25),
                 // (3,25): error CS1003: Syntax error, '[' expected
                 // event System.Action a, b(H.Dummy(1 is var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 25),
-                // (3,47): error CS1003: Syntax error, ']' expected
+                // (3,46): error CS1003: Syntax error, ']' expected
                 // event System.Action a, b(H.Dummy(1 is var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 47),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 46),
                 // (8,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)

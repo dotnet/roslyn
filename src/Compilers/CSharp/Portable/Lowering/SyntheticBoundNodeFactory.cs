@@ -1285,7 +1285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundNoOpStatement(Syntax, noOpStatementFlavor);
         }
 
-        internal BoundLocal MakeTempForDiscard(BoundDiscardedExpression node, ArrayBuilder<LocalSymbol> temps)
+        internal BoundLocal MakeTempForDiscard(BoundDiscardExpression node, ArrayBuilder<LocalSymbol> temps)
         {
             LocalSymbol temp;
             BoundLocal result = MakeTempForDiscard(node, out temp);
@@ -1293,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal BoundLocal MakeTempForDiscard(BoundDiscardedExpression node, out LocalSymbol temp)
+        internal BoundLocal MakeTempForDiscard(BoundDiscardExpression node, out LocalSymbol temp)
         {
             temp = new SynthesizedLocal(this.CurrentMethod, node.Type, SynthesizedLocalKind.LoweringTemp);
 
@@ -1302,12 +1302,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal ImmutableArray<BoundExpression> MakeTempsForDiscardArguments(ImmutableArray<BoundExpression> arguments, ArrayBuilder<LocalSymbol> builder)
         {
-            var discardsCount = arguments.Count(a => a.Kind == BoundKind.DiscardedExpression);
+            var discardsCount = arguments.Count(a => a.Kind == BoundKind.DiscardExpression);
 
             if (discardsCount != 0)
             {
                 arguments = arguments.SelectAsArray(
-                    (arg, t) => arg.Kind == BoundKind.DiscardedExpression ?  t.factory.MakeTempForDiscard((BoundDiscardedExpression)arg, t.builder) : arg,
+                    (arg, t) => arg.Kind == BoundKind.DiscardExpression ?  t.factory.MakeTempForDiscard((BoundDiscardExpression)arg, t.builder) : arg,
                     (factory: this, builder: builder));
             }
 

@@ -6,12 +6,34 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Xunit;
 using System.Linq;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public abstract class ParsingTests : CSharpTestBase
     {
         private IEnumerator<SyntaxNodeOrToken> _treeEnumerator;
+
+        public static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            var parsedTree = ParseWithRoundTripCheck(text);
+            var actualErrors = parsedTree.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+        }
+
+        public static void ParseAndValidate(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
+        {
+            var parsedTree = ParseWithRoundTripCheck(text, options: options);
+            var actualErrors = parsedTree.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+        }
+
+        public static void ParseAndValidateFirst(string text, DiagnosticDescription expectedFirstError)
+        {
+            var parsedTree = ParseWithRoundTripCheck(text);
+            var actualErrors = parsedTree.GetDiagnostics();
+            actualErrors.Take(1).Verify(expectedFirstError);
+        }
 
         protected virtual SyntaxTree ParseTree(string text, CSharpParseOptions options) => SyntaxFactory.ParseSyntaxTree(text, options);
 
@@ -23,6 +45,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected virtual CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options) =>
             ParseTree(text, options).GetCompilationUnitRoot();
+
+        internal void UsingStatement(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            var node = SyntaxFactory.ParseStatement(text);
+            // we validate the text roundtrips
+            Assert.Equal(text, node.ToFullString());
+            var actualErrors = node.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+            UsingNode(node);
+        }
 
         /// <summary>
         /// Parses given string and initializes a depth-first preorder enumerator.
@@ -142,13 +174,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Conditional("PARSING_TESTS_DUMP")]
         private static void Print(SyntaxNodeOrToken node)
         {
-            if (node.Kind() == SyntaxKind.IdentifierToken && !node.IsMissing)
+            switch (node.Kind())
             {
-                Debug.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), node.ToString());
-            }
-            else
-            {
-                Debug.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
+                case SyntaxKind.IdentifierToken:
+                case SyntaxKind.NumericLiteralToken:
+                    if (node.IsMissing)
+                    {
+                        goto default;
+                    }
+                    Debug.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), node.ToString());
+                    break;
+                default:
+                    Debug.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
+                    break;
             }
         }
 

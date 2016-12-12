@@ -29,6 +29,7 @@
     <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerExecutionContext.cs" />
     <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
+    <Compile Include="Symbols\IDiscardSymbol.cs" />
     <Compile Include="Serialization\FixedObjectBinder.cs" />
     <Compile Include="Serialization\IObjectReadable.cs" />
     <Compile Include="Serialization\IObjectWritable.cs" />
@@ -40,7 +41,7 @@
     <Compile Include="Serialization\StreamObjectReader.cs" />
     <Compile Include="Serialization\StreamObjectWriter.cs" />
     <Compile Include="Serialization\TypeKey.cs" />
-    <Compile Include="Symbols\IDiscardedSymbol.cs" />
+    <Compile Include="Symbols\IDiscardSymbol.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />
     <Compile Include="Syntax\SyntaxList.SeparatedWithManyWeakChildren.cs" />

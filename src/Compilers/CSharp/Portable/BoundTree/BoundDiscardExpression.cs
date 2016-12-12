@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundDiscardedExpression
+    internal partial class BoundDiscardExpression
     {
         public BoundExpression SetInferredType(TypeSymbol type)
         {
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Update(type);
         }
 
-        public BoundDiscardedExpression FailInference(Binder binder, DiagnosticBag diagnosticsOpt)
+        public BoundDiscardExpression FailInference(Binder binder, DiagnosticBag diagnosticsOpt)
         {
             if (diagnosticsOpt != null)
             {
