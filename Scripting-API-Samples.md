@@ -68,7 +68,6 @@ var result = await CSharpScript.EvaluateAsync("Sqrt(2)",
 ```
 
 #### <a name="parameter"></a>Parameterize a script
-> **Note**: there is a [known bug](https://github.com/dotnet/roslyn/issues/6101) here. A workaround would be to define Globals in a .dll and #r the .dll. 
 ```csharp
 public class Globals
 {
@@ -78,6 +77,8 @@ public class Globals
 var globals = new Globals { X = 1, Y = 2 };
 Console.WriteLine(await CSharpScript.EvaluateAsync<int>("X+Y", globals: globals));
 ```
+
+> **Note**: there is a [known bug](https://github.com/dotnet/roslyn/issues/6101) here. A workaround would be to define Globals in a .dll and #r the .dll. 
 
 #### <a name="multi"></a> Create & build a C# script and execute it multiple times
 ```csharp
