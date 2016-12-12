@@ -245,10 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
-                else if (current is ExpressionSyntax &&
-                            ((current.Parent as LambdaExpressionSyntax)?.Body == current ||
-                             (current.Parent as SwitchStatementSyntax)?.Expression == current ||
-                             (current.Parent as CommonForEachStatementSyntax)?.Expression == current))
+                else if ((current as ExpressionSyntax).IsValidScopeDesignator())
                 {
                     binder = rootBinder.GetBinder(current);
                 }
@@ -303,6 +300,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (LookupPosition.IsBetweenTokens(position, switchStmt.OpenParenToken, switchStmt.OpenBraceToken))
                     {
                         binder = binder.GetBinder(switchStmt.Expression);
+                        Debug.Assert(binder != null);
+                    }
+                    break;
+
+                case SyntaxKind.ForStatement:
+                    var forStmt = (ForStatementSyntax)stmt;
+                    if (LookupPosition.IsBetweenTokens(position, forStmt.SecondSemicolonToken, forStmt.CloseParenToken) &&
+                        forStmt.Incrementors.Count > 0)
+                    {
+                        binder = binder.GetBinder(forStmt.Incrementors.First());
+                        Debug.Assert(binder != null);
+                    }
+                    else if (LookupPosition.IsBetweenTokens(position, forStmt.FirstSemicolonToken, LookupPosition.GetFirstExcludedToken(forStmt)) &&
+                        forStmt.Condition != null)
+                    {
+                        binder = binder.GetBinder(forStmt.Condition);
                         Debug.Assert(binder != null);
                     }
                     break;
