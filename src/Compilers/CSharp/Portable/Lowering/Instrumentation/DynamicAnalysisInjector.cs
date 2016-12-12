@@ -190,9 +190,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddDynamicAnalysis(original, base.InstrumentIfStatement(original, rewritten));
         }
 
-        public override BoundStatement InstrumentWhileStatementConditionalGotoStart(BoundWhileStatement original, BoundStatement ifConditionGotoStart)
+        public override BoundStatement InstrumentWhileStatementConditionalGotoStartOrBreak(BoundWhileStatement original, BoundStatement ifConditionGotoStart)
         {
-            return AddDynamicAnalysis(original, base.InstrumentWhileStatementConditionalGotoStart(original, ifConditionGotoStart));
+            return AddDynamicAnalysis(original, base.InstrumentWhileStatementConditionalGotoStartOrBreak(original, ifConditionGotoStart));
         }
 
         public override BoundStatement InstrumentLocalInitialization(BoundLocalDeclaration original, BoundStatement rewritten)

@@ -740,8 +740,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // but we still want to bind it.  
 
                 case SyntaxKind.ExpressionStatement:
-                case SyntaxKind.WhileStatement:
-                case SyntaxKind.DoStatement:
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:

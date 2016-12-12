@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 versionStamp.WriteTo(writer);
 
                 using (var readerStream = new MemoryStream(writerStream.ToArray()))
-                using (var reader = new StreamObjectReader(readerStream))
+                using (var reader = StreamObjectReader.TryGetReader(readerStream))
                 {
                     var deserializedVersionStamp = VersionStamp.ReadFrom(reader);
 

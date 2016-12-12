@@ -553,7 +553,7 @@ Inner i;
                 }
 
                 using (var readerStream = new MemoryStream(writerStream.ToArray()))
-                using (var reader = new StreamObjectReader(readerStream))
+                using (var reader = StreamObjectReader.TryGetReader(readerStream))
                 {
                     var readInfo = SymbolTreeInfo.ReadSymbolTreeInfo_ForTestingPurposesOnly(reader);
 

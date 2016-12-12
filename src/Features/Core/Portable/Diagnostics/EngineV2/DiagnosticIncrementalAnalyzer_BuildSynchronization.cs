@@ -111,12 +111,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private bool PreferBuildErrors(Workspace workspace)
         {
-            return workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorIsTheGod) || workspace.Options.GetOption(InternalDiagnosticsOptions.PreferBuildErrorsOverLiveErrors);
+            return workspace.Options.GetOption(InternalDiagnosticsOptions.PreferBuildErrorsOverLiveErrors);
         }
 
         private bool PreferLiveErrorsOnOpenedFiles(Workspace workspace)
         {
-            return !workspace.Options.GetOption(InternalDiagnosticsOptions.BuildErrorIsTheGod) && workspace.Options.GetOption(InternalDiagnosticsOptions.PreferLiveErrorsOnOpenedFiles);
+            return workspace.Options.GetOption(InternalDiagnosticsOptions.PreferLiveErrorsOnOpenedFiles);
         }
 
         private ImmutableArray<DiagnosticData> MergeDiagnostics(ImmutableArray<DiagnosticData> newDiagnostics, ImmutableArray<DiagnosticData> existingDiagnostics)

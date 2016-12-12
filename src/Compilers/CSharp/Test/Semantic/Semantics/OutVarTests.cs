@@ -3291,7 +3291,7 @@ public class X
 
         do
             Dummy(x4);
-        while (TakeOutParam(true, out var x4) && x4 > 0);
+        while (TakeOutParam(true, out var x4) && x4);
     }
 
     void Test6()
@@ -3395,9 +3395,12 @@ public class X
                 // (22,19): error CS0841: Cannot use local variable 'x2' before it is declared
                 //             Dummy(x2);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(22, 19),
-                // (33,43): error CS0128: A local variable named 'x4' is already defined in this scope
-                //         while (TakeOutParam(true, out var x4) && x4 > 0);
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(33, 43),
+                // (33,43): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         while (TakeOutParam(true, out var x4) && x4);
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(33, 43),
+                // (32,19): error CS0841: Cannot use local variable 'x4' before it is declared
+                //             Dummy(x4);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(32, 19),
                 // (40,16): error CS0841: Cannot use local variable 'x6' before it is declared
                 //         while (x6 && TakeOutParam(true, out var x6));
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(40, 16),
@@ -3410,6 +3413,9 @@ public class X
                 // (56,19): error CS0841: Cannot use local variable 'x8' before it is declared
                 //             Dummy(x8);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x8").WithArguments("x8").WithLocation(56, 19),
+                // (59,34): error CS0103: The name 'x8' does not exist in the current context
+                //         System.Console.WriteLine(x8);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(59, 34),
                 // (66,19): error CS0841: Cannot use local variable 'x9' before it is declared
                 //             Dummy(x9);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x9").WithArguments("x9").WithLocation(66, 19),
@@ -3428,7 +3434,7 @@ public class X
                 // (97,17): warning CS0219: The variable 'y12' is assigned but its value is never used
                 //             var y12 = 12;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(97, 17),
-                // (115,46): error CS0128: A local variable named 'x14' is already defined in this scope
+                // (115,46): error CS0128: A local variable or function named 'x14' is already defined in this scope
                 //                      TakeOutParam(2, out var x14), 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(115, 46),
                 // (112,19): error CS0841: Cannot use local variable 'x14' before it is declared
@@ -3453,9 +3459,7 @@ public class X
             var x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
-            VerifyNotAnOutLocal(model, x4Ref[1]);
-            VerifyNotAnOutLocal(model, x4Ref[2]);
-            VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
+            VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
             var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
             var x6Ref = GetReferences(tree, "x6").ToArray();
@@ -3471,14 +3475,15 @@ public class X
             var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
             var x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
-            VerifyModelForOutVar(model, x8Decl, x8Ref);
+            VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
+            VerifyNotInScope(model, x8Ref[2]);
 
             var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
             var x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
-            VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1], x9Ref[2]);
-            VerifyModelForOutVar(model, x9Decl[1], x9Ref[3]);
+            VerifyModelForOutVar(model, x9Decl[0], x9Ref[1], x9Ref[2]);
+            VerifyModelForOutVar(model, x9Decl[1], x9Ref[0], x9Ref[3]);
 
             var y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
@@ -3598,15 +3603,13 @@ public class X
 {
     public static void Main()
     {
-        bool f;
+        int f = 1;
 
         do
         {
-            f = false;
+            ;
         }
-        while (Dummy(f, TakeOutParam((f ? 1 : 2), out var x1), x1));
-
-        System.Console.WriteLine(x1);
+        while (Dummy(f < 3, TakeOutParam(f++, out var x1), x1));
     }
 
     static bool Dummy(bool x, object y, object z) 
@@ -3623,8 +3626,9 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            CompileAndVerify(compilation, expectedOutput: @"2
-2");
+            CompileAndVerify(compilation, expectedOutput: @"1
+2
+3");
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -3632,7 +3636,7 @@ public class X
             var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
-            Assert.Equal(2, x1Ref.Length);
+            Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
         }
 
@@ -3669,6 +3673,14 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"2");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -3722,6 +3734,65 @@ public class X
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref[0]);
             VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
+        }
+
+        [Fact]
+        public void Do_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        int f = 1;
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        do
+        {
+            ;
+        }
+        while (Dummy(f < 3, TakeOutParam(f++, out var x1), x1, l, () => System.Console.WriteLine(x1)));
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z, System.Collections.Generic.List<System.Action> l, System.Action d) 
+    {
+        l.Add(d);
+        System.Console.WriteLine(z);
+        return x;
+    }
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput: @"1
+2
+3
+--
+1
+2
+3");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -12574,10 +12645,15 @@ public class X
         switch (val)
         {
             case 1 when TakeOutParam(123, out var x1):
-                while (TakeOutParam(x1, out var y1)) break;
-                System.Console.WriteLine(y1);
+                while (TakeOutParam(x1, out var y1) && Print(y1)) break;
                 break;
         }
+    }
+
+    static bool Print(int x)
+    {
+        System.Console.WriteLine(x);
+        return false;
     }
 
     static bool TakeOutParam<T>(T y, out T x) 
@@ -12618,10 +12694,15 @@ public class X
             case 1 when TakeOutParam(123, out var x1):
                 do
                     val = 0;
-                while (TakeOutParam(x1, out var y1) && false);
-                System.Console.WriteLine(y1);
+                while (TakeOutParam(x1, out var y1) && Print(y1));
                 break;
         }
+    }
+
+    static bool Print(int x)
+    {
+        System.Console.WriteLine(x);
+        return false;
     }
 
     static bool TakeOutParam<T>(T y, out T x) 
@@ -14568,7 +14649,7 @@ public class X
         var x4 = 11;
         Dummy(x4);
 
-        while (TakeOutParam(true, out var x4) && x4 > 0)
+        while (TakeOutParam(true, out var x4) && x4)
             Dummy(x4);
     }
 
@@ -14657,18 +14738,18 @@ public class X
                 // (87,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             var y12 = 12;
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var y12 = 12;").WithLocation(87, 13),
-                // (29,43): error CS0128: A local variable named 'x4' is already defined in this scope
-                //         while (TakeOutParam(true, out var x4) && x4 > 0)
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(29, 43),
+                // (29,43): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         while (TakeOutParam(true, out var x4) && x4)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(29, 43),
                 // (35,16): error CS0841: Cannot use local variable 'x6' before it is declared
                 //         while (x6 && TakeOutParam(true, out var x6))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x6").WithArguments("x6").WithLocation(35, 16),
                 // (43,17): error CS0136: A local or parameter named 'x7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             var x7 = 12;
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x7").WithArguments("x7").WithLocation(43, 17),
-                // (60,19): error CS0841: Cannot use local variable 'x9' before it is declared
-                //             Dummy(x9);
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x9").WithArguments("x9").WithLocation(60, 19),
+                // (53,34): error CS0103: The name 'x8' does not exist in the current context
+                //         System.Console.WriteLine(x8);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x8").WithArguments("x8").WithLocation(53, 34),
                 // (61,47): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             while (TakeOutParam(true, out var x9) && x9) // 2
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(61, 47),
@@ -14681,7 +14762,7 @@ public class X
                 // (87,17): warning CS0219: The variable 'y12' is assigned but its value is never used
                 //             var y12 = 12;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(87, 17),
-                // (99,46): error CS0128: A local variable named 'x14' is already defined in this scope
+                // (99,46): error CS0128: A local variable or function named 'x14' is already defined in this scope
                 //                      TakeOutParam(2, out var x14), 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 46)
                 );
@@ -14703,9 +14784,7 @@ public class X
             var x4Ref = GetReferences(tree, "x4").ToArray();
             Assert.Equal(3, x4Ref.Length);
             VerifyNotAnOutLocal(model, x4Ref[0]);
-            VerifyNotAnOutLocal(model, x4Ref[1]);
-            VerifyNotAnOutLocal(model, x4Ref[2]);
-            VerifyModelForOutVarDuplicateInSameScope(model, x4Decl);
+            VerifyModelForOutVar(model, x4Decl, x4Ref[1], x4Ref[2]);
 
             var x6Decl = GetOutVarDeclarations(tree, "x6").Single();
             var x6Ref = GetReferences(tree, "x6").ToArray();
@@ -14721,14 +14800,15 @@ public class X
             var x8Decl = GetOutVarDeclarations(tree, "x8").Single();
             var x8Ref = GetReferences(tree, "x8").ToArray();
             Assert.Equal(3, x8Ref.Length);
-            VerifyModelForOutVar(model, x8Decl, x8Ref);
+            VerifyModelForOutVar(model, x8Decl, x8Ref[0], x8Ref[1]);
+            VerifyNotInScope(model, x8Ref[2]);
 
             var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
             var x9Ref = GetReferences(tree, "x9").ToArray();
             Assert.Equal(2, x9Decl.Length);
             Assert.Equal(4, x9Ref.Length);
-            VerifyModelForOutVar(model, x9Decl[0], x9Ref[0]);
-            VerifyModelForOutVar(model, x9Decl[1], x9Ref[1], x9Ref[2], x9Ref[3]);
+            VerifyModelForOutVar(model, x9Decl[0], x9Ref[0], x9Ref[1]);
+            VerifyModelForOutVar(model, x9Decl[1], x9Ref[2], x9Ref[3]);
 
             var y10Ref = GetReferences(tree, "y10").ToArray();
             Assert.Equal(2, y10Ref.Length);
@@ -14854,8 +14934,6 @@ public class X
             System.Console.WriteLine(x1);
             f = false;
         }
-
-        System.Console.WriteLine(x1);
     }
 
     static bool Dummy(bool x, object y, object z) 
@@ -14876,7 +14954,7 @@ public class X
 @"1
 1
 2
-2");
+");
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -14884,7 +14962,7 @@ public class X
             var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
-            Assert.Equal(3, x1Ref.Length);
+            Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref);
         }
 
@@ -14941,6 +15019,188 @@ public class X
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl[0], x1Ref[0]);
             VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
+        }
+
+        [Fact]
+        public void While_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        int f = 1;
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        while (Dummy(f < 3, TakeOutParam(f, out var x1), x1))
+        {
+            l.Add(() => System.Console.WriteLine(x1));
+            f++;
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+2
+3
+--
+1
+2
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void While_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        int f = 1;
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        while (Dummy(f < 3, TakeOutParam(f, out var x1), x1, l, () => System.Console.WriteLine(x1)))
+        {
+            f++;
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z, System.Collections.Generic.List<System.Action> l, System.Action d) 
+    {
+        l.Add(d);
+        System.Console.WriteLine(z);
+        return x;
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+2
+3
+--
+1
+2
+3
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void While_05()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        int f = 1;
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        while (Dummy(f < 3, TakeOutParam(f, out var x1), x1, l, () => System.Console.WriteLine(x1)))
+        {
+            l.Add(() => System.Console.WriteLine(x1));
+            f++;
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z, System.Collections.Generic.List<System.Action> l, System.Action d) 
+    {
+        l.Add(d);
+        System.Console.WriteLine(z);
+        return x;
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+2
+3
+--
+1
+1
+2
+2
+3
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -22273,24 +22533,27 @@ class H
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
-                // (6,34): error CS0102: The type 'Script' already contains a definition for 'x2'
-                // while (H.TakeOutParam(2, out int x2)) {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 34),
-                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
-                // object x3;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
-                // (12,43): error CS0102: The type 'Script' already contains a definition for 'x4'
+                // (3,9): error CS0103: The name 'x1' does not exist in the current context
+                // H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(3, 9),
+                // (12,43): error CS0128: A local variable or function named 'x4' is already defined in this scope
                 //                H.TakeOutParam(42, out int x4))) {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 43),
-                // (23,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(12, 43),
+                // (16,37): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     H.TakeOutParam("52", out string x5);
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(16, 37),
+                // (19,9): error CS0103: The name 'x5' does not exist in the current context
+                // H.Dummy(x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(19, 9),
+                // (23,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(23, 17),
-                // (23,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
+                // (23,25): error CS0103: The name 'x4' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(23, 21),
-                // (23,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(23, 25),
+                // (23,29): error CS0103: The name 'x5' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -22299,28 +22562,35 @@ class H
                 var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
-                VerifyModelForOutField(model, x1Decl, x1Ref);
+                VerifyModelForOutVar(model, x1Decl);
+                VerifyNotInScope(model, x1Ref[0]);
+                VerifyNotInScope(model, x1Ref[1]);
 
                 var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
                 var x2Ref = GetReferences(tree, "x2").Single();
-                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+                VerifyModelForOutVar(model, x2Decl);
+                VerifyNotAnOutLocal(model, x2Ref);
 
                 var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
                 var x3Ref = GetReferences(tree, "x3").Single();
-                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+                VerifyModelForOutVar(model, x3Decl);
+                VerifyNotAnOutLocal(model, x3Ref);
 
                 var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
                 var x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
-                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
-                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+                VerifyModelForOutVar(model, x4Decl[0]);
+                VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
+                VerifyNotInScope(model, x4Ref);
 
                 var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
                 var x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
-                VerifyModelForOutField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
+                VerifyModelForOutVar(model, x5Decl[0]);
                 VerifyModelForOutVar(model, x5Decl[1], x5Ref[0]);
+                VerifyNotInScope(model, x5Ref[1]);
+                VerifyNotInScope(model, x5Ref[2]);
             }
 
             {
@@ -22412,24 +22682,27 @@ class H
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
-                // (6,34): error CS0102: The type 'Script' already contains a definition for 'x2'
-                // while (H.TakeOutParam(2, out var x2)) {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 34),
-                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
-                // object x3;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
-                // (12,43): error CS0102: The type 'Script' already contains a definition for 'x4'
+                // (3,9): error CS0103: The name 'x1' does not exist in the current context
+                // H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(3, 9),
+                // (12,43): error CS0128: A local variable or function named 'x4' is already defined in this scope
                 //                H.TakeOutParam(42, out var x4))) {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 43),
-                // (23,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(12, 43),
+                // (16,34): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     H.TakeOutParam("52", out var x5);
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(16, 34),
+                // (19,9): error CS0103: The name 'x5' does not exist in the current context
+                // H.Dummy(x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(19, 9),
+                // (23,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(23, 17),
-                // (23,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
+                // (23,25): error CS0103: The name 'x4' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(23, 21),
-                // (23,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(23, 25),
+                // (23,29): error CS0103: The name 'x5' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -22438,28 +22711,35 @@ class H
                 var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
-                VerifyModelForOutField(model, x1Decl, x1Ref);
+                VerifyModelForOutVar(model, x1Decl);
+                VerifyNotInScope(model, x1Ref[0]);
+                VerifyNotInScope(model, x1Ref[1]);
 
                 var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
                 var x2Ref = GetReferences(tree, "x2").Single();
-                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+                VerifyModelForOutVar(model, x2Decl);
+                VerifyNotAnOutLocal(model, x2Ref);
 
                 var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
                 var x3Ref = GetReferences(tree, "x3").Single();
-                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+                VerifyModelForOutVar(model, x3Decl);
+                VerifyNotAnOutLocal(model, x3Ref);
 
                 var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
                 var x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
-                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
-                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+                VerifyModelForOutVar(model, x4Decl[0]);
+                VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
+                VerifyNotInScope(model, x4Ref);
 
                 var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
                 var x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
-                VerifyModelForOutField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
+                VerifyModelForOutVar(model, x5Decl[0]);
                 VerifyModelForOutVar(model, x5Decl[1], x5Ref[0]);
+                VerifyNotInScope(model, x5Ref[1]);
+                VerifyNotInScope(model, x5Ref[2]);
             }
 
             {
@@ -22514,19 +22794,11 @@ class H
         {
             string source =
 @"
-System.Console.WriteLine(x1);
 while (H.TakeOutParam(1, out var x1)) 
 {
-    H.TakeOutParam(""11"", out var x1);
     System.Console.WriteLine(x1);
     break;
 }
-Test();
-
-void Test()
-{
-    System.Console.WriteLine(x1);
-}
 
 class H
 {
@@ -22540,69 +22812,16 @@ class H
 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            CompileAndVerify(compilation, expectedOutput:
-@"0
-11
-1").VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput:@"1").VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
-            Assert.Equal(2, x1Decl.Length);
-            Assert.Equal(3, x1Ref.Length);
-            VerifyModelForOutField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
-            VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
-        }
-
-        [Fact]
-        public void GlobalCode_WhileStatement_04()
-        {
-            string source =
-@"
-bool x0 = true;
-System.Console.WriteLine(x1);
-while (x0 && H.TakeOutParam(1, out var x1)) 
-    H.Dummy(H.TakeOutParam(""11"", out var x1) && (x0 = false), x1);
-Test();
-
-void Test()
-{
-    System.Console.WriteLine(x1);
-}
-
-class H
-{
-    public static void Dummy(object x, object y)
-    {
-        System.Console.WriteLine(y);
-    }
-
-    public static bool TakeOutParam<T>(T y, out T x) 
-    {
-        x = y;
-        return true;
-    }
-}
-";
-
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
-
-            CompileAndVerify(compilation, expectedOutput:
-@"0
-11
-1").VerifyDiagnostics();
-
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
-            Assert.Equal(2, x1Decl.Length);
-            Assert.Equal(3, x1Ref.Length);
-            VerifyModelForOutField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
-            VerifyModelForOutVar(model, x1Decl[1], x1Ref[1]);
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -22649,24 +22868,27 @@ class H
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
-                // (6,40): error CS0102: The type 'Script' already contains a definition for 'x2'
-                // do {} while (H.TakeOutParam(2, out int x2));
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 40),
-                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
-                // object x3;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
-                // (12,49): error CS0102: The type 'Script' already contains a definition for 'x4'
+                // (3,9): error CS0103: The name 'x1' does not exist in the current context
+                // H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(3, 9),
+                // (12,49): error CS0128: A local variable or function named 'x4' is already defined in this scope
                 //                      H.TakeOutParam(42, out int x4)));
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 49),
-                // (24,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(12, 49),
+                // (16,37): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     H.TakeOutParam("52", out string x5);
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(16, 37),
+                // (20,9): error CS0103: The name 'x5' does not exist in the current context
+                // H.Dummy(x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 9),
+                // (24,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(24, 17),
-                // (24,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(24, 13),
+                // (24,25): error CS0103: The name 'x4' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(24, 21),
-                // (24,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(24, 25),
+                // (24,29): error CS0103: The name 'x5' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(24, 25)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(24, 29)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -22675,28 +22897,35 @@ class H
                 var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
-                VerifyModelForOutField(model, x1Decl, x1Ref);
+                VerifyModelForOutVar(model, x1Decl);
+                VerifyNotInScope(model, x1Ref[0]);
+                VerifyNotInScope(model, x1Ref[1]);
 
                 var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
                 var x2Ref = GetReferences(tree, "x2").Single();
-                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+                VerifyModelForOutVar(model, x2Decl);
+                VerifyNotAnOutLocal(model, x2Ref);
 
                 var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
                 var x3Ref = GetReferences(tree, "x3").Single();
-                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+                VerifyModelForOutVar(model, x3Decl);
+                VerifyNotAnOutLocal(model, x3Ref);
 
                 var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
                 var x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
-                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
-                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+                VerifyModelForOutVar(model, x4Decl[0]);
+                VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
+                VerifyNotInScope(model, x4Ref);
 
                 var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
                 var x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForOutVar(model, x5Decl[0], x5Ref[0]);
-                VerifyModelForOutField(model, x5Decl[1], x5Ref[1], x5Ref[2]);
+                VerifyModelForOutVar(model, x5Decl[1]);
+                VerifyNotInScope(model, x5Ref[1]);
+                VerifyNotInScope(model, x5Ref[2]);
             }
 
             {
@@ -22789,24 +23018,27 @@ class H
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
-                // (6,40): error CS0102: The type 'Script' already contains a definition for 'x2'
-                // do {} while (H.TakeOutParam(2, out var x2));
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 40),
-                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
-                // object x3;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
-                // (12,49): error CS0102: The type 'Script' already contains a definition for 'x4'
+                // (3,9): error CS0103: The name 'x1' does not exist in the current context
+                // H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(3, 9),
+                // (12,49): error CS0128: A local variable or function named 'x4' is already defined in this scope
                 //                      H.TakeOutParam(42, out var x4)));
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 49),
-                // (24,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(12, 49),
+                // (16,34): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     H.TakeOutParam("52", out var x5);
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(16, 34),
+                // (20,9): error CS0103: The name 'x5' does not exist in the current context
+                // H.Dummy(x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 9),
+                // (24,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(24, 17),
-                // (24,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(24, 13),
+                // (24,25): error CS0103: The name 'x4' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(24, 21),
-                // (24,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(24, 25),
+                // (24,29): error CS0103: The name 'x5' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(24, 25)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(24, 29)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -22815,28 +23047,35 @@ class H
                 var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
-                VerifyModelForOutField(model, x1Decl, x1Ref);
+                VerifyModelForOutVar(model, x1Decl);
+                VerifyNotInScope(model, x1Ref[0]);
+                VerifyNotInScope(model, x1Ref[1]);
 
                 var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
                 var x2Ref = GetReferences(tree, "x2").Single();
-                VerifyModelForOutFieldDuplicate(model, x2Decl, x2Ref);
+                VerifyModelForOutVar(model, x2Decl);
+                VerifyNotAnOutLocal(model, x2Ref);
 
                 var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
                 var x3Ref = GetReferences(tree, "x3").Single();
-                VerifyModelForOutFieldDuplicate(model, x3Decl, x3Ref);
+                VerifyModelForOutVar(model, x3Decl);
+                VerifyNotAnOutLocal(model, x3Ref);
 
                 var x4Decl = GetOutVarDeclarations(tree, "x4").ToArray();
                 var x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
-                VerifyModelForOutFieldDuplicate(model, x4Decl[0], x4Ref);
-                VerifyModelForOutFieldDuplicate(model, x4Decl[1], x4Ref);
+                VerifyModelForOutVar(model, x4Decl[0]);
+                VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
+                VerifyNotInScope(model, x4Ref);
 
                 var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
                 var x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForOutVar(model, x5Decl[0], x5Ref[0]);
-                VerifyModelForOutField(model, x5Decl[1], x5Ref[1], x5Ref[2]);
+                VerifyModelForOutVar(model, x5Decl[1]);
+                VerifyNotInScope(model, x5Ref[1]);
+                VerifyNotInScope(model, x5Ref[2]);
             }
 
             {
@@ -22891,18 +23130,17 @@ class H
         {
             string source =
 @"
-System.Console.WriteLine(x1);
+int f = 1;
+
 do
 {
-    H.TakeOutParam(""11"", out var x1);
-    System.Console.WriteLine(x1);
 }
-while (H.TakeOutParam(1, out var x1) && false);
-Test();
+while (H.TakeOutParam(f++, out var x1) && Test(x1) < 3);
 
-void Test()
+int Test(int x)
 {
-    System.Console.WriteLine(x1);
+    System.Console.WriteLine(x);
+    return x;
 }
 
 class H
@@ -22918,68 +23156,18 @@ class H
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
-@"0
-11
-1").VerifyDiagnostics();
+@"1
+2
+3").VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
-            Assert.Equal(2, x1Decl.Length);
-            Assert.Equal(3, x1Ref.Length);
-            VerifyModelForOutVar(model, x1Decl[0], x1Ref[1]);
-            VerifyModelForOutField(model, x1Decl[1], x1Ref[0], x1Ref[2]);
-        }
-
-        [Fact]
-        public void GlobalCode_DoStatement_04()
-        {
-            string source =
-@"
-System.Console.WriteLine(x1);
-do 
-    H.Dummy(H.TakeOutParam(""11"", out var x1), x1);
-while (H.TakeOutParam(1, out var x1) && false);
-Test();
-
-void Test()
-{
-    System.Console.WriteLine(x1);
-}
-
-class H
-{
-    public static void Dummy(object x, object y)
-    {
-        System.Console.WriteLine(y);
-    }
-
-    public static bool TakeOutParam<T>(T y, out T x) 
-    {
-        x = y;
-        return true;
-    }
-}
-";
-
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
-
-            CompileAndVerify(compilation, expectedOutput:
-@"0
-11
-1").VerifyDiagnostics();
-
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-
-            var x1Decl = GetOutVarDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
-            Assert.Equal(2, x1Decl.Length);
-            Assert.Equal(3, x1Ref.Length);
-            VerifyModelForOutVar(model, x1Decl[0], x1Ref[1]);
-            VerifyModelForOutField(model, x1Decl[1], x1Ref[0], x1Ref[2]);
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl[0], x1Ref);
         }
 
         [Fact]

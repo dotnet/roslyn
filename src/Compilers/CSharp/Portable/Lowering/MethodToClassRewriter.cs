@@ -166,6 +166,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return node.Update(newOuterLocals, initializer, condition, increment, body, node.BreakLabel, node.ContinueLabel);
         }
 
+        public override BoundNode VisitDoStatement(BoundDoStatement node)
+        {
+            var newLocals = RewriteLocals(node.Locals);
+            BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
+            BoundStatement body = (BoundStatement)this.Visit(node.Body);
+            return node.Update(newLocals, condition, body, node.BreakLabel, node.ContinueLabel);
+        }
+
+        public override BoundNode VisitWhileStatement(BoundWhileStatement node)
+        {
+            var newLocals = RewriteLocals(node.Locals);
+            BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
+            BoundStatement body = (BoundStatement)this.Visit(node.Body);
+            return node.Update(newLocals, condition, body, node.BreakLabel, node.ContinueLabel);
+        }
+
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
             var newLocals = RewriteLocals(node.Locals);

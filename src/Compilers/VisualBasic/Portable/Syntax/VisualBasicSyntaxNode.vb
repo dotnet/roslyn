@@ -140,7 +140,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom)
             End If
 
-            Using reader = New StreamObjectReader(stream, knownObjects:=GetDeserializationObjectData(), binder:=s_defaultBinder, cancellationToken:=cancellationToken)
+            Using reader = StreamObjectReader.TryGetReader(stream, knownObjects:=GetDeserializationObjectData(), binder:=s_defaultBinder, cancellationToken:=cancellationToken)
+                If reader Is Nothing Then
+                    Throw New ArgumentException(CodeAnalysisResources.Stream_contains_invalid_data, NameOf(stream))
+                End If
+
                 Return DirectCast(reader.ReadValue(), InternalSyntax.VisualBasicSyntaxNode).CreateRed(Nothing, 0)
             End Using
         End Function
