@@ -2078,32 +2078,57 @@ new List<ArgumentException>()
             Assert.Equal(1, r1.Result);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8332")]
+        [Fact]
         public void HostObjectAssemblyReference1()
         {
             var scriptCompilation = CSharpScript.Create(
                 "nameof(Microsoft.CodeAnalysis.Scripting)",
+                ScriptOptions.Default.WithMetadataResolver(TestRuntimeMetadataReferenceResolver.Instance),
                 globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
 
             scriptCompilation.VerifyDiagnostics(
                 // (1,8): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Microsoft.CodeAnalysis").WithArguments("CodeAnalysis", "Microsoft"));
 
-            foreach (var assemblyAndAliases in scriptCompilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
-            {
-                switch (assemblyAndAliases.Item1.Identity.Name)
-                {
-                    case "mscorlib":
-                        AssertEx.SetEqual(new[] { "global", "<host>" }, assemblyAndAliases.Item2);
-                        break;
+            string corAssemblyName = typeof(object).GetTypeInfo().Assembly.GetName().Name;
+            string hostObjectAssemblyName = scriptCompilation.ScriptCompilationInfo.GlobalsType.GetTypeInfo().Assembly.GetName().Name;
 
-                    case "Microsoft.CodeAnalysis.Scripting":
-                        AssertEx.SetEqual(new[] { "<host>" }, assemblyAndAliases.Item2);
+            // The host adds 
+            // 1) a reference to typeof(object).Assembly
+            // 2) a reference to GlobalsType with alias <host> applied recursively.
+            // References returned from ResolveMissingAssembly have <implicit> alias.
+
+            foreach (var (assembly, aliases) in scriptCompilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
+            {
+                string name = assembly.Identity.Name;
+
+                switch (name)
+                {
+                    case "Microsoft.CodeAnalysis.CSharp.Scripting":
+                    case "Microsoft.CodeAnalysis.CSharp":
+                        // assemblies not referenced
+                        Assert.False(true);
                         break;
 
                     case "Microsoft.CodeAnalysis":
+                    case "System.Collections.Immutable":
+                        // Microsoft.CodeAnalysis.Scripting contains host object and is thus referenced recursively with <host> alias. 
+                        // The script doesn't reference the assemblies explicitly.
+                        AssertEx.SetEqual(new[] { "<implicit>", "<host>" }, aliases);
+                        break;
+
                     default:
-                        AssertEx.SetEqual(new[] { "<implicit>", "<host>" }, assemblyAndAliases.Item2);
+                        if (name == corAssemblyName)
+                        {
+                            // Host object depends on System.Object, thus <host> is applied on CorLib.
+                            AssertEx.SetEqual(new[] { "<host>", "global" }, aliases);
+                        }
+                        else if (name == hostObjectAssemblyName)
+                        {
+                            // Host object is only referenced by the host and thus the assembly is hidden behind <host> alias.
+                            AssertEx.SetEqual(new[] { "<host>" }, aliases);
+                        }
+
                         break;
                 }
             }
@@ -2114,75 +2139,126 @@ new List<ArgumentException>()
         {
             var scriptCompilation = CSharpScript.Create(
                 "typeof(Microsoft.CodeAnalysis.Scripting.Script)",
-                options: ScriptOptions.Default.WithReferences(typeof(CSharpScript).GetTypeInfo().Assembly),
+                options: ScriptOptions.Default.
+                    WithMetadataResolver(TestRuntimeMetadataReferenceResolver.Instance).
+                    WithReferences(typeof(CSharpScript).GetTypeInfo().Assembly),
                 globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
 
             scriptCompilation.VerifyDiagnostics();
 
-            foreach (var assemblyAndAliases in scriptCompilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
+            string corAssemblyName = typeof(object).GetTypeInfo().Assembly.GetName().Name;
+            string hostObjectAssemblyName = scriptCompilation.ScriptCompilationInfo.GlobalsType.GetTypeInfo().Assembly.GetName().Name;
+
+            // The host adds 
+            // 1) a reference to typeof(object).Assembly
+            // 2) a reference to GlobalsType with alias <host> applied recursively.
+            // References returned from ResolveMissingAssembly have <implicit> alias.
+
+            foreach (var (assembly, aliases) in scriptCompilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
             {
-                switch (assemblyAndAliases.Item1.Identity.Name)
+                string name = assembly.Identity.Name;
+
+                switch (name)
                 {
-                    case "mscorlib":
-                        AssertEx.SetEqual(new[] { "global", "<host>" }, assemblyAndAliases.Item2);
-                        break;
-
-                    case "Microsoft.CodeAnalysis.Scripting":
-                        AssertEx.SetEqual(new[] { "<host>", "global" }, assemblyAndAliases.Item2);
-                        break;
-
                     case "Microsoft.CodeAnalysis.CSharp.Scripting":
-                        AssertEx.SetEqual(new string[0], assemblyAndAliases.Item2);
+                        // we have an explicit reference to CSharpScript assembly:
+                        AssertEx.SetEqual(Array.Empty<string>(), aliases);
                         break;
 
                     case "Microsoft.CodeAnalysis.CSharp":
-                        AssertEx.SetEqual(new[] { "<implicit>", "global" }, assemblyAndAliases.Item2);
+                        // The script has a recursive reference to Microsoft.CodeAnalysis.CSharp.Scripting, which references these assemblies.
+                        // The script doesn't reference the assembly explicitly.
+                        AssertEx.SetEqual(new[] { "<implicit>", "global" }, aliases);
                         break;
 
                     case "Microsoft.CodeAnalysis":
-                    case "System.IO":
                     case "System.Collections.Immutable":
-                        AssertEx.SetEqual(new[] { "<implicit>", "<host>", "global" }, assemblyAndAliases.Item2);
+                        // The script has a recursive reference to Microsoft.CodeAnalysis.CSharp.Scripting, which references these assemblies.
+                        // Microsoft.CodeAnalysis.Scripting contains host object and is thus referenced recursively with <host> alias. 
+                        // The script doesn't reference the assemblies explicitly.
+                        AssertEx.SetEqual(new[] { "<implicit>", "<host>", "global" }, aliases);
+                        break;
+                   
+                    default:
+                        if (name == corAssemblyName)
+                        {
+                            // Host object depends on System.Object, thus <host> is applied on CorLib.
+                            AssertEx.SetEqual(new[] { "<host>", "global" }, aliases);
+                        }
+                        else if (name == hostObjectAssemblyName)
+                        {
+                            // Host object is defined in an assembly that CSharpScript depends on.
+                            // CSharpScript assembly was references (recursively) hence host object assembly is 
+                            // available to the script (global alias).
+                            AssertEx.SetEqual(new[] { "<host>", "global" }, aliases);
+                        }
+                        
                         break;
                 }
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6532")]
+        [Fact]
         public void HostObjectAssemblyReference3()
         {
             string source = $@"
 #r ""{typeof(CSharpScript).GetTypeInfo().Assembly.ManifestModule.FullyQualifiedName}""
 typeof(Microsoft.CodeAnalysis.Scripting.Script)
 ";
-            var scriptCompilation = CSharpScript.Create(source, globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
+            var scriptCompilation = CSharpScript.Create(
+                source, 
+                ScriptOptions.Default.WithMetadataResolver(TestRuntimeMetadataReferenceResolver.Instance),
+                globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
 
             scriptCompilation.VerifyDiagnostics();
 
-            foreach (var assemblyAndAliases in scriptCompilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
+            string corAssemblyName = typeof(object).GetTypeInfo().Assembly.GetName().Name;
+            string hostObjectAssemblyName = scriptCompilation.ScriptCompilationInfo.GlobalsType.GetTypeInfo().Assembly.GetName().Name;
+
+            // The host adds 
+            // 1) a reference to typeof(object).Assembly
+            // 2) a reference to GlobalsType with alias <host> applied recursively.
+            // References returned from ResolveMissingAssembly have <implicit> alias.
+
+            foreach (var (assembly, aliases) in scriptCompilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
             {
-                switch (assemblyAndAliases.Item1.Identity.Name)
+                string name = assembly.Identity.Name;
+
+                switch (name)
                 {
-                    case "mscorlib":
-                        AssertEx.SetEqual(new[] { "global", "<host>" }, assemblyAndAliases.Item2);
-                        break;
-
                     case "Microsoft.CodeAnalysis.CSharp.Scripting":
-                        AssertEx.SetEqual(new string[0], assemblyAndAliases.Item2);
-                        break;
-
-                    case "Microsoft.CodeAnalysis.Scripting":
-                        AssertEx.SetEqual(new[] { "global", "<host>" }, assemblyAndAliases.Item2);
+                        // we have an explicit reference to CSharpScript assembly:
+                        AssertEx.SetEqual(Array.Empty<string>(), aliases);
                         break;
 
                     case "Microsoft.CodeAnalysis.CSharp":
-                        AssertEx.SetEqual(new[] { "<implicit>", "global" }, assemblyAndAliases.Item2);
+                        // The script has a recursive reference to Microsoft.CodeAnalysis.CSharp.Scripting, which references these assemblies.
+                        // The script doesn't reference the assembly explicitly.
+                        AssertEx.SetEqual(new[] { "<implicit>", "global" }, aliases);
                         break;
 
                     case "Microsoft.CodeAnalysis":
-                    case "System.IO":
                     case "System.Collections.Immutable":
-                        AssertEx.SetEqual(new[] { "<implicit>", "global", "<host>" }, assemblyAndAliases.Item2);
+                        // The script has a recursive reference to Microsoft.CodeAnalysis.CSharp.Scripting, which references these assemblies.
+                        // Microsoft.CodeAnalysis.Scripting contains host object and is thus referenced recursively with <host> alias. 
+                        // The script doesn't reference the assemblies explicitly.
+                        AssertEx.SetEqual(new[] { "<implicit>", "<host>", "global" }, aliases);
+                        break;
+
+                    default:
+                        if (name == corAssemblyName)
+                        {
+                            // Host object depends on System.Object, thus <host> is applied on CorLib.
+                            AssertEx.SetEqual(new[] { "<host>", "global" }, aliases);
+                        }
+                        else if (name == hostObjectAssemblyName)
+                        {
+                            // Host object is defined in an assembly that CSharpScript depends on.
+                            // CSharpScript assembly was references (recursively) hence host object assembly is 
+                            // available to the script (global alias).
+                            AssertEx.SetEqual(new[] { "<host>", "global" }, aliases);
+                        }
+
                         break;
                 }
             }

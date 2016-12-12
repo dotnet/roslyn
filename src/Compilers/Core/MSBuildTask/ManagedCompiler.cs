@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal abstract RequestLanguage Language { get; }
 
+        static ManagedCompiler()
+        {
+            AssemblyResolution.Install();
+        }
+
         public ManagedCompiler()
         {
             TaskResources = ErrorString.ResourceManager;

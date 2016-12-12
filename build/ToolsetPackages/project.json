@@ -4,7 +4,7 @@
     "MicroBuild.Core.Sentinel": "1.0.0",
     "MicroBuild.Core": "0.2.0",
     "MicroBuild.Plugins.SwixBuild": "1.0.101",
-    "Microsoft.NETCore.Platforms": "1.0.1",
+    "Microsoft.NETCore.Platforms": "1.1.0",
     "Microsoft.DiaSymReader.Native": "1.5.0-beta1",
     "Microsoft.Net.Compilers": "2.0.0-rc2-61102-09",
     "Microsoft.Net.RoslynDiagnostics": "1.2.0-beta2",

@@ -15,8 +15,10 @@
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
   <ItemGroup>
     <None Include="Microsoft.CSharp.Core.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -31,6 +33,9 @@
     <Compile Include="..\..\Shared\BuildServerConnection.cs">
       <Link>BuildServerConnection.cs</Link>
     </Compile>
+    <Compile Include="..\Portable\CorLightup.cs">
+      <Link>CorLightup.cs</Link>
+    </Compile>
     <Compile Include="..\Portable\InternalUtilities\CommandLineUtilities.cs">
       <Link>CommandLineUtilities.cs</Link>
     </Compile>
@@ -40,9 +45,13 @@
     <Compile Include="..\Portable\InternalUtilities\IReadOnlySet.cs">
       <Link>IReadOnlySet.cs</Link>
     </Compile>
+    <Compile Include="..\Portable\InternalUtilities\ReflectionUtilities.cs">
+      <Link>ReflectionUtilities.cs</Link>
+    </Compile>
     <Compile Include="..\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>UnicodeCharacterUtilities.cs</Link>
     </Compile>
+    <Compile Include="AssemblyResolution.cs" />
     <Compile Include="CanonicalError.cs" />
     <Compile Include="ValidateBootstrap.cs" />
     <Compile Include="CommandLineBuilderExtension.cs" />

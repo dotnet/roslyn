@@ -16,7 +16,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <DeployVSTemplates>false</DeployVSTemplates>
     <CopyZipOutputToOutputDirectory>false</CopyZipOutputToOutputDirectory>
-    <BaseIntermediateOutputPath>$(BaseIntermediateOutputPath)\$(VersionType)</BaseIntermediateOutputPath>
+    <BaseIntermediateOutputPath>$(BaseIntermediateOutputPath)\$(VersionType)\</BaseIntermediateOutputPath>
     <VsixOutDirSuffix>Roslyn Templates\$(VersionType)</VsixOutDirSuffix>
     <TargetVsixContainerName>$(VsixOutDirSuffix)\Roslyn SDK.vsix</TargetVsixContainerName>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>

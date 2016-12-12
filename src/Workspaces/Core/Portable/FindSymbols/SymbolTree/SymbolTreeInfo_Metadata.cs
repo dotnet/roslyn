@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static string GetMetadataNameWithoutBackticks(MetadataReader reader, StringHandle name)
         {
             var blobReader = reader.GetBlobReader(name);
-            var backtickIndex = IndexOfCharacter(blobReader, '`');
+            var backtickIndex = blobReader.IndexOf((byte)'`');
             if (backtickIndex == -1)
             {
                 return reader.GetString(name);
@@ -32,28 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     blobReader.CurrentPointer, backtickIndex);
             }
         }
-
-        private static int IndexOfCharacter(BlobReader blobReader, char ch)
-        {
-            // This function is only safe for searching for ascii characters.
-            Debug.Assert(ch < 127);
-            unsafe
-            {
-                var ptr = blobReader.CurrentPointer;
-                for (int i = 0, n = blobReader.RemainingBytes; i < n; i++)
-                {
-                    if (*ptr == ch)
-                    {
-                        return i;
-                    }
-
-                    ptr++;
-                }
-
-                return -1;
-            }
-        }
-
+        
         private static MetadataId GetMetadataIdNoThrow(PortableExecutableReference reference)
         {
             try
@@ -530,7 +509,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 while (true)
                 {
-                    var dotIndex = IndexOfCharacter(blobReader, '.');
+                    int dotIndex = blobReader.IndexOf((byte)'.');
                     unsafe
                     {
                         // Note: we won't get any string sharing as we're just using the 
@@ -549,7 +528,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         {
                             simpleNames.Add(MetadataStringDecoder.DefaultUTF8.GetString(
                                 blobReader.CurrentPointer, dotIndex));
-                            blobReader.SkipBytes(dotIndex + 1);
+                            blobReader.Offset += dotIndex + 1;
                         }
                     }
                 }
@@ -584,7 +563,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         return baseTypeOrInterfaceHandle;
                     case HandleKind.TypeSpecification:
                         return FirstEntityHandleProvider.Instance.GetTypeFromSpecification(
-                            _metadataReader, (TypeSpecificationHandle)baseTypeOrInterfaceHandle, rawTypeKind: 0);
+                            _metadataReader, (TypeSpecificationHandle)baseTypeOrInterfaceHandle);
                     default:
                         return default(EntityHandle);
                 }
