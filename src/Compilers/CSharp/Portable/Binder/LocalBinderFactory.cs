@@ -230,6 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ? new WithMethodTypeParametersBinder(match, _enclosing)
                         : _enclosing;
 
+                    binder = binder.WithUnsafeRegionIfNecessary(node.Modifiers);
+
                     Visit(body, new InMethodBinder(match, binder));
                 }
 
