@@ -8474,7 +8474,7 @@ class D : C, I<(int a, int b), (int c, int d)>
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (15,7): error CS8185: 'I<(int a, int b), (int c, int d)>' is already listed in the interface list on the base of type 'D' with different tuple element names, as 'I<(int b, int a), (int a, int b)>'.
+                // (15,7): error CS8185: 'I<(int a, int b), (int c, int d)>' is already implemented by the base of type 'D' with different tuple element names, as 'I<(int b, int a), (int a, int b)>'.
                 // class D : C, I<(int a, int b), (int c, int d)>
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "D").WithArguments("I<(int a, int b), (int c, int d)>", "I<(int b, int a), (int a, int b)>", "D").WithLocation(15, 7),
                 // (9,49): error CS8141: The tuple element names in the signature of method 'C.M(((int, int), (int, int)))' must match the tuple element names of interface method 'I<(int b, int a), (int a, int b)>.M(((int b, int a) paramA, (int a, int b) paramB))' (including on the return type).
@@ -17105,15 +17105,15 @@ public class C5<T, U> : I0<(int a, int b)>, I0<(T notA, U notB)> { }
                 // (4,39): error CS0528: 'I0<(int a, int b)>' is already listed in interface list
                 // public class C2 : I0<(int a, int b)>, I0<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I0<(int a, int b)>").WithArguments("I0<(int a, int b)>").WithLocation(4, 39),
-                // (3,14): error CS8140: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C1' with different tuple element names, as 'I0<(int a, int b)>'.
+                // (3,14): error CS8140: 'I0<(int notA, int notB)>' is already implemented by type 'C1' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public class C1 : I0<(int a, int b)>, I0<(int notA, int notB)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNames, "C1").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C1").WithLocation(3, 14),
-                // (6,14): error CS0695: 'C4<T, U>' cannot implement both 'I0<(int a, int b)>' and 'I0<(T a, U b)>' because they may unify for some type parameter substitutions
-                // public class C4<T, U> : I0<(int a, int b)>, I0<(T a, U b)> { }
-                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C4").WithArguments("C4<T, U>", "I0<(int a, int b)>", "I0<(T a, U b)>").WithLocation(6, 14),
                 // (7,14): error CS0695: 'C5<T, U>' cannot implement both 'I0<(int a, int b)>' and 'I0<(T notA, U notB)>' because they may unify for some type parameter substitutions
                 // public class C5<T, U> : I0<(int a, int b)>, I0<(T notA, U notB)> { }
-                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C5").WithArguments("C5<T, U>", "I0<(int a, int b)>", "I0<(T notA, U notB)>").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C5").WithArguments("C5<T, U>", "I0<(int a, int b)>", "I0<(T notA, U notB)>").WithLocation(7, 14),
+                // (6,14): error CS0695: 'C4<T, U>' cannot implement both 'I0<(int a, int b)>' and 'I0<(T a, U b)>' because they may unify for some type parameter substitutions
+                // public class C4<T, U> : I0<(int a, int b)>, I0<(T a, U b)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C4").WithArguments("C4<T, U>", "I0<(int a, int b)>", "I0<(T a, U b)>").WithLocation(6, 14)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -17250,7 +17250,7 @@ public class D2 : D1, I0<(int notA, int notB)>
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (22,14): error CS8185: 'I0<(int notA, int notB)>' is already listed in the interface list on the base of type 'D2' with different tuple element names, as 'I0<(int a, int b)>'.
+                // (22,14): error CS8185: 'I0<(int notA, int notB)>' is already implemented by the base of type 'D2' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public class D2 : D1, I0<(int notA, int notB)>
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "D2").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "D2").WithLocation(22, 14),
                 // (20,17): error CS8141: The tuple element names in the signature of method 'D1.set((int notA, int notB))' must match the tuple element names of interface method 'I0<(int a, int b)>.set((int a, int b))' (including on the return type).
@@ -17310,10 +17310,10 @@ public partial class Ok : I0<(int a, int b)> { }
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (3,22): error CS8140: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'Error' with different tuple element names, as 'I0<(int a, int b)>'.
+                // (3,22): error CS8140: 'I0<(int notA, int notB)>' is already implemented by type 'Error' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public partial class Error : I0<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNames, "Error").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "Error").WithLocation(3, 22),
-                // (3,22): error CS8140: 'I0<(int, int)>' is already listed in the interface list on type 'Error' with different tuple element names, as 'I0<(int a, int b)>'.
+                // (3,22): error CS8140: 'I0<(int, int)>' is already implemented by type 'Error' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public partial class Error : I0<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNames, "Error").WithArguments("I0<(int, int)>", "I0<(int a, int b)>", "Error").WithLocation(3, 22)
                 );
@@ -17356,7 +17356,7 @@ public class D : I1, I3 { }
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (7,14): error CS8140: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
+                // (7,14): error CS8140: 'I0<(int notA, int notB)>' is already implemented by type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public class C : I1, I2 { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNames, "C").WithArguments("I0<(int notA, int notB)>", "I0<(int a, int b)>", "C").WithLocation(7, 14)
                 );
@@ -20391,21 +20391,21 @@ class Error4 : Base, I<(int, int)>, I<(int, int)> { }
 
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (5,7): error CS8140: 'I<(int notA, int notB)>' is already listed in the interface list on type 'Error2' with different tuple element names, as 'I<(int a, int b)>'.
-                // class Error2 : I<(int a, int b)>, I<(int notA, int notB)> { }
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNames, "Error2").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Error2").WithLocation(5, 7),
-                // (6,7): error CS8140: 'I<(int stillNotA, int stillNotB)>' is already listed in the interface list on type 'Error3' with different tuple element names, as 'I<(int notA, int notB)>'.
-                // class Error3 : Base, I<(int notA, int notB)>, I<(int stillNotA, int stillNotB)> { }
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNames, "Error3").WithArguments("I<(int stillNotA, int stillNotB)>", "I<(int notA, int notB)>", "Error3").WithLocation(6, 7),
                 // (7,37): error CS0528: 'I<(int, int)>' is already listed in interface list
                 // class Error4 : Base, I<(int, int)>, I<(int, int)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I<(int, int)>").WithArguments("I<(int, int)>").WithLocation(7, 37),
-                // (7,7): error CS8185: 'I<(int, int)>' is already listed in the interface list on the base of type 'Error4' with different tuple element names, as 'I<(int a, int b)>'.
+                // (7,7): error CS8185: 'I<(int, int)>' is already implemented by the base of type 'Error4' with different tuple element names, as 'I<(int a, int b)>'.
                 // class Error4 : Base, I<(int, int)>, I<(int, int)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Error4").WithArguments("I<(int, int)>", "I<(int a, int b)>", "Error4").WithLocation(7, 7),
-                // (4,7): error CS8185: 'I<(int notA, int notB)>' is already listed in the interface list on the base of type 'Error1' with different tuple element names, as 'I<(int a, int b)>'.
+                // (6,7): error CS8140: 'I<(int stillNotA, int stillNotB)>' is already implemented by type 'Error3' with different tuple element names, as 'I<(int notA, int notB)>'.
+                // class Error3 : Base, I<(int notA, int notB)>, I<(int stillNotA, int stillNotB)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNames, "Error3").WithArguments("I<(int stillNotA, int stillNotB)>", "I<(int notA, int notB)>", "Error3").WithLocation(6, 7),
+                // (4,7): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Error1' with different tuple element names, as 'I<(int a, int b)>'.
                 // class Error1 : Base, I<(int notA, int notB)> { }
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Error1").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Error1").WithLocation(4, 7)
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Error1").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Error1").WithLocation(4, 7),
+                // (5,7): error CS8140: 'I<(int notA, int notB)>' is already implemented by type 'Error2' with different tuple element names, as 'I<(int a, int b)>'.
+                // class Error2 : I<(int a, int b)>, I<(int notA, int notB)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNames, "Error2").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Error2").WithLocation(5, 7)
                 );
 
             var error1Symbol = comp.GetTypeByMetadataName("Error1");
@@ -20459,25 +20459,28 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (5,7): error CS8185: 'I<(int notA, int notB)>' is already listed in the interface list on the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
-                // class Error1 : Generic<(int notA, int notB)> { }
-                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Error1").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(5, 7),
-                // (6,14): error CS8185: 'I<(int notA, int notB)>' is already listed in the interface list on the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                // (6,14): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
                 // class Error2<E2> where E2 : Generic<(int notA, int notB)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "E2").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(6, 14),
-                // (9,42): error CS8185: 'I<(int notA, int notB)>' is already listed in the interface list on the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                // (5,7): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                // class Error1 : Generic<(int notA, int notB)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Error1").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(5, 7),
+                // (9,42): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
                 //     static Generic<(int notA, int notB)> MError3()
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "MError3").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(9, 42),
-                // (15,11): error CS8185: 'I<(int notA, int notB)>' is already listed in the interface list on the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                // (15,11): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
                 //         I<Generic<(int notA, int notB)>> error4 = null;
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Generic<(int notA, int notB)>").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(15, 11),
-                // (16,26): error CS8185: 'I<(int notA, int notB)>' is already listed in the interface list on the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                // (15,9): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         I<Generic<(int notA, int notB)>> error4 = null;
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "I<Generic<(int notA, int notB)>>").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(15, 9),
+                // (16,26): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
                 //         var error5 = new Generic<(int notA, int notB)>();
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Generic<(int notA, int notB)>").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(16, 26),
-                // (17,9): error CS8185: 'I<(int notA, int notB)>' is already listed in the interface list on the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                // (17,9): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
                 //         M6((notA: 1, notB: 2)); // caught during final validation
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "M6").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(17, 9),
-                // (18,9): error CS8185: 'I<(int notA, int notB)>' is already listed in the interface list on the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                // (18,9): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
                 //         M7(null, (notA: 1, notB: 2)); // candidate discarded during overload resolution (constraint checks on each parameter after substitution)
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "M7").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(18, 9)
                 );
@@ -20495,6 +20498,169 @@ class C
             Assert.Equal("Generic<(System.Int32 notA, System.Int32 notB)> error5", error5Symbol.ToTestDisplayString());
             Assert.Equal(new[] { "I<(System.Int32 notA, System.Int32 notB)>" },
                 error5Symbol.Type.AllInterfaces.Select(i => i.ToTestDisplayString()));
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void ChangeTupleNamesFromBaseViaGenericInArray()
+        {
+            var source = @"
+interface I<T> { }
+class Base : I<(int a, int b)> { }
+class Generic<U> : Base, I<U> { }
+class C
+{
+    static Generic<(int notA, int notB)>[] MError3()
+    {
+        return null;
+    }
+    static void M()
+    {
+        Generic<(int notA, int notB)>[] error4 = null;
+        var error5 = new Generic<(int notA, int notB)>[1];
+        M6((notA: 1, notB: 2)); // caught during final validation
+        M7(null, (notA: 1, notB: 2)); // candidate discarded during overload resolution (constraint checks on each parameter after substitution)
+        System.Console.WriteLine($""{error4}"");
+    }
+    static Generic<T>[] M6<T>(T t)
+    {
+        return null;
+    }
+    static void M7<T>(Generic<T>[] g, T t) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (7,44): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //     static Generic<(int notA, int notB)>[] MError3()
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "MError3").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(7, 44),
+                // (13,9): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         Generic<(int notA, int notB)>[] error4 = null;
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Generic<(int notA, int notB)>").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(13, 9),
+                // (14,26): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         var error5 = new Generic<(int notA, int notB)>[1];
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Generic<(int notA, int notB)>").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(14, 26),
+                // (15,9): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         M6((notA: 1, notB: 2)); // caught during final validation
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "M6").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(15, 9),
+                // (16,9): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         M7(null, (notA: 1, notB: 2)); // candidate discarded during overload resolution (constraint checks on each parameter after substitution)
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "M7").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(16, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void ChangeTupleNamesFromBaseViaGenericInList()
+        {
+            var source = @"
+interface I<T> { }
+class List<T> { }
+class Base : I<(int a, int b)> { }
+class Generic<U> : Base, I<U> { }
+class Error1 : List<Generic<(int notA, int notB)>> { }
+class Error2<E2> where E2 : List<Generic<(int notA, int notB)>> { }
+class C
+{
+    static List<Generic<(int notA, int notB)>> MError3()
+    {
+        return null;
+    }
+    static void M()
+    {
+        List<Generic<(int notA, int notB)>> error4 = null;
+        var error5 = new List<Generic<(int notA, int notB)>>();
+        M6((notA: 1, notB: 2)); // caught during final validation
+        M7(null, (notA: 1, notB: 2)); // candidate discarded during overload resolution (constraint checks on each parameter after substitution)
+        System.Console.WriteLine($""{error4}"");
+    }
+    static List<Generic<T>> M6<T>(T t)
+    {
+        return null;
+    }
+    static void M7<T>(List<Generic<T>> g, T t) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (10,48): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //     static List<Generic<(int notA, int notB)>> MError3()
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "MError3").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(10, 48),
+                // (7,14): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                // class Error2<E2> where E2 : List<Generic<(int notA, int notB)>> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "E2").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(7, 14),
+                // (6,7): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                // class Error1 : List<Generic<(int notA, int notB)>> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Error1").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(6, 7),
+                // (16,14): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         List<Generic<(int notA, int notB)>> error4 = null;
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Generic<(int notA, int notB)>").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(16, 14),
+                // (16,9): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         List<Generic<(int notA, int notB)>> error4 = null;
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "List<Generic<(int notA, int notB)>>").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(16, 9),
+                // (17,31): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         var error5 = new List<Generic<(int notA, int notB)>>();
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Generic<(int notA, int notB)>").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(17, 31),
+                // (17,26): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         var error5 = new List<Generic<(int notA, int notB)>>();
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "List<Generic<(int notA, int notB)>>").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(17, 26),
+                // (18,9): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         M6((notA: 1, notB: 2)); // caught during final validation
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "M6").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(18, 9),
+                // (19,9): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         M7(null, (notA: 1, notB: 2)); // candidate discarded during overload resolution (constraint checks on each parameter after substitution)
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "M7").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(19, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void ChangeTupleNamesFromBaseViaGenericInTuple()
+        {
+            var source = @"
+using System;
+interface I<T> { }
+class Base : I<(int a, int b)> { }
+class Generic<U> : Base, I<U> { }
+class C
+{
+    static (Generic<(int notA, int notB)>, int) MError3()
+    {
+        throw new Exception();
+    }
+    static void M()
+    {
+        (Generic<(int notA, int notB)>, int) error4 = (null, 2);
+        var error5 = (new Generic<(int notA, int notB)>(), 2);
+        M6((notA: 1, notB: 2)); // caught during final validation
+        M7(null, (notA: 1, notB: 2)); // candidate discarded during overload resolution (constraint checks on each parameter after substitution)
+        System.Console.WriteLine($""{error4}"");
+    }
+    static (Generic<T>, int) M6<T>(T t)
+    {
+        throw new Exception();
+    }
+    static void M7<T>((Generic<T>, int) g, T t) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (8,49): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //     static (Generic<(int notA, int notB)>, int) MError3()
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "MError3").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(8, 49),
+                // (14,10): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         (Generic<(int notA, int notB)>, int) error4 = (null, 2);
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Generic<(int notA, int notB)>").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(14, 10),
+                // (15,27): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         var error5 = (new Generic<(int notA, int notB)>(), 2);
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Generic<(int notA, int notB)>").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(15, 27),
+                // (16,9): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         M6((notA: 1, notB: 2)); // caught during final validation
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "M6").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(16, 9),
+                // (17,9): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         M7(null, (notA: 1, notB: 2)); // candidate discarded during overload resolution (constraint checks on each parameter after substitution)
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "M7").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(17, 9)
+                );
         }
 
         [Fact]
@@ -20546,8 +20712,8 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (9,9): error CS8185: 'I<(int notA, int notB)>' is already listed in the interface list on the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
-                //         M6((notA: 1, notB: 2));
+                // (9,9): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         M6((notA: 1, notB: 2)); // generic overload is selected, but fails final validation
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "M6").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic<(int notA, int notB)>").WithLocation(9, 9)
                 );
 
@@ -20593,10 +20759,10 @@ class Error2 : Generic2<(int notA, int notB)> { }
 
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (10,7): error CS8185: 'I<(int notA, int notB)>' is already listed in the interface list on the base of type 'Generic2<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                // (10,7): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic2<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
                 // class Error2 : Generic2<(int notA, int notB)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Error2").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic2<(int notA, int notB)>").WithLocation(10, 7),
-                // (6,7): error CS8185: 'I<(int notA, int notB)>' is already listed in the interface list on the base of type 'Generic1<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                // (6,7): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic1<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
                 // class Error1 : Generic1<(int notA, int notB)> { }
                 Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Error1").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic1<(int notA, int notB)>").WithLocation(6, 7)
                 );
@@ -20608,6 +20774,61 @@ class Error2 : Generic2<(int notA, int notB)> { }
             var error2Symbol = comp.GetTypeByMetadataName("Error2");
             Assert.Equal(new[] { "I2<(System.Int32 notA, System.Int32 notB)>", "I<(System.Int32 notA, System.Int32 notB)>" },
                 error2Symbol.AllInterfaces.Select(i => i.ToTestDisplayString()));
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void ChangeIndirectTupleNamesFromBaseViaGeneric2()
+        {
+            var source = @"
+interface I<T> { }
+class Base : I<(int a, int b)> { }
+class Generic1<U> : Base, I<U> { }
+class Generic2<U> : Generic1<U> { }
+
+class C
+{
+    static void Main()
+    {
+        Generic2<(int notA, int notB)>[] error4 = null;
+        var error5 = new Generic2<(int notA, int notB)>[1];
+        M6((notA: 1, notB: 2)); // caught during final validation
+        M7(null, (notA: 1, notB: 2)); // candidate discarded during overload resolution (constraint checks on each parameter after substitution)
+        System.Console.WriteLine($""{error4}"");
+    }
+    static Generic2<T>[] M6<T>(T t)
+    {
+        return null;
+    }
+    static void M7<T>(Generic2<T>[] g, T t) { }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic1<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         Generic2<(int notA, int notB)>[] error4 = null;
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Generic2<(int notA, int notB)>").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic1<(int notA, int notB)>").WithLocation(11, 9),
+                // (12,26): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic1<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         var error5 = new Generic2<(int notA, int notB)>[1];
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "Generic2<(int notA, int notB)>").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic1<(int notA, int notB)>").WithLocation(12, 26),
+                // (13,9): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic1<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         M6((notA: 1, notB: 2)); // caught during final validation
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "M6").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic1<(int notA, int notB)>").WithLocation(13, 9),
+                // (14,9): error CS8185: 'I<(int notA, int notB)>' is already implemented by the base of type 'Generic1<(int notA, int notB)>' with different tuple element names, as 'I<(int a, int b)>'.
+                //         M7(null, (notA: 1, notB: 2)); // candidate discarded during overload resolution (constraint checks on each parameter after substitution)
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "M7").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "Generic1<(int notA, int notB)>").WithLocation(14, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes();
+
+            var error4 = nodes.OfType<VariableDeclaratorSyntax>().ElementAt(0);
+            var error4Symbol = ((SourceLocalSymbol)model.GetDeclaredSymbol(error4));
+            Assert.Equal("Generic2<(System.Int32 notA, System.Int32 notB)>[] error4", error4Symbol.ToTestDisplayString());
+            Assert.Equal(new[] { "I<(System.Int32 notA, System.Int32 notB)>" },
+                ((ArrayTypeSymbol)error4Symbol.Type).ElementType.AllInterfaces.Select(i => i.ToTestDisplayString()));
         }
 
         [Fact]

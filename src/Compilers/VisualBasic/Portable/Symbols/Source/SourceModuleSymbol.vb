@@ -483,9 +483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared Sub ValidateImport(type As TypeSymbol, info As GlobalImportInfo, diagnostics As DiagnosticBag)
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            Dim tupleDiagnosticsBuilder As ArrayBuilder(Of DiagnosticInfo) = Nothing
-
-            type.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, tupleDiagnosticsBuilder)
+            type.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder)
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -494,13 +492,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For Each pair In diagnosticsBuilder
                 diagnostics.Add(info.Import.MapDiagnostic(New VBDiagnostic(pair.DiagnosticInfo, info.SyntaxReference.GetLocation())))
             Next
-
-            If tupleDiagnosticsBuilder IsNot Nothing Then
-                For Each diagnostic In tupleDiagnosticsBuilder
-                    diagnostics.Add(info.Import.MapDiagnostic(New VBDiagnostic(diagnostic, info.SyntaxReference.GetLocation())))
-                Next
-            End If
-
             diagnosticsBuilder.Free()
         End Sub
 

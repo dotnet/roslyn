@@ -18365,6 +18365,194 @@ BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the int
 
         <Fact>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub ChangeTupleNamesFromBaseViaGenericInArray()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Class Base
+    Implements I(Of (a As Integer, b As Integer))
+End Class
+Class Generic(Of U)
+    Inherits Base
+    Implements I(Of U)
+End Class
+Class C
+    Shared Function MError3() As Generic(Of (notA As Integer, notB As Integer))()
+        Return Nothing
+    End Function
+    Shared Sub M()
+        Dim error4 As Generic(Of (notA As Integer, notB As Integer))() = Nothing
+        Dim error5() = {New Generic(Of (notA As Integer, notB As Integer))()}
+        M6((notA:=1, notB:=2))
+        M7(Nothing, (notA:=1, notB:=2))
+    End Sub
+    Shared Function M6(Of T)(x As T) As Generic(Of T)()
+        Return Nothing
+    End Function
+    Shared Sub M7(Of T)(g As Generic(Of T)(), x As T)
+        System.Console.Write($"Generic {x}. ")
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Shared Function MError3() As Generic(Of (notA As Integer, notB As Integer))()
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error4 As Generic(Of (notA As Integer, notB As Integer))() = Nothing
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error5() = {New Generic(Of (notA As Integer, notB As Integer))()}
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M6((notA:=1, notB:=2))
+        ~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M7(Nothing, (notA:=1, notB:=2))
+        ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub ChangeTupleNamesFromBaseViaGenericInList()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Class List(Of T)
+End Class
+Class Base
+    Implements I(Of (a As Integer, b As Integer))
+End Class
+Class Generic(Of U)
+    Inherits Base
+    Implements I(Of U)
+End Class
+Class Error1
+    Inherits List(Of Generic(Of (notA As Integer, notB As Integer)))
+End Class
+Class Error2(Of E2 As List(Of Generic(Of (notA As Integer, notB As Integer))))
+End Class
+Class C
+    Shared Function MError3() As List(Of Generic(Of (notA As Integer, notB As Integer)))
+        Return Nothing
+    End Function
+    Shared Sub M()
+        Dim error4 As List(Of Generic(Of (notA As Integer, notB As Integer))) = Nothing
+        Dim error5 = New List(Of Generic(Of (notA As Integer, notB As Integer)))()
+        M6((notA:=1, notB:=2))
+        M7(Nothing, (notA:=1, notB:=2))
+    End Sub
+    Shared Function M6(Of T)(x As T) As List(Of Generic(Of T))
+        Return Nothing
+    End Function
+    Shared Sub M7(Of T)(g As List(Of Generic(Of T)), x As T)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+Class Error1
+      ~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+Class Error2(Of E2 As List(Of Generic(Of (notA As Integer, notB As Integer))))
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Shared Function MError3() As List(Of Generic(Of (notA As Integer, notB As Integer)))
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error4 As List(Of Generic(Of (notA As Integer, notB As Integer))) = Nothing
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error4 As List(Of Generic(Of (notA As Integer, notB As Integer))) = Nothing
+                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error5 = New List(Of Generic(Of (notA As Integer, notB As Integer)))()
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error5 = New List(Of Generic(Of (notA As Integer, notB As Integer)))()
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M6((notA:=1, notB:=2))
+        ~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M7(Nothing, (notA:=1, notB:=2))
+        ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub ChangeTupleNamesFromBaseViaGenericInTuple()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Class Base
+    Implements I(Of (a As Integer, b As Integer))
+End Class
+Class Generic(Of U)
+    Inherits Base
+    Implements I(Of U)
+End Class
+Class C
+    Shared Function MError3() As (Generic(Of (notA As Integer, notB As Integer)), Integer)
+        Return Nothing
+    End Function
+    Shared Sub M()
+        Dim error4 As (Generic(Of (notA As Integer, notB As Integer)), Integer) = (Nothing, 2)
+        Dim error5 = (New Generic(Of (notA As Integer, notB As Integer)), 2)
+        M6((notA:=1, notB:=2))
+        M7(Nothing, (notA:=1, notB:=2))
+    End Sub
+    Shared Function M6(Of T)(x As T) As (Generic(Of T), Integer)
+        Return Nothing
+    End Function
+    Shared Sub M7(Of T)(g As (Generic(Of T), Integer), x As T)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Shared Function MError3() As (Generic(Of (notA As Integer, notB As Integer)), Integer)
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error4 As (Generic(Of (notA As Integer, notB As Integer)), Integer) = (Nothing, 2)
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error5 = (New Generic(Of (notA As Integer, notB As Integer)), 2)
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M6((notA:=1, notB:=2))
+        ~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M7(Nothing, (notA:=1, notB:=2))
+        ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
         Sub DifferentTupleNamesInParametersAffectOverloadResolution()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -18492,6 +18680,75 @@ Class Error2
             Dim error2Symbol = comp.GetTypeByMetadataName("Error2")
             Assert.Equal({"I2(Of (notA As System.Int32, notB As System.Int32))", "I(Of (notA As System.Int32, notB As System.Int32))"},
                          error2Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub ChangeIndirectTupleNamesFromBaseViaGeneric2()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Interface I2(Of T)
+    Inherits I(Of T)
+End Interface
+Class Base
+    Implements I2(Of (a As Integer, b As Integer))
+End Class
+Class Generic1(Of U)
+    Inherits Base
+    Implements I(Of U)
+End Class
+Class Generic2(Of U)
+    Inherits Generic1(Of U)
+End Class
+Class Error1
+    Inherits Generic1(Of (notA As Integer, notB As Integer))
+End Class
+
+Class C
+    Shared Function MError3() As Generic2(Of (notA As Integer, notB As Integer))()
+        Return Nothing
+    End Function
+    Shared Sub M()
+        Dim error4 As Generic2(Of (notA As Integer, notB As Integer)) = Nothing
+        Dim error5 = New Generic2(Of (notA As Integer, notB As Integer))
+        M6((notA:=1, notB:=2))
+        M7(Nothing, (notA:=1, notB:=2))
+    End Sub
+    Shared Function M6(Of T)(x As T) As Generic2(Of T)
+        Return Nothing
+    End Function
+    Shared Sub M7(Of T)(g As Generic2(Of T), x As T)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic1(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+Class Error1
+      ~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic1(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Shared Function MError3() As Generic2(Of (notA As Integer, notB As Integer))()
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic1(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error4 As Generic2(Of (notA As Integer, notB As Integer)) = Nothing
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic1(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error5 = New Generic2(Of (notA As Integer, notB As Integer))
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic1(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M6((notA:=1, notB:=2))
+        ~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic1(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M7(Nothing, (notA:=1, notB:=2))
+        ~~
+</errors>)
 
         End Sub
 

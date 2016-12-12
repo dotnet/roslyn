@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NamedTypeSymbol constructedType = nullableT.Construct(typeArgument);
                         if (ShouldCheckConstraints)
                         {
-                            constructedType.CheckConstraints(this.Compilation, this.Conversions, syntax.Location, diagnostics);
+                            constructedType.CheckConstraints(this.Compilation, this.Conversions, syntax.Location, diagnostics, deepCheckTupleNames: true);
                         }
                         return constructedType;
                     }

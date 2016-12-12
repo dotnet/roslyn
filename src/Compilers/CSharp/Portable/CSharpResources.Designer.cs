@@ -3509,7 +3509,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is already listed in the interface list on type &apos;{2}&apos; with different tuple element names, as &apos;{1}&apos;..
+        ///   Looks up a localized string similar to &apos;{0}&apos; is already implemented by type &apos;{2}&apos; with different tuple element names, as &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_DuplicateInterfaceWithTupleNames {
             get {
@@ -3518,7 +3518,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is already listed in the interface list on the base of type &apos;{2}&apos; with different tuple element names, as &apos;{1}&apos;..
+        ///   Looks up a localized string similar to &apos;{0}&apos; is already implemented by the base of type &apos;{2}&apos; with different tuple element names, as &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_DuplicateInterfaceWithTupleNamesInBaseList {
             get {

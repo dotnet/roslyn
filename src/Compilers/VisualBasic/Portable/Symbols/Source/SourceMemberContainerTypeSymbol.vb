@@ -2661,7 +2661,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If propertySymbol.IsAutoProperty AndAlso
                         propertySymbol.ContainingType.TypeKind = TypeKind.Structure Then
 
-                        binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_AutoPropertyInitializedInStructure)
+                        Binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_AutoPropertyInitializedInStructure)
+
                     End If
 
                     AddInitializer(instanceInitializers, initializer, members.InstanceSyntaxLength)
@@ -3772,9 +3773,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Next
                 End If
 
-                If Not reportedError Then
+                If Not reportedError AndAlso Not interfaces.IsEmpty Then
                     ' Check no duplicate interfaces with different tuple names with base
-                    CheckTupleNamesAgainstBase(Me, diagnostics)
+                    Me.CheckTupleNamesAgainstBase(interfaces, diagnostics)
                 End If
             End If
 
@@ -3815,12 +3816,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         End Sub
 
-        Private Sub CheckTupleNamesAgainstBase(type As NamedTypeSymbol, diagnostics As DiagnosticBag)
-            Dim baseType As NamedTypeSymbol = type.BaseTypeNoUseSiteDiagnostics
+        Private Sub CheckTupleNamesAgainstBase(interfaces As ImmutableHashSet(Of NamedTypeSymbol), diagnostics As DiagnosticBag)
+            Dim baseType As NamedTypeSymbol = Me.BaseTypeNoUseSiteDiagnostics
             If baseType Is Nothing Then
                 Return
             End If
-            Dim interfaces = type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics
+
             Dim baseInterfaces = New Dictionary(Of NamedTypeSymbol, NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
 
             For Each baseInterface In baseType.AllInterfacesNoUseSiteDiagnostics
@@ -3837,7 +3838,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Not [interface].IsSameType(found, TypeCompareKind.ConsiderEverything) Then
 
                     Dim location As Location = Me.GetInheritsOrImplementsLocation([interface], getInherits:=True)
-                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateInterfaceWithTupleNamesInBaseList3, [interface], found, type), location)
+                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateInterfaceWithTupleNamesInBaseList3, [interface], found, Me), location)
                 End If
             Next
         End Sub
