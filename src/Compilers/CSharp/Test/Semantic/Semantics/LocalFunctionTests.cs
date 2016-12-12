@@ -306,21 +306,12 @@ class C
                 // (8,37): error CS1637: Iterators cannot have unsafe parameters or yield types
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
-                // (8,26): error CS1629: Unsafe code may not appear in iterators
-                //         IEnumerable<int> Local(int* a) { yield break; }
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local").WithLocation(8, 26),
                 // (17,41): error CS1637: Iterators cannot have unsafe parameters or yield types
                 //             IEnumerable<int> Local(int* x) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "x").WithLocation(17, 41),
-                // (17,30): error CS1629: Unsafe code may not appear in iterators
-                //             IEnumerable<int> Local(int* x) { yield break; }
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local").WithLocation(17, 30),
                 // (27,37): error CS1637: Iterators cannot have unsafe parameters or yield types
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(27, 37),
-                // (27,26): error CS1629: Unsafe code may not appear in iterators
-                //         IEnumerable<int> Local(int* a) { yield break; }
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local").WithLocation(27, 26),
                 // (33,44): error CS1637: Iterators cannot have unsafe parameters or yield types
                 //     public unsafe IEnumerable<int> M4(int* a)
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
@@ -338,10 +329,7 @@ class C
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17),
                 // (37,45): error CS1637: Iterators cannot have unsafe parameters or yield types
                 //                 IEnumerable<int> Local(int* b) { yield break; }
-                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45),
-                // (37,34): error CS1629: Unsafe code may not appear in iterators
-                //                 IEnumerable<int> Local(int* b) { yield break; }
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local").WithLocation(37, 34));
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45));
         }
 
         [Fact]
