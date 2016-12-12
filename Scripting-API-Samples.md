@@ -78,7 +78,7 @@ var globals = new Globals { X = 1, Y = 2 };
 Console.WriteLine(await CSharpScript.EvaluateAsync<int>("X+Y", globals: globals));
 ```
 
-> **Note**: there is a [known bug](https://github.com/dotnet/roslyn/issues/6101) here. A workaround would be to define Globals in a .dll and #r the .dll. 
+> **Note**: Currently the Globals type has to be defined in an assembly loaded from a file. If the assembly is in-memory (including e.g. when the sample is executed in Interactive Window) the script won't be able to access the type. See [issue](https://github.com/dotnet/roslyn/issues/6101) here.
 
 #### <a name="multi"></a> Create & build a C# script and execute it multiple times
 ```csharp
