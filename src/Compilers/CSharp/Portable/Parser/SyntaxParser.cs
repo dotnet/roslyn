@@ -474,6 +474,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return CreateMissingToken(kind, this.CurrentToken.Kind, reportError: true);
         }
 
+        // Consume a token if it is the right kind. Otherwise skip a token and replace it with one of the correct kind.
+        protected SyntaxToken EatTokenAsKind(SyntaxKind expected)
+        {
+            Debug.Assert(SyntaxFacts.IsAnyToken(expected));
+
+            var ct = this.CurrentToken;
+            if (ct.Kind == expected)
+            {
+                MoveToNextToken();
+                return ct;
+            }
+
+            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind, reportError: true);
+            return AddTrailingSkippedSyntax(replacement, this.EatToken());
+        }
+
         private SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual, bool reportError)
         {
             // should we eat the current ParseToken's leading trivia?

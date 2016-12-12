@@ -419,11 +419,6 @@
     <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundVoid" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind, but it will always be the void type  -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-  </Node>
-
   <Node Name="BoundNullCoalescingOperator" Base="BoundExpression">
     <Field Name="LeftOperand" Type="BoundExpression"/>
     <Field Name="RightOperand" Type="BoundExpression"/>
@@ -1584,9 +1579,9 @@
   <Node Name="BoundWildcardPattern" Base="BoundPattern">
   </Node>
 
-  <Node Name="BoundDiscardedExpression" Base="BoundExpression">
+  <Node Name="BoundDiscardExpression" Base="BoundExpression">
     <!-- A discarded value, when a designator uses `_`. When the type is given as `var, its Type
-         is null before type inference, and it is replaced by a BoundDiscardedExpression with a non-null
+         is null before type inference, and it is replaced by a BoundDiscardExpression with a non-null
          type after inference. -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
   </Node>

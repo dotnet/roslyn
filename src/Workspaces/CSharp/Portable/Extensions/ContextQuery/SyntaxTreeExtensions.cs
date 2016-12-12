@@ -1082,7 +1082,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // consider this a lambda if this is a location where the
                 // lambda's type would be inferred because of a delegate
                 // or Expression<T> type.
-                if (token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
+                if (token.Parent.IsKind(SyntaxKind.ParenthesizedExpression) ||
+                    token.Parent.IsKind(SyntaxKind.TupleExpression))
                 {
                     return true;
                 }
