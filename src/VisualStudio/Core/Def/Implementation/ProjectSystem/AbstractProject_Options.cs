@@ -51,6 +51,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         protected void UpdateOptions()
         {
+            AssertIsForeground();
+
             CommandLineArguments lastParsedCommandLineArguments = _lastParsedCommandLineArguments;
             Contract.ThrowIfNull(lastParsedCommandLineArguments);
 
@@ -70,6 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         protected CommandLineArguments SetArgumentsAndUpdateOptions(string commandLine)
         {
+            AssertIsForeground();
+
             var commandLineArguments = SetArguments(commandLine);
             UpdateOptions();
             return commandLineArguments;
@@ -109,6 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         protected void SetOptions(CompilationOptions newCompilationOptions, ParseOptions newParseOptions)
         {
+            AssertIsForeground();
+
             this.UpdateRuleSetError(this.RuleSetFile);
 
             // Set options.

@@ -97,8 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 Contract.ThrowIfFalse(_projectMap.Count == 0);
             }
 
-            NotifyWorkspaceHosts_Foreground(host => host.OnSolutionRemoved());
-            NotifyWorkspaceHosts_Foreground(host => host.ClearSolution());
+            NotifyWorkspaceHosts(host => host.OnSolutionRemoved());
+            NotifyWorkspaceHosts(host => host.ClearSolution());
 
             lock (_gate)
             {
