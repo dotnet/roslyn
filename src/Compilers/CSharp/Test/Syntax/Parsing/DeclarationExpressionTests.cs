@@ -414,10 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         {
                             N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "x");
-                        }
+                        N(SyntaxKind.IdentifierToken, "x");
                     }
                     N(SyntaxKind.CommaToken);
                     N(SyntaxKind.TupleElement);
@@ -426,10 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         {
                             N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "y");
-                        }
+                        N(SyntaxKind.IdentifierToken, "y");
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
