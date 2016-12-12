@@ -214,6 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.MultiLineDocumentationCommentTrivia:
                 case SyntaxKind.DisabledTextTrivia:
                 case SyntaxKind.DocumentationCommentExteriorTrivia:
+                case SyntaxKind.ConflictMarkerTrivia:
                     return true;
                 default:
                     return IsPreprocessorDirective(kind);

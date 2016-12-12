@@ -35,6 +35,7 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax.Type() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax.Update(type As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax.WithType(type As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax
+Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.ConflictMarkerTrivia = 792 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.NamedTupleElement = 791 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.TupleExpression = 788 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.TupleType = 789 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
@@ -65,6 +66,7 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitName
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitTupleExpression(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleExpressionSyntax) -> Microsoft.CodeAnalysis.SyntaxNode
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitTupleType(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.TupleTypeSyntax) -> Microsoft.CodeAnalysis.SyntaxNode
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitTypedTupleElement(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypedTupleElementSyntax) -> Microsoft.CodeAnalysis.SyntaxNode
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ConflictMarkerTrivia(text As String) -> Microsoft.CodeAnalysis.SyntaxTrivia
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.NamedTupleElement(identifier As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.NamedTupleElement(identifier As Microsoft.CodeAnalysis.SyntaxToken, asClause As Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleAsClauseSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.NamedTupleElement(identifier As String) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.NamedTupleElementSyntax

@@ -5449,4 +5449,7 @@
   <data name="ERR_DocFileGen" xml:space="preserve">
     <value>Error writing to XML documentation file: {0}</value>
   </data>
+  <data name="ERR_Merge_conflict_marker_encountered" xml:space="preserve">
+    <value>Merge conflict marker enocuntered</value>
+  </data>
 </root>

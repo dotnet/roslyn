@@ -6890,7 +6890,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ResourceManager.GetString("ERR_MemberConflictWithSynth4", resourceCulture)
             End Get
         End Property
-        
+
+        '''<summary>
+        '''  Looks up a localized string similar to Merge conflict marker enocuntered.
+        '''</summary>
+        Friend ReadOnly Property ERR_Merge_conflict_marker_encountered() As String
+            Get
+                Return ResourceManager.GetString("ERR_Merge_conflict_marker_encountered", resourceCulture)
+            End Get
+        End Property
+
         '''<summary>
         '''  Looks up a localized string similar to &apos;{0}&apos; is a module and cannot be referenced as an assembly..
         '''</summary>

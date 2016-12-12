@@ -172,6 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return
                 syntaxTree.IsEntirelyWithinNonUserCodeComment(position, cancellationToken) ||
+                syntaxTree.IsEntirelyWithinConflictMarker(position, cancellationToken) ||
                 syntaxTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken) ||
                 syntaxTree.IsInInactiveRegion(position, cancellationToken);
         }
@@ -299,6 +300,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+        }
+
+        public static bool IsEntirelyWithinConflictMarker(
+            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(position, cancellationToken);
+
+            if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+            {
+                // Check if we're on the newline right at the end of a comment
+                trivia = trivia.GetPreviousTrivia(syntaxTree, cancellationToken);
+            }
+
+            return trivia.Kind() == SyntaxKind.ConflictMarkerTrivia;
         }
 
         public static bool IsEntirelyWithinTopLevelSingleLineComment(

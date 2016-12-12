@@ -1,18 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
@@ -157,12 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     return;
                 }
 
-                ClassifyTrivia(trivia);
+                ClassifyTrivia(trivia, list);
             }
             while (enumerator.MoveNext());
         }
 
-        private void ClassifyTrivia(SyntaxTrivia trivia)
+        private void ClassifyTrivia(SyntaxTrivia trivia, SyntaxTriviaList triviaList)
         {
             switch (trivia.Kind())
             {
@@ -173,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     return;
 
                 case SyntaxKind.DisabledTextTrivia:
-                    AddClassification(trivia, ClassificationTypeNames.ExcludedCode);
+                    ClassifyDisabledText(trivia, triviaList);
                     return;
 
                 case SyntaxKind.SkippedTokensTrivia:
@@ -187,6 +179,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                 case SyntaxKind.DocumentationCommentExteriorTrivia:
                     AddClassification(trivia, ClassificationTypeNames.XmlDocCommentDelimiter);
+                    return;
+
+                case SyntaxKind.ConflictMarkerTrivia:
+                    ClassifyConflictMarker(trivia);
                     return;
 
                 case SyntaxKind.IfDirectiveTrivia:
@@ -221,6 +217,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             foreach (var tk in tokens)
             {
                 ClassifyToken(tk);
+            }
+        }
+
+        private void ClassifyConflictMarker(SyntaxTrivia trivia)
+        {
+            AddClassification(trivia, ClassificationTypeNames.Comment);
+        }
+
+        private void ClassifyDisabledText(SyntaxTrivia trivia, SyntaxTriviaList triviaList)
+        {
+            var index = triviaList.IndexOf(trivia);
+            if (index >= 2 &&
+                triviaList[index - 1].Kind() == SyntaxKind.EndOfLineTrivia &&
+                triviaList[index - 2].Kind() == SyntaxKind.ConflictMarkerTrivia)
+            {
+                // for the ======== add a comment for the first line, and then lex all
+                // subsequent lines up until the end of the conflict marker.
+                foreach (var token in SyntaxFactory.ParseTokens(text: trivia.ToFullString(), initialTokenPosition: trivia.SpanStart))
+                { 
+                    ClassifyToken(token);
+                }
+            }
+            else
+            {
+                AddClassification(trivia, ClassificationTypeNames.ExcludedCode);
             }
         }
     }

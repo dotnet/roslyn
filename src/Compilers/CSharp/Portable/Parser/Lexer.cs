@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 TextWindow.AdvanceChar();
             }
 
-            return start < TextWindow.Position;
+            return start < TextWindow.Position; 
         }
 
         // Allows underscores in integers, except at beginning and end
@@ -2293,10 +2293,142 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             return;
                         }
+
+                    case '>':
+                    case '=':
+                    case '<':
+                        if (!isTrailing)
+                        {
+                            if (IsConflictMarkerTrivia())
+                            {
+                                this.LexConflictMarkerTrivia(ref triviaList);
+                                break;
+                            }
+                        }
+
+                        return;
+
                     default:
                         return;
                 }
             }
+        }
+
+        // All conflict markers consist of the same character repeated seven times.  If it is
+        // a <<<<<<< or >>>>>>> marker then it is also followed by a space.
+        private static readonly int s_conflictMarkerLength = "<<<<<<<".Length;
+
+        private bool IsConflictMarkerTrivia()
+        {
+            var position = TextWindow.Position;
+            var text = TextWindow.Text;
+            if (position == 0 || SyntaxFacts.IsNewLine(text[position - 1]))
+            {
+                var firstCh = text[position];
+
+                if ((position + s_conflictMarkerLength) <= text.Length)
+                {
+                    for (int i = 0, n = s_conflictMarkerLength; i < n; i++)
+                    {
+                        if (text[position + i] != firstCh)
+                        {
+                            return false;
+                        }
+                    }
+
+                    if (firstCh == '=')
+                    {
+                        return true;
+                    }
+
+                    return (position + s_conflictMarkerLength) < text.Length &&
+                        text[position + s_conflictMarkerLength] == ' ';
+                }
+            }
+
+            return false;
+        }
+
+        private void LexConflictMarkerTrivia(ref SyntaxListBuilder triviaList)
+        {
+            this.AddError(TextWindow.Position, s_conflictMarkerLength,
+                ErrorCode.ERR_Merge_conflict_marker_encountered);
+
+            var startCh = this.TextWindow.PeekChar();
+
+            // First create a trivia from the start of this merge conflict marker to the
+            // end of line/file (whicever comes first).
+            LexConflictMarkerHeader(ref triviaList);
+
+            // Now add the newlines as the next trivia.
+            LexConflictMarkerEndOfLine(ref triviaList);
+
+            // Now, if it was an ======= marker, then also created a DisabledText trivia for
+            // the contents of the file after it, up until the next >>>>>>> marker we see.
+            if (startCh == '=')
+            {
+                LexConflictMarkerDisabledText(ref triviaList);
+            }
+        }
+
+        private SyntaxListBuilder LexConflictMarkerDisabledText(ref SyntaxListBuilder triviaList)
+        {
+            // Consume everything from the start of the mid-conflict marker to the start of the next
+            // end-conflict marker.
+            this.Start();
+
+            while (true)
+            {
+                var ch = this.TextWindow.PeekChar();
+                if (ch == SlidingTextWindow.InvalidCharacter)
+                {
+                    break;
+                }
+
+                if (ch == '>' && IsConflictMarkerTrivia())
+                {
+                    break;
+                }
+
+                this.TextWindow.AdvanceChar();
+            }
+
+            if (this.TextWindow.Width > 0)
+            {
+                this.AddTrivia(SyntaxFactory.DisabledText(TextWindow.GetText(false)), ref triviaList);
+            }
+
+            return triviaList;
+        }
+
+        private void LexConflictMarkerEndOfLine(ref SyntaxListBuilder triviaList)
+        {
+            this.Start();
+            while (SyntaxFacts.IsNewLine(this.TextWindow.PeekChar()))
+            {
+                this.TextWindow.AdvanceChar();
+            }
+
+            if (this.TextWindow.Width > 0)
+            {
+                this.AddTrivia(SyntaxFactory.EndOfLine(TextWindow.GetText(false)), ref triviaList);
+            }
+        }
+
+        private void LexConflictMarkerHeader(ref SyntaxListBuilder triviaList)
+        {
+            while (true)
+            {
+                var ch = this.TextWindow.PeekChar();
+                if (ch == SlidingTextWindow.InvalidCharacter || SyntaxFacts.IsNewLine(ch))
+                {
+                    break;
+                }
+
+                this.TextWindow.AdvanceChar();
+            }
+
+            this.AddTrivia(SyntaxFactory.ConflictMarker(TextWindow.GetText(false)), ref triviaList);
         }
 
         private void AddTrivia(CSharpSyntaxNode trivia, ref SyntaxListBuilder list)

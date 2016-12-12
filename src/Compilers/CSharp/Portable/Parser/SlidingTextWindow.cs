@@ -78,13 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        public SourceText Text
-        {
-            get
-            {
-                return _text;
-            }
-        }
+        public SourceText Text => _text;
 
         /// <summary>
         /// The current absolute position in the text file.

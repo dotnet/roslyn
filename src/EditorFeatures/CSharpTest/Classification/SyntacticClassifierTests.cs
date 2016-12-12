@@ -3977,5 +3977,38 @@ void M()
                 Number("2"),
                 Punctuation.CloseParen);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestConflictMarkers1()
+        {
+            await TestAsync(
+@"class C
+{
+<<<<<<< Start
+    public void Foo();
+=======
+    public void Bar();
+>>>>>>> End
+}",
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Comment("<<<<<<< Start"),
+                Keyword("public"),
+                Keyword("void"),
+                Identifier("Foo"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Comment("======="),
+                Keyword("public"),
+                Keyword("void"),
+                Identifier("Bar"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Comment(">>>>>>> End"),
+                Punctuation.CloseCurly);
+        }
     }
 }

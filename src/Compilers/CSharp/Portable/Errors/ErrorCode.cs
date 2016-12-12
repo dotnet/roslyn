@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeExpected = 1031,
         ERR_PPDefFollowsToken = 1032,
         //ERR_TooManyLines = 1033,      unused in Roslyn.
-        //ERR_LineTooLong = 1034,       unused in Roslyn.
+        ERR_Merge_conflict_marker_encountered = 1034,
         ERR_OpenEndedComment = 1035,
         ERR_OvlOperatorExpected = 1037,
         ERR_EndRegionDirectiveExpected = 1038,

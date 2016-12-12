@@ -263,6 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ReferenceDirectiveTrivia = 8561,
         BadDirectiveTrivia = 8562,
         SkippedTokensTrivia = 8563,
+        ConflictMarkerTrivia = 8564,
 
         // xml nodes (for xml doc comment structure)
         XmlElement = 8574,
