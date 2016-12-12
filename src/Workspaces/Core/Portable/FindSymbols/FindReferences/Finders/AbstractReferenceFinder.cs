@@ -87,6 +87,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             PredefinedType predefinedType,
             CancellationToken cancellationToken)
         {
+            if (predefinedType == PredefinedType.None)
+            {
+                return SpecializedTasks.EmptyImmutableArray<Document>();
+            }
+
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
                 var info = await SyntaxTreeInfo.GetContextInfoAsync(d, c).ConfigureAwait(false);
@@ -94,7 +99,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }, cancellationToken);
         }
 
-        protected async Task<ImmutableArray<Document>> FindDocumentsAsync(
+        protected Task<ImmutableArray<Document>> FindDocumentsAsync(
             Project project,
             IImmutableSet<Document> documents,
             PredefinedOperator op,
@@ -102,14 +107,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             if (op == PredefinedOperator.None)
             {
-                return ImmutableArray<Document>.Empty;
+                return SpecializedTasks.EmptyImmutableArray<Document>();
             }
 
-            return await FindDocumentsAsync(project, documents, async (d, c) =>
+            return FindDocumentsAsync(project, documents, async (d, c) =>
             {
                 var info = await SyntaxTreeInfo.GetContextInfoAsync(d, c).ConfigureAwait(false);
                 return info.ContainsPredefinedOperator(op);
-            }, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
 
         protected static bool IdentifiersMatch(ISyntaxFactsService syntaxFacts, string name, SyntaxToken token)
