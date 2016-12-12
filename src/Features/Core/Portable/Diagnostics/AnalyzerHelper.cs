@@ -48,19 +48,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
         }
 
-        public static bool ShouldRunForFullProject(this DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, Project project)
+        public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, Workspace workspace)
         {
             var builtInAnalyzer = analyzer as IBuiltInAnalyzer;
             if (builtInAnalyzer != null)
             {
-                return !builtInAnalyzer.OpenFileOnly(project.Solution.Workspace);
+                return builtInAnalyzer.OpenFileOnly(workspace);
             }
 
-            if (analyzer.IsWorkspaceDiagnosticAnalyzer())
-            {
-                return true;
-            }
+            return false;
+        }
 
+        public static bool HasNonHiddenDescriptor(this DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, Project project)
+        {
             // most of analyzers, number of descriptor is quite small, so this should be cheap.
             return service.GetDiagnosticDescriptors(analyzer).Any(d => d.GetEffectiveSeverity(project.CompilationOptions) != ReportDiagnostic.Hidden);
         }
