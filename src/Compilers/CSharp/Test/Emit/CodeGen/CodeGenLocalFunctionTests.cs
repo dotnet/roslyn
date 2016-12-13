@@ -3073,6 +3073,46 @@ class Program
         }
 
         [Fact]
+        public void UnsafeCalls()
+        {
+            var src = @"
+using System;
+class C
+{
+    public static void Main(string[] args)
+    {
+        int x = 2;
+        int y = 0;
+
+        unsafe void Local(ref int x2)
+        {
+            fixed (int* ptr = &x2)
+            {
+                Local2(ptr);
+            }
+        }
+        unsafe int* Local2(int* ptr)
+        {
+            (*ptr)++;
+            y++;
+
+            return null;
+        }
+
+        while (x < 10)
+        {
+            Local(ref x);
+            x++;
+        }
+
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+    }
+}";
+            VerifyOutput(src, "10\r\n4", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+        }
+
+        [Fact]
         [WorkItem(15322, "https://github.com/dotnet/roslyn/issues/15322")]
         public void UseBeforeDeclaration()
         {
