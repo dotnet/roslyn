@@ -8,6 +8,7 @@
     "Microsoft.VisualStudio.CoreUtility": [ "14.3.25407", "15.0.25726-Preview5" ],
     "Microsoft.VisualStudio.Editor": [ "14.3.25407", "15.0.25726-Preview5" ],
     "Microsoft.VisualStudio.Imaging": [ "14.3.25407", "15.0.25726-Preview5" ],
+    "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": [ "14.3.25407", "15.0.25726-Preview5" ],
     "Microsoft.VisualStudio.ImageCatalog": [ "14.3.25407", "15.0.25726-Preview5" ],
     "Microsoft.VisualStudio.Shell.Immutable.10.0": "10.0.30319",
     "Microsoft.VisualStudio.Text.UI.Wpf": [ "14.3.25407", "15.0.25726-Preview5" ],
@@ -21,7 +22,7 @@
     "Microsoft.Build.Tasks.Core": {
       "generateName": "Microsoft.Build.Tasks.Core.14",
       "version": "14.3.0"
-    }
+    },
   },
 
   "toolsetPackages": [
