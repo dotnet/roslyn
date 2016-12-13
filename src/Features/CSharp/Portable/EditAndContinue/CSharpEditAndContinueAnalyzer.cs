@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         /// <returns>
         /// If <paramref name="node"/> is a method, accessor, operator, destructor, or constructor without an initializer,
-        /// tokens of its block body, or tokens of the expression body if applicable.
+        /// tokens of its block body, or tokens of the expression body.
         /// 
         /// If <paramref name="node"/> is an indexer declaration the tokens of its expression body.
         /// 
@@ -197,18 +197,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return declarator.DescendantTokens();
             }
 
+            var bodyTokens = SyntaxUtilities.TryGetMethodDeclarationBody(node)?.DescendantTokens();
+
             if (node.IsKind(SyntaxKind.ConstructorDeclaration))
             {
                 var ctor = (ConstructorDeclarationSyntax)node;
                 if (ctor.Initializer != null)
                 {
-                    return ctor.Initializer.DescendantTokens().Concat(ctor.Body.DescendantTokens());
+                    bodyTokens = ctor.Initializer.DescendantTokens().Concat(bodyTokens);
                 }
-
-                return ctor.Body.DescendantTokens();
             }
 
-            return SyntaxUtilities.TryGetMethodDeclarationBody(node)?.DescendantTokens();
+            return bodyTokens;
         }
 
         protected override SyntaxNode GetEncompassingAncestorImpl(SyntaxNode bodyOrMatchRoot)
