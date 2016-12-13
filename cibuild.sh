@@ -73,5 +73,5 @@ $MAKE bootstrap $MAKE_ARGS
 echo Building CrossPlatform.sln
 $MAKE all $MAKE_ARGS BOOTSTRAP=true BUILD_LOG_PATH=Binaries/Build.log
 
-$MAKE test
+$MAKE test $MAKE_ARGS
 
