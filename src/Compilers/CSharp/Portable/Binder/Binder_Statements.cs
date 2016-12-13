@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declarationNode is VariableDesignationSyntax ||
                 declarationNode.Kind() == SyntaxKind.VariableDeclaration ||
                 declarationNode.Kind() == SyntaxKind.DeclarationExpression ||
-                declarationNode.Kind() == SyntaxKind.DiscardedDesignation);
+                declarationNode.Kind() == SyntaxKind.DiscardDesignation);
 
             // If the type is "var" then suppress errors when binding it. "var" might be a legal type
             // or it might not; if it is not then we do not want to report an error. If it is, then
@@ -1711,15 +1711,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var op1 = BindValue(node.Left, diagnostics, BindValueKind.Assignment); // , BIND_MEMBERSET);
             var op2 = BindValue(node.Right, diagnostics, BindValueKind.RValue); // , BIND_RVALUEREQUIRED);
 
-            if (op1.Kind == BoundKind.DiscardedExpression)
+            if (op1.Kind == BoundKind.DiscardExpression)
             {
-                op1 = InferTypeForDiscard((BoundDiscardedExpression)op1, op2, diagnostics);
+                op1 = InferTypeForDiscard((BoundDiscardExpression)op1, op2, diagnostics);
             }
 
             return BindAssignment(node, op1, op2, diagnostics);
         }
 
-        private BoundExpression InferTypeForDiscard(BoundDiscardedExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
+        private BoundExpression InferTypeForDiscard(BoundDiscardExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
         {
             if (op2.Type == null)
             {
@@ -1863,7 +1863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(valueKind == BindValueKind.RefOrOut);
                     return expr;
 
-                case BoundKind.DiscardedExpression:
+                case BoundKind.DiscardExpression:
                     Debug.Assert(valueKind == BindValueKind.Assignment || valueKind == BindValueKind.RefOrOut);
                     return expr;
             }

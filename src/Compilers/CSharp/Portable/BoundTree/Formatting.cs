@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDiscardedExpression
+    internal partial class BoundDiscardExpression
     {
         public override object Display
         {

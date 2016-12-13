@@ -125,27 +125,30 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,35): error CS1003: Syntax error, '=>' expected
+                // (6,20): error CS8184: A declaration is not allowed in this context.
                 //         Test1(out (var x1, var x2));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(6, 35),
-                // (6,35): error CS1525: Invalid expression term ')'
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x1").WithLocation(6, 20),
+                // (6,28): error CS8184: A declaration is not allowed in this context.
                 //         Test1(out (var x1, var x2));
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 35),
-                // (6,20): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x2").WithLocation(6, 28),
+                // (6,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         Test1(out (var x1, var x2));
-                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 20),
-                // (6,28): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(var x1, var x2)").WithArguments("System.ValueTuple`2").WithLocation(6, 19),
+                // (6,19): error CS1510: A ref or out value must be an assignable variable
                 //         Test1(out (var x1, var x2));
-                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 28),
-                // (7,34): error CS0103: The name 'x1' does not exist in the current context
-                //         System.Console.WriteLine(x1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 34),
-                // (8,34): error CS0103: The name 'x2' does not exist in the current context
-                //         System.Console.WriteLine(x2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(8, 34)
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(var x1, var x2)").WithLocation(6, 19)
                 );
 
-            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
+            var x2Decl = GetDeclaration(tree, "x2");
+            var x2Ref = GetReference(tree, "x2");
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -172,21 +175,36 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,36): error CS1003: Syntax error, '=>' expected
+                // (6,20): error CS8184: A declaration is not allowed in this context.
                 //         Test1(out (int x1, long x2));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(6, 36),
-                // (6,36): error CS1525: Invalid expression term ')'
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x1").WithLocation(6, 20),
+                // (6,28): error CS8184: A declaration is not allowed in this context.
                 //         Test1(out (int x1, long x2));
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 36),
-                // (7,34): error CS0103: The name 'x1' does not exist in the current context
-                //         System.Console.WriteLine(x1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 34),
-                // (8,34): error CS0103: The name 'x2' does not exist in the current context
-                //         System.Console.WriteLine(x2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(8, 34)
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "long x2").WithLocation(6, 28),
+                // (6,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         Test1(out (int x1, long x2));
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int x1, long x2)").WithArguments("System.ValueTuple`2").WithLocation(6, 19),
+                // (6,19): error CS1510: A ref or out value must be an assignable variable
+                //         Test1(out (int x1, long x2));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(int x1, long x2)").WithLocation(6, 19),
+                // (6,24): error CS0165: Use of unassigned local variable 'x1'
+                //         Test1(out (int x1, long x2));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 24),
+                // (6,33): error CS0165: Use of unassigned local variable 'x2'
+                //         Test1(out (int x1, long x2));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 33)
                 );
 
-            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
+            var x2Decl = GetDeclaration(tree, "x2");
+            var x2Ref = GetReference(tree, "x2");
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
         }
 
         [Fact]
@@ -214,33 +232,49 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,46): error CS1001: Identifier expected
+                // (6,20): error CS8184: A declaration is not allowed in this context.
                 //         Test1(out (int x1, (long x2, byte x3)));
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 46),
-                // (6,47): error CS1003: Syntax error, '=>' expected
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x1").WithLocation(6, 20),
+                // (6,29): error CS8184: A declaration is not allowed in this context.
                 //         Test1(out (int x1, (long x2, byte x3)));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(6, 47),
-                // (6,47): error CS1525: Invalid expression term ')'
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "long x2").WithLocation(6, 29),
+                // (6,38): error CS8184: A declaration is not allowed in this context.
                 //         Test1(out (int x1, (long x2, byte x3)));
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 47),
-                // (6,28): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
-                //         Test1(out (int x1, (long x2, byte x3)));
-                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(long x2, byte x3)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "byte x3").WithLocation(6, 38),
                 // (6,28): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         Test1(out (int x1, (long x2, byte x3)));
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(long x2, byte x3)").WithArguments("System.ValueTuple`2").WithLocation(6, 28),
-                // (7,34): error CS0103: The name 'x1' does not exist in the current context
-                //         System.Console.WriteLine(x1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 34),
-                // (8,34): error CS0103: The name 'x2' does not exist in the current context
-                //         System.Console.WriteLine(x2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(8, 34),
-                // (9,34): error CS0103: The name 'x3' does not exist in the current context
-                //         System.Console.WriteLine(x3);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(9, 34)
+                // (6,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         Test1(out (int x1, (long x2, byte x3)));
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int x1, (long x2, byte x3))").WithArguments("System.ValueTuple`2").WithLocation(6, 19),
+                // (6,19): error CS1510: A ref or out value must be an assignable variable
+                //         Test1(out (int x1, (long x2, byte x3)));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(int x1, (long x2, byte x3))").WithLocation(6, 19),
+                // (6,24): error CS0165: Use of unassigned local variable 'x1'
+                //         Test1(out (int x1, (long x2, byte x3)));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 24),
+                // (6,34): error CS0165: Use of unassigned local variable 'x2'
+                //         Test1(out (int x1, (long x2, byte x3)));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 34),
+                // (6,43): error CS0165: Use of unassigned local variable 'x3'
+                //         Test1(out (int x1, (long x2, byte x3)));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(6, 43)
                 );
 
-            Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
+            var x2Decl = GetDeclaration(tree, "x2");
+            var x2Ref = GetReference(tree, "x2");
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
+
+            var x3Decl = GetDeclaration(tree, "x3");
+            var x3Ref = GetReference(tree, "x3");
+            VerifyModelForOutVarWithoutDataFlow(model, x3Decl, x3Ref);
         }
 
         [Fact]
@@ -734,6 +768,17 @@ public class Cls
             return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == name);
         }
 
+        private static IEnumerable<DeclarationExpressionSyntax> GetDeclarations(SyntaxTree tree, string name)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
+                    .Where(p => p.Identifier().ValueText == name);
+        }
+
+        private static DeclarationExpressionSyntax GetDeclaration(SyntaxTree tree, string name)
+        {
+            return GetDeclarations(tree, name).Single();
+        }
+
         private static DeclarationExpressionSyntax GetOutVarDeclaration(SyntaxTree tree, string name)
         {
             return GetOutVarDeclarations(tree, name).Single();
@@ -742,12 +787,12 @@ public class Cls
         private static IEnumerable<DeclarationExpressionSyntax> GetOutVarDeclarations(SyntaxTree tree, string name)
         {
             return tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
-                    .Where(p => IsOutVarDeclaration(p) && p.Identifier().ValueText == name);
+                    .Where(p => p.IsOutVarDeclaration() && p.Identifier().ValueText == name);
         }
 
-        private static IEnumerable<DiscardedDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
+        private static IEnumerable<DiscardDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
         {
-            return tree.GetRoot().DescendantNodes().OfType<DiscardedDesignationSyntax>();
+            return tree.GetRoot().DescendantNodes().OfType<DiscardDesignationSyntax>();
         }
 
         private static IEnumerable<IdentifierNameSyntax> GetDiscardIdentifiers(SyntaxTree tree)
@@ -755,17 +800,10 @@ public class Cls
             return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
         }
 
-        private static bool IsOutVarDeclaration(DeclarationExpressionSyntax p)
-        {
-            return p.Designation.Kind() == SyntaxKind.SingleVariableDesignation
-                && p.Parent.Kind() == SyntaxKind.Argument
-                && ((ArgumentSyntax)p.Parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword;
-        }
-
         private static IEnumerable<DeclarationExpressionSyntax> GetOutVarDeclarations(SyntaxTree tree)
         {
             return tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>()
-                    .Where(p => IsOutVarDeclaration(p));
+                    .Where(p => p.IsOutVarDeclaration());
         }
 
         [Fact]
@@ -997,7 +1035,7 @@ public class Cls
                 var local = (SourceLocalSymbol)symbol;
                 var parent = local.IdentifierToken.Parent;
 
-                Assert.Empty(parent.Ancestors().OfType<DeclarationExpressionSyntax>().Where(e => IsOutVarDeclaration(e)));
+                Assert.Empty(parent.Ancestors().OfType<DeclarationExpressionSyntax>().Where(e => e.IsOutVarDeclaration()));
 
                 if (parent.Kind() == SyntaxKind.VariableDeclarator)
                 {
@@ -9062,9 +9100,6 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                                               options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
-                // (11,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                //             var (d, dd) = (TakeOutParam(true, out var x1), x1);
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var (d, dd) = (TakeOutParam(true, out var x1), x1);").WithLocation(11, 13),
                 // (13,9): error CS0103: The name 'x1' does not exist in the current context
                 //         x1++;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(13, 9)
@@ -18317,24 +18352,9 @@ public class Cls
                 // (10,17): error CS1003: Syntax error, '[' expected
                 //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(10, 17),
-                // (10,18): error CS1525: Invalid expression term 'out'
-                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(10, 18),
-                // (10,18): error CS1026: ) expected
-                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(10, 18),
-                // (10,18): error CS1003: Syntax error, ',' expected
-                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(10, 18),
                 // (10,28): error CS1003: Syntax error, ']' expected
                 //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(10, 28),
-                // (10,28): error CS1002: ; expected
-                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(10, 28),
-                // (10,28): error CS1513: } expected
-                //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(10, 28),
                 // (7,13): error CS0501: 'b(out var)' must declare a body because it is not marked abstract, extern, or partial
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "b").WithArguments("b(out var)").WithLocation(7, 13),
@@ -18830,6 +18850,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_CloseParenExpected
                                       };
@@ -19190,6 +19211,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_UseDefViolation
                                       };
@@ -19354,6 +19376,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_CloseParenExpected
                                       };
@@ -19546,6 +19569,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator,
                                         (int)ErrorCode.ERR_FixedMustInit,
@@ -19581,7 +19605,7 @@ public class X
                 // (87,17): warning CS0219: The variable 'y12' is assigned but its value is never used
                 //             var y12 = 12;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(87, 17),
-                // (99,54): error CS0128: A local variable named 'x14' is already defined in this scope
+                // (99,54): error CS0128: A local variable or function named 'x14' is already defined in this scope
                 //                              TakeOutParam(2, out var x14), 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 54)
                 );
@@ -19705,10 +19729,10 @@ public class X
                                       };
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (12,58): error CS0128: A local variable named 'x1' is already defined in this scope
+                // (12,58): error CS0128: A local variable or function named 'x1' is already defined in this scope
                 //         using (var d,x1(Dummy(TakeOutParam(true, out var x1), x1)))
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(12, 58),
-                // (20,73): error CS0128: A local variable named 'x2' is already defined in this scope
+                // (20,73): error CS0128: A local variable or function named 'x2' is already defined in this scope
                 //         using (System.IDisposable d,x2(Dummy(TakeOutParam(true, out var x2), x2)))
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(20, 73)
                 );
@@ -19792,6 +19816,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_FixedMustInit,
                                         (int)ErrorCode.ERR_UseDefViolation,
@@ -19959,6 +19984,7 @@ public unsafe class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_FixedMustInit,
                                         (int)ErrorCode.ERR_UseDefViolation
@@ -19992,7 +20018,7 @@ public unsafe class X
                 // (87,17): warning CS0219: The variable 'y12' is assigned but its value is never used
                 //             var y12 = 12;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y12").WithArguments("y12").WithLocation(87, 17),
-                // (99,55): error CS0128: A local variable named 'x14' is already defined in this scope
+                // (99,55): error CS0128: A local variable or function named 'x14' is already defined in this scope
                 //                               TakeOutParam(2, out var x14), 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(99, 55)
                 );
@@ -20124,6 +20150,7 @@ public unsafe class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular);
             int[] exclude = new int[] { (int)ErrorCode.ERR_BadVarDecl,
                                         (int)ErrorCode.ERR_SyntaxError,
+                                        (int)ErrorCode.ERR_UnexpectedToken,
                                         (int)ErrorCode.WRN_UnreferencedVar,
                                         (int)ErrorCode.ERR_FixedMustInit,
                                         (int)ErrorCode.ERR_UseDefViolation,
@@ -20578,24 +20605,12 @@ public unsafe struct X
                 // (8,28): error CS1003: Syntax error, '[' expected
                 //     fixed bool d[2], Test3 (out var x3);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(8, 28),
-                // (8,29): error CS1525: Invalid expression term 'out'
-                //     fixed bool d[2], Test3 (out var x3);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(8, 29),
-                // (8,29): error CS1026: ) expected
-                //     fixed bool d[2], Test3 (out var x3);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(8, 29),
-                // (8,29): error CS1003: Syntax error, ',' expected
-                //     fixed bool d[2], Test3 (out var x3);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(8, 29),
                 // (8,39): error CS1003: Syntax error, ']' expected
                 //     fixed bool d[2], Test3 (out var x3);
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(8, 39),
-                // (8,39): error CS1003: Syntax error, ',' expected
+                // (8,33): error CS8185: A declaration is not allowed in this context.
                 //     fixed bool d[2], Test3 (out var x3);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(8, 39),
-                // (8,28): error CS7092: A fixed buffer may only have one dimension.
-                //     fixed bool d[2], Test3 (out var x3);
-                Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "(out var x3").WithLocation(8, 28)
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x3").WithLocation(8, 33)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -26630,21 +26645,9 @@ class H
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b(out var x1);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,11): error CS1525: Invalid expression term 'out'
-                // bool a, b(out var x1);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(3, 11),
-                // (3,11): error CS1026: ) expected
-                // bool a, b(out var x1);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "out").WithLocation(3, 11),
-                // (3,11): error CS1003: Syntax error, ',' expected
-                // bool a, b(out var x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(3, 11),
                 // (3,21): error CS1003: Syntax error, ']' expected
                 // bool a, b(out var x1);
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 21),
-                // (3,21): error CS1003: Syntax error, ',' expected
-                // bool a, b(out var x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(3, 21),
                 // (3,19): error CS8197: Cannot infer the type of implicitly-typed out variable 'x1'.
                 // bool a, b(out var x1);
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithArguments("x1").WithLocation(3, 19)
@@ -26677,12 +26680,6 @@ class H
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b(out var x1);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,11): error CS1525: Invalid expression term 'out'
-                // bool a, b(out var x1);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(3, 11),
-                // (3,11): error CS1003: Syntax error, ',' expected
-                // bool a, b(out var x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(3, 11),
                 // (3,21): error CS1003: Syntax error, ']' expected
                 // bool a, b(out var x1);
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 21),
@@ -26732,13 +26729,13 @@ class H
                 compilation.VerifyDiagnostics(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // bool a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1))").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1)").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b(H.TakeOutParam(1, out var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,41): error CS1003: Syntax error, ']' expected
+                // (3,40): error CS1003: Syntax error, ']' expected
                 // bool a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 41),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 40),
                 // (2,1): warning CS0164: This label has not been referenced
                 // label: 
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(2, 1)
@@ -26767,13 +26764,13 @@ class H
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // bool a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1))").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1)").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b(H.TakeOutParam(1, out var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,41): error CS1003: Syntax error, ']' expected
+                // (3,40): error CS1003: Syntax error, ']' expected
                 // bool a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 41),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 40),
                 // (8,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
@@ -26820,13 +26817,13 @@ class H
                 compilation.VerifyDiagnostics(
                 // (3,25): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // event System.Action a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1))").WithLocation(3, 25),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1)").WithLocation(3, 25),
                 // (3,25): error CS1003: Syntax error, '[' expected
                 // event System.Action a, b(H.TakeOutParam(1, out var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 25),
-                // (3,56): error CS1003: Syntax error, ']' expected
+                // (3,55): error CS1003: Syntax error, ']' expected
                 // event System.Action a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 56)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 55)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -26852,13 +26849,13 @@ class H
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (3,25): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // event System.Action a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1))").WithLocation(3, 25),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1)").WithLocation(3, 25),
                 // (3,25): error CS1003: Syntax error, '[' expected
                 // event System.Action a, b(H.TakeOutParam(1, out var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 25),
-                // (3,56): error CS1003: Syntax error, ']' expected
+                // (3,55): error CS1003: Syntax error, ']' expected
                 // event System.Action a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 56),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 55),
                 // (8,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
@@ -27802,7 +27799,7 @@ public class C
             //Assert.Equal("", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
 
             var discard3 = GetDiscardIdentifiers(tree).First();
-            var symbol = (IDiscardedSymbol)model.GetSymbolInfo(discard3).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
+            var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard3).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
             //Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
 
             comp.VerifyIL("C.Main()", @"
@@ -27879,7 +27876,7 @@ public class C
             //Assert.Equal("System.Int32", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
 
             var discard3 = GetDiscardIdentifiers(tree).First();
-            var symbol = (IDiscardedSymbol)model.GetSymbolInfo(discard3).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
+            var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard3).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
             //Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
         }
 

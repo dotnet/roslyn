@@ -5,17 +5,17 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class DiscardedSymbol : Symbol, IDiscardedSymbol
+    internal class DiscardSymbol : Symbol, IDiscardSymbol
     {
         private readonly TypeSymbol _type;
 
-        public DiscardedSymbol(TypeSymbol type)
+        public DiscardSymbol(TypeSymbol type)
         {
             Debug.Assert((object)type != null);
             _type = type;
         }
 
-        ITypeSymbol IDiscardedSymbol.Type => _type;
+        ITypeSymbol IDiscardSymbol.Type => _type;
         public TypeSymbol Type => _type;
 
         public override Symbol ContainingSymbol => null;
@@ -28,18 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsSealed => false;
         public override bool IsStatic => false;
         public override bool IsVirtual => false;
-        public override SymbolKind Kind => SymbolKind.Discarded;
+        public override SymbolKind Kind => SymbolKind.Discard;
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
         internal override ObsoleteAttributeData ObsoleteAttributeData => null;
-        internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument a) => visitor.VisitDiscarded(this, a);
-        public override void Accept(SymbolVisitor visitor) => visitor.VisitDiscarded(this);
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor) => visitor.VisitDiscarded(this);
-        public override void Accept(CSharpSymbolVisitor visitor) => visitor.VisitDiscarded(this);
-        public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor) => visitor.VisitDiscarded(this);
-
-        // Need to figure out the correct behavior for the following methods.
-        // Tracked by https://github.com/dotnet/roslyn/issues/15449
-        //public override string GetDocumentationCommentId() => TODO;
-        //public override string GetDocumentationCommentXml(CultureInfo preferredCulture, bool expandIncludes, CancellationToken cancellationToken) => TODO;
+        internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument a) => visitor.VisitDiscard(this, a);
+        public override void Accept(SymbolVisitor visitor) => visitor.VisitDiscard(this);
+        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor) => visitor.VisitDiscard(this);
+        public override void Accept(CSharpSymbolVisitor visitor) => visitor.VisitDiscard(this);
+        public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor) => visitor.VisitDiscard(this);
     }
 }

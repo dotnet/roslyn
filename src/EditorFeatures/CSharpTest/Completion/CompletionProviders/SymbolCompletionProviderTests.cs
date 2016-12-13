@@ -8948,8 +8948,8 @@ class C
         await Local<$$";
 
             await VerifyAnyItemExistsAsync(markup);
-		}
-			
+        }
+
         [WorkItem(14127, "https://github.com/dotnet/roslyn/issues/14127")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TupleTypeAtMemberLevel1()

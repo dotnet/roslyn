@@ -1719,26 +1719,14 @@ async () => {
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "await");
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
-                                N(SyntaxKind.BracketedArgumentList);
+                                N(SyntaxKind.IdentifierToken, "foo");
+                                M(SyntaxKind.BracketedArgumentList);
                                 {
                                     M(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.ParenthesizedExpression);
-                                        {
-                                            N(SyntaxKind.OpenParenToken);
-                                            M(SyntaxKind.IdentifierName);
-                                            {
-                                                M(SyntaxKind.IdentifierToken);
-                                            }
-                                            N(SyntaxKind.CloseParenToken);
-                                        }
-                                    }
                                     M(SyntaxKind.CloseBracketToken);
                                 }
                             }
@@ -1748,6 +1736,7 @@ async () => {
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -1785,18 +1774,6 @@ async () => {
                                 N(SyntaxKind.BracketedArgumentList);
                                 {
                                     M(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Argument);
-                                    {
-                                        N(SyntaxKind.ParenthesizedExpression);
-                                        {
-                                            N(SyntaxKind.OpenParenToken);
-                                            M(SyntaxKind.IdentifierName);
-                                            {
-                                                M(SyntaxKind.IdentifierToken);
-                                            }
-                                            N(SyntaxKind.CloseParenToken);
-                                        }
-                                    }
                                     M(SyntaxKind.CloseBracketToken);
                                 }
                             }
@@ -1834,24 +1811,19 @@ async () => {
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "await");
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "foo");
                                 N(SyntaxKind.BracketedArgumentList);
                                 {
                                     M(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Argument);
+                                    M(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.ParenthesizedExpression);
+                                        M(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.OpenParenToken);
-                                            M(SyntaxKind.IdentifierName);
-                                            {
-                                                M(SyntaxKind.IdentifierToken);
-                                            }
-                                            M(SyntaxKind.CloseParenToken);
+                                            M(SyntaxKind.IdentifierToken);
                                         }
                                     }
                                     N(SyntaxKind.CloseBracketToken);
@@ -1863,6 +1835,7 @@ async () => {
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -1874,7 +1847,6 @@ async () => {
     int x = 2;
 }
 ");
-
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
                 N(SyntaxKind.ParameterList);
@@ -1892,24 +1864,19 @@ async () => {
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "await");
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "foo");
                                 N(SyntaxKind.BracketedArgumentList);
                                 {
                                     M(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.Argument);
+                                    M(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.ParenthesizedExpression);
+                                        M(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.OpenParenToken);
-                                            M(SyntaxKind.IdentifierName);
-                                            {
-                                                M(SyntaxKind.IdentifierToken);
-                                            }
-                                            M(SyntaxKind.CloseParenToken);
+                                            M(SyntaxKind.IdentifierToken);
                                         }
                                     }
                                     N(SyntaxKind.CloseBracketToken);
@@ -1928,13 +1895,13 @@ async () => {
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "x");
                                 N(SyntaxKind.EqualsValueClause);
                                 {
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.NumericLiteralExpression);
                                     {
-                                        N(SyntaxKind.NumericLiteralToken);
+                                        N(SyntaxKind.NumericLiteralToken, "2");
                                     }
                                 }
                             }
@@ -1944,6 +1911,7 @@ async () => {
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         #endregion AwaitExpressionStatementInSyncContext

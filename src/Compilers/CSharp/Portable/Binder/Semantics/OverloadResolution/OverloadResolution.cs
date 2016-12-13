@@ -1795,7 +1795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var nodeKind = node.Kind;
             if (nodeKind == BoundKind.OutVariablePendingInference ||
                 nodeKind == BoundKind.OutDeconstructVarPendingInference ||
-                (nodeKind == BoundKind.DiscardedExpression && !node.HasExpressionType()))
+                (nodeKind == BoundKind.DiscardExpression && !node.HasExpressionType()))
             {
                 // Neither conversion from expression is better when the argument is an implicitly-typed out variable declaration.
                 okToDowngradeToNeither = false;
@@ -2975,7 +2975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argType = argument.Type;
             if (argument.Kind == BoundKind.OutVariablePendingInference ||
                 argument.Kind == BoundKind.OutDeconstructVarPendingInference ||
-                (argument.Kind == BoundKind.DiscardedExpression && (object)argType == null))
+                (argument.Kind == BoundKind.DiscardExpression && (object)argType == null))
             {
                 Debug.Assert(argRefKind != RefKind.None);
 
