@@ -3093,12 +3093,12 @@ void Assign() { x = 5; }";
             var src = @"
 using System;
 public class C {
-    int instance = 0;
+    int instance = 11;
     public void M() {
         int M() => instance;
 
         {
-            int local = 0;
+            int local = 11;
             bool M2() => local == M();
             Console.WriteLine(M2());
         }

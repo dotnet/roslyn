@@ -665,7 +665,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // functions is performed in RemapLambdaOrLocalFunction, rather than here
                     // (since struct frame pointers should never be captured, but instead be
                     // passed in a list to the needed local functions).
-                    !(_innermostFramePointer is LocalSymbol local && local.Type.IsValueType))
+                    !(_innermostFramePointer.Kind == SymbolKind.Local &&
+                      ((LocalSymbol)_innermostFramePointer).Type.IsValueType))
                 {
                     var capturedFrame = LambdaCapturedVariable.Create(frame, _innermostFramePointer, ref _synthesizedFieldNameIdDispenser);
                     FieldSymbol frameParent = capturedFrame.AsMember(frameType);
