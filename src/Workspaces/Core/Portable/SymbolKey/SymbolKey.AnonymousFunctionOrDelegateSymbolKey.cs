@@ -18,10 +18,7 @@ namespace Microsoft.CodeAnalysis
         {
             public static void Create(ISymbol symbol, SymbolKeyWriter visitor)
             {
-                Debug.Assert(
-                    symbol.IsAnonymousDelegateType() ||
-                    symbol.IsAnonymousFunction() ||
-                    symbol.IsLocalFunction());
+                Debug.Assert(symbol.IsAnonymousDelegateType() || symbol.IsAnonymousFunction());
 
                 // Write out if this was an anonymous delegate or anonymous function.
                 // In both cases they'll have the same location (the location of 

@@ -5520,7 +5520,7 @@ class C
                 .Where(n => n.Kind() == SyntaxKind.LocalFunctionStatement)
                 .Single();
             var localSymbol = Assert.IsType<LocalFunctionSymbol>(
-                semanticModel.GetSymbolInfo(local).Symbol);
+                semanticModel.GetDeclaredSymbol(local));
 
             Verify(localSymbol.ToDisplayParts(SymbolDisplayFormat.TestFormat),
                 "void Local()",

@@ -180,9 +180,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.AnonymousFunction;
         }
 
-        public static bool IsLocalFunction(this ISymbol symbol)
-            => (symbol as IMethodSymbol)?.MethodKind == MethodKind.LocalFunction;
-
         public static bool IsKind(this ISymbol symbol, SymbolKind kind)
         {
             return symbol.MatchesKind(kind);
