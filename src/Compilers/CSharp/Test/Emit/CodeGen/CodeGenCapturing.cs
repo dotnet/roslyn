@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
             var fields = methods.First().CaptureContext.VariablesByScope[0];
 
-            const int PartitionSize = 50;
+            const int PartitionSize = 500;
             const string ClassFmt = @"
 using System;
 public class C
