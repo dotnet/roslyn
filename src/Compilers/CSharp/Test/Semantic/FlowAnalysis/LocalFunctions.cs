@@ -1288,5 +1288,35 @@ struct S
                 //             S s2 = this;
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(13, 20));
         }
+
+        [Fact]
+        [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
+        public void PiecewiseStructAssignmentInConstructor2()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+struct S
+{
+    public int _x;
+    public int _y;
+
+    public S(int x, int y)
+    {
+        _y = 0;
+        void Local()
+        {
+            S s2 = this;
+        }
+        Local();
+        _x = 0;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (12,20): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             S s2 = this;
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(12, 20),
+                // (14,9): error CS0170: Use of possibly unassigned field '_x'
+                //         Local();
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local()").WithArguments("_x").WithLocation(14, 9));
+        }
     }
 }
