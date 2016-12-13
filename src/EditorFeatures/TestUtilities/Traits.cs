@@ -79,6 +79,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsRemoveDocCommentNode = "CodeActions.RemoveDocCommentNode";
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
+            public const string CodeActionsResolveConflictMarker = "CodeActions.ResolveConflictMarker";
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
             public const string CodeActionsSuppression = "CodeActions.Suppression";

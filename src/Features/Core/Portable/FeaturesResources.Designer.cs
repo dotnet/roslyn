@@ -2566,6 +2566,42 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Take &apos;{0}&apos;.
+        /// </summary>
+        internal static string Take_0 {
+            get {
+                return ResourceManager.GetString("Take_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Take both.
+        /// </summary>
+        internal static string Take_both {
+            get {
+                return ResourceManager.GetString("Take_both", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Take bottom.
+        /// </summary>
+        internal static string Take_bottom {
+            get {
+                return ResourceManager.GetString("Take_bottom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Take top.
+        /// </summary>
+        internal static string Take_top {
+            get {
+                return ResourceManager.GetString("Take_top", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The address of a variable is used inside the selected code..
         /// </summary>
         internal static string The_address_of_a_variable_is_used_inside_the_selected_code {

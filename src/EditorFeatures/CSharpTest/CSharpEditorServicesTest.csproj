@@ -188,6 +188,7 @@
     <Compile Include="Classification\TotalClassifierTests_Dynamic.cs" />
     <Compile Include="CodeActions\AbstractCSharpCodeActionTest.cs" />
     <Compile Include="CodeActions\UseNamedArguments\UseNamedArgumentsTests.cs" />
+    <Compile Include="ConflictMarkerResolution\ConflictMarkerResolutionTests.cs" />
     <Compile Include="ConvertToInterpolatedString\ConvertConcatenationToInterpolatedStringTests.cs" />
     <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.cs" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.cs" />

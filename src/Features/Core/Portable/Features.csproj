@@ -103,6 +103,7 @@
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
+    <Compile Include="ConflictMarkerResolution\AbstractConflictMarkerCodeFixProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\AbstractConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldRefactoringProvider.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
