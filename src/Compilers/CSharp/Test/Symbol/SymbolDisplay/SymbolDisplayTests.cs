@@ -5554,7 +5554,7 @@ class C
                 .Where(n => n.Kind() == SyntaxKind.LocalFunctionStatement)
                 .Single();
             var localSymbol = Assert.IsType<LocalFunctionSymbol>(
-                semanticModel.GetSymbolInfo(local).Symbol);
+                semanticModel.GetDeclaredSymbol(local));
 
             Verify(localSymbol.ToDisplayParts(SymbolDisplayFormat.TestFormat),
                 "System.Threading.Tasks.Task<System.Int32> Local(ref System.Int32* x, out System.Char? c)",
