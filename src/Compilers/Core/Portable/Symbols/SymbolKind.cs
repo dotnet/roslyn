@@ -105,6 +105,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Symbol represents a value that is discarded, e.g. in M(out _)
         /// </summary>
-        Discarded = 19,
+        Discard = 19,
     }
 }

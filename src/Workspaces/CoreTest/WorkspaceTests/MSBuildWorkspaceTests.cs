@@ -595,7 +595,7 @@ class C1
             Assert.Empty(project.ProjectReferences);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/15102"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_WithXaml()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -2829,7 +2829,7 @@ class C { }";
 
             var projFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             var projFileText = File.ReadAllText(projFile);
-            Assert.Equal(false, projFileText.Contains(@"<Reference Include=""System.Xaml"));
+            Assert.Equal(false, projFileText.Contains(@"System.Xaml"));
 
             using (var ws = MSBuildWorkspace.Create())
             {
@@ -2841,24 +2841,58 @@ class C { }";
                 // add reference to System.Xaml
                 ws.TryApplyChanges(project.AddMetadataReference(mref).Solution);
                 projFileText = File.ReadAllText(projFile);
-                Assert.Equal(true, projFileText.Contains(@"<Reference Include=""System.Xaml"));
+                Assert.Equal(true, projFileText.Contains(@"<Reference Include=""System.Xaml,"));
 
                 // remove reference to System.Xaml
                 ws.TryApplyChanges(ws.CurrentSolution.GetProject(project.Id).RemoveMetadataReference(mref).Solution);
                 projFileText = File.ReadAllText(projFile);
-                Assert.Equal(false, projFileText.Contains(@"<Reference Include=""System.Xaml"));
+                Assert.Equal(false, projFileText.Contains(@"<Reference Include=""System.Xaml,"));
             }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestAddRemoveMetadataReference_NonGAC()
+        public void TestAddRemoveMetadataReference_ReferenceAssembly()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_WithSystemNumerics.csproj")));
+
+            var csProjFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+            var csProjFileText = File.ReadAllText(csProjFile);
+            Assert.Equal(true, csProjFileText.Contains(@"<Reference Include=""System.Numerics"""));
+
+            var vbProjFile = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
+            var vbProjFileText = File.ReadAllText(vbProjFile);
+            Assert.Equal(false, vbProjFileText.Contains(@"System.Numerics"));
+
+            using (var ws = MSBuildWorkspace.Create())
+            {
+                var solution = ws.OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
+                var csProject = solution.Projects.First(p => p.Language == LanguageNames.CSharp);
+                var vbProject = solution.Projects.First(p => p.Language == LanguageNames.VisualBasic);
+
+                var numericsMetadata = csProject.MetadataReferences.Single(m => m.Display.Contains("System.Numerics"));
+
+                // add reference to System.Xaml
+                ws.TryApplyChanges(vbProject.AddMetadataReference(numericsMetadata).Solution);
+                var newVbProjFileText = File.ReadAllText(vbProjFile);
+                Assert.Equal(true, newVbProjFileText.Contains(@"<Reference Include=""System.Numerics"""));
+
+                // remove reference MyAssembly.dll
+                ws.TryApplyChanges(ws.CurrentSolution.GetProject(vbProject.Id).RemoveMetadataReference(numericsMetadata).Solution);
+                var newVbProjFileText2 = File.ReadAllText(vbProjFile);
+                Assert.Equal(false, newVbProjFileText2.Contains(@"<Reference Include=""System.Numerics"""));
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestAddRemoveMetadataReference_NonGACorRefAssembly()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
                 .WithFile(@"References\MyAssembly.dll", GetResourceBytes("EmptyLibrary.dll")));
 
             var projFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             var projFileText = File.ReadAllText(projFile);
-            Assert.Equal(false, projFileText.Contains(@"<Reference Include=""..\References\MyAssembly.dll"));
+            Assert.Equal(false, projFileText.Contains(@"MyAssembly"));
 
             using (var ws = MSBuildWorkspace.Create())
             {
@@ -2871,12 +2905,14 @@ class C { }";
                 // add reference to MyAssembly.dll
                 ws.TryApplyChanges(project.AddMetadataReference(mref).Solution);
                 projFileText = File.ReadAllText(projFile);
-                Assert.Equal(true, projFileText.Contains(@"<Reference Include=""..\References\MyAssembly.dll"));
+                Assert.Equal(true, projFileText.Contains(@"<Reference Include=""MyAssembly"""));
+                Assert.Equal(true, projFileText.Contains(@"<HintPath>..\References\MyAssembly.dll"));
 
                 // remove reference MyAssembly.dll
                 ws.TryApplyChanges(ws.CurrentSolution.GetProject(project.Id).RemoveMetadataReference(mref).Solution);
                 projFileText = File.ReadAllText(projFile);
-                Assert.Equal(false, projFileText.Contains(@"<Reference Include=""..\References\MyAssembly.dll"));
+                Assert.Equal(false, projFileText.Contains(@"<Reference Include=""MyAssembly"""));
+                Assert.Equal(false, projFileText.Contains(@"<HintPath>..\References\MyAssembly.dll"));
             }
         }
 

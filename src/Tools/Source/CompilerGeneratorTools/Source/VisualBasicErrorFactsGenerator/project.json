@@ -1,7 +1,7 @@
-﻿{
+{
     "dependencies": {
         "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
-        "NETStandard.Library": "1.6.0"
+        "NETStandard.Library": "1.6.1"
     },
     "frameworks": {
         // We don't actually target netstandard1.6; this is to work around https://github.com/dotnet/roslyn/issues/12458

@@ -1086,12 +1086,12 @@ namespace Roslyn.Test.PdbUtilities
             fixed (byte* sigPtr = signature.ToArray())
             {
                 var sigReader = new BlobReader(sigPtr, signature.Length);
-                var decoder = new SignatureDecoder<string>(ConstantSignatureVisualizer.Instance, _metadataReader);
+                var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, _metadataReader, genericContext: null);
                 return decoder.DecodeType(ref sigReader, allowTypeSpecifications: true);
             }
         }
 
-        private sealed class ConstantSignatureVisualizer : ISignatureTypeProvider<string>
+        private sealed class ConstantSignatureVisualizer : ISignatureTypeProvider<string, object>
         {
             public static readonly ConstantSignatureVisualizer Instance = new ConstantSignatureVisualizer();
 
@@ -1111,23 +1111,23 @@ namespace Roslyn.Test.PdbUtilities
                 return "method-ptr";
             }
 
-            public string GetGenericInstance(string genericType, ImmutableArray<string> typeArguments)
+            public string GetGenericInstantiation(string genericType, ImmutableArray<string> typeArguments)
             {
                 // using {} since the result is embedded in XML
                 return genericType + "{" + string.Join(", ", typeArguments) + "}";
             }
 
-            public string GetGenericMethodParameter(int index)
+            public string GetGenericMethodParameter(object genericContext, int index)
             {
                 return "!!" + index;
             }
 
-            public string GetGenericTypeParameter(int index)
+            public string GetGenericTypeParameter(object genericContext, int index)
             {
                 return "!" + index;
             }
 
-            public string GetModifiedType(MetadataReader reader, bool isRequired, string modifier, string unmodifiedType)
+            public string GetModifiedType(string modifier, string unmodifiedType, bool isRequired)
             {
                 return (isRequired ? "modreq" : "modopt") + "(" + modifier + ") " + unmodifiedType;
             }
@@ -1166,10 +1166,10 @@ namespace Roslyn.Test.PdbUtilities
                 return typeRef.Namespace.IsNil ? name : reader.GetString(typeRef.Namespace) + "." + name;
             }
 
-            public string GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle, byte rawTypeKind)
+            public string GetTypeFromSpecification(MetadataReader reader, object genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
             {
                 var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(handle).Signature);
-                return new SignatureDecoder<string>(Instance, reader).DecodeType(ref sigReader);
+                return new SignatureDecoder<string, object>(Instance, reader, genericContext).DecodeType(ref sigReader);
             }
         }
 

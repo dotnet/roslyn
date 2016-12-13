@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return DefaultVisit(symbol);
         }
 
-        public virtual TResult VisitDiscarded(DiscardedSymbol symbol)
+        public virtual TResult VisitDiscard(DiscardSymbol symbol)
         {
             return DefaultVisit(symbol);
         }

@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.SingleVariableDesignation:
                     break;
-                case SyntaxKind.DiscardedDesignation:
+                case SyntaxKind.DiscardDesignation:
                     return new BoundDeclarationPattern(node, null, boundDeclType, isVar, hasErrors);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Designation.Kind());

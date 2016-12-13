@@ -665,10 +665,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
                 arguments.GetOrCreateData(Of EventWellKnownAttributeData).HasSpecialNameAttribute = True
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
+                arguments.GetOrCreateData(Of EventWellKnownAttributeData).HasExcludeFromCodeCoverageAttribute = True
             End If
 
             MyBase.DecodeWellKnownAttribute(arguments)
         End Sub
+
+        Friend NotOverridable Overrides ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
+            Get
+                Dim data = GetDecodedWellKnownAttributeData()
+                Return data IsNot Nothing AndAlso data.HasExcludeFromCodeCoverageAttribute
+            End Get
+        End Property
 
         Friend Overrides ReadOnly Property HasSpecialName As Boolean
             Get

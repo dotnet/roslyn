@@ -1,7 +1,7 @@
 {
     "dependencies": {
-        "Microsoft.CSharp": "4.0.1",
-        "System.Dynamic.Runtime": "4.0.11"
+        "Microsoft.CSharp": "4.3.0",
+        "System.Dynamic.Runtime": "4.3.0"
     },
     "frameworks": {
         "netstandard1.3": {

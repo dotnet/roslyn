@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
     /// A symbol representing a discarded value, e.g. a symbol in the result of
     /// GetSymbolInfo for `_` in `M(out _)` or `(x, _) = e`.
     /// </summary>
-    public interface IDiscardedSymbol : ISymbol
+    public interface IDiscardSymbol : ISymbol
     {
         /// <summary>
         /// The type of the discarded value.

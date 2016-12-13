@@ -11069,12 +11069,15 @@ class C
                 // (6,47): error CS1525: Invalid expression term 'int'
                 //         System.Console.WriteLine(nameof((int, int)));
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 47),
-                // (7,55): error CS1003: Syntax error, '=>' expected
+                // (7,42): error CS8185: A declaration is not allowed in this context.
                 //         System.Console.WriteLine(nameof((int a, int b)));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(7, 55),
-                // (7,55): error CS1525: Invalid expression term ')'
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(7, 42),
+                // (7,49): error CS8185: A declaration is not allowed in this context.
                 //         System.Console.WriteLine(nameof((int a, int b)));
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 55)
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int b").WithLocation(7, 49),
+                // (7,41): error CS8081: Expression does not have a name.
+                //         System.Console.WriteLine(nameof((int a, int b)));
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "(int a, int b)").WithLocation(7, 41)
                 );
         }
 
@@ -13310,15 +13313,21 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source);
             comp.VerifyDiagnostics(
-                // (6,32): error CS1003: Syntax error, '=>' expected
+                // (6,19): error CS8185: A declaration is not allowed in this context.
                 //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(6, 32),
-                // (6,32): error CS1525: Invalid expression term ')'
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(6, 19),
+                // (6,26): error CS8185: A declaration is not allowed in this context.
                 //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 32),
-                // (6,18): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int b").WithLocation(6, 26),
+                // (6,18): error CS0150: A constant value is expected
                 //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(int a, int b)").WithArguments("lambda expression", "object").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int a, int b)").WithLocation(6, 18),
+                // (6,23): error CS0165: Use of unassigned local variable 'a'
+                //         if (o is (int a, int b)) { }
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(6, 23),
+                // (6,30): error CS0165: Use of unassigned local variable 'b'
+                //         if (o is (int a, int b)) { }
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "b").WithArguments("b").WithLocation(6, 30)
                 );
         }
 

@@ -1577,49 +1577,40 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (6,17): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "operator").WithLocation(6, 17),
-    // (6,17): error CS1513: } expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_RbraceExpected, "operator").WithLocation(6, 17),
-    // (6,36): error CS1026: ) expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "left").WithLocation(6, 36),
-    // (6,36): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "left").WithLocation(6, 36),
-    // (6,40): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 40),
-    // (6,40): error CS1513: } expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 40),
-    // (6,55): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 55),
-    // (6,55): error CS1513: } expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 55),
-    // (6,9): error CS0119: 'Program' is a type, which is not valid in the given context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 9),
-    // (6,28): error CS0119: 'Program' is a type, which is not valid in the given context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 28),
-    // (6,28): error CS0119: 'Program' is a type, which is not valid in the given context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 28),
-    // (6,36): error CS0103: The name 'left' does not exist in the current context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "left").WithArguments("left").WithLocation(6, 36),
-    // (8,20): error CS0103: The name 'left' does not exist in the current context
-    //             return left;
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "left").WithArguments("left").WithLocation(8, 20),
-    // (6,50): warning CS0168: The variable 'right' is declared but never used
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "right").WithArguments("right").WithLocation(6, 50)
-    );
+                // (6,17): error CS1002: ; expected
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "operator").WithLocation(6, 17),
+                // (6,17): error CS1513: } expected
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "operator").WithLocation(6, 17),
+                // (6,56): error CS1002: ; expected
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 56),
+                // (6,9): error CS0119: 'Program' is a type, which is not valid in the given context
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 9),
+                // (6,28): error CS8184: A declaration is not allowed in this context.
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "Program left").WithLocation(6, 28),
+                // (6,42): error CS8184: A declaration is not allowed in this context.
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "Program right").WithLocation(6, 42),
+                // (6,27): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(Program left, Program right)").WithArguments("System.ValueTuple`2").WithLocation(6, 27),
+                // (6,26): error CS0023: Operator '+' cannot be applied to operand of type '(Program, Program)'
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+(Program left, Program right)").WithArguments("+", "(Program, Program)").WithLocation(6, 26),
+                // (8,13): error CS0127: Since 'Program.Main(string[])' returns void, a return keyword must not be followed by an object expression
+                //             return left;
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Program.Main(string[])").WithLocation(8, 13),
+                // (6,36): error CS0165: Use of unassigned local variable 'left'
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "left").WithArguments("left").WithLocation(6, 36),
+                // (6,50): error CS0165: Use of unassigned local variable 'right'
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "right").WithArguments("right").WithLocation(6, 50)
+                );
         }
 
         [Fact]

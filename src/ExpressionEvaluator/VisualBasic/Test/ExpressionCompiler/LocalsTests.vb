@@ -1665,8 +1665,8 @@ End Structure"
     Shared Sub M(a As A, b As B, c As C)
     End Sub
 End Class"
-            Dim comp0 = CreateCompilationWithMscorlib({source0}, options:=TestOptions.DebugDll)
-            Dim comp1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll, references:={comp0.EmitToImageReference()})
+            Dim comp0 = CreateCompilationWithMscorlib({source0}, options:=TestOptions.DebugDll, assemblyName:="Test")
+            Dim comp1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll, references:={comp0.EmitToImageReference()}, assemblyName:="Test")
 
             ' no reference to compilation0
             WithRuntimeInstance(comp1, {MscorlibRef},

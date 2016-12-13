@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Parent.Kind() == SyntaxKind.DeclarationPattern);
         }
 
-        protected static IEnumerable<DiscardedDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
+        protected static IEnumerable<DiscardDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
         {
-            return tree.GetRoot().DescendantNodes().OfType<DiscardedDesignationSyntax>();
+            return tree.GetRoot().DescendantNodes().OfType<DiscardDesignationSyntax>();
         }
 
         protected static IdentifierNameSyntax GetReference(SyntaxTree tree, string name)
