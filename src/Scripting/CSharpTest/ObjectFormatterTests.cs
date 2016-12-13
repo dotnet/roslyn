@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.Equal("LongMembers { LongNa...", str);
 
             str = new TestCSharpObjectFormatter(maximumLineLength: 20).FormatObject(obj, SeparateLinesOptions);
-            Assert.Equal("LongMembers {\r\n  LongName0123456789...\r\n  LongValue: \"012345...\r\n}\r\n", str);
+            Assert.Equal($"LongMembers {{{Environment.NewLine}  LongName0123456789...{Environment.NewLine}  LongValue: \"012345...{Environment.NewLine}}}{Environment.NewLine}", str);
         }
 
         [Fact]
@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void StackTrace_NonGeneric()
         {
             try
@@ -855,7 +855,7 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void StackTrace_GenericMethod()
         {
             try
@@ -877,7 +877,7 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void StackTrace_GenericType()
         {
             try
@@ -899,7 +899,7 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void StackTrace_GenericMethodInGenericType()
         {
             try
@@ -968,7 +968,7 @@ $@"'object' does not contain a definition for 'x'
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void StackTrace_RefOutParameters()
         {
             try
@@ -991,7 +991,7 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void StackTrace_GenericRefParameter()
         {
             try

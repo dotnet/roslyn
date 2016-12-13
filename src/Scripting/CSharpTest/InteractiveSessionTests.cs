@@ -1167,13 +1167,13 @@ new C()
             string scriptPath = Path.Combine(dir, "a.csx");
 
             var script = CSharpScript.Create(
-                $@"#r ""..\{libFileName}""",
+                $@"#r ""{Path.Combine("..", libFileName)}""",
                 ScriptOptions.Default.WithFilePath(scriptPath));
 
             script.GetCompilation().VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void ReferenceDirective_RelativeToBaseRoot()
         {
             var file = Temp.CreateFile();

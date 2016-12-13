@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             var set = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            if (CoreClrShim.AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") is string paths)
+            if (CoreClrShim.AppContext.GetData?.Invoke("TRUSTED_PLATFORM_ASSEMBLIES") is string paths)
             {
                 foreach (var path in paths.Split(Path.PathSeparator))
                 {

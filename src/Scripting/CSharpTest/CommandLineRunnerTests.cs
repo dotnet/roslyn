@@ -326,7 +326,7 @@ Type ""#help"" for more information.
             AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Error.ToString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void Args_InteractiveWithScript1()
         {
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
@@ -359,7 +359,7 @@ $@"""@arg1""
 > ", runner.Console.Out.ToString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void Args_Script1()
         {
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
@@ -367,7 +367,7 @@ $@"""@arg1""
             var runner = CreateRunner(
                 args: new[] { script.Path, "arg1", "arg2", "arg3" });
 
-            Assert.Equal(0, runner.RunInteractive());
+            Assert.True(runner.RunInteractive() == 0, userMessage: runner.Console.Error.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
 ""arg1""
@@ -376,7 +376,7 @@ $@"""@arg1""
 ", runner.Console.Out.ToString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void Args_Script2()
         {
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
@@ -384,7 +384,7 @@ $@"""@arg1""
             var runner = CreateRunner(
                 args: new[] { script.Path, "@arg1", "@arg2", "@arg3" });
 
-            Assert.Equal(0, runner.RunInteractive());
+            Assert.True(runner.RunInteractive() == 0, userMessage: runner.Console.Error.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
 ""@arg1""
@@ -393,7 +393,7 @@ $@"""@arg1""
 ", runner.Console.Out.ToString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         public void Args_Script3()
         {
             var script = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
@@ -412,7 +412,7 @@ $@"""@arg1""
                 args: new[] { $"@{rsp.Path}", "/arg5", "--", "/arg7" },
                 input: "foreach (var arg in Args) Print(arg);");
 
-            Assert.Equal(0, runner.RunInteractive());
+            Assert.True(runner.RunInteractive() == 0, userMessage: runner.Console.Error.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
 ""--""
