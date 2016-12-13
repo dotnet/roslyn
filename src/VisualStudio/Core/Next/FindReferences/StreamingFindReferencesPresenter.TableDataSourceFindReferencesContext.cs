@@ -580,6 +580,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
 
             public override Task ReportProgressAsync(int current, int maximum)
             {
+                // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
+                // Right now VS actually responds to each SetProgess call by enqueueing a UI task
+                // to do the progress bar update.  This can made FindReferences feel extremely slow
+                // when thousands of SetProgress calls are made.  So, for now, we're removing
+                // the progress update until the FindRefs window fixes that perf issue.
+#if false
                 try
                 {
                     // The original FAR window exposed a SetProgress(double). Ensure that we 
@@ -589,6 +595,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindReferences
                 catch
                 {
                 }
+#endif
 
                 return SpecializedTasks.EmptyTask;
             }
