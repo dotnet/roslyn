@@ -71,8 +71,73 @@ namespace Microsoft.CodeAnalysis
 
             TextAndVersion textAndVersion;
 
-            // Open file for reading with FileShare mode read/write/delete so that we do not lock this file.
-            using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 4096, useAsync: true)))
+            // In many .NET Framework versions (specifically the 4.5.* series, but probably much earlier
+            // and also later) there is this particularly interesting bit in FileStream.BeginReadAsync:
+            //
+            //     // [ed: full comment clipped for brevity]
+            //     //
+            //     // If we did a sync read to fill the buffer, we could avoid the
+            //     // problem, and any async read less than 64K gets turned into a
+            //     // synchronous read by NT anyways...
+            //     if (numBytes < _bufferSize)
+            //     {
+            //         if (_buffer == null) _buffer = new byte[_bufferSize];
+            //         IAsyncResult bufferRead = BeginReadCore(_buffer, 0, _bufferSize, null, null, 0);
+            //         _readLen = EndRead(bufferRead);
+            //
+            // In English, this means that if you do a asynchronous read for smaller than _bufferSize,
+            // this is implemented by the framework by starting an asynchronous read, and then
+            // blocking your thread until that read is completed. The comment implies this is "fine"
+            // because the asynchronous read will actually be synchronous and thus EndRead won't do
+            // any blocking -- it'll be an effective no-op. In theory, everything is fine here.
+            //
+            // In reality, this can end very poorly. That read in fact can be asynchronous, which means the
+            // EndRead will enter a wait and block the thread. If we are running that call to ReadAsync on a
+            // thread pool thread that completed a previous piece of IO, it means there has to be another
+            // thread available to service the completion of that request in order for our thread to make
+            // progress. Why is this worse than the claim about the operating system turning an
+            // asynchronous read into a synchronous one? If the underlying native ReadFile completes
+            // synchronously, that would mean just our thread is being blocked, and will be unblocked once
+            // the kernel gets done with our work. In this case, if the OS does do the read asynchronously
+            // we are now dependent on another thread being available to unblock us.
+            //
+            // So how does ths manifest itself? We have seen dumps from customers reporting hangs where
+            // we have over a hundred thread pool threads all blocked on EndRead() calls as we read this stream.
+            // In these cases, the user had just completed a build that had a bunch of XAML files, and
+            // this resulted in many .g.i.cs files being written and updated. As a result, Roslyn is trying to
+            // re-read them to provide a new compilation to the XAML language service that is asking for it.
+            // Inspecting these dumps and sampling some of the threads made some notable discoveries:
+            //
+            // 1. When there was a read blocked, it was the _last_ chunk that we were reading in the file in
+            //    the file that we were reading. This leads me to believe that it isn't simply very slow IO
+            //    (like a network drive), because in that case I'd expect to see some threads in different
+            //    places than others.
+            // 2. Some stacks were starting by the continuation of a ReadAsync, and some were the first read
+            //    of a file from the background parser. In the first case, all of those threads were if the
+            //    files were over 4K in size. The ones with the BackgroundParser still on the stack were files
+            //    less than 4K in size.
+            // 3. The "time unresponsive" in seconds correlated with roughly the number of threads we had
+            //    blocked, which makes me think we were impacted by the once-per-second hill climbing algorithm
+            //    used by the thread pool.
+            //
+            // So what's my analysis? When the XAML language service updated all the files, we kicked off
+            // background parses for all of them. If the file was over 4K the asynchronous read actually did
+            // happen (see point #2), but we'd eventually block the thread pool reading the last chunk.
+            // Point #1 confirms that it was always the last chunk. And in small file cases, we'd block on
+            // the first chunk. But in either case, we'd be blocking off a thread pool thread until another
+            // thread pool thread was available. Since we had enough requests going (over a hundred),
+            // sometimes the user got unlucky and all the threads got blocked. At this point, the CLR
+            // started slowly kicking off more threads, but each time it'd start a new thread rather than
+            // starting work that would be needed to unblock a thread, it just handled an IO that resulted
+            // in another file read hitting the end of the file and another thread would get blocked. The
+            // CLR then must kick off another thread, rinse, repeat. Eventually it'll make progress once
+            // there's no more pending IO requests, everything will complete, and life then continues.
+            //
+            // To work around this issue, we set bufferSize to 1, which means that all reads should bypass
+            // this logic. This is tracked by https://github.com/dotnet/corefx/issues/6007, at least in
+            // corefx. We also open the file for reading with FileShare mode read/write/delete so that
+            // we do not lock this file.
+            using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 1, useAsync: true)))
             {
                 var version = VersionStamp.Create(prevLastWriteTime);
 
