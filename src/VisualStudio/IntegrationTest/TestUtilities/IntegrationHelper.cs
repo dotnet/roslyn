@@ -11,12 +11,11 @@ using System.Text;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.Win32;
 using Roslyn.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
-
 using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
@@ -175,8 +174,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             var topLevelWindows = new List<IntPtr>();
 
-            var enumFunc = new NativeMethods.WNDENUMPROC((hWnd, lParam) =>
-            {
+            var enumFunc = new NativeMethods.WNDENUMPROC((hWnd, lParam) => {
                 topLevelWindows.Add(hWnd);
                 return true;
             });
@@ -226,7 +224,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var activeThreadId = NativeMethods.GetWindowThreadProcessId(foregroundWindow, IntPtr.Zero);
             var currentThreadId = NativeMethods.GetCurrentThreadId();
 
-            bool threadInputsAttached = false;
+            var threadInputsAttached = false;
 
             try
             {

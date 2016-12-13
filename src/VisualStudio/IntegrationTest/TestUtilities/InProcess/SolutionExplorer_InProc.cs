@@ -4,10 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.CodeAnalysis;
+using System.Text.RegularExpressions;
 using System.Threading;
 using EnvDTE80;
-using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -21,7 +21,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private SolutionExplorer_InProc() { }
 
-        public static SolutionExplorer_InProc Create() => new SolutionExplorer_InProc();
+        public static SolutionExplorer_InProc Create()
+            => new SolutionExplorer_InProc();
 
         private static IDictionary<string, string> InitializeCSharpProjectTemplates()
         {
@@ -65,7 +66,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void CloseSolution(bool saveFirst = false) => GetDTE().Solution.Close(saveFirst);
+        public void CloseSolution(bool saveFirst = false)
+            => GetDTE().Solution.Close(saveFirst);
 
         /// <summary>
         /// Creates and loads a new solution in the host process, optionally saving the existing solution if one exists.
@@ -181,11 +183,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         private EnvDTE.Project GetProject(string nameOrFileName)
-        {
-            return _solution.Projects.OfType<EnvDTE.Project>().First(p => 
-                string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0 
+            => _solution.Projects.OfType<EnvDTE.Project>().First(p
+                => string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0 
                 || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
-        }
 
         public void AddFile(string projectName, string fileName, string contents = null, bool open = false)
         {
@@ -320,13 +320,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             _solution.AddFromFile(projectPath);
         }
 
-        public void RestoreNuGetPackages() => ExecuteCommand("ProjectAndSolutionContextMenus.Solution.RestoreNuGetPackages");
+        public void RestoreNuGetPackages()
+            => ExecuteCommand("ProjectAndSolutionContextMenus.Solution.RestoreNuGetPackages");
 
-        public void SaveAll() => ExecuteCommand("File.SaveAll");
+        public void SaveAll()
+            => ExecuteCommand("File.SaveAll");
 
-        public void ShowErrorList() => ExecuteCommand("View.ErrorList");
+        public void ShowErrorList()
+            => ExecuteCommand("View.ErrorList");
 
-        public void ShowOutputWindow() => ExecuteCommand("View.Output");
+        public void ShowOutputWindow()
+            => ExecuteCommand("View.Output");
 
         public void UnloadProject(string projectName)
         {

@@ -7,8 +7,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
+using Microsoft.VisualStudio.Setup.Configuration;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {

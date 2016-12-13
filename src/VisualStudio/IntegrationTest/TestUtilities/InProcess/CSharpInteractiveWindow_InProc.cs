@@ -12,14 +12,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private CSharpInteractiveWindow_InProc(): base(ViewCommand, WindowTitle) { }
 
-        public static CSharpInteractiveWindow_InProc Create() => new CSharpInteractiveWindow_InProc();
+        public static CSharpInteractiveWindow_InProc Create()
+            => new CSharpInteractiveWindow_InProc();
 
-        protected override IInteractiveWindow AcquireInteractiveWindow() => InvokeOnUIThread(() => {
-            var componentModel = GetComponentModel();
-            var vsInteractiveWindowProvider = componentModel.GetService<CSharpVsInteractiveWindowProvider>();
-            var vsInteractiveWindow = vsInteractiveWindowProvider.Open(instanceId: 0, focus: true);
+        protected override IInteractiveWindow AcquireInteractiveWindow()
+            => InvokeOnUIThread(() => {
+                var componentModel = GetComponentModel();
+                var vsInteractiveWindowProvider = componentModel.GetService<CSharpVsInteractiveWindowProvider>();
+                var vsInteractiveWindow = vsInteractiveWindowProvider.Open(instanceId: 0, focus: true);
 
-            return vsInteractiveWindow.InteractiveWindow;
-        });
+                return vsInteractiveWindow.InteractiveWindow;
+            });
     }
 }

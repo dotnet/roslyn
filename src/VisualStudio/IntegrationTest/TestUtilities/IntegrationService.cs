@@ -27,8 +27,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public IntegrationService()
         {
-            this.PortName = GetPortName(Process.GetCurrentProcess().Id);
-            this.BaseUri = "ipc://" + this.PortName;
+            PortName = GetPortName(Process.GetCurrentProcess().Id);
+            BaseUri = "ipc://" + this.PortName;
         }
 
         private static string GetPortName(int hostProcessId)
@@ -40,7 +40,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public static IntegrationService GetInstanceFromHostProcess(Process hostProcess)
         {
             var uri = $"ipc://{GetPortName(hostProcess.Id)}/{typeof(IntegrationService).FullName}";
-
             return (IntegrationService)Activator.GetObject(typeof(IntegrationService), uri);
         }
 

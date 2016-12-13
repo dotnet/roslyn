@@ -16,9 +16,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <typeparam name="T">type of return value</typeparam>
         /// <returns>the return value of 'action'</returns>
         public static T Retry<T>(Func<T> action, int delay, int timeout)
-        {
-            return Retry(action, TimeSpan.FromMilliseconds(delay), TimeSpan.FromMilliseconds(timeout));
-        }
+            => Retry(action, TimeSpan.FromMilliseconds(delay), TimeSpan.FromMilliseconds(timeout));
 
         /// <summary>
         /// This method will retry the action represented by the 'action' argument, up to 'timeout'
@@ -31,9 +29,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <typeparam name="T">type of return value</typeparam>
         /// <returns>the return value of 'action'</returns>
         public static T RetryIgnoringExceptions<T>(Func<T> action, int delay, int timeout)
-        {
-            return RetryIgnoringExceptions(action, TimeSpan.FromMilliseconds(delay), TimeSpan.FromMilliseconds(timeout));
-        }
+            => RetryIgnoringExceptions(action, TimeSpan.FromMilliseconds(delay), TimeSpan.FromMilliseconds(timeout));
 
         /// <summary>
         /// This method will retry the action represented by the 'action' argument, up to 'timeout',
@@ -47,8 +43,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <returns>the return value of 'action'</returns>
         public static T Retry<T>(Func<T> action, TimeSpan delay, TimeSpan timeout)
         {
-            DateTime beginTime = DateTime.UtcNow;
-            T retval = default(T);
+            var beginTime = DateTime.UtcNow;
+            var retval = default(T);
 
             do
             {
@@ -87,8 +83,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <returns>the return value of 'action'</returns>
         public static T RetryIgnoringExceptions<T>(Func<T> action, TimeSpan delay, TimeSpan timeout)
         {
-            DateTime beginTime = DateTime.UtcNow;
-            T retval = default(T);
+            var beginTime = DateTime.UtcNow;
+            var retval = default(T);
             Exception e = null;
 
             do

@@ -7,10 +7,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     public class CSharpInteractiveWindow_OutOfProc : InteractiveWindow_OutOfProc
     {
         public CSharpInteractiveWindow_OutOfProc(VisualStudioInstance visualStudioInstance)
-            : base(visualStudioInstance)
-        {
-        }
+            : base(visualStudioInstance) { }
 
-        internal override InteractiveWindow_InProc CreateInProcComponent(VisualStudioInstance visualStudioInstance) => CreateInProcComponent<CSharpInteractiveWindow_InProc>(visualStudioInstance);
+        internal override InteractiveWindow_InProc CreateInProcComponent(VisualStudioInstance visualStudioInstance)
+            => CreateInProcComponent<CSharpInteractiveWindow_InProc>(visualStudioInstance);
     }
 }

@@ -12,14 +12,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     public static class HostWaitHelper
     {
         public static void WaitForDispatchedOperationsToComplete(DispatcherPriority priority)
-        {
-            Action action = delegate { };
-            new FrameworkElement().Dispatcher.Invoke(action, priority);
-        }
+            => Dispatcher.CurrentDispatcher.Invoke(() => { }, priority);
 
         public static void PumpingWait(Task task)
         {
-            PumpingWaitAll(new[] { task });
+            var tasks = new[] { task };
+            PumpingWaitAll(tasks);
         }
 
         public static T PumpingWaitResult<T>(Task<T> task)

@@ -9,9 +9,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     public static class LightBulbHelper
     {
         public static bool WaitForLightBulbSession(ILightBulbBroker broker, Microsoft.VisualStudio.Text.Editor.IWpfTextView view)
-        {
-            return Helper.Retry<bool>(() =>
-            {
+            => Helper.Retry(() => {
                 if (broker.IsLightBulbSessionActive(view))
                 {
                     return true;
@@ -23,6 +21,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 return broker.IsLightBulbSessionActive(view);
             }, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(20));
-        }
     }
 }

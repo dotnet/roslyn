@@ -55,7 +55,7 @@ Fac(4)");
         }
 
         [Fact]
-        public async Task WpfInteraction()
+        public async Task WpfInteractionAsync()
         {
             SubmitText(@"#r ""WindowsBase""
 #r ""PresentationCore""

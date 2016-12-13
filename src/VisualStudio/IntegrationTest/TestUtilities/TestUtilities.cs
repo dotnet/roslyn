@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,8 +22,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public static void ThrowIfExpectedItemNotFound<TCollection>(IEnumerable<TCollection> actual, IEnumerable<TCollection> expected)
             where TCollection : IEquatable<TCollection>
         {
-            bool shouldThrow = false;
-            StringBuilder sb = new StringBuilder();
+            var shouldThrow = false;
+            var sb = new StringBuilder();
             sb.Append("The following expected item(s) not found:\r\n");
 
             foreach (var item in expected)
@@ -44,8 +46,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             IEqualityComparer<TCollection> comparer)
             where TCollection : IEquatable<TCollection>
         {
-            bool shouldThrow = false;
-            StringBuilder sb = new StringBuilder();
+            var shouldThrow = false;
+            var sb = new StringBuilder();
             sb.Append("The following expected item(s) not found:\r\n");
 
             foreach (var item in expected)
@@ -66,8 +68,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public static void ThrowIfExpectedItemNotFoundInOrder<TCollection>(IEnumerable<TCollection> actual, IEnumerable<TCollection> expected)
             where TCollection : IEquatable<TCollection>
         {
-            bool shouldThrow = false;
-            StringBuilder sb = new StringBuilder();
+            var shouldThrow = false;
+            var sb = new StringBuilder();
             sb.Append("The following expected item(s) not found in sequence:\r\n");
 
             var remainingActualList = actual;
@@ -93,8 +95,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public static void ThrowIfUnExpectedItemFound<TCollection>(IEnumerable<TCollection> actual, IEnumerable<TCollection> unexpected)
         {
-            bool shouldThrow = false;
-            StringBuilder sb = new StringBuilder();
+            var shouldThrow = false;
+            var sb = new StringBuilder();
             sb.Append("The following UN-expected item(s) were encountered:\r\n");
 
             foreach (var item in unexpected)
@@ -124,8 +126,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         private static string BuildString<TElement>(IEnumerable<TElement> list)
-        {
-            return string.Join(Environment.NewLine, list.Select(item => item.ToString()).ToArray());
-        }
+            => string.Join(Environment.NewLine, list.Select(item => item.ToString()).ToArray());
     }
 }

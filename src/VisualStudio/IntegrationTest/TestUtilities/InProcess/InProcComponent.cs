@@ -24,11 +24,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         protected InProcComponent() { }
 
-        private static Dispatcher CurrentApplicationDispatcher => Application.Current.Dispatcher;
+        private static Dispatcher CurrentApplicationDispatcher
+            => Application.Current.Dispatcher;
 
-        protected static void InvokeOnUIThread(Action action) => CurrentApplicationDispatcher.Invoke(action);
+        protected static void InvokeOnUIThread(Action action)
+            => CurrentApplicationDispatcher.Invoke(action);
 
-        protected static T InvokeOnUIThread<T>(Func<T> action) => CurrentApplicationDispatcher.Invoke(action);
+        protected static T InvokeOnUIThread<T>(Func<T> action)
+            => CurrentApplicationDispatcher.Invoke(action);
 
         protected static TInterface GetGlobalService<TService, TInterface>()
             where TService : class
@@ -39,19 +42,25 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             where TService : class
          => InvokeOnUIThread(() => GetComponentModel().GetService<TService>());
 
-        protected static DTE GetDTE() => GetGlobalService<SDTE, DTE>();
+        protected static DTE GetDTE()
+            => GetGlobalService<SDTE, DTE>();
 
-        protected static IComponentModel GetComponentModel() => GetGlobalService<SComponentModel, IComponentModel>();
+        protected static IComponentModel GetComponentModel()
+            => GetGlobalService<SComponentModel, IComponentModel>();
 
-        protected static bool IsCommandAvailable(string commandName) => GetDTE().Commands.Item(commandName).IsAvailable;
+        protected static bool IsCommandAvailable(string commandName)
+            => GetDTE().Commands.Item(commandName).IsAvailable;
 
-        protected static void ExecuteCommand(string commandName, string args = "") => GetDTE().ExecuteCommand(commandName, args);
+        protected static void ExecuteCommand(string commandName, string args = "")
+            => GetDTE().ExecuteCommand(commandName, args);
 
         /// <summary>
         /// Waiting for the application to 'idle' means that it is done pumping messages (including WM_PAINT).
         /// </summary>
-        protected static void WaitForApplicationIdle() => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+        protected static void WaitForApplicationIdle()
+            => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
 
-        protected static void WaitForSystemIdle() => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
+        protected static void WaitForSystemIdle()
+            => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
     }
 }

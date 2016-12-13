@@ -12,9 +12,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
     public class Signature : IEquatable<Signature>
     {
         public string Content { get; set; }
+
         public Parameter CurrentParameter { get; set; }
+
         public string Documentation { get; set; }
+
         public Parameter[] Parameters { get; set; }
+
         public string PrettyPrintedContent { get; set; }
 
         public Signature() { }
@@ -34,18 +38,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
         }
 
         public bool Equals(Signature other)
-        {
-            return other != null
-                && Comparison.AreStringValuesEqual(Content, other.Content)
-                && Equals(CurrentParameter, other.CurrentParameter)
-                && Comparison.AreStringValuesEqual(PrettyPrintedContent, other.PrettyPrintedContent)
-                && Comparison.AreStringValuesEqual(Documentation, other.Documentation)
-                && Comparison.AreArraysEqual(Parameters, other.Parameters);
-        }
+            => other != null
+            && Comparison.AreStringValuesEqual(Content, other.Content)
+            && Equals(CurrentParameter, other.CurrentParameter)
+            && Comparison.AreStringValuesEqual(PrettyPrintedContent, other.PrettyPrintedContent)
+            && Comparison.AreStringValuesEqual(Documentation, other.Documentation)
+            && Comparison.AreArraysEqual(Parameters, other.Parameters);
 
-        public override bool Equals(object obj) => Equals(obj as Signature);
+        public override bool Equals(object obj)
+            => Equals(obj as Signature);
 
-        public override int GetHashCode() => Hash.Combine(Content, Hash.Combine(Documentation, Hash.Combine(PrettyPrintedContent, Hash.Combine(CurrentParameter, 0))));
+        public override int GetHashCode()
+            => Hash.Combine(Content, Hash.Combine(Documentation, Hash.Combine(PrettyPrintedContent, Hash.Combine(CurrentParameter, 0))));
 
         public override string ToString()
         {

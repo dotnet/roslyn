@@ -19,30 +19,40 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         internal abstract InteractiveWindow_InProc CreateInProcComponent(VisualStudioInstance visualStudioInstance);
 
-        public void Initialize() => _inProc.Initialize();
+        public void Initialize()
+            => _inProc.Initialize();
 
         /// <summary>
         /// Gets the last output from the REPL.
         /// </summary>
-        public string GetLastReplOutput() => _inProc.GetLastReplOutput();
+        public string GetLastReplOutput()
+            => _inProc.GetLastReplOutput();
 
-        public string GetReplText() => _inProc.GetReplText();
+        public string GetReplText()
+            => _inProc.GetReplText();
 
         /// <summary>
         /// Gets the contents of the REPL window without the prompt text.
         /// </summary>
-        public string GetReplTextWithoutPrompt() => _inProc.GetReplTextWithoutPrompt();
+        public string GetReplTextWithoutPrompt()
+            => _inProc.GetReplTextWithoutPrompt();
 
-        public void ShowWindow(bool waitForPrompt = true) => _inProc.ShowWindow(waitForPrompt);
+        public void ShowWindow(bool waitForPrompt = true)
+            => _inProc.ShowWindow(waitForPrompt);
 
-        public void Reset(bool waitForPrompt = true) => _inProc.Reset(waitForPrompt);
+        public void Reset(bool waitForPrompt = true)
+            => _inProc.Reset(waitForPrompt);
 
-        public void SubmitText(string text, bool waitForPrompt = true) => _inProc.SubmitText(text, waitForPrompt);
+        public void SubmitText(string text, bool waitForPrompt = true)
+            => _inProc.SubmitText(text, waitForPrompt);
 
-        public void WaitForReplOutput(string outputText) => _inProc.WaitForReplOutput(outputText);
+        public void WaitForReplOutput(string outputText)
+            => _inProc.WaitForReplOutput(outputText);
 
-        public void WaitForReplOutputContains(string outputText) => _inProc.WaitForReplOutputContains(outputText);
+        public void WaitForReplOutputContains(string outputText)
+            => _inProc.WaitForReplOutputContains(outputText);
 
-        public void CleanUpInteractiveWindow() => _inProc.CloseWindow();
+        public void CleanUpInteractiveWindow()
+            => _inProc.CloseWindow();
     }
 }

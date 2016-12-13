@@ -14,20 +14,28 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
 
-        public bool IsUseSuggestionModeOn() => _inProc.IsUseSuggestionModeOn();
+        public bool IsUseSuggestionModeOn()
+            => _inProc.IsUseSuggestionModeOn();
 
-        public void SetUseSuggestionMode(bool value) => _inProc.SetUseSuggestionMode(value);
+        public void SetUseSuggestionMode(bool value)
+            => _inProc.SetUseSuggestionMode(value);
 
-        public bool IsPrettyListingOn(string languageName) => _inProc.IsPrettyListingOn(languageName);
+        public bool IsPrettyListingOn(string languageName)
+            => _inProc.IsPrettyListingOn(languageName);
 
-        public void SetPrettyListing(string languageName, bool value) => _inProc.SetPrettyListing(languageName, value);
+        public void SetPrettyListing(string languageName, bool value)
+            => _inProc.SetPrettyListing(languageName, value);
 
-        public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true) => _inProc.WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
+        public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
+            => _inProc.WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
 
-        public void WaitForAllAsyncOperations() => _inProc.WaitForAllAsyncOperations();
+        public void WaitForAllAsyncOperations()
+            => _inProc.WaitForAllAsyncOperations();
 
-        public void CleanUpWorkspace() => _inProc.CleanUpWorkspace();
+        public void CleanUpWorkspace()
+            => _inProc.CleanUpWorkspace();
 
-        public void CleanUpWaitingService() => _inProc.CleanUpWaitingService();
+        public void CleanUpWaitingService()
+            => _inProc.CleanUpWaitingService();
     }
 }

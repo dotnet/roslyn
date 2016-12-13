@@ -24,14 +24,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public static VisualStudioWorkspace_InProc Create()
-        {
-            return new VisualStudioWorkspace_InProc();
-        }
+            => new VisualStudioWorkspace_InProc();
 
         public bool IsUseSuggestionModeOn()
-        {
-            return _visualStudioWorkspace.Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
-        }
+            => _visualStudioWorkspace.Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
 
         public void SetUseSuggestionMode(bool value)
         {
@@ -42,57 +38,40 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public bool IsPrettyListingOn(string languageName)
-        {
-            return _visualStudioWorkspace.Options.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
-        }
+            => _visualStudioWorkspace.Options.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
 
         public void SetPrettyListing(string languageName, bool value)
-        {
-            InvokeOnUIThread(() =>
-            {
+            => InvokeOnUIThread(() => {
                 _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
                     FeatureOnOffOptions.PrettyListing, languageName, value);
             });
-        }
 
         private static TestingOnly_WaitingService GetWaitingService()
-        {
-            return GetComponentModel().DefaultExportProvider.GetExport<TestingOnly_WaitingService>().Value;
-        }
+            => GetComponentModel().DefaultExportProvider.GetExport<TestingOnly_WaitingService>().Value;
 
         public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
-        {
-            GetWaitingService().WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
-        }
+            => GetWaitingService().WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
 
         public void WaitForAllAsyncOperations()
-        {
-            GetWaitingService().WaitForAllAsyncOperations();
-        }
+            => GetWaitingService().WaitForAllAsyncOperations();
 
         private static void LoadRoslynPackage()
         {
             var roslynPackageGuid = RoslynPackageId;
-            IVsPackage roslynPackage = null;
-
             var vsShell = GetGlobalService<SVsShell, IVsShell>();
-            var hresult = vsShell.LoadPackage(ref roslynPackageGuid, out roslynPackage);
+
+            var hresult = vsShell.LoadPackage(ref roslynPackageGuid, out var roslynPackage);
             Marshal.ThrowExceptionForHR(hresult);
         }
 
         public void CleanUpWorkspace()
-        {
-            InvokeOnUIThread(() =>
-            {
+            => InvokeOnUIThread(() => {
                 LoadRoslynPackage();
                 _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
             });
-        }
 
         public void CleanUpWaitingService()
-        {
-            InvokeOnUIThread(() =>
-            {
+            => InvokeOnUIThread(() => {
                 var asynchronousOperationWaiterExports = GetComponentModel().DefaultExportProvider.GetExports<IAsynchronousOperationWaiter>();
 
                 if (!asynchronousOperationWaiterExports.Any())
@@ -102,6 +81,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 GetWaitingService().EnableActiveTokenTracking(true);
             });
-        }
     }
 }

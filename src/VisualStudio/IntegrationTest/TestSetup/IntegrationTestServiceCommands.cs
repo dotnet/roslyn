@@ -72,7 +72,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             Instance = new IntegrationTestServiceCommands(package);
         }
 
-        public void Dispose() => StopServiceCallback(this, EventArgs.Empty);
+        public void Dispose()
+            => StopServiceCallback(this, EventArgs.Empty);
 
         /// <summary>
         /// Starts the IPC server for the Integration Test service.

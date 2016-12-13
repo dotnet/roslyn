@@ -9,8 +9,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 
         public KeyPress(VirtualKey virtualKey, ShiftState shiftState)
         {
-            this.VirtualKey = virtualKey;
-            this.ShiftState = shiftState;
+            VirtualKey = virtualKey;
+            ShiftState = shiftState;
         }
     }
 }

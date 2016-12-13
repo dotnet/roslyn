@@ -10,6 +10,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
     public class Parameter : IEquatable<Parameter>
     {
         public string Name { get; set; }
+
         public string Documentation { get; set; }
 
         public Parameter() { }
@@ -31,10 +32,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
                 && Comparison.AreStringValuesEqual(Documentation, other.Documentation);
         }
 
-        public override bool Equals(object obj) => Equals(obj as Parameter);
+        public override bool Equals(object obj)
+            => Equals(obj as Parameter);
 
-        public override int GetHashCode() => Hash.Combine(Name, Hash.Combine(Documentation, 0));
+        public override int GetHashCode()
+            => Hash.Combine(Name, Hash.Combine(Documentation, 0));
 
-        public override string ToString() => !string.IsNullOrEmpty(Documentation) ? $"{Name} ({Documentation})" : Name;
+        public override string ToString()
+            => !string.IsNullOrEmpty(Documentation) ? $"{Name} ({Documentation})" : Name;
     }
 }

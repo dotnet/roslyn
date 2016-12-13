@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.VisualStudio.Shell;
 using System.IO;
+using Microsoft.VisualStudio.Shell;
 
 namespace Roslyn.VisualStudio.Setup
 {
@@ -38,6 +38,7 @@ namespace Roslyn.VisualStudio.Setup
             }
         }
 
-        public override void Unregister(RegistrationContext context) => _redirectionAttribute.Unregister(context);
+        public override void Unregister(RegistrationContext context)
+            => _redirectionAttribute.Unregister(context);
     }
 }

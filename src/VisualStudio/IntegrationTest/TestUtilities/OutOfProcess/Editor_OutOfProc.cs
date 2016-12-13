@@ -19,21 +19,29 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _inProc = CreateInProcComponent<Editor_InProc>(visualStudioInstance);
         }
 
-        public void Activate() => _inProc.Activate();
+        public void Activate()
+            => _inProc.Activate();
 
-        public string GetText() => _inProc.GetText();
+        public string GetText()
+            => _inProc.GetText();
 
-        public void SetText(string value) => _inProc.SetText(value);
+        public void SetText(string value)
+            => _inProc.SetText(value);
 
-        public string GetCurrentLineText() => _inProc.GetCurrentLineText();
+        public string GetCurrentLineText()
+            => _inProc.GetCurrentLineText();
 
-        public int GetCaretPosition() => _inProc.GetCaretPosition();
+        public int GetCaretPosition()
+            => _inProc.GetCaretPosition();
 
-        public string GetLineTextBeforeCaret() => _inProc.GetLineTextBeforeCaret();
+        public string GetLineTextBeforeCaret()
+            => _inProc.GetLineTextBeforeCaret();
 
-        public string GetLineTextAfterCaret() => _inProc.GetLineTextAfterCaret();
+        public string GetLineTextAfterCaret()
+            => _inProc.GetLineTextAfterCaret();
 
-        public void MoveCaret(int position) => _inProc.MoveCaret(position);
+        public void MoveCaret(int position)
+            => _inProc.MoveCaret(position);
 
         public string[] GetCompletionItems()
         {
@@ -65,19 +73,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _inProc.GetCurrentSignature();
         }
 
-        public void ShowLightBulb() => _inProc.ShowLightBulb();
+        public void ShowLightBulb()
+            => _inProc.ShowLightBulb();
 
-        public void WaitForLightBulbSession() => _inProc.WaitForLightBulbSession();
+        public void WaitForLightBulbSession()
+            => _inProc.WaitForLightBulbSession();
 
-        public void DismissLightBulbSession() => _inProc.DismissLightBulbSession();
+        public void DismissLightBulbSession()
+            => _inProc.DismissLightBulbSession();
 
-        public bool IsLightBulbSessionExpanded() => _inProc.IsLightBulbSessionExpanded();
+        public bool IsLightBulbSessionExpanded()
+            => _inProc.IsLightBulbSessionExpanded();
 
-        public string[] GetLightBulbActions() => _inProc.GetLightBulbActions();
+        public string[] GetLightBulbActions()
+            => _inProc.GetLightBulbActions();
 
-        public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope) => _inProc.ApplyLightBulbAction(action, fixAllScope);
+        public void ApplyLightBulbAction(string action, FixAllScope? fixAllScope)
+            => _inProc.ApplyLightBulbAction(action, fixAllScope);
 
-        public bool IsCaretOnScreen() => _inProc.IsCaretOnScreen();
+        public bool IsCaretOnScreen()
+            => _inProc.IsCaretOnScreen();
 
         /// <summary>
         /// Sends key strokes to the active editor in Visual Studio. Various types are supported by this method:
@@ -90,6 +105,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             VisualStudioInstance.SendKeys.Send(keys);
         }
 
-        public void MessageBox(string message) => _inProc.MessageBox(message);
+        public void MessageBox(string message)
+            => _inProc.MessageBox(message);
     }
 }

@@ -1,19 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -23,9 +23,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private Editor_InProc() { }
 
-        public static Editor_InProc Create() => new Editor_InProc();
+        public static Editor_InProc Create()
+            => new Editor_InProc();
 
-        private static IWpfTextView GetActiveTextView() => GetActiveTextViewHost().TextView;
+        private static IWpfTextView GetActiveTextView()
+            => GetActiveTextViewHost().TextView;
 
         private static IVsTextView GetActiveVsTextView()
         {
@@ -51,168 +53,189 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return (IWpfTextViewHost)wpfTextViewHost;
         }
 
-        private static void ExecuteOnActiveView(Action<IWpfTextView> action) => InvokeOnUIThread(() => {
-            var view = GetActiveTextView();
-            action(view);
-        });
+        private static void ExecuteOnActiveView(Action<IWpfTextView> action)
+            => InvokeOnUIThread(() => {
+                var view = GetActiveTextView();
+                action(view);
+            });
 
-        private static T ExecuteOnActiveView<T>(Func<IWpfTextView, T> action) => InvokeOnUIThread(() => {
-            var view = GetActiveTextView();
-            return action(view);
-        });
+        private static T ExecuteOnActiveView<T>(Func<IWpfTextView, T> action)
+            => InvokeOnUIThread(() => {
+                var view = GetActiveTextView();
+                return action(view);
+            });
 
-        public void Activate() => GetDTE().ActiveDocument.Activate();
+        public void Activate()
+            => GetDTE().ActiveDocument.Activate();
 
-        public string GetText() => ExecuteOnActiveView(view => view.TextSnapshot.GetText());
+        public string GetText()
+            => ExecuteOnActiveView(view => view.TextSnapshot.GetText());
 
-        public void SetText(string text) => ExecuteOnActiveView(view => {
-            var textSnapshot = view.TextSnapshot;
-            var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
-            view.TextBuffer.Replace(replacementSpan, text);
-        });
+        public void SetText(string text)
+            => ExecuteOnActiveView(view => {
+                var textSnapshot = view.TextSnapshot;
+                var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
+                view.TextBuffer.Replace(replacementSpan, text);
+            });
 
-        public string GetCurrentLineText() => ExecuteOnActiveView(view => {
-            var subjectBuffer = view.GetBufferContainingCaret();
-            var bufferPosition = view.Caret.Position.BufferPosition;
-            var line = bufferPosition.GetContainingLine();
+        public string GetCurrentLineText()
+            => ExecuteOnActiveView(view => {
+                var subjectBuffer = view.GetBufferContainingCaret();
+                var bufferPosition = view.Caret.Position.BufferPosition;
+                var line = bufferPosition.GetContainingLine();
 
-            return line.GetText();
-        });
+                return line.GetText();
+            });
 
-        public int GetCaretPosition() => ExecuteOnActiveView(view => {
-            var subjectBuffer = view.GetBufferContainingCaret();
-            var bufferPosition = view.Caret.Position.BufferPosition;
+        public int GetCaretPosition()
+            => ExecuteOnActiveView(view => {
+                var subjectBuffer = view.GetBufferContainingCaret();
+                var bufferPosition = view.Caret.Position.BufferPosition;
 
-            return bufferPosition.Position;
-        });
+                return bufferPosition.Position;
+            });
 
-        public string GetLineTextBeforeCaret() => ExecuteOnActiveView(view => {
-            var subjectBuffer = view.GetBufferContainingCaret();
-            var bufferPosition = view.Caret.Position.BufferPosition;
-            var line = bufferPosition.GetContainingLine();
-            var text = line.GetText();
+        public string GetLineTextBeforeCaret()
+            => ExecuteOnActiveView(view => {
+                var subjectBuffer = view.GetBufferContainingCaret();
+                var bufferPosition = view.Caret.Position.BufferPosition;
+                var line = bufferPosition.GetContainingLine();
+                var text = line.GetText();
 
-            return text.Substring(0, bufferPosition.Position - line.Start);
-        });
+                return text.Substring(0, bufferPosition.Position - line.Start);
+            });
 
-        public string GetLineTextAfterCaret() => ExecuteOnActiveView(view => {
-            var subjectBuffer = view.GetBufferContainingCaret();
-            var bufferPosition = view.Caret.Position.BufferPosition;
-            var line = bufferPosition.GetContainingLine();
-            var text = line.GetText();
+        public string GetLineTextAfterCaret()
+            => ExecuteOnActiveView(view => {
+                var subjectBuffer = view.GetBufferContainingCaret();
+                var bufferPosition = view.Caret.Position.BufferPosition;
+                var line = bufferPosition.GetContainingLine();
+                var text = line.GetText();
 
-            return text.Substring(bufferPosition.Position - line.Start);
-        });
+                return text.Substring(bufferPosition.Position - line.Start);
+            });
 
-        public void MoveCaret(int position) => ExecuteOnActiveView(view => {
-            var subjectBuffer = view.GetBufferContainingCaret();
-            var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
+        public void MoveCaret(int position)
+            => ExecuteOnActiveView(view => {
+                var subjectBuffer = view.GetBufferContainingCaret();
+                var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
 
-            view.Caret.MoveTo(point);
-        });
+                view.Caret.MoveTo(point);
+            });
 
-        public string[] GetCompletionItems() => ExecuteOnActiveView(view => {
-            var broker = GetComponentModelService<ICompletionBroker>();
+        public string[] GetCompletionItems()
+            => ExecuteOnActiveView(view => {
+                var broker = GetComponentModelService<ICompletionBroker>();
 
-            var sessions = broker.GetSessions(view);
-            if (sessions.Count != 1)
-            {
-                throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
-            }
+                var sessions = broker.GetSessions(view);
+                if (sessions.Count != 1)
+                {
+                    throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
+                }
 
-            var selectedCompletionSet = sessions[0].SelectedCompletionSet;
+                var selectedCompletionSet = sessions[0].SelectedCompletionSet;
 
-            return selectedCompletionSet.Completions.Select(c => c.DisplayText).ToArray();
-        });
+                return selectedCompletionSet.Completions.Select(c => c.DisplayText).ToArray();
+            });
 
-        public string GetCurrentCompletionItem() => ExecuteOnActiveView(view => {
-            var broker = GetComponentModelService<ICompletionBroker>();
+        public string GetCurrentCompletionItem()
+            => ExecuteOnActiveView(view => {
+                var broker = GetComponentModelService<ICompletionBroker>();
 
-            var sessions = broker.GetSessions(view);
-            if (sessions.Count != 1)
-            {
-                throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
-            }
+                var sessions = broker.GetSessions(view);
+                if (sessions.Count != 1)
+                {
+                    throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
+                }
 
-            var selectedCompletionSet = sessions[0].SelectedCompletionSet;
-            return selectedCompletionSet.SelectionStatus.Completion.DisplayText;
-        });
+                var selectedCompletionSet = sessions[0].SelectedCompletionSet;
+                return selectedCompletionSet.SelectionStatus.Completion.DisplayText;
+            });
 
-        public bool IsCompletionActive() => ExecuteOnActiveView(view => {
-            var broker = GetComponentModelService<ICompletionBroker>();
-            return broker.IsCompletionActive(view);
-        });
+        public bool IsCompletionActive()
+            => ExecuteOnActiveView(view => {
+                var broker = GetComponentModelService<ICompletionBroker>();
+                return broker.IsCompletionActive(view);
+            });
 
-        public Signature[] GetSignatures() => ExecuteOnActiveView(view => {
-            var broken = GetComponentModelService<ISignatureHelpBroker>();
+        public Signature[] GetSignatures()
+            => ExecuteOnActiveView(view => {
+                var broken = GetComponentModelService<ISignatureHelpBroker>();
 
-            var sessions = broken.GetSessions(view);
-            if (sessions.Count != 1)
-            {
-                throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
-            }
+                var sessions = broken.GetSessions(view);
+                if (sessions.Count != 1)
+                {
+                    throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
+                }
 
-            return sessions[0].Signatures.Select(s => new Signature(s)).ToArray();
-        });
+                return sessions[0].Signatures.Select(s => new Signature(s)).ToArray();
+            });
 
-        public Signature GetCurrentSignature() => ExecuteOnActiveView(view => {
-            var broken = GetComponentModelService<ISignatureHelpBroker>();
+        public Signature GetCurrentSignature()
+            => ExecuteOnActiveView(view => {
+                var broken = GetComponentModelService<ISignatureHelpBroker>();
 
-            var sessions = broken.GetSessions(view);
-            if (sessions.Count != 1)
-            {
-                throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
-            }
+                var sessions = broken.GetSessions(view);
+                if (sessions.Count != 1)
+                {
+                    throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
+                }
 
-            return new Signature(sessions[0].SelectedSignature);
-        });
+                return new Signature(sessions[0].SelectedSignature);
+            });
 
-        public bool IsCaretOnScreen() => ExecuteOnActiveView(view => {
-            var editorPrimitivesFactoryService = GetComponentModelService<IEditorPrimitivesFactoryService>();
-            var viewPrimitivies = editorPrimitivesFactoryService.GetViewPrimitives(view);
+        public bool IsCaretOnScreen()
+            => ExecuteOnActiveView(view => {
+                var editorPrimitivesFactoryService = GetComponentModelService<IEditorPrimitivesFactoryService>();
+                var viewPrimitivies = editorPrimitivesFactoryService.GetViewPrimitives(view);
 
-            var advancedView = viewPrimitivies.View.AdvancedTextView;
-            var caret = advancedView.Caret;
+                var advancedView = viewPrimitivies.View.AdvancedTextView;
+                var caret = advancedView.Caret;
 
-            return caret.Left >= advancedView.ViewportLeft
-                && caret.Right <= advancedView.ViewportRight
-                && caret.Top >= advancedView.ViewportTop
-                && caret.Bottom <= advancedView.ViewportBottom;
-        });
+                return caret.Left >= advancedView.ViewportLeft
+                    && caret.Right <= advancedView.ViewportRight
+                    && caret.Top >= advancedView.ViewportTop
+                    && caret.Bottom <= advancedView.ViewportBottom;
+            });
 
-        public void ShowLightBulb() => InvokeOnUIThread(() => GetDTE().ExecuteCommand("View.ShowSmartTag"));
+        public void ShowLightBulb()
+            => InvokeOnUIThread(() => GetDTE().ExecuteCommand("View.ShowSmartTag"));
 
-        public void WaitForLightBulbSession() => ExecuteOnActiveView(view => {
-            var broker = GetComponentModel().GetService<ILightBulbBroker>();
-            LightBulbHelper.WaitForLightBulbSession(broker, view);
-        });
+        public void WaitForLightBulbSession()
+            => ExecuteOnActiveView(view => {
+                var broker = GetComponentModel().GetService<ILightBulbBroker>();
+                LightBulbHelper.WaitForLightBulbSession(broker, view);
+            });
 
-        public void DismissLightBulbSession() => ExecuteOnActiveView(view => {
-            var broker = GetComponentModel().GetService<ILightBulbBroker>();
-            broker.DismissSession(view);
-        });
+        public void DismissLightBulbSession()
+            => ExecuteOnActiveView(view => {
+                var broker = GetComponentModel().GetService<ILightBulbBroker>();
+                broker.DismissSession(view);
+            });
 
-        public bool IsLightBulbSessionExpanded() => ExecuteOnActiveView(view => {
-            var broker = GetComponentModel().GetService<ILightBulbBroker>();
+        public bool IsLightBulbSessionExpanded()
+            => ExecuteOnActiveView(view => {
+                var broker = GetComponentModel().GetService<ILightBulbBroker>();
 
-            if (!broker.IsLightBulbSessionActive(view))
-            {
-                return false;
-            }
+                if (!broker.IsLightBulbSessionActive(view))
+                {
+                    return false;
+                }
 
-            var session = broker.GetSession(view);
-            if (session == null || !session.IsExpanded)
-            {
-                return false;
-            }
+                var session = broker.GetSession(view);
+                if (session == null || !session.IsExpanded)
+                {
+                    return false;
+                }
 
-            return true;
-        });
+                return true;
+            });
 
-        public string[] GetLightBulbActions() => ExecuteOnActiveView(view => {
-            var broker = GetComponentModel().GetService<ILightBulbBroker>();
-            return GetLightBulbActions(broker, view).Select(a => a.DisplayText).ToArray();
-        });
+        public string[] GetLightBulbActions()
+            => ExecuteOnActiveView(view => {
+                var broker = GetComponentModel().GetService<ILightBulbBroker>();
+                return GetLightBulbActions(broker, view).Select(a => a.DisplayText).ToArray();
+            });
 
         private IEnumerable<ISuggestedAction> GetLightBulbActions(ILightBulbBroker broker, IWpfTextView view)
         {
@@ -237,50 +260,51 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return SelectActions(actionSets);
         }
 
-        public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope) => ExecuteOnActiveView(view => {
-            var broker = GetComponentModel().GetService<ILightBulbBroker>();
+        public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope)
+            => ExecuteOnActiveView(view => {
+                var broker = GetComponentModel().GetService<ILightBulbBroker>();
 
-            var actions = GetLightBulbActions(broker, view).ToArray();
-            var action = actions.FirstOrDefault(a => a.DisplayText == actionName);
+                var actions = GetLightBulbActions(broker, view).ToArray();
+                var action = actions.FirstOrDefault(a => a.DisplayText == actionName);
 
-            if (action == null)
-            {
-                var sb = new StringBuilder();
-                foreach (var item in actions)
-                {
-                    sb.AppendLine("Actual ISuggestedAction: " + item.DisplayText);
-                }
-
-                var bufferType = view.TextBuffer.ContentType.DisplayName;
-                throw new InvalidOperationException(
-                    string.Format("ISuggestedAction {0} not found.  Buffer content type={1}\r\nActions: {2}", actionName, bufferType, sb.ToString()));
-            }
-
-            if (fixAllScope != null)
-            {
-                if (!action.HasActionSets)
-                {
-                    throw new InvalidOperationException($"Suggested action '{action.DisplayText}' does not support FixAllOccurrences.");
-                }
-
-                var actionSetsForAction = HostWaitHelper.PumpingWaitResult(action.GetActionSetsAsync(CancellationToken.None));
-                action = GetFixAllSuggestedAction(actionSetsForAction, fixAllScope.Value);
                 if (action == null)
                 {
-                    throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope.ToString()} code fix for suggested action '{action.DisplayText}'.");
+                    var sb = new StringBuilder();
+                    foreach (var item in actions)
+                    {
+                        sb.AppendLine("Actual ISuggestedAction: " + item.DisplayText);
+                    }
+
+                    var bufferType = view.TextBuffer.ContentType.DisplayName;
+                    throw new InvalidOperationException(
+                        string.Format("ISuggestedAction {0} not found.  Buffer content type={1}\r\nActions: {2}", actionName, bufferType, sb.ToString()));
                 }
 
-                if (string.IsNullOrEmpty(actionName))
+                if (fixAllScope != null)
                 {
-                    return;
+                    if (!action.HasActionSets)
+                    {
+                        throw new InvalidOperationException($"Suggested action '{action.DisplayText}' does not support FixAllOccurrences.");
+                    }
+
+                    var actionSetsForAction = HostWaitHelper.PumpingWaitResult(action.GetActionSetsAsync(CancellationToken.None));
+                    action = GetFixAllSuggestedAction(actionSetsForAction, fixAllScope.Value);
+                    if (action == null)
+                    {
+                        throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope.ToString()} code fix for suggested action '{action.DisplayText}'.");
+                    }
+
+                    if (string.IsNullOrEmpty(actionName))
+                    {
+                        return;
+                    }
+
+                    // Dismiss the lightbulb session as we not invoking the original code fix.
+                    broker.DismissSession(view);
                 }
 
-                // Dismiss the lightbulb session as we not invoking the original code fix.
-                broker.DismissSession(view);
-            }
-
-            action.Invoke(CancellationToken.None);
-        });
+                action.Invoke(CancellationToken.None);
+            });
 
         private IEnumerable<ISuggestedAction> SelectActions(IEnumerable<SuggestedActionSet> actionSets)
         {
@@ -335,6 +359,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return null;
         }
 
-        public void MessageBox(string message) => ExecuteOnActiveView(view =>  System.Windows.MessageBox.Show(message));
+        public void MessageBox(string message)
+            => ExecuteOnActiveView(view =>  System.Windows.MessageBox.Show(message));
     }
 }

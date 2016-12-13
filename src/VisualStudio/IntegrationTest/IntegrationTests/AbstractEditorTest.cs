@@ -39,20 +39,14 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected abstract string LanguageName { get; }
 
         private void WaitForAsyncOperations(string featuresToWaitFor)
-        {
-            VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(featuresToWaitFor);
-        }
+            => VisualStudioWorkspaceOutOfProc.WaitForAsyncOperations(featuresToWaitFor);
 
         protected void ClearEditor()
-        {
-            SetUpEditor("$$");
-        }
+            => SetUpEditor("$$");
 
         protected void SetUpEditor(string markupCode)
         {
-            string code;
-            int caretPosition;
-            MarkupTestFile.GetPosition(markupCode, out code, out caretPosition);
+            MarkupTestFile.GetPosition(markupCode, out string code, out int caretPosition);
 
             var originalValue = VisualStudioWorkspaceOutOfProc.IsPrettyListingOn(LanguageName);
 
@@ -69,39 +63,25 @@ namespace Roslyn.VisualStudio.IntegrationTests
         }
 
         protected void AddFile(string fileName, string contents = null, bool open = false)
-        {
-            VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, fileName, contents, open);
-        }
+            => VisualStudio.Instance.SolutionExplorer.AddFile(ProjectName, fileName, contents, open);
 
         protected void SendKeys(params object[] keys)
-        {
-            Editor.SendKeys(keys);
-        }
+            => Editor.SendKeys(keys);
 
         protected KeyPress KeyPress(VirtualKey virtualKey, ShiftState shiftState)
-        {
-            return new KeyPress(virtualKey, shiftState);
-        }
+            => new KeyPress(virtualKey, shiftState);
 
         protected KeyPress Ctrl(VirtualKey virtualKey)
-        {
-            return new KeyPress(virtualKey, ShiftState.Ctrl);
-        }
+            => new KeyPress(virtualKey, ShiftState.Ctrl);
 
         protected KeyPress Shift(VirtualKey virtualKey)
-        {
-            return new KeyPress(virtualKey, ShiftState.Shift);
-        }
+            => new KeyPress(virtualKey, ShiftState.Shift);
 
         protected void DisableSuggestionMode()
-        {
-            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
-        }
+            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
 
         protected void EnableSuggestionMode()
-        {
-            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
-        }
+            => VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
 
         protected void InvokeCompletionList()
         {
@@ -120,9 +100,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         }
 
         protected void ExecuteCommand(string commandName)
-        {
-            VisualStudio.Instance.ExecuteCommand(commandName);
-        }
+            => VisualStudio.Instance.ExecuteCommand(commandName);
 
         private void VerifyCurrentLineTextAndAssertCaretPosition(string expectedText, bool trimWhitespace)
         {
@@ -246,14 +224,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
         }
 
         protected void VerifyCaretIsOnScreen()
-        {
-            Assert.True(Editor.IsCaretOnScreen());
-        }
+            => Assert.True(Editor.IsCaretOnScreen());
 
         protected void VerifyCompletionListIsActive(bool expected)
-        {
-            Assert.Equal(expected, Editor.IsCompletionActive());
-        }
+            => Assert.Equal(expected, Editor.IsCompletionActive());
 
         protected void VerifyFileContents(string fileName, string expectedContents)
         {
@@ -276,7 +250,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
             bool ensureExpectedItemsAreOrdered = false, 
             FixAllScope? fixAllScope = null)
         {
-            VerifyCodeActions(new[] { expectedItem }, expectedItem, verifyNotShowing, ensureExpectedItemsAreOrdered, fixAllScope);
+            var expectedItems = new[] { expectedItem };
+            VerifyCodeActions(expectedItems, expectedItem, verifyNotShowing, ensureExpectedItemsAreOrdered, fixAllScope);
         }
 
         public void VerifyCodeActions(

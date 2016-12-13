@@ -39,14 +39,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
         }
 
         protected void Reset(bool waitForPrompt = true)
-        {
-            InteractiveWindow.Reset(waitForPrompt: true);
-        }
+            => InteractiveWindow.Reset(waitForPrompt: true);
 
         protected void SubmitText(string text, bool waitForPrompt = true)
-        {
-            InteractiveWindow.SubmitText(text, waitForPrompt);
-        }
+            => InteractiveWindow.SubmitText(text, waitForPrompt);
 
         protected void VerifyLastReplOutput(string expectedReplOutput)
         {
@@ -96,8 +92,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
         }
 
         protected void WaitForReplOutput(string outputText)
-        {
-            InteractiveWindow.WaitForReplOutput(outputText);
-        }
+            => InteractiveWindow.WaitForReplOutput(outputText);
     }
 }

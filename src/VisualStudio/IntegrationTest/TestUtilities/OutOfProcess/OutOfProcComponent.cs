@@ -19,15 +19,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         internal static TInProcComponent CreateInProcComponent<TInProcComponent>(VisualStudioInstance visualStudioInstance)
             where TInProcComponent : InProcComponent
-        {
-            // Create MarshalByRefObject that can be used to execute code in the VS process.
-            return visualStudioInstance.ExecuteInHostProcess<TInProcComponent>(
-                type: typeof(TInProcComponent),
-                methodName: "Create");
-        }
+        => visualStudioInstance.ExecuteInHostProcess<TInProcComponent>( type: typeof(TInProcComponent), methodName: "Create"); 
 
-        protected void WaitForCompletionSet() => VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+        protected void WaitForCompletionSet()
+            => VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
 
-        protected void WaitForSignatureHelp() => VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
+        protected void WaitForSignatureHelp()
+            => VisualStudioInstance.VisualStudioWorkspace.WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
     }
 }

@@ -39,9 +39,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
 
-        public bool IsInitializing => _interactiveWindow.IsInitializing;
+        public bool IsInitializing
+            => _interactiveWindow.IsInitializing;
 
-        public string GetReplText() => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText();
+        public string GetReplText()
+            => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText();
 
         /// <summary>
         /// Gets the contents of the REPL window without the prompt text.
@@ -51,7 +53,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var replText = GetReplText();
 
             // find last prompt and remove
-            int lastPromptIndex = replText.LastIndexOf(ReplPromptText);
+            var lastPromptIndex = replText.LastIndexOf(ReplPromptText);
 
             if (lastPromptIndex > 0)
             {
@@ -72,10 +74,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             // TODO: This may be flaky if the last submission contains ReplPromptText
 
             var replText = GetReplTextWithoutPrompt();
-            int lastPromptIndex = replText.LastIndexOf(ReplPromptText);
+            var lastPromptIndex = replText.LastIndexOf(ReplPromptText);
 
             replText = replText.Substring(lastPromptIndex, replText.Length - lastPromptIndex);
-            int lastSubmissionIndex = replText.LastIndexOf(ReplSubmissionText);
+            var lastSubmissionIndex = replText.LastIndexOf(ReplSubmissionText);
 
             if (lastSubmissionIndex > 0)
             {
@@ -86,7 +88,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return replText;
             }
 
-            int firstNewLineIndex = replText.IndexOf(Environment.NewLine);
+            var firstNewLineIndex = replText.IndexOf(Environment.NewLine);
 
             if (firstNewLineIndex <= 0)
             {
@@ -141,7 +143,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void WaitForReplPrompt() => WaitForReplPromptAsync().Wait();
+        public void WaitForReplPrompt()
+            => WaitForReplPromptAsync().Wait();
 
         private async Task WaitForReplPromptAsync()
         {
@@ -151,7 +154,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void WaitForReplOutput(string outputText) => WaitForReplOutputAsync(outputText).Wait();
+        public void WaitForReplOutput(string outputText)
+            => WaitForReplOutputAsync(outputText).Wait();
 
         private async Task WaitForReplOutputAsync(string outputText)
         {
@@ -162,9 +166,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void WaitForReplOutputContains(string outputText)
-        {
-            WaitForReplOutputContainsAsync(outputText).Wait();
-        }
+            => WaitForReplOutputContainsAsync(outputText).Wait();
 
         private async Task WaitForReplOutputContainsAsync(string outputText)
         {

@@ -16,9 +16,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         }
 
         public void Dispose()
-        {
-            VisualStudio.Dispose();
-        }
+            => VisualStudio.Dispose();
 
         protected void Wait(double seconds)
         {

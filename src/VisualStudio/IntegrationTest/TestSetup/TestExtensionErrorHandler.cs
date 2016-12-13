@@ -11,6 +11,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
     [Shared, Export(typeof(IExtensionErrorHandler)), Export(typeof(TestExtensionErrorHandler))]
     public class TestExtensionErrorHandler : IExtensionErrorHandler
     {
-        public void HandleError(object sender, Exception exception) => FatalError.Report(exception);
+        public void HandleError(object sender, Exception exception)
+            => FatalError.Report(exception);
     }
 }

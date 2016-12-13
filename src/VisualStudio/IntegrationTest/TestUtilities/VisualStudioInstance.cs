@@ -26,8 +26,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public SendKeys SendKeys { get; }
 
         public CSharpInteractiveWindow_OutOfProc CSharpInteractiveWindow { get; }
+
         public Editor_OutOfProc Editor { get; }
+
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
+
         public VisualStudioWorkspace_OutOfProc VisualStudioWorkspace { get; }
 
         public VisualStudioInstance(Process hostProcess, DTE dte)
@@ -80,11 +83,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return (T)Activator.GetObject(typeof(T), $"{_integrationService.BaseUri}/{objectUri}");
         }
 
-        public void ActivateMainWindow() => _inProc.ActivateMainWindow();
+        public void ActivateMainWindow()
+            => _inProc.ActivateMainWindow();
 
-        public void WaitForApplicationIdle() => _inProc.WaitForApplicationIdle();
+        public void WaitForApplicationIdle()
+            => _inProc.WaitForApplicationIdle();
 
-        public void ExecuteCommand(string commandName) => _inProc.ExecuteCommand(commandName);
+        public void ExecuteCommand(string commandName)
+            => _inProc.ExecuteCommand(commandName);
 
         public bool IsRunning => !_hostProcess.HasExited;
 
@@ -119,9 +125,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // TODO(Dustin): This is code is a bit terrifying. If anything goes wrong and the automation
             // element can't be found, it'll continue to spin until the heat death of the universe.
             await IntegrationHelper.WaitForResultAsync(
-                () => (element = AutomationElement.RootElement.FindFirst(scope, condition)) != null,
-                expectedResult: true)
-                .ConfigureAwait(false);
+                () => (element = AutomationElement.RootElement.FindFirst(scope, condition)) != null, expectedResult: true
+            ).ConfigureAwait(false);
 
             return element;
         }
@@ -150,7 +155,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private void CloseHostProcess()
         {
             _inProc.Quit();
-
             IntegrationHelper.KillProcess(_hostProcess);
         }
 
@@ -207,10 +211,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private static T RetryRpcCall<T>(Func<T> action)
         {
-            T result = default(T);
+            var result = default(T);
 
-            RetryRpcCall(() =>
-            {
+            RetryRpcCall(() => {
                 result = action();
             });
 
