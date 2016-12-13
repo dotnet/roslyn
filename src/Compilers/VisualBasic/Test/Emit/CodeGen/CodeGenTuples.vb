@@ -18475,13 +18475,7 @@ BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the int
                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
         Dim error4 As List(Of Generic(Of (notA As Integer, notB As Integer))) = Nothing
-                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
-        Dim error4 As List(Of Generic(Of (notA As Integer, notB As Integer))) = Nothing
                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
-        Dim error5 = New List(Of Generic(Of (notA As Integer, notB As Integer)))()
-                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
         Dim error5 = New List(Of Generic(Of (notA As Integer, notB As Integer)))()
                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -18746,6 +18740,77 @@ BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the int
         M6((notA:=1, notB:=2))
         ~~
 BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic1(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M7(Nothing, (notA:=1, notB:=2))
+        ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub ChangeIndirectTupleNamesFromBaseViaContainingType()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Class Base
+    Implements I(Of (a As Integer, b As Integer))
+End Class
+
+Class Containing(Of T)
+    Public Class Contained
+        Inherits Base
+        Implements I(Of T)
+    End Class
+End Class
+Class Error1
+    Inherits Containing(Of (notA1 As Integer, notB1 As Integer)).Contained
+End Class
+Class Error2(Of E2 As Containing(Of (notA2 As Integer, notB2 As Integer)).Contained)
+End Class
+
+Class C
+    Shared Function MError3() As Containing(Of (notA As Integer, notB As Integer)).Contained()
+        Return Nothing
+    End Function
+    Shared Sub M()
+        Dim error4 As Containing(Of (notA As Integer, notB As Integer)).Contained = Nothing
+        Dim error5 = New Containing(Of (notA As Integer, notB As Integer)).Contained()
+        M6((notA:=1, notB:=2))
+        M7(Nothing, (notA:=1, notB:=2))
+    End Sub
+    Shared Function M6(Of T)(x As T) As Containing(Of T).Contained
+        Return Nothing
+    End Function
+    Shared Sub M7(Of T)(g As Containing(Of T).Contained, x As T)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37282: 'I(Of (notA1 As Integer, notB1 As Integer))' is already listed in the interface list on the base of type 'Containing(Of (notA1 As Integer, notB1 As Integer)).Contained' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Inherits Containing(Of (notA1 As Integer, notB1 As Integer)).Contained
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA2 As Integer, notB2 As Integer))' is already listed in the interface list on the base of type 'Containing(Of (notA2 As Integer, notB2 As Integer)).Contained' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+Class Error2(Of E2 As Containing(Of (notA2 As Integer, notB2 As Integer)).Contained)
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Containing(Of (notA As Integer, notB As Integer)).Contained' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Shared Function MError3() As Containing(Of (notA As Integer, notB As Integer)).Contained()
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Containing(Of (notA As Integer, notB As Integer)).Contained' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error4 As Containing(Of (notA As Integer, notB As Integer)).Contained = Nothing
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Containing(Of (notA As Integer, notB As Integer)).Contained' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error5 = New Containing(Of (notA As Integer, notB As Integer)).Contained()
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Containing(Of (notA As Integer, notB As Integer)).Contained' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M6((notA:=1, notB:=2))
+        ~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Containing(Of (notA As Integer, notB As Integer)).Contained' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
         M7(Nothing, (notA:=1, notB:=2))
         ~~
 </errors>)

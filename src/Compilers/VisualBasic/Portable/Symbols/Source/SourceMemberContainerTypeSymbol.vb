@@ -3825,15 +3825,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim baseInterfaces = New Dictionary(Of NamedTypeSymbol, NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
 
             For Each baseInterface In baseType.AllInterfacesNoUseSiteDiagnostics
-                If Not baseInterfaces.ContainsKey(baseInterface) Then
-                    baseInterfaces.Add(baseInterface, baseInterface)
-                    ' Note: because AllInterfaces is sorted, if somehow conflicting tuple names already exist in baseInterfaces
-                    '       (for instance in specially-crafted metadata), then only the most derived re-implementation matters
-                End If
+                baseInterfaces.Add(baseInterface, baseInterface)
             Next
 
-            Dim found As NamedTypeSymbol = Nothing
             For Each [interface] In interfaces
+                Dim found As NamedTypeSymbol = Nothing
                 If baseInterfaces.TryGetValue([interface], found) AndAlso
                     Not [interface].IsSameType(found, TypeCompareKind.ConsiderEverything) Then
 

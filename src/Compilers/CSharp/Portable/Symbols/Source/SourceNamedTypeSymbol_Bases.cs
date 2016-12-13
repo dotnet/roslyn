@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!reportedError)
                 {
                     // Check no duplicate interfaces with different tuple names with base
-                    ConstraintsHelper.CheckTupleNamesConstraints(this, location, diagnostics);
+                    ConstraintsHelper.CheckTupleNamesConstraintsCore(this, location, diagnostics);
                 }
             }
         }

@@ -267,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Validate the type argument meets the Structure constraint on the Nullable type.
             If ShouldCheckConstraints Then
-                constructedType.CheckConstraints(syntaxTypeArgument.GetLocation(), diagBag, deepCheckTupleNames:=True)
+                constructedType.CheckConstraints(syntaxTypeArgument.GetLocation(), diagBag, TupleNamesCheckKind.Shallow)
             End If
 
             Return constructedType

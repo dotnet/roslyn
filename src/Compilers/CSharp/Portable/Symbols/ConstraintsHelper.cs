@@ -341,6 +341,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Check all generic constraints on the given type and any containing types
         /// (such as A&lt;T&gt; in A&lt;T&gt;.B&lt;U&gt;). This includes checking constraints
         /// on generic types within the type (such as B&lt;T&gt; in A&lt;B&lt;T&gt;[]&gt;).
+        ///
+        /// This includes a deep check for tuple names.
         /// </summary>
         public static void CheckAllConstraints(
             this TypeSymbol type,
@@ -378,20 +380,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static readonly Func<TypeSymbol, CheckConstraintsArgs, bool, bool> s_checkConstraintsSingleTypeFunc = (type, arg, unused) => CheckConstraintsSingleType(type, arg, deepCheckTupleNames: false);
+        private static readonly Func<TypeSymbol, CheckConstraintsArgs, bool, bool> s_checkConstraintsSingleTypeFunc = (type, arg, unused) => CheckConstraintsSingleType(type, arg);
 
-        private static bool CheckConstraintsSingleType(TypeSymbol type, CheckConstraintsArgs args, bool deepCheckTupleNames)
+        /// <summary>
+        /// Only includes a shallow check for tuple names, since the caller is already taking care of checking constitutent types (using VisitType).
+        /// </summary>
+        private static bool CheckConstraintsSingleType(TypeSymbol type, CheckConstraintsArgs args)
         {
             if (type.Kind == SymbolKind.NamedType)
             {
-                ((NamedTypeSymbol)type).CheckConstraints(args.CurrentCompilation, args.Conversions, args.Location, args.Diagnostics, deepCheckTupleNames);
+                ((NamedTypeSymbol)type).CheckConstraints(args.CurrentCompilation, args.Conversions, args.Location, args.Diagnostics, TupleNamesCheckKind.Shallow);
             }
             return false; // continue walking types
         }
 
-        /// <summary>
-        /// Includes a deep check for constraints on tuple names.
-        /// </summary>
         public static bool CheckConstraints(
             this NamedTypeSymbol type,
             ConversionsBase conversions,
@@ -399,7 +401,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, // may be omitted in synthesized invocations
             Compilation currentCompilation,
             ConsList<Symbol> basesBeingResolved,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            TupleNamesCheckKind deepCheckTupleNames)
         {
             Debug.Assert(typeArgumentsSyntax.Count == 0 /*omitted*/ || typeArgumentsSyntax.Count == type.Arity);
             if (!RequiresChecking(type))
@@ -411,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
             var result = !typeSyntax.HasErrors &&
                             CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder,
-                                ref useSiteDiagnosticsBuilder, deepCheckTupleNames: true);
+                                ref useSiteDiagnosticsBuilder, deepCheckTupleNames);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -442,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConversionsBase conversions,
             Location location,
             DiagnosticBag diagnostics,
-            bool deepCheckTupleNames)
+            TupleNamesCheckKind deepCheckTupleNames)
         {
             if (!RequiresChecking(type))
             {
@@ -530,29 +533,73 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Deep checking tuple names means checking the constraints on every constituent type and all their base types.
         /// deepCheckTupleNames should be set to false when the caller is already visiting constituent types.
         /// </summary>
-        private static bool CheckTupleNamesConstraints(TypeSymbol type, ArrayBuilder<TypeParameterDiagnosticInfo> builder, bool deepCheckTupleNames)
+        private static bool CheckTupleNamesConstraints(TypeSymbol type, ArrayBuilder<TypeParameterDiagnosticInfo> builder, TupleNamesCheckKind deepCheckTupleNames)
         {
-            if (deepCheckTupleNames)
+            switch (deepCheckTupleNames)
             {
-                object failedType = type.VisitType((t, diag, _) => !CheckTupleNamesConstraints(t, diag, deepCheckTupleNames: false), builder);
-                return failedType == null;
-            }
-            else
-            {
-                if (!CheckTupleNamesConstraintsCore(type, builder))
-                {
-                    return false;
-                }
+                case TupleNamesCheckKind.Shallow:
+                    {
+                        if (!CheckTupleNamesConstraintsCore(type, builder))
+                        {
+                            return false;
+                        }
 
-                var baseType = type.BaseTypeNoUseSiteDiagnostics;
-                return (object)baseType != null ? CheckTupleNamesConstraints(baseType, builder, deepCheckTupleNames: false) : true;
+                        // Walk up the base types and apply the same check on each inheritence level.
+                        // If the base type was not "variable", then we can cut short.
+                        TypeSymbol currentType = type;
+                        NamedTypeSymbol baseType = currentType.BaseTypeNoUseSiteDiagnostics;
+                        bool result = true;
+                        while ((object)baseType != null && currentType.OriginalDefinition.BaseTypeNoUseSiteDiagnostics.ContainsTypeParameter())
+                        {
+                            result &= CheckTupleNamesConstraints(baseType, builder, TupleNamesCheckKind.Shallow);
+                            currentType = baseType;
+                            baseType = currentType.BaseTypeNoUseSiteDiagnostics;
+                        }
+                        return result;
+                    }
+                case TupleNamesCheckKind.DeepExceptTopLevel:
+                    {
+                        if (!CheckTupleNamesConstraintsCore(type, builder))
+                        {
+                            return false;
+                        }
+                        NamedTypeSymbol baseType = type.BaseTypeNoUseSiteDiagnostics;
+                        // If the base type was not "variable", then we can cut short.
+                        if ((object)baseType == null || !type.OriginalDefinition.BaseTypeNoUseSiteDiagnostics.ContainsTypeParameter())
+                        {
+                            return true;
+                        }
+                        return CheckTupleNamesConstraints(baseType, builder, TupleNamesCheckKind.Deep);
+                    }
+                case TupleNamesCheckKind.Deep:
+                    {
+                        object failedType = type.VisitType((t, diag, _) => !CheckTupleNamesConstraints(t, diag, TupleNamesCheckKind.Shallow), builder);
+                        return failedType == null;
+                    }
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(deepCheckTupleNames);
             }
+        }
+
+        internal static bool CheckTupleNamesConstraints(TypeSymbol type, Location location, DiagnosticBag diagnostics, TupleNamesCheckKind deepCheckTupleNames)
+        {
+            var builder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+            bool result = CheckTupleNamesConstraints(type, builder, deepCheckTupleNames);
+
+            foreach (var pair in builder)
+            {
+                diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
+            }
+            builder.Free();
+
+            return result;
         }
 
         /// <summary>
         /// Checks a single type for tuple name constraints, without recursing into its base types or constituent types.
         /// </summary>
-        internal static bool CheckTupleNamesConstraints(TypeSymbol type, Location location, DiagnosticBag diagnostics)
+        internal static bool CheckTupleNamesConstraintsCore(TypeSymbol type, Location location, DiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             bool result = CheckTupleNamesConstraintsCore(type, builder);
@@ -676,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
-            bool deepCheckTupleNames)
+            TupleNamesCheckKind deepCheckTupleNames)
         {
             bool result = CheckConstraints(
                             type,
@@ -714,9 +761,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var parameter in method.Parameters)
             {
-                result &= CheckTupleNamesConstraints(parameter.Type, diagnosticsBuilder, deepCheckTupleNames: true);
+                result &= CheckTupleNamesConstraints(parameter.Type, diagnosticsBuilder, TupleNamesCheckKind.Deep);
             }
-            result &= CheckTupleNamesConstraints(method.ReturnType, diagnosticsBuilder, deepCheckTupleNames: true);
+            result &= CheckTupleNamesConstraints(method.ReturnType, diagnosticsBuilder, TupleNamesCheckKind.Deep);
 
             return result;
         }
@@ -1124,5 +1171,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 conversions.HasIdentityOrImplicitReferenceConversion(deducedBase, effectiveBase, ref useSiteDiagnostics) ||
                 conversions.HasBoxingConversion(deducedBase, effectiveBase, ref useSiteDiagnostics));
         }
+    }
+
+    internal enum TupleNamesCheckKind
+    {
+        Shallow = 0, // Only check this type
+        Deep = 1, // Visit the constituent types and check each one
+        DeepExceptTopLevel = 2 // Do a shallow check on the top-level type, but when checking its base types use a deep check
+                               // This is an optimization for types that are constructed
     }
 }
