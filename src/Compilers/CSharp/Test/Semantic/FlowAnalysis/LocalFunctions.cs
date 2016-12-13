@@ -1217,44 +1217,76 @@ class C
     public void M()
     {
         S2 s2;
-        void Local()
+        void Local1()
         {
             s2.x = 0;
             S2 s4 = s2;
         }
-        Local();
+        Local1();
         S2 s3 = s2;
     }
 
     public void M2()
     {
         S2 s3;
-        void Local()
+        void Local2()
         {
             s3.s = new S();
             S2 s4 = s3;
         }
-        Local();
+        Local2();
     }
 
     public void M3()
     {
         S2 s5;
-        void Local()
+        void Local3()
         {
             s5.s = new S();
         }
-        Local();
+        Local3();
         S2 s6 = s5;
     }
 }");
             comp.VerifyDiagnostics(
                 // (30,9): error CS0170: Use of possibly unassigned field 'x'
-                //         Local();
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local()").WithArguments("x").WithLocation(30, 9),
+                //         Local2();
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local2()").WithArguments("x").WithLocation(30, 9),
                 // (41,17): error CS0165: Use of unassigned local variable 's5'
                 //         S2 s6 = s5;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "s5").WithArguments("s5").WithLocation(41, 17));
+        }
+
+        [Fact]
+        [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
+        public void PiecewiseStructAssignmentInConstructor()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+struct S
+{
+    public int _x;
+    public int _y;
+
+    public S(int x, int y)
+    {
+        _y = 0;
+        void Local()
+        {
+            _x = 0;
+            S s2 = this;
+        }
+        Local();
+    }
+}");
+            // Note that definite assignment is still validated in this
+            // compilation
+            comp.VerifyDiagnostics(
+                // (12,13): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             _x = 0;
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "_x").WithLocation(12, 13),
+                // (13,20): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             S s2 = this;
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(13, 20));
         }
     }
 }
