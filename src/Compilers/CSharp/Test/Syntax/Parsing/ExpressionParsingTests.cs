@@ -2806,5 +2806,95 @@ class C
             }
             EOF();
         }
+
+        [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
+        public void InProgressLocalDeclaration8()
+        {
+            UsingTree(@"
+class C
+{
+    async void M()
+    {
+        Task.
+        await Task[1];
+    }
+}
+");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Task");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.AwaitExpression);
+                                {
+                                    N(SyntaxKind.AwaitKeyword);
+                                    N(SyntaxKind.ElementAccessExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Task");
+                                        }
+                                        N(SyntaxKind.BracketedArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.Argument);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }
