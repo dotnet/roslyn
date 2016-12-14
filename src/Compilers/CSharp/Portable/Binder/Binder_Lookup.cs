@@ -379,6 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var methods = ArrayBuilder<MethodSymbol>.GetInstance();
             var binder = scope.Binder;
+
             binder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace, methods, name, arity, options, this);
 
             foreach (var method in methods)
@@ -1438,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SymbolKind.Method:
-                    if (arity != 0 || (options & LookupOptions.AllMethodsOnArityZero) == 0)
+                    if (arity != 0 || (options & LookupOptions.AllMethodsOnArityZero) == 0 || (options & LookupOptions.TryMatchOmittedTypeArgs) != 0)
                     {
                         MethodSymbol method = (MethodSymbol)symbol;
                         if (method.Arity != arity)
@@ -1451,7 +1452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 // Using the generic {1} '{0}' requires {2} type arguments
-                                diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadArity, method, MessageID.IDS_SK_METHOD.Localize(), method.Arity) : null;
+                                diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadArity, method, MessageID.IDS_MethodGroup.Localize(), method.Arity) : null;
                             }
                             return true;
                         }

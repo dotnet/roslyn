@@ -9200,8 +9200,8 @@ public class NormalType
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (7,17): error CS1031: Type expected
                 Diagnostic(ErrorCode.ERR_TypeExpected, ">"),
-                // (7,9): error CS0305: Using the generic method 'NormalType.M1<T1>(T1, T1)' requires 1 type arguments
-                Diagnostic(ErrorCode.ERR_BadArity, "M1<int, >").WithArguments("NormalType.M1<T1>(T1, T1)", "method", "1"));
+                // (7,9): error CS0305: Using the generic method group 'NormalType.M1<T1>(T1, T1)' requires 1 type arguments
+                Diagnostic(ErrorCode.ERR_BadArity, "M1<int, >").WithArguments("NormalType.M1<T1>(T1, T1)", "method group", "1"));
         }
 
         [Fact]

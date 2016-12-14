@@ -623,9 +623,9 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,17): error CS0305: Using the generic method 'Program.Foo<T, U>(T, U)' requires 2 type arguments
+                // (6,17): error CS0305: Using the generic method group 'Program.Foo<T, U>(T, U)' requires 2 type arguments
                 //         var s = Foo<>(123, 345);
-                Diagnostic(ErrorCode.ERR_BadArity, "Foo<>").WithArguments("Program.Foo<T, U>(T, U)", "method", "2"));
+                Diagnostic(ErrorCode.ERR_BadArity, "Foo<>").WithArguments("Program.Foo<T, U>(T, U)", "method group", "2"));
         }
 
         [WorkItem(541887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541887")]

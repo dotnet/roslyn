@@ -25970,7 +25970,7 @@ BC36716: Visual Basic 12.0 does not support implementing read-only or write-only
         End Sub
 
         <Fact(), WorkItem(13617, "https://github.com/dotnet/roslyn/issues/13617")>
-        Public Sub MissingTypeArgumentInGenericExtensionMethod()
+        Public Sub MissingTypeArgumentInGenericExtensionMethods_Arity()
             Dim source =
     <compilation>
         <file name="a.vb"><![CDATA[
@@ -25979,15 +25979,35 @@ Imports System.Runtime.CompilerServices
 
 Module FooExtensions
     <Extension()>
-    Public Function Foo(Of T)(ByVal obj As Object)
+    Public Function ExtensionMethod0(ByVal obj As Object)
+        Return GetType(Object)
+    End Function
+    <Extension()>
+    Public Function ExtensionMethod1(Of T)(ByVal obj As Object)
         Return GetType(T)
+    End Function
+    <Extension()>
+    Public Function ExtensionMethod2(Of T1, T2)(ByVal obj As Object)
+        Return GetType(T1)
     End Function
 End Module
 
 Module Module1
     Sub Main()
-        Dim typeA As Type = "a".Foo()
-        Dim typeB As Type = "b".Foo()()
+        Dim omittedArg0 As Type = "string literal".ExtensionMethod0()()
+        Dim omittedArg1 As Type = "string literal".ExtensionMethod1()()
+        Dim omittedArg2 As Type = "string literal".ExtensionMethod2()()
+
+        Dim moreArgs0 As Type = "string literal".ExtensionMethod0(Of Integer)()
+        Dim moreArgs1 As Type = "string literal".ExtensionMethod1(Of Integer, Boolean)()
+        Dim moreArgs2 As Type = "string literal".ExtensionMethod2(Of Integer, Boolean, String)()
+
+        Dim lessArgs1 As Type = "string literal".ExtensionMethod1()
+        Dim lessArgs2 As Type = "string literal".ExtensionMethod2(Of Integer)()
+
+        Dim exactArgs0 As Type = "string literal".ExtensionMethod0()
+        Dim exactArgs1 As Type = "string literal".ExtensionMethod1(Of Integer)()
+        Dim exactArgs2 As Type = "string literal".ExtensionMethod2(Of Integer, Boolean)()
     End Sub
 End Module
         ]]></file>
@@ -25997,12 +26017,100 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36589: Type parameter 'T' for extension method 'Public Function Foo(Of T)() As Object' defined in 'FooExtensions' cannot be inferred.
-        Dim typeA As Type = "a".Foo()
-                                ~~~
-BC36589: Type parameter 'T' for extension method 'Public Function Foo(Of T)() As Object' defined in 'FooExtensions' cannot be inferred.
-        Dim typeB As Type = "b".Foo()()
-                                ~~~
+BC36589: Type parameter 'T' for extension method 'Public Function ExtensionMethod1(Of T)() As Object' defined in 'FooExtensions' cannot be inferred.
+        Dim omittedArg1 As Type = "string literal".ExtensionMethod1()()
+                                                   ~~~~~~~~~~~~~~~~
+BC36589: Type parameter 'T1' for extension method 'Public Function ExtensionMethod2(Of T1, T2)() As Object' defined in 'FooExtensions' cannot be inferred.
+        Dim omittedArg2 As Type = "string literal".ExtensionMethod2()()
+                                                   ~~~~~~~~~~~~~~~~
+BC36589: Type parameter 'T2' for extension method 'Public Function ExtensionMethod2(Of T1, T2)() As Object' defined in 'FooExtensions' cannot be inferred.
+        Dim omittedArg2 As Type = "string literal".ExtensionMethod2()()
+                                                   ~~~~~~~~~~~~~~~~
+BC36907: Extension method 'Public Function ExtensionMethod0() As Object' defined in 'FooExtensions' is not generic (or has no free type parameters) and so cannot have type arguments.
+        Dim moreArgs0 As Type = "string literal".ExtensionMethod0(Of Integer)()
+                                                                 ~~~~~~~~~~~~
+BC36591: Too many type arguments to extension method 'Public Function ExtensionMethod1(Of T)() As Object' defined in 'FooExtensions'.
+        Dim moreArgs1 As Type = "string literal".ExtensionMethod1(Of Integer, Boolean)()
+                                                                 ~~~~~~~~~~~~~~~~~~~~~
+BC36591: Too many type arguments to extension method 'Public Function ExtensionMethod2(Of T1, T2)() As Object' defined in 'FooExtensions'.
+        Dim moreArgs2 As Type = "string literal".ExtensionMethod2(Of Integer, Boolean, String)()
+                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36589: Type parameter 'T' for extension method 'Public Function ExtensionMethod1(Of T)() As Object' defined in 'FooExtensions' cannot be inferred.
+        Dim lessArgs1 As Type = "string literal".ExtensionMethod1()
+                                                 ~~~~~~~~~~~~~~~~
+BC36590: Too few type arguments to extension method 'Public Function ExtensionMethod2(Of T1, T2)() As Object' defined in 'FooExtensions'.
+        Dim lessArgs2 As Type = "string literal".ExtensionMethod2(Of Integer)()
+                                                                 ~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(13617, "https://github.com/dotnet/roslyn/issues/13617")>
+        Public Sub MissingTypeArgumentInGenericInstanceMethods_Arity()
+            Dim source =
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Module Module1
+    Public Function InstanceMethod0()
+        Return GetType(Object)
+    End Function
+    Public Function InstanceMethod1(Of T)()
+        Return GetType(T)
+    End Function
+    Public Function InstanceMethod2(Of T1, T2)()
+        Return GetType(T1)
+    End Function
+
+    Sub Main()
+        Dim omittedArg0 As Type = InstanceMethod0()()
+        Dim omittedArg1 As Type = InstanceMethod1()()
+        Dim omittedArg2 As Type = InstanceMethod2()()
+
+        Dim moreArgs0 As Type = InstanceMethod0(Of Integer)()
+        Dim moreArgs1 As Type = InstanceMethod1(Of Integer, Boolean)()
+        Dim moreArgs2 As Type = InstanceMethod2(Of Integer, Boolean, String)()
+
+        Dim lessArgs1 As Type = InstanceMethod1()
+        Dim lessArgs2 As Type = InstanceMethod2(Of Integer)()
+
+        Dim exactArgs0 As Type = InstanceMethod0()
+        Dim exactArgs1 As Type = InstanceMethod1(Of Integer)()
+        Dim exactArgs2 As Type = InstanceMethod2(Of Integer, Boolean)()
+    End Sub
+End Module
+        ]]></file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef})
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC32050: Type parameter 'T' for 'Public Function InstanceMethod1(Of T)() As Object' cannot be inferred.
+        Dim omittedArg1 As Type = InstanceMethod1()()
+                                  ~~~~~~~~~~~~~~~
+BC32050: Type parameter 'T1' for 'Public Function InstanceMethod2(Of T1, T2)() As Object' cannot be inferred.
+        Dim omittedArg2 As Type = InstanceMethod2()()
+                                  ~~~~~~~~~~~~~~~
+BC32050: Type parameter 'T2' for 'Public Function InstanceMethod2(Of T1, T2)() As Object' cannot be inferred.
+        Dim omittedArg2 As Type = InstanceMethod2()()
+                                  ~~~~~~~~~~~~~~~
+BC32045: 'Public Function InstanceMethod0() As Object' has no type parameters and so cannot have type arguments.
+        Dim moreArgs0 As Type = InstanceMethod0(Of Integer)()
+                                               ~~~~~~~~~~~~
+BC32043: Too many type arguments to 'Public Function InstanceMethod1(Of T)() As Object'.
+        Dim moreArgs1 As Type = InstanceMethod1(Of Integer, Boolean)()
+                                               ~~~~~~~~~~~~~~~~~~~~~
+BC32043: Too many type arguments to 'Public Function InstanceMethod2(Of T1, T2)() As Object'.
+        Dim moreArgs2 As Type = InstanceMethod2(Of Integer, Boolean, String)()
+                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC32050: Type parameter 'T' for 'Public Function InstanceMethod1(Of T)() As Object' cannot be inferred.
+        Dim lessArgs1 As Type = InstanceMethod1()
+                                ~~~~~~~~~~~~~~~
+BC32042: Too few type arguments to 'Public Function InstanceMethod2(Of T1, T2)() As Object'.
+        Dim lessArgs2 As Type = InstanceMethod2(Of Integer)()
+                                               ~~~~~~~~~~~~
 </expected>)
         End Sub
 
