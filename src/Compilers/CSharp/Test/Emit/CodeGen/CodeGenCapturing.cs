@@ -112,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         /// <summary>
         /// Generates all combinations of distributing a sum to a list of subsets.
+        /// This is equivalent to the "stars and bars" combinatorics construction.
         /// </summary>
         private IEnumerable<IList<int>> GenerateAllSetCombinations(int sum, int numSubsets)
         {
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
                 bool isLastFunc = !e.MoveNext();
 
-                foreach (var captureCombo in GenerateAllSetCombinations(MaxCaptures, depth + 1))
+                foreach (var captureCombo in GenerateAllSetCombinations(MaxCaptures, depth + 2))
                 {
                     var copy = methodSoFar.Clone();
                     var expr = MakeCaptureExpression(captureCombo, copy.CaptureContext);
@@ -324,7 +325,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                         copy.LocalFuncs.AddRange(Enumerable.Repeat<List<string>>(null, depth - copy.LocalFuncs.Count));
                         copy.LocalFuncs.Insert(depth, new List<string>());
                     }
-                    copy.LocalFuncs[depth].Add($"int Local_{localFuncNameIndex}() => {expr};");
+                    string localFuncName = $"Local_{localFuncNameIndex}";
+                    copy.LocalFuncs[depth].Add($"int {localFuncName}() => {expr};");
+                    copy.CaptureContext.Add(depth + 1, $"{localFuncName}()");
 
                     if (!isLastFunc)
                     {
@@ -347,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             // Set combinations indicate what depth we will place local functions
             // at. For instance, { 0, 1 } indicates 0 local functions at method
             // depth and 1 local function at one nested scope below method level.
-            foreach (var localFuncLayout in GenerateAllSetCombinations(MaxLocalFuncs, MaxDepth + 1))
+            foreach (var localFuncLayout in GenerateAllSetCombinations(MaxLocalFuncs, MaxDepth))
             {
                 // Given a local function map, we need to generate capture
                 // expressions for each local func at each depth
@@ -376,6 +379,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 {
                     foreach (var captureVar in captureVars[depth + 1])
                     {
+                        if (captureVar.EndsWith("()"))
+                        {
+                            continue;
+                        }
+
                         methodText.Append(' ', 4 * (depth + 2));
                         methodText.AppendLine($"int {captureVar} = 0;");
                     }
@@ -409,6 +417,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         }
 
+        /// <summary>
+        /// This test exercises the C# local function capturing analysis by generating
+        /// all possible combinations of capturing within a certain complexity. The
+        /// generating functions use a maximum number of variables captured per local function,
+        /// a maximum number of local functions, and a maximum scope depth to decide the
+        /// limits of the combinations.
+        /// </summary>
         [Fact]
         public void AllCaptureTests()
         {
