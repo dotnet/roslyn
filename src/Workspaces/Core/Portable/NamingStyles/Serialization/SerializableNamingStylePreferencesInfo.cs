@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             var serializationVersion = int.Parse(namingPreferencesInfoElement.Attribute("SerializationVersion").Value);
             if (serializationVersion != s_serializationVersion)
             {
-                namingPreferencesInfoElement = XElement.Parse(SimplificationOptions.NamingPreferences.DefaultValue);
+                namingPreferencesInfoElement = XElement.Parse(SimplificationOptions._defaultNamingPreferencesString);
             }
 
             namingPreferencesInfo.SetSymbolSpecificationListFromXElement(namingPreferencesInfoElement.Element(nameof(SymbolSpecifications)));

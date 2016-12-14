@@ -2,6 +2,8 @@
 
 using System;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using System.Xml.Linq;
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
@@ -95,7 +97,8 @@ namespace Microsoft.CodeAnalysis.Simplification
         [Obsolete]
         public static PerLanguageOption<bool> PreferIntrinsicPredefinedTypeKeywordInMemberAccess { get; } = new PerLanguageOption<bool>(nameof(SimplificationOptions), nameof(PreferIntrinsicPredefinedTypeKeywordInMemberAccess), defaultValue: true);
 
-        private static string _defaultNamingPreferences = $@"
+        private static SerializableNamingStylePreferencesInfo _defaultNamingPreferences = SerializableNamingStylePreferencesInfo.FromXElement(XElement.Parse(_defaultNamingPreferencesString));
+        internal static string _defaultNamingPreferencesString = $@"
 <NamingPreferencesInfo SerializationVersion=""3"">
   <SymbolSpecifications>
     <SymbolSpecification ID=""5c545a62-b14d-460a-88d8-e936c0a39316"" Name=""{WorkspacesResources.Class}"">
@@ -349,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// This option describes the naming rules that should be applied to specified categories of symbols, 
         /// and the level to which those rules should be enforced.
         /// </summary>
-        public static PerLanguageOption<string> NamingPreferences { get; } = new PerLanguageOption<string>(nameof(SimplificationOptions), nameof(NamingPreferences), defaultValue: _defaultNamingPreferences,
+        internal static PerLanguageOption<SerializableNamingStylePreferencesInfo> NamingPreferences { get; } = new PerLanguageOption<SerializableNamingStylePreferencesInfo>(nameof(SimplificationOptions), nameof(NamingPreferences), defaultValue: _defaultNamingPreferences,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences"));
     }
 }
