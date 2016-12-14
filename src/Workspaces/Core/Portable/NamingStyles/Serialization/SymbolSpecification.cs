@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal partial class SymbolSpecification
+    internal class SymbolSpecification
     {
         public Guid ID { get; private set; }
         public string Name { get; private set; }
@@ -243,6 +243,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return SymbolKind == other.SymbolKind &&
                        TypeKind == other.TypeKind;
             }
+
+            public static bool operator ==(SymbolKindOrTypeKind left, SymbolKindOrTypeKind right)
+                => left.Equals(right);
+
+            public static bool operator !=(SymbolKindOrTypeKind left, SymbolKindOrTypeKind right)
+                => !left.Equals(right);
 
             public override int GetHashCode()
             {

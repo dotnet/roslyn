@@ -372,9 +372,9 @@
     <Compile Include="Experiments\IExperimentationService.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigSeverityStrings.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.cs" />
-    <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.NamingRule.cs" />
-    <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.NamingStyle.cs" />
-    <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.SymbolSpec.cs" />
+    <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser_NamingRule.cs" />
+    <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser_NamingStyle.cs" />
+    <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser_SymbolSpec.cs" />
     <Compile Include="NamingStyles\Serialization\AccessibilityExtensions.cs" />
     <Compile Include="Options\NamingEditorConfigStorageLocation.cs" />
     <Compile Include="LanguageServices\TypeInferenceService\AbstractTypeInferenceService.AbstractTypeInferrer.cs" />
@@ -394,10 +394,10 @@
     <Compile Include="Remote\RemoteSupportedLanguages.cs" />
     <Compile Include="NamingStyles\Capitalization.cs" />
     <Compile Include="NamingStyles\NamingRule.cs" />
-    <Compile Include="NamingStyles\NamingStylePreferencesInfo.cs" />
+    <Compile Include="NamingStyles\NamingStyleRules.cs" />
     <Compile Include="NamingStyles\Serialization\NamingStyle.cs" />
     <Compile Include="NamingStyles\Serialization\SerializableNamingRule.cs" />
-    <Compile Include="NamingStyles\Serialization\SerializableNamingStylePreferencesInfo.cs" />
+    <Compile Include="NamingStyles\Serialization\NamingStylePreferences.cs" />
     <Compile Include="NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />

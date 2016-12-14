@@ -68,10 +68,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static readonly SymbolKindOrTypeKind _method = new SymbolKindOrTypeKind(SymbolKind.Method);
         private static readonly SymbolKindOrTypeKind _field = new SymbolKindOrTypeKind(SymbolKind.Field);
         private static readonly SymbolKindOrTypeKind _event = new SymbolKindOrTypeKind(SymbolKind.Event);
-        private static readonly SymbolKindOrTypeKind _namespace = new SymbolKindOrTypeKind(SymbolKind.Namespace);
         private static readonly SymbolKindOrTypeKind _delegate = new SymbolKindOrTypeKind(TypeKind.Delegate);
-        private static readonly SymbolKindOrTypeKind _typeParameter = new SymbolKindOrTypeKind(SymbolKind.TypeParameter);
-        private static readonly ImmutableArray<SymbolKindOrTypeKind> _all = ImmutableArray.Create(_class, _struct, _interface, _enum, _property, _method, _field, _event, _namespace, _delegate, _typeParameter);
+        private static readonly ImmutableArray<SymbolKindOrTypeKind> _all = ImmutableArray.Create(_class, _struct, _interface, _enum, _property, _method, _field, _event, _delegate);
         private static ImmutableArray<SymbolKindOrTypeKind> ParseSymbolKindList(string symbolSpecApplicableKinds)
         {
             if (symbolSpecApplicableKinds == null)
@@ -113,14 +111,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     case "event":
                         builder.Add(_event);
                         break;
-                    case "namespace":
-                        builder.Add(_namespace);
-                        break;
                     case "delegate":
                         builder.Add(_delegate);
-                        break;
-                    case "type_parameter":
-                        builder.Add(_typeParameter);
                         break;
                     default:
                         break;
@@ -164,6 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                         builder.Add(Accessibility.Public);
                         break;
                     case "internal":
+                    case "friend":
                         builder.Add(Accessibility.Internal);
                         break;
                     case "private":
@@ -173,6 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                         builder.Add(Accessibility.Protected);
                         break;
                     case "protected_internal":
+                    case "protected_friend":
                         builder.Add(Accessibility.ProtectedOrInternal);
                         break;
                     default:
@@ -220,6 +214,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 switch (symbolSpecRequiredModifier)
                 {
                     case "abstract":
+                    case "must_inherit ":
                         builder.Add(_abstractModifierKind);
                         break;
                     case "async":
@@ -232,6 +227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                         builder.Add(_readonlyModifierKind);
                         break;
                     case "static":
+                    case "shared":
                         builder.Add(_staticModifierKind);
                         break;
                     default:
