@@ -318,10 +318,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
 
             // We're in a name-only context, since if we were an expression we'd be a
-                // MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
-                var nameBinding = context.SemanticModel.GetSymbolInfo(name, cancellationToken);
+            // MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
+            var nameBinding = context.SemanticModel.GetSymbolInfo(name, cancellationToken);
 
-                var symbol = nameBinding.Symbol as INamespaceOrTypeSymbol;
+            var symbol = nameBinding.Symbol as INamespaceOrTypeSymbol;
             if (symbol != null)
             {
                 if (context.IsNameOfContext)
