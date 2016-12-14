@@ -9,10 +9,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpResolveConflictMarkerCodeFixProvider : AbstractResolveConflictMarkerCodeFixProvider
     {
-        private const string CS1034 = nameof(CS1034); // Merge conflict marker encountered
+        private const string CS8300 = nameof(CS8300); // Merge conflict marker encountered
 
         public CSharpResolveConflictMarkerCodeFixProvider() 
-            : base(CS1034)
+            : base(CS8300)
         {
         }
 
