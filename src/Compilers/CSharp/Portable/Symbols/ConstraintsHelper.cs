@@ -535,6 +535,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private static bool CheckTupleNamesConstraints(TypeSymbol type, ArrayBuilder<TypeParameterDiagnosticInfo> builder, TupleNamesCheckKind deepCheckTupleNames)
         {
+            // Note this only checks for tuple name errors introduced by referencing this type.
+            //
+            // So if the type does not include any tuples, its reference cannot introduce an error.
+            // But its declaration could. For instance:
+            //     `class Error : Base, I<(int notA, int notB)>`
+            //
+            // Similarly, if the base type doesn't use type arguments from the type, then the reference of this type cannot introduce an error.
+            // But the base type may already have one (reported elsewhere). For instance:
+            //     `class C : BaseCanBeSkipped<int>, ITest`
+            //     `class D : BaseNeedsChecking<T>, ITest`
+            if (!type.ContainsTuple())
+            {
+                return true;
+            }
             switch (deepCheckTupleNames)
             {
                 case TupleNamesCheckKind.Shallow:
@@ -564,7 +578,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             return false;
                         }
                         NamedTypeSymbol baseType = type.BaseTypeNoUseSiteDiagnostics;
-                        // If the base type was not "variable", then we can cut short.
                         if ((object)baseType == null || !type.OriginalDefinition.BaseTypeNoUseSiteDiagnostics.ContainsTypeParameter())
                         {
                             return true;

@@ -678,6 +678,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function CheckTupleNamesConstraints(type As TypeSymbol,
                                                     <[In], Out> ByRef diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                                     deepCheckTupleNames As TupleNamesCheckKind) As Boolean
+            ' Note this only checks for tuple name errors introduced by referencing this type.
+            '
+            ' So if the type does Not include any tuples, its reference cannot introduce an error.
+            ' But its declaration could. For instance:
+            '     `Class Error Inherits Base Implements I(Of (notA As Integer, notB As Integer))`
+            '
+            ' Similarly, if the base type doesn't use type arguments from the type, then the reference of this type cannot introduce an error.
+            ' But the base type may already have one (reported elsewhere). For instance:
+            '     `Class C Inherits BaseCanBeSkipped(Of Integer) Implements ITest`
+            '     `Class D Inherits BaseNeedsChecking(Of T) Implements ITest`
+            If Not type.ContainsTuple() Then
+                Return True
+            End If
 
             Select Case deepCheckTupleNames
                 Case TupleNamesCheckKind.Shallow
@@ -704,7 +717,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
 
                     Dim baseType = type.BaseTypeNoUseSiteDiagnostics
-                    ' If the base type was not "variable", then we can cut short.
                     If baseType Is Nothing OrElse Not ContainsTypeParameter(type.OriginalDefinition.BaseTypeNoUseSiteDiagnostics) Then
                         Return True
                     End If
