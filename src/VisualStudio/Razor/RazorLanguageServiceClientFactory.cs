@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         {
             var clientFactory = workspace.Services.GetRequiredService<IRemoteHostClientService>();
             var client = await clientFactory.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            return new RazorLangaugeServiceClient(client);
+            return client == null ? null : new RazorLangaugeServiceClient(client);
         }
     }
 }
