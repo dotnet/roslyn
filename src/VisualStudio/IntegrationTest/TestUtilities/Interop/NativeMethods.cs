@@ -13,12 +13,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
         private const string Kernel32 = "kernel32.dll";
         private const string Ole32 = "ole32.dll";
         private const string User32 = "User32.dll";
-        private const string SetupConfigurationNative = "Microsoft.VisualStudio.Setup.Configuration.Native.dll";
+        private const string SetupConfigurationNative = "x86\\Microsoft.VisualStudio.Setup.Configuration.Native.dll";
 
         public const int REGDB_E_CLASSNOTREG = unchecked((int)0x80040154);
 
-        [DllImport(SetupConfigurationNative)]
-        public static extern void GetSetupConfiguration([MarshalAs(UnmanagedType.Interface)] out ISetupConfiguration setupConfiguration);
+        [DllImport(SetupConfigurationNative, BestFitMapping = false, CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, EntryPoint = "GetSetupConfiguration", ExactSpelling = true, PreserveSig = true, SetLastError = false, ThrowOnUnmappableChar = false)]
+        public static extern int GetSetupConfiguration(
+            [Out, MarshalAs(UnmanagedType.Interface)] out ISetupConfiguration setupConfiguration,
+            [In] IntPtr pReserved
+        );
 
         [DllImport(Kernel32)]
         public static extern uint GetCurrentThreadId();
