@@ -174,7 +174,11 @@ class C : Middle
                 Diagnostic(ErrorCode.ERR_BadNamedArgument, "optParam3").WithArguments("Foo", "optParam3").WithLocation(37, 15),
                 // (39,30): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
                 //         c.Foo(optArg1: 3333, 11111);
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "11111").WithLocation(39, 30));
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "11111").WithLocation(39, 30),
+                // (39,15): error CS1739: The best overload for 'Foo' does not have a parameter named 'optArg1'
+                //         c.Foo(optArg1: 3333, 11111);
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "optArg1").WithArguments("Foo", "optArg1").WithLocation(39, 15)
+                );
         }
 
         [Fact]
