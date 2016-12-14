@@ -103,19 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentForEachStatementIterationVarDeclaration(original, iterationVarDecl);
         }
 
-        public override BoundStatement InstrumentForStatementGotoEnd(BoundForStatement original, BoundStatement gotoEnd)
+        public override BoundStatement InstrumentForStatementConditionalGotoStartOrBreak(BoundForStatement original, BoundStatement branchBack)
         {
-            return Previous.InstrumentForStatementGotoEnd(original, gotoEnd);
-        }
-
-        public override BoundStatement InstrumentForEachStatementGotoEnd(BoundForEachStatement original, BoundStatement gotoEnd)
-        {
-            return Previous.InstrumentForEachStatementGotoEnd(original, gotoEnd);
-        }
-
-        public override BoundStatement InstrumentForStatementConditionalGotoStart(BoundForStatement original, BoundStatement branchBack)
-        {
-            return Previous.InstrumentForStatementConditionalGotoStart(original, branchBack);
+            return Previous.InstrumentForStatementConditionalGotoStartOrBreak(original, branchBack);
         }
 
         public override BoundStatement InstrumentForEachStatementConditionalGotoStart(BoundForEachStatement original, BoundStatement branchBack)

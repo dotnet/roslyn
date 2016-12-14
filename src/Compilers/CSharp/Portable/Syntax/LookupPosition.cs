@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        private static SyntaxToken GetFirstExcludedToken(StatementSyntax statement)
+        internal static SyntaxToken GetFirstExcludedToken(StatementSyntax statement)
         {
             Debug.Assert(statement != null);
             switch (statement.Kind())
