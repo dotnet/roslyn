@@ -11,7 +11,6 @@
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
