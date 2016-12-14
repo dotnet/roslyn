@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.Build.Utilities;
+using System.Collections.Concurrent;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System;
 
@@ -15,6 +17,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public sealed class ValidateBootstrap : Task
     {
+        private static readonly ConcurrentDictionary<AssemblyName, byte> s_failedLoadSet = new ConcurrentDictionary<AssemblyName, byte>();
+
         private string _bootstrapPath;
 
         public string BootstrapPath
@@ -25,6 +29,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public ValidateBootstrap()
         {
+
 
         }
 
@@ -54,6 +59,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
+            var failedLoads = s_failedLoadSet.Keys.ToList();
+            if (failedLoads.Count > 0)
+            {
+                foreach (var name in failedLoads.OrderBy(x => x.Name))
+                {
+                    Log.LogError($"Assembly resolution failed for {name}");
+                    allGood = false;
+                }
+            }
+
             return allGood;
         }
 
@@ -74,6 +89,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         private string GetDirectory(Assembly assembly) => Path.GetDirectoryName(Utilities.GetLocation(assembly));
+
+        internal static void AddFailedLoad(AssemblyName name)
+        {
+            if (Path.GetExtension(name.Name) != ".resources")
+            {
+                s_failedLoadSet.TryAdd(name, 0);
+            }
+        }
     }
 #endif
 }

@@ -58,6 +58,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             }
 
+#if DEBUG || BOOTSTRAP
+            ValidateBootstrap.AddFailedLoad(name);
+#endif
+
             return false;
         }
 
