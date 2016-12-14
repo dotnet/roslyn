@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
 
             private IWpfTextView CreateElisionBufferView(ITextBuffer finalBuffer)
             {
-                return RoslynOutliningRegionTag.CreateShrunkenTextView(
+                return BlockTagState.CreateShrunkenTextView(
                     _provider._textEditorFactoryService, finalBuffer);
             }
 

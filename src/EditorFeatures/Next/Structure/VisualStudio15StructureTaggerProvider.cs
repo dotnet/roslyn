@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -45,15 +44,11 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 parentTag, snapshot, region);
         }
 
-        private class RoslynBlockTag : RoslynOutliningRegionTag, IBlockTag
+        private class RoslynBlockTag : BlockTag
         {
-            public IBlockTag Parent { get; }
-            public int Level { get; }
-            public SnapshotSpan Span { get; }
-            public SnapshotSpan StatementSpan { get; }
+            private readonly BlockTagState _state;
 
-            public string Type => BlockSpan.Type;
-            public bool IsCollapsible => BlockSpan.IsCollapsible;
+            public override int Level { get; }
 
             public RoslynBlockTag(
                 ITextEditorFactoryService textEditorFactoryService,
@@ -62,16 +57,24 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 IBlockTag parent,
                 ITextSnapshot snapshot,
                 BlockSpan blockSpan) :
-                base(textEditorFactoryService,
-                     projectionBufferFactoryService,
-                     editorOptionsFactoryService,
-                     snapshot, blockSpan)
+                base(span: blockSpan.TextSpan.ToSnapshotSpan(snapshot),
+                     statementSpan: blockSpan.HintSpan.ToSnapshotSpan(snapshot),
+                     parent: parent,
+                     type: blockSpan.Type,
+                     isCollapsible: blockSpan.IsCollapsible,
+                     isDefaultCollapsed: blockSpan.IsDefaultCollapsed,
+                     isImplementation: blockSpan.AutoCollapse,
+                     collapsedForm: null,
+                     collapsedHintForm: null)
             {
-                Parent = parent;
+                _state = new BlockTagState(
+                    textEditorFactoryService, projectionBufferFactoryService,
+                    editorOptionsFactoryService, snapshot, blockSpan);
                 Level = parent == null ? 0 : parent.Level + 1;
-                Span = blockSpan.TextSpan.ToSnapshotSpan(snapshot);
-                StatementSpan = blockSpan.HintSpan.ToSnapshotSpan(snapshot);
             }
+
+            public override object CollapsedForm => _state.CollapsedForm;
+            public override object CollapsedHintForm => _state.CollapsedHintForm;
 
             public override bool Equals(object obj)
                 => Equals(obj as RoslynBlockTag);
@@ -87,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             /// </summary>
             public bool Equals(RoslynBlockTag tag)
             {
-                return base.Equals(tag) &&
+                return _state.Equals(tag._state) &&
                        IsCollapsible == tag.IsCollapsible &&
                        Level == tag.Level &&
                        Type == tag.Type &&
