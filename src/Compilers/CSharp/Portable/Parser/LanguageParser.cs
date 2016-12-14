@@ -7010,6 +7010,53 @@ tryAgain:
                 return typedIdentifier.Value;
             }
 
+            // It's common to have code like the following:
+            // 
+            //      Task.
+            //      await Task.Delay()
+            //
+            // In this case we don't want to parse this as as a local declaration like:
+            //
+            //      Task.await Task
+            //
+            // This does not represent user intent, and it causes all sorts of problems to higher 
+            // layers.  This is because both the parse tree is strage, and the symbol tables have
+            // entries that throw things off (like a bogus 'Task' local).
+            //
+            // Note that we explicitly do this check when we see that the code spreads over multiple 
+            // lines.  We don't want this if the user has actually written "X.Y z"
+            if (tk == SyntaxKind.IdentifierToken)
+            {
+                var token1 = PeekToken(1);
+                if (token1.Kind == SyntaxKind.DotToken &&
+                    token1.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia))
+                {
+                    if (PeekToken(2).Kind == SyntaxKind.IdentifierToken &&
+                        PeekToken(3).Kind == SyntaxKind.IdentifierToken)
+                    {
+                        // We have something like:
+                        //
+                        //      X.
+                        //      Y z
+                        //
+                        // This is only a local declaration if we have:
+                        //
+                        //      X.Y z;
+                        //      X.Y z = ...
+                        //      X.Y z, ...  
+                        //      X.Y z( ...      (local function) 
+                        //      X.Y z<W...      (local function)
+                        //
+                        var token4Kind = PeekToken(4).Kind;
+                        return token4Kind == SyntaxKind.SemicolonToken ||
+                               token4Kind == SyntaxKind.EqualsToken ||
+                               token4Kind == SyntaxKind.CommaToken ||
+                               token4Kind == SyntaxKind.OpenParenToken ||
+                               token4Kind == SyntaxKind.LessThanToken;
+                    }
+                }
+            }
+
             var resetPoint = this.GetResetPoint();
             try
             {
