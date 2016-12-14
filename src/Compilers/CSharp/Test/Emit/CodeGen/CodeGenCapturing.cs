@@ -149,23 +149,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
             Assert.Equal(new[]
             {
-                new[] { 0 },
-                new[] { 1 },
-                new[] { 2 },
-                new[] { 3 }
+                ImmutableList<int>.Empty.Add(0),
+                ImmutableList<int>.Empty.Add(1),
+                ImmutableList<int>.Empty.Add(2),
+                ImmutableList<int>.Empty.Add(3)
             }, GenerateAllSetCombinations(3, 1));
             Assert.Equal(new[]
             {
-                new[] {0, 0},
-                new[] {0, 1},
-                new[] {0, 2},
-                new[] {0, 3},
-                new[] {1, 0},
-                new[] {1, 1},
-                new[] {1, 2},
-                new[] {2, 0},
-                new[] {2, 1},
-                new[] {3, 0}
+                ImmutableList<int>.Empty.Add(0).Add(0),
+                ImmutableList<int>.Empty.Add(0).Add(1),
+                ImmutableList<int>.Empty.Add(0).Add(2),
+                ImmutableList<int>.Empty.Add(0).Add(3),
+                ImmutableList<int>.Empty.Add(1).Add(0),
+                ImmutableList<int>.Empty.Add(1).Add(1),
+                ImmutableList<int>.Empty.Add(1).Add(2),
+                ImmutableList<int>.Empty.Add(2).Add(0),
+                ImmutableList<int>.Empty.Add(2).Add(1),
+                ImmutableList<int>.Empty.Add(3).Add(0)
             }, GenerateAllSetCombinations(3, 2));
         }
 
