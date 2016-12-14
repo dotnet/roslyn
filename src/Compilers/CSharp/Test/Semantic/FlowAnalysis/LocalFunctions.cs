@@ -699,21 +699,21 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (19,9): error CS0165: Use of unassigned local variable 'a1'
-                //         Local1();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "Local1()").WithArguments("a1").WithLocation(19, 9),
-                // (28,9): error CS0170: Use of possibly unassigned field 'a'
+                // (19,9): error CS8079: Use of possibly unassigned auto-implemented property 'y'
+                //         Local1(); // unassigned
+                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "Local1()").WithArguments("y").WithLocation(19, 9),
+                // (28,9): error CS8079: Use of possibly unassigned auto-implemented property 'y'
                 //         Local2();
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local2()").WithArguments("a").WithLocation(28, 9),
+                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "Local2()").WithArguments("y").WithLocation(28, 9),
                 // (41,16): error CS0165: Use of unassigned local variable 'b1'
                 //         B b2 = b1; // unassigned
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "b1").WithArguments("b1").WithLocation(41, 16),
                 // (52,16): error CS0165: Use of unassigned local variable 'b1'
                 //         B b2 = b1; // unassigned
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "b1").WithArguments("b1").WithLocation(52, 16),
-                // (61,9): error CS0170: Use of possibly unassigned field 'a'
+                // (61,9): error CS8079: Use of possibly unassigned auto-implemented property 'y'
                 //         Local();
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local()").WithArguments("a").WithLocation(61, 9),
+                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "Local()").WithArguments("y").WithLocation(61, 9),
                 // (62,16): error CS0165: Use of unassigned local variable 'b1'
                 //         B b2 = b1; // unassigned
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "b1").WithArguments("b1").WithLocation(62, 16));
@@ -810,7 +810,10 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "s1").WithArguments("s1").WithLocation(18, 16),
                 // (54,16): error CS0165: Use of unassigned local variable 's3'
                 //         S s4 = s3;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "s3").WithArguments("s3").WithLocation(54, 16));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s3").WithArguments("s3").WithLocation(54, 16),
+                // (55,9): error CS0170: Use of possibly unassigned field 'Event'
+                //         Local2();
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local2()").WithArguments("Event").WithLocation(55, 9));
         }
 
         [Fact]
@@ -1146,6 +1149,174 @@ class Program
                 // (9,17): error CS0165: Use of unassigned local variable 'x'
                 //                 Foo();
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "Foo()").WithArguments("x").WithLocation(9, 17));
+        }
+
+        [Fact]
+        [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
+        public void PiecewiseStructAssign()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+struct S { public int X, Y; }
+
+class C
+{
+    public static void Main()
+    {
+        S s;
+        s.X = 5;
+        void Local()
+        {
+          s.Y = 10;
+          System.Console.WriteLine(s);
+        }
+        Local();
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
+        public void PiecewiseStructAssign2()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+struct S
+{
+    public int X;
+    public int Y { get; set; }
+    
+    public S(int x, int y)
+    {
+        this.X = x;
+        this.Y = y;
+
+        Local(this);
+        void Local(S s)
+        {
+            s.X++;
+            s.Y++;
+        }
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
+        public void PiecewiseStructAssign3()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+struct S { }
+struct S2
+{ 
+    public int x;
+    public S s;
+}
+class C
+{
+    public void M()
+    {
+        S2 s2;
+        void Local1()
+        {
+            s2.x = 0;
+            S2 s4 = s2;
+        }
+        Local1();
+        S2 s3 = s2;
+    }
+
+    public void M2()
+    {
+        S2 s3;
+        void Local2()
+        {
+            s3.s = new S();
+            S2 s4 = s3;
+        }
+        Local2();
+    }
+
+    public void M3()
+    {
+        S2 s5;
+        void Local3()
+        {
+            s5.s = new S();
+        }
+        Local3();
+        S2 s6 = s5;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (30,9): error CS0170: Use of possibly unassigned field 'x'
+                //         Local2();
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local2()").WithArguments("x").WithLocation(30, 9),
+                // (41,17): error CS0165: Use of unassigned local variable 's5'
+                //         S2 s6 = s5;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s5").WithArguments("s5").WithLocation(41, 17));
+        }
+
+        [Fact]
+        [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
+        public void PiecewiseStructAssignmentInConstructor()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+struct S
+{
+    public int _x;
+    public int _y;
+
+    public S(int x, int y)
+    {
+        _y = 0;
+        void Local()
+        {
+            _x = 0;
+            S s2 = this;
+        }
+        Local();
+    }
+}");
+            // Note that definite assignment is still validated in this
+            // compilation
+            comp.VerifyDiagnostics(
+                // (12,13): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             _x = 0;
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "_x").WithLocation(12, 13),
+                // (13,20): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             S s2 = this;
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(13, 20));
+        }
+
+        [Fact]
+        [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
+        public void PiecewiseStructAssignmentInConstructor2()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+struct S
+{
+    public int _x;
+    public int _y;
+
+    public S(int x, int y)
+    {
+        _y = 0;
+        void Local()
+        {
+            S s2 = this;
+        }
+        Local();
+        _x = 0;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (12,20): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             S s2 = this;
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(12, 20),
+                // (14,9): error CS0170: Use of possibly unassigned field '_x'
+                //         Local();
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local()").WithArguments("_x").WithLocation(14, 9));
         }
     }
 }
