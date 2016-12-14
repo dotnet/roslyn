@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             public bool TryGetDocumentOption(Document document, OptionKey option, out object value)
             {
                 var editorConfigPersistence = option.Option.StorageLocations.OfType<EditorConfigStorageLocation>().SingleOrDefault();
-                var namingEditorConfigPersistence = option.Option.StorageLocations.OfType<NamingEditorConfigStorageLocation>().SingleOrDefault();
-
-                if (editorConfigPersistence == null && namingEditorConfigPersistence == null)
+                if (editorConfigPersistence == null)
                 {
                     value = null;
                     return false;
@@ -34,15 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 var allRawConventions = _codingConventionSnapshot.AllRawConventions;
                 try
                 {
-                    if (namingEditorConfigPersistence != null)
-                    {
-                        value = EditorConfigNamingStyleParser.GetNamingStylesFromDictionary(allRawConventions);
-                        return true;
-                    }
-                    else
-                    {
-                        return editorConfigPersistence.TryParseReadonlyDictionary(allRawConventions, option.Option.Type, out value);
-                    }
+                    return editorConfigPersistence.TryParseReadonlyDictionary(allRawConventions, option.Option.Type, out value);
                 }
                 catch (Exception ex)
                 {

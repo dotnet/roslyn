@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private void SymbolAction(SymbolAnalysisContext context)
         {
-            var preferences = context.GetNamingStylePreferencesAsync().GetAwaiter().GetResult();
-            if (preferences == null)
+            var namingStyleRules = context.GetNamingStyleRulesAsync().GetAwaiter().GetResult();
+            if (namingStyleRules == null)
             {
                 return;
             }
 
-            if (preferences.TryGetApplicableRule(context.Symbol, out var applicableRule))
+            if (namingStyleRules.TryGetApplicableRule(context.Symbol, out var applicableRule))
             {
                 if (applicableRule.EnforcementLevel != DiagnosticSeverity.Hidden &&
                     !applicableRule.IsNameCompliant(context.Symbol.Name, out var failureReason))

@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 foreach (var kvp in _values)
                 {
                     var currentValue = optionSet.GetOption(kvp.Key);
-                    if (currentValue?.Equals(kvp.Value) == false)
+                    if (!object.Equals(currentValue, kvp.Value))
                     {
                         yield return kvp.Key;
                     }

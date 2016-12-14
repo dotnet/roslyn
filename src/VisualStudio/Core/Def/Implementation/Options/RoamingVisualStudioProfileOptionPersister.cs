@@ -125,7 +125,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 // We store these as strings, so deserialize
                 if (value is string serializedValue)
                 {
-                    value = CodeStyleOption<bool>.FromXElement(XElement.Parse(serializedValue));
+                    try
+                    {
+                        value = CodeStyleOption<bool>.FromXElement(XElement.Parse(serializedValue));
+                    }
+                    catch (Exception)
+                    {
+                        value = null;
+                        return false;
+                    }
                 }
                 else
                 {
@@ -133,12 +141,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     return false;
                 }
             }
-            else if (optionKey.Option.Type ==typeof(NamingStylePreferences))
+            else if (optionKey.Option.Type == typeof(NamingStylePreferences))
             {
                 // We store these as strings, so deserialize
                 if (value is string serializedValue)
                 {
-                    value = NamingStylePreferences.FromXElement(XElement.Parse(serializedValue));
+                    try
+                    {
+                        value = NamingStylePreferences.FromXElement(XElement.Parse(serializedValue));
+                    }
+                    catch (Exception)
+                    {
+                        value = null;
+                        return false;
+                    }
                 }
                 else
                 {
@@ -213,8 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     value = valueToSerialize.ToXElement().ToString();
                 }
             }
-
-            if (optionKey.Option.Type == typeof(NamingStylePreferences))
+            else if (optionKey.Option.Type == typeof(NamingStylePreferences))
             {
                 // We store these as strings, so serialize
                 var valueToSerialize = value as NamingStylePreferences;

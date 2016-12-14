@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         internal static PerLanguageOption<NamingStylePreferences> NamingPreferences { get; } = new PerLanguageOption<NamingStylePreferences>(nameof(SimplificationOptions), nameof(NamingPreferences), defaultValue: NamingStylePreferences.Default,
             storageLocations: new OptionStorageLocation[]{
-                new NamingEditorConfigStorageLocation(),
+                new EditorConfigStorageLocation(),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamingPreferences")});
     }
 }

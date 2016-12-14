@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal static class SymbolAnalysisContextExtensions
     {
-        public static async Task<NamingStyleRules> GetNamingStylePreferencesAsync(this SymbolAnalysisContext context)
+        public static async Task<NamingStyleRules> GetNamingStyleRulesAsync(this SymbolAnalysisContext context)
         {
             var location = context.Symbol.Locations.FirstOrDefault();
             if (location == null)
@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             var optionSet = await context.Options.GetDocumentOptionSetAsync(location.SourceTree, context.CancellationToken).ConfigureAwait(false);
-            var namimgStylePreferences = optionSet.GetOption(SimplificationOptions.NamingPreferences, context.Compilation.Language);
-            return namimgStylePreferences.GetNamingStyleRules();
+            var namimgPreferences = optionSet.GetOption(SimplificationOptions.NamingPreferences, context.Compilation.Language);
+            return namimgPreferences.GetNamingStyleRules();
         }
     }
 }
