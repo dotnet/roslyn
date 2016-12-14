@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return TryRedirect(name, s_b03f5f7f11d50a3a, 4, 0, 2, 0);
 
                 case "System.Diagnostics.StackTrace":
+                case "System.Security.AccessControl":
                     return TryRedirect(name, s_b03f5f7f11d50a3a, 4, 0, 3, 0);
 
             }

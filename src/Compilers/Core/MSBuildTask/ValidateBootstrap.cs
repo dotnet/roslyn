@@ -92,9 +92,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal static void AddFailedLoad(AssemblyName name)
         {
-            if (Path.GetExtension(name.Name) != ".resources")
+            switch (name.Name)
             {
-                s_failedLoadSet.TryAdd(name, 0);
+                case "System":
+                case "System.Core":
+                case "Microsoft.Build.Tasks.CodeAnalysis.resources":
+                    // These are failures are expected by design.
+                    break;
+                default:
+                    s_failedLoadSet.TryAdd(name, 0);
+                    break;
             }
         }
     }
