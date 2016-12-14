@@ -305,56 +305,89 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             if (name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) ||
                 name.IsFoundUnder<FieldDeclarationSyntax>(d => d.Declaration.Type))
             {
-                var speculativeBinding = context.SemanticModel.GetSpeculativeSymbolInfo(name.SpanStart, name, SpeculativeBindingOption.BindAsExpression);
-                var container = context.SemanticModel.GetSpeculativeTypeInfo(name.SpanStart, name, SpeculativeBindingOption.BindAsExpression).Type;
-                return GetSymbolsOffOfBoundExpression(context, name, name, speculativeBinding, container, cancellationToken);
+                var speculativeBinding = context.SemanticModel.GetSpeculativeSymbolInfo(
+                    name.SpanStart, name, SpeculativeBindingOption.BindAsExpression);
+
+                var container = context.SemanticModel.GetSpeculativeTypeInfo(
+                    name.SpanStart, name, SpeculativeBindingOption.BindAsExpression).Type;
+
+                var speculativeResult = GetSymbolsOffOfBoundExpression(
+                    context, name, name, speculativeBinding, container, cancellationToken);
+
+                // If this speculative binding produced good results, then return them.
+                if (speculativeResult.Length > 0)
+                {
+                    return speculativeResult;
+                }
+
+                // we didn't get any useful speculative results.  This can happen in cases like:
+                //
+                //      Task.
+                //      await Task.Delay()
+                //
+                // The problem here is the above is parsed as "Task.await Task", putting a Local
+                // scope called "Task".  This then causes lookup of 'Task' to bind to that local.
+                // As the local is of type "Task.await", we get no results.  
+                //
+                // So fallback to just seeing if we can at least bind 'Task' as a type to get
+                // members off of it here.
+                var nameBinding = context.SemanticModel.GetSymbolInfo(name, cancellationToken);
+                container = nameBinding.GetAnySymbol() as INamedTypeSymbol;
+
+                if (container != null)
+                {
+                    return GetSymbolsOffOfBoundExpression(
+                        context, name, name, nameBinding, container, cancellationToken);
+                }
             }
-
-            // We're in a name-only context, since if we were an expression we'd be a
-            // MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
-            var nameBinding = context.SemanticModel.GetSymbolInfo(name, cancellationToken);
-
-            var symbol = nameBinding.Symbol as INamespaceOrTypeSymbol;
-            if (symbol != null)
+            else
             {
-                if (context.IsNameOfContext)
-                {
-                    return context.SemanticModel.LookupSymbols(position: name.SpanStart, container: symbol);
-                }
+                // We're in a name-only context, since if we were an expression we'd be a
+                // MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
+                var nameBinding = context.SemanticModel.GetSymbolInfo(name, cancellationToken);
 
-                var symbols = context.SemanticModel.LookupNamespacesAndTypes(
-                    position: name.SpanStart,
-                    container: symbol);
-
-                if (context.IsNamespaceDeclarationNameContext)
+                var symbol = nameBinding.Symbol as INamespaceOrTypeSymbol;
+                if (symbol != null)
                 {
-                    var declarationSyntax = name.GetAncestorOrThis<NamespaceDeclarationSyntax>();
-                    return symbols.WhereAsArray(s => IsNonIntersectingNamespace(s, declarationSyntax));
-                }
-
-                // Filter the types when in a using directive, but not an alias.
-                // 
-                // Cases:
-                //    using | -- Show namespaces
-                //    using A.| -- Show namespaces
-                //    using static | -- Show namespace and types
-                //    using A = B.| -- Show namespace and types
-                var usingDirective = name.GetAncestorOrThis<UsingDirectiveSyntax>();
-                if (usingDirective != null && usingDirective.Alias == null)
-                {
-                    if (usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
+                    if (context.IsNameOfContext)
                     {
-                        return symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType());
+                        return context.SemanticModel.LookupSymbols(position: name.SpanStart, container: symbol);
                     }
-                    else
-                    {
-                        symbols = symbols.WhereAsArray(s => s.IsNamespace());
-                    }
-                }
 
-                if (symbols.Any())
-                {
-                    return symbols;
+                    var symbols = context.SemanticModel.LookupNamespacesAndTypes(
+                        position: name.SpanStart,
+                        container: symbol);
+
+                    if (context.IsNamespaceDeclarationNameContext)
+                    {
+                        var declarationSyntax = name.GetAncestorOrThis<NamespaceDeclarationSyntax>();
+                        return symbols.WhereAsArray(s => IsNonIntersectingNamespace(s, declarationSyntax));
+                    }
+
+                    // Filter the types when in a using directive, but not an alias.
+                    // 
+                    // Cases:
+                    //    using | -- Show namespaces
+                    //    using A.| -- Show namespaces
+                    //    using static | -- Show namespace and types
+                    //    using A = B.| -- Show namespace and types
+                    var usingDirective = name.GetAncestorOrThis<UsingDirectiveSyntax>();
+                    if (usingDirective != null && usingDirective.Alias == null)
+                    {
+                        if (usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
+                        {
+                            return symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType());
+                        }
+                        else
+                        {
+                            symbols = symbols.WhereAsArray(s => s.IsNamespace());
+                        }
+                    }
+
+                    if (symbols.Any())
+                    {
+                        return symbols;
+                    }
                 }
             }
 
@@ -436,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var useBaseReferenceAccessibility = false;
             var excludeInstance = false;
             var excludeStatic = false;
-            var symbol = leftHandBinding.GetBestOrAllSymbols().FirstOrDefault();
+            var symbol = leftHandBinding.GetAnySymbol();
 
             if (symbol != null)
             {
