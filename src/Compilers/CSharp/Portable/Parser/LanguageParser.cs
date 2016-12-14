@@ -9678,6 +9678,26 @@ tryAgain:
                         expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.PointerMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
                         break;
                     case SyntaxKind.DotToken:
+                        // if we have the error situation:
+                        //
+                        //      expr.
+                        //      X Y
+                        //
+                        // Then we don't want to parse this out as "Expr.X"
+                        //
+                        // It's far more likely the member access expression is simply incomplete and
+                        // there is a new declaration on the next line.
+                        if (this.CurrentToken.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia) &&
+                            this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
+                            this.PeekToken(2).Kind == SyntaxKind.IdentifierToken)
+                        {
+                            expr = _syntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(),
+                                this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_IdentifierExpected));
+
+                            return expr;
+                        }
+
                         expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
                         break;
 
