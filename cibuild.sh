@@ -27,7 +27,7 @@ export LTTNG_HOME=$HOME
 
 while [[ $# > 0 ]]
 do
-    opt="$1"
+    opt="$(echo $1 | awk '{print tolower($0)}')"
     case $opt in
         -h|--help)
         usage
