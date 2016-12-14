@@ -47,7 +47,7 @@
           Inputs="$(MSBuildThisFileFullPath);$(MSBuildProjectFile)"
           Outputs="$(GeneratedInternalsVisibleToFile)"
           DependsOnTargets="PrepareForBuild"
-          Condition="'@(InternalsVisibleTo)' != '' OR '@(InternalsVisibleToTest)' != '' OR '@(InternalsVisibleToTypeScript)' != '' OR '@(InternalsVisibleToVisualStudio)' != '' OR '@(InternalsVisibleToFSharp)' != '' OR '@(InternalsVisibleToMoq)' != ''">
+          Condition="'@(InternalsVisibleTo)' != '' OR '@(InternalsVisibleToTest)' != '' OR '@(InternalsVisibleToTypeScript)' != '' OR '@(InternalsVisibleToVisualStudio)' != '' OR '@(InternalsVisibleToFSharp)' != '' OR '@(InternalsVisibleToMoq)' != '' OR '@(InternalsVisibleToRazor)' != ''">
 
     <!--
          This is a slightly evil trick. What we have is a group of InternalsVisibleTo items which
