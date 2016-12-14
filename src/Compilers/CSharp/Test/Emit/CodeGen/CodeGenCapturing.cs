@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             public int CaptureNameIndex = 0;
         }
 
-        private string MakeLocalFunc(int nameIndex, string captureExpression)
+        private static string MakeLocalFunc(int nameIndex, string captureExpression)
             => $@"int Local_{nameIndex}() => {captureExpression};";
 
-        private string MakeCaptureExpression(IList<int> varsToCapture, CaptureContext ctx)
+        private static string MakeCaptureExpression(IList<int> varsToCapture, CaptureContext ctx)
         {
             var varNames = new List<string>();
             for (int varDepth = 0; varDepth < varsToCapture.Count; varDepth++)
@@ -114,30 +114,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// Generates all combinations of distributing a sum to a list of subsets.
         /// This is equivalent to the "stars and bars" combinatorics construction.
         /// </summary>
-        private IEnumerable<IList<int>> GenerateAllSetCombinations(int sum, int numSubsets)
+        private static IEnumerable<IList<int>> GenerateAllSetCombinations(int sum, int numSubsets)
         {
             Assert.True(numSubsets > 0);
-            return GenerateAll(sum, 0, Array.Empty<int>());
+            return GenerateAll(sum, 0, ImmutableList<int>.Empty);
 
-            IEnumerable<int[]> GenerateAll(
+            IEnumerable<ImmutableList<int>> GenerateAll(
                 int remainingSum,
                 int setIndex, // 0-based index of subset we're generating
-                int[] setsSoFar)
+                ImmutableList<int> setsSoFar)
             {
                 for (int i = 0; i <= remainingSum; i++)
                 {
-                    var newArray = new int[setIndex + 1];
-                    Array.Copy(setsSoFar, newArray, setIndex);
-                    newArray[setIndex] = i;
+                    var newSets = setsSoFar.Add(i);
                     if (setIndex == numSubsets - 1)
                     {
-                        yield return newArray;
+                        yield return newSets;
                     }
                     else
                     {
                         foreach (var captures in GenerateAll(remainingSum - i,
                                                              setIndex + 1,
-                                                             newArray))
+                                                             newSets))
                         {
                             yield return captures;
                         }
@@ -294,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             }
         }
 
-        private IEnumerable<MethodInfo> MakeMethodsWithLayout(IList<int> localFuncLayout)
+        private static IEnumerable<MethodInfo> MakeMethodsWithLayout(IList<int> localFuncLayout)
         {
             const int MaxCaptures = 3;
 
@@ -342,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             }
         }
 
-        private IEnumerable<MethodInfo> MakeAllMethods()
+        private static IEnumerable<MethodInfo> MakeAllMethods()
         {
             const int MaxDepth = 3;
             const int MaxLocalFuncs = 3;
