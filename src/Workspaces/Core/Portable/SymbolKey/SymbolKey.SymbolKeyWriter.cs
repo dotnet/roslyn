@@ -384,20 +384,30 @@ namespace Microsoft.CodeAnalysis
                     WriteType(SymbolKeyType.ConstructedMethod);
                     ConstructedMethodSymbolKey.Create(methodSymbol, this);
                 }
-                else if (methodSymbol.MethodKind == MethodKind.ReducedExtension)
-                {
-                    WriteType(SymbolKeyType.ReducedExtensionMethod);
-                    ReducedExtensionMethodSymbolKey.Create(methodSymbol, this);
-                }
-                else if (methodSymbol.MethodKind == MethodKind.AnonymousFunction)
-                {
-                    WriteType(SymbolKeyType.AnonymousFunctionOrDelegate);
-                    AnonymousFunctionOrDelegateSymbolKey.Create(methodSymbol, this);
-                }
                 else
                 {
-                    WriteType(SymbolKeyType.Method);
-                    MethodSymbolKey.Create(methodSymbol, this);
+                    switch (methodSymbol.MethodKind)
+                    {
+                        case MethodKind.ReducedExtension:
+                            WriteType(SymbolKeyType.ReducedExtensionMethod);
+                            ReducedExtensionMethodSymbolKey.Create(methodSymbol, this);
+                            break;
+
+                        case MethodKind.AnonymousFunction:
+                            WriteType(SymbolKeyType.AnonymousFunctionOrDelegate);
+                            AnonymousFunctionOrDelegateSymbolKey.Create(methodSymbol, this);
+                            break;
+
+                        case MethodKind.LocalFunction:
+                            WriteType(SymbolKeyType.BodyLevel);
+                            BodyLevelSymbolKey.Create(methodSymbol, this);
+                            break;
+
+                        default:
+                            WriteType(SymbolKeyType.Method);
+                            MethodSymbolKey.Create(methodSymbol, this);
+                            break;
+                    }
                 }
 
                 return null;

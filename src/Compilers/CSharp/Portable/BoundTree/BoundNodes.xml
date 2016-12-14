@@ -856,9 +856,13 @@
   </Node>
 
   <Node Name="BoundForStatement" Base="BoundLoopStatement">
-    <!-- OuterLocals are the locals declared within the loop statement and are in scope throughout the whole loop statement, including the Initializer -->
+    <!-- OuterLocals are the locals declared within the loop Initializer statement and are in scope throughout the whole loop statement -->
     <Field Name="OuterLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Initializer" Type="BoundStatement" Null="allow"/>
+    <!-- InnerLocals are the locals declared within the loop Condition and are in scope throughout the Condition, Increment and Body.
+         They are considered to be declared per iteration.
+    -->
+    <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression" Null="allow"/>
     <Field Name="Increment" Type="BoundStatement" Null="allow"/>
     <Field Name="Body" Type="BoundStatement"/>

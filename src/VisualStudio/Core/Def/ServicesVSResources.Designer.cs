@@ -861,15 +861,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to  from Bing.
-        /// </summary>
-        internal static string from_Bing {
-            get {
-                return ResourceManager.GetString("from_Bing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Generate Type.
         /// </summary>
         internal static string Generate_Type {
@@ -888,11 +879,20 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Get help for &apos;{0}&apos;{1}{2}{3}.
+        ///   Looks up a localized string similar to Get help for &apos;{0}&apos;.
         /// </summary>
-        internal static string Get_help_for_0_1_2_3 {
+        internal static string Get_help_for_0 {
             get {
-                return ResourceManager.GetString("Get_help_for_0_1_2_3", resourceCulture);
+                return ResourceManager.GetString("Get_help_for_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Get help for &apos;{0}&apos; from Bing.
+        /// </summary>
+        internal static string Get_help_for_0_from_Bing {
+            get {
+                return ResourceManager.GetString("Get_help_for_0_from_Bing", resourceCulture);
             }
         }
         

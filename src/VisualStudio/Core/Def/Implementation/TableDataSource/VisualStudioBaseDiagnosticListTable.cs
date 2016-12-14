@@ -83,8 +83,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             // We make sure not to use Uri.AbsoluteUri for the url displayed in the tooltip so that the url displayed in the tooltip stays human readable.
             if (helpUri != null)
             {
-                return string.Format(ServicesVSResources.Get_help_for_0_1_2_3, item.Id,
-                    isBing ? ServicesVSResources.from_Bing : null, Environment.NewLine, helpUri);
+                var prefix = isBing
+                    ? string.Format(ServicesVSResources.Get_help_for_0_from_Bing, item.Id)
+                    : string.Format(ServicesVSResources.Get_help_for_0, item.Id);
+
+                return $"{prefix}\r\n{helpUri}";
             }
 
             return null;

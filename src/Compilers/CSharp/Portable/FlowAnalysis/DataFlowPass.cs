@@ -1575,7 +1575,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitForStatement(BoundForStatement node)
         {
             DeclareVariables(node.OuterLocals);
+            DeclareVariables(node.InnerLocals);
             var result = base.VisitForStatement(node);
+            ReportUnusedVariables(node.InnerLocals);
             ReportUnusedVariables(node.OuterLocals);
             return result;
         }

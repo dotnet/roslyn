@@ -5624,23 +5624,29 @@ class Program
                 // (7,19): error CS8185: A declaration is not allowed in this context.
                 //         for (; ; (int x1, int x2) = t)
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x1").WithLocation(7, 19),
-                // (9,38): error CS0165: Use of unassigned local variable 'x1'
+                // (9,38): error CS0103: The name 'x1' does not exist in the current context
                 //             System.Console.WriteLine(x1);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(9, 38),
-                // (10,38): error CS0165: Use of unassigned local variable 'x2'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(9, 38),
+                // (10,38): error CS0103: The name 'x2' does not exist in the current context
                 //             System.Console.WriteLine(x2);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(10, 38)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(10, 38)
             );
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
             var x1 = GetDeconstructionVariable(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
-            VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+            VerifyModelForDeconstructionLocal(model, x1);
+            var symbolInfo = model.GetSymbolInfo(x1Ref);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
 
             var x2 = GetDeconstructionVariable(tree, "x2");
             var x2Ref = GetReference(tree, "x2");
-            VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+            VerifyModelForDeconstructionLocal(model, x2);
+            symbolInfo = model.GetSymbolInfo(x2Ref);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
         [Fact]

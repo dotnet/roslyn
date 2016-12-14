@@ -318,9 +318,6 @@ class C
                 // (33,36): error CS1629: Unsafe code may not appear in iterators
                 //     public unsafe IEnumerable<int> M4(int* a)
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "M4").WithLocation(33, 36),
-                // (37,45): error CS1637: Iterators cannot have unsafe parameters or yield types
-                //                 IEnumerable<int> Local(int* b) { yield break; }
-                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45),
                 // (37,40): error CS1629: Unsafe code may not appear in iterators
                 //                 IEnumerable<int> Local(int* b) { yield break; }
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "int*").WithLocation(37, 40),
@@ -329,7 +326,10 @@ class C
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "&x").WithLocation(39, 23),
                 // (39,17): error CS1629: Unsafe code may not appear in iterators
                 //                 Local(&x);
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17));
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17),
+                // (37,45): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45));
         }
 
         [Fact]
@@ -939,11 +939,7 @@ class Program
     }
 }
 ";
-            VerifyDiagnostics(source, TestOptions.ReleaseExe.WithAllowUnsafe(true),
-    // (11,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-    //             Console.WriteLine(*&x);
-    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(11, 32)
-    );
+            VerifyDiagnostics(source, TestOptions.ReleaseExe.WithAllowUnsafe(true));
         }
 
         [Fact]
@@ -2072,6 +2068,96 @@ class C
                 //             return 2;
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "return 2;").WithArguments("x").WithLocation(17, 13)
                 );
+        }
+
+        [Fact]
+        [WorkItem(13172, "https://github.com/dotnet/roslyn/issues/13172")]
+        public void InheritUnsafeContext()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Threading.Tasks;
+class C
+{
+    public void M1()
+    {
+        async Task<IntPtr> Local()
+        {
+            await Task.Delay(0);
+            return (IntPtr)(void*)null;
+        }
+        var _ = Local();
+    }
+
+    public void M2()
+    {
+        unsafe
+        {
+            async Task<IntPtr> Local()
+            {
+                await Task.Delay(1);
+                return (IntPtr)(void*)null;
+            }
+            var _ = Local();
+        }
+    }
+
+    public unsafe void M3()
+    {
+        async Task<IntPtr> Local()
+        {
+            await Task.Delay(2);
+            return (IntPtr)(void*)null;
+        }
+        var _ = Local();
+    }
+}
+
+unsafe class D
+{
+    int* p = null;
+    public void M()
+    {
+        async Task<IntPtr> Local()
+        {
+            await Task.Delay(3);
+            return (IntPtr)p;
+        }
+        var _ = Local();
+    }
+
+    public unsafe void M2()
+    {
+        unsafe
+        {
+            async Task<IntPtr> Local()
+            {
+                await Task.Delay(4);
+                return (IntPtr)(void*)null;
+            }
+            var _ = Local();
+        }
+    }
+}", options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(                
+                // (11,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //             return (IntPtr)(void*)null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(11, 29),
+                // (11,28): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //             return (IntPtr)(void*)null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(void*)null").WithLocation(11, 28),
+                // (47,13): error CS4004: Cannot await in an unsafe context
+                //             await Task.Delay(3);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(3)").WithLocation(47, 13),
+                // (22,17): error CS4004: Cannot await in an unsafe context
+                //                 await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(1)").WithLocation(22, 17),
+                // (59,17): error CS4004: Cannot await in an unsafe context
+                //                 await Task.Delay(4);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(4)").WithLocation(59, 17),
+                // (33,13): error CS4004: Cannot await in an unsafe context
+                //             await Task.Delay(2);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(2)").WithLocation(33, 13));
         }
     }
 }
