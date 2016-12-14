@@ -378,6 +378,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension>
+        Friend Function GetDeclaringSyntaxNode(Of T As VisualBasicSyntaxNode)(this As SourceMemberContainerTypeSymbol) As T
+
+            For Each node In this.DeclaringSyntaxReferences.Select(Function(d) d.GetSyntax())
+                Dim node_T = TryCast(node, T)
+                If node_T IsNot Nothing Then
+                    Return node_T
+                End If
+            Next
+
+            Debug.Assert(this.IsImplicitlyDeclared OrElse this.SyntaxReferences.All(Function(ref) ref.SyntaxTree.IsEmbeddedOrMyTemplateTree()))
+            Return DirectCast(Symbol.GetDeclaringSyntaxNodeHelper(Of T)(this.Locations).FirstOrDefault, T)
+        End Function
+
+        <Extension>
         Friend Function GetDeclaringSyntaxNode(Of T As VisualBasicSyntaxNode)(this As Symbol) As T
 
             For Each node In this.DeclaringSyntaxReferences.Select(Function(d) d.GetSyntax())
