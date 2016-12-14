@@ -9,12 +9,14 @@ usage()
     echo "Options"
     echo "  --debug     Build Debug (default)"
     echo "  --release   Build Release"
+    echo "  --skiptests Do not run tests"
     echo "  --nocache   Force download of toolsets"
 
 }
 
 BUILD_CONFIGURATION=Debug
 USE_CACHE=true
+SKIP_TESTS=false
 
 MAKE="make"
 if [[ $OSTYPE == *[Bb][Ss][Dd]* ]]; then
@@ -45,6 +47,10 @@ do
         USE_CACHE=false
         shift 1
         ;;
+        --skiptests)
+        SKIP_TESTS=true
+        shift 1
+        ;;
         *)
         usage 
         exit 1
@@ -73,5 +79,7 @@ $MAKE bootstrap $MAKE_ARGS
 echo Building CrossPlatform.sln
 $MAKE all $MAKE_ARGS BOOTSTRAP=true BUILD_LOG_PATH=Binaries/Build.log
 
-$MAKE test $MAKE_ARGS
+if [ "$SKIP_TESTS" == "false" ]; then
+    $MAKE test $MAKE_ARGS
+fi
 
