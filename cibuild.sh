@@ -7,16 +7,18 @@ usage()
     echo "usage: cibuild.sh [options]"
     echo ""
     echo "Options"
-    echo "  --debug     Build Debug (default)"
-    echo "  --release   Build Release"
-    echo "  --skiptests Do not run tests"
-    echo "  --nocache   Force download of toolsets"
+    echo "  --debug         Build Debug (default)"
+    echo "  --release       Build Release"
+    echo "  --skiptests     Do not run tests"
+    echo "  --skipcrossgen  Do not crossgen the bootstrapped compiler"
+    echo "  --nocache       Force download of toolsets"
 
 }
 
 BUILD_CONFIGURATION=Debug
 USE_CACHE=true
 SKIP_TESTS=false
+SKIP_CROSSGEN=false
 
 MAKE="make"
 if [[ $OSTYPE == *[Bb][Ss][Dd]* ]]; then
@@ -51,6 +53,10 @@ do
         SKIP_TESTS=true
         shift 1
         ;;
+        --skipcrossgen)
+        SKIP_CROSSGEN=true
+        shift 1
+        ;;
         *)
         usage 
         exit 1
@@ -58,7 +64,7 @@ do
     esac
 done
 
-MAKE_ARGS="BUILD_CONFIGURATION=$BUILD_CONFIGURATION"
+MAKE_ARGS="BUILD_CONFIGURATION=$BUILD_CONFIGURATION SKIP_CROSSGEN=$SKIP_CROSSGEN"
 
 if [ "$CLEAN_RUN" == "true" ]; then
     echo Clean out the enlistment
