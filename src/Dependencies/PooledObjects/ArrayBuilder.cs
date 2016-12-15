@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Collections;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -44,20 +45,22 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ImmutableArray<T>.Builder _builder;
 
-        private readonly ObjectPool<ArrayBuilder<T>> _pool;
+        private readonly ArrayBuilderPool _pool;
 
-        public ArrayBuilder(int size)
+        internal const int DefaultCapacity = 8;
+
+        public ArrayBuilder(int capacity)
         {
-            _builder = ImmutableArray.CreateBuilder<T>(size);
+            _builder = ImmutableArray.CreateBuilder<T>(capacity);
         }
 
         public ArrayBuilder() :
-            this(8)
+            this(DefaultCapacity)
         { }
 
-        private ArrayBuilder(ObjectPool<ArrayBuilder<T>> pool) :
-            this()
+        private ArrayBuilder(ArrayBuilderPool pool, int capacity)
         {
+            _builder = ImmutableArray.CreateBuilder<T>(capacity);
             _pool = pool;
         }
 
@@ -68,6 +71,19 @@ namespace Microsoft.CodeAnalysis
         {
             return _builder.ToImmutable();
         }
+
+        internal int Capacity
+        {
+            get
+            {
+                return _builder.Capacity;
+            }
+            set
+            {
+                _builder.Capacity = value;
+            }
+        }
+
 
         public int Count
         {
@@ -147,7 +163,7 @@ namespace Microsoft.CodeAnalysis
         {
             return _builder.IndexOf(item);
         }
-        
+
         public int IndexOf(T item, IEqualityComparer<T> equalityComparer)
         {
             return _builder.IndexOf(item, 0, _builder.Count, equalityComparer);
@@ -158,7 +174,7 @@ namespace Microsoft.CodeAnalysis
             return _builder.IndexOf(item, startIndex, count);
         }
 
-        public int FindIndex(Predicate<T> match) 
+        public int FindIndex(Predicate<T> match)
             => FindIndex(0, this.Count, match);
 
         public int FindIndex(int startIndex, Predicate<T> match)
@@ -274,18 +290,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<T> ToImmutableAndFree()
         {
-            if (_builder.Capacity == _builder.Count)
-            {
-                var result = _builder.MoveToImmutable();
-                s_threadLocalEmptyInstance = this;
-                return result;
-            }
-            else
-            {
-                var result = this.ToImmutable();
-                this.Free();
-                return result;
-            }
+            var result = _builder.Capacity == _builder.Count
+                ? _builder.MoveToImmutable()
+                : _builder.ToImmutable();
+
+            this.Free();
+            return result;
         }
 
         public T[] ToArrayAndFree()
@@ -323,19 +333,13 @@ namespace Microsoft.CodeAnalysis
                     pool.Free(this);
                     return;
                 }
-                else
-                {
-                    pool.ForgetTrackedObject(this);
-                }
             }
         }
 
         // 2) Expose the pool or the way to create a pool or the way to get an instance.
         //    for now we will expose both and figure which way works better
-        private static readonly ObjectPool<ArrayBuilder<T>> s_poolInstance = CreatePool();
-
-        [ThreadStatic]
-        private static ArrayBuilder<T> s_threadLocalEmptyInstance;
+        // we rarely need more than 10
+        private static readonly ArrayBuilderPool s_poolInstance = new ArrayBuilderPool(128);
 
         public static ArrayBuilder<T> GetInstance()
         {
@@ -346,37 +350,25 @@ namespace Microsoft.CodeAnalysis
 
         public static ArrayBuilder<T> GetInstance(int capacity)
         {
-            var builder = s_threadLocalEmptyInstance;
-            if (builder != null)
+            var builder = s_poolInstance.AllocateExisting(capacity);
+            Debug.Assert(builder.Capacity == 0 || builder.Capacity == capacity);
+            if (builder.Capacity == 0)
             {
-                s_threadLocalEmptyInstance = null;
-                builder._builder.Capacity = capacity;
+                builder.Capacity = capacity;
             }
-            else
-            {
-                builder = new ArrayBuilder<T>(size: capacity);
-            }
-
             return builder;
         }
 
         public static ArrayBuilder<T> GetInstance(int capacity, T fillWithValue)
         {
             var builder = GetInstance(capacity);
-            builder.AddMany(fillWithValue, capacity);
+
+            for (int i = 0; i < capacity; i++)
+            {
+                builder.Add(fillWithValue);
+            }
+
             return builder;
-        }
-
-        public static ObjectPool<ArrayBuilder<T>> CreatePool()
-        {
-            return CreatePool(128); // we rarely need more than 10
-        }
-
-        public static ObjectPool<ArrayBuilder<T>> CreatePool(int size)
-        {
-            ObjectPool<ArrayBuilder<T>> pool = null;
-            pool = new ObjectPool<ArrayBuilder<T>>(() => new ArrayBuilder<T>(pool), size);
-            return pool;
         }
 
         #endregion
@@ -540,6 +532,204 @@ namespace Microsoft.CodeAnalysis
 
             set.Free();
             return result.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Generic implementation of object pooling pattern with predefined pool size limit. The main
+        /// purpose is that limited number of frequently used objects can be kept in the pool for
+        /// further recycling.
+        /// 
+        /// Notes: 
+        /// 1) it is not the goal to keep all returned objects. Pool is not meant for storage. If there
+        ///    is no space in the pool, extra returned objects will be dropped.
+        /// 
+        /// 2) it is implied that if object was obtained from a pool, the caller will return it back in
+        ///    a relatively short time. Keeping checked out objects for long durations is ok, but 
+        ///    reduces usefulness of pooling. Just new up your own.
+        /// 
+        /// Not returning objects to the pool in not detrimental to the pool's work, but is a bad practice. 
+        /// Rationale: 
+        ///    If there is no intent for reusing the object, do not use pool - just use "new". 
+        /// </summary>
+        internal class ArrayBuilderPool
+        {
+            [DebuggerDisplay("{Value,nq}")]
+            private struct Element
+            {
+                internal ArrayBuilder<T> Value;
+            }
+
+            // Storage for the pool objects. The first item is stored in a dedicated field because we
+            // expect to be able to satisfy most requests from it.
+            private ArrayBuilder<T> _firstItem;
+            private readonly Element[] _items;
+
+            internal ArrayBuilderPool(int size)
+            {
+                Debug.Assert(size >= 1);
+                _items = new Element[size - 1];
+            }
+
+            private ArrayBuilder<T> CreateInstance(int capacity)
+            {
+                return new ArrayBuilder<T>(this, capacity);
+            }
+
+            /// <summary>
+            /// Produces an instance.
+            /// </summary>
+            /// <remarks>
+            /// Search strategy is a simple linear probing which is chosen for it cache-friendliness.
+            /// Note that Free will try to store recycled objects close to the start thus statistically 
+            /// reducing how far we will typically search.
+            /// </remarks>
+            internal ArrayBuilder<T> Allocate()
+            {
+                // PERF: Examine the first element. If that fails, AllocateSlow will look at the remaining elements.
+                // Note that the initial read is optimistically not synchronized. That is intentional. 
+                // We will interlock only when we have a candidate. in a worst case we may miss some
+                // recently returned objects. Not a big deal.
+                ArrayBuilder<T> inst = _firstItem;
+                if (inst == null || inst != Interlocked.CompareExchange(ref _firstItem, null, inst))
+                {
+                    inst = AllocateSlow();
+                }
+
+                return inst;
+            }
+
+            private ArrayBuilder<T> AllocateSlow()
+            {
+                var items = _items;
+
+                for (int i = 0; i < items.Length; i++)
+                {
+                    // Note that the initial read is optimistically not synchronized. That is intentional. 
+                    // We will interlock only when we have a candidate. in a worst case we may miss some
+                    // recently returned objects. Not a big deal.
+                    ArrayBuilder<T> inst = items[i].Value;
+                    if (inst != null)
+                    {
+                        if (inst == Interlocked.CompareExchange(ref items[i].Value, null, inst))
+                        {
+                            return inst;
+                        }
+                    }
+                }
+
+                return CreateInstance(DefaultCapacity);
+            }
+
+            /// <summary>
+            /// Produces an instance.
+            /// </summary>
+            /// <remarks>
+            /// Search strategy is a simple linear probing which is chosen for it cache-friendliness.
+            /// Note that Free will try to store recycled objects close to the start thus statistically 
+            /// reducing how far we will typically search.
+            /// </remarks>
+            internal ArrayBuilder<T> AllocateExisting(int capacity)
+            {
+                // PERF: Examine the first element. If that fails, AllocateSlow will look at the remaining elements.
+                // Note that the initial read is optimistically not synchronized. That is intentional. 
+                // We will interlock only when we have a candidate. in a worst case we may miss some
+                // recently returned objects. Not a big deal.
+                ArrayBuilder<T> inst = _firstItem;
+                if (inst != null)
+                {
+                    var c = inst.Capacity;
+                    if ((c == 0 || c == capacity) && inst == Interlocked.CompareExchange(ref _firstItem, null, inst))
+                    {
+                        return inst;
+                    }
+                }
+
+                return AllocateExistingSlow(capacity);
+            }
+
+            private ArrayBuilder<T> AllocateExistingSlow(int capacity)
+            {
+                var items = _items;
+
+                for (int i = 0; i < items.Length; i++)
+                {
+                    // Note that the initial read is optimistically not synchronized. That is intentional. 
+                    // We will interlock only when we have a candidate. in a worst case we may miss some
+                    // recently returned objects. Not a big deal.
+                    ArrayBuilder<T> inst = items[i].Value;
+                    if (inst != null)
+                    {
+                        var c = inst.Capacity;
+                        if ((c == 0 || c == capacity) && inst == Interlocked.CompareExchange(ref items[i].Value, null, inst))
+                        {
+                            return inst;
+                        }
+                    }
+                }
+
+                return CreateInstance(capacity);
+            }
+
+            /// <summary>
+            /// Returns objects to the pool.
+            /// </summary>
+            /// <remarks>
+            /// Search strategy is a simple linear probing which is chosen for it cache-friendliness.
+            /// Note that Free will try to store recycled objects close to the start thus statistically 
+            /// reducing how far we will typically search in Allocate.
+            /// </remarks>
+            internal void Free(ArrayBuilder<T> obj)
+            {
+                Validate(obj);
+
+                if (_firstItem == null)
+                {
+                    // Intentionally not using interlocked here. 
+                    // In a worst case scenario two objects may be stored into same slot.
+                    // It is very unlikely to happen and will only mean that one of the objects will get collected.
+                    _firstItem = obj;
+                }
+                else
+                {
+                    FreeSlow(obj);
+                }
+            }
+
+            private void FreeSlow(ArrayBuilder<T> obj)
+            {
+                var items = _items;
+                for (int i = 0; i < items.Length; i++)
+                {
+                    if (items[i].Value == null)
+                    {
+                        // Intentionally not using interlocked here. 
+                        // In a worst case scenario two objects may be stored into same slot.
+                        // It is very unlikely to happen and will only mean that one of the objects will get collected.
+                        items[i].Value = obj;
+                        break;
+                    }
+                }
+            }
+
+            [Conditional("DEBUG")]
+            private void Validate(object obj)
+            {
+                Debug.Assert(obj != null, "freeing null?");
+
+                Debug.Assert(_firstItem != obj, "freeing twice?");
+
+                var items = _items;
+                for (int i = 0; i < items.Length; i++)
+                {
+                    var value = items[i].Value;
+                    if (value == null)
+                    {
+                        return;
+                    }
+
+                    Debug.Assert(value != obj, "freeing twice?");
+                }
+            }
         }
     }
 }
