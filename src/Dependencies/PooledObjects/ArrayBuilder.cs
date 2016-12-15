@@ -274,9 +274,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<T> ToImmutableAndFree()
         {
-            var result = this.ToImmutable();
-            this.Free();
-            return result;
+            if (_builder.Capacity == _builder.Count)
+            {
+                var result = _builder.MoveToImmutable();
+                s_threadLocalEmptyInstance = this;
+                return result;
+            }
+            else
+            {
+                var result = this.ToImmutable();
+                this.Free();
+                return result;
+            }
         }
 
         public T[] ToArrayAndFree()
@@ -324,6 +333,10 @@ namespace Microsoft.CodeAnalysis
         // 2) Expose the pool or the way to create a pool or the way to get an instance.
         //    for now we will expose both and figure which way works better
         private static readonly ObjectPool<ArrayBuilder<T>> s_poolInstance = CreatePool();
+
+        [ThreadStatic]
+        private static ArrayBuilder<T> s_threadLocalEmptyInstance;
+
         public static ArrayBuilder<T> GetInstance()
         {
             var builder = s_poolInstance.Allocate();
@@ -333,21 +346,24 @@ namespace Microsoft.CodeAnalysis
 
         public static ArrayBuilder<T> GetInstance(int capacity)
         {
-            var builder = GetInstance();
-            builder.EnsureCapacity(capacity);
+            var builder = s_threadLocalEmptyInstance;
+            if (builder != null)
+            {
+                s_threadLocalEmptyInstance = null;
+                builder._builder.Capacity = capacity;
+            }
+            else
+            {
+                builder = new ArrayBuilder<T>(size: capacity);
+            }
+
             return builder;
         }
 
         public static ArrayBuilder<T> GetInstance(int capacity, T fillWithValue)
         {
-            var builder = GetInstance();
-            builder.EnsureCapacity(capacity);
-
-            for (int i = 0; i < capacity; i++)
-            {
-                builder.Add(fillWithValue);
-            }
-
+            var builder = GetInstance(capacity);
+            builder.AddMany(fillWithValue, capacity);
             return builder;
         }
 
