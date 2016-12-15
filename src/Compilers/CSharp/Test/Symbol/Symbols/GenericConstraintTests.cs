@@ -6685,5 +6685,35 @@ partial class Class4
     Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Class2").WithArguments("Class2").WithLocation(30, 36)
                 );
         }
+
+        [Fact]
+        [WorkItem(278264, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=278264")]
+        public void IntPointerConstraintIntroducedBySubstitution()
+        {
+            string source = @"
+class R1<T1>
+{
+    public virtual void f<T2>() where T2 : T1 { }
+}
+class R2 : R1<int*>
+{
+    public override void f<T2>() { }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        R2 r = new R2();
+        r.f<int>();
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics(
+                // (6,7): error CS0306: The type 'int*' may not be used as a type argument
+                // class R2 : R1<int *>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 7)
+                );
+        }
     }
 }
