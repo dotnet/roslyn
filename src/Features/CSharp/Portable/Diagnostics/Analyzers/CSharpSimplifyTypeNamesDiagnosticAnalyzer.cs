@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -29,9 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         };
 
         public override void Initialize(AnalysisContext analysisContext)
-        {
-            analysisContext.RegisterSyntaxNodeAction(AnalyzeNode, s_kindsOfInterest);
-        }
+            => analysisContext.RegisterSyntaxNodeAction(AnalyzeNode, s_kindsOfInterest);
 
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
@@ -81,24 +78,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         }
 
         internal static bool IsCandidate(SyntaxNode node)
-        {
-            return IsRegularCandidate(node) || IsCrefCandidate(node);
-        }
+            => IsRegularCandidate(node) || IsCrefCandidate(node);
 
         private static bool IsRegularCandidate(SyntaxNode node)
-        {
-            return node != null && s_kindsOfInterest.Contains(node.Kind());
-        }
+            => node != null && s_kindsOfInterest.Contains(node.Kind());
 
         private static bool IsCrefCandidate(SyntaxNode node)
-        {
-            return node is QualifiedCrefSyntax;
-        }
+            => node is QualifiedCrefSyntax;
 
         protected sealed override bool CanSimplifyTypeNameExpressionCore(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken)
-        {
-            return CanSimplifyTypeNameExpression(model, node, optionSet, out issueSpan, out diagnosticId, cancellationToken);
-        }
+            => CanSimplifyTypeNameExpression(model, node, optionSet, out issueSpan, out diagnosticId, cancellationToken);
 
         internal static bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken)
         {
@@ -149,18 +138,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 else if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
                 {
                     var memberAccess = (MemberAccessExpressionSyntax)expression;
-                    diagnosticId = memberAccess.Expression.Kind() == SyntaxKind.ThisExpression ?
-                        IDEDiagnosticIds.RemoveQualificationDiagnosticId :
-                        IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
+                    diagnosticId = memberAccess.Expression.Kind() == SyntaxKind.ThisExpression
+                        ? IDEDiagnosticIds.RemoveQualificationDiagnosticId 
+                        : IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
                 }
             }
 
             return true;
         }
 
-        protected override string GetLanguageName()
-        {
-            return LanguageNames.CSharp;
-        }
+        protected override string GetLanguageName() => LanguageNames.CSharp;
     }
 }
