@@ -512,7 +512,7 @@ End Class</text>
                 Await TestSelectionAsync(code)
             End Function
 
-            <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/15223"), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestSelectReturnButNotAllCodePathsContainAReturn() As Task
                 Dim code = <text>Imports System
 Class A
