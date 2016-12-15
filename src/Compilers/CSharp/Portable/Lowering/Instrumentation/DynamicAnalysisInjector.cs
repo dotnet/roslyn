@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly LocalSymbol _methodPayload;
         private readonly DiagnosticBag _diagnostics;
         private readonly DebugDocumentProvider _debugDocumentProvider;
-        private readonly bool _methodHasExplicitBlock;
         private readonly SyntheticBoundNodeFactory _methodBodyFactory;
 
         public static DynamicAnalysisInjector TryCreate(MethodSymbol method, BoundStatement methodBody, SyntheticBoundNodeFactory methodBodyFactory, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, Instrumenter previous)
@@ -60,7 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodPayload = methodBodyFactory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
             _diagnostics = diagnostics;
             _debugDocumentProvider = debugDocumentProvider;
-            _methodHasExplicitBlock = MethodHasExplicitBlock(method);
             _methodBodyFactory = methodBodyFactory;
 
             // The first point indicates entry into the method and has the span of the method definition.
@@ -139,15 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentExpressionStatement(BoundExpressionStatement original, BoundStatement rewritten)
         {
-            rewritten = base.InstrumentExpressionStatement(original, rewritten);
-
-            if (!_methodHasExplicitBlock)
-            {
-                // The assignment statement for a property set method defined without a block is compiler generated, but requires instrumentation.
-                return CollectDynamicAnalysis(original, rewritten);
-            }
-
-            return AddDynamicAnalysis(original, rewritten);
+            return AddDynamicAnalysis(original, base.InstrumentExpressionStatement(original, rewritten));
         }
 
         public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
@@ -210,14 +200,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             rewritten = base.InstrumentReturnStatement(original, rewritten);
 
             // A synthesized return statement that does not return a value never requires instrumentation.
-            // A property set method defined without a block has such a synthesized return statement.
-            if ((!_methodHasExplicitBlock || _methodBodyFactory.CurrentMethod.MethodKind == MethodKind.LambdaMethod) && ((BoundReturnStatement)original).ExpressionOpt != null)
+            // A property set defined without a block has such a synthesized return statement.
+            // A synthesized return statement that does return a value does require instrumentation.
+            // A method, property get, or lambda defined without a block has such a synthesized return statement.
+            if (ReturnsValueWithinExpressionBodiedConstruct(original))
             {
                 // The return statement for value-returning methods defined without a block is compiler generated, but requires instrumentation.
                 return CollectDynamicAnalysis(original, rewritten);
             }
 
             return AddDynamicAnalysis(original, rewritten);
+        }
+        
+        private static bool ReturnsValueWithinExpressionBodiedConstruct(BoundReturnStatement returnStatement)
+        {
+            if (returnStatement.WasCompilerGenerated &&
+                returnStatement.ExpressionOpt != null &&
+                returnStatement.ExpressionOpt.Syntax != null)
+            {
+                SyntaxKind parentKind = returnStatement.ExpressionOpt.Syntax.Parent.Kind();
+                switch (parentKind)
+                {
+                    case SyntaxKind.ParenthesizedLambdaExpression:
+                    case SyntaxKind.SimpleLambdaExpression:
+                    case SyntaxKind.ArrowExpressionClause:
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         public override BoundStatement InstrumentSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
@@ -351,17 +362,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntaxForSpan;
         }
         
-        private static bool MethodHasExplicitBlock(MethodSymbol method)
-        {
-            SourceMethodSymbol asSourceMethod = method.OriginalDefinition as SourceMethodSymbol;
-            if ((object)asSourceMethod != null)
-            {
-                return asSourceMethod.BodySyntax is BlockSyntax;
-            }
-
-            return false;
-        }
-
         private static MethodSymbol GetCreatePayload(CSharpCompilation compilation, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             return (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, diagnostics, syntax: syntax);

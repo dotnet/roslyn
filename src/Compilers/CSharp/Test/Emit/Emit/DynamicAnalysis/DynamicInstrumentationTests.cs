@@ -891,10 +891,19 @@ public class D
             );
 
             var f1 = new Func<int>(
-                () => 1
+                () => 2
+            );
+
+            var f2 = new Func<int, int>(
+                (x) => x + 3
+            );
+
+            var f3 = new Func<int, int>(
+                x => x + 4
             );
 
             f();
+            f3(2);
         }
     }
 
@@ -919,6 +928,11 @@ True
 True
 True
 False
+True
+False
+True
+True
+True
 True
 True
 Method 5

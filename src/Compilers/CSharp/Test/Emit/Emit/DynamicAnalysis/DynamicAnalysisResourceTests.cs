@@ -53,6 +53,8 @@ public class C
     }
 
     public static int Betty { get; }
+
+    public static int Pebbles { get; set; }
 }
 ";
 
@@ -66,9 +68,9 @@ public class C
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
 
             VerifyDocuments(reader, reader.Documents,
-                @"'C:\myproject\doc1.cs' B2-C1-91-21-17-72-39-D7-D8-C8-AC-3C-09-F6-3C-FF-B7-E5-97-8E (SHA1)");
+                @"'C:\myproject\doc1.cs' FF-9A-1F-F4-03-A5-A1-F7-8D-CD-00-15-67-0E-BA-F7-23-9D-3F-0F (SHA1)");
 
-            Assert.Equal(10, reader.Methods.Length);
+            Assert.Equal(12, reader.Methods.Length);
 
             string[] sourceLines = ExampleSource.Split('\n');
 
@@ -96,7 +98,15 @@ public class C
                 new SpanResult(21, 4, 21, 36, "public static int Betty { get; }"),
                 new SpanResult(21, 30, 21, 34, "get"));
 
-            VerifySpans(reader, reader.Methods[6]);
+            VerifySpans(reader, reader.Methods[6], sourceLines,                         // Pebbles get
+                new SpanResult(23, 4, 23, 43, "public static int Pebbles { get; set; }"),
+                new SpanResult(23, 32, 23, 36, "get"));
+
+            VerifySpans(reader, reader.Methods[7], sourceLines,                         // Pebbles set
+                new SpanResult(23, 4, 23, 43, "public static int Pebbles { get; set; }"),
+                new SpanResult(23, 37, 23, 41, "set"));
+
+            VerifySpans(reader, reader.Methods[8]);
         }
 
         [Fact]
@@ -834,6 +844,18 @@ public class D
             );
 
             f();
+
+            var f1 = new Func<int>(
+                () => { return 2; }
+            );
+
+            var f2 = new Func<int, int>(
+                (x) => x + 3
+            );
+
+            var f3 = new Func<int, int>(
+                x => x + 4
+            );
         }
     }
 }
@@ -856,11 +878,17 @@ public class D
                 new SpanResult(12, 8, 12, 21, "new D().M1()"));
 
             VerifySpans(reader, reader.Methods[3], sourceLines,
-                new SpanResult(18, 4, 29, 5, "public void M1()"),
+                new SpanResult(18, 4, 41, 5, "public void M1()"),
                 new SpanResult(20, 8, 20, 13, "L1()"),
                 new SpanResult(24, 22, 24, 23, "1"),
                 new SpanResult(23, 12, 25, 14, "var f = new Func<int>"),
-                new SpanResult(27, 12, 27, 16, "f()"));
+                new SpanResult(27, 12, 27, 16, "f()"),
+                new SpanResult(30, 24, 30, 33, "return 2"),
+                new SpanResult(29, 12, 31, 14, "var f1 = new Func<int>"),
+                new SpanResult(34, 23, 34, 28, "x + 3"),
+                new SpanResult(33, 12, 35, 14, "var f2 = new Func<int, int>"),
+                new SpanResult(38, 21, 38, 26, "x + 4"),
+                new SpanResult(37, 12, 39, 14, "var f3 = new Func<int, int>"));
         }
 
         [Fact]
