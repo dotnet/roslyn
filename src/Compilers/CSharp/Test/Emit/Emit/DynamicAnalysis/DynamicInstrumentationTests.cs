@@ -4,66 +4,14 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Test.Utilities.CSharpInstrumentationChecker;
 
 namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
 {
     public class DynamicInstrumentationTests : CSharpTestBase
     {
-        const string InstrumentationHelperSource = @"
-namespace Microsoft.CodeAnalysis.Runtime
-{
-    public static class Instrumentation
-    {
-        private static bool[][] _payloads;
-        private static int[] _fileIndices;
-        private static System.Guid _mvid;
-
-        public static bool[] CreatePayload(System.Guid mvid, int methodIndex, int fileIndex, ref bool[] payload, int payloadLength)
-        {
-            if (_mvid != mvid)
-            {
-                _payloads = new bool[100][];
-                _fileIndices = new int[100];
-                _mvid = mvid;
-            }
-
-            if (System.Threading.Interlocked.CompareExchange(ref payload, new bool[payloadLength], null) == null)
-            {
-                _payloads[methodIndex] = payload;
-                _fileIndices[methodIndex] = fileIndex;
-                return payload;
-            }
-
-            return _payloads[methodIndex];
-        }
-
-        public static void FlushPayload()
-        {
-            Console.WriteLine(""Flushing"");
-            if (_payloads == null)
-            {
-                return;
-            }
-            for (int i = 0; i < _payloads.Length; i++)
-            {
-                bool[] payload = _payloads[i];
-                if (payload != null)
-                {
-                    Console.WriteLine(""Method "" + i.ToString());
-                    Console.WriteLine(""File "" + _fileIndices[i].ToString());
-                    for (int j = 0; j < payload.Length; j++)
-                    {
-                        Console.WriteLine(payload[j]);
-                        payload[j] = false;
-                    }
-                }
-            }
-        }
-    }
-}
-";
-
         [Fact]
         public void HelpersInstrumentation()
         {
@@ -708,50 +656,43 @@ public class Program
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 }
-";
-            string expectedOutput = @"Flushing
-Method 3
-File 1
-True
-True
-Method 4
-File 1
-True
-True
-Method 5
-File 1
-True
-True
-True
-True
-True
-Method 6
-File 1
-True
-True
-True
-Method 8
-File 1
-True
-True
-False
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-";
+" + InstrumentationHelperSource;
 
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(3, 1, "public int Prop3")
+                .True("get");
+            checker.Method(4, 1, "public int Prop3")
+                .True("set");
+            checker.Method(5, 1, "public Program()")
+                .True("25")
+                .True("Prop = 12;")
+                .True("Prop3 = 12;")
+                .True("Prop2 = Prop3;");
+            checker.Method(6, 1, "public static void Main")
+                .True("new Program();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+            checker.Method(8, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: checker.ExpectedOutput, options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
-            verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+
+            verifier = CompileAndVerify(source, expectedOutput: checker.ExpectedOutput, options: TestOptions.DebugExe);
             verifier.VerifyDiagnostics();
+            checker.CompleteCheck(verifier.Compilation, source);
         }
 
         [Fact]
@@ -852,7 +793,6 @@ True
 True
 True
 ";
-
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
@@ -1123,7 +1063,7 @@ True
 True
 True
 ";
-           
+
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
         }
