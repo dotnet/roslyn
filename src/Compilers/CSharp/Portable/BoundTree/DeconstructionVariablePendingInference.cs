@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     local.SetType(type);
-                    return new BoundLocal(this.Syntax, local, constantValueOpt: null, type: type, hasErrors: this.HasErrors || inferenceFailed);
+                    return new BoundLocal(this.Syntax, local, isDeclaration: true, constantValueOpt: null, type: type, hasErrors: this.HasErrors || inferenceFailed);
 
                 case SymbolKind.Field:
                     var field = (GlobalExpressionVariable)this.VariableSymbol;
