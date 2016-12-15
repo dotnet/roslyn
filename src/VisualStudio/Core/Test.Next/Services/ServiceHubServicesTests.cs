@@ -45,7 +45,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
             {
-                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, forTesting: true, cancellationToken: CancellationToken.None));
+                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
 
                 var solution = workspace.CurrentSolution;
 
@@ -63,7 +63,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(Array.Empty<string>(), metadataReferences: null))
             {
-                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, forTesting: true, cancellationToken: CancellationToken.None));
+                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
 
                 var solution = Populate(workspace.CurrentSolution.RemoveProject(workspace.CurrentSolution.ProjectIds.First()));
 
@@ -284,7 +284,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private static RemoteHostService CreateService()
         {
             var stream = new MemoryStream();
-            return new RemoteHostService(stream, new InProcRemoteHostClient.ServiceProvider(forTesting: true));
+            return new RemoteHostService(stream, new InProcRemoteHostClient.ServiceProvider(runCacheCleanup: false));
         }
 
         public static void SetEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)

@@ -15,7 +15,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
     {
         public Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
-            return InProcRemoteHostClient.CreateAsync(workspace, forTesting: true, cancellationToken: cancellationToken);
+            return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: cancellationToken);
         }
     }
 }

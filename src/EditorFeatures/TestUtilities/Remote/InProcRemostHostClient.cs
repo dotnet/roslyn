@@ -21,9 +21,9 @@ namespace Roslyn.Test.Utilities.Remote
         private readonly InProcRemoteServices _inprocServices;
         private readonly JsonRpc _rpc;
 
-        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool forTesting, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup, CancellationToken cancellationToken)
         {
-            var inprocServices = new InProcRemoteServices(forTesting);
+            var inprocServices = new InProcRemoteServices(runCacheCleanup);
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
 
@@ -88,11 +88,11 @@ namespace Roslyn.Test.Utilities.Remote
 
             private readonly AssetStorage _storage;
 
-            public ServiceProvider(bool forTesting)
+            public ServiceProvider(bool runCacheCleanup)
             {
-                _storage = forTesting ?
-                    new AssetStorage() :
-                    new AssetStorage(cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1));
+                _storage = runCacheCleanup ?
+                    new AssetStorage(cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1)) :
+                    new AssetStorage();
             }
 
             public AssetStorage AssetStorage => _storage;
@@ -117,9 +117,9 @@ namespace Roslyn.Test.Utilities.Remote
         {
             private readonly ServiceProvider _serviceProvider;
 
-            public InProcRemoteServices(bool forTesting)
+            public InProcRemoteServices(bool runCacheCleanup)
             {
-                _serviceProvider = new ServiceProvider(forTesting);
+                _serviceProvider = new ServiceProvider(runCacheCleanup);
             }
 
             public AssetStorage AssetStorage => _serviceProvider.AssetStorage;
