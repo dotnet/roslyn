@@ -208,9 +208,7 @@
       <Link>ThirdPartyNotices.rtf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="project.json" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
