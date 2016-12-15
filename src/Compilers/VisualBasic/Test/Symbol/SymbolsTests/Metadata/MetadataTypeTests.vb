@@ -1217,6 +1217,7 @@ End Class
             Dim [module] = comp.GetMember(Of NamedTypeSymbol)("A").ContainingModule
             GetAllNamespaceNames(builder, [module].GlobalNamespace)
             Assert.Equal({"Global", "", ".", "..N", ".N", "N", "N.M", "N.M."}, builder)
+            builder.Free()
         End Sub
 
         Private Shared Sub GetAllNamespaceNames(builder As ArrayBuilder(Of String), [namespace] As NamespaceSymbol)

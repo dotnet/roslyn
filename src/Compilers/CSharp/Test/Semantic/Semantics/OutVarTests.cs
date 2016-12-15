@@ -883,13 +883,14 @@ public class Cls
             Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
 
+            var other = model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single();
             if (isShadowed)
             {
-                Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single());
+                Assert.NotEqual(symbol, other);
             }
             else
             {
-                Assert.Same(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single());
+                Assert.Same(symbol, other);
             }
 
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));
@@ -11209,8 +11210,7 @@ public class X
                 switch (i)
                 {
                     case 12:
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAnOutLocal(model, yRef[1]);
+                        VerifyNotAnOutLocal(model, yRef[1]);
                         break;
                     default:
                         VerifyNotAnOutLocal(model, yRef[1]);
@@ -11220,8 +11220,7 @@ public class X
 
             var y13Decl = GetOutVarDeclarations(tree, "y13").Single();
             var y13Ref = GetReference(tree, "y13");
-            // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-            //VerifyModelForOutVar(model, y13Decl, y13Ref);
+            VerifyModelForOutVar(model, y13Decl, y13Ref);
         }
 
         [Fact]
@@ -11343,8 +11342,7 @@ public class X
                         VerifyModelForOutVarDuplicateInSameScope(model, yDecl[1]);
                         break;
                     case 12:
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyModelForOutVar(model, yDecl[0], yRef[1]);
+                        VerifyModelForOutVar(model, yDecl[0], yRef[1]);
                         VerifyModelForOutVar(model, yDecl[1], yRef[0]);
                         break;
 
@@ -11357,7 +11355,6 @@ public class X
         }
 
         [Fact]
-        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
         public void Scope_Query_07()
         {
             var source =
@@ -11411,9 +11408,10 @@ public class X
             var yRef = GetReferences(tree, id).ToArray();
             Assert.Equal(2, yDecl.Length);
             Assert.Equal(2, yRef.Length);
-            VerifyModelForOutVar(model, yDecl[0], yRef[1]);
-            // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-            //VerifyModelForOutVar(model, yDecl[1], yRef[0]);
+            // Since the name is declared twice in the same scope,
+            // both references are to the same declaration.
+            VerifyModelForOutVar(model, yDecl[0], yRef);
+            VerifyModelForOutVarDuplicateInSameScope(model, yDecl[1]);
         }
 
         [Fact]
@@ -11559,14 +11557,12 @@ public class X
                 switch (i)
                 {
                     case 4:
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyModelForOutVar(model, yDecl);
+                        VerifyModelForOutVar(model, yDecl);
                         VerifyNotAnOutLocal(model, yRef);
                         break;
                     case 5:
                         VerifyModelForOutVar(model, yDecl);
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAnOutLocal(model, yRef);
+                        VerifyNotAnOutLocal(model, yRef);
                         break;
                     default:
                         VerifyModelForOutVar(model, yDecl);
@@ -11726,13 +11722,11 @@ public class X
                     case 4:
                     case 6:
                         VerifyModelForOutVar(model, yDecl, yRef[0]);
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAnOutLocal(model, yRef[1]);
+                        VerifyNotAnOutLocal(model, yRef[1]);
                         break;
                     case 8:
                         VerifyModelForOutVar(model, yDecl, yRef[1]);
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAnOutLocal(model, yRef[0]);
+                        VerifyNotAnOutLocal(model, yRef[0]);
                         break;
                     case 10:
                         VerifyModelForOutVar(model, yDecl, yRef[0]);
