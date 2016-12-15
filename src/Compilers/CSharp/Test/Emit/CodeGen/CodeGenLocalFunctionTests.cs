@@ -3126,6 +3126,38 @@ void Assign() { x = 5; }";
             VerifyOutputInMain(src, "5");
         }
 
+        [Fact]
+        [WorkItem(15558, "https://github.com/dotnet/roslyn/issues/15558")]
+        public void CapturingSharesVar()
+        {
+            var src = @"
+int i = 0;
+
+int oldi<T>()
+    where T : struct
+    => (i += @sizeof<T>()) - @sizeof<T>();
+
+int @sizeof<T>()
+    where T : struct
+    => typeof(T).IsAssignableFrom(typeof(long))
+        ? sizeof(long)
+        : 1;
+
+while (i < 10)
+    System.Console.WriteLine(oldi<byte>());";
+
+            VerifyOutputInMain(src, @"0
+1
+2
+3
+4
+5
+6
+7
+8
+9");
+        }
+
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options);
