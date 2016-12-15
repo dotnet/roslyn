@@ -67,8 +67,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="EnvDTE" />
-    <Reference Include="EnvDTE80" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />

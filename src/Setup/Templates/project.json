@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "EnvDTE": "8.0.0"
+  },
+  "frameworks": {
+    "net46": { }
+  },
+  "runtimes": {
+    "win7": { }
+  }
+}
