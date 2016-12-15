@@ -4871,7 +4871,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>tuples</value>
   </data>
   <data name="ERR_MissingDeconstruct" xml:space="preserve">
-    <value>No Deconstruct instance or extension method was found for type '{0}', with {1} out parameters.</value>
+    <value>No Deconstruct instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</value>
   </data>
   <data name="ERR_DeconstructRequiresExpression" xml:space="preserve">
     <value>Deconstruct assignment requires an expression with a type on the right-hand-side.</value>
@@ -4980,6 +4980,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_MixedDeconstructionUnsupported" xml:space="preserve">
     <value>A deconstruction cannot mix declarations and expressions on the left-hand-side.</value>
+  </data>
+  <data name="ERR_DeconstructionNeedsTwoParts" xml:space="preserve">
+    <value>Deconstructions are only allowed into two or more parts.</value>
   </data>
   <data name="ERR_DeclarationExpressionNotPermitted" xml:space="preserve">
     <value>A declaration is not allowed in this context.</value>
