@@ -5843,9 +5843,9 @@ class C
 ";
             var compilation = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             compilation.VerifyDiagnostics(
-                // (13,20): error CS8188: Deconstructions are only allowed into two or more parts.
+                // (13,20): error CS8134: Deconstruction must contain at least two variables.
                 //         var (p2) = p;
-                Diagnostic(ErrorCode.ERR_DeconstructionNeedsTwoParts, "p").WithLocation(13, 20),
+                Diagnostic(ErrorCode.ERR_DeconstructTooFewElements, "p").WithLocation(13, 20),
                 // (13,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'p2'.
                 //         var (p2) = p;
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "p2").WithArguments("p2").WithLocation(13, 14)

@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverSyntax = receiver.Syntax;
             if (numCheckedVariables < 2)
             {
-                Error(diagnostics, ErrorCode.ERR_DeconstructionNeedsTwoParts, receiverSyntax);
+                Error(diagnostics, ErrorCode.ERR_DeconstructTooFewElements, receiverSyntax);
                 outPlaceholders = default(ImmutableArray<BoundDeconstructValuePlaceholder>);
 
                 return BadExpression(receiverSyntax, receiver);
