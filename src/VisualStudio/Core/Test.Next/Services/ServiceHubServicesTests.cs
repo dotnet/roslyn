@@ -211,37 +211,37 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static Solution Populate(Solution solution)
         {
-            solution = AddProject(solution, LanguageNames.CSharp, new string[]
+            solution = AddProject(solution, LanguageNames.CSharp, new[]
             {
                 "class CS { }",
                 "class CS2 { }"
-            }, new string[]
+            }, new[]
             {
                 "cs additional file content"
             }, Array.Empty<ProjectId>());
 
-            solution = AddProject(solution, LanguageNames.VisualBasic, new string[]
+            solution = AddProject(solution, LanguageNames.VisualBasic, new[]
             {
                 "Class VB\r\nEnd Class",
                 "Class VB2\r\nEnd Class"
-            }, new string[]
+            }, new[]
             {
                 "vb additional file content"
             }, new ProjectId[] { solution.ProjectIds.First() });
 
-            solution = AddProject(solution, LanguageNames.CSharp, new string[]
+            solution = AddProject(solution, LanguageNames.CSharp, new[]
             {
                 "class Top { }"
-            }, new string[]
+            }, new[]
             {
                 "cs additional file content"
             }, solution.ProjectIds.ToArray());
 
-            solution = AddProject(solution, LanguageNames.CSharp, new string[]
+            solution = AddProject(solution, LanguageNames.CSharp, new[]
             {
                 "class OrphanCS { }",
                 "class OrphanCS2 { }"
-            }, new string[]
+            }, new[]
             {
                 "cs additional file content",
                 "cs additional file content2"

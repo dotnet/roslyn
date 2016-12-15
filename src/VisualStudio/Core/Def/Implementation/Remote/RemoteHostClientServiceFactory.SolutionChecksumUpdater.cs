@@ -56,11 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // wait for global operation to finish
                 await GlobalOperationTask.ConfigureAwait(false);
 
-                // cancel updating solution checksum if a global operation (such as loading solution, building solution and etc) has started
-                await UpdateSolutionChecksumAsync(_globalOperationCancellationSource.Token).ConfigureAwait(false);
-
                 // update primary solution in remote host
-                await SynchronizePrimaryWorkspace().ConfigureAwait(false);
+                await SynchronizePrimaryWorkspaceAsync(_globalOperationCancellationSource.Token).ConfigureAwait(false);
             }
 
             protected override void PauseOnGlobalOperation()
@@ -112,26 +109,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _event.Release();
             }
 
-            private async Task UpdateSolutionChecksumAsync(CancellationToken cancellationToken)
+            private async Task SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
             {
-                await _service.Workspace.CurrentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            private async Task SynchronizePrimaryWorkspace()
-            {
-                var remoteHostClient = await _service.GetRemoteHostClientAsync(ShutdownCancellationToken).ConfigureAwait(false);
+                var remoteHostClient = await _service.GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
                 if (remoteHostClient == null)
                 {
                     return;
                 }
 
-                using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, ShutdownCancellationToken))
+                using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, cancellationToken))
                 {
                     var solution = _service.Workspace.CurrentSolution;
-                    using (var session = await remoteHostClient.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, solution, ShutdownCancellationToken).ConfigureAwait(false))
+                    using (var session = await remoteHostClient.CreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, solution, cancellationToken).ConfigureAwait(false))
                     {
                         // ask remote host to sync initial asset
-                        var checksum = await solution.State.GetChecksumAsync(ShutdownCancellationToken).ConfigureAwait(false);
+                        var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
                         await session.InvokeAsync(WellKnownRemoteHostServices.RemoteHostService_SynchronizePrimaryWorkspaceAsync, new object[] { checksum.ToArray() }).ConfigureAwait(false);
                     }
                 }
