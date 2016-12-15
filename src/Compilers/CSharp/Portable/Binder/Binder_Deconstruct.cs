@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             boundRHS = FixTupleLiteral(checkedVariables, boundRHS, node, diagnostics);
 
-            if ((object)boundRHS.Type == null)
+            if ((object)boundRHS.Type == null || boundRHS.Type.IsErrorType())
             {
                 // we could still not infer a type for the RHS
                 FailRemainingInferences(checkedVariables, diagnostics);
@@ -550,6 +550,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     DiagnosticBag diagnostics, out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders)
         {
             var receiverSyntax = receiver.Syntax;
+            if (numCheckedVariables < 2)
+            {
+                Error(diagnostics, ErrorCode.ERR_DeconstructTooFewElements, receiverSyntax);
+                outPlaceholders = default(ImmutableArray<BoundDeconstructValuePlaceholder>);
+
+                return BadExpression(receiverSyntax, receiver);
+            }
 
             if (receiver.Type.IsDynamic())
             {
@@ -615,6 +622,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return MissingDeconstruct(receiver, syntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
                     }
+                }
+
+                if (deconstructMethod.ReturnType.GetSpecialTypeSafe() != SpecialType.System_Void)
+                {
+                    return MissingDeconstruct(receiver, syntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
                 }
 
                 if (outVars.Any(v => (object)v.Placeholder == null))
