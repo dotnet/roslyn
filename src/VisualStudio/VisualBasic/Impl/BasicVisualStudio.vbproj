@@ -133,7 +133,6 @@
       <DependentUpon>AdvancedOptionPageControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Options\StyleViewModel.vb" />
-    <Compile Include="Progression\VisualBasicGraphProvider.vb" />
     <Compile Include="Progression\VisualBasicProgressionLanguageService.vb" />
     <Compile Include="ProjectSystemShim\VisualBasicProjectOptionsHelper.vb" />
     <Compile Include="ProjectSystemShim\EntryPointFinder.vb" />
