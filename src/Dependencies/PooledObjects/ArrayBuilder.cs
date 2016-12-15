@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis
         {
             var builder = s_poolInstance.AllocateExisting(capacity);
             Debug.Assert(builder.Capacity == 0 || builder.Capacity == capacity);
-            if (builder.Capacity == 0)
+            if (builder.Capacity != capacity)
             {
                 builder.Capacity = capacity;
             }
@@ -634,17 +634,42 @@ namespace Microsoft.CodeAnalysis
                 // Note that the initial read is optimistically not synchronized. That is intentional. 
                 // We will interlock only when we have a candidate. in a worst case we may miss some
                 // recently returned objects. Not a big deal.
-                ArrayBuilder<T> inst = _firstItem;
+                ArrayBuilder<T> inst = GetIfMatch(ref _firstItem, capacity);
                 if (inst != null)
                 {
-                    var c = inst.Capacity;
-                    if ((c == 0 || c == capacity) && inst == Interlocked.CompareExchange(ref _firstItem, null, inst))
-                    {
-                        return inst;
-                    }
+                    return inst;
                 }
 
                 return AllocateExistingSlow(capacity);
+            }
+
+            private ArrayBuilder<T> GetIfMatch(ref ArrayBuilder<T> builder, int capacity)
+            {
+                var local = builder;
+                if (local == null)
+                {
+                    return null;
+                }
+
+                // Note that the initial read is optimistically not synchronized. That is intentional. 
+                // We will interlock only when we have a candidate. in a worst case we may miss some
+                // recently returned objects. Not a big deal.
+                var c = local.Capacity;
+                if (c == 0 || c == capacity)
+                {
+                    if (local == Interlocked.CompareExchange(ref builder, null, local))
+                    {
+                        c = local.Capacity;
+                        if (c == 0 || c == capacity)
+                        {
+                            return local;
+                        }
+
+                        Free(local);
+                    }
+                }
+
+                return null;
             }
 
             private ArrayBuilder<T> AllocateExistingSlow(int capacity)
@@ -653,17 +678,10 @@ namespace Microsoft.CodeAnalysis
 
                 for (int i = 0; i < items.Length; i++)
                 {
-                    // Note that the initial read is optimistically not synchronized. That is intentional. 
-                    // We will interlock only when we have a candidate. in a worst case we may miss some
-                    // recently returned objects. Not a big deal.
-                    ArrayBuilder<T> inst = items[i].Value;
+                    ArrayBuilder<T> inst = GetIfMatch(ref items[i].Value, capacity);
                     if (inst != null)
                     {
-                        var c = inst.Capacity;
-                        if ((c == 0 || c == capacity) && inst == Interlocked.CompareExchange(ref items[i].Value, null, inst))
-                        {
-                            return inst;
-                        }
+                        return inst;
                     }
                 }
 
