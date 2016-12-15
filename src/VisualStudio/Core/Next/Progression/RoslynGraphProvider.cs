@@ -11,11 +11,11 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
 {
-    [GraphProvider(Name = "VisualBasicRoslynProvider", ProjectCapability = "VisualBasic")]
-    internal sealed class VisualBasicGraphProvider : AbstractGraphProvider
+    [GraphProvider(Name = "RoslynGraphProvider", ProjectCapability = "CSharp | VisualBasic")]
+    internal sealed class RoslynGraphProvider : AbstractGraphProvider
     {
         [ImportingConstructor]
-        public VisualBasicGraphProvider(
+        public RoslynGraphProvider(
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
             IProgressionPrimaryWorkspaceProvider workspaceProvider,
