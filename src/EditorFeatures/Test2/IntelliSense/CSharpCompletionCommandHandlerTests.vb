@@ -2833,7 +2833,7 @@ class C
             End Using
         End Function
 
-        ' <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function Filters_EmptyList4() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
