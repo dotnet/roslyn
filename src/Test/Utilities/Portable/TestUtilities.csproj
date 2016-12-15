@@ -97,7 +97,6 @@
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

@@ -1575,20 +1575,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitForStatement(BoundForStatement node)
         {
             DeclareVariables(node.OuterLocals);
+            DeclareVariables(node.InnerLocals);
             var result = base.VisitForStatement(node);
+            ReportUnusedVariables(node.InnerLocals);
             ReportUnusedVariables(node.OuterLocals);
             return result;
         }
 
         public override BoundNode VisitDoStatement(BoundDoStatement node)
         {
+            DeclareVariables(node.Locals);
             var result = base.VisitDoStatement(node);
+            ReportUnusedVariables(node.Locals);
             return result;
         }
 
         public override BoundNode VisitWhileStatement(BoundWhileStatement node)
         {
+            DeclareVariables(node.Locals);
             var result = base.VisitWhileStatement(node);
+            ReportUnusedVariables(node.Locals);
             return result;
         }
 

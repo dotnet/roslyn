@@ -41,7 +41,8 @@
                 "xunit",
                 "RoslynTools.*",
                 "^Microsoft.?Build.*",
-                "GitLink"
+                "GitLink",
+                "Microsoft.NETCore.Runtime.CoreCLR"
             ]
         }
     },

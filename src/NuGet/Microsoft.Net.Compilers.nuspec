@@ -71,6 +71,7 @@ Supported Platforms:
     <file src="Exes\Toolset\System.Text.Encoding.CodePages.dll" target="tools" />
     <file src="Exes\Toolset\System.Threading.Thread.dll" target="tools" />
     <file src="Exes\Toolset\System.ValueTuple.dll" target="tools" />
+    <file src="Exes\Toolset\System.Xml.ReaderWriter.dll" target="tools" />
     <file src="Exes\Toolset\System.Xml.XmlDocument.dll" target="tools" />
     <file src="Exes\Toolset\System.Xml.XPath.dll" target="tools" />
     <file src="Exes\Toolset\System.Xml.XPath.XDocument.dll" target="tools" />

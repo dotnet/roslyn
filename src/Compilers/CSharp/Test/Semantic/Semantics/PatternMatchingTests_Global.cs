@@ -1766,24 +1766,27 @@ class H
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
-                // (6,18): error CS0102: The type 'Script' already contains a definition for 'x2'
-                // while ((2 is int x2)) {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 18),
-                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
-                // object x3;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
-                // (12,27): error CS0102: The type 'Script' already contains a definition for 'x4'
+                // (3,9): error CS0103: The name 'x1' does not exist in the current context
+                // H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(3, 9),
+                // (12,27): error CS0128: A local variable or function named 'x4' is already defined in this scope
                 //                (42 is int x4))) {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 27),
-                // (23,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(12, 27),
+                // (16,28): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     H.Dummy("52" is string x5);
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(16, 28),
+                // (19,9): error CS0103: The name 'x5' does not exist in the current context
+                // H.Dummy(x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(19, 9),
+                // (23,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(23, 17),
-                // (23,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
+                // (23,25): error CS0103: The name 'x4' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(23, 21),
-                // (23,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(23, 25),
+                // (23,29): error CS0103: The name 'x5' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -1792,28 +1795,35 @@ class H
                 var x1Decl = GetPatternDeclarations(tree, "x1").Single();
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
-                VerifyModelForDeclarationField(model, x1Decl, x1Ref);
+                VerifyModelForDeclarationPattern(model, x1Decl);
+                VerifyNotInScope(model, x1Ref[0]);
+                VerifyNotInScope(model, x1Ref[1]);
 
                 var x2Decl = GetPatternDeclarations(tree, "x2").Single();
                 var x2Ref = GetReferences(tree, "x2").Single();
-                VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
+                VerifyModelForDeclarationPattern(model, x2Decl);
+                VerifyNotAPatternLocal(model, x2Ref);
 
                 var x3Decl = GetPatternDeclarations(tree, "x3").Single();
                 var x3Ref = GetReferences(tree, "x3").Single();
-                VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
+                VerifyModelForDeclarationPattern(model, x3Decl);
+                VerifyNotAPatternLocal(model, x3Ref);
 
                 var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
                 var x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
-                VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
-                VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
+                VerifyModelForDeclarationPattern(model, x4Decl[0]);
+                VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
+                VerifyNotInScope(model, x4Ref);
 
                 var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
                 var x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
-                VerifyModelForDeclarationField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
+                VerifyModelForDeclarationPattern(model, x5Decl[0]);
                 VerifyModelForDeclarationPattern(model, x5Decl[1], x5Ref[0]);
+                VerifyNotInScope(model, x5Ref[1]);
+                VerifyNotInScope(model, x5Ref[2]);
             }
 
             {
@@ -1899,24 +1909,27 @@ class H
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
-                // (6,18): error CS0102: The type 'Script' already contains a definition for 'x2'
-                // while ((2 is var x2)) {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 18),
-                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
-                // object x3;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
-                // (12,27): error CS0102: The type 'Script' already contains a definition for 'x4'
+                // (3,9): error CS0103: The name 'x1' does not exist in the current context
+                // H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(3, 9),
+                // (12,27): error CS0128: A local variable or function named 'x4' is already defined in this scope
                 //                (42 is var x4))) {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 27),
-                // (23,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(12, 27),
+                // (16,25): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     H.Dummy("52" is var x5);
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(16, 25),
+                // (19,9): error CS0103: The name 'x5' does not exist in the current context
+                // H.Dummy(x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(19, 9),
+                // (23,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(23, 17),
-                // (23,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(23, 13),
+                // (23,25): error CS0103: The name 'x4' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(23, 21),
-                // (23,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(23, 25),
+                // (23,29): error CS0103: The name 'x5' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(23, 25)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(23, 29)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -1925,28 +1938,35 @@ class H
                 var x1Decl = GetPatternDeclarations(tree, "x1").Single();
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
-                VerifyModelForDeclarationField(model, x1Decl, x1Ref);
+                VerifyModelForDeclarationPattern(model, x1Decl);
+                VerifyNotInScope(model, x1Ref[0]);
+                VerifyNotInScope(model, x1Ref[1]);
 
                 var x2Decl = GetPatternDeclarations(tree, "x2").Single();
                 var x2Ref = GetReferences(tree, "x2").Single();
-                VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
+                VerifyModelForDeclarationPattern(model, x2Decl);
+                VerifyNotAPatternLocal(model, x2Ref);
 
                 var x3Decl = GetPatternDeclarations(tree, "x3").Single();
                 var x3Ref = GetReferences(tree, "x3").Single();
-                VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
+                VerifyModelForDeclarationPattern(model, x3Decl);
+                VerifyNotAPatternLocal(model, x3Ref);
 
                 var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
                 var x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
-                VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
-                VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
+                VerifyModelForDeclarationPattern(model, x4Decl[0]);
+                VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
+                VerifyNotInScope(model, x4Ref);
 
                 var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
                 var x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
-                VerifyModelForDeclarationField(model, x5Decl[0], x5Ref[1], x5Ref[2]);
+                VerifyModelForDeclarationPattern(model, x5Decl[0]);
                 VerifyModelForDeclarationPattern(model, x5Decl[1], x5Ref[0]);
+                VerifyNotInScope(model, x5Ref[1]);
+                VerifyNotInScope(model, x5Ref[2]);
             }
 
             {
@@ -2000,19 +2020,12 @@ class H
         {
             string source =
 @"
-System.Console.WriteLine(x1);
 while ((1 is var x1)) 
 {
-    H.Dummy(""11"" is var x1);
     System.Console.WriteLine(x1);
     break;
 }
-Test();
 
-void Test()
-{
-    System.Console.WriteLine(x1);
-}
 class H
 {
     public static bool Dummy(params object[] x) {return false;}
@@ -2021,63 +2034,16 @@ class H
 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            CompileAndVerify(compilation, expectedOutput:
-@"0
-11
-1").VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput:@"1").VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
-            Assert.Equal(2, x1Decl.Length);
-            Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
-        }
-
-        [Fact]
-        public void GlobalCode_WhileStatement_04()
-        {
-            string source =
-@"
-bool x0 = true;
-System.Console.WriteLine(x1);
-while (x0 && (1 is var x1)) 
-    H.Dummy((""11"" is var x1) && (x0 = false), x1);
-Test();
-
-void Test()
-{
-    System.Console.WriteLine(x1);
-}
-
-class H
-{
-    public static void Dummy(object x, object y)
-    {
-        System.Console.WriteLine(y);
-    }
-}
-";
-
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
-
-            CompileAndVerify(compilation, expectedOutput:
-@"0
-11
-1").VerifyDiagnostics();
-
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
-            Assert.Equal(2, x1Decl.Length);
-            Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationField(model, x1Decl[0], x1Ref[0], x1Ref[2]);
-            VerifyModelForDeclarationPattern(model, x1Decl[1], x1Ref[1]);
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2119,24 +2085,27 @@ class H
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
-                // (6,24): error CS0102: The type 'Script' already contains a definition for 'x2'
-                // do {} while ((2 is int x2));
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 24),
-                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
-                // object x3;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
-                // (12,33): error CS0102: The type 'Script' already contains a definition for 'x4'
+                // (3,9): error CS0103: The name 'x1' does not exist in the current context
+                // H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(3, 9),
+                // (12,33): error CS0128: A local variable or function named 'x4' is already defined in this scope
                 //                      (42 is int x4)));
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 33),
-                // (24,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(12, 33),
+                // (16,28): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     H.Dummy("52" is string x5);
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(16, 28),
+                // (20,9): error CS0103: The name 'x5' does not exist in the current context
+                // H.Dummy(x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 9),
+                // (24,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(24, 17),
-                // (24,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(24, 13),
+                // (24,25): error CS0103: The name 'x4' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(24, 21),
-                // (24,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(24, 25),
+                // (24,29): error CS0103: The name 'x5' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(24, 25)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(24, 29)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -2145,28 +2114,35 @@ class H
                 var x1Decl = GetPatternDeclarations(tree, "x1").Single();
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
-                VerifyModelForDeclarationField(model, x1Decl, x1Ref);
+                VerifyModelForDeclarationPattern(model, x1Decl);
+                VerifyNotInScope(model, x1Ref[0]);
+                VerifyNotInScope(model, x1Ref[1]);
 
                 var x2Decl = GetPatternDeclarations(tree, "x2").Single();
                 var x2Ref = GetReferences(tree, "x2").Single();
-                VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
+                VerifyModelForDeclarationPattern(model, x2Decl);
+                VerifyNotAPatternLocal(model, x2Ref);
 
                 var x3Decl = GetPatternDeclarations(tree, "x3").Single();
                 var x3Ref = GetReferences(tree, "x3").Single();
-                VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
+                VerifyModelForDeclarationPattern(model, x3Decl);
+                VerifyNotAPatternLocal(model, x3Ref);
 
                 var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
                 var x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
-                VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
-                VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
+                VerifyModelForDeclarationPattern(model, x4Decl[0]);
+                VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
+                VerifyNotInScope(model, x4Ref);
 
                 var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
                 var x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForDeclarationPattern(model, x5Decl[0], x5Ref[0]);
-                VerifyModelForDeclarationField(model, x5Decl[1], x5Ref[1], x5Ref[2]);
+                VerifyModelForDeclarationPattern(model, x5Decl[1]);
+                VerifyNotInScope(model, x5Ref[1]);
+                VerifyNotInScope(model, x5Ref[2]);
             }
 
             {
@@ -2253,24 +2229,27 @@ class H
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
                 compilation.VerifyDiagnostics(
-                // (6,24): error CS0102: The type 'Script' already contains a definition for 'x2'
-                // do {} while ((2 is var x2));
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x2").WithArguments("Script", "x2").WithLocation(6, 24),
-                // (9,8): error CS0102: The type 'Script' already contains a definition for 'x3'
-                // object x3;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x3").WithArguments("Script", "x3").WithLocation(9, 8),
-                // (12,33): error CS0102: The type 'Script' already contains a definition for 'x4'
+                // (3,9): error CS0103: The name 'x1' does not exist in the current context
+                // H.Dummy(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(3, 9),
+                // (12,33): error CS0128: A local variable or function named 'x4' is already defined in this scope
                 //                      (42 is var x4)));
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("Script", "x4").WithLocation(12, 33),
-                // (24,17): error CS0229: Ambiguity between 'x2' and 'x2'
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(12, 33),
+                // (16,25): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     H.Dummy("52" is var x5);
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(16, 25),
+                // (20,9): error CS0103: The name 'x5' does not exist in the current context
+                // H.Dummy(x5);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(20, 9),
+                // (24,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x2").WithArguments("x2", "x2").WithLocation(24, 17),
-                // (24,21): error CS0229: Ambiguity between 'x3' and 'x3'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(24, 13),
+                // (24,25): error CS0103: The name 'x4' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x3").WithArguments("x3", "x3").WithLocation(24, 21),
-                // (24,25): error CS0229: Ambiguity between 'x4' and 'x4'
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(24, 25),
+                // (24,29): error CS0103: The name 'x5' does not exist in the current context
                 //     H.Dummy(x1, x2, x3, x4, x5);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "x4").WithArguments("x4", "x4").WithLocation(24, 25)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(24, 29)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -2279,28 +2258,35 @@ class H
                 var x1Decl = GetPatternDeclarations(tree, "x1").Single();
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
-                VerifyModelForDeclarationField(model, x1Decl, x1Ref);
+                VerifyModelForDeclarationPattern(model, x1Decl);
+                VerifyNotInScope(model, x1Ref[0]);
+                VerifyNotInScope(model, x1Ref[1]);
 
                 var x2Decl = GetPatternDeclarations(tree, "x2").Single();
                 var x2Ref = GetReferences(tree, "x2").Single();
-                VerifyModelForDeclarationFieldDuplicate(model, x2Decl, x2Ref);
+                VerifyModelForDeclarationPattern(model, x2Decl);
+                VerifyNotAPatternLocal(model, x2Ref);
 
                 var x3Decl = GetPatternDeclarations(tree, "x3").Single();
                 var x3Ref = GetReferences(tree, "x3").Single();
-                VerifyModelForDeclarationFieldDuplicate(model, x3Decl, x3Ref);
+                VerifyModelForDeclarationPattern(model, x3Decl);
+                VerifyNotAPatternLocal(model, x3Ref);
 
                 var x4Decl = GetPatternDeclarations(tree, "x4").ToArray();
                 var x4Ref = GetReferences(tree, "x4").Single();
                 Assert.Equal(2, x4Decl.Length);
-                VerifyModelForDeclarationFieldDuplicate(model, x4Decl[0], x4Ref);
-                VerifyModelForDeclarationFieldDuplicate(model, x4Decl[1], x4Ref);
+                VerifyModelForDeclarationPattern(model, x4Decl[0]);
+                VerifyModelForDeclarationPatternDuplicateInSameScope(model, x4Decl[1]);
+                VerifyNotInScope(model, x4Ref);
 
                 var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
                 var x5Ref = GetReferences(tree, "x5").ToArray();
                 Assert.Equal(2, x5Decl.Length);
                 Assert.Equal(3, x5Ref.Length);
                 VerifyModelForDeclarationPattern(model, x5Decl[0], x5Ref[0]);
-                VerifyModelForDeclarationField(model, x5Decl[1], x5Ref[1], x5Ref[2]);
+                VerifyModelForDeclarationPattern(model, x5Decl[1]);
+                VerifyNotInScope(model, x5Ref[1]);
+                VerifyNotInScope(model, x5Ref[2]);
             }
 
             {
@@ -2354,19 +2340,19 @@ class H
         {
             string source =
 @"
-System.Console.WriteLine(x1);
+int f = 1;
+
 do
 {
-    H.Dummy(""11"" is var x1);
-    System.Console.WriteLine(x1);
 }
-while ((1 is var x1) && false);
-Test();
+while ((f++ is var x1) && Test(x1) < 3);
 
-void Test()
+int Test(int x)
 {
-    System.Console.WriteLine(x1);
+    System.Console.WriteLine(x);
+    return x;
 }
+
 class H
 {
     public static bool Dummy(params object[] x) {return false;}
@@ -2376,62 +2362,18 @@ class H
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
             CompileAndVerify(compilation, expectedOutput:
-@"0
-11
-1").VerifyDiagnostics();
+@"1
+2
+3").VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
-            Assert.Equal(2, x1Decl.Length);
-            Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[1]);
-            VerifyModelForDeclarationField(model, x1Decl[1], x1Ref[0], x1Ref[2]);
-        }
-
-        [Fact]
-        public void GlobalCode_DoStatement_04()
-        {
-            string source =
-@"
-System.Console.WriteLine(x1);
-do 
-    H.Dummy((""11"" is var x1), x1);
-while ((1 is var x1) && false);
-Test();
-
-void Test()
-{
-    System.Console.WriteLine(x1);
-}
-
-class H
-{
-    public static void Dummy(object x, object y)
-    {
-        System.Console.WriteLine(y);
-    }
-}
-";
-
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
-
-            CompileAndVerify(compilation, expectedOutput:
-@"0
-11
-1").VerifyDiagnostics();
-
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-
-            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
-            var x1Ref = GetReferences(tree, "x1").ToArray();
-            Assert.Equal(2, x1Decl.Length);
-            Assert.Equal(3, x1Ref.Length);
-            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref[1]);
-            VerifyModelForDeclarationField(model, x1Decl[1], x1Ref[0], x1Ref[2]);
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(1, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -5704,13 +5646,13 @@ class H
                 compilation.VerifyDiagnostics(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // bool a, b("5948" is var x1);
-                Diagnostic(ErrorCode.ERR_BadVarDecl, @"(""5948"" is var x1)").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, @"(""5948"" is var x1").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b("5948" is var x1);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,28): error CS1003: Syntax error, ']' expected
+                // (3,27): error CS1003: Syntax error, ']' expected
                 // bool a, b("5948" is var x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 28)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 27)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -5737,13 +5679,13 @@ class H
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // bool a, b("5948" is var x1);
-                Diagnostic(ErrorCode.ERR_BadVarDecl, @"(""5948"" is var x1)").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, @"(""5948"" is var x1").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b("5948" is var x1);
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,28): error CS1003: Syntax error, ']' expected
+                // (3,27): error CS1003: Syntax error, ']' expected
                 // bool a, b("5948" is var x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 27),
                 // (8,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
@@ -5785,13 +5727,13 @@ class H
                 compilation.VerifyDiagnostics(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // bool a, b((1 is var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "((1 is var x1))").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "((1 is var x1)").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b((1 is var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,25): error CS1003: Syntax error, ']' expected
+                // (3,24): error CS1003: Syntax error, ']' expected
                 // bool a, b((1 is var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 24),
                 // (2,1): warning CS0164: This label has not been referenced
                 // label: 
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(2, 1)
@@ -5820,13 +5762,13 @@ class H
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (3,10): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // bool a, b((1 is var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "((1 is var x1))").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "((1 is var x1)").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b((1 is var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
-                // (3,25): error CS1003: Syntax error, ']' expected
+                // (3,24): error CS1003: Syntax error, ']' expected
                 // bool a, b((1 is var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 24),
                 // (8,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)
@@ -5868,13 +5810,13 @@ class H
                 compilation.VerifyDiagnostics(
                 // (3,25): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // event System.Action a, b(H.Dummy(1 is var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.Dummy(1 is var x1))").WithLocation(3, 25),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.Dummy(1 is var x1)").WithLocation(3, 25),
                 // (3,25): error CS1003: Syntax error, '[' expected
                 // event System.Action a, b(H.Dummy(1 is var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 25),
-                // (3,47): error CS1003: Syntax error, ']' expected
+                // (3,46): error CS1003: Syntax error, ']' expected
                 // event System.Action a, b(H.Dummy(1 is var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 47)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 46)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -5901,13 +5843,13 @@ class H
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (3,25): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
                 // event System.Action a, b(H.Dummy(1 is var x1));
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.Dummy(1 is var x1))").WithLocation(3, 25),
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.Dummy(1 is var x1)").WithLocation(3, 25),
                 // (3,25): error CS1003: Syntax error, '[' expected
                 // event System.Action a, b(H.Dummy(1 is var x1));
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 25),
-                // (3,47): error CS1003: Syntax error, ']' expected
+                // (3,46): error CS1003: Syntax error, ']' expected
                 // event System.Action a, b(H.Dummy(1 is var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(3, 47),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 46),
                 // (8,13): error CS0103: The name 'x1' does not exist in the current context
                 //     H.Dummy(x1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 13)

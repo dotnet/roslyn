@@ -56,6 +56,7 @@ folder InstallDir:\MSBuild\15.0\Bin\Roslyn
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Principal.Windows.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Text.Encoding.CodePages.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Threading.Thread.dll vs.file.ngenArchitecture=all
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.ReaderWriter.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XmlDocument.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XPath.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XPath.XDocument.dll vs.file.ngenArchitecture=all

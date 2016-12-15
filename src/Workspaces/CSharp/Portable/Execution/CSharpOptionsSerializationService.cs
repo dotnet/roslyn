@@ -84,8 +84,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
             var languageVersion = (LanguageVersion)reader.ReadInt32();
             var preprocessorSymbolNames = reader.ReadArray<string>();
 
-            var options = new CSharpParseOptions(languageVersion, documentationMode, kind, preprocessorSymbolNames);
-            return options.WithFeatures(features);
+            var options = new CSharpParseOptions(languageVersion, documentationMode, kind);
+
+            // use WithPreprocessorSymbols instead of constructor to bypass preprocessor validation.
+            // https://github.com/dotnet/roslyn/issues/15797
+            return options.WithPreprocessorSymbols(preprocessorSymbolNames)
+                          .WithFeatures(features);
         }
     }
 }

@@ -389,6 +389,37 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task RoundTrip_Analyzer_Serailization_Test()
+        {
+            var workspace = new AdhocWorkspace();
+            var serializer = new Serializer(workspace);
+
+            var reference = new AnalyzerFileReference(typeof(object).Assembly.Location, new MockShadowCopyAnalyzerAssemblyLoader());
+
+            // make sure this doesn't throw
+            var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+            var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
+            var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task RoundTrip_Analyzer_Serailization_Desktop_Test()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            var workspace = new AdhocWorkspace(hostServices);
+            var serializer = new Serializer(workspace);
+
+            var reference = new AnalyzerFileReference(typeof(object).Assembly.Location, new MockShadowCopyAnalyzerAssemblyLoader());
+
+            // make sure this doesn't throw
+            var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+            var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
+            var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task SnapshotWithMissingReferencesTest()
         {
             var hostServices = MefHostServices.Create(
@@ -465,7 +496,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 await asset.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
-                using (var reader = new StreamObjectReader(stream))
+                using (var reader = StreamObjectReader.TryGetReader(stream))
                 {
                     var recovered = serializer.Deserialize<OptionSet>(asset.Kind, reader, CancellationToken.None);
                     var assetFromStorage = assetBuilder.Build(recovered, language, CancellationToken.None);
@@ -573,7 +604,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 await asset.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
-                using (var reader = new StreamObjectReader(stream))
+                using (var reader = StreamObjectReader.TryGetReader(stream))
                 {
                     var recovered = serializer.Deserialize<object>(asset.Kind, reader, CancellationToken.None);
                     var assetFromStorage = SolutionAsset.Create(serializer.CreateChecksum(recovered, CancellationToken.None), recovered, serializer);
@@ -622,6 +653,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
             {
                 return this;
+            }
+        }
+
+        private class MockShadowCopyAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
+        {
+            public void AddDependencyLocation(string fullPath)
+            {
+            }
+
+            public Assembly LoadFromPath(string fullPath)
+            {
+                // return something other than given one. mimicing behavior of shadow copy 
+                return typeof(SharedAttribute).Assembly;
             }
         }
     }

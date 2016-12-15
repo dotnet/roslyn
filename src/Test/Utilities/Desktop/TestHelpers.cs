@@ -110,11 +110,10 @@ public class TestAnalyzer : DiagnosticAnalyzer
     public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
 }";
 
-            var metadata = dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
+            dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
             var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
             var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
-            var filesystem = dir.CreateFile("System.IO.FileSystem.dll").WriteAllBytes(
-                TestResources.NetFX.v4_6_1038_0.Facades.System_IO_FileSystem);
+            dir.CopyFile(Path.Combine(Path.GetDirectoryName(typeof(CSharpCompilation).Assembly.Location), "System.IO.FileSystem.dll"));
 
             var analyzerCompilation = CSharpCompilation.Create(
                 assemblyName,

@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Parent.Kind() == SyntaxKind.DeclarationPattern);
         }
 
-        protected static IEnumerable<DiscardedDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
+        protected static IEnumerable<DiscardDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
         {
-            return tree.GetRoot().DescendantNodes().OfType<DiscardedDesignationSyntax>();
+            return tree.GetRoot().DescendantNodes().OfType<DiscardDesignationSyntax>();
         }
 
         protected static IdentifierNameSyntax GetReference(SyntaxTree tree, string name)
@@ -63,13 +63,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)designation));
 
+            var other = model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single();
             if (isShadowed)
             {
-                Assert.NotEqual(symbol, model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single());
+                Assert.NotEqual(symbol, other);
             }
             else
             {
-                Assert.Same(symbol, model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single());
+                Assert.Same(symbol, other);
             }
 
             Assert.True(model.LookupNames(designation.SpanStart).Contains(designation.Identifier.ValueText));
@@ -124,7 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.NotEqual(LocalDeclarationKind.PatternVariable, ((LocalSymbol)symbol).DeclarationKind);
             }
 
-            Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Single());
+            var other = model.LookupSymbols(reference.SpanStart, name: reference.Identifier.ValueText).Single();
+            Assert.Same(symbol, other);
             Assert.True(model.LookupNames(reference.SpanStart).Contains(reference.Identifier.ValueText));
         }
 

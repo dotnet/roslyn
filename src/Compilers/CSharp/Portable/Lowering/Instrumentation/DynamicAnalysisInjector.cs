@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -31,20 +32,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Do not instrument implicitly-declared methods, except for constructors.
             // Instrument implicit constructors in order to instrument member initializers.
-            if (!method.IsImplicitlyDeclared || method.IsImplicitConstructor)
+            if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor)
             {
-                MethodSymbol createPayload = GetCreatePayload(methodBodyFactory.Compilation, methodBody.Syntax, diagnostics);
-
-                // Do not instrument any methods if CreatePayload is not present.
-                // Do not instrument CreatePayload if it is part of the current compilation (which occurs only during testing).
-                // CreatePayload will fail at run time with an infinite recursion if it Is instrumented.
-                if ((object)createPayload != null && !method.Equals(createPayload))
-                {
-                    return new DynamicAnalysisInjector(method, methodBody, methodBodyFactory, createPayload, diagnostics, debugDocumentProvider, previous);
-                }
+                return null;
             }
 
-            return null;
+            // Do not instrument methods marked with or in scope of ExcludeFromCodeCoverageAttribute.
+            if (IsExcludedFromCodeCoverage(method))
+            {
+                return null;
+            }
+
+            MethodSymbol createPayload = GetCreatePayload(methodBodyFactory.Compilation, methodBody.Syntax, diagnostics);
+
+            // Do not instrument any methods if CreatePayload is not present.
+            if ((object)createPayload == null)
+            {
+                return null;
+            }
+
+            // Do not instrument CreatePayload if it is part of the current compilation (which occurs only during testing).
+            // CreatePayload will fail at run time with an infinite recursion if it is instrumented.
+            if (method.Equals(createPayload))
+            {
+                return null;
+            }
+
+            return new DynamicAnalysisInjector(method, methodBody, methodBodyFactory, createPayload, diagnostics, debugDocumentProvider, previous);
         }
 
         private DynamicAnalysisInjector(MethodSymbol method, BoundStatement methodBody, SyntheticBoundNodeFactory methodBodyFactory, MethodSymbol createPayload, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, Instrumenter previous)
@@ -67,6 +81,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);
             }
+        }
+
+        private static bool IsExcludedFromCodeCoverage(MethodSymbol method)
+        {
+            var containingType = method.ContainingType;
+            while ((object)containingType != null)
+            {
+                if (containingType.IsDirectlyExcludedFromCodeCoverage)
+                {
+                    return true;
+                }
+
+                containingType = containingType.ContainingType;
+            }
+
+            // Skip lambdas and local functions. They can't have custom attributes.
+            var nonLambda = method.ContainingNonLambdaMember();
+            if (nonLambda?.Kind == SymbolKind.Method)
+            {
+                method = (MethodSymbol)nonLambda;
+
+                if (method.IsDirectlyExcludedFromCodeCoverage)
+                {
+                    return true;
+                }
+
+                var associatedSymbol = method.AssociatedSymbol;
+                switch (associatedSymbol?.Kind)
+                {
+                    case SymbolKind.Property:
+                        if (((PropertySymbol)associatedSymbol).IsDirectlyExcludedFromCodeCoverage)
+                        {
+                            return true;
+                        }
+                        break;
+
+                    case SymbolKind.Event:
+                        if (((EventSymbol)associatedSymbol).IsDirectlyExcludedFromCodeCoverage)
+                        {
+                            return true;
+                        }
+                        break;
+                }
+            }
+
+            return false;
         }
 
         public override BoundStatement CreateBlockPrologue(BoundBlock original, out LocalSymbol synthesizedLocal)
@@ -180,9 +240,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddDynamicAnalysis(original, base.InstrumentIfStatement(original, rewritten));
         }
 
-        public override BoundStatement InstrumentWhileStatementConditionalGotoStart(BoundWhileStatement original, BoundStatement ifConditionGotoStart)
+        public override BoundStatement InstrumentWhileStatementConditionalGotoStartOrBreak(BoundWhileStatement original, BoundStatement ifConditionGotoStart)
         {
-            return AddDynamicAnalysis(original, base.InstrumentWhileStatementConditionalGotoStart(original, ifConditionGotoStart));
+            return AddDynamicAnalysis(original, base.InstrumentWhileStatementConditionalGotoStartOrBreak(original, ifConditionGotoStart));
         }
 
         public override BoundStatement InstrumentLocalInitialization(BoundLocalDeclaration original, BoundStatement rewritten)

@@ -10,7 +10,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.UnitTests.Utilities</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <GenerateMSBuildBindingRedirects>true</GenerateMSBuildBindingRedirects>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -334,6 +333,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_WithSystemNumerics.csproj">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_Wildcards.csproj">
       <SubType>Designer</SubType>
     </EmbeddedResource>

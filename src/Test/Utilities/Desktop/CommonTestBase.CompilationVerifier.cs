@@ -177,19 +177,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 int callerLine,
                 bool escapeQuotes)
             {
-                // TODO: Currently the qualifiedMethodName is a symbol display name while PDB need metadata name.
-                // So we need to pass the PDB metadata name of the method to sequencePoints (instead of just bool).
-
-                var methodData = _testData.GetMethodData(qualifiedMethodName);
-
-                // verify IL emitted via CCI, if any:
-                string actualCciIL = VisualizeIL(methodData, realIL, sequencePoints, useRefEmitter: false);
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualCciIL, escapeQuotes, callerPath, callerLine);
-
-                // verify IL emitted via ReflectionEmitter, if any:
-                string actualRefEmitIL = VisualizeIL(methodData, realIL, sequencePoints, useRefEmitter: true);
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualRefEmitIL, escapeQuotes, callerPath, callerLine);
-
+                string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints);
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes, callerPath, callerLine);
                 return this;
             }
 
@@ -249,12 +238,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt: null, metadataMemoryOwnerOpt: null);
             }
 
-            public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null, bool useRefEmitter = false)
+            public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null)
             {
-                return VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, useRefEmitter);
+                // TODO: Currently the qualifiedMethodName is a symbol display name while PDB need metadata name.
+                // So we need to pass the PDB metadata name of the method to sequencePoints (instead of just bool).
+
+                return VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints);
             }
 
-            internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints = null, bool useRefEmitter = false)
+            internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints = null)
             {
                 Dictionary<int, string> markers = null;
 

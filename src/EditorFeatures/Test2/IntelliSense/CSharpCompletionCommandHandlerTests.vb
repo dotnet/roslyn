@@ -430,14 +430,14 @@ class Variable
                 Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
 
                 state.SendTypeChars(", va")
-                Await state.AssertSelectedCompletionItem(displayText:="var", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="var", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 Await state.AssertNoCompletionSession()
 
                 state.SendTypeChars("a")
-                Await state.AssertSelectedCompletionItem(displayText:="bool", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
                 state.SendTypeChars(")")
-                Assert.Contains("(var a, va a)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(var a, var a)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
@@ -463,14 +463,14 @@ class Variable
                 Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
 
                 state.SendTypeChars(", va")
-                Await state.AssertSelectedCompletionItem(displayText:="var", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="var", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 Await state.AssertNoCompletionSession()
 
                 state.SendTypeChars("a")
-                Await state.AssertSelectedCompletionItem(displayText:="bool", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
                 state.SendReturn()
-                Assert.Contains("(var a, va a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(var a, var a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 

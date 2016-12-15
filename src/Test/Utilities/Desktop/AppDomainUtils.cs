@@ -25,12 +25,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            return AppDomain.CreateDomain(
-                name,
-                null,
-                appBasePath: basePath,
-                appRelativeSearchPath: null,
-                shadowCopyFiles: false);
+            return AppDomain.CreateDomain(name, null, new AppDomainSetup()
+            {
+                ConfigurationFile = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile,
+                ApplicationBase = basePath
+            });
         }
 
         /// <summary>

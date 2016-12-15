@@ -95,19 +95,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Get the unique key to identify our data.
                 var key = PrefixMetadataSymbolTreeInfo + prefix + keySuffix;
                 using (var stream = await storage.ReadStreamAsync(key, cancellationToken).ConfigureAwait(false))
+                using (var reader = StreamObjectReader.TryGetReader(stream))
                 {
-                    if (stream != null)
+                    if (reader != null)
                     {
-                        using (var reader = new StreamObjectReader(stream))
+                        // We have some previously persisted data.  Attempt to read it back.  
+                        // If we're able to, and the version of the persisted data matches
+                        // our version, then we can reuse this instance.
+                        result = readObject(reader);
+                        if (result != null && VersionStamp.CanReusePersistedVersion(version, getVersion(result)))
                         {
-                            // We have some previously persisted data.  Attempt to read it back.  
-                            // If we're able to, and the version of the persisted data matches
-                            // our version, then we can reuse this instance.
-                            result = readObject(reader);
-                            if (result != null && VersionStamp.CanReusePersistedVersion(version, getVersion(result)))
-                            {
-                                return result;
-                            }
+                            return result;
                         }
                     }
                 }

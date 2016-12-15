@@ -70,11 +70,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 kind == SyntaxKind.Attribute ||
                 kind == SyntaxKind.ArgumentList ||
                 kind == SyntaxKind.ArrowExpressionClause ||
-                (syntax is ExpressionSyntax && 
-                    // All these nodes are valid scope designators due to the pattern matching feature.
-                    ((syntax.Parent as LambdaExpressionSyntax)?.Body == syntax ||
-                     (syntax.Parent as SwitchStatementSyntax)?.Expression == syntax ||
-                     (syntax.Parent as CommonForEachStatementSyntax)?.Expression == syntax));
+                IsValidScopeDesignator(syntax as ExpressionSyntax);
+        }
+
+        internal static bool IsValidScopeDesignator(this ExpressionSyntax expression)
+        {
+            // All these nodes are valid scope designators due to the pattern matching and out vars features.
+            CSharpSyntaxNode parent = expression?.Parent;
+            switch (parent?.Kind())
+            {
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    return ((LambdaExpressionSyntax)parent).Body == expression;
+
+                case SyntaxKind.SwitchStatement:
+                    return ((SwitchStatementSyntax)parent).Expression == expression;
+
+                case SyntaxKind.ForStatement:
+                    var forStmt = (ForStatementSyntax)parent;
+                    return forStmt.Condition == expression || forStmt.Incrementors.FirstOrDefault() == expression;
+
+                case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
+                    return ((CommonForEachStatementSyntax)parent).Expression == expression;
+
+                default:
+                    return false;
+            }
         }
 
         /// <summary>

@@ -1,14 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -20,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class SolutionService
     {
-        public const string WorkspaceKind_RemoteWorkspace = "RemoteWorkspace";
+        private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
+        private static readonly RemoteWorkspace s_primaryWorkspace = new RemoteWorkspace();
+
+        private readonly AssetService _assetService;
 
         // TODO: make this simple cache better
         // this simple cache hold onto the last solution created
-        private static SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
-        private static ValueTuple<Checksum, Solution> s_lastSolution;
-
-        private readonly AssetService _assetService;
+        private volatile static Tuple<Checksum, Solution> s_lastSolution;
 
         public SolutionService(AssetService assetService)
         {
@@ -36,21 +31,31 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
-            if (s_lastSolution.Item1 == solutionChecksum)
+            var currentSolution = s_primaryWorkspace.CurrentSolution;
+
+            var primarySolutionChecksum = await currentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            if (primarySolutionChecksum == solutionChecksum)
             {
-                return s_lastSolution.Item2;
+                // nothing changed
+                return currentSolution;
+            }
+
+            var lastSolution = s_lastSolution;
+            if (lastSolution?.Item1 == solutionChecksum)
+            {
+                return lastSolution.Item2;
             }
 
             // make sure there is always only one that creates a new solution
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (s_lastSolution.Item1 == solutionChecksum)
+                if (s_lastSolution?.Item1 == solutionChecksum)
                 {
                     return s_lastSolution.Item2;
                 }
 
-                var solution = await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-                s_lastSolution = ValueTuple.Create(solutionChecksum, solution);
+                var solution = await CreateSolution_NoLockAsync(solutionChecksum, currentSolution, cancellationToken).ConfigureAwait(false);
+                s_lastSolution = Tuple.Create(solutionChecksum, solution);
 
                 return solution;
             }
@@ -63,16 +68,48 @@ namespace Microsoft.CodeAnalysis.Remote
                 return await GetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
             }
 
-            // since option belong to workspace, we can't share solution
+            // get solution
+            var baseSolution = await GetSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-            // create new solution
-            var solution = await CreateSolutionAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            // since options belong to workspace, we can't share solution
+            // create temporary workspace
+            var tempWorkspace = new TemporaryWorkspace(baseSolution);
 
             // set merged options
-            solution.Workspace.Options = MergeOptions(solution.Workspace.Options, optionSet);
+            tempWorkspace.Options = MergeOptions(tempWorkspace.Options, optionSet);
 
             // return new solution
-            return solution;
+            return tempWorkspace.CurrentSolution;
+        }
+
+        public async Task UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        {
+            var currentSolution = s_primaryWorkspace.CurrentSolution;
+
+            var primarySolutionChecksum = await currentSolution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            if (primarySolutionChecksum == solutionChecksum)
+            {
+                // nothing changed
+                return;
+            }
+
+            using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var updater = new SolutionCreator(_assetService, currentSolution, cancellationToken);
+
+                if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
+                {
+                    // solution has updated
+                    s_primaryWorkspace.UpdateSolution(await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false));
+                    return;
+                }
+
+                // new solution. bulk sync all asset for the solution
+                await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                s_primaryWorkspace.ClearSolution();
+                s_primaryWorkspace.AddSolution(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
+            }
         }
 
         private OptionSet MergeOptions(OptionSet workspaceOptions, OptionSet userOptions)
@@ -86,125 +123,21 @@ namespace Microsoft.CodeAnalysis.Remote
             return newOptions;
         }
 
-        private async Task<Solution> CreateSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        private async Task<Solution> CreateSolution_NoLockAsync(Checksum solutionChecksum, Solution baseSolution, CancellationToken cancellationToken)
         {
-            // synchronize whole solution first
-            await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            var updater = new SolutionCreator(_assetService, baseSolution, cancellationToken);
 
-            var solutionChecksumObject = await _assetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-            var workspace = new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: WorkspaceKind_RemoteWorkspace);
-
-            // never cache any tree in memory
-            workspace.Options = workspace.Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
-
-            var solutionInfo = await _assetService.GetAssetAsync<SolutionInfo.SolutionAttributes>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
-
-            var projects = new List<ProjectInfo>();
-            foreach (var projectChecksum in solutionChecksumObject.Projects)
+            if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
             {
-                var projectSnapshot = await _assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, cancellationToken).ConfigureAwait(false);
-                var projectInfo = await _assetService.GetAssetAsync<ProjectInfo.ProjectAttributes>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
-                if (!workspace.Services.IsSupported(projectInfo.Language))
-                {
-                    // only add project our workspace supports. 
-                    // workspace doesn't allow creating project with unknown languages
-                    continue;
-                }
-
-                var documents = new List<DocumentInfo>();
-                foreach (var documentChecksum in projectSnapshot.Documents)
-                {
-                    var documentSnapshot = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
-                    var documentInfo = await _assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
-
-                    var textLoader = TextLoader.From(
-                        TextAndVersion.Create(
-                            new ChecksumSourceText(
-                                documentSnapshot.Text,
-                                await _assetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false)),
-                            VersionStamp.Create(),
-                            documentInfo.FilePath));
-
-                    // TODO: do we need version?
-                    documents.Add(
-                        DocumentInfo.Create(
-                            documentInfo.Id,
-                            documentInfo.Name,
-                            documentInfo.Folders,
-                            documentInfo.SourceCodeKind,
-                            textLoader,
-                            documentInfo.FilePath,
-                            documentInfo.IsGenerated));
-                }
-
-                var p2p = new List<ProjectReference>();
-                foreach (var checksum in projectSnapshot.ProjectReferences)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var reference = await _assetService.GetAssetAsync<ProjectReference>(checksum, cancellationToken).ConfigureAwait(false);
-                    p2p.Add(reference);
-                }
-
-                var metadata = new List<MetadataReference>();
-                foreach (var checksum in projectSnapshot.MetadataReferences)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var reference = await _assetService.GetAssetAsync<MetadataReference>(checksum, cancellationToken).ConfigureAwait(false);
-                    metadata.Add(reference);
-                }
-
-                var analyzers = new List<AnalyzerReference>();
-                foreach (var checksum in projectSnapshot.AnalyzerReferences)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var reference = await _assetService.GetAssetAsync<AnalyzerReference>(checksum, cancellationToken).ConfigureAwait(false);
-                    analyzers.Add(reference);
-                }
-
-                var additionals = new List<DocumentInfo>();
-                foreach (var documentChecksum in projectSnapshot.AdditionalDocuments)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var documentSnapshot = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
-                    var documentInfo = await _assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
-
-                    var textLoader = TextLoader.From(
-                        TextAndVersion.Create(
-                            new ChecksumSourceText(
-                                documentSnapshot.Text,
-                            await _assetService.GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false)),
-                            VersionStamp.Create(),
-                            documentInfo.FilePath));
-
-                    // TODO: do we need version?
-                    additionals.Add(
-                        DocumentInfo.Create(
-                            documentInfo.Id,
-                            documentInfo.Name,
-                            documentInfo.Folders,
-                            documentInfo.SourceCodeKind,
-                            textLoader,
-                            documentInfo.FilePath,
-                            documentInfo.IsGenerated));
-                }
-
-                var compilationOptions = await _assetService.GetAssetAsync<CompilationOptions>(projectSnapshot.CompilationOptions, cancellationToken).ConfigureAwait(false);
-                var parseOptions = await _assetService.GetAssetAsync<ParseOptions>(projectSnapshot.ParseOptions, cancellationToken).ConfigureAwait(false);
-
-                projects.Add(
-                    ProjectInfo.Create(
-                        projectInfo.Id, projectInfo.Version, projectInfo.Name, projectInfo.AssemblyName,
-                        projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
-                        compilationOptions, parseOptions,
-                        documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission));
+                // solution has updated
+                return await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
             }
 
-            return workspace.AddSolution(SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects));
+            // new solution. bulk sync all asset for the solution
+            await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+            var workspace = new TemporaryWorkspace(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
+            return workspace.CurrentSolution;
         }
     }
 }

@@ -178,7 +178,6 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup />
@@ -186,10 +185,13 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Mocks\TestAnalyzerAssemblyLoader.cs" />
+    <Compile Include="Mocks\TestAssetSource.cs" />
     <Compile Include="Mocks\TestHostServices.cs" />
     <Compile Include="Mocks\InProcRemoteHostClientFactory.cs" />
+    <Compile Include="Mocks\TestOptionSet.cs" />
     <Compile Include="Remote\RemoteHostClientServiceFactoryTests.cs" />
-    <Compile Include="Services\ChecksumUtils.cs" />
+    <Compile Include="TestUtils.cs" />
     <Compile Include="Services\SolutionServiceTests.cs" />
     <Compile Include="Services\AssetStorageTests.cs" />
     <Compile Include="Services\AssetServiceTests.cs" />

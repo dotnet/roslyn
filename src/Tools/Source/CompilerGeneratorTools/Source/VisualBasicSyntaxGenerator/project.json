@@ -1,9 +1,9 @@
 {
     "dependencies": {
         "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
-        "NETStandard.Library": "1.6.0",
-        "System.Console": "4.0.0",
-        "System.Security.Cryptography.Algorithms": "4.2.0"
+        "NETStandard.Library": "1.6.1",
+        "System.Console": "4.3.0",
+        "System.Security.Cryptography.Algorithms": "4.3.0"
     },
     "frameworks": {
         // We don't actually target netstandard1.6; this is to work around https://github.com/dotnet/roslyn/issues/12458

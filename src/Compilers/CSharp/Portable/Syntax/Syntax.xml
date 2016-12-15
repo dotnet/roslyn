@@ -1714,7 +1714,7 @@
     <Field Name="Type" Type="TypeSyntax" />
     <Field Name="Designation" Type="VariableDesignationSyntax">
       <Kind Name="SingleVariableDesignation"/>
-      <Kind Name="DiscardedDesignation"/>
+      <Kind Name="DiscardDesignation"/>
     </Field>
   </Node>
   <Node Name="ConstantPatternSyntax" Base="PatternSyntax">
@@ -1851,8 +1851,8 @@
       <Kind Name="IdentifierToken"/>
     </Field>
   </Node>
-  <Node Name="DiscardedDesignationSyntax" Base="VariableDesignationSyntax">
-    <Kind Name="DiscardedDesignation"/>
+  <Node Name="DiscardDesignationSyntax" Base="VariableDesignationSyntax">
+    <Kind Name="DiscardDesignation"/>
     <Field Name="UnderscoreToken" Type="SyntaxToken">
       <Kind Name="UnderscoreToken"/>
     </Field>
@@ -2118,8 +2118,14 @@
       <Kind Name="OpenParenToken"/>
     </Field>
     <Field Name="Variable" Type="ExpressionSyntax">
-      <Kind Name="DeclarationExpression"/>
-      <Kind Name="TupleExpression"/>
+      <PropertyComment>
+        <summary>
+           The variable(s) of the loop. In correct code this is a tuple
+           literal, declaration expression with a tuple designator, or
+           a wildcard syntax in the form of a simple identifier. In broken
+           code it could be something else.
+        </summary>
+      </PropertyComment>
     </Field>
     <Field Name="InKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="InKeyword"/>

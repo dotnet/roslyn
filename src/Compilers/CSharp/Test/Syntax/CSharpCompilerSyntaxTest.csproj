@@ -87,6 +87,7 @@
     <Compile Include="Parsing\AsyncParsingTests.cs" />
     <Compile Include="Parsing\AwaitParsingTests.cs" />
     <Compile Include="Parsing\CrefParsingTests.cs" />
+    <Compile Include="Parsing\DeclarationExpressionTests.cs" />
     <Compile Include="Parsing\DeclarationParsingTests.cs" />
     <Compile Include="Parsing\DeconstructionTests.cs" />
     <Compile Include="Parsing\ExpressionParsingTests.cs" />
