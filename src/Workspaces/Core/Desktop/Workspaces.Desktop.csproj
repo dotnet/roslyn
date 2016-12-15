@@ -47,6 +47,7 @@
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
+    <Compile Include="Serialization\AbstractAssemblySerializationInfoService.cs" />
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngineFactory.cs" />
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.cs" />
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.DatabaseFactoryService.cs" />
@@ -125,6 +126,7 @@
     <Compile Include="Workspace\MSBuild\VisualBasic\VisualBasicProjectFileLoader.cs" />
     <Compile Include="Workspace\MSBuild\VisualBasic\VisualBasicProjectFileLoaderFactory.cs" />
     <Compile Include="Workspace\MSBuild\MSBuildProjectLoader.cs" />
+    <Compile Include="Workspace\SolutionSize\ISolutionSizeTracker.cs" />
     <Compile Include="Workspace\SolutionSize\SolutionSizeTracker.cs" />
     <Compile Include="Workspace\Storage\PersistenceStorageServiceFactory.cs" />
     <Compile Include="Workspace\Storage\PersistentStorageService.cs" />
