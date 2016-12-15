@@ -4,6 +4,9 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.Syntax;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
@@ -126,6 +129,24 @@ class A
                 //     [Obsolete(2l)]
                 Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 16)
                 );
+        }
+
+        [Fact]
+        [WorkItem(217398, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217398")]
+        public void LexerTooManyBadTokens()
+        {
+            var source = new StringBuilder();
+            for (int i = 0; i <= 200; i++)
+            {
+                source.Append(@"\u003C");
+            }
+            source.Append(@"\u003E\u003E\u003E\u003E");
+
+            var parsedTree = ParseWithRoundTripCheck(source.ToString());
+            IEnumerable<Diagnostic> actualErrors = parsedTree.GetDiagnostics();
+            Assert.Equal("202", actualErrors.Count().ToString());
+            Assert.Equal("(1,1201): error CS1056: Unexpected character '\\u003C'", actualErrors.ElementAt(200).ToString());
+            Assert.Equal("(1,1207): error CS1056: Unexpected character '\\u003E\\u003E\\u003E\\u003E'", actualErrors.ElementAt(201).ToString());
         }
 
         #region "Helpers"
