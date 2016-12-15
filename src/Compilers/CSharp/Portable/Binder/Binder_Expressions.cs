@@ -2374,8 +2374,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         hadError = true;
                     }
-
-                    boundArgumentExpression = ToBadExpression(boundArgumentExpression);
                 }
 
                 result.Names.Add(nameColonSyntax.Name);
@@ -2389,8 +2387,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, argumentSyntax);
                     hadError = true;
                 }
-
-                boundArgumentExpression = ToBadExpression(boundArgumentExpression);
 
                 result.Names.Add(null);
             }
