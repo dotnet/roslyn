@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKinds.CompilationOptions:
                     case WellKnownSynchronizationKinds.ParseOptions:
                     case WellKnownSynchronizationKinds.ProjectReference:
-                        return Checksum.Create(value, kind, this);
+                        return Checksum.Create(kind, value, this);
 
                     case WellKnownSynchronizationKinds.MetadataReference:
                         return Checksum.Create(kind, _hostSerializationService.CreateChecksum((MetadataReference)value, cancellationToken));
