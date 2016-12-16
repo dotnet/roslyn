@@ -29,6 +29,11 @@ fi
 # so it doesn't output warnings to the console.
 export LTTNG_HOME=$HOME
 
+# There's no reason to send telemetry or prime a local package cach when building
+# in CI.
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+
 while [[ $# > 0 ]]
 do
     opt="$(echo $1 | awk '{print tolower($0)}')"
