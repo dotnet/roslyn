@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
             // verify input
             Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksum));
             Contract.ThrowIfFalse(this == stateChecksum);
@@ -51,8 +52,14 @@ namespace Microsoft.CodeAnalysis.Serialization
             foreach (var kv in state.ProjectStates)
             {
                 var projectState = kv.Value;
+
                 // solution state checksum can't be created without project state checksums created first
-                Contract.ThrowIfFalse(projectState.TryGetStateChecksums(out var projectStateChecksums));
+                // check unsupported projects
+                if (!projectState.TryGetStateChecksums(out var projectStateChecksums))
+                {
+                    Contract.ThrowIfTrue(RemoteSupportedLanguages.Support(projectState.Language));
+                    continue;
+                }
 
                 projectStateChecksums.Find(projectState, searchingChecksumsLeft, result, cancellationToken);
                 if (searchingChecksumsLeft.Count == 0)
