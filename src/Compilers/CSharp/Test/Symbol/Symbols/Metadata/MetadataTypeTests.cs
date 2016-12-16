@@ -551,6 +551,7 @@ class Test : StaticModClass
             var module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
             GetAllNamespaceNames(builder, module.GlobalNamespace);
             Assert.Equal(new[] { "<global namespace>", "", ".", "..N", ".N", "N", "N.M", "N.M." }, builder);
+            builder.Free();
         }
 
         private static void GetAllNamespaceNames(ArrayBuilder<string> builder, NamespaceSymbol @namespace)

@@ -12,3 +12,6 @@ Each entry should include a short description of the break, followed by either a
    [#11256](https://github.com/dotnet/roslyn/pull/11256) for when it was discovered, and [#10463](https://github.com/dotnet/roslyn/issues/10463) for the original issue that led to this.
 3. Native compiler used to generate warnings (169, 414, 649) on unused/unassigned fields of abstract classes.
    Roslyn 1 (VS 2015) didn't produce these warnings. With [#14628](https://github.com/dotnet/roslyn/pull/14628) these warnings should be reported again.
+4. In preview and RC releases of VS 2017 and C#7.0, deconstruction was allowed with a Deconstruct method that returned something (non-void return type).
+   Starting in RC.3, the Deconstruct method is required to return void. This will allow for future versions of C# to attach special semantics to the return value.
+   See issue [#15634](https://github.com/dotnet/roslyn/issues/15634) and PR [#15922](https://github.com/dotnet/roslyn/pull/15922) for more details.

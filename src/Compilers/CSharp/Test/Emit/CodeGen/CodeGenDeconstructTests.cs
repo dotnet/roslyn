@@ -216,7 +216,8 @@ class C
         }
 
         [Fact]
-        public void DeconstructCanHaveReturnType()
+        [WorkItem(15634, "https://github.com/dotnet/roslyn/issues/15634")]
+        public void DeconstructMustReturnVoid()
         {
             string source = @"
 class C
@@ -225,9 +226,7 @@ class C
     {
         long x;
         string y;
-
         (x, y) = new C();
-        System.Console.WriteLine(x + "" "" + y);
     }
 
     public int Deconstruct(out int a, out string b)
@@ -238,9 +237,12 @@ class C
     }
 }
 ";
-
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: s_valueTupleRefs);
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (8,18): error CS8129: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(8, 18)
+                );
         }
 
         [Fact]
@@ -5817,6 +5819,82 @@ class C
 
             VerifyModelForDeconstructionLocal(model, x1, x1Ref);
             VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+        }
+
+        [Fact]
+        [WorkItem(15893, "https://github.com/dotnet/roslyn/issues/15893")]
+        public void DeconstructionOfOnlyOneElement()
+        {
+            string source = @"
+class C
+{
+    public int a;
+    public void Deconstruct(out int b)
+    {
+        b = a;
+    }
+
+    static void Main()
+    {
+        var p = new C() { a = 10 };
+        var (p2) = p;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            compilation.VerifyDiagnostics(
+                // (13,20): error CS8134: Deconstruction must contain at least two variables.
+                //         var (p2) = p;
+                Diagnostic(ErrorCode.ERR_DeconstructTooFewElements, "p").WithLocation(13, 20),
+                // (13,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'p2'.
+                //         var (p2) = p;
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "p2").WithArguments("p2").WithLocation(13, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(14876, "https://github.com/dotnet/roslyn/issues/14876")]
+        public void TupleTypeInDeconstruction()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (int x, (string, long) y) = M();
+        System.Console.Write($""{x} {y}"");
+    }
+
+    static (int, (string, long)) M()
+    {
+        return (5, (""Foo"", 34983490));
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "5 (Foo, 34983490)", additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(12468, "https://github.com/dotnet/roslyn/issues/12468")]
+        public void RefReturningVarInvocation()
+        {
+            string source = @"
+class C
+{
+    static int i;
+
+    static void Main()
+    {
+        int x = 0, y = 0;
+        (var(x, y)) = 42; // parsed as invocation
+        System.Console.Write(i);
+    }
+    static ref int var(int a, int b) { return ref i; }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "42", verify: false);
+            comp.VerifyDiagnostics();
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/15614")]

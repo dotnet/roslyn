@@ -341,6 +341,7 @@
        ==================================================================================== -->
 
   <PropertyGroup>
+    <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
     <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
     <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\2.0.0-rc-61101-16\content\OptimizationData</OptimizationDataFolderPath>
     <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
@@ -352,7 +353,7 @@
              Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
   </Target>
 
-  <Target Name="CheckBootstrapState" Condition="'$(BootstrapBuildPath)' != ''" BeforeTargets="CoreCompile">
+  <Target Name="CheckBootstrapState" Condition="'$(BootstrapBuildPath)' != ''" AfterTargets="CoreCompile">
     <ValidateBootstrap BootstrapPath="$(BootstrapBuildPath)" />
   </Target>
 

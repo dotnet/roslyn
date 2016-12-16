@@ -6047,7 +6047,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No Deconstruct instance or extension method was found for type &apos;{0}&apos;, with {1} out parameters..
+        ///   Looks up a localized string similar to No Deconstruct instance or extension method was found for type &apos;{0}&apos;, with {1} out parameters and a void return type..
         /// </summary>
         internal static string ERR_MissingDeconstruct {
             get {
