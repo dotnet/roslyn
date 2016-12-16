@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // get states by id order to have deterministic checksum
                 var projectChecksumTasks = ProjectIds.Select(id => ProjectStates[id])
-                                                     .Where(s => RemoteSupportedLanguages.Support(s.Language))
+                                                     .Where(s => RemoteSupportedLanguages.IsSupported(s.Language))
                                                      .Select(s => s.GetChecksumAsync(cancellationToken));
 
                 var serializer = new Serializer(_solutionServices.Workspace);

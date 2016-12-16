@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 // check unsupported projects
                 if (!projectState.TryGetStateChecksums(out var projectStateChecksums))
                 {
-                    Contract.ThrowIfTrue(RemoteSupportedLanguages.Support(projectState.Language));
+                    Contract.ThrowIfTrue(RemoteSupportedLanguages.IsSupported(projectState.Language));
                     continue;
                 }
 

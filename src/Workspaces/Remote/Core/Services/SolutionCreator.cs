@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var projectSnapshot = await _assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, _cancellationToken).ConfigureAwait(false);
 
             var projectInfo = await _assetService.GetAssetAsync<ProjectInfo.ProjectAttributes>(projectSnapshot.Info, _cancellationToken).ConfigureAwait(false);
-            if (!RemoteSupportedLanguages.Support(projectInfo.Language))
+            if (!RemoteSupportedLanguages.IsSupported(projectInfo.Language))
             {
                 // only add project our workspace supports. 
                 // workspace doesn't allow creating project with unknown languages

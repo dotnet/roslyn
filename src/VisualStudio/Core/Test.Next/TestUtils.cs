@@ -47,7 +47,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             ProjectStateChecksums projectChecksums;
             if (!project.State.TryGetStateChecksums(out projectChecksums))
             {
-                Assert.False(RemoteSupportedLanguages.Support(project.Language));
+                Assert.False(RemoteSupportedLanguages.IsSupported(project.Language));
                 return;
             }
 

@@ -4,7 +4,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class RemoteSupportedLanguages
     {
-        public static bool Support(this string language)
+        public static bool IsSupported(this string language)
         {
             return language == LanguageNames.CSharp ||
                    language == LanguageNames.VisualBasic;
