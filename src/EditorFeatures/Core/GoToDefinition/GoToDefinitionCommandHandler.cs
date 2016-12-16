@@ -27,15 +27,21 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public CommandState GetCommandState(GoToDefinitionCommandArgs args, Func<CommandState> nextHandler)
         {
-            return CommandState.Available;
+            return args.SubjectBuffer.GetFeatureOnOffOption(GoToDefinitionOptions.Enabled)
+                ? CommandState.Available
+                : CommandState.Unavailable;
         }
 
         public void ExecuteCommand(GoToDefinitionCommandArgs args, Action nextHandler)
         {
-            var caretPos = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            if (caretPos.HasValue && TryExecuteCommand(args.SubjectBuffer.CurrentSnapshot, caretPos.Value))
+            var subjectBuffer = args.SubjectBuffer;
+            if (subjectBuffer.GetFeatureOnOffOption(GoToDefinitionOptions.Enabled))
             {
-                return;
+                var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
+                if (caretPos.HasValue && TryExecuteCommand(subjectBuffer.CurrentSnapshot, caretPos.Value))
+                {
+                    return;
+                }
             }
 
             nextHandler();

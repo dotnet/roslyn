@@ -34,21 +34,27 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
         public CommandState GetCommandState(GoToImplementationCommandArgs args, Func<CommandState> nextHandler)
         {
-            // Because this is expensive to compute, we just always say yes
-            return CommandState.Available;
+            // Because this is expensive to compute, we just always say yes as long as the language allows it.
+            return args.SubjectBuffer.GetFeatureOnOffOption(GoToImplementationOptions.Enabled)
+                ? CommandState.Available
+                : CommandState.Unavailable;
         }
 
         public void ExecuteCommand(GoToImplementationCommandArgs args, Action nextHandler)
         {
-            var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
+            var subjectBuffer = args.SubjectBuffer;
 
-            if (caret.HasValue)
+            if (subjectBuffer.GetFeatureOnOffOption(GoToImplementationOptions.Enabled))
             {
-                var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document != null)
+                var caret = args.TextView.GetCaretPoint(subjectBuffer);
+                if (caret.HasValue)
                 {
-                    ExecuteCommand(document, caret.Value);
-                    return;
+                    var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (document != null)
+                    {
+                        ExecuteCommand(document, caret.Value);
+                        return;
+                    }
                 }
             }
 
