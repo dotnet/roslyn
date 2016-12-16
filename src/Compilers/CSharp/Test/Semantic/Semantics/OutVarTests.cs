@@ -18058,6 +18058,84 @@ public class Cls
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
         }
 
+        [Fact]
+        [WorkItem(15732, "https://github.com/dotnet/roslyn/issues/15732")]
+        public void LocalVariableTypeInferenceAndOutVar_06()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(x: 1, out var y);
+        System.Console.WriteLine(y);
+    }
+
+    static void Test1(int x, ref int y)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (6,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
+                //         Test1(x: 1, out var y);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "out var y").WithLocation(6, 21),
+                // (6,25): error CS1620: Argument 2 must be passed with the 'ref' keyword
+                //         Test1(x: 1, out var y);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "var y").WithArguments("2", "ref").WithLocation(6, 25)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yDecl = GetDeclaration(tree, "y");
+            VerifyModelForOutVar(model, yDecl, GetReferences(tree, "y").ToArray());
+        }
+
+        [Fact]
+        [WorkItem(15732, "https://github.com/dotnet/roslyn/issues/15732")]
+        public void LocalVariableTypeInferenceAndOutVar_07()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        int x = 0;
+        Test1(y: ref x, y: out var y);
+        System.Console.WriteLine(y);
+    }
+
+    static void Test1(int x, ref int y)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (7,25): error CS1740: Named argument 'y' cannot be specified multiple times
+                //         Test1(y: ref x, y: out var y);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(7, 25),
+                // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Cls.Test1(int, ref int)'
+                //         Test1(y: ref x, y: out var y);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test1").WithArguments("x", "Cls.Test1(int, ref int)").WithLocation(7, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yDecl = GetDeclaration(tree, "y");
+            var yRef = GetReferences(tree, "y").ToArray();
+            Assert.Equal(3, yRef.Length);
+            Assert.Equal("System.Console.WriteLine(y)", yRef[2].Parent.Parent.Parent.ToString());
+            VerifyModelForOutVar(model, yDecl, yRef[2]);
+        }
+
         [Fact, WorkItem(13219, "https://github.com/dotnet/roslyn/issues/13219")]
         public void IndexingDynamic()
         {

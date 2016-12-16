@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             writer.WriteInt32((int)text.ChecksumAlgorithm);
-            writer.WriteString(text.Encoding?.WebName);
+            _hostSerializationService.WriteTo(text.Encoding, writer, cancellationToken);
 
             // TODO: refactor this part in its own abstraction (Bits) that has multiple sub types
             //       rather than using enums
@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             // REVIEW: why IDE services doesnt care about checksumAlgorithm?
             var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
-            var webName = reader.ReadString();
-            var encoding = webName == null ? null : Encoding.GetEncoding(webName);
+            var encoding = _hostSerializationService.ReadEncodingFrom(reader, cancellationToken);
 
             var kind = (SerializationKinds)reader.ReadInt32();
             if (kind == SerializationKinds.MemoryMapFile)

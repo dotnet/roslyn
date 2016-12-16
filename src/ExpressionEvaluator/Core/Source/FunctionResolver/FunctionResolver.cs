@@ -3,7 +3,6 @@
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
-using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.FunctionResolution;
 using Microsoft.VisualStudio.Debugger.Symbols;
 using System;
@@ -26,17 +25,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (request.LineOffset > 0)
             {
                 return;
-            }
-
-            var languageId = request.CompilerId.LanguageId;
-            if (languageId == DkmLanguageId.MethodId)
-            {
-                return;
-            }
-            else if (languageId != default(Guid))
-            {
-                // Verify module matches language before binding
-                // (see https://github.com/dotnet/roslyn/issues/15119).
             }
 
             EnableResolution(request.Process, request, OnFunctionResolved(workList));
@@ -85,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             OnModuleLoad(module.Process, module, OnFunctionResolved(workList));
         }
 
-        internal override bool ShouldEnableFunctionResolver(DkmProcess process)
+        internal sealed override bool ShouldEnableFunctionResolver(DkmProcess process)
         {
             var dataItem = process.GetDataItem<FunctionResolverDataItem>();
             if (dataItem == null)
@@ -97,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return dataItem.Enabled;
         }
 
-        internal override IEnumerable<DkmClrModuleInstance> GetAllModules(DkmProcess process)
+        internal sealed override IEnumerable<DkmClrModuleInstance> GetAllModules(DkmProcess process)
         {
             foreach (var runtimeInstance in process.GetRuntimeInstances())
             {
@@ -118,12 +106,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal override string GetModuleName(DkmClrModuleInstance module)
+        internal sealed override string GetModuleName(DkmClrModuleInstance module)
         {
             return module.Name;
         }
 
-        internal override MetadataReader GetModuleMetadata(DkmClrModuleInstance module)
+        internal sealed override MetadataReader GetModuleMetadata(DkmClrModuleInstance module)
         {
             uint length;
             IntPtr ptr;
@@ -142,14 +130,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal override DkmRuntimeFunctionResolutionRequest[] GetRequests(DkmProcess process)
+        internal sealed override DkmRuntimeFunctionResolutionRequest[] GetRequests(DkmProcess process)
         {
             return process.GetRuntimeFunctionResolutionRequests();
         }
 
-        internal override string GetRequestModuleName(DkmRuntimeFunctionResolutionRequest request)
+        internal sealed override string GetRequestModuleName(DkmRuntimeFunctionResolutionRequest request)
         {
             return request.ModuleName;
+        }
+
+        internal sealed override Guid GetLanguageId(DkmRuntimeFunctionResolutionRequest request)
+        {
+            return request.CompilerId.LanguageId;
         }
 
         private static OnFunctionResolvedDelegate<DkmClrModuleInstance, DkmRuntimeFunctionResolutionRequest> OnFunctionResolved(DkmWorkList workList)

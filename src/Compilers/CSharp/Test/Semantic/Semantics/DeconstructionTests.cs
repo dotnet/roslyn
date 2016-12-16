@@ -1968,8 +1968,7 @@ class C
 }
 ";
             var comp = CompileAndVerify(source, expectedOutput: "42");
-            comp.VerifyDiagnostics(
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

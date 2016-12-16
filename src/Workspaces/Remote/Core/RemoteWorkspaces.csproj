@@ -67,11 +67,15 @@
     <Compile Include="Services\AssetSource.cs" />
     <Compile Include="Services\AssetService.cs" />
     <Compile Include="Services\AssetStorage.cs" />
-    <Compile Include="Services\ChecksumSourceText.cs" />
+    <Compile Include="Services\ChecksumSynchronizer.cs" />
     <Compile Include="Services\CompilationService.cs" />
     <Compile Include="Services\ProjectCacheHostServiceFactory.cs" />
     <Compile Include="Services\RoslynServices.cs" />
+    <Compile Include="Services\SolutionCreator.cs" />
     <Compile Include="Services\SolutionService.cs" />
+    <Compile Include="Services\RemoteWorkspace.cs" />
+    <Compile Include="Services\TemporaryWorkspace.cs" />
+    <Compile Include="Services\TemporaryWorkspaceOptionsServiceFactory.cs" />
     <Compile Include="Storage\RemotePersistentStorageLocationService.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
