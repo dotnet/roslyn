@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// This will be called by ServiceHub/JsonRpc framework
         /// </summary>
-        public async Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, byte[] solutionChecksum, string streamName)
+        public async Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string streamName)
         {
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectIdDebugName, CancellationToken))
             {

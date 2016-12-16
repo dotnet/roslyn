@@ -256,30 +256,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   iterationVarDeclSpan);
         }
 
-        public override BoundStatement InstrumentForEachStatementGotoEnd(BoundForEachStatement original, BoundStatement gotoEnd)
-        {
-            return ForStatementCreateGotoEndSequencePoint(base.InstrumentForEachStatementGotoEnd(original, gotoEnd));
-        }
-
-        public override BoundStatement InstrumentForStatementGotoEnd(BoundForStatement original, BoundStatement gotoEnd)
-        {
-            return ForStatementCreateGotoEndSequencePoint(base.InstrumentForStatementGotoEnd(original, gotoEnd));
-        }
-
-        private static BoundStatement ForStatementCreateGotoEndSequencePoint(BoundStatement gotoEnd)
-        {
-            // Mark the initial jump as hidden.
-            // We do it to tell that this is not a part of previous statement.
-            // This jump may be a target of another jump (for example if loops are nested) and that will make 
-            // impression of the previous statement being re-executed
-            return new BoundSequencePoint(null, gotoEnd);
-        }
-
-        public override BoundStatement InstrumentForStatementConditionalGotoStart(BoundForStatement original, BoundStatement branchBack)
+        public override BoundStatement InstrumentForStatementConditionalGotoStartOrBreak(BoundForStatement original, BoundStatement branchBack)
         {
             // hidden sequence point if there is no condition
             return new BoundSequencePoint(original.Condition?.Syntax, 
-                                          base.InstrumentForStatementConditionalGotoStart(original, branchBack));
+                                          base.InstrumentForStatementConditionalGotoStartOrBreak(original, branchBack));
         }
 
         public override BoundStatement InstrumentForEachStatementConditionalGotoStart(BoundForEachStatement original, BoundStatement branchBack)

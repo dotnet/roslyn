@@ -7,14 +7,10 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     internal interface IRemoteSymbolSearchUpdateEngine
     {
-        Task UpdateContinuouslyAsync(
-            string sourceName, string localSettingsDirectory, byte[] solutionChecksum);
+        Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory);
 
-        Task<SerializablePackageWithTypeResult[]> FindPackagesWithTypeAsync(
-            string source, string name, int arity, byte[] solutionChecksum);
-        Task<SerializablePackageWithAssemblyResult[]> FindPackagesWithAssemblyAsync(
-            string source, string name, byte[] solutionChecksum);
-        Task<SerializableReferenceAssemblyWithTypeResult[]> FindReferenceAssembliesWithTypeAsync(
-            string name, int arity, byte[] solutionChecksum);
+        Task<SerializablePackageWithTypeResult[]> FindPackagesWithTypeAsync(string source, string name, int arity);
+        Task<SerializablePackageWithAssemblyResult[]> FindPackagesWithAssemblyAsync(string source, string name);
+        Task<SerializableReferenceAssemblyWithTypeResult[]> FindReferenceAssembliesWithTypeAsync(string name, int arity);
     }
 }

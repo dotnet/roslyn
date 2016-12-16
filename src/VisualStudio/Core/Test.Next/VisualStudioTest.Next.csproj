@@ -185,10 +185,13 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Mocks\TestAnalyzerAssemblyLoader.cs" />
+    <Compile Include="Mocks\TestAssetSource.cs" />
     <Compile Include="Mocks\TestHostServices.cs" />
     <Compile Include="Mocks\InProcRemoteHostClientFactory.cs" />
+    <Compile Include="Mocks\TestOptionSet.cs" />
     <Compile Include="Remote\RemoteHostClientServiceFactoryTests.cs" />
-    <Compile Include="Services\ChecksumUtils.cs" />
+    <Compile Include="TestUtils.cs" />
     <Compile Include="Services\SolutionServiceTests.cs" />
     <Compile Include="Services\AssetStorageTests.cs" />
     <Compile Include="Services\AssetServiceTests.cs" />

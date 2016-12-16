@@ -5040,6 +5040,65 @@ public class ExportedSymbol
             Assert.Equal(null, GetSymbolNamesJoined(analysis.DataFlowsOut));
         }
 
+        [Fact, WorkItem(14110, "https://github.com/dotnet/roslyn/issues/14110")]
+        public void Test14110()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+class Program
+{
+    static void Main()
+    {
+        var (a0, b0) = (1, 2);
+        (var c0, int d0) = (3, 4);
+        bool e0 = a0 is int f0;
+        bool g0 = a0 is var h0;
+        M(out int i0);
+        M(out var j0);
+
+/*<bind>*/
+        var (a, b) = (1, 2);
+        (var c, int d) = (3, 4);
+        bool e = a is int f;
+        bool g = a is var h;
+        M(out int i);
+        M(out var j);
+/*</bind>*/
+
+        var (a1, b1) = (1, 2);
+        (var c1, int d1) = (3, 4);
+        bool e1 = a1 is int f1;
+        bool g1 = a1 is var h1;
+        M(out int i1);
+        M(out var j1);
+}
+    static void M(out int z) => throw null;
+}
+");
+            Assert.Equal("a, b, c, d, e, f, g, h, i, j", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+        }
+
+        [Fact, WorkItem(15640, "https://github.com/dotnet/roslyn/issues/15640")]
+        public void Test15640()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class Programand 
+{
+    static void Main()
+    {
+        foreach (var (a0, b0) in new[] { (1, 2) }) {}
+
+/*<bind>*/
+        foreach (var (a, b) in new[] { (1, 2) }) {}
+/*</bind>*/
+
+        foreach (var (a1, b1) in new[] { (1, 2) }) {}
+    }
+}
+");
+            Assert.Equal("a, b", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+        }
         #endregion
     }
 }

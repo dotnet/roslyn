@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForStatement(ForStatementSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var binder = new ForLoopBinder(_enclosing, node);
+            Binder binder = new ForLoopBinder(_enclosing, node);
             AddToMap(node, binder);
 
             var declaration = node.Declaration;
@@ -404,14 +404,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 } 
             }
 
-            if (node.Condition != null)
+            ExpressionSyntax condition = node.Condition;
+            if (condition != null)
             {
-                Visit(node.Condition, binder);
+                binder = new ExpressionVariableBinder(condition, binder);
+                AddToMap(condition, binder);
+                Visit(condition, binder);
             }
 
-            foreach (var incrementor in node.Incrementors)
+            SeparatedSyntaxList<ExpressionSyntax> incrementors = node.Incrementors;
+            if (incrementors.Count > 0)
             {
-                Visit(incrementor, binder);
+                var incrementorsBinder = new ExpressionListVariableBinder(incrementors, binder);
+                AddToMap(incrementors.First(), incrementorsBinder);
+                foreach (var incrementor in incrementors)
+                {
+                    Visit(incrementor, incrementorsBinder);
+                }
             }
 
             VisitPossibleEmbeddedStatement(node.Statement, binder);
