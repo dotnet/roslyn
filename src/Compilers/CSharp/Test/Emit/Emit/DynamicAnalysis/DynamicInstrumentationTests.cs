@@ -703,13 +703,13 @@ using System;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                  // Method 1
     {
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
     
-    static void TestMain()
+    static void TestMain()                                                  // Method 2
     {
         int x = Count;
         x += Prop;
@@ -743,6 +743,7 @@ True
 True
 Method 2
 File 1
+True
 True
 True
 True
@@ -797,6 +798,101 @@ True
             verifier.VerifyDiagnostics();
             verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
             verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunctionWithLambdaCoverage()
+        {
+            string source = @"
+using System;
+
+public class Program
+{
+    public static void Main(string[] args)                                  // Method 1
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+    
+    static void TestMain()                                                  // Method 2
+    {
+        new D().M1();
+    } 
+}
+
+public class D
+{
+    public void M1()                                                        // Method 4
+    {
+        L1();
+        void L1()
+        {
+            var f = new Func<int>(
+                () => 1
+            );
+
+            var f1 = new Func<int>(
+                () => 2
+            );
+
+            var f2 = new Func<int, int>(
+                (x) => x + 3
+            );
+
+            var f3 = new Func<int, int>(
+                x => x + 4
+            );
+
+            f();
+            f3(2);
+        }
+    }
+
+    // Method 5 is the synthesized instance constructor for D.
+}
+" + InstrumentationHelperSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(1, 1, "public static void Main")
+                .True("TestMain();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+            checker.Method(2, 1, "static void TestMain")
+                .True("new D().M1();");
+            checker.Method(4, 1, "public void M1()")
+                .True("L1();")
+                .True("1")
+                .True("var f = new Func<int>")
+                .False("2")
+                .True("var f1 = new Func<int>")
+                .False("x + 3")
+                .True("var f2 = new Func<int, int>")
+                .True("x + 4")
+                .True("var f3 = new Func<int, int>")
+                .True("f();")
+                .True("f3(2);");
+            checker.Method(5, 1, snippet: null, expectBodySpan: false);
+            checker.Method(7, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: checker.ExpectedOutput, options: TestOptions.ReleaseExe);
+            verifier.VerifyDiagnostics();
+            checker.CompleteCheck(verifier.Compilation, source);
+
+            verifier = CompileAndVerify(source, expectedOutput: checker.ExpectedOutput, options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+            checker.CompleteCheck(verifier.Compilation, source);
         }
 
         [Fact]
@@ -1592,18 +1688,18 @@ using System.Threading.Tasks;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                  // Method 1
     {
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 
-    static void TestMain()
+    static void TestMain()                                                  // Method 2
     {
         Console.WriteLine(Outer(""Goo"").Result);
     }
 
-    async static Task<string> Outer(string s)
+    async static Task<string> Outer(string s)                               // Method 3
     {
         string s1 = await First(s);
         string s2 = await Second(s);
@@ -1611,7 +1707,7 @@ public class Program
         return s1 + s2;
     }
 
-    async static Task<string> First(string s)
+    async static Task<string> First(string s)                               // Method 4
     {
         string result = await Second(s) + ""Glue"";
         if (result.Length > 2)
@@ -1620,7 +1716,7 @@ public class Program
             return ""Too short"";
     }
 
-    async static Task<string> Second(string s)
+    async static Task<string> Second(string s)                              // Method 5
     {
         string doubled = """";
         if (s.Length > 2)
@@ -1661,6 +1757,7 @@ True
 True
 True
 False
+True
 True
 True
 Method 8
