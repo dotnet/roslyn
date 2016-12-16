@@ -7,18 +7,19 @@ usage()
     echo "usage: cibuild.sh [options]"
     echo ""
     echo "Options"
-    echo "  --debug         Build Debug (default)"
-    echo "  --release       Build Release"
-    echo "  --skiptests     Do not run tests"
-    echo "  --skipcrossgen  Do not crossgen the bootstrapped compiler"
+    echo "  --debug               Build Debug (default)"
+    echo "  --release             Build Release"
+    echo "  --skiptests           Do not run tests"
+    echo "  --skipcrossgen        Do not crossgen the bootstrapped compiler"
+    echo "  --skipcommitprinting  Do not print commit information"
     echo "  --nocache       Force download of toolsets"
-
 }
 
 BUILD_CONFIGURATION=Debug
 USE_CACHE=true
 SKIP_TESTS=false
 SKIP_CROSSGEN=false
+SKIP_COMMIT_PRINTING=false
 
 MAKE="make"
 if [[ $OSTYPE == *[Bb][Ss][Dd]* ]]; then
@@ -62,6 +63,10 @@ do
         SKIP_CROSSGEN=true
         shift 1
         ;;
+        --skipcommitprinting)
+        SKIP_COMMIT_PRINTING=true
+        shift 1
+        ;;
         *)
         usage 
         exit 1
@@ -81,8 +86,10 @@ if [ "$USE_CACHE" == "false" ]; then
     $MAKE clean_toolset
 fi
 
-echo Building this commit:
-git show --no-patch --pretty=raw HEAD
+if [ "$SKIP_COMMIT_PRINTING" == "false" ]; then
+    echo Building this commit:
+    git show --no-patch --pretty=raw HEAD
+fi
 
 echo Building Bootstrap
 $MAKE bootstrap $MAKE_ARGS 
