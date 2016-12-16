@@ -850,56 +850,49 @@ public class D
 
     // Method 5 is the synthesized instance constructor for D.
 }
-";
+" + InstrumentationHelperSource;
 
-            string expectedOutput = @"Flushing
-Method 1
-File 1
-True
-True
-True
-Method 2
-File 1
-True
-True
-Method 4
-File 1
-True
-True
-True
-True
-False
-True
-False
-True
-True
-True
-True
-True
-Method 5
-File 1
-Method 7
-File 1
-True
-True
-False
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-";
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(1, 1, "public static void Main")
+                .True("TestMain();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+            checker.Method(2, 1, "static void TestMain")
+                .True("new D().M1();");
+            checker.Method(4, 1, "public void M1()")
+                .True("L1();")
+                .True("1")
+                .True("var f = new Func<int>")
+                .False("2")
+                .True("var f1 = new Func<int>")
+                .False("x + 3")
+                .True("var f2 = new Func<int, int>")
+                .True("x + 4")
+                .True("var f3 = new Func<int, int>")
+                .True("f();")
+                .True("f3(2);");
+            checker.Method(5, 1, snippet: null, expectBodySpan: false);
+            checker.Method(7, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
 
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: checker.ExpectedOutput, options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
-            verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+
+            verifier = CompileAndVerify(source, expectedOutput: checker.ExpectedOutput, options: TestOptions.DebugExe);
             verifier.VerifyDiagnostics();
+            checker.CompleteCheck(verifier.Compilation, source);
         }
 
         [Fact]
