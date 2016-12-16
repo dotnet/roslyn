@@ -1,5 +1,7 @@
 ﻿{
     "dependencies": {
+        "EnvDTE": "8.0.0",
+        "EnvDTE80": "8.0.0",
         "Microsoft.Build": "14.3.0",
         "Microsoft.VisualStudio.Shell.14.0": "14.3.25407",
         "Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime": "14.3.25407",

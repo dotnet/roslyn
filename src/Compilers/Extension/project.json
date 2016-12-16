@@ -1,5 +1,6 @@
 ﻿{
     "dependencies": {
+        "EnvDTE": "8.0.0",
         "Microsoft.VisualStudio.Shell.14.0": "14.3.25407",
         "Microsoft.VisualStudio.Shell.Interop.10.0": "10.0.30319"
     },

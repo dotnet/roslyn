@@ -41,9 +41,6 @@ call "%NugetExe%" restore "%RoslynRoot%build\ToolsetPackages\dev14.project.json"
 echo Restoring packages: Toolsets (Dev15 VS SDK RC build tools)
 call "%NugetExe%" restore "%RoslynRoot%build\ToolsetPackages\dev15rc.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
-echo Restoring packages: Roslyn SDK
-call "%NugetExe%" restore "%RoslynRoot%build\ToolsetPackages\roslynsdk.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
-
 echo Locating MSBuild for Solution restore
 call "%RoslynRoot%SetDevCommandPrompt.cmd" || goto :RestoreFailed
 

@@ -353,7 +353,7 @@
              Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
   </Target>
 
-  <Target Name="CheckBootstrapState" Condition="'$(BootstrapBuildPath)' != ''" BeforeTargets="CoreCompile">
+  <Target Name="CheckBootstrapState" Condition="'$(BootstrapBuildPath)' != ''" AfterTargets="CoreCompile">
     <ValidateBootstrap BootstrapPath="$(BootstrapBuildPath)" />
   </Target>
 

@@ -272,18 +272,23 @@ End Namespace
         /// It will be verified against the start of the actual method source span.
         /// If no snippet is passed in, then snippet validation will be disabled for the whole method (subsequent calls to `True` or `False`).
         /// </param>
-        public MethodChecker Method(int method, int file, string snippet = null)
+        public MethodChecker Method(int method, int file, string snippet = null, bool expectBodySpan = true)
         {
             AddConsoleExpectation($"Method {method}");
             AddConsoleExpectation($"File {file}");
+            var result = new MethodChecker(this, noSnippets: snippet == null);
 
-            if (snippet == null)
+            // Most methods have a span that indicates that the method has been entered.
+            if (expectBodySpan)
             {
-                return new MethodChecker(this, noSnippets: true).True();
+                result = result.True(snippet);
             }
 
-            var result = new MethodChecker(this).True(snippet);
-            _spanExpectations.Add(method, result);
+            if (snippet != null)
+            {
+                _spanExpectations.Add(method, result);
+            }
+
             return result;
         }
 
