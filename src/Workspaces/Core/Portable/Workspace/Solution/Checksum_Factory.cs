@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
-using System.Threading;
-using Roslyn.Utilities;
 using System.Security.Cryptography;
+using System.Threading;
 using Microsoft.CodeAnalysis.Serialization;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -47,6 +47,22 @@ namespace Microsoft.CodeAnalysis
                 foreach (var checksum in checksums)
                 {
                     checksum.WriteTo(writer);
+                }
+
+                return Create(stream);
+            }
+        }
+
+        public static Checksum Create(string kind, ImmutableArray<byte> bytes)
+        {
+            using (var stream = SerializableBytes.CreateWritableStream())
+            using (var writer = new StreamObjectWriter(stream))
+            {
+                writer.WriteString(kind);
+
+                for (var i = 0; i < bytes.Length; i++)
+                {
+                    writer.WriteByte(bytes[i]);
                 }
 
                 return Create(stream);

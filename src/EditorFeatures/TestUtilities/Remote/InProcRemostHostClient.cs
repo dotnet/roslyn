@@ -48,6 +48,7 @@ namespace Roslyn.Test.Utilities.Remote
             _inprocServices = inprocServices;
 
             _rpc = JsonRpc.Attach(stream, target: this);
+            _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
             // handle disconnected situation
             _rpc.Disconnected += OnRpcDisconnected;
