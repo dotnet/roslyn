@@ -2,46 +2,44 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Xml.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal class MutableNamingStyle
     {
-        private NamingStyle _namingStyle;
+        public NamingStyle NamingStyle { get; private set; }
 
-        public Guid ID => _namingStyle.ID;
+        public Guid ID => NamingStyle.ID;
 
         public string Name
         {
-            get => _namingStyle.Name;
-            set => _namingStyle = _namingStyle.With(name: value);
+            get => NamingStyle.Name;
+            set => NamingStyle = NamingStyle.With(name: value);
         }
 
         public string Prefix
         {
-            get => _namingStyle.Prefix;
-            set => _namingStyle = _namingStyle.With(prefix: value);
+            get => NamingStyle.Prefix;
+            set => NamingStyle = NamingStyle.With(prefix: value);
         }
 
         public string Suffix
         {
-            get => _namingStyle.Suffix;
-            set => _namingStyle = _namingStyle.With(suffix: value);
+            get => NamingStyle.Suffix;
+            set => NamingStyle = NamingStyle.With(suffix: value);
         }
 
         public string WordSeparator
         {
-            get => _namingStyle.WordSeparator;
-            set => _namingStyle = _namingStyle.With(wordSeparator: value);
+            get => NamingStyle.WordSeparator;
+            set => NamingStyle = NamingStyle.With(wordSeparator: value);
         }
 
         public Capitalization CapitalizationScheme
         {
-            get => _namingStyle.CapitalizationScheme;
-            set => _namingStyle = _namingStyle.With(capitalizationScheme: value);
+            get => NamingStyle.CapitalizationScheme;
+            set => NamingStyle = NamingStyle.With(capitalizationScheme: value);
         }
 
         //public MutableNamingStyle()
@@ -55,22 +53,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         }
 
         public MutableNamingStyle(NamingStyle namingStyle) 
-            => _namingStyle = namingStyle;
+            => NamingStyle = namingStyle;
 
         public string CreateName(IEnumerable<string> words)
-            => _namingStyle.CreateName(words);
+            => NamingStyle.CreateName(words);
 
         public bool IsNameCompliant(string name, out string failureReason)
-            => _namingStyle.IsNameCompliant(name, out failureReason);
+            => NamingStyle.IsNameCompliant(name, out failureReason);
 
         internal MutableNamingStyle Clone()
-            => new MutableNamingStyle(_namingStyle);
+            => new MutableNamingStyle(NamingStyle);
 
         public IEnumerable<string> MakeCompliant(string name)
-            => _namingStyle.MakeCompliant(name);
+            => NamingStyle.MakeCompliant(name);
 
         internal XElement CreateXElement()
-            => _namingStyle.CreateXElement();
+            => NamingStyle.CreateXElement();
 
         internal static MutableNamingStyle FromXElement(XElement namingStyleElement)
             => new MutableNamingStyle(NamingStyle.FromXElement(namingStyleElement));

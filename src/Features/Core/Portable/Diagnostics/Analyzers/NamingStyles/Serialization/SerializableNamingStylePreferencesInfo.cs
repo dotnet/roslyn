@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             NamingRules = new List<SerializableNamingRule>();
         }
 
-        internal MutableNamingStyle GetNamingStyle(Guid namingStyleID)
+        internal NamingStyle GetNamingStyle(Guid namingStyleID)
         {
-            return NamingStyles.Single(s => s.ID == namingStyleID);
+            return NamingStyles.Single(s => s.ID == namingStyleID).NamingStyle;
         }
 
         internal SymbolSpecification GetSymbolSpecification(Guid symbolSpecificationID)
