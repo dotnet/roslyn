@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 SpecializedCollections.EmptyList<SymbolSpecification.AccessibilityKind>(),
                 SpecializedCollections.EmptyList<SymbolSpecification.ModifierKind>());
 
-            var namingStyle = new NamingStyle();
+            var namingStyle = new MutableNamingStyle();
             namingStyle.CapitalizationScheme = Capitalization.PascalCase;
             namingStyle.Name = "Name";
             namingStyle.Prefix = "";
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 SpecializedCollections.EmptyList<SymbolSpecification.AccessibilityKind>(),
                 SpecializedCollections.EmptyList<SymbolSpecification.ModifierKind>());
 
-            var namingStyle = new NamingStyle();
+            var namingStyle = new MutableNamingStyle();
             namingStyle.CapitalizationScheme = Capitalization.PascalCase;
             namingStyle.Name = "Name";
             namingStyle.Prefix = "";

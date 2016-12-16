@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal class NamingStyle
+    internal class MutableNamingStyle
     {
         public Guid ID { get; set; }
         public string Name { get; set; }
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public string WordSeparator { get; set; }
         public Capitalization CapitalizationScheme { get; set; }
 
-        public NamingStyle()
+        public MutableNamingStyle()
         {
             ID = Guid.NewGuid();
         }
@@ -184,9 +184,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
         }
 
-        internal NamingStyle Clone()
+        internal MutableNamingStyle Clone()
         {
-            return new NamingStyle
+            return new MutableNamingStyle
             {
                 ID = ID,
                 Name = Name,
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         internal XElement CreateXElement()
         {
-            return new XElement(nameof(NamingStyle), 
+            return new XElement(nameof(MutableNamingStyle), 
                 new XAttribute(nameof(ID), ID),
                 new XAttribute(nameof(Name), Name),
                 new XAttribute(nameof(Prefix), Prefix ?? string.Empty),
@@ -302,9 +302,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 new XAttribute(nameof(CapitalizationScheme), CapitalizationScheme));
         }
 
-        internal static NamingStyle FromXElement(XElement namingStyleElement)
+        internal static MutableNamingStyle FromXElement(XElement namingStyleElement)
         {
-            return new NamingStyle()
+            return new MutableNamingStyle()
             {
                 ID = Guid.Parse(namingStyleElement.Attribute(nameof(ID)).Value),
                 Name = namingStyleElement.Attribute(nameof(Name)).Value,

@@ -8,9 +8,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Optional prefix As String = "",
             Optional suffix As String = "",
             Optional wordSeparator As String = "",
-            Optional capitalizationScheme As Capitalization = Capitalization.PascalCase) As NamingStyle
+            Optional capitalizationScheme As Capitalization = Capitalization.PascalCase) As MutableNamingStyle
 
-            Return New NamingStyle With
+            Return New MutableNamingStyle With
                 {
                     .Prefix = prefix,
                     .Suffix = suffix,
@@ -19,16 +19,16 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 }
         End Function
 
-        Private Sub TestNameCreation(namingStyle As NamingStyle, expectedName As String, ParamArray words As String())
+        Private Sub TestNameCreation(namingStyle As MutableNamingStyle, expectedName As String, ParamArray words As String())
             Assert.Equal(expectedName, namingStyle.CreateName(words))
         End Sub
 
-        Private Sub TestNameCompliance(namingStyle As NamingStyle, candidateName As String)
+        Private Sub TestNameCompliance(namingStyle As MutableNamingStyle, candidateName As String)
             Dim reason As String = Nothing
             Assert.True(namingStyle.IsNameCompliant(candidateName, reason))
         End Sub
 
-        Private Sub TestNameNoncomplianceAndFixedNames(namingStyle As NamingStyle, candidateName As String, ParamArray expectedFixedNames As String())
+        Private Sub TestNameNoncomplianceAndFixedNames(namingStyle As MutableNamingStyle, candidateName As String, ParamArray expectedFixedNames As String())
             Dim reason As String = Nothing
             Assert.False(namingStyle.IsNameCompliant(candidateName, reason))
 

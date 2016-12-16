@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
-            var serializedNamingStyle = diagnostic.Properties[nameof(NamingStyle)];
-            var style = NamingStyle.FromXElement(XElement.Parse(serializedNamingStyle));
+            var serializedNamingStyle = diagnostic.Properties[nameof(MutableNamingStyle)];
+            var style = MutableNamingStyle.FromXElement(XElement.Parse(serializedNamingStyle));
 
             var document = context.Document;
             var span = context.Span;

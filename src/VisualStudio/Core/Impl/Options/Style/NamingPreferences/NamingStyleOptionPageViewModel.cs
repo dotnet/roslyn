@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         public ObservableCollection<NamingRuleViewModel> CodeStyleItems { get; set; }
         public ObservableCollection<SymbolSpecification> Specifications { get; set; }
-        public ObservableCollection<NamingStyle> NamingStyles { get; set; }
+        public ObservableCollection<MutableNamingStyle> NamingStyles { get; set; }
 
         public NamingStyleOptionPageViewModel(SerializableNamingStylePreferencesInfo info)
         {
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             {
                 var viewModel = new NamingRuleViewModel();
 
-                viewModel.NamingStyles = new ObservableCollection<NamingStyle>(info.NamingStyles);
+                viewModel.NamingStyles = new ObservableCollection<MutableNamingStyle>(info.NamingStyles);
                 viewModel.Specifications = new ObservableCollection<SymbolSpecification>(info.SymbolSpecifications);
                 viewModel.NotificationPreferences = new List<NotificationOptionViewModel>(_notifications);
 
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
             CodeStyleItems = new ObservableCollection<NamingRuleViewModel>(viewModels);
             Specifications = new ObservableCollection<SymbolSpecification>(info.SymbolSpecifications);
-            NamingStyles = new ObservableCollection<NamingStyle>(info.NamingStyles);
+            NamingStyles = new ObservableCollection<MutableNamingStyle>(info.NamingStyles);
 
             SetMoveArrowStatuses();
         }
@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         internal void UpdateStyleList(ManageNamingStylesDialogViewModel viewModel)
         {
-            var namingStyles = viewModel.Items.Cast<NamingStyleViewModel>().Select(n => new NamingStyle
+            var namingStyles = viewModel.Items.Cast<NamingStyleViewModel>().Select(n => new MutableNamingStyle
             {
                 ID = n.ID,
                 Name = n.ItemName,
@@ -197,16 +197,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             public NamingRuleViewModel()
             {
                 Specifications = new ObservableCollection<SymbolSpecification>();
-                NamingStyles = new ObservableCollection<NamingStyle>();
+                NamingStyles = new ObservableCollection<MutableNamingStyle>();
                 NotificationPreferences = new List<NotificationOptionViewModel>();
             }
 
             private SymbolSpecification _selectedSpecification;
-            private NamingStyle _selectedNamingStyle;
+            private MutableNamingStyle _selectedNamingStyle;
             private NotificationOptionViewModel _selectedNotification;
 
             public ObservableCollection<SymbolSpecification> Specifications { get; set; }
-            public ObservableCollection<NamingStyle> NamingStyles { get; set; }
+            public ObservableCollection<MutableNamingStyle> NamingStyles { get; set; }
             public IEnumerable<NotificationOptionViewModel> NotificationPreferences { get; set; }
 
             public SymbolSpecification SelectedSpecification
@@ -221,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                 }
             }
 
-            public NamingStyle SelectedStyle
+            public MutableNamingStyle SelectedStyle
             {
                 get
                 {

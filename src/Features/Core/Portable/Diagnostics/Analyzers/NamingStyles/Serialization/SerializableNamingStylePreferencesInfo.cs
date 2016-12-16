@@ -18,18 +18,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     internal class SerializableNamingStylePreferencesInfo
     {
         public List<SymbolSpecification> SymbolSpecifications;
-        public List<NamingStyle> NamingStyles;
+        public List<MutableNamingStyle> NamingStyles;
         public List<SerializableNamingRule> NamingRules;
         private readonly static int s_serializationVersion = 3;
 
         internal SerializableNamingStylePreferencesInfo()
         {
             SymbolSpecifications = new List<SymbolSpecification>();
-            NamingStyles = new List<NamingStyle>();
+            NamingStyles = new List<MutableNamingStyle>();
             NamingRules = new List<SerializableNamingRule>();
         }
 
-        internal NamingStyle GetNamingStyle(Guid namingStyleID)
+        internal MutableNamingStyle GetNamingStyle(Guid namingStyleID)
         {
             return NamingStyles.Single(s => s.ID == namingStyleID);
         }
@@ -116,9 +116,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private void SetNamingStyleListFromXElement(XElement namingStylesElement)
         {
-            foreach (var namingStyleElement in namingStylesElement.Elements(nameof(NamingStyle)))
+            foreach (var namingStyleElement in namingStylesElement.Elements(nameof(MutableNamingStyle)))
             {
-                NamingStyles.Add(NamingStyle.FromXElement(namingStyleElement));
+                NamingStyles.Add(MutableNamingStyle.FromXElement(namingStyleElement));
             }
         }
 

@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             return new NamingStyleOptionPageViewModel.NamingRuleViewModel()
             {
                 Specifications = new ObservableCollection<SymbolSpecification>(_viewModel.Specifications),
-                NamingStyles = new ObservableCollection<NamingStyle>(_viewModel.NamingStyles),
+                NamingStyles = new ObservableCollection<MutableNamingStyle>(_viewModel.NamingStyles),
                 NotificationPreferences = _notifications
             };
         }
