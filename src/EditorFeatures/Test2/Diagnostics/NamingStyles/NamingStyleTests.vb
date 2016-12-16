@@ -20,19 +20,19 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Function
 
         Private Sub TestNameCreation(namingStyle As MutableNamingStyle, expectedName As String, ParamArray words As String())
-            Assert.Equal(expectedName, namingStyle.CreateName(words))
+            Assert.Equal(expectedName, namingStyle.NamingStyle.CreateName(words))
         End Sub
 
         Private Sub TestNameCompliance(namingStyle As MutableNamingStyle, candidateName As String)
             Dim reason As String = Nothing
-            Assert.True(namingStyle.IsNameCompliant(candidateName, reason))
+            Assert.True(namingStyle.NamingStyle.IsNameCompliant(candidateName, reason))
         End Sub
 
         Private Sub TestNameNoncomplianceAndFixedNames(namingStyle As MutableNamingStyle, candidateName As String, ParamArray expectedFixedNames As String())
             Dim reason As String = Nothing
-            Assert.False(namingStyle.IsNameCompliant(candidateName, reason))
+            Assert.False(namingStyle.NamingStyle.IsNameCompliant(candidateName, reason))
 
-            Dim actualFixedNames = namingStyle.MakeCompliant(candidateName).ToList()
+            Dim actualFixedNames = namingStyle.NamingStyle.MakeCompliant(candidateName).ToList()
 
             Assert.Equal(expectedFixedNames.Length, actualFixedNames.Count)
             For i = 0 To expectedFixedNames.Length - 1

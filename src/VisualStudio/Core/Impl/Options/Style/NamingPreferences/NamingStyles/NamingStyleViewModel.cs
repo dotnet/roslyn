@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         {
             get
             {
-                return _style.CreateName(new[] { ServicesVSResources.example, ServicesVSResources.identifier });
+                return _style.NamingStyle.CreateName(new[] { ServicesVSResources.example, ServicesVSResources.identifier });
             }
             set
             {

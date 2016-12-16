@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Xml.Linq;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
@@ -42,11 +41,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             set => NamingStyle = NamingStyle.With(capitalizationScheme: value);
         }
 
-        //public MutableNamingStyle()
-        //{
-        //    ID = Guid.NewGuid();
-        //}
-
         public MutableNamingStyle()
             : this(new NamingStyle(Guid.NewGuid()))
         {
@@ -55,17 +49,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public MutableNamingStyle(NamingStyle namingStyle) 
             => NamingStyle = namingStyle;
 
-        public string CreateName(IEnumerable<string> words)
-            => NamingStyle.CreateName(words);
-
-        public bool IsNameCompliant(string name, out string failureReason)
-            => NamingStyle.IsNameCompliant(name, out failureReason);
-
         internal MutableNamingStyle Clone()
             => new MutableNamingStyle(NamingStyle);
-
-        public IEnumerable<string> MakeCompliant(string name)
-            => NamingStyle.MakeCompliant(name);
 
         internal XElement CreateXElement()
             => NamingStyle.CreateXElement();

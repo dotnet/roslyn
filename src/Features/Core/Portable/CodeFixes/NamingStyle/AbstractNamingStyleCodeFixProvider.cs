@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
         {
             var diagnostic = context.Diagnostics.First();
             var serializedNamingStyle = diagnostic.Properties[nameof(MutableNamingStyle)];
-            var style = MutableNamingStyle.FromXElement(XElement.Parse(serializedNamingStyle));
+            var style = NamingStyle.FromXElement(XElement.Parse(serializedNamingStyle));
 
             var document = context.Document;
             var span = context.Span;
