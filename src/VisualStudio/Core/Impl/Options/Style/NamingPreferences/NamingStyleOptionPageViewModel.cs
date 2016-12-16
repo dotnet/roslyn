@@ -151,15 +151,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         internal void UpdateStyleList(ManageNamingStylesDialogViewModel viewModel)
         {
-            var namingStyles = viewModel.Items.Cast<NamingStyleViewModel>().Select(n => new MutableNamingStyle
-            {
-                ID = n.ID,
-                Name = n.ItemName,
-                Prefix = n.RequiredPrefix,
-                Suffix = n.RequiredSuffix,
-                WordSeparator = n.WordSeparator,
-                CapitalizationScheme = n.CapitalizationSchemes[n.CapitalizationSchemeIndex].Capitalization
-            });
+            var namingStyles = viewModel.Items.Cast<NamingStyleViewModel>().Select(n => new MutableNamingStyle(
+                new NamingStyle(
+                    id: n.ID,
+                    name: n.ItemName,
+                    prefix: n.RequiredPrefix,
+                    suffix: n.RequiredSuffix,
+                    wordSeparator: n.WordSeparator,
+                    capitalizationScheme: n.CapitalizationSchemes[n.CapitalizationSchemeIndex].Capitalization)));
 
             NamingStyles.Clear();
             foreach (var style in namingStyles)

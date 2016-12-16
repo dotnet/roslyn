@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             }
         }
 
-        public Guid ID { get; internal set; }
+        public Guid ID { get; }
 
         private string _itemName;
         public string ItemName
@@ -145,7 +145,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         internal MutableNamingStyle GetNamingStyle()
         {
             _style.Name = ItemName;
-            _style.ID = ID;
             return _style;
         }
 

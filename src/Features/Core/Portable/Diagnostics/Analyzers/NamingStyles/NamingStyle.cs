@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public Capitalization CapitalizationScheme { get; }
 
         public NamingStyle(
-            Guid id, string name, string prefix, string suffix, 
-            string wordSeparator, Capitalization capitalizationScheme) : this()
+            Guid id, string name = null, string prefix = null, string suffix = null,
+            string wordSeparator = null, Capitalization capitalizationScheme = Capitalization.PascalCase) : this()
         {
             ID = id;
             Name = name;
@@ -213,23 +213,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
         }
 
-        internal MutableNamingStyle Clone()
-        {
-            return new MutableNamingStyle
-            {
-                ID = ID,
-                Name = Name,
-                Prefix = Prefix,
-                Suffix = Suffix,
-                WordSeparator = WordSeparator,
-                CapitalizationScheme = CapitalizationScheme
-            };
-        }
-
         private string CreateCompliantNameDirectly(string name)
         {
-            bool addPrefix = !name.StartsWith(Prefix);
-            bool addSuffix = !name.EndsWith(Suffix);
+            var addPrefix = !name.StartsWith(Prefix);
+            var addSuffix = !name.EndsWith(Suffix);
 
             name = addPrefix ? (Prefix + name) : name;
             name = addSuffix ? (name + Suffix) : name;
@@ -310,28 +297,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         }
 
         internal XElement CreateXElement()
-        {
-            return new XElement(nameof(MutableNamingStyle),
+            => new XElement(nameof(MutableNamingStyle),
                 new XAttribute(nameof(ID), ID),
                 new XAttribute(nameof(Name), Name),
                 new XAttribute(nameof(Prefix), Prefix ?? string.Empty),
                 new XAttribute(nameof(Suffix), Suffix ?? string.Empty),
                 new XAttribute(nameof(WordSeparator), WordSeparator ?? string.Empty),
                 new XAttribute(nameof(CapitalizationScheme), CapitalizationScheme));
-        }
 
-        internal static MutableNamingStyle FromXElement(XElement namingStyleElement)
-        {
-            return new MutableNamingStyle()
-            {
-                ID = Guid.Parse(namingStyleElement.Attribute(nameof(ID)).Value),
-                Name = namingStyleElement.Attribute(nameof(Name)).Value,
-                Prefix = namingStyleElement.Attribute(nameof(Prefix)).Value,
-                Suffix = namingStyleElement.Attribute(nameof(Suffix)).Value,
-                WordSeparator = namingStyleElement.Attribute(nameof(WordSeparator)).Value,
-                CapitalizationScheme = (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value)
-            };
-        }
+        internal static NamingStyle FromXElement(XElement namingStyleElement)
+            => new NamingStyle(
+                id: Guid.Parse(namingStyleElement.Attribute(nameof(ID)).Value),
+                name: namingStyleElement.Attribute(nameof(Name)).Value,
+                prefix: namingStyleElement.Attribute(nameof(Prefix)).Value,
+                suffix: namingStyleElement.Attribute(nameof(Suffix)).Value,
+                wordSeparator: namingStyleElement.Attribute(nameof(WordSeparator)).Value,
+                capitalizationScheme: (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value));
     }
-
 }
