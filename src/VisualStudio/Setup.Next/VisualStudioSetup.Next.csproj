@@ -42,6 +42,12 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\Razor\RazorServiceHub.csproj">
+      <Project>{b6fc05f2-0e49-4be2-8030-acbb82b7f431}</Project>
+      <Name>RazorServiceHub</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
       <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
       <Name>ServiceHub</Name>
@@ -51,6 +57,15 @@
     <ProjectReference Include="..\Core\Next\ServicesVisualStudio.Next.csproj">
       <Project>{fe0d4bdd-1c30-488e-a870-854f5b8c5014}</Project>
       <Name>ServicesVisualStudio.Next</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
+    </ProjectReference>
+    <ProjectReference Include="..\Razor\RazorVisualStudio.csproj">
+      <Project>{0c0eeb55-4b6d-4f2b-b0bb-b9eb2ba9e980}</Project>
+      <Name>RazorVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <Ngen>true</Ngen>
