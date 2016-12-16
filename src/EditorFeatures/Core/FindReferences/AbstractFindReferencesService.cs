@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             var symbol = symbolAndProject?.symbol;
             var project = symbolAndProject?.project;
 
-            var displayName = GetDisplayName(symbol);
+            var displayName = FindUsagesHelpers.GetDisplayName(symbol);
 
             waitContext.Message = string.Format(
                 EditorFeaturesResources.Finding_references_of_0, displayName);
@@ -52,11 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             var result = await SymbolFinder.FindReferencesAsync(symbol, project.Solution, cancellationToken).ConfigureAwait(false);
 
             return Tuple.Create(result, project.Solution);
-        }
-
-        public static string GetDisplayName(ISymbol symbol)
-        {
-            return symbol.IsConstructor() ? symbol.ContainingType.Name : symbol.Name;
         }
 
         public bool TryFindReferences(Document document, int position, IWaitContext waitContext)

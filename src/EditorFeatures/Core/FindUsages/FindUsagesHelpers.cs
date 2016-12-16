@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal static class FindUsagesHelpers
     {
+        public static string GetDisplayName(ISymbol symbol)
+            => symbol.IsConstructor() ? symbol.ContainingType.Name : symbol.Name;
+
         /// <summary>
         /// Common helper for both the synchronous and streaming versions of FAR. 
         /// It returns the symbol we want to search for and the solution we should
