@@ -2271,7 +2271,7 @@ namespace WB.Core.SharedKernels.DataCollection.Generated
         [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration1()
         {
-            UsingTree(@"
+            const string text = @"
 class C
 {
     async void M()
@@ -2280,7 +2280,16 @@ class C
         await Task.Delay();
     }
 }
-");
+";
+            ParseAndValidate(text,
+                // (6,14): error CS1001: Identifier expected
+                //         Task.
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(6, 14),
+                // (6,14): error CS1002: ; expected
+                //         Task.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 14));
+
+            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2361,7 +2370,7 @@ class C
         [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration2()
         {
-            UsingTree(@"
+            const string text = @"
 class C
 {
     async void M()
@@ -2369,7 +2378,19 @@ class C
         Task.await Task.Delay();
     }
 }
-");
+";
+            ParseAndValidate(text,
+                // (6,14): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //         Task.await Task.Delay();
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(6, 14),
+                // (6,24): error CS1003: Syntax error, ',' expected
+                //         Task.await Task.Delay();
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(6, 24),
+                // (6,25): error CS1002: ; expected
+                //         Task.await Task.Delay();
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Delay").WithLocation(6, 25));
+
+            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2445,7 +2466,7 @@ class C
         [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration3()
         {
-            UsingTree(@"
+            const string text = @"
 class C
 {
     async void M()
@@ -2454,7 +2475,13 @@ class C
         await Task;
     }
 }
-");
+";
+            ParseAndValidate(text,
+                // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //         await Task;
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
+
+            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2514,7 +2541,7 @@ class C
         [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration4()
         {
-            UsingTree(@"
+            const string text = @"
 class C
 {
     async void M()
@@ -2523,7 +2550,13 @@ class C
         await Task = 1;
     }
 }
-");
+";
+            ParseAndValidate(text,
+                // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //         await Task = 1;
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
+
+            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2591,7 +2624,7 @@ class C
         [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration5()
         {
-            UsingTree(@"
+            const string text = @"
 class C
 {
     async void M()
@@ -2600,7 +2633,13 @@ class C
         await Task, Task2;
     }
 }
-");
+";
+            ParseAndValidate(text,
+                // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //         await Task, Task2;
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
+
+            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2665,7 +2704,7 @@ class C
         [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration6()
         {
-            UsingTree(@"
+            const string text = @"
 class C
 {
     async void M()
@@ -2674,7 +2713,13 @@ class C
         await Task();
     }
 }
-");
+";
+            ParseAndValidate(text,
+                // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //         await Task();
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
+
+            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2733,7 +2778,7 @@ class C
         [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration7()
         {
-            UsingTree(@"
+            const string text = @"
 class C
 {
     async void M()
@@ -2742,7 +2787,13 @@ class C
         await Task<T>();
     }
 }
-");
+";
+            ParseAndValidate(text,
+                // (7,9): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //         await Task<T>();
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(7, 9));
+
+            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2810,7 +2861,7 @@ class C
         [Fact, WorkItem(15885, "https://github.com/dotnet/roslyn/pull/15885")]
         public void InProgressLocalDeclaration8()
         {
-            UsingTree(@"
+            const string text = @"
 class C
 {
     async void M()
@@ -2819,8 +2870,16 @@ class C
         await Task[1];
     }
 }
-");
+";
+            ParseAndValidate(text,
+                // (6,14): error CS1001: Identifier expected
+                //         Task.
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(6, 14),
+                // (6,14): error CS1002: ; expected
+                //         Task.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 14));
 
+            UsingTree(text);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
