@@ -1,6 +1,8 @@
 ﻿{
     "dependencies": {
         "BasicUndo": "0.9.3",
+        "EnvDTE": "8.0.0",
+        "EnvDTE80": "8.0.0",
         "Microsoft.VisualStudio.InteractiveWindow": {
             "version": "2.0.0-beta5-60820-04",
             "suppressParent": "all"

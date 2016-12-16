@@ -1,5 +1,7 @@
 ﻿{
     "dependencies": {
+        "EnvDTE": "8.0.0",
+        "EnvDTE80": "8.0.0",
         "RoslynDependencies.Microsoft.VisualStudio.Platform.VSEditor": "14.3.25407",
         "Microsoft.VisualStudio.Composition": "14.2.19-pre",
         "Microsoft.VisualStudio.Shell.14.0": "14.3.25407",
