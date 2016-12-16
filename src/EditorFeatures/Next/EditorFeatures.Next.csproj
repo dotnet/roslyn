@@ -66,6 +66,7 @@
     <Compile Include="Options\EditorConfigDocumentOptionsProvider.DocumentOptions.cs" />
     <Compile Include="Options\EditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" />
     <Compile Include="Structure\BlockContextProvider.cs" />
+    <Compile Include="Structure\RoslynBlockTag.cs" />
     <Compile Include="Structure\VisualStudio15StructureTaggerProvider.cs" />
     <Compile Include="Options\EditorConfigDocumentOptionsProviderFactory.cs" />
     <Compile Include="Options\EditorConfigDocumentOptionsProvider.cs" />

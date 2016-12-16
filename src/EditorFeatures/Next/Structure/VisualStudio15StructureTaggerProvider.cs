@@ -6,14 +6,11 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Structure
 {
@@ -43,66 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 this.ProjectionBufferFactoryService,
                 this.EditorOptionsFactoryService,
                 parentTag, snapshot, region);
-        }
-
-        private class RoslynBlockTag : RoslynOutliningRegionTag, IBlockTag
-        {
-            public IBlockTag Parent { get; }
-            public int Level { get; }
-            public SnapshotSpan Span { get; }
-            public SnapshotSpan StatementSpan { get; }
-
-            public string Type => BlockSpan.Type;
-            public bool IsCollapsible => BlockSpan.IsCollapsible;
-
-            public RoslynBlockTag(
-                ITextEditorFactoryService textEditorFactoryService,
-                IProjectionBufferFactoryService projectionBufferFactoryService,
-                IEditorOptionsFactoryService editorOptionsFactoryService,
-                IBlockTag parent,
-                ITextSnapshot snapshot,
-                BlockSpan blockSpan) :
-                base(textEditorFactoryService,
-                     projectionBufferFactoryService,
-                     editorOptionsFactoryService,
-                     snapshot, blockSpan)
-            {
-                Parent = parent;
-                Level = parent == null ? 0 : parent.Level + 1;
-                Span = blockSpan.TextSpan.ToSnapshotSpan(snapshot);
-                StatementSpan = blockSpan.HintSpan.ToSnapshotSpan(snapshot);
-            }
-
-            public override bool Equals(object obj)
-                => Equals(obj as RoslynBlockTag);
-
-            /// <summary>
-            /// This is only called if the spans for the tags were the same.  However, even if we 
-            /// have the same span as the previous tag (taking into account span mapping) that 
-            /// doesn't mean we can use the old block tag.  Specifically, the editor will look at
-            /// other fields in the tags So we need to make sure that these values have not changed
-            /// if we want to reuse the old block tag.  For example, perhaps the item's type changed
-            /// (i.e. from class to struct).  It will have the same span, but might have a new 
-            /// presentation as the 'Type' will be different.
-            /// </summary>
-            public bool Equals(RoslynBlockTag tag)
-            {
-                return base.Equals(tag) &&
-                       IsCollapsible == tag.IsCollapsible &&
-                       Level == tag.Level &&
-                       Type == tag.Type &&
-                       StatementSpan == tag.StatementSpan &&
-                       Span == tag.Span;
-            }
-
-            public override int GetHashCode()
-            {
-                return Hash.Combine(base.GetHashCode(),
-                       Hash.Combine(this.IsCollapsible,
-                       Hash.Combine(this.Level,
-                       Hash.Combine(this.Type, 
-                       Hash.Combine(this.StatementSpan.GetHashCode(), this.Span.GetHashCode())))));
-            }
         }
     }
 }
