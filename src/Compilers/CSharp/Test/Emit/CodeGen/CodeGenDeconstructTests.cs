@@ -5124,6 +5124,33 @@ class C
         }
 
         [Fact]
+        public void SingleDiscardInAssignmentInCSharp6()
+        {
+            var source =
+@"
+class C
+{
+    static void Error()
+    {
+        _ = 1;
+    }
+    static void Ok()
+    {
+        int _;
+        _ = 1;
+        System.Console.Write(_);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular6);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                //         _ = M();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
         public void SingleDiscardInAsyncAssignment()
         {
             var source =

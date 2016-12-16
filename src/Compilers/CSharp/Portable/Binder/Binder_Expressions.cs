@@ -1240,7 +1240,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CSharpSyntaxNode containingDeconstruction = node.GetContainingDeconstruction();
-            return containingDeconstruction != null || IsOutVarDiscardIdentifier(node);
+            bool isDiscard = containingDeconstruction != null || IsOutVarDiscardIdentifier(node);
+            if (isDiscard)
+            {
+                CheckFeatureAvailability(node.Location, MessageID.IDS_FeatureTuples, diagnostics);
+            }
+
+            return isDiscard;
         }
 
         private static bool IsOutVarDiscardIdentifier(SimpleNameSyntax node)
