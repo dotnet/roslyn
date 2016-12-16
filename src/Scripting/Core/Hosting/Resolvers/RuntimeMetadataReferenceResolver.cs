@@ -185,23 +185,16 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 foreach (var path in paths.Split(Path.PathSeparator))
                 {
-                    try
+                    if (PathUtilities.GetExtension(path) == ".dll")
                     {
-                        if (Path.GetExtension(path) == ".dll")
+                        string fileName = PathUtilities.GetFileName(path, includeExtension: false);
+                        if (fileName.EndsWith(".ni", StringComparison.OrdinalIgnoreCase))
                         {
-                            string fileName = Path.GetFileNameWithoutExtension(path);
-                            if (fileName.EndsWith(".ni", StringComparison.OrdinalIgnoreCase))
-                            {
-                                fileName = fileName.Substring(0, fileName.Length - ".ni".Length);
-                            }
-
-                            // last one wins:
-                            set[fileName] = path;
+                            fileName = fileName.Substring(0, fileName.Length - ".ni".Length);
                         }
-                    }
-                    catch (Exception)
-                    {
-                        // skip invalid paths
+
+                        // last one wins:
+                        set[fileName] = path;
                     }
                 }
             }

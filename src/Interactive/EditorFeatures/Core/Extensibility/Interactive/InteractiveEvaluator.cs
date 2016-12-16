@@ -262,7 +262,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private static MetadataReferenceResolver CreateMetadataReferenceResolver(IMetadataService metadataService, ImmutableArray<string> searchPaths, string baseDirectory)
         {
-            // TODO: We need to do reference resolution in the remote process (InteractiveHost.exe), in order to support other platforms than Desktop FX
+            // TODO: To support CoreCLR we need to query the remote process for TPA list and pass it to the resolver.
+            // https://github.com/dotnet/roslyn/issues/4788
             return new RuntimeMetadataReferenceResolver(
                 new RelativePathResolver(searchPaths, baseDirectory),
                 packageResolver: null,
