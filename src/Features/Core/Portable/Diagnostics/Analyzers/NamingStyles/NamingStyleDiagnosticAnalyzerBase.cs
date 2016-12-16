@@ -23,15 +23,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         // Applicable SymbolKind list is limited due to https://github.com/dotnet/roslyn/issues/8753. 
         // We would prefer to respond to the names of all symbols.
-        private static readonly ImmutableArray<SymbolKind> _symbolKinds = new[]
-            {
-                SymbolKind.Event,
-                SymbolKind.Field,
-                SymbolKind.Method,
-                SymbolKind.NamedType,
-                SymbolKind.Namespace,
-                SymbolKind.Property
-            }.ToImmutableArray();
+        private static readonly ImmutableArray<SymbolKind> _symbolKinds = ImmutableArray.Create(
+            SymbolKind.Event,
+            SymbolKind.Field,
+            SymbolKind.Method,
+            SymbolKind.NamedType,
+            SymbolKind.Namespace,
+            SymbolKind.Property);
 
         public bool OpenFileOnly(Workspace workspace) => true;
 
