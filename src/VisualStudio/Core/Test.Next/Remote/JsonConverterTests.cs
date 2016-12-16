@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -67,6 +68,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 return 1;
             });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestTextSpan()
+        {
+            VerifyJsonSerialization(new TextSpan(10, 5));
         }
 
         private static void VerifyJsonSerialization<T>(T value, Comparison<T> equality = null)

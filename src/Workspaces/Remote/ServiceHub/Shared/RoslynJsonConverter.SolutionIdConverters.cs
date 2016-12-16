@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class AggregateJsonConverter : JsonConverter
     {
-        private abstract class WorkspaceIdJsonConverter : JsonConverter
+        private abstract class WorkspaceIdJsonConverter : BaseJsonConverter
         {
             protected (Guid, string) ReadFromJsonObject(JsonReader reader)
             {
@@ -44,26 +44,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WritePropertyName(nameof(debugName));
                 writer.WriteValue(debugName);
-            }
-
-            protected static T ReadProperty<T>(JsonSerializer serializer, JsonReader reader)
-            {
-                // read property
-                Contract.ThrowIfFalse(reader.Read());
-                Contract.ThrowIfFalse(reader.TokenType == JsonToken.PropertyName);
-
-                Contract.ThrowIfFalse(reader.Read());
-                return serializer.Deserialize<T>(reader);
-            }
-
-            private static T ReadProperty<T>(JsonReader reader)
-            {
-                // read property
-                Contract.ThrowIfFalse(reader.Read());
-                Contract.ThrowIfFalse(reader.TokenType == JsonToken.PropertyName);
-
-                Contract.ThrowIfFalse(reader.Read());
-                return (T)reader.Value;
             }
         }
 

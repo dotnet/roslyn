@@ -10,14 +10,13 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteSymbolFinder
     {
-        public async Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, SerializableDocumentId[] documentArgs)
+        public async Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs)
         {
             var solution = await GetSolutionAsync().ConfigureAwait(false);
 
             var symbolAndProjectId = await symbolAndProjectIdArg.RehydrateAsync(
                 solution, CancellationToken).ConfigureAwait(false);
-            var documents = documentArgs?.Select(a => a.Rehydrate())
-                                         .Select(solution.GetDocument)
+            var documents = documentArgs?.Select(solution.GetDocument)
                                          .ToImmutableHashSet();
 
             var progressCallback = new ProgressCallback(this);
@@ -44,12 +43,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 => _service.Rpc.InvokeAsync(nameof(ReportProgressAsync), current, maximum);
 
             public Task OnFindInDocumentStartedAsync(Document document)
-                => _service.Rpc.InvokeAsync(nameof(OnFindInDocumentStartedAsync),
-                    SerializableDocumentId.Dehydrate(document));
+                => _service.Rpc.InvokeAsync(nameof(OnFindInDocumentStartedAsync), document.Id);
 
             public Task OnFindInDocumentCompletedAsync(Document document)
-                => _service.Rpc.InvokeAsync(nameof(OnFindInDocumentCompletedAsync),
-                    SerializableDocumentId.Dehydrate(document));
+                => _service.Rpc.InvokeAsync(nameof(OnFindInDocumentCompletedAsync), document.Id);
 
             public Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
                 => _service.Rpc.InvokeAsync(nameof(OnDefinitionFoundAsync),

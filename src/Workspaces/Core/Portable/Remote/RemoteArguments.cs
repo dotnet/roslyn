@@ -12,88 +12,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    #region Common Arguments
-
-    /// <summary>
-    /// Arguments to pass from client to server when performing operations
-    /// </summary>
-    internal class SerializableProjectId : IEquatable<SerializableProjectId>
-    {
-        public Guid Id;
-        public string DebugName;
-
-        public override int GetHashCode()
-            => Hash.Combine(Id.GetHashCode(), DebugName.GetHashCode());
-
-        public override bool Equals(object obj)
-            => Equals(obj as SerializableProjectId);
-
-        public bool Equals(SerializableProjectId obj)
-            => obj != null && Id.Equals(obj.Id) && DebugName.Equals(obj.DebugName);
-
-        public static SerializableProjectId Dehydrate(ProjectId id)
-        {
-            return new SerializableProjectId { Id = id.Id, DebugName = id.DebugName };
-        }
-
-        public ProjectId Rehydrate()
-        {
-            return ProjectId.CreateFromSerialized(Id, DebugName);
-        }
-    }
-
-    internal class SerializableDocumentId
-    {
-        public SerializableProjectId ProjectId;
-        public Guid Id;
-        public string DebugName;
-
-        public static SerializableDocumentId Dehydrate(Document document)
-        {
-            return Dehydrate(document.Id);
-        }
-
-        public static SerializableDocumentId Dehydrate(DocumentId id)
-        {
-            return new SerializableDocumentId
-            {
-                ProjectId = SerializableProjectId.Dehydrate(id.ProjectId),
-                Id = id.Id,
-                DebugName = id.DebugName
-            };
-        }
-
-        public DocumentId Rehydrate()
-        {
-            return DocumentId.CreateFromSerialized(
-                ProjectId.Rehydrate(), Id, DebugName);
-        }
-    }
-
-    internal class SerializableTextSpan
-    {
-        public int Start;
-        public int Length;
-
-        public static SerializableTextSpan Dehydrate(TextSpan textSpan)
-        {
-            return new SerializableTextSpan { Start = textSpan.Start, Length = textSpan.Length };
-        }
-
-        public TextSpan Rehydrate()
-        {
-            return new TextSpan(Start, Length);
-        }
-    }
-
-    #endregion
-
     #region FindReferences
 
     internal class SerializableSymbolAndProjectId : IEquatable<SerializableSymbolAndProjectId>
     {
         public string SymbolKeyData;
-        public SerializableProjectId ProjectId;
+        public ProjectId ProjectId;
 
         public override int GetHashCode()
             => Hash.Combine(SymbolKeyData, ProjectId.GetHashCode());
@@ -118,14 +42,14 @@ namespace Microsoft.CodeAnalysis.Remote
             return new SerializableSymbolAndProjectId
             {
                 SymbolKeyData = symbolAndProjectId.Symbol.GetSymbolKey().ToString(),
-                ProjectId = SerializableProjectId.Dehydrate(symbolAndProjectId.ProjectId)
+                ProjectId = symbolAndProjectId.ProjectId
             };
         }
 
         public async Task<SymbolAndProjectId> RehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
-            var projectId = ProjectId.Rehydrate();
+            var projectId = ProjectId;
             var project = solution.GetProject(projectId);
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var symbol = SymbolKey.Resolve(SymbolKeyData, compilation, cancellationToken: cancellationToken).GetAnySymbol();
@@ -136,11 +60,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
     internal class SerializableReferenceLocation
     {
-        public SerializableDocumentId Document { get; set; }
+        public DocumentId Document { get; set; }
 
         public SerializableSymbolAndProjectId Alias { get; set; }
 
-        public SerializableTextSpan Location { get; set; }
+        public TextSpan Location { get; set; }
 
         public bool IsImplicit { get; set; }
 
@@ -153,9 +77,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return new SerializableReferenceLocation
             {
-                Document = SerializableDocumentId.Dehydrate(referenceLocation.Document),
+                Document = referenceLocation.Document.Id,
                 Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document),
-                Location = SerializableTextSpan.Dehydrate(referenceLocation.Location.SourceSpan),
+                Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
                 IsWrittenTo = referenceLocation.IsWrittenTo,
                 CandidateReason = referenceLocation.CandidateReason
@@ -165,13 +89,13 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<ReferenceLocation> RehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocument(this.Document.Rehydrate());
+            var document = solution.GetDocument(this.Document);
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var aliasSymbol = await RehydrateAliasAsync(solution, cancellationToken).ConfigureAwait(false);
             return new ReferenceLocation(
                 document,
                 aliasSymbol,
-                CodeAnalysis.Location.Create(syntaxTree, Location.Rehydrate()),
+                CodeAnalysis.Location.Create(syntaxTree, Location),
                 isImplicit: IsImplicit,
                 isWrittenTo: IsWrittenTo,
                 candidateReason: CandidateReason);
