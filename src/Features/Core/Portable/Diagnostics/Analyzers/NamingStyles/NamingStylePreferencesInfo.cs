@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             
             foreach (var namingRule in NamingRules)
             {
-                if (namingRule.AppliesTo(symbol))
+                if (namingRule.SymbolSpecification.AppliesTo(symbol))
                 {
                     applicableRule = namingRule;
                     return true;

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             if (!cache.TryGetValue(context.Symbol.Name, out var failureReason))
             {
-                if (applicableRule.IsNameCompliant(context.Symbol.Name, out failureReason))
+                if (applicableRule.NamingStyle.IsNameCompliant(context.Symbol.Name, out failureReason))
                 {
                     failureReason = null;
                 }

@@ -14,11 +14,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             NamingStyle = namingStyle;
             EnforcementLevel = enforcementLevel;
         }
-
-        public bool AppliesTo(ISymbol symbol) 
-            => SymbolSpecification.AppliesTo(symbol);
-
-        public bool IsNameCompliant(string name, out string failureReason)
-            => NamingStyle.IsNameCompliant(name, out failureReason);
     }
 }
