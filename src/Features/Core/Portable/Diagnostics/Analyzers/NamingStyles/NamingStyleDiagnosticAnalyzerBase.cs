@@ -1,5 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Xml.Linq;
@@ -34,7 +37,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public bool OpenFileOnly(Workspace workspace) => true;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterCompilationStartAction(CompilationStartAction);
+        {
+            context.RegisterCompilationStartAction(CompilationStartAction);
+        }
 
         private void CompilationStartAction(CompilationStartAnalysisContext context)
         {
@@ -51,33 +56,60 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 // actually necessary.
                 var viewModel = SerializableNamingStylePreferencesInfo.FromXElement(XElement.Parse(currentValue));
                 var preferencesInfo = viewModel.GetPreferencesInfo();
+
+                var idToCachedResult = new Dictionary<Guid, ConcurrentDictionary<string, string>>();
+                foreach (var rule in preferencesInfo.NamingRules)
+                {
+                    idToCachedResult[rule.NamingStyle.ID] = new ConcurrentDictionary<string, string>();
+                }
+
                 context.RegisterSymbolAction(
-                    symbolContext => SymbolAction(symbolContext, preferencesInfo),
+                    symbolContext => SymbolAction(symbolContext, preferencesInfo, idToCachedResult),
                     _symbolKinds);
             }
         }
 
-        private void SymbolAction(SymbolAnalysisContext context, NamingStylePreferencesInfo preferences)
+        private void SymbolAction(
+            SymbolAnalysisContext context,
+            NamingStylePreferencesInfo preferences,
+            Dictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult)
         {
-            if (preferences.TryGetApplicableRule(context.Symbol, out var applicableRule))
+            // Don't even bother analyzing 
+            if (!preferences.TryGetApplicableRule(context.Symbol, out var applicableRule) &&
+                applicableRule.EnforcementLevel == DiagnosticSeverity.Hidden)
             {
-                if (applicableRule.EnforcementLevel != DiagnosticSeverity.Hidden &&
-                    !applicableRule.IsNameCompliant(context.Symbol.Name, out var failureReason))
-                {
-                    var descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.NamingRuleId,
-                         s_localizableTitleNamingStyle,
-                         string.Format(FeaturesResources.Naming_rule_violation_0, failureReason),
-                         DiagnosticCategory.Style,
-                         applicableRule.EnforcementLevel,
-                         isEnabledByDefault: true);
-
-                    var builder = ImmutableDictionary.CreateBuilder<string, string>();
-                    builder[nameof(MutableNamingStyle)] = applicableRule.NamingStyle.CreateXElement().ToString();
-                    builder["OptionName"] = nameof(SimplificationOptions.NamingPreferences);
-                    builder["OptionLanguage"] = context.Compilation.Language;
-                    context.ReportDiagnostic(Diagnostic.Create(descriptor, context.Symbol.Locations.First(), builder.ToImmutable()));
-                }
+                return;
             }
+
+            var cache = idToCachedResult[applicableRule.NamingStyle.ID];
+
+            if (!cache.TryGetValue(context.Symbol.Name, out var failureReason))
+            {
+                if (applicableRule.IsNameCompliant(context.Symbol.Name, out failureReason))
+                {
+                    failureReason = null;
+                }
+
+                cache.TryAdd(context.Symbol.Name, failureReason);
+            }
+
+            if (failureReason == null)
+            {
+                return;
+            }
+
+            var descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.NamingRuleId,
+                 s_localizableTitleNamingStyle,
+                 string.Format(FeaturesResources.Naming_rule_violation_0, failureReason),
+                 DiagnosticCategory.Style,
+                 applicableRule.EnforcementLevel,
+                 isEnabledByDefault: true);
+
+            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            builder[nameof(MutableNamingStyle)] = applicableRule.NamingStyle.CreateXElement().ToString();
+            builder["OptionName"] = nameof(SimplificationOptions.NamingPreferences);
+            builder["OptionLanguage"] = context.Compilation.Language;
+            context.ReportDiagnostic(Diagnostic.Create(descriptor, context.Symbol.Locations.First(), builder.ToImmutable()));
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
