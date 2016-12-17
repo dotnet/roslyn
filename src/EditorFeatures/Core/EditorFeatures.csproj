@@ -111,6 +111,7 @@
     <Compile Include="FindUsages\SimpleFindUsagesContext.cs" />
     <Compile Include="GoToDefinition\GoToDefinitionOptions.cs" />
     <Compile Include="GoToImplementation\GoToImplementationOptions.cs" />
+    <Compile Include="Implementation\Structure\BlockTagState.cs" />
     <Compile Include="Tags\ExportImageMonikerServiceAttribute.cs" />
     <Compile Include="Implementation\NavigateTo\AbstractNavigateToItemDisplay.cs" />
     <Compile Include="CommandArgs.cs" />

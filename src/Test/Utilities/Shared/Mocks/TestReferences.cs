@@ -534,6 +534,23 @@ public static class TestReferences
         }
     }
 
+    public static class NetStandard13
+    {
+        private static PortableExecutableReference s_systemRuntime;
+        public static PortableExecutableReference SystemRuntime
+        {
+            get
+            {
+                if (s_systemRuntime == null)
+                {
+                    s_systemRuntime = AssemblyMetadata.CreateFromImage(TestResources.NetFX.ReferenceAssemblies_netstandard1_3.System_Runtime).GetReference(display: @"System.Runtime.dll (netstandard13 ref)");
+                }
+
+                return s_systemRuntime;
+            }
+        }
+    }
+
     public static class DiagnosticTests
     {
         public static class ErrTestLib01

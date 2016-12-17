@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             public Task<IBlockContext> GetBlockContextAsync(
                 IBlockTag blockTag, ITextView view, CancellationToken token)
             {
-                if (blockTag is RoslynOutliningRegionTag)
+                if (blockTag is RoslynBlockTag)
                 {
                     var result = new RoslynBlockContext(_provider, blockTag, view);
                     return Task.FromResult<IBlockContext>(result);
@@ -104,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
 
             private IWpfTextView CreateElisionBufferView(ITextBuffer finalBuffer)
             {
-                return RoslynOutliningRegionTag.CreateShrunkenTextView(
+                return BlockTagState.CreateShrunkenTextView(
                     _provider._textEditorFactoryService, finalBuffer);
             }
 
