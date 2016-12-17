@@ -63,23 +63,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         internal bool AppliesTo(ISymbol symbol)
         {
-            if (ApplicableSymbolKindList.Any() && !ApplicableSymbolKindList.Any(k => k.AppliesTo(symbol)))
+            return AnyMatches(this.ApplicableSymbolKindList, symbol) &&
+                   AllMatches(this.RequiredModifierList, symbol) &&
+                   AnyMatches(this.ApplicableAccessibilityList, symbol);
+        }
+
+        private bool AnyMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
+            where TSymbolMatcher : ISymbolMatcher
+        {
+            if (!matchers.Any())
             {
-                return false;
+                return true;
             }
 
-            // Modifiers must match exactly
-            foreach (var modifier in this.RequiredModifierList)
+            foreach (var matcher in matchers)
             {
-                if (!modifier.MatchesSymbol(symbol))
+                if (matcher.MatchesSymbol(symbol))
                 {
-                    return false;
+                    return true;
                 }
             }
 
-            if (ApplicableAccessibilityList.Any() && !ApplicableAccessibilityList.Any(k => k.MatchesSymbol(symbol)))
+            return false;
+        }
+
+        private bool AllMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
+            where TSymbolMatcher : ISymbolMatcher
+        {
+            foreach (var matcher in matchers)
             {
-                return false;
+                if (!matcher.MatchesSymbol(symbol))
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -176,7 +192,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return result.ToImmutableAndFree();
         }
 
-        public struct SymbolKindOrTypeKind
+        private interface ISymbolMatcher
+        {
+            bool MatchesSymbol(ISymbol symbol);
+        }
+
+        public struct SymbolKindOrTypeKind : ISymbolMatcher
         {
             public SymbolKind? SymbolKind { get; }
             public TypeKind? TypeKind { get; }
@@ -191,17 +212,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 TypeKind = typeKind;
             }
 
-            public bool AppliesTo(ISymbol symbol)
-            {
-                if (SymbolKind.HasValue)
-                {
-                    return symbol.IsKind(SymbolKind.Value);
-                }
-                else
-                {
-                    return symbol is ITypeSymbol s && s.TypeKind == TypeKind.Value;
-                }
-            }
+            public bool MatchesSymbol(ISymbol symbol)
+                => SymbolKind.HasValue
+                    ? symbol.IsKind(SymbolKind.Value)
+                    : symbol is ITypeSymbol s && s.TypeKind == TypeKind.Value;
 
             internal XElement CreateXElement()
                 => SymbolKind.HasValue
@@ -215,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 => new SymbolKindOrTypeKind((TypeKind)Enum.Parse(typeof(TypeKind), typeKindElement.Value));
         }
 
-        public struct AccessibilityKind
+        public struct AccessibilityKind : ISymbolMatcher
         {
             public Accessibility Accessibility { get; }
 
@@ -225,9 +239,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             public bool MatchesSymbol(ISymbol symbol)
-            {
-                return symbol.DeclaredAccessibility == Accessibility;
-            }
+                => symbol.DeclaredAccessibility == Accessibility;
 
             internal XElement CreateXElement()
                 => new XElement(nameof(AccessibilityKind), Accessibility);
@@ -236,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 => new AccessibilityKind((Accessibility)Enum.Parse(typeof(Accessibility), accessibilityElement.Value));
         }
 
-        public struct ModifierKind
+        public struct ModifierKind : ISymbolMatcher
         {
             public ModifierKindEnum ModifierKindWrapper;
 
