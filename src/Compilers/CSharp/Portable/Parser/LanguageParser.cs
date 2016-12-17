@@ -7048,11 +7048,14 @@ tryAgain:
                         //      X.Y z<W...      (local function)
                         //
                         var token4Kind = PeekToken(4).Kind;
-                        return token4Kind == SyntaxKind.SemicolonToken ||
-                               token4Kind == SyntaxKind.EqualsToken ||
-                               token4Kind == SyntaxKind.CommaToken ||
-                               token4Kind == SyntaxKind.OpenParenToken ||
-                               token4Kind == SyntaxKind.LessThanToken;
+                        if (token4Kind != SyntaxKind.SemicolonToken &&
+                            token4Kind != SyntaxKind.EqualsToken &&
+                            token4Kind != SyntaxKind.CommaToken &&
+                            token4Kind != SyntaxKind.OpenParenToken &&
+                            token4Kind != SyntaxKind.LessThanToken)
+                        {
+                            return false;
+                        }
                     }
                 }
             }
