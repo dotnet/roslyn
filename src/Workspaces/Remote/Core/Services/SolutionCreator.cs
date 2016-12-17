@@ -207,9 +207,9 @@ namespace Microsoft.CodeAnalysis.Remote
             var newProjectInfo = await _assetService.GetAssetAsync<ProjectInfo.ProjectAttributes>(infoChecksum, _cancellationToken).ConfigureAwait(false);
 
             // there is no API to change these once project is created
-            Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.Id != newProjectInfo.Id);
-            Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.Language != newProjectInfo.Language);
-            Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.IsSubmission != newProjectInfo.IsSubmission);
+            Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.Id == newProjectInfo.Id);
+            Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.Language == newProjectInfo.Language);
+            Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.IsSubmission == newProjectInfo.IsSubmission);
 
             if (project.State.ProjectInfo.Attributes.Name != newProjectInfo.Name)
             {
@@ -321,10 +321,10 @@ namespace Microsoft.CodeAnalysis.Remote
             var newDocumentInfo = await _assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(infoChecksum, _cancellationToken).ConfigureAwait(false);
 
             // there is no api to change these once document is created
-            Contract.ThrowIfFalse(document.State.Info.Attributes.Id != newDocumentInfo.Id);
-            Contract.ThrowIfFalse(document.State.Info.Attributes.Name != newDocumentInfo.Name);
-            Contract.ThrowIfFalse(document.State.Info.Attributes.FilePath != newDocumentInfo.FilePath);
-            Contract.ThrowIfFalse(document.State.Info.Attributes.IsGenerated != newDocumentInfo.IsGenerated);
+            Contract.ThrowIfFalse(document.State.Info.Attributes.Id == newDocumentInfo.Id);
+            Contract.ThrowIfFalse(document.State.Info.Attributes.Name == newDocumentInfo.Name);
+            Contract.ThrowIfFalse(document.State.Info.Attributes.FilePath == newDocumentInfo.FilePath);
+            Contract.ThrowIfFalse(document.State.Info.Attributes.IsGenerated == newDocumentInfo.IsGenerated);
 
             if (document.State.Info.Attributes.Folders != newDocumentInfo.Folders)
             {
@@ -415,12 +415,14 @@ namespace Microsoft.CodeAnalysis.Remote
             var projectSnapshot = await _assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, _cancellationToken).ConfigureAwait(false);
 
             var projectInfo = await _assetService.GetAssetAsync<ProjectInfo.ProjectAttributes>(projectSnapshot.Info, _cancellationToken).ConfigureAwait(false);
-            if (!_baseSolution.Workspace.Services.IsSupported(projectInfo.Language))
+            if (!RemoteSupportedLanguages.IsSupported(projectInfo.Language))
             {
                 // only add project our workspace supports. 
                 // workspace doesn't allow creating project with unknown languages
                 return null;
             }
+
+            Contract.ThrowIfFalse(_baseSolution.Workspace.Services.IsSupported(projectInfo.Language));
 
             var compilationOptions = await _assetService.GetAssetAsync<CompilationOptions>(projectSnapshot.CompilationOptions, _cancellationToken).ConfigureAwait(false);
             var parseOptions = await _assetService.GetAssetAsync<ParseOptions>(projectSnapshot.ParseOptions, _cancellationToken).ConfigureAwait(false);
