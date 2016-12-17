@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
@@ -113,105 +115,186 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return true;
             }
 
-            name = name.Substring(Prefix.Length);
-            name = name.Substring(0, name.Length - Suffix.Length);
+            var spanToCheck = TextSpan.FromBounds(Prefix.Length, name.Length - Suffix.Length);
 
-            var words = new[] { name };
-            if (!string.IsNullOrEmpty(WordSeparator))
-            {
-                words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
-            }
-
-            failureReason = string.Empty;
             switch (CapitalizationScheme)
             {
-                case Capitalization.PascalCase:
-                    if (words.All(w => char.IsUpper(w[0])))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        var violations = words.Where(w => !char.IsUpper(w[0]));
-                        failureReason = string.Format(FeaturesResources.These_words_must_begin_with_upper_case_characters_colon_0, string.Join(", ", violations));
-                        return false;
-                    }
-                case Capitalization.CamelCase:
-                    if (char.IsLower(words.First()[0]) && words.Skip(1).All(w => char.IsUpper(w[0])))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        if (!char.IsLower(words.First()[0]))
-                        {
-                            failureReason = string.Format(FeaturesResources.The_first_word_0_must_begin_with_a_lower_case_character, words.First());
-                        }
-
-                        var violations = words.Skip(1).Where(w => !char.IsUpper(w[0]));
-                        if (violations.Any())
-                        {
-                            if (failureReason != string.Empty)
-                            {
-                                failureReason += Environment.NewLine;
-                            }
-
-                            failureReason += string.Format(FeaturesResources.These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0, string.Join(", ", violations));
-                        }
-
-                        return false;
-                    }
-                case Capitalization.FirstUpper:
-                    if (char.IsUpper(words.First()[0]) && words.Skip(1).All(w => char.IsLower(w[0])))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        if (!char.IsUpper(words.First()[0]))
-                        {
-                            failureReason = string.Format(FeaturesResources.The_first_word_0_must_begin_with_an_upper_case_character, words.First());
-                        }
-
-                        var violations = words.Skip(1).Where(w => !char.IsLower(w[0]));
-                        if (violations.Any())
-                        {
-                            if (failureReason != string.Empty)
-                            {
-                                failureReason += Environment.NewLine;
-                            }
-
-                            failureReason += string.Format(FeaturesResources.These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0, string.Join(", ", violations));
-                        }
-
-                        return false;
-                    }
-                case Capitalization.AllUpper:
-                    if (words.SelectMany(w => w.ToCharArray()).All(c => char.IsUpper(c)))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        var violations = words.Where(w => !w.ToCharArray().All(c => char.IsUpper(c)));
-                        failureReason = string.Format(FeaturesResources.These_words_cannot_contain_lower_case_characters_colon_0, string.Join(", ", violations));
-                        return false;
-                    }
-                case Capitalization.AllLower:
-                    if (words.SelectMany(w => w.ToCharArray()).All(c => char.IsLower(c)))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        var violations = words.Where(w => !w.ToCharArray().All(c => char.IsLower(c)));
-                        failureReason = string.Format(FeaturesResources.These_words_cannot_contain_upper_case_characters_colon_0, string.Join(", ", violations));
-                        return false;
-                    }
-                default:
-                    throw new InvalidOperationException();
+                case Capitalization.PascalCase: return CheckPascalCase(name, spanToCheck, out failureReason);
+                case Capitalization.CamelCase: return CheckCamelCase(name, spanToCheck, out failureReason);
+                case Capitalization.FirstUpper: return CheckFirstUpper(name, spanToCheck, out failureReason);
+                case Capitalization.AllUpper: return CheckAllUpper(name, spanToCheck, out failureReason);
+                case Capitalization.AllLower: return CheckAllLower(name, spanToCheck, out failureReason);
+                default: throw new InvalidOperationException();
             }
         }
+
+        private WordSpanEnumerable GetWordSpans(string name, TextSpan nameSpan)
+            => new WordSpanEnumerable(name, nameSpan, WordSeparator);
+
+        private struct WordSpanEnumerable
+        {
+            private readonly string name;
+            private readonly TextSpan nameSpan;
+            private readonly string wordSeparator;
+
+            public WordSpanEnumerable(string name, TextSpan nameSpan, string wordSeparator)
+            {
+                this.name = name;
+                this.nameSpan = nameSpan;
+                this.wordSeparator = wordSeparator;
+            }
+
+            public WordSpanEnumerator GetEnumerator()
+                => new WordSpanEnumerator(name, nameSpan, wordSeparator);
+        }
+
+        private struct WordSpanEnumerator
+        {
+            private string name;
+            private TextSpan nameSpan;
+            private string wordSeparator;
+
+            public WordSpanEnumerator(string name, TextSpan nameSpan, string wordSeparator)
+            {
+                this.name = name;
+                this.nameSpan = nameSpan;
+                this.wordSeparator = wordSeparator;
+            }
+
+            public TextSpan Current { get { throw new NotImplementedException(); } }
+            public bool MoveNext() { throw new NotImplementedException(); }
+        }
+
+        private static string Substring(string name, TextSpan wordSpan)
+            => name.Substring(wordSpan.Start, wordSpan.Length);
+
+        private static Func<string, TextSpan, bool> s_firstCharIsLowerCase = (val, span) => char.IsLower(val[span.Start]);
+        private static Func<string, TextSpan, bool> s_firstCharIsUpperCase = (val, span) => char.IsUpper(val[span.Start]);
+
+        private static Func<string, TextSpan, bool> s_wordIsAllUpperCase = (val, span) =>
+        {
+            for (int i = span.Start, n = span.End; i < n; i++)
+            {
+                if (!char.IsUpper(val[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        };
+
+        private static Func<string, TextSpan, bool> s_wordIsAllLowerCase = (val, span) =>
+        {
+            for (int i = span.Start, n = span.End; i < n; i++)
+            {
+                if (!char.IsLower(val[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        };
+
+        private bool CheckAllWords(
+            string name, TextSpan nameSpan, Func<string, TextSpan, bool> wordCheck,
+            string resourceId, out string reason)
+        {
+            reason = null;
+            var violations = ArrayBuilder<string>.GetInstance();
+
+            foreach (var wordSpan in GetWordSpans(name, nameSpan))
+            {
+                if (!wordCheck(name, wordSpan))
+                {
+                    violations.Add(Substring(name, wordSpan));
+                }
+            }
+
+            if (violations.Count > 0)
+            {
+                reason = string.Format(resourceId, string.Join(", ", violations));
+            }
+
+            violations.Free();
+
+            return reason != null;
+        }
+
+        private bool CheckPascalCase(string name, TextSpan nameSpan, out string reason)
+            => CheckAllWords(
+                name, nameSpan, s_firstCharIsUpperCase,
+                FeaturesResources.These_words_must_begin_with_upper_case_characters_colon_0, out reason);
+
+        private bool CheckAllUpper(string name, TextSpan nameSpan, out string reason)
+            => CheckAllWords(
+                name, nameSpan, s_wordIsAllUpperCase,
+                FeaturesResources.These_words_cannot_contain_lower_case_characters_colon_0, out reason);
+
+        private bool CheckAllLower(string name, TextSpan nameSpan, out string reason)
+            => CheckAllWords(
+                name, nameSpan, s_wordIsAllLowerCase,
+                FeaturesResources.These_words_cannot_contain_lower_case_characters_colon_0, out reason);
+
+        private bool CheckFirstAndRestWords(
+            string name, TextSpan nameSpan, 
+            Func<string, TextSpan, bool> firstWordCheck,
+            Func<string, TextSpan, bool> restWordCheck,
+            string firstResourceId,
+            string restResourceId, 
+            out string reason)
+        {
+            reason = null;
+            var violations = ArrayBuilder<string>.GetInstance();
+
+            var first = true;
+
+            foreach (var wordSpan in GetWordSpans(name, nameSpan))
+            {
+                if (first)
+                {
+                    if (!firstWordCheck(name, wordSpan))
+                    {
+                        reason = string.Format(firstResourceId, Substring(name, wordSpan));
+                    }
+                }
+                else
+                {
+                    if (!restWordCheck(name, wordSpan))
+                    {
+                        violations.Add(Substring(name, wordSpan));
+                    }
+                }
+
+                first = false;
+            }
+
+            if (violations.Count > 0)
+            {
+                var restString = string.Format(restResourceId, string.Join(", ", violations));
+                reason = reason == null
+                    ? restString
+                    : reason + Environment.NewLine + restString;
+            }
+
+            violations.Free();
+            return reason != null;
+        }
+
+        private bool CheckCamelCase(string name, TextSpan nameSpan, out string reason)
+            => CheckFirstAndRestWords(
+                name, nameSpan, s_firstCharIsLowerCase, s_firstCharIsUpperCase,
+                FeaturesResources.The_first_word_0_must_begin_with_a_lower_case_character,
+                FeaturesResources.These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0,
+                out reason);
+
+        private bool CheckFirstUpper(string name, TextSpan nameSpan, out string reason)
+            => CheckFirstAndRestWords(
+                name, nameSpan, s_firstCharIsUpperCase, s_firstCharIsLowerCase,
+                FeaturesResources.The_first_word_0_must_begin_with_an_upper_case_character,
+                FeaturesResources.These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0,
+                out reason);
 
         private string CreateCompliantNameDirectly(string name)
         {
@@ -313,5 +396,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 suffix: namingStyleElement.Attribute(nameof(Suffix)).Value,
                 wordSeparator: namingStyleElement.Attribute(nameof(WordSeparator)).Value,
                 capitalizationScheme: (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value));
-    }
+}
 }
