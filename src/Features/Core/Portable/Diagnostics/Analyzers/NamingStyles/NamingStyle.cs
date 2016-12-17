@@ -198,9 +198,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                         nextWordSeparator = _nameSpan.End;
                     }
 
+                    // If we've walked past the _nameSpan just immediately stop.  There are no more words to return.
+                    if (Current.End > _nameSpan.End)
+                    {
+                        return false;
+                    }
+
                     // found a separator in front of us.  Note: it may be in our suffix portion.  
-                    // So us the min of the separator position and our end position.
-                    Current = new TextSpan(Current.End, Math.Min(_nameSpan.End, nextWordSeparator));
+                    // So use the min of the separator position and our end position.
+                    Current = TextSpan.FromBounds(Current.End, Math.Min(_nameSpan.End, nextWordSeparator));
                     break;
                 }
 
@@ -262,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             violations.Free();
 
-            return reason != null;
+            return reason == null;
         }
 
         private bool CheckPascalCase(string name, TextSpan nameSpan, out string reason)
@@ -322,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             violations.Free();
-            return reason != null;
+            return reason == null;
         }
 
         private bool CheckCamelCase(string name, TextSpan nameSpan, out string reason)
