@@ -37,6 +37,7 @@
         "Microsoft.CodeAnalysis.Analyzers",
         "Microsoft.VisualBasic",
         "Microsoft.Composition",
+        "Microsoft.CSharp",
         "MicroBuild.*",
         "ManagedEsent",
         "Microsoft.CodeAnalysis.Elfie",
