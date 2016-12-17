@@ -193,6 +193,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
+            // extension method on tuple type
+            // M(this (
+            if (currentToken.Kind() == SyntaxKind.OpenParenToken &&
+                previousToken.Kind() == SyntaxKind.ThisKeyword &&
+                previousToken.Parent?.Kind() == SyntaxKind.Parameter)
+            {
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             // some * "(" cases
             if (currentToken.Kind() == SyntaxKind.OpenParenToken)
             {
