@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                SpecializedCollections.SingletonEnumerable(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)).ToImmutableArray(),
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)),
                 ImmutableArray<SymbolSpecification.AccessibilityKind>.Empty,
                 ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                SpecializedCollections.SingletonEnumerable(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Method)).ToImmutableArray(),
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Method)),
                 ImmutableArray<SymbolSpecification.AccessibilityKind>.Empty,
                 ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
 
