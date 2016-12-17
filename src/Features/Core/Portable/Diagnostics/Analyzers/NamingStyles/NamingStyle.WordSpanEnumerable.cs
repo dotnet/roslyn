@@ -6,7 +6,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal partial struct NamingStyle
     {
-
         private struct WordSpanEnumerable
         {
             private readonly string _name;
@@ -23,5 +22,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             public WordSpanEnumerator GetEnumerator()
                 => new WordSpanEnumerator(_name, _nameSpan, _wordSeparator);
         }
-}
+    }
 }

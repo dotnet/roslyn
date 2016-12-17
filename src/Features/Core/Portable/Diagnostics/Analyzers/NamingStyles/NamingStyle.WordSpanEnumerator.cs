@@ -8,7 +8,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal partial struct NamingStyle
     {
-
         private struct WordSpanEnumerator
         {
             private readonly string _name;
@@ -73,5 +72,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return Current.Length > 0 && Current.End <= _nameSpan.End;
             }
         }
-}
+    }
 }
