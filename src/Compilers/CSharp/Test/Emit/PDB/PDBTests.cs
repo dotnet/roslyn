@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -1855,6 +1855,138 @@ public class C
  -IL_0057:  ret
 }
 ", sequencePoints: "C.Main");
+        }
+
+        [Fact]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
+        public void ConditionalInAsyncVoidMethod()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    public static async void Test()
+    {
+        int i = 0;
+
+        if (i != 0)
+            Console
+                .WriteLine();
+    }
+}
+";
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[]{ MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+
+            v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size       81 (0x51)
+  .maxstack  2
+  .locals init (int V_0,
+                bool V_1,
+                System.Exception V_2)
+                           ~IL_0000:  ldarg.0
+                            IL_0001:  ldfld      ""int Program.<Test>d__0.<>1__state""
+                            IL_0006:  stloc.0
+                            .try
+                            {
+                        { ║  -IL_0007:  nop
+               int i = 0; ║  -IL_0008:  ldarg.0
+                              IL_0009:  ldc.i4.0
+                              IL_000a:  stfld      ""int Program.<Test>d__0.<i>5__1""
+              if (i != 0) ║  -IL_000f:  ldarg.0
+                              IL_0010:  ldfld      ""int Program.<Test>d__0.<i>5__1""
+                              IL_0015:  ldc.i4.0
+                              IL_0016:  cgt.un
+                              IL_0018:  stloc.1
+                             ~IL_0019:  ldloc.1
+                              IL_001a:  brfalse.s  IL_0022
+   Console … .WriteLine() ║  -IL_001c:  call       ""void System.Console.WriteLine()""
+                              IL_0021:  nop
+                             ~IL_0022:  leave.s    IL_003c
+                            }
+                            catch System.Exception
+                            {
+                            ~$IL_0024:  stloc.2
+                              IL_0025:  ldarg.0
+                              IL_0026:  ldc.i4.s   -2
+                              IL_0028:  stfld      ""int Program.<Test>d__0.<>1__state""
+                              IL_002d:  ldarg.0
+                              IL_002e:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program.<Test>d__0.<>t__builder""
+                              IL_0033:  ldloc.2
+                              IL_0034:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
+                              IL_0039:  nop
+                              IL_003a:  leave.s    IL_0050
+                            }
+                      } ║  -IL_003c:  ldarg.0
+                            IL_003d:  ldc.i4.s   -2
+                            IL_003f:  stfld      ""int Program.<Test>d__0.<>1__state""
+                           ~IL_0044:  ldarg.0
+                            IL_0045:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program.<Test>d__0.<>t__builder""
+                            IL_004a:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
+                            IL_004f:  nop
+                            IL_0050:  ret
+}
+", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
+        }
+
+        [Fact]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
+        public void ConditionalInTry()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    public static void Test()
+    {
+        try
+        {
+            int i = 0;
+
+            if (i != 0)
+                Console.WriteLine();
+        }
+        catch { }
+    }
+}
+";
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+
+            v.VerifyIL("Program.Test", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (int V_0, //i
+                bool V_1)
+                    { ║  -IL_0000:  nop
+                          .try
+                          {
+                      { ║  -IL_0001:  nop
+             int i = 0; ║  -IL_0002:  ldc.i4.0
+                            IL_0003:  stloc.0
+            if (i != 0) ║  -IL_0004:  ldloc.0
+                            IL_0005:  ldc.i4.0
+                            IL_0006:  cgt.un
+                            IL_0008:  stloc.1
+                           ~IL_0009:  ldloc.1
+                            IL_000a:  brfalse.s  IL_0012
+   Console.WriteLine(); ║  -IL_000c:  call       ""void System.Console.WriteLine()""
+                            IL_0011:  nop
+                      } ║  -IL_0012:  nop
+                            IL_0013:  leave.s    IL_001a
+                          }
+                          catch object
+                          {
+                  catch ║  -IL_0015:  pop
+                      { ║  -IL_0016:  nop
+                      } ║  -IL_0017:  nop
+                            IL_0018:  leave.s    IL_001a
+                          }
+                    } ║  -IL_001a:  ret
+}
+", sequencePoints: "Program.Test", source: source);
         }
 
         [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]

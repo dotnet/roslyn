@@ -164,15 +164,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static void RemoveMethodsWithNoSequencePoints(XElement pdb)
         {
             var methods = (from e in pdb.DescendantsAndSelf()
-                              where e.Name == "method" 
-                              select e).ToArray();
-            foreach(var method in methods)
+                           where e.Name == "method"
+                           select e).ToArray();
+            foreach (var method in methods)
             {
                 bool hasNoSequencePoints = method.DescendantsAndSelf().Where(node => node.Name == "entry").IsEmpty();
                 if (hasNoSequencePoints)
                 {
                     method.Remove();
-                }  
+                }
             }
         }
 
@@ -424,9 +424,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static Dictionary<int, string> GetMarkers(string pdbXml)
+        public static Dictionary<int, string> GetMarkers(string pdbXml, string source = null)
         {
-            return ToDictionary<int, string, string>(EnumerateMarkers(pdbXml), (markers, marker) => markers + marker);
+            var markersList = EnumerateMarkers(pdbXml);
+            if (source != null)
+            {
+                markersList = EnumerateSourceSpans(pdbXml, source).Concat(markersList);
+            }
+
+            return ToDictionary<int, string, string>(markersList, (markers, marker) => markers + marker);
         }
 
         private static Dictionary<K, V> ToDictionary<K, V, I>(IEnumerable<KeyValuePair<K, I>> pairs, Func<V, I, V> aggregator)
@@ -446,6 +452,55 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             return result;
+        }
+
+        public static IEnumerable<KeyValuePair<int, string>> EnumerateSourceSpans(string pdbXml, string source)
+        {
+            string[] lines = source.Split(new[] { "\r\n" }, StringSplitOptions.None);
+            var doc = new XmlDocument();
+            doc.LoadXml(pdbXml);
+
+            foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
+            {
+                foreach (XmlElement item in entry.ChildNodes)
+                {
+                    if (item.GetAttribute("hidden") != "true")
+                    {
+                        var startLine = Convert.ToInt32(item.GetAttribute("startLine"));
+                        var startColumn = Convert.ToInt32(item.GetAttribute("startColumn"));
+                        var endLine = Convert.ToInt32(item.GetAttribute("endLine"));
+                        var endColumn = Convert.ToInt32(item.GetAttribute("endColumn"));
+                        string snippet;
+                        if (startLine == endLine)
+                        {
+                            snippet = lines[startLine - 1].Substring(startColumn - 1, endColumn - startColumn);
+                        }
+                        else
+                        {
+                            var start = lines[startLine - 1].Substring(startColumn - 1);
+                            var end = lines[endLine - 1].Substring(0, endColumn - 1);
+                            const string ellipsis = " \u2026 ";
+                            snippet = TruncateStart(start, 12) + ellipsis + TruncateEnd(end, 12);
+                        }
+
+                        yield return KeyValuePair.Create(
+                            Convert.ToInt32(item.GetAttribute("offset"), 16),
+                            snippet + " ║  ");
+                    }
+                }
+            }
+
+            string TruncateStart(string text, int maxLength)
+            {
+                if (text.Length < maxLength) { return text; }
+                return text.Substring(0, maxLength);
+            }
+
+            string TruncateEnd(string text, int maxLength)
+            {
+                if (text.Length < maxLength) { return text; }
+                return text.Substring(text.Length - maxLength - 1, maxLength);
+            }
         }
 
         public static IEnumerable<KeyValuePair<int, string>> EnumerateMarkers(string pdbXml)
