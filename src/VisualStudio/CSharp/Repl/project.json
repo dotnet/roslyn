@@ -1,13 +1,13 @@
 {
-    "dependencies": {
-        "EnvDTE": "8.0.0",
-        "EnvDTE80": "8.0.0",
-        "Microsoft.VisualStudio.Editor": {
-            "version": "14.3.25407",
-            "suppressParent": "all"
-        }
-    },
-    "frameworks": {
-        "net46": { }
+  "dependencies": {
+    "EnvDTE": "8.0.0",
+    "EnvDTE80": "8.0.0",
+    "Microsoft.VisualStudio.Editor": {
+      "version": "14.3.25407",
+      "suppressParent": "all"
     }
+  },
+  "frameworks": {
+    "net46": { }
+  }
 }
