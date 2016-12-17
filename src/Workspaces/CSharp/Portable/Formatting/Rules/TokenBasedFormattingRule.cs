@@ -196,8 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // extension method on tuple type
             // M(this (
             if (currentToken.Kind() == SyntaxKind.OpenParenToken &&
-                previousToken.Kind() == SyntaxKind.ThisKeyword &&
-                previousToken.Parent?.Kind() == SyntaxKind.Parameter)
+                previousToken.Kind() == SyntaxKind.ThisKeyword)
             {
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
