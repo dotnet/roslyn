@@ -45,20 +45,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             if (symbol.Kind == SymbolKind.Method)
             {
-                var methodSymbol = symbol as IMethodSymbol;
-                if (methodSymbol != null && methodSymbol.MethodKind != MethodKind.Ordinary)
-                {
-                    return false;
-                }
+                return ((IMethodSymbol)symbol).MethodKind == MethodKind.Ordinary;
             }
 
             if (symbol.Kind == SymbolKind.Property)
             {
-                var propertySymbol = symbol as IPropertySymbol;
-                if (propertySymbol != null && propertySymbol.IsIndexer)
-                {
-                    return false;
-                }
+                return !((IPropertySymbol)symbol).IsIndexer;
             }
 
             return true;
