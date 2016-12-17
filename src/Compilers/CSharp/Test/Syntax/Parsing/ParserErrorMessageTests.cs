@@ -2064,9 +2064,9 @@ namespace x
                 // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //             e = new ();     // CS1031, too few tuple elements
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
-                // (9,21): error CS8124: Tuple must contain at least two elements.
+                // (9,22): error CS8124: Tuple must contain at least two elements.
                 //             e = new ();     // CS1031, too few tuple elements
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 22),
                 // (9,23): error CS1526: A new expression requires (), [], or {} after type
                 //             e = new ();     // CS1031, too few tuple elements
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)

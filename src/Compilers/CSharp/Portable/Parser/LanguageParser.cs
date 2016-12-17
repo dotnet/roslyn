@@ -6693,13 +6693,19 @@ tryAgain:
                     }
                 }
 
-                var close = this.EatToken(SyntaxKind.CloseParenToken);
-                var result = _syntaxFactory.TupleType(open, list, close);
-
+                if (list.Count < 1)
+                {
+                    list.Add(_syntaxFactory.TupleElement(this.CreateMissingIdentifierName(), identifier: null));
+                }
                 if (list.Count < 2)
                 {
-                    result = this.AddError(result, ErrorCode.ERR_TupleTooFewElements);
+                    list.AddSeparator(SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
+                    var missingElement = _syntaxFactory.TupleElement(this.CreateMissingIdentifierName(), identifier: null);
+                    list.Add(this.AddError(missingElement, ErrorCode.ERR_TupleTooFewElements));
                 }
+
+                var close = this.EatToken(SyntaxKind.CloseParenToken);
+                var result = _syntaxFactory.TupleType(open, list, close);
 
                 result = CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples);
 

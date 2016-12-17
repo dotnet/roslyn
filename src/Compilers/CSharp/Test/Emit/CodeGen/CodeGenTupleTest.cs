@@ -20951,5 +20951,23 @@ class C
             var xSymbol = (model.GetDeclaredSymbol(x) as LocalSymbol)?.Type;
             Assert.Equal("(System.Int32 a, System.Int32 b)", xSymbol.ToTestDisplayString());
         }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void TupleWithOneElement()
+        {
+            var source = @"
+class C
+{
+    void M(int x, (int a) y) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (4,25): error CS8124: Tuple must contain at least two elements.
+                //     void M(int x, (int a) y) { }
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 25)
+                );
+        }
     }
 }

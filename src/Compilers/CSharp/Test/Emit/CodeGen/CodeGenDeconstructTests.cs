@@ -3774,12 +3774,12 @@ class C
                 // (4,16): error CS1519: Invalid token '=' in class, struct, or interface member declaration
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 16),
-                // (4,18): error CS8124: Tuple must contain at least two elements.
-                //     var (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(").WithLocation(4, 18),
                 // (4,19): error CS1031: Type expected
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_TypeExpected, "1").WithLocation(4, 19),
+                // (4,19): error CS8124: Tuple must contain at least two elements.
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "1").WithLocation(4, 19),
                 // (4,19): error CS1026: ) expected
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "1").WithLocation(4, 19),
