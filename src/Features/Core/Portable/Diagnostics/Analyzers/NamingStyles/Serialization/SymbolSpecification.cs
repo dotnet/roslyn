@@ -69,9 +69,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             // Modifiers must match exactly
-            if (!RequiredModifierList.All(m => m.MatchesSymbol(symbol)))
+            foreach (var modifier in this.RequiredModifierList)
             {
-                return false;
+                if (!modifier.MatchesSymbol(symbol))
+                {
+                    return false;
+                }
             }
 
             if (ApplicableAccessibilityList.Any() && !ApplicableAccessibilityList.Any(k => k.MatchesSymbol(symbol)))
