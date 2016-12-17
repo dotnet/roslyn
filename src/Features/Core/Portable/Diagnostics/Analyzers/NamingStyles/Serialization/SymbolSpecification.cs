@@ -304,37 +304,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     return true;
                 }
 
-                var method = symbol as IMethodSymbol;
-                var field = symbol as IFieldSymbol;
-                var local = symbol as ILocalSymbol;
-
-                if (Modifier.IsAsync && method != null && method.IsAsync)
+                if (Modifier.IsAsync && symbol is IMethodSymbol m && m.IsAsync)
                 {
                     return true;
                 }
 
-                if (Modifier.IsReadOnly && field != null && field.IsReadOnly)
+                if (Modifier.IsReadOnly)
                 {
-                    return true;
+                    if (symbol is IFieldSymbol field && field.IsReadOnly)
+                    {
+                        return true;
+                    }
                 }
 
-                if (Modifier.IsConst && (field != null && field.IsConst) || (local != null && local.IsConst))
+                if (Modifier.IsConst)
                 {
-                    return true;
+                    if ((symbol is IFieldSymbol field && field.IsConst) ||
+                        (symbol is ILocalSymbol local && local.IsConst))
+                    {
+                        return true;
+                    }
                 }
 
                 return false;
             }
 
             internal XElement CreateXElement()
-            {
-                return new XElement(nameof(ModifierKind), ModifierKindWrapper);
-            }
+                => new XElement(nameof(ModifierKind), ModifierKindWrapper);
 
             internal static ModifierKind FromXElement(XElement modifierElement)
-            {
-                return new ModifierKind((ModifierKindEnum)(ModifierKindEnum)Enum.Parse((Type)typeof(ModifierKindEnum), (string)modifierElement.Value));
-            }
+                => new ModifierKind((ModifierKindEnum)(ModifierKindEnum)Enum.Parse((Type)typeof(ModifierKindEnum), (string)modifierElement.Value));
         }
 
         public enum ModifierKindEnum
