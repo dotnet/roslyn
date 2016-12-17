@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -137,6 +138,27 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
+            await VerifySolutionUpdate(code, s => s.WithDocumentText(s.Projects.First().DocumentIds.First(), SourceText.From(code + " ")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestUpdateProjectInfo()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            await VerifySolutionUpdate(code, s => s.Projects.First().WithAssemblyName("test2").Solution);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestUpdateDocumentInfo()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            await VerifySolutionUpdate(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, new[] { "test" }));
+        }
+
+        private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
+        {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
             {
                 var map = new Dictionary<Checksum, object>();
@@ -153,8 +175,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 Assert.Equal(solutionChecksum, await first.State.GetChecksumAsync(CancellationToken.None));
                 Assert.True(object.ReferenceEquals(PrimaryWorkspace.Workspace.PrimaryBranchId, first.BranchId));
 
-                // change content
-                var newSolution = solution.WithDocumentText(solution.Projects.First().DocumentIds.First(), SourceText.From(code + " "));
+                // get new solution
+                var newSolution = newSolutionGetter(solution);
                 var newSolutionChecksum = await newSolution.State.GetChecksumAsync(CancellationToken.None);
                 newSolution.AppendAssetMap(map);
 
