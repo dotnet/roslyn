@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
@@ -32,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                SpecializedCollections.SingletonEnumerable(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)).ToList(),
-                SpecializedCollections.EmptyList<SymbolSpecification.AccessibilityKind>(),
-                SpecializedCollections.EmptyList<SymbolSpecification.ModifierKind>());
+                SpecializedCollections.SingletonEnumerable(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)).ToImmutableArray(),
+                ImmutableArray<SymbolSpecification.AccessibilityKind>.Empty,
+                ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
 
             var namingStyle = new MutableNamingStyle();
             namingStyle.CapitalizationScheme = Capitalization.PascalCase;
@@ -62,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             var symbolSpecification = new SymbolSpecification(
                 Guid.NewGuid(),
                 "Name",
-                SpecializedCollections.SingletonEnumerable(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Method)).ToList(),
-                SpecializedCollections.EmptyList<SymbolSpecification.AccessibilityKind>(),
-                SpecializedCollections.EmptyList<SymbolSpecification.ModifierKind>());
+                SpecializedCollections.SingletonEnumerable(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Method)).ToImmutableArray(),
+                ImmutableArray<SymbolSpecification.AccessibilityKind>.Empty,
+                ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
 
             var namingStyle = new MutableNamingStyle();
             namingStyle.CapitalizationScheme = Capitalization.PascalCase;

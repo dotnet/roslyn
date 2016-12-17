@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -22,8 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         private string _symbolSpecName;
 
         public bool CanBeDeleted { get; set; }
-
-        
 
         private readonly INotificationService _notificationService;
 
@@ -124,9 +123,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             return new SymbolSpecification(
                 ID,
                 ItemName,
-                SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolKindOrTypeKind()).ToList(),
-                AccessibilityList.Where(a => a.IsChecked).Select(a => new SymbolSpecification.AccessibilityKind(a._accessibility)).ToList(),
-                ModifierList.Where(m => m.IsChecked).Select(m => new ModifierKind(m._modifier)).ToList());
+                SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolKindOrTypeKind()).ToImmutableArray(),
+                AccessibilityList.Where(a => a.IsChecked).Select(a => new AccessibilityKind(a._accessibility)).ToImmutableArray(),
+                ModifierList.Where(m => m.IsChecked).Select(m => new ModifierKind(m._modifier)).ToImmutableArray());
         }
 
         internal bool TrySubmit()

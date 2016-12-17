@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editing;
@@ -14,48 +15,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public Guid ID { get; private set; }
         public string Name { get; private set; }
 
-        public IList<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; private set; }
-        public IList<AccessibilityKind> ApplicableAccessibilityList { get; private set; }
-        public IList<ModifierKind> RequiredModifierList { get; private set; }
+        public ImmutableArray<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; }
+        public ImmutableArray<AccessibilityKind> ApplicableAccessibilityList { get; }
+        public ImmutableArray<ModifierKind> RequiredModifierList { get; }
 
         internal SymbolSpecification()
         {
             ID = Guid.NewGuid();
 
-            ApplicableSymbolKindList = new List<SymbolKindOrTypeKind>
-                {
-                    new SymbolKindOrTypeKind(SymbolKind.Namespace),
-                    new SymbolKindOrTypeKind(TypeKind.Class),
-                    new SymbolKindOrTypeKind(TypeKind.Struct),
-                    new SymbolKindOrTypeKind(TypeKind.Interface),
-                    new SymbolKindOrTypeKind(TypeKind.Delegate),
-                    new SymbolKindOrTypeKind(TypeKind.Enum),
-                    new SymbolKindOrTypeKind(TypeKind.Module),
-                    new SymbolKindOrTypeKind(TypeKind.Pointer),
-                    new SymbolKindOrTypeKind(TypeKind.TypeParameter),
-                    new SymbolKindOrTypeKind(SymbolKind.Property),
-                    new SymbolKindOrTypeKind(SymbolKind.Method),
-                    new SymbolKindOrTypeKind(SymbolKind.Field),
-                    new SymbolKindOrTypeKind(SymbolKind.Event),
-                };
+            ApplicableSymbolKindList = ImmutableArray.Create(
+                new SymbolKindOrTypeKind(SymbolKind.Namespace),
+                new SymbolKindOrTypeKind(TypeKind.Class),
+                new SymbolKindOrTypeKind(TypeKind.Struct),
+                new SymbolKindOrTypeKind(TypeKind.Interface),
+                new SymbolKindOrTypeKind(TypeKind.Delegate),
+                new SymbolKindOrTypeKind(TypeKind.Enum),
+                new SymbolKindOrTypeKind(TypeKind.Module),
+                new SymbolKindOrTypeKind(TypeKind.Pointer),
+                new SymbolKindOrTypeKind(TypeKind.TypeParameter),
+                new SymbolKindOrTypeKind(SymbolKind.Property),
+                new SymbolKindOrTypeKind(SymbolKind.Method),
+                new SymbolKindOrTypeKind(SymbolKind.Field),
+                new SymbolKindOrTypeKind(SymbolKind.Event));
 
-            ApplicableAccessibilityList = new List<AccessibilityKind>
-                {
-                    new AccessibilityKind(Accessibility.Public),
-                    new AccessibilityKind(Accessibility.Internal),
-                    new AccessibilityKind(Accessibility.Private),
-                    new AccessibilityKind(Accessibility.Protected),
-                    new AccessibilityKind(Accessibility.ProtectedAndInternal),
-                    new AccessibilityKind(Accessibility.ProtectedOrInternal),
-                };
+            ApplicableAccessibilityList = ImmutableArray.Create(
+                new AccessibilityKind(Accessibility.Public),
+                new AccessibilityKind(Accessibility.Internal),
+                new AccessibilityKind(Accessibility.Private),
+                new AccessibilityKind(Accessibility.Protected),
+                new AccessibilityKind(Accessibility.ProtectedAndInternal),
+                new AccessibilityKind(Accessibility.ProtectedOrInternal));
 
-            RequiredModifierList = new List<ModifierKind>();
+            RequiredModifierList = ImmutableArray<ModifierKind>.Empty;
         }
 
-        public SymbolSpecification(Guid id, string symbolSpecName,
-            IList<SymbolKindOrTypeKind> symbolKindList,
-            IList<AccessibilityKind> accessibilityKindList,
-            IList<ModifierKind> modifiers)
+        public SymbolSpecification(
+            Guid id, string symbolSpecName,
+            ImmutableArray<SymbolKindOrTypeKind> symbolKindList,
+            ImmutableArray<AccessibilityKind> accessibilityKindList,
+            ImmutableArray<ModifierKind> modifiers)
         {
             ID = id;
             Name = symbolSpecName;
@@ -132,22 +130,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         }
 
         internal static SymbolSpecification FromXElement(XElement symbolSpecificationElement)
-        {
-            var result = new SymbolSpecification()
-            {
-                ID = Guid.Parse(symbolSpecificationElement.Attribute(nameof(ID)).Value),
-                Name = symbolSpecificationElement.Attribute(nameof(Name)).Value
-            };
-            result.PopulateSymbolKindListFromXElement(symbolSpecificationElement.Element(nameof(ApplicableSymbolKindList)));
-            result.PopulateAccessibilityListFromXElement(symbolSpecificationElement.Element(nameof(ApplicableAccessibilityList)));
-            result.PopulateModifierListFromXElement(symbolSpecificationElement.Element(nameof(RequiredModifierList)));
+            => new SymbolSpecification(
+                id: Guid.Parse(symbolSpecificationElement.Attribute(nameof(ID)).Value),
+                symbolSpecName: symbolSpecificationElement.Attribute(nameof(Name)).Value,
+                symbolKindList: GetSymbolKindListFromXElement(symbolSpecificationElement.Element(nameof(ApplicableSymbolKindList))),
+                accessibilityKindList: GetAccessibilityListFromXElement(symbolSpecificationElement.Element(nameof(ApplicableAccessibilityList))),
+                modifiers: GetModifierListFromXElement(symbolSpecificationElement.Element(nameof(RequiredModifierList))));
 
-            return result;
-        }
-
-        private void PopulateSymbolKindListFromXElement(XElement symbolKindListElement)
+        private static ImmutableArray<SymbolKindOrTypeKind> GetSymbolKindListFromXElement(XElement symbolKindListElement)
         {
-            var applicableSymbolKindList = new List<SymbolKindOrTypeKind>();
+            var applicableSymbolKindList = ArrayBuilder<SymbolKindOrTypeKind>.GetInstance();
             foreach (var symbolKindElement in symbolKindListElement.Elements(nameof(SymbolKind)))
             {
                 applicableSymbolKindList.Add(SymbolKindOrTypeKind.AddSymbolKindFromXElement(symbolKindElement));
@@ -157,39 +149,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             {
                 applicableSymbolKindList.Add(SymbolKindOrTypeKind.AddTypeKindFromXElement(typeKindElement));
             }
-            ApplicableSymbolKindList = applicableSymbolKindList;
+
+            return applicableSymbolKindList.ToImmutableAndFree();
         }
 
-        private void PopulateAccessibilityListFromXElement(XElement accessibilityListElement)
+        private static ImmutableArray<AccessibilityKind> GetAccessibilityListFromXElement(XElement accessibilityListElement)
         {
-            var applicableAccessibilityList = new List<AccessibilityKind>();
+            var applicableAccessibilityList = ArrayBuilder<AccessibilityKind>.GetInstance();
             foreach (var accessibilityElement in accessibilityListElement.Elements(nameof(AccessibilityKind)))
             {
                 applicableAccessibilityList.Add(AccessibilityKind.FromXElement(accessibilityElement));
             }
-            ApplicableAccessibilityList = applicableAccessibilityList;
+            return applicableAccessibilityList.ToImmutableAndFree();
         }
 
-        private void PopulateModifierListFromXElement(XElement modifierListElement)
+        private static ImmutableArray<ModifierKind> GetModifierListFromXElement(XElement modifierListElement)
         {
-            RequiredModifierList = new List<ModifierKind>();
+            var result = ArrayBuilder<ModifierKind>.GetInstance();
             foreach (var modifierElement in modifierListElement.Elements(nameof(ModifierKind)))
             {
-                RequiredModifierList.Add(ModifierKind.FromXElement(modifierElement));
+                result.Add(ModifierKind.FromXElement(modifierElement));
             }
+
+            return result.ToImmutableAndFree();
         }
 
-        public class SymbolKindOrTypeKind
+        public struct SymbolKindOrTypeKind
         {
-            public SymbolKind? SymbolKind { get; set; }
-            public TypeKind? TypeKind { get; set; }
+            public SymbolKind? SymbolKind { get; }
+            public TypeKind? TypeKind { get; }
 
-            public SymbolKindOrTypeKind(SymbolKind symbolKind)
+            public SymbolKindOrTypeKind(SymbolKind symbolKind) : this()
             {
                 SymbolKind = symbolKind;
             }
 
-            public SymbolKindOrTypeKind(TypeKind typeKind)
+            public SymbolKindOrTypeKind(TypeKind typeKind) : this()
             {
                 TypeKind = typeKind;
             }
@@ -202,8 +197,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 }
                 else
                 {
-                    var typeSymbol = symbol as ITypeSymbol;
-                    return typeSymbol != null && typeSymbol.TypeKind == TypeKind.Value;
+                    return symbol is ITypeSymbol s && s.TypeKind == TypeKind.Value;
                 }
             }
 

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -89,9 +90,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             var symbolSpecifications = viewModel.Items.Cast<SymbolSpecificationViewModel>().Select(n => new SymbolSpecification(
                 n.ID,
                 n.ItemName,
-                n.SymbolKindList.Where(s => s.IsChecked).Select(k => k.CreateSymbolKindOrTypeKind()).ToList(),
-                n.AccessibilityList.Where(s => s.IsChecked).Select(a => new SymbolSpecification.AccessibilityKind(a._accessibility)).ToList(),
-                n.ModifierList.Where(s => s.IsChecked).Select(m => new SymbolSpecification.ModifierKind(m._modifier)).ToList()));
+                n.SymbolKindList.Where(s => s.IsChecked).Select(k => k.CreateSymbolKindOrTypeKind()).ToImmutableArray(),
+                n.AccessibilityList.Where(s => s.IsChecked).Select(a => new SymbolSpecification.AccessibilityKind(a._accessibility)).ToImmutableArray(),
+                n.ModifierList.Where(s => s.IsChecked).Select(m => new SymbolSpecification.ModifierKind(m._modifier)).ToImmutableArray()));
 
             Specifications.Clear();
             foreach (var specification in symbolSpecifications)
