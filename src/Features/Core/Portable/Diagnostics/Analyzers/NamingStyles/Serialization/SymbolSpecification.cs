@@ -304,14 +304,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     return true;
                 }
 
-                if (Modifier.IsAsync && symbol is IMethodSymbol m && m.IsAsync)
+                var kind = symbol.Kind;
+                if (Modifier.IsAsync && kind == SymbolKind.Method && ((IMethodSymbol)symbol).IsAsync)
                 {
                     return true;
                 }
 
                 if (Modifier.IsReadOnly)
                 {
-                    if (symbol is IFieldSymbol field && field.IsReadOnly)
+                    if (kind == SymbolKind.Field && ((IFieldSymbol)symbol).IsReadOnly)
                     {
                         return true;
                     }
@@ -319,8 +320,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
                 if (Modifier.IsConst)
                 {
-                    if ((symbol is IFieldSymbol field && field.IsConst) ||
-                        (symbol is ILocalSymbol local && local.IsConst))
+                    if ((kind == SymbolKind.Field && ((IFieldSymbol)symbol).IsConst) ||
+                        (kind == SymbolKind.Local && ((ILocalSymbol)symbol).IsConst))
                     {
                         return true;
                     }
