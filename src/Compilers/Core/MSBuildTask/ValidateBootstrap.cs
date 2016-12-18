@@ -6,18 +6,20 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
 #if DEBUG || BOOTSTRAP
     /// <summary>
-    /// This task exists to help us validate our bootstrap building phase is executing correctly.  It 
-    /// is very easy for us, or MSBuild, to accidentally load DLLs from locations that we are 
-    /// not expecting.  This task takes steps to validate the bootstrap phase is executing as expected.
+    /// This task exists to help us validate our bootstrap building phase is executing correctly.  The bootstrap
+    /// phase of CI is the best way to validate the integration of our components is functioning correctly. Items
+    /// which are difficult to validate in a unit test scenario.
     /// </summary>
-    public sealed class ValidateBootstrap : Task
+    public sealed partial class ValidateBootstrap : Task
     {
         private static readonly ConcurrentDictionary<AssemblyName, byte> s_failedLoadSet = new ConcurrentDictionary<AssemblyName, byte>();
+        private static int s_failedServerConnectionCount = 0;
 
         private string _bootstrapPath;
 
@@ -69,6 +71,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
+            // The number chosen is arbitrary here.  The goal of this check is to catch cases where a coding error has 
+            // broken our ability to use the compiler server in the bootstrap phase.
+            //
+            // It's possible on completely correct code for the server connection to fail.  There could be simply 
+            // named pipe errors, CPU load causing timeouts, etc ...  Hence flagging a single failure would produce
+            // a lot of false positives.  The current value was chosen as a reasonable number for warranting an 
+            // investigation.
+            if (s_failedServerConnectionCount > 20)
+            {
+                Log.LogError($"Too many compiler server connection failures detected: {s_failedServerConnectionCount}");
+                allGood = false;
+            }
+
             return allGood;
         }
 
@@ -104,6 +119,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     break;
             }
         }
+
+        internal static void AddFailedServerConnection()
+        {
+            Interlocked.Increment(ref s_failedServerConnectionCount);
+        }
     }
 #endif
+
+    internal static class ValidateBootstrapUtil
+    {
+        internal static void AddFailedLoad(AssemblyName name)
+        {
+#if DEBUG || BOOTSTRAP
+            ValidateBootstrap.AddFailedLoad(name);
+#endif
+        }
+
+        internal static void AddFailedServerConnection()
+        {
+#if DEBUG || BOOTSTRAP
+            ValidateBootstrap.AddFailedServerConnection();
+#endif
+        }
+    }
 }
