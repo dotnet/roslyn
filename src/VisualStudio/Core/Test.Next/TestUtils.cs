@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Xunit;
 
@@ -44,7 +45,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private static void AppendAssetMap(Project project, Dictionary<Checksum, object> map)
         {
             ProjectStateChecksums projectChecksums;
-            Assert.True(project.State.TryGetStateChecksums(out projectChecksums));
+            if (!project.State.TryGetStateChecksums(out projectChecksums))
+            {
+                Assert.False(RemoteSupportedLanguages.IsSupported(project.Language));
+                return;
+            }
 
             projectChecksums.Find(project.State, Flatten(projectChecksums), map, CancellationToken.None);
 

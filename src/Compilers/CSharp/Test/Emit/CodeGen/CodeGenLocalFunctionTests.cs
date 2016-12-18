@@ -3126,6 +3126,53 @@ void Assign() { x = 5; }";
             VerifyOutputInMain(src, "5");
         }
 
+        [Fact]
+        [WorkItem(15599, "https://github.com/dotnet/roslyn/issues/15599")]
+        public void NestedLocalFuncCapture()
+        {
+            var src = @"
+using System;
+public class C {
+    int instance = 11;
+    public void M() {
+        int M() => instance;
+
+        {
+            int local = 11;
+            bool M2() => local == M();
+            Console.WriteLine(M2());
+        }
+    }
+
+    public static void Main() => new C().M();
+}";
+            VerifyOutput(src, "True");
+        }
+
+        [Fact]
+        [WorkItem(15599, "https://github.com/dotnet/roslyn/issues/15599")]
+        public void NestedLocalFuncCapture2()
+        {
+            var src = @"
+using System;
+public class C {
+    int instance = 0b1;
+    public void M() {
+        int var1 = 0b10;
+        int M() => var1 + instance;
+
+        {
+            int local = 0b100;
+            int M2() => local + M();
+            Console.WriteLine(M2());
+        }
+    }
+
+    public static void Main() => new C().M();
+}";
+            VerifyOutput(src, "7");
+        }
+
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options);
