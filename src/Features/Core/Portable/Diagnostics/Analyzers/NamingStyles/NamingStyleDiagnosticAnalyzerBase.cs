@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             Dictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult)
         {
             // Don't even bother analyzing 
-            if (!preferences.TryGetApplicableRule(context.Symbol, out var applicableRule) &&
+            if (!preferences.TryGetApplicableRule(context.Symbol, out var applicableRule) ||
                 applicableRule.EnforcementLevel == DiagnosticSeverity.Hidden)
             {
                 return;
