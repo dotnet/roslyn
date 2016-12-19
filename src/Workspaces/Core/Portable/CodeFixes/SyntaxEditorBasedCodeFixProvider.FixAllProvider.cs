@@ -62,7 +62,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             private Task<Document> FixDocumentAsync(
                 Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
             {
-                var filteredDiagnostics = diagnostics.WhereAsArray(_codeFixProvider.IncludeDiagnosticDuringFixAll);
+                // Ensure that diagnostics for this document are always in document location
+                // order.  This provides a consistent and deterministic order for fixers
+                // that want to update a document.
+                var filteredDiagnostics = diagnostics.WhereAsArray(_codeFixProvider.IncludeDiagnosticDuringFixAll)
+                                                     .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
                 return _codeFixProvider.FixAllAsync(document, filteredDiagnostics, cancellationToken);
             }
         }
