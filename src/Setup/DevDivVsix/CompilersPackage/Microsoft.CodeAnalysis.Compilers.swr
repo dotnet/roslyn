@@ -13,6 +13,7 @@ folder InstallDir:\MSBuild\15.0\Bin\Roslyn
     file source=$(OutputPath)\Exes\vbc\vbc.exe vs.file.ngenArchitecture=all
 
     file source=$(OutputPath)\Exes\csc\csc.exe.config
+    file source=$(OutputPath)\Exes\csi\csi.exe.config
     file source=$(OutputPath)\Exes\vbc\vbc.exe.config
     file source=$(OutputPath)\Exes\VBCSCompiler\VBCSCompiler.exe.config
 
