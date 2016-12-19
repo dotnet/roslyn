@@ -3,63 +3,18 @@
 Imports System.Collections.Immutable
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Test.Utilities.VBInstrumentationChecker
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Roslyn.Test.Utilities
+Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.DynamicAnalysis.UnitTests
 
     Public Class DynamicInstrumentationTests
         Inherits BasicTestBase
 
-        Const InstrumentationHelperSourceStr As String = "
-Namespace Microsoft.CodeAnalysis.Runtime
-
-    Public Class Instrumentation
-    
-        Private Shared _payloads As Boolean()()
-        Private Shared _fileIndices As Integer()
-        Private Shared _mvid As System.Guid
-
-        Public Shared Function CreatePayload(mvid As System.Guid, methodIndex As Integer, fileIndex As Integer, ByRef payload As Boolean(), payloadLength As Integer) As Boolean()
-            If _mvid <> mvid Then
-                _payloads = New Boolean(100)() {}
-                _fileIndices = New Integer(100) {}
-                _mvid = mvid
-            End If
-
-            If System.Threading.Interlocked.CompareExchange(payload, new Boolean(payloadLength - 1) {}, Nothing) Is Nothing Then
-                _payloads(methodIndex) = payload
-                _fileIndices(methodIndex) = fileIndex
-                Return payload
-            End If
-
-            Return _payloads(methodIndex)
-        End Function
-
-        Public Shared Sub FlushPayload()
-            System.Console.WriteLine(""Flushing"")
-            If _payloads Is Nothing Then
-                Return
-            End If
-            For i As Integer = 0 To _payloads.Length - 1
-                Dim payload As Boolean() = _payloads(i)
-                if payload IsNot Nothing
-                    System.Console.WriteLine(""Method "" & i.ToString())
-                    System.Console.WriteLine(""File "" & _fileIndices(i).ToString())
-                    For j As Integer = 0 To payload.Length - 1
-                        System.Console.WriteLine(payload(j))
-                        payload(j) = False
-                    Next
-                End If
-            Next
-        End Sub
-    End Class
-End Namespace
-"
-
-        ReadOnly InstrumentationHelperSource As XElement = <file name="c.vb">
-                                                               <%= InstrumentationHelperSourceStr %>
-                                                           </file>
         <Fact>
         Public Sub SimpleCoverage()
             Dim testSource As XElement = <file name="c.vb">
@@ -80,33 +35,26 @@ End Module
             source.Add(testSource)
             source.Add(InstrumentationHelperSource)
 
-            Dim expectedOutput As XCData = <![CDATA[
-Flushing
-Method 1
-File 1
-True
-True
-True
-Method 2
-File 1
-True
-Method 5
-File 1
-True
-True
-False
-True
-True
-True
-True
-True
-True
-True
-True
-True
-]]>
+            Dim checker = New VBInstrumentationChecker()
+            checker.Method(1, 1, "Public Sub Main").
+                True("TestMain()").
+                True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()")
+            checker.Method(2, 1, "Sub TestMain()")
+            checker.Method(5, 1).
+                True().
+                False().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True().
+                True()
 
-            Dim verifier As CompilationVerifier = CompileAndVerify(source, expectedOutput)
+            Dim verifier As CompilationVerifier = CompileAndVerify(source, checker.ExpectedOutput)
+            checker.CompleteCheck(verifier.Compilation, testSource)
 
             verifier.VerifyIL(
                 "Program.TestMain",

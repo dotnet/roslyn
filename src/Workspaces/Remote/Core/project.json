@@ -1,8 +1,8 @@
 {
-    "dependencies": {
-        "System.Collections.Immutable": "1.3.0"
-    },
-    "frameworks": {
-        "net46": { }
-    }
+  "dependencies": {
+    "System.Collections.Immutable": "1.3.0"
+  },
+  "frameworks": {
+    "net46": { }
+  }
 }

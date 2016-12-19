@@ -3655,16 +3655,8 @@ namespace Microsoft.Cci
                 if (pointerTypeReference != null)
                 {
                     typeReference = pointerTypeReference.GetTargetType(Context);
-                    if (module.IsPlatformType(typeReference, PlatformType.SystemVoid))
-                    {
-                        encoder.VoidPointer();
-                        return;
-                    }
-                    else
-                    {
-                        encoder = encoder.Pointer();
-                        continue;
-                    }
+                    encoder = encoder.Pointer();
+                    continue;
                 }
 
                 IGenericTypeParameterReference genericTypeParameterReference = typeReference.AsGenericTypeParameterReference;
@@ -3801,6 +3793,13 @@ namespace Microsoft.Cci
 
                 case PrimitiveTypeCode.String:
                     encoder.String();
+                    break;
+
+                case PrimitiveTypeCode.Void:
+                    // "void" is handled specifically for "void*" with custom modifiers.
+                    // If SignatureTypeEncoder supports such cases directly, this can
+                    // be removed. See https://github.com/dotnet/corefx/issues/14571.
+                    encoder.Builder.WriteByte((byte)System.Reflection.Metadata.PrimitiveTypeCode.Void);
                     break;
 
                 default:

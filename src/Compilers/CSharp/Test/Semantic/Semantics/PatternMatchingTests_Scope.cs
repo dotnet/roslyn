@@ -2178,8 +2178,7 @@ public class X
                     case 1:
                     case 3:
                     case 12:
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAPatternLocal(model, yRef[1]);
+                        VerifyNotAPatternLocal(model, yRef[1]);
                         break;
                     default:
                         VerifyNotAPatternLocal(model, yRef[1]);
@@ -2295,8 +2294,7 @@ public class X
                         VerifyModelForDeclarationPatternDuplicateInSameScope(model, yDecl[1]);
                         break;
                     case 12:
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyModelForDeclarationPattern(model, yDecl[0], yRef[1]);
+                        VerifyModelForDeclarationPattern(model, yDecl[0], yRef[1]);
                         VerifyModelForDeclarationPattern(model, yDecl[1], yRef[0]);
                         break;
 
@@ -2309,7 +2307,6 @@ public class X
         }
 
         [Fact]
-        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
         public void ScopeOfPatternVariables_Query_07()
         {
             var source =
@@ -2351,9 +2348,10 @@ public class X
             var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).ToArray();
             Assert.Equal(2, yDecl.Length);
             Assert.Equal(2, yRef.Length);
-            VerifyModelForDeclarationPattern(model, yDecl[0], yRef[1]);
-            // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-            //VerifyModelForDeclarationPattern(model, yDecl[1], yRef[0]);
+            // Since the name is declared twice in the same scope,
+            // both references are to the same declaration.
+            VerifyModelForDeclarationPattern(model, yDecl[0], yRef);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, yDecl[1]);
         }
 
         [Fact]
@@ -2487,14 +2485,12 @@ public class X
                 switch (i)
                 {
                     case 4:
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyModelForDeclarationPattern(model, yDecl);
+                        VerifyModelForDeclarationPattern(model, yDecl);
                         VerifyNotAPatternLocal(model, yRef);
                         break;
                     case 5:
                         VerifyModelForDeclarationPattern(model, yDecl);
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAPatternLocal(model, yRef);
+                        VerifyNotAPatternLocal(model, yRef);
                         break;
                     default:
                         VerifyModelForDeclarationPattern(model, yDecl);
@@ -2648,13 +2644,11 @@ public class X
                     case 4:
                     case 6:
                         VerifyModelForDeclarationPattern(model, yDecl, yRef[0]);
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAPatternLocal(model, yRef[1]);
+                        VerifyNotAPatternLocal(model, yRef[1]);
                         break;
                     case 8:
                         VerifyModelForDeclarationPattern(model, yDecl, yRef[1]);
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAPatternLocal(model, yRef[0]);
+                        VerifyNotAPatternLocal(model, yRef[0]);
                         break;
                     case 10:
                         VerifyModelForDeclarationPattern(model, yDecl, yRef[0]);

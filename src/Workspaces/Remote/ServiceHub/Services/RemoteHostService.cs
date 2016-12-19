@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return _host;
         }
 
-        public async Task SynchronizeAsync(byte[] solutionChecksum)
+        public async Task SynchronizePrimaryWorkspaceAsync(byte[] solutionChecksum)
         {
             var checksum = new Checksum(solutionChecksum);
 
@@ -64,8 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 try
                 {
-                    // cause all assets belong to the given solution to sync to remote host
-                    await RoslynServices.AssetService.SynchronizeSolutionAssetsAsync(checksum, CancellationToken).ConfigureAwait(false);
+                    await RoslynServices.SolutionService.UpdatePrimaryWorkspaceAsync(checksum, CancellationToken).ConfigureAwait(false);
                 }
                 catch (IOException)
                 {
@@ -123,8 +122,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         #region PersistentStorageService messages
 
-        public void PersistentStorageService_RegisterPrimarySolutionId(
-            byte[] solutionIdGuidBytes, string solutionIdDebugName, byte[] solutionChecksum)
+        public void PersistentStorageService_RegisterPrimarySolutionId(byte[] solutionIdGuidBytes, string solutionIdDebugName)
         {
             var solutionId = CreateSolutionId(solutionIdGuidBytes, solutionIdDebugName);
 
@@ -142,26 +140,22 @@ namespace Microsoft.CodeAnalysis.Remote
             return persistentStorageService;
         }
 
-        public void PersistentStorageService_UnregisterPrimarySolutionId(
-            byte[] solutionIdGuidBytes, string solutionIdDebugName, bool synchronousShutdown, byte[] solutionChecksum)
+        public void PersistentStorageService_UnregisterPrimarySolutionId(byte[] solutionIdGuidBytes, string solutionIdDebugName, bool synchronousShutdown)
         {
             var solutionId = CreateSolutionId(solutionIdGuidBytes, solutionIdDebugName);
             var persistentStorageService = GetPersistentStorageService();
             persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
         }
 
-        public void PersistentStorageService_UpdateSolutionIdStorageLocation(
-            byte[] solutionIdGuidBytes, string solutionIdDebugName, string storageLocation, byte[] solutionChecksum)
+        public void PersistentStorageService_UpdateSolutionIdStorageLocation(byte[] solutionIdGuidBytes, string solutionIdDebugName, string storageLocation)
         {
             var solutionId = CreateSolutionId(solutionIdGuidBytes, solutionIdDebugName);
-            RemotePersistentStorageLocationService.UpdateStorageLocation(
-                solutionId, storageLocation);
+            RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
         }
 
         private static SolutionId CreateSolutionId(byte[] solutionIdGuidBytes, string solutionIdDebugName)
         {
-            return SolutionId.CreateFromSerialized(
-                new Guid(solutionIdGuidBytes), solutionIdDebugName);
+            return SolutionId.CreateFromSerialized(new Guid(solutionIdGuidBytes), solutionIdDebugName);
         }
 
         #endregion

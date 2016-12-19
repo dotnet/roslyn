@@ -2135,7 +2135,12 @@ namespace System.ServiceModel
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (7,13): error CS1740: Named argument 'arg' cannot be specified multiple times
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "arg").WithArguments("arg").WithLocation(7, 13));
+                //             arg: null);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "arg").WithArguments("arg").WithLocation(7, 13),
+                // (5,9): error CS1501: No overload for method 'M' takes 3 arguments
+                //         M("",
+                Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "3").WithLocation(5, 9)
+                );
         }
 
         [WorkItem(543820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543820")]

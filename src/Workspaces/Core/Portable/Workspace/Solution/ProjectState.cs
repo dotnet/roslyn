@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<DocumentId, DocumentState> documentStates,
             ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates,
             AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
-            AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion,
-            ValueSource<ProjectStateChecksums> lazyChecksums)
+            AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion)
         {
             _projectInfo = projectInfo;
             _solutionServices = solutionServices;
@@ -55,8 +54,6 @@ namespace Microsoft.CodeAnalysis
             _lazyLatestDocumentVersion = lazyLatestDocumentVersion;
             _lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
 
-            // for now, let it re-calculate if anything changed.
-            // TODO: optimize this so that we only re-calcuate checksums that are actually changed
             _lazyChecksums = new AsyncLazy<ProjectStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
@@ -90,8 +87,6 @@ namespace Microsoft.CodeAnalysis
             _lazyLatestDocumentVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(docStates, additionalDocStates, c), cacheResult: true);
             _lazyLatestDocumentTopLevelChangeVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(docStates, additionalDocStates, c), cacheResult: true);
 
-            // for now, let it re-calculate if anything changed.
-            // TODO: optimize this so that we only re-calcuate checksums that are actually changed
             _lazyChecksums = new AsyncLazy<ProjectStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
@@ -335,10 +330,8 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<DocumentId, DocumentState> documentStates = null,
             ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates = null,
             AsyncLazy<VersionStamp> latestDocumentVersion = null,
-            AsyncLazy<VersionStamp> latestDocumentTopLevelChangeVersion = null,
-            ValueSource<ProjectStateChecksums> lazyChecksums = null)
+            AsyncLazy<VersionStamp> latestDocumentTopLevelChangeVersion = null)
         {
-            // for now, re-calculate all checksums when anything changed
             return new ProjectState(
                 projectInfo ?? _projectInfo,
                 _languageServices,
@@ -348,8 +341,7 @@ namespace Microsoft.CodeAnalysis
                 documentStates ?? _documentStates,
                 additionalDocumentStates ?? _additionalDocumentStates,
                 latestDocumentVersion ?? _lazyLatestDocumentVersion,
-                latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion,
-                lazyChecksums ?? _lazyChecksums);
+                latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion);
         }
 
         public ProjectState UpdateName(string name)

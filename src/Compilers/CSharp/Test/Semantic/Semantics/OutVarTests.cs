@@ -883,13 +883,14 @@ public class Cls
             Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
 
+            var other = model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single();
             if (isShadowed)
             {
-                Assert.NotEqual(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single());
+                Assert.NotEqual(symbol, other);
             }
             else
             {
-                Assert.Same(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single());
+                Assert.Same(symbol, other);
             }
 
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier().ValueText));
@@ -11209,8 +11210,7 @@ public class X
                 switch (i)
                 {
                     case 12:
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAnOutLocal(model, yRef[1]);
+                        VerifyNotAnOutLocal(model, yRef[1]);
                         break;
                     default:
                         VerifyNotAnOutLocal(model, yRef[1]);
@@ -11220,8 +11220,7 @@ public class X
 
             var y13Decl = GetOutVarDeclarations(tree, "y13").Single();
             var y13Ref = GetReference(tree, "y13");
-            // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-            //VerifyModelForOutVar(model, y13Decl, y13Ref);
+            VerifyModelForOutVar(model, y13Decl, y13Ref);
         }
 
         [Fact]
@@ -11343,8 +11342,7 @@ public class X
                         VerifyModelForOutVarDuplicateInSameScope(model, yDecl[1]);
                         break;
                     case 12:
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyModelForOutVar(model, yDecl[0], yRef[1]);
+                        VerifyModelForOutVar(model, yDecl[0], yRef[1]);
                         VerifyModelForOutVar(model, yDecl[1], yRef[0]);
                         break;
 
@@ -11357,7 +11355,6 @@ public class X
         }
 
         [Fact]
-        [WorkItem(10466, "https://github.com/dotnet/roslyn/issues/10466")]
         public void Scope_Query_07()
         {
             var source =
@@ -11411,9 +11408,10 @@ public class X
             var yRef = GetReferences(tree, id).ToArray();
             Assert.Equal(2, yDecl.Length);
             Assert.Equal(2, yRef.Length);
-            VerifyModelForOutVar(model, yDecl[0], yRef[1]);
-            // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-            //VerifyModelForOutVar(model, yDecl[1], yRef[0]);
+            // Since the name is declared twice in the same scope,
+            // both references are to the same declaration.
+            VerifyModelForOutVar(model, yDecl[0], yRef);
+            VerifyModelForOutVarDuplicateInSameScope(model, yDecl[1]);
         }
 
         [Fact]
@@ -11559,14 +11557,12 @@ public class X
                 switch (i)
                 {
                     case 4:
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyModelForOutVar(model, yDecl);
+                        VerifyModelForOutVar(model, yDecl);
                         VerifyNotAnOutLocal(model, yRef);
                         break;
                     case 5:
                         VerifyModelForOutVar(model, yDecl);
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAnOutLocal(model, yRef);
+                        VerifyNotAnOutLocal(model, yRef);
                         break;
                     default:
                         VerifyModelForOutVar(model, yDecl);
@@ -11726,13 +11722,11 @@ public class X
                     case 4:
                     case 6:
                         VerifyModelForOutVar(model, yDecl, yRef[0]);
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAnOutLocal(model, yRef[1]);
+                        VerifyNotAnOutLocal(model, yRef[1]);
                         break;
                     case 8:
                         VerifyModelForOutVar(model, yDecl, yRef[1]);
-                        // Should be uncommented once https://github.com/dotnet/roslyn/issues/10466 is fixed.
-                        //VerifyNotAnOutLocal(model, yRef[0]);
+                        VerifyNotAnOutLocal(model, yRef[0]);
                         break;
                     case 10:
                         VerifyModelForOutVar(model, yDecl, yRef[0]);
@@ -18062,6 +18056,84 @@ public class Cls
             var yRef = GetReferences(tree, "y").Last();
 
             Assert.Equal("System.Int32", model.GetTypeInfo(yRef).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(15732, "https://github.com/dotnet/roslyn/issues/15732")]
+        public void LocalVariableTypeInferenceAndOutVar_06()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(x: 1, out var y);
+        System.Console.WriteLine(y);
+    }
+
+    static void Test1(int x, ref int y)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (6,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
+                //         Test1(x: 1, out var y);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "out var y").WithLocation(6, 21),
+                // (6,25): error CS1620: Argument 2 must be passed with the 'ref' keyword
+                //         Test1(x: 1, out var y);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "var y").WithArguments("2", "ref").WithLocation(6, 25)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yDecl = GetDeclaration(tree, "y");
+            VerifyModelForOutVar(model, yDecl, GetReferences(tree, "y").ToArray());
+        }
+
+        [Fact]
+        [WorkItem(15732, "https://github.com/dotnet/roslyn/issues/15732")]
+        public void LocalVariableTypeInferenceAndOutVar_07()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        int x = 0;
+        Test1(y: ref x, y: out var y);
+        System.Console.WriteLine(y);
+    }
+
+    static void Test1(int x, ref int y)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (7,25): error CS1740: Named argument 'y' cannot be specified multiple times
+                //         Test1(y: ref x, y: out var y);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(7, 25),
+                // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Cls.Test1(int, ref int)'
+                //         Test1(y: ref x, y: out var y);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test1").WithArguments("x", "Cls.Test1(int, ref int)").WithLocation(7, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yDecl = GetDeclaration(tree, "y");
+            var yRef = GetReferences(tree, "y").ToArray();
+            Assert.Equal(3, yRef.Length);
+            Assert.Equal("System.Console.WriteLine(y)", yRef[2].Parent.Parent.Parent.ToString());
+            VerifyModelForOutVar(model, yDecl, yRef[2]);
         }
 
         [Fact, WorkItem(13219, "https://github.com/dotnet/roslyn/issues/13219")]

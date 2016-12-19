@@ -16,6 +16,7 @@
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
     <MicrosoftCompositionVersion>1.0.27</MicrosoftCompositionVersion>
+    <MicrosoftCSharpVersion>4.3.0</MicrosoftCSharpVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>
     <MicrosoftDiaSymReaderVersion>1.1.0-beta1-60818-02</MicrosoftDiaSymReaderVersion>
@@ -88,9 +89,9 @@
     <SystemXmlXmlDocumentVersion>4.3.0</SystemXmlXmlDocumentVersion>
     <SystemXmlXmlSerializerVersion>4.3.0</SystemXmlXmlSerializerVersion>
     <SystemXmlXPathXDocumentVersion>4.3.0</SystemXmlXPathXDocumentVersion>
-    <xunitVersion>2.1.0</xunitVersion>
-    <xunitassertVersion>2.1.0</xunitassertVersion>
+    <xunitVersion>2.2.0-beta4-build3444</xunitVersion>
     <xunitconsolenetcoreVersion>1.0.2-prerelease-00104</xunitconsolenetcoreVersion>
-    <xunitrunnerconsoleVersion>2.2.0-beta1-build3239</xunitrunnerconsoleVersion>
+    <xunitrunnerconsoleVersion>2.2.0-beta4-build3444</xunitrunnerconsoleVersion>
+    <xunitrunnervisualstudioVersion>2.2.0-beta4-build1194</xunitrunnervisualstudioVersion>
   </PropertyGroup>
 </Project>
