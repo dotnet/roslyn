@@ -49,7 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // of hte local.  This is necessary in some cases (for example, when the
             // type of the out-var-decl affects overload resolution or generic instantiation).
 
-            foreach (var diagnostic in diagnostics)
+            // Process diagnostics in the order they appear in the document.  That way if 
+            // we have multiple diagnostics for the same declaration (i.e. "var foo, bar") 
+            // and we want to inline all the declarators, we process them in declarator order.
+            foreach (var diagnostic in diagnostics.OrderBy(d => d.Location.SourceSpan.Start))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 await AddEditsAsync(
