@@ -280,6 +280,7 @@
     <Compile Include="CodeGen\Optimizer\StackScheduler.vb" />
     <Compile Include="CommandLine\VisualBasicCommandLineArguments.vb" />
     <Compile Include="CommandLine\CommandLineDiagnosticFormatter.vb" />
+    <Compile Include="CommandLine\VisualBasicCommandLineParser_Flags.vb" />
     <Compile Include="CommandLine\VisualBasicCommandLineParser.vb" />
     <Compile Include="CommandLine\VisualBasicCompiler.vb" />
     <Compile Include="Compilation\AwaitExpressionInfo.vb" />
