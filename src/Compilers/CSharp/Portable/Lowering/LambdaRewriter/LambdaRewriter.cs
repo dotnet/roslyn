@@ -659,7 +659,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)_innermostFramePointer != null)
             {
                 proxies.TryGetValue(_innermostFramePointer, out oldInnermostFrameProxy);
-                if (_analysis.NeedsParentFrame.Contains(node))
+                if (_analysis.NeedsParentFrame.Contains(node) &&
+                    // If the frame pointer is a struct type that means the frame is a struct
+                    // passed by-ref to a local function. Capturing parent frames for local
+                    // functions is performed in RemapLambdaOrLocalFunction, rather than here
+                    // (since struct frame pointers should never be captured, but instead be
+                    // passed in a list to the needed local functions).
+                    !(_innermostFramePointer.Kind == SymbolKind.Local &&
+                      ((LocalSymbol)_innermostFramePointer).Type.IsValueType))
                 {
                     var capturedFrame = LambdaCapturedVariable.Create(frame, _innermostFramePointer, ref _synthesizedFieldNameIdDispenser);
                     FieldSymbol frameParent = capturedFrame.AsMember(frameType);
