@@ -271,7 +271,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </example>
         private ImmutableArray<TypeSymbol> SubstituteTypeArguments(ImmutableArray<TypeSymbol> typeArguments)
         {
-            if (typeArguments.IsDefault)
+            Debug.Assert(!typeArguments.IsDefault);
+
+            if (typeArguments.IsEmpty)
             {
                 return typeArguments;
             }
