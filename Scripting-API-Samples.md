@@ -98,13 +98,13 @@ var script = CSharpScript.Create<int>("X*Y", globalsType: typeof(Globals));
 ScriptRunner<int> runner = script.CreateDelegate();
 for (int i = 0; i < 10; i++)
 {
-    await runner(new Globals { X = i, Y = i });
+    Console.WriteLine(await runner(new Globals { X = i, Y = i }));
 }
 ```
 
 #### <a name="inspect"></a> Run a C# snippet and inspect defined script variables
 ```csharp
-var state = await CSharpScript.RunAsync<int>("int answer = 42");
+var state = await CSharpScript.RunAsync<int>("int answer = 42;");
 foreach (var variable in state.Variables)
      Console.WriteLine($"{variable.Name} = {variable.Value} of type {variable.Type}");
 ```
