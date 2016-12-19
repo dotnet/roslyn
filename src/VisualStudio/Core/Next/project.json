@@ -30,7 +30,8 @@
     "RoslynDependencies.Microsoft.VisualStudio.GraphModel": {
       "version": "15.0.25726-Preview5",
       "suppressParent": "all"
-    },
+    }
+  },
   "frameworks": {
     "net46": { }
   }
