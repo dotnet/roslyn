@@ -235,7 +235,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             public override bool Equals(object obj)
             {
-                return Equals((SymbolKindOrTypeKind)obj);
+                if (obj is SymbolKindOrTypeKind symbolKindOrTypeKind)
+                {
+                    return Equals(symbolKindOrTypeKind);
+                }
+
+                return false;
             }
 
             public bool Equals(SymbolKindOrTypeKind other)
@@ -363,7 +368,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             public override bool Equals(object obj)
             {
-                return Equals((ModifierKind)obj);
+                if (obj is ModifierKind modifierKind)
+                {
+                    return Equals(modifierKind);
+                }
+
+                return false;
             }
 
             public bool Equals(ModifierKind other)

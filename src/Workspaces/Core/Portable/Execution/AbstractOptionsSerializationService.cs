@@ -303,9 +303,15 @@ namespace Microsoft.CodeAnalysis.Execution
             cancellationToken.ThrowIfCancellationRequested();
 
             var xmlText = reader.ReadString();
-            var value = NamingStylePreferences.FromXElement(XElement.Parse(xmlText));
-
-            return options.WithChangedOption(option, value);
+            try
+            {
+                var value = NamingStylePreferences.FromXElement(XElement.Parse(xmlText));
+                return options.WithChangedOption(option, value);
+            }
+            catch (System.Exception)
+            {
+                return options;
+            }
         }
 
         private void WriteOptionTo(OptionSet options, string language, PerLanguageOption<NamingStylePreferences> option, ObjectWriter writer, CancellationToken cancellationToken)
@@ -321,9 +327,16 @@ namespace Microsoft.CodeAnalysis.Execution
             cancellationToken.ThrowIfCancellationRequested();
 
             var xmlText = reader.ReadString();
-            var value = NamingStylePreferences.FromXElement(XElement.Parse(xmlText));
+            try
+            {
+                var value = NamingStylePreferences.FromXElement(XElement.Parse(xmlText));
+                return options.WithChangedOption(option, language, value);
 
-            return options.WithChangedOption(option, language, value);
+            }
+            catch (System.Exception)
+            {
+                return options;
+            }
         }
 
         /// <summary>

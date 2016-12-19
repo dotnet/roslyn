@@ -539,7 +539,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             set
             {
-                _workspace.Options = _workspace.Options.WithChangedOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp, NamingStylePreferences.FromXElement(XElement.Parse(value)));
+                try
+                {
+                    _workspace.Options = _workspace.Options.WithChangedOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp, NamingStylePreferences.FromXElement(XElement.Parse(value)));
+                }
+                catch (Exception)
+                {
+                }
             }
         }
 

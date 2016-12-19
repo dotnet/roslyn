@@ -13,7 +13,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             IReadOnlyDictionary<string, object> conventionsDictionary,
             out SerializableNamingRule serializableNamingRule)
         {
-            var severity = GetRuleSeverity(namingRuleTitle, conventionsDictionary);
+            if(!TryGetRuleSeverity(namingRuleTitle, conventionsDictionary, out var severity))
+            {
+                serializableNamingRule = null;
+                return false;
+            }
+
             serializableNamingRule = new SerializableNamingRule()
             {
                 EnforcementLevel = severity,
@@ -24,16 +29,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return true;
         }
 
-        private static DiagnosticSeverity GetRuleSeverity(
+        private static bool TryGetRuleSeverity(
             string namingRuleName,
-            IReadOnlyDictionary<string, object> conventionsDictionary)
+            IReadOnlyDictionary<string, object> conventionsDictionary,
+            out DiagnosticSeverity severity)
         {
             if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.severity", out object result))
             {
-                return ParseEnforcementLevel(result as string ?? string.Empty);
+                severity = ParseEnforcementLevel(result as string ?? string.Empty);
+                return true;
             }
 
-            return default(DiagnosticSeverity);
+            severity = default(DiagnosticSeverity);
+            return false;
         }
 
         private static DiagnosticSeverity ParseEnforcementLevel(string ruleSeverity)

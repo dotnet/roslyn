@@ -20,7 +20,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             var requiredPrefix = GetNamingRequiredPrefix(namingStyleTitle, allRawConventions);
             var requiredSuffix = GetNamingRequiredSuffix(namingStyleTitle, allRawConventions);
             var wordSeparator = GetNamingWordSeparator(namingStyleTitle, allRawConventions);
-            var capitalization = GetNamingCapitalization(namingStyleTitle, allRawConventions);
+             if(!TryGetNamingCapitalization(namingStyleTitle, allRawConventions, out var capitalization))
+            {
+                namingStyle = null;
+                return false;
+            }
 
             namingStyle = new NamingStyle()
             {
@@ -58,10 +62,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static string GetNamingWordSeparator(string namingStyleName, IReadOnlyDictionary<string, object> conventionsDictionary)
             => GetStringFromConventionsDictionary(namingStyleName, "word_separator", conventionsDictionary);
 
-        private static Capitalization GetNamingCapitalization(string namingStyleName, IReadOnlyDictionary<string, object> conventionsDictionary)
+        private static bool TryGetNamingCapitalization(string namingStyleName, IReadOnlyDictionary<string, object> conventionsDictionary, out Capitalization capitalization)
         {
             var result = GetStringFromConventionsDictionary(namingStyleName, "capitalization", conventionsDictionary);
-            return ParseCapitalizationScheme(result);
+            return TryParseCapitalizationScheme(result, out capitalization);
         }
 
         private static string GetStringFromConventionsDictionary(string namingStyleName, string optionName, IReadOnlyDictionary<string, object> conventionsDictionary)
@@ -74,16 +78,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return string.Empty;
         }
 
-        private static Capitalization ParseCapitalizationScheme(string namingStyleCapitalization)
+        private static bool TryParseCapitalizationScheme(string namingStyleCapitalization, out Capitalization capitalization)
         {
             switch (namingStyleCapitalization)
             {
-                case "pascal_case": return Capitalization.PascalCase;
-                case "camel_case": return Capitalization.CamelCase;
-                case "first_word_upper": return Capitalization.FirstUpper;
-                case "all_upper": return Capitalization.AllUpper;
-                case "all_lower": return Capitalization.AllLower;
-                default: return default(Capitalization);
+                case "pascal_case":
+                    capitalization = Capitalization.PascalCase;
+                    return true;
+                case "camel_case":
+                    capitalization = Capitalization.CamelCase;
+                    return true;
+                case "first_word_upper":
+                    capitalization = Capitalization.FirstUpper;
+                    return true;
+                case "all_upper":
+                    capitalization = Capitalization.AllUpper;
+                    return true;
+                case "all_lower":
+                    capitalization = Capitalization.AllLower;
+                    return true;
+                default:
+                    capitalization = default(Capitalization);
+                    return false;
             }
         }
     }

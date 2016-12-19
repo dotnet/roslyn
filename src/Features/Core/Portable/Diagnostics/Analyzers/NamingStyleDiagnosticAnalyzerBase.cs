@@ -2,10 +2,8 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Simplification;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {

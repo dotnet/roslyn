@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -38,9 +39,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             var symbolSpecifications = new List<SymbolSpecification>();
             var namingStyles = new List<NamingStyle>();
             var namingRules = new List<SerializableNamingRule>();
-            var trimmedDictionary = allRawConventions
-                .Select(x => new KeyValuePair<string, object>(x.Key.Trim(), x.Value))
-                .ToDictionary(x => x.Key, x => x.Value);
+            var trimmedDictionary = TrimDictionary(allRawConventions);
+
             foreach (var namingRuleTitle in GetRuleTitles(trimmedDictionary))
             {
                 if (TryGetSymbolSpec(namingRuleTitle, trimmedDictionary, out var symbolSpec))
@@ -62,9 +62,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return new NamingStylePreferences(symbolSpecifications, namingStyles, namingRules);
         }
 
+        private static Dictionary<string, object> TrimDictionary(IReadOnlyDictionary<string, object> allRawConventions)
+        {
+            var trimmedDictionary = new Dictionary<string, object>(allRawConventions.Count);
+            foreach (var item in allRawConventions)
+            {
+                var key = item.Key.Trim();
+                var value = item.Value;
+                trimmedDictionary[key] = value;
+            }
+
+            return trimmedDictionary;
+        }
+
         private static IEnumerable<string> GetRuleTitles(IReadOnlyDictionary<string, object> allRawConventions)
             => (from kvp in allRawConventions
-                where kvp.Key.Trim().StartsWith("dotnet_naming_rule.")
+                where kvp.Key.Trim().StartsWith("dotnet_naming_rule.", StringComparison.Ordinal)
                 let nameSplit = kvp.Key.Split('.')
                 where nameSplit.Length == 3
                 select nameSplit[1])

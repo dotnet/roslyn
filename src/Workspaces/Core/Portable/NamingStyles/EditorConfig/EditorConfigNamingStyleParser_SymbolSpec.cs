@@ -77,12 +77,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return ImmutableArray<SymbolKindOrTypeKind>.Empty;
             }
 
-            var builder = ArrayBuilder<SymbolKindOrTypeKind>.GetInstance();
             if (symbolSpecApplicableKinds.Trim() == "*")
             {
                 return _all;
             }
 
+            var builder = ArrayBuilder<SymbolKindOrTypeKind>.GetInstance();
             foreach (var symbolSpecApplicableKind in symbolSpecApplicableKinds.Split(',').Select(x => x.Trim()))
             {
                 switch (symbolSpecApplicableKind)
@@ -134,6 +134,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return ImmutableArray<Accessibility>.Empty;
         }
 
+        private static readonly ImmutableArray<Accessibility> _allAccessibility = ImmutableArray.Create(Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal);
+
         private static ImmutableArray<Accessibility> ParseAccessibilityKindList(string symbolSpecApplicableAccessibilities)
         {
             if (symbolSpecApplicableAccessibilities == null)
@@ -141,13 +143,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return ImmutableArray<Accessibility>.Empty;
             }
 
-            var builder = ArrayBuilder<Accessibility>.GetInstance();
             if (symbolSpecApplicableAccessibilities.Trim() == "*")
             {
-                builder.AddRange(Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal);
-                return builder.ToImmutableAndFree();
+                return _allAccessibility;
             }
 
+            var builder = ArrayBuilder<Accessibility>.GetInstance();
             foreach (var symbolSpecApplicableAccessibility in symbolSpecApplicableAccessibilities.Split(',').Select(x => x.Trim()))
             {
                 switch (symbolSpecApplicableAccessibility)
@@ -194,6 +195,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static readonly ModifierKind _constModifierKind = new ModifierKind(ModifierKindEnum.IsConst);
         private static readonly ModifierKind _readonlyModifierKind = new ModifierKind(ModifierKindEnum.IsReadOnly);
         private static readonly ModifierKind _staticModifierKind = new ModifierKind(ModifierKindEnum.IsStatic);
+        private static readonly ImmutableArray<ModifierKind> _allModifierKind = ImmutableArray.Create(_abstractModifierKind, _asyncModifierKind, _constModifierKind, _readonlyModifierKind, _staticModifierKind);
 
         private static ImmutableArray<ModifierKind> ParseModifiers(string symbolSpecRequiredModifiers)
         {
@@ -202,13 +204,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return ImmutableArray<ModifierKind>.Empty;
             }
 
-            var builder = ArrayBuilder<ModifierKind>.GetInstance();
             if (symbolSpecRequiredModifiers.Trim() == "*")
             {
-                builder.AddRange(_abstractModifierKind, _asyncModifierKind, _constModifierKind, _readonlyModifierKind, _staticModifierKind);
-                return builder.ToImmutableAndFree();
+                return _allModifierKind;
             }
 
+            var builder = ArrayBuilder<ModifierKind>.GetInstance();
             foreach (var symbolSpecRequiredModifier in symbolSpecRequiredModifiers.Split(',').Select(x => x.Trim()))
             {
                 switch (symbolSpecRequiredModifier)
