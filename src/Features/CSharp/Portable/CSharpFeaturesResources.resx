@@ -503,4 +503,7 @@
   <data name="Add_this" xml:space="preserve">
     <value>Add 'this.'</value>
   </data>
+  <data name="Local_func_in_span" xml:space="preserve">
+    <value>Warning: Extracting a local function reference may produce invalid code</value>
+  </data>
 </root>

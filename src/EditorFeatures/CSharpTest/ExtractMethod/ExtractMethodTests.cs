@@ -7373,28 +7373,7 @@ class Program
         }
     }
 }";
-            var expected = @"class Test
-{
-    void method()
-    {
-        static void Main(string[] args)
-        {
-            int v = 0;
-            for(int i=0 ; i<5; i++)
-            {
-                v = NewMethod(v, i);
-            }
-        }
-    }
-
-    private static int NewMethod(int v, int i)
-    {
-        v = v + i;
-        return v;
-    }
-}";
-
-            await TestExtractMethodAsync(code, expected);
+            await ExpectExtractMethodToFailAsync(code);
         }
 
         [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
@@ -7415,27 +7394,7 @@ class Program
         }
     }
 }";
-            var expected = @"class Test
-{
-    void method()
-    {
-        static void Main(string[] args)
-        {
-            int v = 0;
-            for(int i=0 ; i<5; i++)
-            {
-                v = NewMethod(v, i);
-            }
-        }
-    }
-
-    private static int NewMethod(int v, int i)
-    {
-        return v + i;
-    }
-}";
-
-            await TestExtractMethodAsync(code, expected);
+            await ExpectExtractMethodToFailAsync(code);
         }
 
         [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
@@ -7456,27 +7415,7 @@ class Program
         }
     }
 }";
-            var expected = @"class Test
-{
-    void method()
-    {
-        static void Main(string[] args)
-        {
-            int v = 0;
-            for(int i=0 ; i<5; i++)
-            {
-                i = NewMethod(ref v, i);
-            }
-        }
-    }
-
-    private static int NewMethod(ref int v, int i)
-    {
-        return v = v + i;
-    }
-}";
-
-            await TestExtractMethodAsync(code, expected);
+            await ExpectExtractMethodToFailAsync(code);
         }
 
         [WorkItem(540333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540333")]
@@ -10267,5 +10206,118 @@ namespace ClassLibrary9
                 Assert.False(state.IsAvailable);
             }
         }
+
+        [Fact]
+        [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
+        public async Task ExtractLocalFunctionCall()
+        {
+            var code = @"
+class C
+{
+    public static void Main()
+    {
+        void Local() { }
+        [|Local();|]
+    }
+}";
+            await TestExtractMethodAsync(code, @"
+class C
+{
+    public static void Main()
+    {
+        void Local() { }
+        NewMethod();
+    }
+
+    private static void NewMethod()
+    {
+        Local();
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
+        public async Task ExtractLocalFunctionCallWithCapture()
+        {
+            var code = @"
+class C
+{
+    public static void Main(string[] args)
+    {
+        bool Local() => args == null;
+        [|Local();|]
+    }
+}";
+            await TestExtractMethodAsync(code, @"
+class C
+{
+    public static void Main(string[] args)
+    {
+        bool Local() => args == null;
+        NewMethod();
+    }
+
+    private static void NewMethod()
+    {
+        Local();
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
+        public async Task ExtractLocalFunctionDeclaration()
+        {
+            var code = @"
+class C
+{
+    public static void Main()
+    {
+        [|bool Local() => args == null;|]
+        Local();
+    }
+}";
+            await ExpectExtractMethodToFailAsync(code);
+        }
+
+        [Fact]
+        [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
+        public async Task ExtractLocalFunctionInterior()
+        {
+            var code = @"
+class C
+{
+    public static void Main()
+    {
+        void Local()
+        {
+            [|int x = 0;
+            x++;|]
+        }
+        Local();
+    }
+}";
+            await TestExtractMethodAsync(code, @"
+class C
+{
+    public static void Main()
+    {
+        void Local()
+        {
+            NewMethod();
+        }
+        Local();
+    }
+
+    private static void NewMethod()
+    {
+        int x = 0;
+        x++;
+    }
+}");
+        }
+
+
     }
 }

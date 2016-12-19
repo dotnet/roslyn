@@ -585,6 +585,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: Extracting a local function reference may produce invalid code.
+        /// </summary>
+        internal static string Local_func_in_span {
+            get {
+                return ResourceManager.GetString("Local_func_in_span", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to local function.
         /// </summary>
         internal static string local_function {

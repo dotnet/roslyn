@@ -135,7 +135,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             Assert.NotNull(result);
             Assert.Equal(succeed, result.Succeeded || result.SucceededWithSuggestion);
 
-            return await result.Document.GetSyntaxRootAsync();
+            var doc = result.Document;
+            return doc == null
+                ? null
+                : await doc.GetSyntaxRootAsync();
         }
 
         protected async Task TestSelectionAsync(string codeWithMarker, bool expectedFail = false, CSharpParseOptions parseOptions = null)
