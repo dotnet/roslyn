@@ -104,10 +104,12 @@ string[] RedistPackageNames = {
 };
 
 string[] NonRedistPackageNames = {
+    "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub",
     "Microsoft.Net.Compilers",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
     "Microsoft.VisualStudio.IntegrationTest.Utilities",
+    "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
 };
 
 string[] TestPackageNames = {
@@ -123,10 +125,12 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.Workspaces",
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary",
     "Microsoft.VisualStudio.LanguageServices.Next",
+    "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
 };
 
 // The assets for these packages are not produced when building on Unix
@@ -137,6 +141,7 @@ var PackagesNotBuiltOnCore = new HashSet<string>
      "Microsoft.CodeAnalysis.EditorFeatures",
      "Microsoft.CodeAnalysis.EditorFeatures.Text",
      "Microsoft.CodeAnalysis.Features",
+     "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub",
      "Microsoft.CodeAnalysis.Remote.ServiceHub",
      "Microsoft.CodeAnalysis.Remote.Workspaces",
      "Microsoft.CodeAnalysis.VisualBasic.Features",
@@ -144,6 +149,7 @@ var PackagesNotBuiltOnCore = new HashSet<string>
      "Microsoft.Net.Compilers",
      "Microsoft.VisualStudio.LanguageServices",
      "Microsoft.VisualStudio.LanguageServices.Next",
+     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
      "Roslyn.VisualStudio.Test.Utilities",
 };
 
