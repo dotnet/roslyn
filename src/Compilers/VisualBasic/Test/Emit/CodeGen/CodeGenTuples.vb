@@ -18547,6 +18547,48 @@ BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the int
 
         <Fact>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub DifferentTupleNamesInParametersAffectOverloadResolution2()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Class List(Of T)
+End Class
+Class Base
+    Implements I(Of (a As Integer, b As Integer))
+End Class
+Class Generic(Of U)
+    Inherits Base
+    Implements I(Of U)
+    ' This type will break the tuple names constraint when instantiated with proper U
+End Class
+Class Generic2(Of V)
+    Inherits List(Of Generic(Of V))
+End Class
+Class C
+    Shared Sub Main()
+        M7(Nothing, (notA:=1, notB:=2)) ' Generic candidate is eliminated during overload resolution
+        M7(Nothing, (a:=10, b:=20))
+    End Sub
+    Shared Sub M7(Of T)(g As List(Of Generic(Of T)), x As T)
+        System.Console.Write($"Generic {x}. ")
+    End Sub
+    Shared Sub M7(o1 As Object, o2 As Object)
+        System.Console.Write($"Object {o2}. ")
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            comp.AssertTheseDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="Object (1, 2). Generic (10, 20).")
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
         Sub DifferentTupleNamesInParametersAffectOverloadResolution()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -18843,6 +18885,32 @@ End Class
 
             Dim error2Symbol = comp.GetTypeByMetadataName("C")
             Assert.Equal({"I(Of System.Int32)"}, error2Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub CircularTupleNamesCheck()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Class Base(Of T)
+    Implements I(Of (a As Integer, b As Integer))
+End Class
+Class Derived(Of U)
+    Inherits Base(Of Derived(Of U))
+    Implements I(Of U)
+End Class
+Class CircularTupleNamesCheck
+    Inherits Derived(Of (a As Integer, b As Integer))
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
 
         End Sub
 

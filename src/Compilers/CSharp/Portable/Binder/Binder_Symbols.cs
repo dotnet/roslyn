@@ -671,6 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (bindingResult?.Kind == SymbolKind.NamedType)
                     {
+                        // Check that a type such as `Containing<(int c, int d)>.Contained` doesn't break tuple name constraints.
                         ConstraintsHelper.CheckTupleNamesConstraints((NamedTypeSymbol)bindingResult, node.Location, diagnostics, TupleNamesCheckKind.DeepExceptTopLevel);
                     }
                 }

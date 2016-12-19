@@ -20681,6 +20681,33 @@ class C
 
         [Fact]
         [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void DifferentTupleNamesInParametersAffectOverloadResolution2()
+        {
+            var source = @"
+interface I<T> { }
+class List<T> { }
+class Base : I<(int a, int b)> { }
+class Generic<U> : Base, I<U> { } // This type will break the tuple names constraint when instantiated with proper U
+class Generic2<V> : List<Generic<V>> { }
+class C
+{
+    static void Main()
+    {
+        M7(null, (notA: 1, notB: 2)); // the generic overload is rejected, and the non-generic one is selected
+        M7(null, (a: 10, b: 20));
+    }
+    static void M7<T>(Generic2<T> g, T t) { System.Console.Write($""Generic {t}.""); }
+    static void M7(object o1, object o2) { System.Console.Write($""Object {o2}. ""); }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Object (1, 2). Generic (10, 20).");
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
         public void DifferentTupleNamesInReturnTypeDontAffectOverloadResolution()
         {
             var source = @"
@@ -20899,6 +20926,21 @@ class C : Generic<int> { }
 
             var cSymbol = comp.GetTypeByMetadataName("C");
             Assert.Equal(new[] { "I<System.Int32>" }, cSymbol.AllInterfaces.Select(i => i.ToTestDisplayString()));
+        }
+
+        [Fact]
+        [WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")]
+        public void CircularTupleNamesCheck()
+        {
+            var source = @"
+interface I<T> { }
+class Base<T> : I<(int a, int b)> { }
+class Derived<U> : Base<Derived<U>>, I<U> { } // Derived<U> is a constituent type of Derived<U>. Beware of infinite regress.
+class CircularTupleNamesCheck : Derived<(int a, int b)> { }
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
         }
     }
 }

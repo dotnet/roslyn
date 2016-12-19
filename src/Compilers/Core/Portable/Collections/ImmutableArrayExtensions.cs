@@ -538,17 +538,5 @@ namespace Microsoft.CodeAnalysis
 
             return dictionary;
         }
-
-        public static bool All<TItem>(this ImmutableArray<TItem> items, Func<TItem, bool> predicate)
-        {
-            foreach (var item in items)
-            {
-                if (!predicate(item))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
     }
 }

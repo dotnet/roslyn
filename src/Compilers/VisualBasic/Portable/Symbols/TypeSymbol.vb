@@ -166,7 +166,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' TypeSymbol.Interfaces as the source of edge data, which has had cycles and infinitely
         ''' long dependency cycles removed. Consequently, it is possible (and we do) use the
         ''' simplest version of Tarjan's topological sorting algorithm.
-        ''' Returned interfaces are unique with regards to tuple names.
+        '''
+        ''' If an interface is implemented twice with different tuple names,
+        ''' the interface is only returned once (with one of the sets of tuple names).
         Protected Overridable Function MakeAllInterfaces() As ImmutableArray(Of NamedTypeSymbol)
             Dim result = ArrayBuilder(Of NamedTypeSymbol).GetInstance()
             Dim visited = New HashSet(Of NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)

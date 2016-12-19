@@ -3822,15 +3822,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
-            Dim baseInterfaces = New Dictionary(Of NamedTypeSymbol, NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
+            Dim baseInterfaces = baseType.AllInterfacesNoUseSiteDiagnostics
+            If baseInterfaces.IsEmpty Then
+                Return
+            End If
 
-            For Each baseInterface In baseType.AllInterfacesNoUseSiteDiagnostics
-                baseInterfaces.Add(baseInterface, baseInterface)
+            Dim baseInterfacesDict = New Dictionary(Of NamedTypeSymbol, NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
+
+            For Each baseInterface In baseInterfaces
+                baseInterfacesDict.Add(baseInterface, baseInterface)
             Next
 
             For Each [interface] In interfaces
                 Dim found As NamedTypeSymbol = Nothing
-                If baseInterfaces.TryGetValue([interface], found) AndAlso
+                If baseInterfacesDict.TryGetValue([interface], found) AndAlso
                     Not [interface].IsSameType(found, TypeCompareKind.ConsiderEverything) Then
 
                     Dim location As Location = Me.GetInheritsOrImplementsLocation([interface], getInherits:=True)

@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -423,8 +424,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Private Function CheckConstraintsSingleType(type As TypeSymbol, diagnostics As CheckConstraintsDiagnosticsBuilders) As Boolean
             If type.Kind = SymbolKind.NamedType Then
-                DirectCast(type, NamedTypeSymbol).CheckConstraints(diagnostics.diagnosticsBuilder, diagnostics.useSiteDiagnosticsBuilder, TupleNamesCheckKind.Shallow)
+                Dim namedType = DirectCast(type, NamedTypeSymbol)
+
+                If RequiresChecking(namedType) Then
+                    CheckTypeConstraints(namedType, diagnostics.diagnosticsBuilder, diagnostics.useSiteDiagnosticsBuilder, TupleNamesCheckKind.Shallow)
+                End If
             End If
+
             Return False ' continue walking types
         End Function
 
@@ -434,7 +440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         typeArgumentsSyntax As SeparatedSyntaxList(Of TypeSyntax),
                                         syntaxNode As SyntaxNode,
                                         diagnostics As DiagnosticBag,
-                                        deepCheckTupleNames As TupleNamesCheckKind) As Boolean
+                                        tupleNamesCheckKind As TupleNamesCheckKind) As Boolean
             Debug.Assert(typeArgumentsSyntax.Count = type.Arity)
             If Not RequiresChecking(type) Then
                 Return True
@@ -442,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            Dim result = CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder, deepCheckTupleNames)
+            Dim result = CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder, tupleNamesCheckKind)
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -463,14 +469,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         type As NamedTypeSymbol,
                                         diagnosticLocation As Location,
                                         diagnostics As DiagnosticBag,
-                                        deepCheckTupleNames As TupleNamesCheckKind) As Boolean
+                                        tupleNamesCheckKind As TupleNamesCheckKind) As Boolean
             If Not RequiresChecking(type) Then
                 Return True
             End If
 
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            Dim result = CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder, deepCheckTupleNames)
+            Dim result = CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder, tupleNamesCheckKind)
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -483,18 +489,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             diagnosticsBuilder.Free()
 
             Return result
-        End Function
-
-        <Extension()>
-        Private Function CheckConstraints(
-                                        type As NamedTypeSymbol,
-                                        diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        deepCheckTupleNames As TupleNamesCheckKind) As Boolean
-            If Not RequiresChecking(type) Then
-                Return True
-            End If
-            Return CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder, deepCheckTupleNames)
         End Function
 
         <Extension()>
@@ -537,11 +531,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         type As NamedTypeSymbol,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                         <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                        deepCheckTupleNames As TupleNamesCheckKind) As Boolean
+                                        tupleNamesCheckKind As TupleNamesCheckKind) As Boolean
             Dim substitution = type.TypeSubstitution
             Dim result = CheckConstraints(type, substitution, type.OriginalDefinition.TypeParameters, type.TypeArgumentsNoUseSiteDiagnostics, diagnosticsBuilder, useSiteDiagnosticsBuilder)
 
-            result = result And CheckTupleNamesConstraints(type, diagnosticsBuilder, deepCheckTupleNames)
+            result = result And CheckTupleNamesConstraints(type, diagnosticsBuilder, tupleNamesCheckKind)
 
             Return result
         End Function
@@ -658,10 +652,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function CheckTupleNamesConstraints(type As TypeSymbol,
                                                    location As Location,
                                                    diagnostics As DiagnosticBag,
-                                                   deepCheckTupleNames As TupleNamesCheckKind) As Boolean
+                                                   tupleNamesCheckKind As TupleNamesCheckKind) As Boolean
 
             Dim builder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
-            Dim result = CheckTupleNamesConstraints(type, builder, deepCheckTupleNames)
+            Dim result = CheckTupleNamesConstraints(type, builder, tupleNamesCheckKind)
 
             For Each pair In builder
                 diagnostics.Add(pair.DiagnosticInfo, location)
@@ -672,15 +666,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        '''  Deep checking tuple names means checking the constraints on every constituent type and all their base types.
-        '''  deepCheckTupleNames should be set to false when the caller is already visiting constituent types.
+        ''' Deep checking tuple names means checking the constraints on every constituent type and all their base types.
+        ''' Use TupleNamesCheckKind.Shallow when the caller is already visiting constituent types.
         ''' </summary>
         Private Function CheckTupleNamesConstraints(type As TypeSymbol,
                                                     <[In], Out> ByRef diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
-                                                    deepCheckTupleNames As TupleNamesCheckKind) As Boolean
+                                                    tupleNamesCheckKind As TupleNamesCheckKind) As Boolean
+
+            ' The skip list is used to avoid duplicate checks. It also avoid circular checks, as in `Class Derived Inheirts Base(Of Derived)`.
+            Dim skipList = PooledHashSet(Of TypeSymbol).GetInstance()
+            Dim result = CheckTupleNamesConstraints(type, diagnosticsBuilder, tupleNamesCheckKind, skipList)
+            skipList.Free()
+            Return result
+        End Function
+
+        Private Function CheckTupleNamesConstraints(type As TypeSymbol,
+                                                    <[In], Out> ByRef diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
+                                                    tupleNamesCheckKind As TupleNamesCheckKind,
+                                                    skipList As HashSet(Of TypeSymbol)) As Boolean
             ' Note this only checks for tuple name errors introduced by referencing this type.
             '
-            ' So if the type does Not include any tuples, its reference cannot introduce an error.
+            ' So if the type does not include any tuples, its reference cannot introduce an error.
             ' But its declaration could. For instance:
             '     `Class Error Inherits Base Implements I(Of (notA As Integer, notB As Integer))`
             '
@@ -688,62 +694,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' But the base type may already have one (reported elsewhere). For instance:
             '     `Class C Inherits BaseCanBeSkipped(Of Integer) Implements ITest`
             '     `Class D Inherits BaseNeedsChecking(Of T) Implements ITest`
-            If Not type.ContainsTuple() Then
+            Debug.Assert(type IsNot Nothing And skipList IsNot Nothing)
+            If skipList.Contains(type) OrElse Not type.ContainsTuple() Then
                 Return True
             End If
 
-            Select Case deepCheckTupleNames
+            Select Case tupleNamesCheckKind
                 Case TupleNamesCheckKind.Shallow
+                    skipList.Add(type)
                     If Not CheckTupleNamesConstraintsCore(type, diagnosticsBuilder) Then
                         Return False
                     End If
 
                     ' Walk up the base types and apply the same check on each inheritence level.
-                    ' If the base type was not "variable", then we can cut short.
+                    ' We can cut short if the original definition's base doesn't contain type parameters.
                     Dim currentType = type
                     Dim baseType = currentType.BaseTypeNoUseSiteDiagnostics
                     Dim result = True
 
-                    While baseType IsNot Nothing AndAlso ContainsTypeParameter(currentType.OriginalDefinition.BaseTypeNoUseSiteDiagnostics)
-                        result = result And CheckTupleNamesConstraints(baseType, diagnosticsBuilder, TupleNamesCheckKind.Shallow)
+                    While baseType IsNot Nothing AndAlso IsOrRefersToTypeParameter(currentType.OriginalDefinition.BaseTypeNoUseSiteDiagnostics)
+                        result = result And CheckTupleNamesConstraints(baseType, diagnosticsBuilder, TupleNamesCheckKind.Deep, skipList)
                         currentType = baseType
                         baseType = currentType.BaseTypeNoUseSiteDiagnostics
                     End While
                     Return result
 
                 Case TupleNamesCheckKind.DeepExceptTopLevel
+                    skipList.Add(type)
                     If Not CheckTupleNamesConstraintsCore(type, diagnosticsBuilder) Then
                         Return False
                     End If
 
                     Dim baseType = type.BaseTypeNoUseSiteDiagnostics
-                    If baseType Is Nothing OrElse Not ContainsTypeParameter(type.OriginalDefinition.BaseTypeNoUseSiteDiagnostics) Then
+                    If baseType Is Nothing OrElse Not IsOrRefersToTypeParameter(type.OriginalDefinition.BaseTypeNoUseSiteDiagnostics) Then
                         Return True
                     End If
-                    Return CheckTupleNamesConstraints(baseType, diagnosticsBuilder, TupleNamesCheckKind.Deep)
+                    Return CheckTupleNamesConstraints(baseType, diagnosticsBuilder, TupleNamesCheckKind.Deep, skipList)
 
                 Case TupleNamesCheckKind.Deep
-                    Dim failedType = type.VisitType(Function(t As TypeSymbol, diag As ArrayBuilder(Of TypeParameterDiagnosticInfo))
-                                                        Return Not CheckTupleNamesConstraints(t, diag, TupleNamesCheckKind.Shallow)
-                                                    End Function, diagnosticsBuilder)
+                    Dim failedType = type.VisitType(
+                        Function(t As TypeSymbol, arg As (diag As ArrayBuilder(Of TypeParameterDiagnosticInfo), skip As HashSet(Of TypeSymbol)))
+                            Return Not CheckTupleNamesConstraints(t, arg.diag, TupleNamesCheckKind.Shallow, arg.skip)
+                        End Function, (diag:=diagnosticsBuilder, skip:=skipList))
                     Return failedType Is Nothing
 
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(deepCheckTupleNames)
-            End Select
+        Case Else
+        Throw ExceptionUtilities.UnexpectedValue(tupleNamesCheckKind)
+        End Select
         End Function
-
-        Private Function ContainsTypeParameter(type As NamedTypeSymbol) As Boolean
-            Dim result = type.VisitType(s_containsTypeParameterPredicate, Nothing)
-            Return result IsNot Nothing
-        End Function
-
-        Private ReadOnly s_containsTypeParameterPredicate As Func(Of TypeSymbol, Object, Boolean) = AddressOf ContainsTypeParameterPredicate
-
-        Private Function ContainsTypeParameterPredicate(type As TypeSymbol, ignored As Object) As Boolean
-            Return type.TypeKind = TypeKind.TypeParameter
-        End Function
-
 
         ''' <summary>
         ''' Checks a single type for tuple name constraints, without recursing into its base types or constituent types.

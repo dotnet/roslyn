@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Compilation currentCompilation,
             ConsList<Symbol> basesBeingResolved,
             DiagnosticBag diagnostics,
-            TupleNamesCheckKind deepCheckTupleNames)
+            TupleNamesCheckKind tupleNamesCheckKind)
         {
             Debug.Assert(typeArgumentsSyntax.Count == 0 /*omitted*/ || typeArgumentsSyntax.Count == type.Arity);
             if (!RequiresChecking(type))
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
             var result = !typeSyntax.HasErrors &&
                             CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder,
-                                ref useSiteDiagnosticsBuilder, deepCheckTupleNames);
+                                ref useSiteDiagnosticsBuilder, tupleNamesCheckKind);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConversionsBase conversions,
             Location location,
             DiagnosticBag diagnostics,
-            TupleNamesCheckKind deepCheckTupleNames)
+            TupleNamesCheckKind tupleNamesCheckKind)
         {
             if (!RequiresChecking(type))
             {
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
             var result = CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder,
-                            ref useSiteDiagnosticsBuilder, deepCheckTupleNames);
+                            ref useSiteDiagnosticsBuilder, tupleNamesCheckKind);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -531,9 +531,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Deep checking tuple names means checking the constraints on every constituent type and all their base types.
-        /// deepCheckTupleNames should be set to false when the caller is already visiting constituent types.
+        /// Use TupleNamesCheckKind.Shallow when the caller is already visiting constituent types.
         /// </summary>
-        private static bool CheckTupleNamesConstraints(TypeSymbol type, ArrayBuilder<TypeParameterDiagnosticInfo> builder, TupleNamesCheckKind deepCheckTupleNames)
+        private static bool CheckTupleNamesConstraints(TypeSymbol type, ArrayBuilder<TypeParameterDiagnosticInfo> builder, TupleNamesCheckKind tupleNamesCheckKind)
+        {
+            // The skip list is used to avoid duplicate checks. It also avoid circular checks, as in `Derived : Base<Derived>`.
+            var skipList = PooledHashSet<TypeSymbol>.GetInstance();
+            bool result = CheckTupleNamesConstraints(type, builder, tupleNamesCheckKind, skipList);
+            skipList.Free();
+            return result;
+        }
+
+        private static bool CheckTupleNamesConstraints(TypeSymbol type, ArrayBuilder<TypeParameterDiagnosticInfo> builder, TupleNamesCheckKind tupleNamesCheckKind, HashSet<TypeSymbol> skipList)
         {
             // Note this only checks for tuple name errors introduced by referencing this type.
             //
@@ -545,27 +554,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // But the base type may already have one (reported elsewhere). For instance:
             //     `class C : BaseCanBeSkipped<int>, ITest`
             //     `class D : BaseNeedsChecking<T>, ITest`
-            if (!type.ContainsTuple())
+
+            Debug.Assert((object)type != null && (object)skipList != null);
+            if (skipList.Contains(type) || !type.ContainsTuple())
             {
                 return true;
             }
-            switch (deepCheckTupleNames)
+
+            switch (tupleNamesCheckKind)
             {
                 case TupleNamesCheckKind.Shallow:
                     {
+                        skipList.Add(type);
                         if (!CheckTupleNamesConstraintsCore(type, builder))
                         {
                             return false;
                         }
 
-                        // Walk up the base types and apply the same check on each inheritence level.
-                        // If the base type was not "variable", then we can cut short.
+                        // Walk up the base types and check each inheritence level.
+                        // We can cut short if the original definition's base doesn't contain type parameters.
                         TypeSymbol currentType = type;
                         NamedTypeSymbol baseType = currentType.BaseTypeNoUseSiteDiagnostics;
                         bool result = true;
                         while ((object)baseType != null && currentType.OriginalDefinition.BaseTypeNoUseSiteDiagnostics.ContainsTypeParameter())
                         {
-                            result &= CheckTupleNamesConstraints(baseType, builder, TupleNamesCheckKind.Shallow);
+                            result &= CheckTupleNamesConstraints(baseType, builder, TupleNamesCheckKind.Deep, skipList);
                             currentType = baseType;
                             baseType = currentType.BaseTypeNoUseSiteDiagnostics;
                         }
@@ -573,6 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 case TupleNamesCheckKind.DeepExceptTopLevel:
                     {
+                        skipList.Add(type);
                         if (!CheckTupleNamesConstraintsCore(type, builder))
                         {
                             return false;
@@ -582,23 +596,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             return true;
                         }
-                        return CheckTupleNamesConstraints(baseType, builder, TupleNamesCheckKind.Deep);
+                        return CheckTupleNamesConstraints(baseType, builder, TupleNamesCheckKind.Deep, skipList);
                     }
                 case TupleNamesCheckKind.Deep:
                     {
-                        object failedType = type.VisitType((t, diag, _) => !CheckTupleNamesConstraints(t, diag, TupleNamesCheckKind.Shallow), builder);
+                        object failedType = type.VisitType((t, arg, _) => !CheckTupleNamesConstraints(t, arg.diag, TupleNamesCheckKind.Shallow, arg.skip), (diag: builder, skip: skipList));
                         return failedType == null;
                     }
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(deepCheckTupleNames);
+                    throw ExceptionUtilities.UnexpectedValue(tupleNamesCheckKind);
             }
         }
 
-        internal static bool CheckTupleNamesConstraints(TypeSymbol type, Location location, DiagnosticBag diagnostics, TupleNamesCheckKind deepCheckTupleNames)
+        internal static bool CheckTupleNamesConstraints(TypeSymbol type, Location location, DiagnosticBag diagnostics, TupleNamesCheckKind tupleNamesCheckKind)
         {
             var builder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
-            bool result = CheckTupleNamesConstraints(type, builder, deepCheckTupleNames);
+            bool result = CheckTupleNamesConstraints(type, builder, tupleNamesCheckKind);
 
             foreach (var pair in builder)
             {
@@ -640,13 +654,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var interfaces = type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics;
-            if (interfaces.IsEmpty)
+            var allBaseInterfaces = baseType.AllInterfacesNoUseSiteDiagnostics;
+            if (interfaces.IsEmpty || allBaseInterfaces.IsEmpty)
             {
                 return true;
             }
 
             var baseInterfaces = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(TypeSymbol.EqualsIgnoringComparer.InstanceIgnoringTupleNames);
-            foreach (var baseInterface in baseType.AllInterfacesNoUseSiteDiagnostics)
+            foreach (var baseInterface in allBaseInterfaces)
             {
                 baseInterfaces.Add(baseInterface, baseInterface);
             }
@@ -736,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Compilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder,
-            TupleNamesCheckKind deepCheckTupleNames)
+            TupleNamesCheckKind tupleNamesCheckKind)
         {
             bool result = CheckConstraints(
                             type,
@@ -748,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnosticsBuilder,
                             ref useSiteDiagnosticsBuilder);
 
-            result &= CheckTupleNamesConstraints(type, diagnosticsBuilder, deepCheckTupleNames);
+            result &= CheckTupleNamesConstraints(type, diagnosticsBuilder, tupleNamesCheckKind);
 
             return result;
         }
