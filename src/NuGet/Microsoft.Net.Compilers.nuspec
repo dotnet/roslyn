@@ -35,6 +35,7 @@ Supported Platforms:
     <file src="Exes\csc\csc.exe.config"  target="tools" />
     <file src="Exes\csc\csc.rsp"  target="tools" />
     <file src="Exes\csi\csi.exe"  target="tools" />
+    <file src="Exes\csi\csi.exe.config"  target="tools" />
     <file src="Exes\csi\csi.rsp"  target="tools" />
     <file src="Exes\vbc\vbc.exe"  target="tools" />
     <file src="Exes\vbc\vbc.exe.config"  target="tools" />
