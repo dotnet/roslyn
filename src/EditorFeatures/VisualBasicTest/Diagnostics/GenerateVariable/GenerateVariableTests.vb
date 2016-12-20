@@ -423,7 +423,7 @@ Class B
         Foo(s.[|field|])
     End Sub
 End Class",
-{String.Format(FeaturesResources.Generate_field_0_in_1, "field", "A")})
+{String.Format(FeaturesResources.Generate_field_1_0, "field", "A")})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>

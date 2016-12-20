@@ -209,7 +209,7 @@ index: 2);
         [|foo|] = 1;
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "foo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -268,7 +268,7 @@ index: 1);
         Method(ref [|foo|]);
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -304,7 +304,7 @@ new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), 
         Method(out [|foo|]);
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -1866,7 +1866,7 @@ compareTokens: false);
         [|p|]++;
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_0_in_1, "p", "Program"), string.Format(FeaturesResources.Generate_property_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_local_0, "p") });
+new[] { string.Format(FeaturesResources.Generate_field_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_property_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_local_0, "p") });
 
             await TestAsync(
 @"class Program

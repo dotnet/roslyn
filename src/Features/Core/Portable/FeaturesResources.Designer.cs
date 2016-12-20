@@ -1117,20 +1117,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate abstract method &apos;{0}&apos; in &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Generate abstract method &apos;{1}.{0}&apos;.
         /// </summary>
-        internal static string Generate_abstract_method_0_in_1 {
+        internal static string Generate_abstract_method_1_0 {
             get {
-                return ResourceManager.GetString("Generate_abstract_method_0_in_1", resourceCulture);
+                return ResourceManager.GetString("Generate_abstract_method_1_0", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate abstract property &apos;{0}&apos; in &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Generate abstract property &apos;{1}.{0}&apos;.
         /// </summary>
-        internal static string Generate_abstract_property_0_in_1 {
+        internal static string Generate_abstract_property_1_0 {
             get {
-                return ResourceManager.GetString("Generate_abstract_property_0_in_1", resourceCulture);
+                return ResourceManager.GetString("Generate_abstract_property_1_0", resourceCulture);
             }
         }
         
@@ -1153,11 +1153,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate constant &apos;{0}&apos; in &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Generate constant &apos;{1}.{0}&apos;.
         /// </summary>
-        internal static string Generate_constant_0_in_1 {
+        internal static string Generate_constant_1_0 {
             get {
-                return ResourceManager.GetString("Generate_constant_0_in_1", resourceCulture);
+                return ResourceManager.GetString("Generate_constant_1_0", resourceCulture);
             }
         }
         
@@ -1189,11 +1189,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate enum member &apos;{0}&apos; in &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Generate enum member &apos;{1}.{0}&apos;.
         /// </summary>
-        internal static string Generate_enum_member_0_in_1 {
+        internal static string Generate_enum_member_1_0 {
             get {
-                return ResourceManager.GetString("Generate_enum_member_0_in_1", resourceCulture);
+                return ResourceManager.GetString("Generate_enum_member_1_0", resourceCulture);
             }
         }
         
@@ -1207,11 +1207,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate field &apos;{0}&apos; in &apos;{1}&apos;.
+        ///   Looks up a localized string similar to Generate field &apos;{1}.{0}&apos;.
         /// </summary>
-        internal static string Generate_field_0_in_1 {
+        internal static string Generate_field_1_0 {
             get {
-                return ResourceManager.GetString("Generate_field_0_in_1", resourceCulture);
+                return ResourceManager.GetString("Generate_field_1_0", resourceCulture);
             }
         }
         
