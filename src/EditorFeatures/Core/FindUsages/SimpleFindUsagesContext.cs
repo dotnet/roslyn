@@ -29,9 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         }
 
         public string Message { get; private set; }
+        public string SearchTitle { get; private set; }
 
         public override void ReportMessage(string message)
             => Message = message;
+
+        public override void SetSearchTitle(string title)
+            => SearchTitle = title;
 
         public ImmutableArray<DefinitionItem> GetDefinitions()
         {

@@ -1240,7 +1240,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CSharpSyntaxNode containingDeconstruction = node.GetContainingDeconstruction();
-            return containingDeconstruction != null || IsOutVarDiscardIdentifier(node);
+            bool isDiscard = containingDeconstruction != null || IsOutVarDiscardIdentifier(node);
+            if (isDiscard)
+            {
+                CheckFeatureAvailability(node.Location, MessageID.IDS_FeatureTuples, diagnostics);
+            }
+
+            return isDiscard;
         }
 
         private static bool IsOutVarDiscardIdentifier(SimpleNameSyntax node)
@@ -2232,7 +2238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
 
-                return new BoundLocal(declarationExpression, localSymbol, constantValueOpt: null, type: declType);
+                return new BoundLocal(declarationExpression, localSymbol, isDeclaration:true, constantValueOpt: null, type: declType);
             }
 
             // Is this a field?
