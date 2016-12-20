@@ -560,6 +560,35 @@ a.vb
             CleanupAllGeneratedFiles(tmpFileName)
         End Sub
 
+        <WorkItem(217718, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=217718")>
+        <Fact>
+        Public Sub BadWin32Resource()
+            Dim source = Temp.CreateFile(prefix:="", extension:=".vb").WriteAllText("
+Module Test 
+    Sub Main() 
+    End Sub 
+End Module").Path
+            Dim badres = Temp.CreateFile().WriteAllBytes(New Byte() {0, 0}).Path
+
+            Dim baseDir = Path.GetDirectoryName(source)
+            Dim fileName = Path.GetFileName(source)
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = New MockVisualBasicCompiler(Nothing, baseDir,
+            {
+                "/nologo",
+                "/preferreduilang:en",
+                "/win32resource:" + badres,
+                source
+            }).Run(outWriter)
+
+            Assert.Equal(1, exitCode)
+            Assert.Equal("vbc : error BC30136: Error creating Win32 resources: Unrecognized resource file format.", outWriter.ToString().Trim())
+
+            CleanupAllGeneratedFiles(source)
+            CleanupAllGeneratedFiles(badres)
+        End Sub
+
         <Fact>
         Public Sub Win32ResourceOptions_Valid()
             CheckWin32ResourceOptions({"/win32resource:a"}, "a", Nothing, Nothing, False)
