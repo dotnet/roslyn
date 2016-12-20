@@ -210,18 +210,6 @@ XElement MakePackageElement(string packageName, string version)
     return new XElement("package", new XAttribute("id", packageName), new XAttribute("version", version));
 }
 
-string[] GetRoslynPackageNames()
-{
-    var packageNames = RedistPackageNames.Concat(NonRedistPackageNames).Concat(TestPackageNames);
-
-    if (BuildingReleaseNugets)
-    {
-        packageNames = packageNames.Where(pn => !PreReleaseOnlyPackages.Contains(pn));
-    }
-
-    return packageNames.ToArray();
-}
-
 IEnumerable<XElement> MakeRoslynPackageElements(string[] roslynPackageNames)
 {
     return roslynPackageNames.Select(packageName => MakePackageElement(packageName, BuildVersion));
@@ -248,6 +236,18 @@ void GeneratePublishingConfig(string[] roslynPackageNames)
     }
 }
 
+string[] GetRoslynPackageNames(string[] packageNames)
+{
+    return (BuildingReleaseNugets) ? packageNames.Where(pn => !PreReleaseOnlyPackages.Contains(pn)).ToArray() : packageNames;
+}
+
+int DoWork(string[] packageNames, string licenseUrl)
+{
+    var roslynPackageNames = GetRoslynPackageNames(packageNames);
+    string[] roslynNuspecFiles = roslynPackageNames.Select(f => Path.Combine(NuspecDirPath, f + ".nuspec")).ToArray();
+    return PackFiles(roslynNuspecFiles, licenseUrl);
+}
+
 bool IsReleaseVersion(string version) => !version.Contains('-');
 Directory.CreateDirectory(OutDir);
 var ErrorLogFile = Path.Combine(OutDir, "skipped_packages.txt");
@@ -260,10 +260,13 @@ catch
     // Ignore errors
 }
 
-var roslynPackageNames = GetRoslynPackageNames();
+int exit = DoWork(RedistPackageNames, LicenseUrlRedist);
+exit |= DoWork(NonRedistPackageNames, LicenseUrlNonRedist);
+exit |= DoWork(TestPackageNames, LicenseUrlTest);
+
+var allPackageNames = RedistPackageNames.Concat(NonRedistPackageNames).Concat(TestPackageNames).ToArray();
+var roslynPackageNames = GetRoslynPackageNames(allPackageNames);
 GeneratePublishingConfig(roslynPackageNames);
-string[] roslynNuspecFiles = roslynPackageNames.Select(f => Path.Combine(NuspecDirPath, f + ".nuspec")).ToArray();
-int exit = PackFiles(roslynNuspecFiles, LicenseUrlRedist);
 
 try
 {
