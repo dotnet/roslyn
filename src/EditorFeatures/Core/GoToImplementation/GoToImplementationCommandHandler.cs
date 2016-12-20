@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 {
@@ -32,22 +33,32 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             _streamingPresenters = streamingPresenters;
         }
 
+        private (Document, IGoToImplementationService, IFindUsagesService) GetDocumentAndServices(ITextSnapshot snapshot)
+        {
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            return (document,
+                    document?.GetLanguageService<IGoToImplementationService>(),
+                    document?.GetLanguageService<IFindUsagesService>());
+        }
+
         public CommandState GetCommandState(GoToImplementationCommandArgs args, Func<CommandState> nextHandler)
         {
-            // Because this is expensive to compute, we just always say yes
-            return CommandState.Available;
+            // Because this is expensive to compute, we just always say yes as long as the language allows it.
+            var (document, implService, findUsagesService) = GetDocumentAndServices(args.SubjectBuffer.CurrentSnapshot);
+            return implService != null || findUsagesService != null
+                ? CommandState.Available
+                : CommandState.Unavailable;
         }
 
         public void ExecuteCommand(GoToImplementationCommandArgs args, Action nextHandler)
         {
-            var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
-
-            if (caret.HasValue)
+            var (document, implService, findUsagesService) = GetDocumentAndServices(args.SubjectBuffer.CurrentSnapshot);
+            if (implService != null || findUsagesService != null)
             {
-                var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document != null)
+                var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
+                if (caret.HasValue)
                 {
-                    ExecuteCommand(document, caret.Value);
+                    ExecuteCommand(document, caret.Value, implService, findUsagesService);
                     return;
                 }
             }
@@ -55,11 +66,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             nextHandler();
         }
 
-        private void ExecuteCommand(Document document, int caretPosition)
+        private void ExecuteCommand(
+            Document document, int caretPosition,
+            IGoToImplementationService synchronousService,
+            IFindUsagesService streamingService)
         {
-            var streamingService = document.GetLanguageService<IFindUsagesService>();
-            var synchronousService = document.GetLanguageService<IGoToImplementationService>();
-
             var streamingPresenter = GetStreamingPresenter();
 
             var streamingEnabled = document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.StreamingGoToImplementation, document.Project.Language);
@@ -125,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             var definitionItems = goToImplContext.GetDefinitions();
 
             streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                EditorFeaturesResources.Go_To_Implementation, definitionItems,
+                goToImplContext.SearchTitle, definitionItems,
                 alwaysShowDeclarations: true).Wait(cancellationToken);
         }
 
