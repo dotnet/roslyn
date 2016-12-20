@@ -6924,37 +6924,29 @@ class Program
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
-  // Code size       65 (0x41)
-  .maxstack  2
+  // Code size       48 (0x30)
+  .maxstack  1
   .locals init (T V_0,
-                T V_1,
-                string V_2)
+                string V_1)
   IL_0000:  nop
   IL_0001:  ldloca.s   V_0
   IL_0003:  initobj    ""T""
   IL_0009:  ldloc.0
-  IL_000a:  stloc.0
-  IL_000b:  ldloca.s   V_0
-  IL_000d:  ldloca.s   V_1
-  IL_000f:  initobj    ""T""
-  IL_0015:  ldloc.1
-  IL_0016:  box        ""T""
-  IL_001b:  brtrue.s   IL_0031
-  IL_001d:  ldobj      ""T""
-  IL_0022:  stloc.1
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  ldloc.1
-  IL_0026:  box        ""T""
-  IL_002b:  brtrue.s   IL_0031
-  IL_002d:  pop
-  IL_002e:  ldnull
-  IL_002f:  br.s       IL_003c
-  IL_0031:  constrained. ""T""
-  IL_0037:  callvirt   ""string object.ToString()""
-  IL_003c:  stloc.2
-  IL_003d:  br.s       IL_003f
-  IL_003f:  ldloc.2
-  IL_0040:  ret
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldnull
+  IL_0012:  br.s       IL_002b
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  initobj    ""T""
+  IL_001c:  ldloc.0
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""string object.ToString()""
+  IL_002b:  stloc.1
+  IL_002c:  br.s       IL_002e
+  IL_002e:  ldloc.1
+  IL_002f:  ret
 }");
         }
 
@@ -7051,37 +7043,29 @@ class Program
 
             verifier.VerifyIL("Test<T>.Run", @"
 {
-  // Code size       65 (0x41)
-  .maxstack  2
+  // Code size       48 (0x30)
+  .maxstack  1
   .locals init (T V_0,
-                T V_1,
-                string V_2)
+                string V_1)
   IL_0000:  nop
   IL_0001:  ldloca.s   V_0
   IL_0003:  initobj    ""T""
   IL_0009:  ldloc.0
-  IL_000a:  stloc.0
-  IL_000b:  ldloca.s   V_0
-  IL_000d:  ldloca.s   V_1
-  IL_000f:  initobj    ""T""
-  IL_0015:  ldloc.1
-  IL_0016:  box        ""T""
-  IL_001b:  brtrue.s   IL_0031
-  IL_001d:  ldobj      ""T""
-  IL_0022:  stloc.1
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  ldloc.1
-  IL_0026:  box        ""T""
-  IL_002b:  brtrue.s   IL_0031
-  IL_002d:  pop
-  IL_002e:  ldnull
-  IL_002f:  br.s       IL_003c
-  IL_0031:  constrained. ""T""
-  IL_0037:  callvirt   ""string object.ToString()""
-  IL_003c:  stloc.2
-  IL_003d:  br.s       IL_003f
-  IL_003f:  ldloc.2
-  IL_0040:  ret
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldnull
+  IL_0012:  br.s       IL_002b
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  initobj    ""T""
+  IL_001c:  ldloc.0
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""string object.ToString()""
+  IL_002b:  stloc.1
+  IL_002c:  br.s       IL_002e
+  IL_002e:  ldloc.1
+  IL_002f:  ret
 }");
         }
 
