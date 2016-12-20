@@ -47,6 +47,7 @@
       <Link>EULA.rtf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <None Include="project.json" />
     <None Include="VisualBasic\Diagnostic\Vsix\Deployment.vbproj" />
     <None Include="VisualBasic\Diagnostic\Vsix\Deployment.vstemplate">
       <SubType>Designer</SubType>
