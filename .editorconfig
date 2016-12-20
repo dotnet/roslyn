@@ -27,6 +27,8 @@ indent_size = 2
 
 # Dotnet code style settings:
 [*.{cs, vb}]
+# Sort using and Import directives with System.* appearing first
+dotnet_sort_system_directives_first = true
 # Avoid "this." and "Me." if not necessary
 dotnet_style_qualification_for_field = false:suggestion
 dotnet_style_qualification_for_property = false:suggestion

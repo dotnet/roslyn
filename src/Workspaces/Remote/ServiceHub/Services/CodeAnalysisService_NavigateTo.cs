@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis.Remote
     internal partial class CodeAnalysisService : IRemoteNavigateToSearchService
     {
         public async Task<SerializableNavigateToSearchResult[]> SearchDocumentAsync(
-            SerializableDocumentId documentId, string searchPattern)
+            DocumentId documentId, string searchPattern)
         {
             var solution = await GetSolutionAsync().ConfigureAwait(false);
 
-            var project = solution.GetDocument(documentId.Rehydrate());
+            var project = solution.GetDocument(documentId);
             var result = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
                 project, searchPattern, CancellationToken).ConfigureAwait(false);
 
@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public async Task<SerializableNavigateToSearchResult[]> SearchProjectAsync(
-            SerializableProjectId projectId, string searchPattern)
+            ProjectId projectId, string searchPattern)
         {
             var solution = await GetSolutionAsync().ConfigureAwait(false);
 
-            var project = solution.GetProject(projectId.Rehydrate());
+            var project = solution.GetProject(projectId);
             var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
                 project, searchPattern, CancellationToken).ConfigureAwait(false);
 

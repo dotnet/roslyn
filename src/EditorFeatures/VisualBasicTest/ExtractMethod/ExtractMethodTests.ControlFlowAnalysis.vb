@@ -248,7 +248,7 @@ End Class</text>
             End Function
 
             <WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")>
-            <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/15223"), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function BugFix6313_1() As Task
                 Dim code = <text>Imports System
 
@@ -424,7 +424,7 @@ End Class</text>
             End Function
 
             <WorkItem(540154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154"), WorkItem(541484, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541484")>
-            <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/15223"), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function BugFix6313_6() As Task
                 Dim code = <text>Imports System
 

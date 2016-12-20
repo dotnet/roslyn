@@ -4465,6 +4465,22 @@ var(x,y)=(1,2);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInTupleExtension()
+        {
+            var code = @"static class Class5
+{
+    static void Extension(this(int, string) self) { }
+}";
+            var expectedCode = @"static class Class5
+{
+    static void Extension(this (int, string) self) { }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInNestedDeconstruction()
         {
             var code = @"class Class5{

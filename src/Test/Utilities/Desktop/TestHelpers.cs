@@ -120,7 +120,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(analyzerSource) },
                 new MetadataReference[]
                 {
-                    TestBase.SystemRuntimeNetstandard13FacadeRef.Value,
+                    TestReferences.NetStandard13.SystemRuntime,
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },

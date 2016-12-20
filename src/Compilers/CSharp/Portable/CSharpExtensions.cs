@@ -610,7 +610,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         public static TypeInfo GetTypeInfo(this SemanticModel semanticModel, SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;

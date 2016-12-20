@@ -28,7 +28,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal static Assembly ResolveAssembly(string assemblyDisplayName, Assembly requestingAssemblyOpt)
         {
             var name = new AssemblyName(assemblyDisplayName);
-            return TryRedirect(name) ? Assembly.Load(name) : null;
+            try
+            {
+                return TryRedirect(name) ? Assembly.Load(name) : null;
+            }
+            catch
+            {
+                ValidateBootstrapUtil.AddFailedLoad(name);
+                throw;
+            }
         }
 
         private static readonly byte[] s_b03f5f7f11d50a3a = new byte[] { 0xb0, 0x3f, 0x5f, 0x7f, 0x11, 0xd5, 0x0a, 0x3a };
@@ -44,6 +52,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 case "System.Console":
                 case "System.Diagnostics.FileVersionInfo":
                 case "System.IO.Pipes":
+                case "System.Security.AccessControl":
                 case "System.Security.Cryptography.Primitives":
                 case "System.Security.Principal.Windows":
                 case "System.Threading.Thread":
@@ -53,15 +62,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 case "System.IO.FileSystem.Primitives":
                     return TryRedirect(name, s_b03f5f7f11d50a3a, 4, 0, 2, 0);
 
+                case "System.Diagnostics.Process":
                 case "System.Diagnostics.StackTrace":
-                case "System.Security.AccessControl":
                     return TryRedirect(name, s_b03f5f7f11d50a3a, 4, 0, 3, 0);
 
             }
-
-#if DEBUG || BOOTSTRAP
-            ValidateBootstrap.AddFailedLoad(name);
-#endif
 
             return false;
         }
