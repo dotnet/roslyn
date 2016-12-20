@@ -424,13 +424,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundDeconstructionConstructionStep MakeDeconstructionConstructionStep(CSharpSyntaxNode node, DiagnosticBag diagnostics,
                                                         ImmutableArray<BoundDeconstructValuePlaceholder> constructionInputs)
         {
-            var tuple = TupleTypeSymbol.Create(locationOpt: null,
-                           elementTypes: constructionInputs.SelectAsArray(e => e.Type),
-                           elementLocations: default(ImmutableArray<Location>),
-                           elementNames: default(ImmutableArray<string>),
-                           compilation: Compilation,
-                           diagnostics: diagnostics,
-                           syntax: node);
+            var tuple = TupleTypeSymbol.Create(
+                locationOpt: null,
+                elementTypes: constructionInputs.SelectAsArray(e => e.Type),
+                elementLocations: constructionInputs.SelectAsArray(e => e.Syntax.Location),
+                elementNames: default(ImmutableArray<string>),
+                compilation: Compilation,
+                diagnostics: diagnostics,
+                syntax: node,
+                shouldCheckConstraints: true);
 
             var outputPlaceholder = new BoundDeconstructValuePlaceholder(node, tuple) { WasCompilerGenerated = true };
 
@@ -497,8 +499,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return TupleTypeSymbol.Create(locationOpt: null, elementTypes: typesBuilder.ToImmutableAndFree(), elementLocations: default(ImmutableArray<Location>),
-                                    elementNames: default(ImmutableArray<string>), compilation: compilation, diagnostics: diagnostics);
+            return TupleTypeSymbol.Create(
+                locationOpt: null,
+                elementTypes: typesBuilder.ToImmutableAndFree(),
+                elementLocations: default(ImmutableArray<Location>),
+                elementNames: default(ImmutableArray<string>),
+                compilation: compilation,
+                diagnostics: diagnostics,
+                shouldCheckConstraints: false);
         }
 
         /// <summary>
@@ -805,7 +813,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)declType != null)
                 {
-                    CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, designation);
                     return new BoundLocal(designation, localSymbol, isDeclaration: true, constantValueOpt: null, type: declType, hasErrors: hasErrors);
                 }
 

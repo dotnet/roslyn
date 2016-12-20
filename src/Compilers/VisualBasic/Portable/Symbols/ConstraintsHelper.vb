@@ -427,9 +427,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Public Function CheckConstraints(
+                                        tuple As TupleTypeSymbol,
+                                        syntaxNode As SyntaxNode,
+                                        elementLocations As ImmutableArray(Of Location),
+                                        diagnostics As DiagnosticBag) As Boolean
+            Dim type As NamedTypeSymbol = tuple.TupleUnderlyingType
+            If Not RequiresChecking(type) Then
+                Return True
+            End If
+
+            If syntaxNode.HasErrors Then
+                Return False
+            End If
+
+            Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
+            Dim underlyingTupleTypeChain = ArrayBuilder(Of NamedTypeSymbol).GetInstance
+            TupleTypeSymbol.GetUnderlyingTypeChain(type, underlyingTupleTypeChain)
+
+            Dim result As Boolean = True
+            Dim offset As Integer = 0
+            For Each underlyingTuple In underlyingTupleTypeChain
+                Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
+                result = result And CheckTypeConstraints(underlyingTuple, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+
+                If useSiteDiagnosticsBuilder IsNot Nothing Then
+                    diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
+                End If
+
+                For Each diagnostic In diagnosticsBuilder
+                    Dim ordinal = diagnostic.TypeParameter.Ordinal
+
+                    ' If this is the TRest type parameter, we report it on 
+                    ' the entire type syntax as it does not map to any tuple element.
+                    Dim location = If(ordinal = TupleTypeSymbol.RestIndex, syntaxNode.Location, elementLocations(ordinal + offset))
+                    diagnostics.Add(diagnostic.DiagnosticInfo, location)
+                Next
+
+                diagnosticsBuilder.Clear()
+
+                offset += TupleTypeSymbol.RestIndex
+            Next
+
+            underlyingTupleTypeChain.Free()
+            diagnosticsBuilder.Free()
+
+            Return result
+        End Function
+
+        <Extension()>
+        Public Function CheckConstraintsForNonTuple(
                                         type As NamedTypeSymbol,
                                         typeArgumentsSyntax As SeparatedSyntaxList(Of TypeSyntax),
                                         diagnostics As DiagnosticBag) As Boolean
+            Debug.Assert(Not type.IsTupleType)
             Debug.Assert(typeArgumentsSyntax.Count = type.Arity)
             If Not RequiresChecking(type) Then
                 Return True
@@ -458,6 +508,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         type As NamedTypeSymbol,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                         <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+            ' We do not report element locations in method parameters and return types
+            ' so we will simply unwrap the type if it was a tuple.
+            type = DirectCast(type.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
+
             If Not RequiresChecking(type) Then
                 Return True
             End If

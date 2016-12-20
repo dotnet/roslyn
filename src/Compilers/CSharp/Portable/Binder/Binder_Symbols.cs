@@ -426,11 +426,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argumentType = BindType(argumentSyntax.Type, diagnostics);
                 types.Add(argumentType);
 
-                if (argumentType.IsRestrictedType())
-                {
-                    Error(diagnostics, ErrorCode.ERR_FieldCantBeRefAny, argumentSyntax, argumentType);
-                }
-
                 string name =  null;
                 SyntaxToken nameToken = argumentSyntax.Identifier;
 
@@ -486,6 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 default(ImmutableArray<string>) :
                                                 elementNames.ToImmutableAndFree(),
                                             this.Compilation,
+                                            this.ShouldCheckConstraints,
                                             syntax,
                                             diagnostics);
         }
@@ -1077,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ShouldCheckConstraints)
             {
-                type.CheckConstraints(this.Conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
+                type.CheckConstraintsForNonTuple(this.Conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
 
             type = (NamedTypeSymbol)TupleTypeSymbol.TransformToTupleIfCompatible(type);
