@@ -28,17 +28,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         public ObservableCollection<SymbolSpecification> Specifications { get; set; }
         public ObservableCollection<NamingStyle> NamingStyles { get; set; }
 
-        public NamingStyleOptionPageViewModel(SerializableNamingStylePreferencesInfo info)
+        public NamingStyleOptionPageViewModel(NamingStylePreferences info)
         {
             var viewModels = new List<NamingRuleViewModel>();
             foreach (var namingRule in info.NamingRules)
             {
-                var viewModel = new NamingRuleViewModel();
-
-                viewModel.NamingStyles = new ObservableCollection<NamingStyle>(info.NamingStyles);
-                viewModel.Specifications = new ObservableCollection<SymbolSpecification>(info.SymbolSpecifications);
-                viewModel.NotificationPreferences = new List<NotificationOptionViewModel>(_notifications);
-
+                var viewModel = new NamingRuleViewModel()
+                {
+                    NamingStyles = new ObservableCollection<NamingStyle>(info.NamingStyles),
+                    Specifications = new ObservableCollection<SymbolSpecification>(info.SymbolSpecifications),
+                    NotificationPreferences = new List<NotificationOptionViewModel>(_notifications)
+                };
                 viewModel.SelectedSpecification = viewModel.Specifications.Single(s => s.ID == namingRule.SymbolSpecificationID);
                 viewModel.SelectedStyle= viewModel.NamingStyles.Single(s => s.ID == namingRule.NamingStyleID);
                 viewModel.SelectedNotificationPreference = viewModel.NotificationPreferences.Single(n => n.Notification.Value == namingRule.EnforcementLevel);
@@ -87,11 +87,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         internal void UpdateSpecificationList(ManageSymbolSpecificationsDialogViewModel viewModel)
         {
             var symbolSpecifications = viewModel.Items.Cast<SymbolSpecificationViewModel>().Select(n => new SymbolSpecification(
-                n.ID,
-                n.ItemName,
-                n.SymbolKindList.Where(s => s.IsChecked).Select(k => k.CreateSymbolKindOrTypeKind()).ToList(),
-                n.AccessibilityList.Where(s => s.IsChecked).Select(a => new SymbolSpecification.AccessibilityKind(a._accessibility)).ToList(),
-                n.ModifierList.Where(s => s.IsChecked).Select(m => new SymbolSpecification.ModifierKind(m._modifier)).ToList()));
+                id: n.ID,
+                symbolSpecName: n.ItemName,
+                symbolKindList: n.SymbolKindList.Where(s => s.IsChecked).Select(k => k.CreateSymbolKindOrTypeKind()).ToList(),
+                accessibilityList: n.AccessibilityList.Where(s => s.IsChecked).Select(a => a._accessibility).ToList(),
+                modifiers: n.ModifierList.Where(s => s.IsChecked).Select(m => new SymbolSpecification.ModifierKind(m._modifier)).ToList()));
 
             Specifications.Clear();
             foreach (var specification in symbolSpecifications)
@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         private void SetMoveArrowStatuses()
         {
-            for (int i = 0; i < CodeStyleItems.Count; i++)
+            for (var i = 0; i < CodeStyleItems.Count; i++)
             {
                 CodeStyleItems[i].CanMoveUp = true;
                 CodeStyleItems[i].CanMoveDown = true;

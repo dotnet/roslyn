@@ -122,11 +122,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         internal SymbolSpecification GetSymbolSpecification()
         {
             return new SymbolSpecification(
-                ID,
-                ItemName,
-                SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolKindOrTypeKind()).ToList(),
-                AccessibilityList.Where(a => a.IsChecked).Select(a => new SymbolSpecification.AccessibilityKind(a._accessibility)).ToList(),
-                ModifierList.Where(m => m.IsChecked).Select(m => new ModifierKind(m._modifier)).ToList());
+                id: ID,
+                symbolSpecName: ItemName,
+                symbolKindList: SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolKindOrTypeKind()).ToList(),
+                accessibilityList: AccessibilityList.Where(a => a.IsChecked).Select(a => a._accessibility).ToList(),
+                modifiers: ModifierList.Where(m => m.IsChecked).Select(m => new ModifierKind(m._modifier)).ToList());
         }
 
         internal bool TrySubmit()
@@ -161,14 +161,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
             public SymbolKindViewModel(SymbolKind symbolKind, string name, SymbolSpecification specification)
             {
-                this._symbolKind = symbolKind;
+                _symbolKind = symbolKind;
                 Name = name;
                 IsChecked = specification.ApplicableSymbolKindList.Any(k => k.SymbolKind == symbolKind);
             }
 
             public SymbolKindViewModel(TypeKind typeKind, string name, SymbolSpecification specification)
             {
-                this._typeKind = typeKind;
+                _typeKind = typeKind;
                 Name = name;
                 IsChecked = specification.ApplicableSymbolKindList.Any(k => k.TypeKind == typeKind);
             }
@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 _accessibility = accessibility;
                 Name = name;
 
-                IsChecked = specification.ApplicableAccessibilityList.Any(a => a.Accessibility == accessibility);
+                IsChecked = specification.ApplicableAccessibilityList.Any(a => a == accessibility);
             }
         }
 

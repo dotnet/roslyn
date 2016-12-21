@@ -68,13 +68,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             if (!name.StartsWith(Prefix))
             {
-                failureReason = string.Format(FeaturesResources.Missing_prefix_colon_0, Prefix);
+                failureReason = string.Format(WorkspacesResources.Missing_prefix_colon_0, Prefix);
                 return false;
             }
 
             if (!name.EndsWith(Suffix))
             {
-                failureReason = string.Format(FeaturesResources.Missing_suffix_colon_0, Suffix);
+                failureReason = string.Format(WorkspacesResources.Missing_suffix_colon_0, Suffix);
                 return false;
             }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     else
                     {
                         var violations = words.Where(w => !char.IsUpper(w[0]));
-                        failureReason = string.Format(FeaturesResources.These_words_must_begin_with_upper_case_characters_colon_0, string.Join(", ", violations));
+                        failureReason = string.Format(WorkspacesResources.These_words_must_begin_with_upper_case_characters_colon_0, string.Join(", ", violations));
                         return false;
                     }
                 case Capitalization.CamelCase:
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     {
                         if (!char.IsLower(words.First()[0]))
                         {
-                            failureReason = string.Format(FeaturesResources.The_first_word_0_must_begin_with_a_lower_case_character, words.First());
+                            failureReason = string.Format(WorkspacesResources.The_first_word_0_must_begin_with_a_lower_case_character, words.First());
                         }
 
                         var violations = words.Skip(1).Where(w => !char.IsUpper(w[0]));
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                                 failureReason += Environment.NewLine;
                             }
 
-                            failureReason += string.Format(FeaturesResources.These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0, string.Join(", ", violations));
+                            failureReason += string.Format(WorkspacesResources.These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0, string.Join(", ", violations));
                         }
 
                         return false;
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     {
                         if (!char.IsUpper(words.First()[0]))
                         {
-                            failureReason = string.Format(FeaturesResources.The_first_word_0_must_begin_with_an_upper_case_character, words.First());
+                            failureReason = string.Format(WorkspacesResources.The_first_word_0_must_begin_with_an_upper_case_character, words.First());
                         }
 
                         var violations = words.Skip(1).Where(w => !char.IsLower(w[0]));
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                                 failureReason += Environment.NewLine;
                             }
 
-                            failureReason += string.Format(FeaturesResources.These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0, string.Join(", ", violations));
+                            failureReason += string.Format(WorkspacesResources.These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0, string.Join(", ", violations));
                         }
 
                         return false;
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     else
                     {
                         var violations = words.Where(w => !w.ToCharArray().All(c => char.IsUpper(c)));
-                        failureReason = string.Format(FeaturesResources.These_words_cannot_contain_lower_case_characters_colon_0, string.Join(", ", violations));
+                        failureReason = string.Format(WorkspacesResources.These_words_cannot_contain_lower_case_characters_colon_0, string.Join(", ", violations));
                         return false;
                     }
                 case Capitalization.AllLower:
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     else
                     {
                         var violations = words.Where(w => !w.ToCharArray().All(c => char.IsLower(c)));
-                        failureReason = string.Format(FeaturesResources.These_words_cannot_contain_upper_case_characters_colon_0, string.Join(", ", violations));
+                        failureReason = string.Format(WorkspacesResources.These_words_cannot_contain_upper_case_characters_colon_0, string.Join(", ", violations));
                         return false;
                     }
                 default:

@@ -5,11 +5,11 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal class NamingStylePreferencesInfo
+    internal class NamingStyleRules
     {
         public ImmutableArray<NamingRule> NamingRules { get; }
 
-        public NamingStylePreferencesInfo(ImmutableArray<NamingRule> namingRules)
+        public NamingStyleRules(ImmutableArray<NamingRule> namingRules)
         {
             NamingRules = namingRules;
         }
@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             if (symbol.Kind == SymbolKind.Method)
             {
-                var methodSymbol = symbol as IMethodSymbol;
-                if (methodSymbol != null && methodSymbol.MethodKind != MethodKind.Ordinary)
+                if (symbol is IMethodSymbol methodSymbol && methodSymbol.MethodKind != MethodKind.Ordinary)
                 {
                     return false;
                 }
@@ -54,8 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             if (symbol.Kind == SymbolKind.Property)
             {
-                var propertySymbol = symbol as IPropertySymbol;
-                if (propertySymbol != null && propertySymbol.IsIndexer)
+                if (symbol is IPropertySymbol propertySymbol && propertySymbol.IsIndexer)
                 {
                     return false;
                 }

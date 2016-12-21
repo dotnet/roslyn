@@ -2,13 +2,12 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal abstract class NamingStyleDiagnosticAnalyzerBase : 
+    internal abstract class NamingStyleDiagnosticAnalyzerBase :
         AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
@@ -36,32 +35,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public bool OpenFileOnly(Workspace workspace) => true;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterCompilationStartAction(CompilationStartAction);
+            => context.RegisterSymbolAction(SymbolAction, _symbolKinds);
 
-        private void CompilationStartAction(CompilationStartAnalysisContext context)
+        private void SymbolAction(SymbolAnalysisContext context)
         {
-            var workspace = (context.Options as WorkspaceAnalyzerOptions)?.Workspace;
-            var optionSet = (context.Options as WorkspaceAnalyzerOptions)?.Workspace.Options;
-            var currentValue = optionSet.GetOption(SimplificationOptions.NamingPreferences, context.Compilation.Language);
-
-            if (!string.IsNullOrEmpty(currentValue))
+            var namingStyleRules = context.GetNamingStyleRulesAsync().GetAwaiter().GetResult();
+            if (namingStyleRules == null)
             {
-                // Deserializing the naming preference info on every CompilationStart is expensive.
-                // Instead, the diagnostic engine should listen for option changes and have the
-                // ability to create the new SerializableNamingStylePreferencesInfo when it detects
-                // any change. The overall system would then only deserialize & allocate when 
-                // actually necessary.
-                var viewModel = SerializableNamingStylePreferencesInfo.FromXElement(XElement.Parse(currentValue));
-                var preferencesInfo = viewModel.GetPreferencesInfo();
-                context.RegisterSymbolAction(
-                    symbolContext => SymbolAction(symbolContext, preferencesInfo),
-                    _symbolKinds);
+                return;
             }
-        }
 
-        private void SymbolAction(SymbolAnalysisContext context, NamingStylePreferencesInfo preferences)
-        {
-            if (preferences.TryGetApplicableRule(context.Symbol, out var applicableRule))
+            if (namingStyleRules.TryGetApplicableRule(context.Symbol, out var applicableRule))
             {
                 if (applicableRule.EnforcementLevel != DiagnosticSeverity.Hidden &&
                     !applicableRule.IsNameCompliant(context.Symbol.Name, out var failureReason))

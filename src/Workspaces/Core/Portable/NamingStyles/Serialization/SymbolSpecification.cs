@@ -6,6 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public string Name { get; private set; }
 
         public IList<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; private set; }
-        public IList<AccessibilityKind> ApplicableAccessibilityList { get; private set; }
+        public IList<Accessibility> ApplicableAccessibilityList { get; private set; }
         public IList<ModifierKind> RequiredModifierList { get; private set; }
 
         internal SymbolSpecification()
@@ -39,27 +40,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     new SymbolKindOrTypeKind(SymbolKind.Event),
                 };
 
-            ApplicableAccessibilityList = new List<AccessibilityKind>
+            ApplicableAccessibilityList = new List<Accessibility>
                 {
-                    new AccessibilityKind(Accessibility.Public),
-                    new AccessibilityKind(Accessibility.Internal),
-                    new AccessibilityKind(Accessibility.Private),
-                    new AccessibilityKind(Accessibility.Protected),
-                    new AccessibilityKind(Accessibility.ProtectedAndInternal),
-                    new AccessibilityKind(Accessibility.ProtectedOrInternal),
+                    Accessibility.Public,
+                    Accessibility.Internal,
+                    Accessibility.Private,
+                    Accessibility.Protected,
+                    Accessibility.ProtectedAndInternal,
+                    Accessibility.ProtectedOrInternal,
                 };
 
             RequiredModifierList = new List<ModifierKind>();
         }
 
-        public SymbolSpecification(Guid id, string symbolSpecName,
+        public SymbolSpecification(string symbolSpecName,
             IList<SymbolKindOrTypeKind> symbolKindList,
-            IList<AccessibilityKind> accessibilityKindList,
-            IList<ModifierKind> modifiers)
+            IList<Accessibility> accessibilityList,
+            IList<ModifierKind> modifiers,
+            Guid? id = null)
         {
-            ID = id;
+            ID = id ?? Guid.NewGuid();
             Name = symbolSpecName;
-            ApplicableAccessibilityList = accessibilityKindList;
+            ApplicableAccessibilityList = accessibilityList;
             RequiredModifierList = modifiers;
             ApplicableSymbolKindList = symbolKindList;
         }
@@ -162,10 +164,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private void PopulateAccessibilityListFromXElement(XElement accessibilityListElement)
         {
-            var applicableAccessibilityList = new List<AccessibilityKind>();
-            foreach (var accessibilityElement in accessibilityListElement.Elements(nameof(AccessibilityKind)))
+            var applicableAccessibilityList = new List<Accessibility>();
+            foreach (var accessibilityElement in accessibilityListElement.Elements("AccessibilityKind"))
             {
-                applicableAccessibilityList.Add(AccessibilityKind.FromXElement(accessibilityElement));
+                applicableAccessibilityList.Add(AccessibilityExtensions.FromXElement(accessibilityElement));
             }
             ApplicableAccessibilityList = applicableAccessibilityList;
         }
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
         }
 
-        public class SymbolKindOrTypeKind
+        public struct SymbolKindOrTypeKind : IEquatable<SymbolKindOrTypeKind>
         {
             public SymbolKind? SymbolKind { get; set; }
             public TypeKind? TypeKind { get; set; }
@@ -187,10 +189,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             public SymbolKindOrTypeKind(SymbolKind symbolKind)
             {
                 SymbolKind = symbolKind;
+                TypeKind = null;
             }
 
             public SymbolKindOrTypeKind(TypeKind typeKind)
             {
+                SymbolKind = null;
                 TypeKind = typeKind;
             }
 
@@ -228,34 +232,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             {
                 return new SymbolKindOrTypeKind((TypeKind)Enum.Parse(typeof(TypeKind), typeKindElement.Value));
             }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is SymbolKindOrTypeKind symbolKindOrTypeKind)
+                {
+                    return Equals(symbolKindOrTypeKind);
+                }
+
+                return false;
+            }
+
+            public bool Equals(SymbolKindOrTypeKind other)
+            {
+                return SymbolKind == other.SymbolKind &&
+                       TypeKind == other.TypeKind;
+            }
+
+            public static bool operator ==(SymbolKindOrTypeKind left, SymbolKindOrTypeKind right)
+                => left.Equals(right);
+
+            public static bool operator !=(SymbolKindOrTypeKind left, SymbolKindOrTypeKind right)
+                => !left.Equals(right);
+
+            public override int GetHashCode()
+            {
+                return Hash.Combine(SymbolKind.GetHashCode(), TypeKind.GetHashCode());
+            }
         }
 
-        public class AccessibilityKind
-        {
-            public Accessibility Accessibility { get; set; }
-
-            public AccessibilityKind(Accessibility accessibility)
-            {
-                Accessibility = accessibility;
-            }
-
-            public bool MatchesSymbol(ISymbol symbol)
-            {
-                return symbol.DeclaredAccessibility == Accessibility;
-            }
-
-            internal XElement CreateXElement()
-            {
-                return new XElement(nameof(AccessibilityKind), Accessibility);
-            }
-
-            internal static AccessibilityKind FromXElement(XElement accessibilityElement)
-            {
-                return new AccessibilityKind((Accessibility)Enum.Parse(typeof(Accessibility), accessibilityElement.Value));
-            }
-        }
-
-        public class ModifierKind
+        public struct ModifierKind : IEquatable<ModifierKind>
         {
             public ModifierKindEnum ModifierKindWrapper;
 
@@ -309,11 +315,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             public ModifierKind(DeclarationModifiers modifier)
             {
-                this.Modifier = modifier;
+                ModifierKindWrapper = default(ModifierKindEnum);
+                _modifier = default(DeclarationModifiers);
+                Modifier = modifier;
             }
 
             public ModifierKind(ModifierKindEnum modifierKind)
             {
+                _modifier = default(DeclarationModifiers);
                 ModifierKindWrapper = modifierKind;
             }
 
@@ -355,6 +364,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             internal static ModifierKind FromXElement(XElement modifierElement)
             {
                 return new ModifierKind((ModifierKindEnum)(ModifierKindEnum)Enum.Parse((Type)typeof(ModifierKindEnum), (string)modifierElement.Value));
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is ModifierKind modifierKind)
+                {
+                    return Equals(modifierKind);
+                }
+
+                return false;
+            }
+
+            public bool Equals(ModifierKind other)
+            {
+                return Modifier == other.Modifier;
+            }
+
+            public static bool operator ==(ModifierKind left, ModifierKind right)
+                => left.Equals(right);
+
+            public static bool operator !=(ModifierKind left, ModifierKind right)
+                => !left.Equals(right);
+
+            public override int GetHashCode()
+            {
+                return Modifier.GetHashCode();
             }
         }
         public enum ModifierKindEnum

@@ -1,7 +1,12 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.CodingConventions;
@@ -22,10 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         private readonly Dictionary<DocumentId, Task<ICodingConventionContext>> _openDocumentContexts = new Dictionary<DocumentId, Task<ICodingConventionContext>>();
 
         private readonly ICodingConventionsManager _codingConventionsManager;
+        private readonly IErrorLoggerService _errorLogger;
 
         internal EditorConfigDocumentOptionsProvider(Workspace workspace)
         {
             _codingConventionsManager = CodingConventionsManagerFactory.CreateCodingConventionsManager();
+            _errorLogger = workspace.Services.GetService<IErrorLoggerService>();
 
             workspace.DocumentOpened += Workspace_DocumentOpened;
             workspace.DocumentClosed += Workspace_DocumentClosed;
@@ -78,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                     TaskScheduler.Default);
 
                 var context = await cancellableContextTask.ConfigureAwait(false);
-                return new DocumentOptions(context.CurrentConventions);
+                return new DocumentOptions(context.CurrentConventions, _errorLogger);
             }
             else
             {
@@ -105,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                 using (var context = await conventionsAsync.ConfigureAwait(false))
                 {
-                    return new DocumentOptions(context.CurrentConventions);
+                    return new DocumentOptions(context.CurrentConventions, _errorLogger);
                 }
             }
         }
