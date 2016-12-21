@@ -5324,7 +5324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (searchExtensionMethodsIfNecessary)
                 {
-                    var boundMethodGroup = new BoundMethodGroup(
+                    return new BoundMethodGroup(
                         node,
                         typeArguments,
                         boundLeft,
@@ -5332,13 +5332,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         lookupResult.Symbols.All(s => s.Kind == SymbolKind.Method) ? lookupResult.Symbols.SelectAsArray(s_toMethodSymbolFunc) : ImmutableArray<MethodSymbol>.Empty,
                         lookupResult,
                         flags);
-
-                    if (!boundMethodGroup.HasErrors && boundMethodGroup.ResultKind == LookupResultKind.Empty && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
-                    {
-                        Error(diagnostics, ErrorCode.ERR_BadArity, node, rightName, MessageID.IDS_MethodGroup.Localize(), typeArgumentsSyntax.Count);
-                    }
-
-                    return boundMethodGroup;
                 }
 
                 this.BindMemberAccessReportError(node, right, rightName, boundLeft, lookupResult.Error, diagnostics);
@@ -5758,9 +5751,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeSymbol> typeArguments,
             DiagnosticBag diagnostics)
         {
+            bool nodeHasOmittedTypeArgs = false;
+
+            if (node.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+            {
+                var memberAccessSyntax = (MemberAccessExpressionSyntax)node;
+                if (memberAccessSyntax.Name.Kind() == SyntaxKind.GenericName)
+                {
+                    var genericNameSyntax = (GenericNameSyntax)memberAccessSyntax.Name;
+                    if (genericNameSyntax.TypeArgumentList.Arguments.Any(SyntaxKind.OmittedTypeArgument))
+                    {
+                        nodeHasOmittedTypeArgs = true;
+                    }
+                }
+            }
+
             int arity;
             LookupOptions options;
-            if (typeArguments.IsDefault)
+
+            if (typeArguments.IsDefault || nodeHasOmittedTypeArgs)
             {
                 arity = 0;
                 options = LookupOptions.AllMethodsOnArityZero;
@@ -5769,6 +5778,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 arity = typeArguments.Length;
                 options = LookupOptions.Default;
+            }
+
+            if (nodeHasOmittedTypeArgs)
+            {
+                options |= LookupOptions.TryMatchOmittedTypeArgs;
             }
 
             var lookupResult = LookupResult.GetInstance();

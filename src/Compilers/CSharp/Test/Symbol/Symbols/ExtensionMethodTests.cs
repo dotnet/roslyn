@@ -681,9 +681,9 @@ namespace N4
                 // (13,17): error CS0411: The type arguments for method 'N1.N2.C.M4<T>(T, int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //                 this.M4(null, 2); // MethodResolutionKind.TypeInferenceFailed
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M4").WithArguments("N1.N2.C.M4<T>(T, int)").WithLocation(13, 22),
-                // (14,22): error CS0305: Using the generic method 'N1.N2.C.M5<T>(T, int)' requires 1 type arguments
+                // (14,22): error CS0305: Using the generic method group 'N1.N2.C.M5<T>(T, int)' requires 1 type arguments
                 //                 this.M5<string, string>(null, 2); // Bad arity
-                Diagnostic(ErrorCode.ERR_BadArity, "M5<string, string>").WithArguments("N1.N2.C.M5<T>(T, int)", "method", "1").WithLocation(14, 22),
+                Diagnostic(ErrorCode.ERR_BadArity, "M5<string, string>").WithArguments("N1.N2.C.M5<T>(T, int)", "method group", "1").WithLocation(14, 22),
                 // (15,17): error CS0121: The call is ambiguous between the following methods or properties: 'N1.N2.C.M6(object, string)' and 'N1.N2.C.M6(string, object)'
                 //                 this.M6(null, null); // Ambiguous
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M6").WithArguments("N1.N2.C.M6(object, string)", "N1.N2.C.M6(string, object)").WithLocation(15, 22),
@@ -1897,9 +1897,9 @@ static class S
                 // (7,16): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
                 //         this.E<A>(null);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 16),
-                // (8,14): error CS0305: Using the generic method 'C.E<T>()' requires 1 type arguments
+                // (8,14): error CS0305: Using the generic method group 'C.E<T>()' requires 1 type arguments
                 //         this.E<int, int>(1);
-                Diagnostic(ErrorCode.ERR_BadArity, "E<int, int>").WithArguments("C.E<T>()", "method", "1").WithLocation(8, 14)
+                Diagnostic(ErrorCode.ERR_BadArity, "E<int, int>").WithArguments("C.E<T>()", "method group", "1").WithLocation(8, 14)
                 );
         }
 

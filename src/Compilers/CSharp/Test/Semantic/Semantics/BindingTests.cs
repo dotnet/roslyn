@@ -119,18 +119,18 @@ class C<T, U> { }
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (9,9): error CS0305: Using the generic method 'C.M1<T>()' requires 1 type arguments
-                Diagnostic(ErrorCode.ERR_BadArity, "M1<object, object>").WithArguments("C.M1<T>()", "method", "1").WithLocation(9, 9),
-                // (10,11): error CS0305: Using the generic method 'C.M1<T>()' requires 1 type arguments
-                Diagnostic(ErrorCode.ERR_BadArity, "M1<object, object>").WithArguments("C.M1<T>()", "method", "1").WithLocation(10, 11),
+                // (9,9): error CS0305: Using the generic method group 'C.M1<T>()' requires 1 type arguments
+                Diagnostic(ErrorCode.ERR_BadArity, "M1<object, object>").WithArguments("C.M1<T>()", "method group", "1").WithLocation(9, 9),
+                // (10,11): error CS0305: Using the generic method group 'C.M1<T>()' requires 1 type arguments
+                Diagnostic(ErrorCode.ERR_BadArity, "M1<object, object>").WithArguments("C.M1<T>()", "method group", "1").WithLocation(10, 11),
                 // (11,9): error CS0308: The non-generic method 'C.M2()' cannot be used with type arguments
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M2<int>").WithArguments("C.M2()", "method").WithLocation(11, 9),
                 // (12,11): error CS0308: The non-generic method 'C.M2()' cannot be used with type arguments
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M2<int>").WithArguments("C.M2()", "method").WithLocation(12, 11),
-                // (13,9): error CS0305: Using the generic method 'C.M3<T>()' requires 1 type arguments
-                Diagnostic(ErrorCode.ERR_BadArity, "M3<object, object>").WithArguments("C.M3<T>()", "method", "1").WithLocation(13, 9),
-                // (14,14): error CS0305: Using the generic method 'C.M3<T>()' requires 1 type arguments
-                Diagnostic(ErrorCode.ERR_BadArity, "M3<object, object>").WithArguments("C.M3<T>()", "method", "1").WithLocation(14, 14),
+                // (13,9): error CS0305: Using the generic method group 'C.M3<T>()' requires 1 type arguments
+                Diagnostic(ErrorCode.ERR_BadArity, "M3<object, object>").WithArguments("C.M3<T>()", "method group", "1").WithLocation(13, 9),
+                // (14,14): error CS0305: Using the generic method group 'C.M3<T>()' requires 1 type arguments
+                Diagnostic(ErrorCode.ERR_BadArity, "M3<object, object>").WithArguments("C.M3<T>()", "method group", "1").WithLocation(14, 14),
                 // (15,9): error CS0308: The non-generic method 'C.M4()' cannot be used with type arguments
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M4<int>").WithArguments("C.M4()", "method").WithLocation(15, 9),
                 // (16,14): error CS0308: The non-generic method 'C.M4()' cannot be used with type arguments
@@ -3419,33 +3419,124 @@ class Program
         }
 
         [Fact, WorkItem(13617, "https://github.com/dotnet/roslyn/issues/13617")]
-        public void MissingTypeArgumentInGenericExtensionMethod()
+        public void MissingTypeArgumentInGenericExtensionMethods_Arity()
         {
             var source =
 @"
 public static class FooExtensions
 {
-    public static T Foo<T>(this object obj) => default(T);
+    public static object ExtensionMethod0(this object obj) => default(object);
+    public static T ExtensionMethod1<T>(this object obj) => default(T);
+    public static T1 ExtensionMethod2<T1, T2>(this object obj) => default(T1);
 }
 
 public class Class1
 {
     public void Test()
     {
-        var defaultA = ""a"".Foo<>();
-        var defaultB = FooExtensions.Foo<>(""b"");
+        var omittedArg0 = ""string literal"".ExtensionMethod0<>();
+        var omittedArg1 = ""string literal"".ExtensionMethod1<>();
+        var omittedArg2 = ""string literal"".ExtensionMethod2<>();
+
+        var moreArgs0 = ""string literal"".ExtensionMethod0<int>();
+        var moreArgs1 = ""string literal"".ExtensionMethod1<int, bool>();
+        var moreArgs2 = ""string literal"".ExtensionMethod2<int, bool, string>();
+
+        var lessArgs1 = ""string literal"".ExtenionMethod1();
+        var lessArgs2 = ""string literal"".ExtenionMethod2<int>();
+
+        var exactArgs0 = ""string literal"".ExtensionMethod0();
+        var exactArgs1 = ""string literal"".ExtensionMethod1<int>();
+        var exactArgs2 = ""string literal"".ExtensionMethod2<int, bool>();
     }
 }
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
 
             compilation.VerifyDiagnostics(
-                // (11,24): error CS0305: Using the generic method group 'Foo' requires 1 type arguments
-                //         var defaultA = "a".Foo<>();
-                Diagnostic(ErrorCode.ERR_BadArity, @"""a"".Foo<>").WithArguments("Foo", "method group", "1").WithLocation(11, 24),
-                // (12,24): error CS0305: Using the generic method group 'Foo' requires 1 type arguments
-                //         var defaultB = FooExtensions.Foo<>("b");
-                Diagnostic(ErrorCode.ERR_BadArity, "FooExtensions.Foo<>").WithArguments("Foo", "method group", "1").WithLocation(12, 24));
+                // (13,44): error CS1501: No overload for method 'ExtensionMethod0' takes 0 arguments
+                //         var omittedArg0 = "string literal".ExtensionMethod0<>();
+                Diagnostic(ErrorCode.ERR_BadArgCount, "ExtensionMethod0<>").WithArguments("ExtensionMethod0", "0").WithLocation(13, 44),
+                // (14,44): error CS0305: Using the generic method group 'FooExtensions.ExtensionMethod1<T>(object)' requires 1 type arguments
+                //         var omittedArg1 = "string literal".ExtensionMethod1<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "ExtensionMethod1<>").WithArguments("FooExtensions.ExtensionMethod1<T>(object)", "method group", "1").WithLocation(14, 44),
+                // (15,44): error CS0305: Using the generic method group 'FooExtensions.ExtensionMethod2<T1, T2>(object)' requires 2 type arguments
+                //         var omittedArg2 = "string literal".ExtensionMethod2<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "ExtensionMethod2<>").WithArguments("FooExtensions.ExtensionMethod2<T1, T2>(object)", "method group", "2").WithLocation(15, 44),
+                // (17,42): error CS1061: 'string' does not contain a definition for 'ExtensionMethod0' and no extension method 'ExtensionMethod0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var moreArgs0 = "string literal".ExtensionMethod0<int>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod0<int>").WithArguments("string", "ExtensionMethod0").WithLocation(17, 42),
+                // (18,42): error CS1061: 'string' does not contain a definition for 'ExtensionMethod1' and no extension method 'ExtensionMethod1' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var moreArgs1 = "string literal".ExtensionMethod1<int, bool>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod1<int, bool>").WithArguments("string", "ExtensionMethod1").WithLocation(18, 42),
+                // (19,42): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var moreArgs2 = "string literal".ExtensionMethod2<int, bool, string>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<int, bool, string>").WithArguments("string", "ExtensionMethod2").WithLocation(19, 42),
+                // (21,42): error CS1061: 'string' does not contain a definition for 'ExtenionMethod1' and no extension method 'ExtenionMethod1' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var lessArgs1 = "string literal".ExtenionMethod1();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtenionMethod1").WithArguments("string", "ExtenionMethod1").WithLocation(21, 42),
+                // (22,42): error CS1061: 'string' does not contain a definition for 'ExtenionMethod2' and no extension method 'ExtenionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         var lessArgs2 = "string literal".ExtenionMethod2<int>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtenionMethod2<int>").WithArguments("string", "ExtenionMethod2").WithLocation(22, 42));
+        }
+
+        [Fact, WorkItem(13617, "https://github.com/dotnet/roslyn/issues/13617")]
+        public void MissingTypeArgumentInGenericInstanceMethods_Arity()
+        {
+            var source =
+@"
+public class Class1
+{
+    public object InstanceMethod0() => default(object);
+    public T InstanceMethod1<T>() => default(T);
+    public T1 InstanceMethod2<T1, T2>() => default(T1);
+
+    public void Test()
+    {
+        var omittedArg0 = InstanceMethod0<>();
+        var omittedArg1 = InstanceMethod1<>();
+        var omittedArg2 = InstanceMethod2<>();
+
+        var moreArgs0 = InstanceMethod0<int>();
+        var moreArgs1 = InstanceMethod1<int, bool>();
+        var moreArgs2 = InstanceMethod2<int, bool, string>();
+
+        var lessArgs1 = InstanceMethod1();
+        var lessArgs2 = InstanceMethod2<int>();
+
+        var exactArgs0 = InstanceMethod0();
+        var exactArgs1 = InstanceMethod1<int>();
+        var exactArgs2 = InstanceMethod2<int, bool>();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+
+            compilation.VerifyDiagnostics(
+                // (10,27): error CS0308: The non-generic method 'Class1.InstanceMethod0()' cannot be used with type arguments
+                //         var omittedArg0 = InstanceMethod0<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "InstanceMethod0<>").WithArguments("Class1.InstanceMethod0()", "method").WithLocation(10, 27),
+                // (11,27): error CS0305: Using the generic method group 'InstanceMethod1' requires 1 type arguments
+                //         var omittedArg1 = InstanceMethod1<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "InstanceMethod1<>").WithArguments("InstanceMethod1", "method group", "1").WithLocation(11, 27),
+                // (12,27): error CS0305: Using the generic method group 'Class1.InstanceMethod2<T1, T2>()' requires 2 type arguments
+                //         var omittedArg2 = InstanceMethod2<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "InstanceMethod2<>").WithArguments("Class1.InstanceMethod2<T1, T2>()", "method group", "2").WithLocation(12, 27),
+                // (14,25): error CS0308: The non-generic method 'Class1.InstanceMethod0()' cannot be used with type arguments
+                //         var moreArgs0 = InstanceMethod0<int>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "InstanceMethod0<int>").WithArguments("Class1.InstanceMethod0()", "method").WithLocation(14, 25),
+                // (15,25): error CS0305: Using the generic method group 'Class1.InstanceMethod1<T>()' requires 1 type arguments
+                //         var moreArgs1 = InstanceMethod1<int, bool>();
+                Diagnostic(ErrorCode.ERR_BadArity, "InstanceMethod1<int, bool>").WithArguments("Class1.InstanceMethod1<T>()", "method group", "1").WithLocation(15, 25),
+                // (16,25): error CS0305: Using the generic method group 'Class1.InstanceMethod2<T1, T2>()' requires 2 type arguments
+                //         var moreArgs2 = InstanceMethod2<int, bool, string>();
+                Diagnostic(ErrorCode.ERR_BadArity, "InstanceMethod2<int, bool, string>").WithArguments("Class1.InstanceMethod2<T1, T2>()", "method group", "2").WithLocation(16, 25),
+                // (18,25): error CS0411: The type arguments for method 'Class1.InstanceMethod1<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var lessArgs1 = InstanceMethod1();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "InstanceMethod1").WithArguments("Class1.InstanceMethod1<T>()").WithLocation(18, 25),
+                // (19,25): error CS0305: Using the generic method group 'Class1.InstanceMethod2<T1, T2>()' requires 2 type arguments
+                //         var lessArgs2 = InstanceMethod2<int>();
+                Diagnostic(ErrorCode.ERR_BadArity, "InstanceMethod2<int>").WithArguments("Class1.InstanceMethod2<T1, T2>()", "method group", "2").WithLocation(19, 25));
         }
     }
 }

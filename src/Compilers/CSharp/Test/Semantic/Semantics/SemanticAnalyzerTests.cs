@@ -469,9 +469,9 @@ class C
                 // (118,11): error CS0411: The type arguments for method 'P.Generic<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         p.Generic();
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Generic").WithArguments("P.Generic<T>()").WithLocation(118, 11),
-                // (122,11): error CS0305: Using the generic method 'P.Generic<T>()' requires 1 type arguments
+                // (122,11): error CS0305: Using the generic method group 'P.Generic<T>()' requires 1 type arguments
                 //         p.Generic<int, int>();
-                Diagnostic(ErrorCode.ERR_BadArity, "Generic<int, int>").WithArguments("P.Generic<T>()", "method", "1").WithLocation(122, 11),
+                Diagnostic(ErrorCode.ERR_BadArity, "Generic<int, int>").WithArguments("P.Generic<T>()", "method group", "1").WithLocation(122, 11),
                 // (125,11): error CS0308: The non-generic method 'P.NotGeneric()' cannot be used with type arguments
                 //         p.NotGeneric<int, int>();
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "NotGeneric<int, int>").WithArguments("P.NotGeneric()", "method").WithLocation(125, 11),

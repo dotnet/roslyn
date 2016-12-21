@@ -482,12 +482,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // First deal with eliminating generic-arity mismatches.
 
             // SPEC: If F is generic and M includes a type argument list, F is a candidate when:
-            // SPEC: * F has the same number of method type parameters as were supplied in the type argument list, and
-            //
-            // This is specifying an impossible condition; the member lookup algorithm has already filtered
-            // out methods from the method group that have the wrong generic arity.
+            // SPEC: * F has the same number of method type parameters as were supplied in the type argument list
 
-            Debug.Assert(typeArguments.Count == 0 || typeArguments.Count == member.GetMemberArity());
+            // filter out methods from the method group that have the wrong generic arity.
+            if (typeArguments.Count != 0 && typeArguments.Count != member.GetMemberArity())
+            {
+                return;
+            }
 
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
 

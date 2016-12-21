@@ -96,6 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Do not consider symbols that are method type parameters.
         /// </summary>
         MustNotBeMethodTypeParameter = 1 << 14,
+
+        /// <summary>
+        /// Lookup symbols that can match omitted type arguments
+        /// </summary>
+        TryMatchOmittedTypeArgs = 1 << 15,
     }
 
     internal static class LookupOptionExtensions
