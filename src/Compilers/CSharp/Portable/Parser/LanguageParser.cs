@@ -10380,13 +10380,15 @@ tryAgain:
                     list.Add(arg);
                 }
 
-                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                var result = _syntaxFactory.TupleExpression(openParen, list, closeParen);
-
                 if (list.Count < 2)
                 {
-                    result = this.AddError(result, ErrorCode.ERR_TupleTooFewElements);
+                    list.AddSeparator(SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
+                    var missingExpression = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TupleTooFewElements);
+                    list.Add(_syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: missingExpression));
                 }
+
+                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+                var result = _syntaxFactory.TupleExpression(openParen, list, closeParen);
 
                 result = CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples);
                 return result;

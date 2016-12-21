@@ -5,11 +5,16 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SeparatedSyntaxListParsingTests : ParsingTests
     {
+        public SeparatedSyntaxListParsingTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
             return SyntaxFactory.ParseSyntaxTree(text, options: options);

@@ -6,11 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ParserErrorMessageTests : ParsingTests
     {
+        public ParserErrorMessageTests(ITestOutputHelper output) : base(output) { }
+
         #region "Targeted Error Tests - please arrange tests in the order of error code"
 
         [WorkItem(536666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536666")]

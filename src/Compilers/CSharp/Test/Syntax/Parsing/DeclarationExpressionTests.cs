@@ -2,12 +2,15 @@
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
     [CompilerTrait(CompilerFeature.Tuples)]
     public class DeclarationExpressionTests : ParsingTests
     {
+        public DeclarationExpressionTests(ITestOutputHelper output) : base(output) { }
+
         [Fact]
         public void NullaboutOutDeclaration()
         {
