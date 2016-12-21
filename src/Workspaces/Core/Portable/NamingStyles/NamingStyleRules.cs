@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal class NamingStyleRules
+    internal struct NamingStyleRules
     {
         public ImmutableArray<NamingRule> NamingRules { get; }
 

@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return;
             }
 
-
             if (!namingStyleRules.TryGetApplicableRule(context.Symbol, out var applicableRule) ||
                 applicableRule.EnforcementLevel == DiagnosticSeverity.Hidden)
             {
