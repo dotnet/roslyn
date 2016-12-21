@@ -3448,6 +3448,10 @@ public class Class1
         var nonExistingMethod1 = ""string literal"".ExtensionMethodNotFound1<int>();
         var nonExistingMethod2 = ""string literal"".ExtensionMethodNotFound2<int, string>();
 
+        System.Func<object> delegateConversion0 = ""string literal"".ExtensionMethod0<>;
+        System.Func<object> delegateConversion1 = ""string literal"".ExtensionMethod1<>;
+        System.Func<object> delegateConversion2 = ""string literal"".ExtensionMethod2<>;
+
         var exactArgs0 = ""string literal"".ExtensionMethod0();
         var exactArgs1 = ""string literal"".ExtensionMethod1<int>();
         var exactArgs2 = ""string literal"".ExtensionMethod2<int, bool>();
@@ -3513,7 +3517,25 @@ public class Class1
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethodNotFound1<int>").WithArguments("string", "ExtensionMethodNotFound1").WithLocation(29, 51),
                 // (30,51): error CS1061: 'string' does not contain a definition for 'ExtensionMethodNotFound2' and no extension method 'ExtensionMethodNotFound2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         var nonExistingMethod2 = "string literal".ExtensionMethodNotFound2<int, string>();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethodNotFound2<int, string>").WithArguments("string", "ExtensionMethodNotFound2").WithLocation(30, 51));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethodNotFound2<int, string>").WithArguments("string", "ExtensionMethodNotFound2").WithLocation(30, 51),
+                // (32,51): error CS0305: Using the generic method group 'ExtensionMethod0' requires 1 type arguments
+                //         System.Func<object> delegateConversion0 = "string literal".ExtensionMethod0<>;
+                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod0<>").WithArguments("ExtensionMethod0", "method group", "1").WithLocation(32, 51),
+                // (32,68): error CS1061: 'string' does not contain a definition for 'ExtensionMethod0' and no extension method 'ExtensionMethod0' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Func<object> delegateConversion0 = "string literal".ExtensionMethod0<>;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod0<>").WithArguments("string", "ExtensionMethod0").WithLocation(32, 68),
+                // (33,51): error CS0305: Using the generic method group 'ExtensionMethod1' requires 1 type arguments
+                //         System.Func<object> delegateConversion1 = "string literal".ExtensionMethod1<>;
+                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod1<>").WithArguments("ExtensionMethod1", "method group", "1").WithLocation(33, 51),
+                // (33,51): error CS0407: '? FooExtensions.ExtensionMethod1<?>(object)' has the wrong return type
+                //         System.Func<object> delegateConversion1 = "string literal".ExtensionMethod1<>;
+                Diagnostic(ErrorCode.ERR_BadRetType, @"""string literal"".ExtensionMethod1<>").WithArguments("FooExtensions.ExtensionMethod1<?>(object)", "?").WithLocation(33, 51),
+                // (34,51): error CS0305: Using the generic method group 'ExtensionMethod2' requires 1 type arguments
+                //         System.Func<object> delegateConversion2 = "string literal".ExtensionMethod2<>;
+                Diagnostic(ErrorCode.ERR_BadArity, @"""string literal"".ExtensionMethod2<>").WithArguments("ExtensionMethod2", "method group", "1").WithLocation(34, 51),
+                // (34,68): error CS1061: 'string' does not contain a definition for 'ExtensionMethod2' and no extension method 'ExtensionMethod2' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Func<object> delegateConversion2 = "string literal".ExtensionMethod2<>;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ExtensionMethod2<>").WithArguments("string", "ExtensionMethod2").WithLocation(34, 68));
         }
     }
 }
