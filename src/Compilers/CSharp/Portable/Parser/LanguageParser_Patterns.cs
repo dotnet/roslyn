@@ -152,18 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 bool typeIsVar = IsVarType();
                 SyntaxToken lastTokenOfType;
-                switch (ScanType(out lastTokenOfType))
+                if (ScanType(mode, out lastTokenOfType) == ScanTypeFlags.NotType)
                 {
-                    case ScanTypeFlags.PointerOrMultiplication:
-                        if (mode == ParseTypeMode.FirstElementOfPossibleTupleLiteral || mode == ParseTypeMode.AfterTupleComma)
-                        {
-                            // Tuples cannot contain pointer types because pointers may not be generic type arguments.
-                            return false;
-                        }
-                        break;
-
-                    case ScanTypeFlags.NotType:
-                        return false;
+                    return false;
                 }
 
                 // check for a designation
