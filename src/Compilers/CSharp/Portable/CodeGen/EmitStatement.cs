@@ -1075,11 +1075,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSwitchBody(switchStatement.InnerLocals, switchSections, breakLabel, switchStatement.Syntax);
         }
 
-        private static KeyValuePair<ConstantValue, object>[] GetSwitchCaseLabels(ImmutableArray<BoundSwitchSection> sections, ref LabelSymbol fallThroughLabel)
+        private KeyValuePair<ConstantValue, object>[] GetSwitchCaseLabels(ImmutableArray<BoundSwitchSection> sections, ref LabelSymbol fallThroughLabel)
         {
             var labelsBuilder = ArrayBuilder<KeyValuePair<ConstantValue, object>>.GetInstance();
             foreach (var section in sections)
             {
+                object firstLabelInSection = null;
+
                 foreach (BoundSwitchLabel boundLabel in section.SwitchLabels)
                 {
                     var label = boundLabel.Label;
@@ -1092,7 +1094,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var value = boundLabel.ConstantValueOpt;
                         Debug.Assert(value != null
                             && SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(value));
-                        labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, label));
+
+                        if (this.IsDebugPlus())
+                        {
+                            labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, label));
+                        }
+                        else
+                        {
+                            if (firstLabelInSection == null)
+                            {
+                                firstLabelInSection = label;
+                            }
+
+                            labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, firstLabelInSection));
+                        }
                     }
                 }
             }

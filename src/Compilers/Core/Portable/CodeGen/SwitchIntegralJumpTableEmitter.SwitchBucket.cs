@@ -12,18 +12,21 @@ namespace Microsoft.CodeAnalysis.CodeGen
     {
         private struct SwitchBucket
         {
+            // sorted case labels
+            private readonly ImmutableArray<KeyValuePair<ConstantValue, object>> _allLabels;
+
             // range of sorted case labels within this bucket
             private readonly int _startLabelIndex;
             private readonly int _endLabelIndex;
 
-            // sorted case labels
-            private readonly ImmutableArray<KeyValuePair<ConstantValue, object>> _allLabels;
+            private readonly bool _isKnownDegenerate;
 
             internal SwitchBucket(ImmutableArray<KeyValuePair<ConstantValue, object>> allLabels, int index)
             {
                 _startLabelIndex = index;
                 _endLabelIndex = index;
                 _allLabels = allLabels;
+                _isKnownDegenerate = true;
             }
 
             private SwitchBucket(ImmutableArray<KeyValuePair<ConstantValue, object>> allLabels, int startIndex, int endIndex)
@@ -33,6 +36,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 _startLabelIndex = startIndex;
                 _endLabelIndex = endIndex;
                 _allLabels = allLabels;
+                _isKnownDegenerate = false;
+            }
+
+            internal SwitchBucket(ImmutableArray<KeyValuePair<ConstantValue, object>> allLabels, int startIndex, int endIndex, bool isDegenerate)
+            {
+                Debug.Assert((uint)startIndex <= (uint)endIndex);
+
+                _startLabelIndex = startIndex;
+                _endLabelIndex = endIndex;
+                _allLabels = allLabels;
+                _isKnownDegenerate = isDegenerate;
             }
 
             internal uint LabelsCount
@@ -52,6 +66,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
+            internal bool IsDegenerate
+            {
+                get
+                {
+                    return _isKnownDegenerate;
+                }
+            }
+
             internal ulong BucketSize
             {
                 get
@@ -60,26 +82,86 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
-            // Relative cost of the bucket
-            // roughly proportional to the number of compares it needs in the success case.
-            internal int BucketCost
+            // if a bucket could be split into two degenerate ones
+            // specifies a label index where that split would occur
+            // -1 indicates that the bucket cannot be split into degenerate ones
+            //  0 indicates that the bucket is already degenerate
+            //
+            //  Degenerate buckets here are buckets with contiguous range of constants
+            //  leading to the same label. Like:
+            //
+            //      case 0:
+            //      case 1:
+            //      case 2:
+            //      case 3:
+            //           DoOneThing();
+            //           break;               
+            //
+            //      case 4:
+            //      case 5:
+            //      case 6:
+            //      case 7:
+            //           DoAnotherThing();
+            //           break;               
+            // 
+            // MOTIVATION:
+            // Table switch will perform two branches (range check and the actual computed jump).
+            // Computed jump costs the same or more expensive than a regular conditional branch.
+            // So compbined cost would be 2+ conditional branches.
+            // Based on benchmarks it is actually closer to 3
+            //
+            // On the other hand, handling a degenerate bucket requires only 1 compare (range check) 
+            // so crumbling one bucket into two degenerate ones, when possible, is advantageous.
+            //
+            // One relatively common case that may result in degenerate switches is in async/iterator 
+            // state machines when control flow must use cascading dispatch into try blocks
+            internal int DegenerateBucketSplit
             {
                 get
                 {
                     if (_startLabelIndex == _endLabelIndex)
                     {
-                        // single element bucket needs exactly one compare
-                        return 1;
+                        // single element bucket is already degenerate
+                        return 0;
                     }
 
-                    // dense switch will perform two branches (range check and the actual computed jump)
-                    // computed jump is more expensive than a regular conditional branch
-                    // based on benchmarks the combined cost seems to be closer to 3
-                    //
-                    // this also allows in the "mostly sparse" scenario to avoid numerous 
-                    // little switches with only 2 labels in them.
-                    return 3;
+                    var allLabels = this._allLabels;
+                    var split = 0;
+                    var lastConst = this.StartConstant;
+                    var lastLabel = allLabels[_startLabelIndex].Value;
+
+                    for(int idx = _startLabelIndex + 1; idx <= _endLabelIndex; idx++)
+                    {
+                        var switchLabel = allLabels[idx];
+
+                        if (lastLabel != switchLabel.Value ||
+                            !IsContiguous(lastConst, switchLabel.Key))
+                        {
+                            if (split != 0)
+                            {
+                                // found another discontinuity, so cannot be split
+                                return -1; 
+                            }
+
+                            split = idx;
+                            lastLabel = switchLabel.Value;
+                        }
+
+                        lastConst = switchLabel.Key;
+                    }
+
+                    return split;
                 }
+            }
+
+            private bool IsContiguous(ConstantValue lastConst, ConstantValue nextConst)
+            {
+                if (!lastConst.IsNumeric || !nextConst.IsNumeric)
+                {
+                    return false;
+                }
+
+                return nextConst.Int64Value - lastConst.Int64Value == 1;
             }
 
             private static ulong GetBucketSize(ConstantValue startConstant, ConstantValue endConstant)
