@@ -174,6 +174,7 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.CodeAnalysis.Workspaces.dll",
         "Microsoft.Diagnostics.Runtime.dll",
         "Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll",
+        "Microsoft.VisualStudio.IntegrationTest.Setup.vsix",
         "Microsoft.VisualStudio.LanguageServices.CSharp.dll",
         "Microsoft.VisualStudio.LanguageServices.dll",
         "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
@@ -183,8 +184,7 @@ Public Class BuildDevDivInsertionFiles
         "Roslyn.Hosting.Diagnostics.dll",
         "Roslyn.Services.Test.Utilities.dll",
         "Roslyn.Test.PdbUtilities.dll",
-        "Roslyn.Test.Utilities.dll",
-        "Roslyn.VisualStudio.Test.Setup.vsix"
+        "Roslyn.Test.Utilities.dll"
     }
 
     ' Files needed by Mad dog tests that are produced by our internal builds.
@@ -858,8 +858,8 @@ Public Class BuildDevDivInsertionFiles
         add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.Native.x86.dll")
         add("UnitTests\EditorServicesTest\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll")
         add("Dlls\Concord\Microsoft.VisualStudio.Debugger.Engine.dll")
-        add("Vsix\VisualStudioTestSetup\Microsoft.Diagnostics.Runtime.dll")
-        add("Vsix\VisualStudioTestSetup\Roslyn.VisualStudio.Test.Setup.vsix")
+        add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
+        add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
         add("Vsix\CompilerExtension\System.Collections.Immutable.dll")
         add("Vsix\CompilerExtension\System.Reflection.Metadata.dll")
         add("Vsix\CompilerExtension\System.Diagnostics.FileVersionInfo.dll")
