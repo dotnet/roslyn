@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal sealed partial class SyntaxTreeIndex : AbstractPersistableState, IObjectWritable
+    internal sealed partial class SyntaxTreeIndex
     {
         public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos => _declarationInfo.DeclaredSymbolInfos;
 

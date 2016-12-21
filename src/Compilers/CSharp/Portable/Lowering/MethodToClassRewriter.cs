@@ -160,10 +160,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var newOuterLocals = RewriteLocals(node.OuterLocals);
             BoundStatement initializer = (BoundStatement)this.Visit(node.Initializer);
+            var newInnerLocals = RewriteLocals(node.InnerLocals);
             BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
             BoundStatement increment = (BoundStatement)this.Visit(node.Increment);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(newOuterLocals, initializer, condition, increment, body, node.BreakLabel, node.ContinueLabel);
+            return node.Update(newOuterLocals, initializer, newInnerLocals, condition, increment, body, node.BreakLabel, node.ContinueLabel);
+        }
+
+        public override BoundNode VisitDoStatement(BoundDoStatement node)
+        {
+            var newLocals = RewriteLocals(node.Locals);
+            BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
+            BoundStatement body = (BoundStatement)this.Visit(node.Body);
+            return node.Update(newLocals, condition, body, node.BreakLabel, node.ContinueLabel);
+        }
+
+        public override BoundNode VisitWhileStatement(BoundWhileStatement node)
+        {
+            var newLocals = RewriteLocals(node.Locals);
+            BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
+            BoundStatement body = (BoundStatement)this.Visit(node.Body);
+            return node.Update(newLocals, condition, body, node.BreakLabel, node.ContinueLabel);
         }
 
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)

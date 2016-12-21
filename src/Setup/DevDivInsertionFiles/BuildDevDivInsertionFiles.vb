@@ -149,6 +149,7 @@ Public Class BuildDevDivInsertionFiles
     ' Files copied to Maddog machines running integration tests that are produced from our builds.
     Private ReadOnly IntegrationTestFiles As String() = {
         "xunit.*.dll",
+        "*.UnitTests.dll.config",
         "Esent.Interop.dll",
         "InteractiveHost.exe",
         "Microsoft.CodeAnalysis.CSharp.dll",
@@ -183,7 +184,6 @@ Public Class BuildDevDivInsertionFiles
         "Roslyn.Services.Test.Utilities.dll",
         "Roslyn.Test.PdbUtilities.dll",
         "Roslyn.Test.Utilities.dll",
-        "Roslyn.Test.Utilities.dll.config",
         "Roslyn.VisualStudio.Test.Setup.vsix"
     }
 
@@ -279,6 +279,7 @@ Public Class BuildDevDivInsertionFiles
 
     ' Files copied to Maddog machines running unit tests that are produced from our open build.
     Private ReadOnly UnitTestFiles As String() = {
+        "*.UnitTests.dll.config",
         "Microsoft.*.UnitTests*.dll",
         "Roslyn.*.UnitTests*.dll",
         "xunit.*.dll",
@@ -340,7 +341,6 @@ Public Class BuildDevDivInsertionFiles
         "Roslyn.Test.PdbUtilities.dll",
         "Roslyn.Test.Utilities.Desktop.dll",
         "Roslyn.Test.Utilities.dll",
-        "Roslyn.Test.Utilities.dll.config",
         "Roslyn.Test.Utilities.FX45.dll",
         "vbc.exe",
         "vbc.exe.config",
@@ -848,7 +848,6 @@ Public Class BuildDevDivInsertionFiles
         add("Dlls\PdbUtilities\Roslyn.Test.PdbUtilities.dll")
         add("Dlls\TestUtilities.Desktop\Roslyn.Test.Utilities.Desktop.dll")
         add("Dlls\TestUtilities\Roslyn.Test.Utilities.dll")
-        add("Dlls\TestUtilities\Roslyn.Test.Utilities.dll.config")
         add("Dlls\TestUtilities.FX45\Roslyn.Test.Utilities.FX45.dll")
         add("UnitTests\EditorServicesTest\BasicUndo.dll")
         add("UnitTests\EditorServicesTest\Esent.Interop.dll")

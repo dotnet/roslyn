@@ -57,7 +57,7 @@
     <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
     <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
     <DeployExtension Condition="'$(IsDev15RC)' != 'true' or '$(VisualStudioVersion)' != '15.0'">false</DeployExtension>
-    <VisualStudioBuildToolsVersion>15.0.25907-RC2</VisualStudioBuildToolsVersion>
+    <VisualStudioBuildToolsVersion>15.0.25929-RC2</VisualStudioBuildToolsVersion>
 
     <!-- For the moment our Dev14 VSI suites must continue to use the Dev14 SDK. -->
     <VisualStudioBuildToolsVersion Condition="'$(IsDev14VsiBuild)' == 'true'">14.3.25420</VisualStudioBuildToolsVersion>

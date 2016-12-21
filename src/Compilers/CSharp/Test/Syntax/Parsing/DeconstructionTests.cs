@@ -1791,7 +1791,7 @@ class C
                                                 {
                                                     N(SyntaxKind.IntKeyword);
                                                 }
-                                                N(SyntaxKind.DiscardedDesignation);
+                                                N(SyntaxKind.DiscardDesignation);
                                                 {
                                                     N(SyntaxKind.UnderscoreToken);
                                                 }
@@ -1806,7 +1806,7 @@ class C
                                                 {
                                                     N(SyntaxKind.IdentifierToken, "var");
                                                 }
-                                                N(SyntaxKind.DiscardedDesignation);
+                                                N(SyntaxKind.DiscardDesignation);
                                                 {
                                                     N(SyntaxKind.UnderscoreToken);
                                                 }
@@ -1824,12 +1824,12 @@ class C
                                                 N(SyntaxKind.ParenthesizedVariableDesignation);
                                                 {
                                                     N(SyntaxKind.OpenParenToken);
-                                                    N(SyntaxKind.DiscardedDesignation);
+                                                    N(SyntaxKind.DiscardDesignation);
                                                     {
                                                         N(SyntaxKind.UnderscoreToken);
                                                     }
                                                     N(SyntaxKind.CommaToken);
-                                                    N(SyntaxKind.DiscardedDesignation);
+                                                    N(SyntaxKind.DiscardDesignation);
                                                     {
                                                         N(SyntaxKind.UnderscoreToken);
                                                     }
@@ -2065,7 +2065,6 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
     }
 }";
-            // the duplicate reporting of CS8136 below is due to open issue https://github.com/dotnet/roslyn/issues/12905
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (6,18): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 //         int (x1, x2) = (1, 2);
@@ -2080,6 +2079,7 @@ namespace System
 @"
 class C
 {
+    int x2, x3;
     void M()
     {
         (int x1, x2) = (1, 2);
@@ -2096,12 +2096,12 @@ namespace System
     }
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,18): error CS1031: Type expected
+                // (7,9): error CS8183: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (int x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_TypeExpected, "x2").WithLocation(6, 18),
-                // (7,10): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int x1, x2)").WithLocation(7, 9),
+                // (8,9): error CS8183: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (x3, int x4) = (1, 2);
-                Diagnostic(ErrorCode.ERR_TypeExpected, "x3").WithLocation(7, 10)
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(x3, int x4)").WithLocation(8, 9)
                 );
         }
 
@@ -2219,7 +2219,7 @@ class C
                                             N(SyntaxKind.IdentifierToken, "x");
                                         }
                                         N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.DiscardedDesignation);
+                                        N(SyntaxKind.DiscardDesignation);
                                         {
                                             N(SyntaxKind.UnderscoreToken);
                                         }
@@ -2293,7 +2293,7 @@ class C
                                             {
                                                 N(SyntaxKind.IdentifierToken, "var");
                                             }
-                                            N(SyntaxKind.DiscardedDesignation);
+                                            N(SyntaxKind.DiscardDesignation);
                                             {
                                                 N(SyntaxKind.UnderscoreToken);
                                             }
@@ -2358,7 +2358,7 @@ class C
                                             {
                                                 N(SyntaxKind.IdentifierToken, "var");
                                             }
-                                            N(SyntaxKind.DiscardedDesignation);
+                                            N(SyntaxKind.DiscardDesignation);
                                             {
                                                 N(SyntaxKind.UnderscoreToken);
                                             }
@@ -2418,7 +2418,7 @@ class C
                                             {
                                                 N(SyntaxKind.IntKeyword);
                                             }
-                                            N(SyntaxKind.DiscardedDesignation);
+                                            N(SyntaxKind.DiscardDesignation);
                                             {
                                                 N(SyntaxKind.UnderscoreToken);
                                             }
@@ -2475,7 +2475,7 @@ class C
                                     {
                                         N(SyntaxKind.IntKeyword);
                                     }
-                                    N(SyntaxKind.DiscardedDesignation);
+                                    N(SyntaxKind.DiscardDesignation);
                                     {
                                         N(SyntaxKind.UnderscoreToken);
                                     }
@@ -2534,7 +2534,7 @@ class C
                                     {
                                         N(SyntaxKind.IdentifierToken, "var");
                                     }
-                                    N(SyntaxKind.DiscardedDesignation);
+                                    N(SyntaxKind.DiscardDesignation);
                                     {
                                         N(SyntaxKind.UnderscoreToken);
                                     }
@@ -2597,7 +2597,7 @@ class C
                                         {
                                             N(SyntaxKind.IntKeyword);
                                         }
-                                        N(SyntaxKind.DiscardedDesignation);
+                                        N(SyntaxKind.DiscardDesignation);
                                         {
                                             N(SyntaxKind.UnderscoreToken);
                                         }
@@ -2662,7 +2662,7 @@ class C
                                         {
                                             N(SyntaxKind.IdentifierToken, "var");
                                         }
-                                        N(SyntaxKind.DiscardedDesignation);
+                                        N(SyntaxKind.DiscardDesignation);
                                         {
                                             N(SyntaxKind.UnderscoreToken);
                                         }
@@ -2685,11 +2685,436 @@ class C
             EOF();
         }
 
-        public static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
+        [Fact]
+        public void BadTypeForDeconstruct_00()
         {
-            var parsedTree = ParseWithRoundTripCheck(text);
-            var actualErrors = parsedTree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
+            UsingStatement(@"var (x, y) = e;");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.DeclarationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "var");
+                        }
+                        N(SyntaxKind.ParenthesizedVariableDesignation);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void BadTypeForDeconstruct_01()
+        {
+            UsingStatement(@"var::var (x, y) = e;");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.AliasQualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.ColonColonToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void BadTypeForDeconstruct_02()
+        {
+            UsingStatement(@"var.var (x, y) = e;");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void BadTypeForDeconstruct_03()
+        {
+            UsingStatement(@"var<var> (x, y) = e;");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "var");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "var");
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void BadTypeForDeconstruct_04()
+        {
+            UsingStatement(@"var[] (x, y) = e;",
+                // (1,5): error CS0443: Syntax error; value expected
+                // var[] (x, y) = e;
+                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 5)
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.ElementAccessExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                M(SyntaxKind.Argument);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void BadTypeForDeconstruct_05()
+        {
+            UsingStatement(@"var* (x, y) = e;");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.MultiplyExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "var");
+                        }
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.TupleExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void BadTypeForDeconstruct_06()
+        {
+            UsingStatement(@"var? (x, y) = e;",
+                // (1,16): error CS1003: Syntax error, ':' expected
+                // var? (x, y) = e;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(1, 16),
+                // (1,16): error CS1525: Invalid expression term ';'
+                // var? (x, y) = e;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 16)
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.ConditionalExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.TupleExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                    }
+                    M(SyntaxKind.ColonToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void BadTypeForDeconstruct_07()
+        {
+            UsingStatement(@"var?.var (x, y) = e;");
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.ConditionalAccessExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "var");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.MemberBindingExpression);
+                            {
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "var");
+                                }
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
         }
     }
 }

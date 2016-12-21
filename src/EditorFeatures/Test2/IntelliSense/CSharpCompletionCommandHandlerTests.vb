@@ -430,14 +430,14 @@ class Variable
                 Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
 
                 state.SendTypeChars(", va")
-                Await state.AssertSelectedCompletionItem(displayText:="var", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="var", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 Await state.AssertNoCompletionSession()
 
                 state.SendTypeChars("a")
-                Await state.AssertSelectedCompletionItem(displayText:="bool", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
                 state.SendTypeChars(")")
-                Assert.Contains("(var a, va a)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(var a, var a)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
@@ -463,14 +463,14 @@ class Variable
                 Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
 
                 state.SendTypeChars(", va")
-                Await state.AssertSelectedCompletionItem(displayText:="var", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="var", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 Await state.AssertNoCompletionSession()
 
                 state.SendTypeChars("a")
-                Await state.AssertSelectedCompletionItem(displayText:="bool", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
                 state.SendReturn()
-                Assert.Contains("(var a, va a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(var a, var a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -2730,6 +2730,7 @@ class C
             End Function
         End Class
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function Filters_EmptyList1() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -2762,6 +2763,7 @@ class C
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function Filters_EmptyList2() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -2796,6 +2798,7 @@ class C
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function Filters_EmptyList3() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -2830,6 +2833,7 @@ class C
             End Using
         End Function
 
+        ' <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function Filters_EmptyList4() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -2860,9 +2864,29 @@ class C
                 Assert.Null(state.CurrentCompletionPresenterSession.SelectedItem)
                 state.SendTypeChars(".")
                 Await state.AssertNoCompletionSession()
-
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(15881, "https://github.com/dotnet/roslyn/issues/15881")>
+        Public Async Function CompletionAfterDotBeforeAwaitTask() As Task
+            Using state = TestState.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+class C
+{
+    async Task Moo()
+    {
+        Task.$$
+        await Task.Delay(50);
+    }
+}
+            ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+            End Using
+        End Function
     End Class
 End Namespace

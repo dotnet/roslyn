@@ -47,7 +47,13 @@
     <Compile Include="RequestSignature.cs" />
     <Compile Include="SpecialTypeExtensions.cs" />
     <Compile Include="TypeSignature.cs" />
-    <VsdConfigXml Include="FunctionResolver.vsdconfigxml" />
+    <Compile Include="VisualBasic\Keywords.cs" />
+    <Compile Include="VisualBasic\MemberSignatureParser.cs" />
+    <Compile Include="VisualBasic\Scanner.cs" />
+    <Compile Include="VisualBasic\SyntaxKind.cs" />
+    <Compile Include="VisualBasic\VisualBasicFunctionResolver.cs" />
+    <VsdConfigXml Include="CSharp\FunctionResolver.vsdconfigxml" />
+    <VsdConfigXml Include="VisualBasic\FunctionResolver.vsdconfigxml" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\Concord\Concord.csproj">

@@ -2733,7 +2733,7 @@ namespace Microsoft.Cci
                     ISpecializedNestedTypeReference sneTypeRef = nestedTypeRef.AsSpecializedNestedTypeReference;
                     if (sneTypeRef != null)
                     {
-                        scopeTypeRef = sneTypeRef.UnspecializedVersion.GetContainingType(Context);
+                        scopeTypeRef = sneTypeRef.GetUnspecializedVersion(Context).GetContainingType(Context);
                     }
                     else
                     {
@@ -3655,16 +3655,8 @@ namespace Microsoft.Cci
                 if (pointerTypeReference != null)
                 {
                     typeReference = pointerTypeReference.GetTargetType(Context);
-                    if (module.IsPlatformType(typeReference, PlatformType.SystemVoid))
-                    {
-                        encoder.VoidPointer();
-                        return;
-                    }
-                    else
-                    {
-                        encoder = encoder.Pointer();
-                        continue;
-                    }
+                    encoder = encoder.Pointer();
+                    continue;
                 }
 
                 IGenericTypeParameterReference genericTypeParameterReference = typeReference.AsGenericTypeParameterReference;
@@ -3712,7 +3704,7 @@ namespace Microsoft.Cci
 
                 if (typeReference.IsTypeSpecification())
                 {
-                    ITypeReference uninstantiatedTypeReference = typeReference.GetUninstantiatedGenericType();
+                    ITypeReference uninstantiatedTypeReference = typeReference.GetUninstantiatedGenericType(Context);
 
                     // Roslyn's uninstantiated type is the same object as the instantiated type for
                     // types closed over their type parameters, so to speak.
@@ -3801,6 +3793,13 @@ namespace Microsoft.Cci
 
                 case PrimitiveTypeCode.String:
                     encoder.String();
+                    break;
+
+                case PrimitiveTypeCode.Void:
+                    // "void" is handled specifically for "void*" with custom modifiers.
+                    // If SignatureTypeEncoder supports such cases directly, this can
+                    // be removed. See https://github.com/dotnet/corefx/issues/14571.
+                    encoder.Builder.WriteByte((byte)System.Reflection.Metadata.PrimitiveTypeCode.Void);
                     break;
 
                 default:
@@ -3933,7 +3932,7 @@ namespace Microsoft.Cci
             ISpecializedNestedTypeReference specializedNestedType = nestedType.AsSpecializedNestedTypeReference;
             if (specializedNestedType != null)
             {
-                nestedType = specializedNestedType.UnspecializedVersion;
+                nestedType = specializedNestedType.GetUnspecializedVersion(Context);
             }
 
             int result = 0;

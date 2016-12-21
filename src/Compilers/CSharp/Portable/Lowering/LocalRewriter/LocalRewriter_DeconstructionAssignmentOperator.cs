@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int numAssignments = node.AssignmentSteps.Length;
             for (int i = 0; i < numAssignments; i++)
             {
-                if (lhsTargets[i].Kind == BoundKind.DiscardedExpression)
+                if (lhsTargets[i].Kind == BoundKind.DiscardExpression)
                 {
                     // skip assignment step for discards
                     continue;
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var variable in variables)
             {
-                if (variable.Kind == BoundKind.DiscardedExpression)
+                if (variable.Kind == BoundKind.DiscardExpression)
                 {
                     assignmentTargets.Add(variable);
                 }

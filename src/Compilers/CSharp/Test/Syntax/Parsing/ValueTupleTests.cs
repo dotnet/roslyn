@@ -508,17 +508,5 @@ class Program
                 Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 21)
                 );
         }
-
-        #region "Helpers"
-
-        public static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
-        {
-            var parsedTree = ParseWithRoundTripCheck(text);
-            var actualErrors = parsedTree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-        }
-
-        #endregion "Helpers"
-
     }
 }

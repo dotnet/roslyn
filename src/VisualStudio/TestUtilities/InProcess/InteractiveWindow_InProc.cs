@@ -169,5 +169,18 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
                 await Task.Delay(50);
             }
         }
+
+        public void WaitForReplOutputContains(string outputText)
+        {
+            WaitForReplOutputContainsAsync(outputText).Wait();
+        }
+
+        private async Task WaitForReplOutputContainsAsync(string outputText)
+        {
+            while (!GetReplText().Contains(outputText))
+            {
+                await Task.Delay(50);
+            }
+        }
     }
 }

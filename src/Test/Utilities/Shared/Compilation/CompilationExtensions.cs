@@ -11,7 +11,9 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Extensions;
+using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Sdk;
 
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (pdbStream == null && compilation.Options.OptimizationLevel == OptimizationLevel.Debug && options?.DebugInformationFormat != DebugInformationFormat.Embedded)
             {
-                if (MonoHelpers.IsRunningOnMono())
+                if (MonoHelpers.IsRunningOnMono() || PathUtilities.IsUnixLikePlatform)
                 {
                     options = (options ?? EmitOptions.Default).WithDebugInformationFormat(DebugInformationFormat.PortablePdb);
                 }

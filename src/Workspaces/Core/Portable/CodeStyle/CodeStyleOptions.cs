@@ -129,6 +129,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             nameof(CodeStyleOptions),
             nameof(PreferExplicitTupleNames),
             defaultValue: TrueWithSuggestionEnforcement,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferExplicitTupleNames"));
+            storageLocations: new OptionStorageLocation[] {
+                new EditorConfigStorageLocation("dotnet_style_explicit_tuple_names"),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferExplicitTupleNames") });
     }
 }

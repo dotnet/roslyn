@@ -83,6 +83,7 @@
     </Compile>
     <Compile Include="AppDomainUtils.cs" />
     <Compile Include="CLRHelpers.cs" />
+    <Compile Include="InstrumentationChecker.cs" />
     <Compile Include="CompilerTraitAttribute.cs" />
     <Compile Include="ConditionalFactAttribute.cs" />
     <Compile Include="ObjectReference.cs" />
@@ -154,7 +155,6 @@
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

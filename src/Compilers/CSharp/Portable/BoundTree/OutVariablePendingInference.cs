@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     localSymbol.SetType(type);
-                    return new BoundLocal(this.Syntax, localSymbol, constantValueOpt: null, type: type, hasErrors: this.HasErrors || inferenceFailed);
+                    return new BoundLocal(this.Syntax, localSymbol, isDeclaration: true, constantValueOpt: null, type: type, hasErrors: this.HasErrors || inferenceFailed);
 
                 case SymbolKind.Field:
                     var fieldSymbol = (GlobalExpressionVariable)this.VariableSymbol;

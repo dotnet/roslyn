@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     V v = (V)s.Chars[p];   /* OR */   (D1 d1, ...) = (V)s.Chars[p];
             //     /*node.Body*/
             // }
-            BoundStatement result = RewriteForStatement(
+            BoundStatement result = RewriteForStatementWithoutInnerLocals(
                 original: node,
                 outerLocals: ImmutableArray.Create(stringVar, positionVar),
                 rewrittenInitializer: initializer,
@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
             //     /*node.Body*/
             // }
-            BoundStatement result = RewriteForStatement(
+            BoundStatement result = RewriteForStatementWithoutInnerLocals(
                 original: node,
                 outerLocals: ImmutableArray.Create<LocalSymbol>(arrayVar, positionVar),
                 rewrittenInitializer: initializer,
@@ -854,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continueLabel = new GeneratedLabelSymbol("continue"); // Should not affect emitted code since unused
                 }
 
-                forLoop = RewriteForStatement(
+                forLoop = RewriteForStatementWithoutInnerLocals(
                     original: node,
                     outerLocals: ImmutableArray.Create(positionVar[dimension]),
                     rewrittenInitializer: positionVarDecl,

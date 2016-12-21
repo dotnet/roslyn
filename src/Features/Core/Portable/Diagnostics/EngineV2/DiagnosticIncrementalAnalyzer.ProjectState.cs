@@ -247,9 +247,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // keep from build flag if full analysis is off
                 var fromBuild = fullAnalysis ? false : lastResult.FromBuild;
 
-                // if it is allowed to keep project state, check versions and if they are same, bail out
+                var openFileOnlyAnalyzer = _owner.Analyzer.IsOpenFileOnly(document.Project.Solution.Workspace);
+
+                // if it is allowed to keep project state, check versions and if they are same, bail out.
                 // if full solution analysis is off or we are asked to reset document state, we always merge.
-                if (fullAnalysis &&
+                if (fullAnalysis && !openFileOnlyAnalyzer &&
                     syntax.Version != VersionStamp.Default &&
                     syntax.Version == semantic.Version &&
                     syntax.Version == lastResult.Version)

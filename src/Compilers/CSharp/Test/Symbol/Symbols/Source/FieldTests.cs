@@ -392,7 +392,8 @@ class A
                 Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(5, 23),
                 // (5,28): warning CS0649: Field 'A.Finalize' is never assigned to, and will always have its default value 
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Finalize").WithArguments("A.Finalize", "").WithLocation(5, 28));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Finalize").WithArguments("A.Finalize", "").WithLocation(5, 28)
+                );
         }
 
         [WorkItem(543791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543791")]

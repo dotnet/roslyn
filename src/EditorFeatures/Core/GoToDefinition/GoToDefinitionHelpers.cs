@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.FindReferences;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -69,9 +71,12 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             definitions.Add(symbol.ToDefinitionItem(solution, includeHiddenLocations: true));
 
             var presenter = GetFindUsagesPresenter(streamingPresenters);
+            var title = string.Format(EditorFeaturesResources._0_declarations,
+                FindUsagesHelpers.GetDisplayName(symbol));
+
             return presenter.TryNavigateToOrPresentItemsAsync(
-                EditorFeaturesResources.Go_to_Definition,
-                definitions.ToImmutableAndFree()).WaitAndGetResult(cancellationToken);
+                title, definitions.ToImmutableAndFree(),
+                alwaysShowDeclarations: true).WaitAndGetResult(cancellationToken);
         }
 
         private static IStreamingFindUsagesPresenter GetFindUsagesPresenter(

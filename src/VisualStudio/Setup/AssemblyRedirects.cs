@@ -56,3 +56,4 @@ using Roslyn.VisualStudio.Setup;
 //[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Threading.Thread.dll")] - removed because project has no dependency.
 [assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Xml.XmlDocument.dll")]
 [assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Xml.XPath.XDocument.dll")]
+[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Xml.ReaderWriter.dll")]

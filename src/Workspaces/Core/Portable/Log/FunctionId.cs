@@ -354,11 +354,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeAnalysisService_FindReferenceLocationsAsync,
         CodeAnalysisService_FindReferenceMethodsAsync,
         CodeAnalysisService_GetFullyQualifiedName,
-        SolutionChecksumUpdater_SynchronizeAssets,
+        SolutionChecksumUpdater_SynchronizePrimaryWorkspace,
         SolutionState_ComputeChecksumsAsync,
         ProjectState_ComputeChecksumsAsync,
         DocumentState_ComputeChecksumsAsync,
         JsonRpcSession_RequestAssetAsync,
         SolutionSynchronizationService_GetRemotableData,
+        AssetService_SynchronizeProjectAssetsAsync,
     }
 }

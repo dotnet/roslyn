@@ -26,15 +26,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
     {
         private readonly List<Address> _resolvedAddresses;
 
-        internal Request(string moduleName, RequestSignature signature)
+        internal Request(string moduleName, RequestSignature signature, Guid languageId = default(Guid))
         {
             ModuleName = moduleName;
             Signature = signature;
+            LanguageId = languageId;
             _resolvedAddresses = new List<Address>();
         }
 
         internal readonly string ModuleName;
         internal readonly RequestSignature Signature;
+        internal readonly Guid LanguageId;
 
         internal void OnFunctionResolved(Module module, int token, int version, int ilOffset)
         {

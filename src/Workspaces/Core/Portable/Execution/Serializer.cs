@@ -25,6 +25,14 @@ namespace Microsoft.CodeAnalysis.Serialization
         private readonly IReferenceSerializationService _hostSerializationService;
         private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
 
+        public Serializer(Solution solution) : this(solution.Workspace)
+        {
+        }
+
+        public Serializer(Workspace workspace) : this(workspace.Services)
+        {
+        }
+
         public Serializer(HostWorkspaceServices workspaceServices)
         {
             _workspaceServices = workspaceServices;
@@ -54,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKinds.CompilationOptions:
                     case WellKnownSynchronizationKinds.ParseOptions:
                     case WellKnownSynchronizationKinds.ProjectReference:
-                        return Checksum.Create(value, kind, this);
+                        return Checksum.Create(kind, value, this);
 
                     case WellKnownSynchronizationKinds.MetadataReference:
                         return Checksum.Create(kind, _hostSerializationService.CreateChecksum((MetadataReference)value, cancellationToken));
@@ -63,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return Checksum.Create(kind, _hostSerializationService.CreateChecksum((AnalyzerReference)value, cancellationToken));
 
                     case WellKnownSynchronizationKinds.SourceText:
-                        return Checksum.Create(kind, new Checksum(((SourceText)value).GetChecksum()));
+                        return Checksum.Create(kind, ((SourceText)value).GetChecksum());
 
                     default:
                         // object that is not part of solution is not supported since we don't know what inputs are required to

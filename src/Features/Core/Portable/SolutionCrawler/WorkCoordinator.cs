@@ -149,12 +149,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return;
                 }
 
-                // Changing the UseV2Engine option is a no-op as we have a single engine now.
-                if (e.Option == Diagnostics.InternalDiagnosticsOptions.UseDiagnosticEngineV2)
-                {
-                    _documentAndProjectWorkerProcessor.ChangeDiagnosticsEngine((bool)e.Value);
-                }
-
                 ReanalyzeOnOptionChange(sender, e);
             }
 

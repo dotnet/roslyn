@@ -31,32 +31,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             protected override Data TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
             {
-                try
+                using (var reader = StreamObjectReader.TryGetReader(stream))
                 {
-                    using (var reader = new ObjectReader(stream))
+                    if (reader != null)
                     {
                         var format = reader.ReadString();
-                        if (!string.Equals(format, FormatVersion, StringComparison.InvariantCulture))
+                        if (string.Equals(format, FormatVersion, StringComparison.InvariantCulture))
                         {
-                            return null;
+                            var textVersion = VersionStamp.ReadFrom(reader);
+                            var dataVersion = VersionStamp.ReadFrom(reader);
+                            var designerAttributeArgument = reader.ReadString();
+
+                            return new Data(textVersion, dataVersion, designerAttributeArgument);
                         }
-
-                        var textVersion = VersionStamp.ReadFrom(reader);
-                        var dataVersion = VersionStamp.ReadFrom(reader);
-                        var designerAttributeArgument = reader.ReadString();
-
-                        return new Data(textVersion, dataVersion, designerAttributeArgument);
                     }
                 }
-                catch (Exception)
-                {
-                    return null;
-                }
+
+                return null;
             }
 
             protected override void WriteTo(Stream stream, Data data, CancellationToken cancellationToken)
             {
-                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+                using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
                 {
                     writer.WriteString(FormatVersion);
                     data.TextVersion.WriteTo(writer);

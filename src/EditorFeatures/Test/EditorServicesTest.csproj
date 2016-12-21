@@ -245,7 +245,6 @@
     <Compile Include="Workspaces\WorkspaceTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="PerfTests\ResetRoslynOptions.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

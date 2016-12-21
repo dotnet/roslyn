@@ -1,5 +1,5 @@
 Param(
-  [string] $locateVsApiVersion = "0.2.0-beta"
+  [string] $locateVsApiVersion = "0.2.2-beta"
 )
 
 set-strictmode -version 2.0

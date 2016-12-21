@@ -2355,5 +2355,55 @@ class B
             var comp = CreateCompilationWithMscorlibAndSystemCore(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "1");
         }
+
+        [Fact]
+        public void ThrowExpression_Lambda()
+        {
+            var src = @"using System;
+class C
+{
+    public static void Main()
+    {
+        Action a = () => throw new Exception(""1"");
+        try
+        {
+            a();
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+        Func<int, int> b = x => throw new Exception(""2"");
+        try
+        {
+            b(0);
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+        b = (int x) => throw new Exception(""3"");
+        try
+        {
+            b(0);
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+        b = (x) => throw new Exception(""4"");
+        try
+        {
+            b(0);
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "1234");
+        }
     }
 }

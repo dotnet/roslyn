@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
         }
 
-        public virtual void SetSearchLabel(string displayName)
+        public virtual void SetSearchTitle(string title)
         {
         }
 

@@ -103,7 +103,6 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
         {
             Activate();
             VisualStudioInstance.SendKeys.Send(keys);
-            VisualStudioInstance.WaitForApplicationIdle();
         }
 
         public void MessageBox(string message)

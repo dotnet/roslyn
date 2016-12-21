@@ -50,6 +50,7 @@
     <Compile Include="RedirectedOutput.cs" />
     <Compile Include="ScriptingTestHelpers.cs" />
     <Compile Include="ScriptTaskExtensions.cs" />
+    <Compile Include="TestRuntimeMetadataReferenceResolver.cs" />
     <Compile Include="TestCompilationFactory.cs" />
     <Compile Include="TestConsoleIO.cs" />
     <Compile Include="TestCSharpObjectFormatter.cs" />

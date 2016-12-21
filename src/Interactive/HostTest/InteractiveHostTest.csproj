@@ -160,7 +160,6 @@
     <Compile Include="SynchronizedTextWriter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

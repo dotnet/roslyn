@@ -112,14 +112,14 @@ class C
                    Assert.Empty(missingAssemblyIdentities);
 
                    Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
-                   Assert.Equal(default(DkmEvaluationResultCategory), resultProperties.Category); // Not Data
+                   Assert.Equal(DkmEvaluationResultCategory.Data, resultProperties.Category); // Data, because it is an expression
                    Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType);
                    Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
                    Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags);
 
                    testData.GetMethodData("<>x.<>m0(C)").VerifyIL(@"
 {
-  // Code size      105 (0x69)
+  // Code size      112 (0x70)
   .maxstack  4
   .locals init (System.Guid V_0,
                 int V_1,
@@ -156,7 +156,10 @@ class C
   IL_0061:  call       ""string Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<string>(string)""
   IL_0066:  ldloc.2
   IL_0067:  stind.ref
-  IL_0068:  ret
+  IL_0068:  ldloc.1
+  IL_0069:  ldloc.2
+  IL_006a:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_006f:  ret
 }");
                });
         }
@@ -196,14 +199,14 @@ class C
                    Assert.Empty(missingAssemblyIdentities);
 
                    Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
-                   Assert.Equal(default(DkmEvaluationResultCategory), resultProperties.Category); // Not Data
+                   Assert.Equal(DkmEvaluationResultCategory.Data, resultProperties.Category); // Data, because it is an expression
                    Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType);
                    Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
                    Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags);
 
                    testData.GetMethodData("<>x.<>m0(C)").VerifyIL(@"
 {
-  // Code size       63 (0x3f)
+  // Code size       70 (0x46)
   .maxstack  4
   .locals init (System.Guid V_0,
                 int V_1,
@@ -228,8 +231,12 @@ class C
   IL_0037:  call       ""string Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<string>(string)""
   IL_003c:  ldloc.2
   IL_003d:  stind.ref
-  IL_003e:  ret
-}");
+  IL_003e:  ldloc.1
+  IL_003f:  ldloc.2
+  IL_0040:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0045:  ret
+}
+");
                });
         }
 

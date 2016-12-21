@@ -2691,12 +2691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override BoundNode VisitVoid(BoundVoid node)
-        {
-            return null;
-        }
-
-        public override BoundNode VisitDiscardedExpression(BoundDiscardedExpression node)
+        public override BoundNode VisitDiscardExpression(BoundDiscardExpression node)
         {
             return null;
         }

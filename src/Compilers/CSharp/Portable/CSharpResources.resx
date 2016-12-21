@@ -598,7 +598,7 @@
     <value>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</value>
   </data>
   <data name="WRN_NewNotRequired" xml:space="preserve">
-    <value>The member '{0}' does not hide an inherited member. The new keyword is not required.</value>
+    <value>The member '{0}' does not hide an accessible member. The new keyword is not required.</value>
   </data>
   <data name="WRN_NewNotRequired_Title" xml:space="preserve">
     <value>Member does not hide an inherited member; new keyword is not required</value>
@@ -2104,9 +2104,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_ImplicitlyTypedVariableAssignedBadValue" xml:space="preserve">
     <value>Cannot assign {0} to an implicitly-typed variable</value>
-  </data>
-  <data name="ERR_MixedDeconstructionDisallowed" xml:space="preserve">
-    <value>Cannot reference {0} in a deconstruction declaration</value>
   </data>
   <data name="ERR_ImplicitlyTypedVariableWithNoInitializer" xml:space="preserve">
     <value>Implicitly-typed variables must be initialized</value>
@@ -4194,9 +4191,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRefLocalsReturns" xml:space="preserve">
     <value>byref locals and returns</value>
   </data>
-  <data name="IDS_ThrowExpression" xml:space="preserve">
-    <value>&lt;throw&gt;</value>
-  </data>
   <data name="CompilationC" xml:space="preserve">
     <value>Compilation (C#): </value>
   </data>
@@ -4874,7 +4868,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>tuples</value>
   </data>
   <data name="ERR_MissingDeconstruct" xml:space="preserve">
-    <value>No Deconstruct instance or extension method was found for type '{0}', with {1} out parameters.</value>
+    <value>No Deconstruct instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</value>
   </data>
   <data name="ERR_DeconstructRequiresExpression" xml:space="preserve">
     <value>Deconstruct assignment requires an expression with a type on the right-hand-side.</value>
@@ -4980,6 +4974,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ThrowMisplaced" xml:space="preserve">
     <value>A throw expression is not allowed in this context.</value>
+  </data>
+  <data name="ERR_MixedDeconstructionUnsupported" xml:space="preserve">
+    <value>A deconstruction cannot mix declarations and expressions on the left-hand-side.</value>
+  </data>
+  <data name="ERR_DeclarationExpressionNotPermitted" xml:space="preserve">
+    <value>A declaration is not allowed in this context.</value>
+  </data>
+  <data name="ERR_MustDeclareForeachIteration" xml:space="preserve">
+    <value>A foreach loop must declare its iteration variables.</value>
+  </data>
+  <data name="ERR_TupleElementNamesInDeconstruction" xml:space="preserve">
+    <value>Tuple element names are not permitted on the left of a deconstruction.</value>
   </data>
   <data name="ERR_PossibleBadNegCast" xml:space="preserve">
     <value>To cast a negative value, you must enclose the value in parentheses.</value>

@@ -1702,6 +1702,8 @@ lReportErrorOnTwoTokens:
 
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasSpecialNameAttribute = True
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
+                arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasExcludeFromCodeCoverageAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasSuppressUnmanagedCodeSecurityAttribute = True
             ElseIf attrData.IsSecurityAttribute(Me.DeclaringCompilation) Then
@@ -1925,6 +1927,13 @@ lReportErrorOnTwoTokens:
 
             Return SpecializedCollections.EmptyEnumerable(Of SecurityAttribute)()
         End Function
+
+        Friend NotOverridable Overrides ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
+            Get
+                Dim data = GetDecodedWellKnownAttributeData()
+                Return data IsNot Nothing AndAlso data.HasExcludeFromCodeCoverageAttribute
+            End Get
+        End Property
 
         Friend Overrides ReadOnly Property HasRuntimeSpecialName As Boolean
             Get

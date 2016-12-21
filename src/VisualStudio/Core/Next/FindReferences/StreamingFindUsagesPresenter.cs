@@ -1,20 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.CodeAnalysis.FindUsages;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -64,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
         }
 
-        public FindUsagesContext StartSearch(string title)
+        public FindUsagesContext StartSearch(string title, bool alwaysShowDeclarations)
         {
             this.AssertIsForeground();
 
@@ -72,7 +68,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             var window = _vsFindAllReferencesService.StartSearch(title);
 
             // Make the data source that will feed data into this window.
-            var dataSource = new TableDataSourceFindUsagesContext(this, window);
+            var dataSource = new TableDataSourceFindUsagesContext(
+                this, window, alwaysShowDeclarations);
 
             // And return the data source so that the FindRefs engine can report results
             // which the data source can then create the appropriate presentation items for

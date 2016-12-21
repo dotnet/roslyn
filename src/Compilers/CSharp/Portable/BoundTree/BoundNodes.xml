@@ -419,11 +419,6 @@
     <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundVoid" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind, but it will always be the void type  -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-  </Node>
-
   <Node Name="BoundNullCoalescingOperator" Base="BoundExpression">
     <Field Name="LeftOperand" Type="BoundExpression"/>
     <Field Name="RightOperand" Type="BoundExpression"/>
@@ -849,19 +844,25 @@
   </AbstractNode>
 
   <Node Name="BoundDoStatement" Base="BoundLoopStatement">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Body" Type="BoundStatement"/>
   </Node>
 
   <Node Name="BoundWhileStatement" Base="BoundLoopStatement">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Body" Type="BoundStatement"/>
   </Node>
 
   <Node Name="BoundForStatement" Base="BoundLoopStatement">
-    <!-- OuterLocals are the locals declared within the loop statement and are in scope throughout the whole loop statement, including the Initializer -->
+    <!-- OuterLocals are the locals declared within the loop Initializer statement and are in scope throughout the whole loop statement -->
     <Field Name="OuterLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Initializer" Type="BoundStatement" Null="allow"/>
+    <!-- InnerLocals are the locals declared within the loop Condition and are in scope throughout the Condition, Increment and Body.
+         They are considered to be declared per iteration.
+    -->
+    <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression" Null="allow"/>
     <Field Name="Increment" Type="BoundStatement" Null="allow"/>
     <Field Name="Body" Type="BoundStatement"/>
@@ -1006,8 +1007,8 @@
   <Node Name="BoundLocal" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
     <Field Name="LocalSymbol" Type="LocalSymbol"/>
+    <Field Name="IsDeclaration" Type="bool"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
   </Node>
 
@@ -1584,9 +1585,9 @@
   <Node Name="BoundWildcardPattern" Base="BoundPattern">
   </Node>
 
-  <Node Name="BoundDiscardedExpression" Base="BoundExpression">
+  <Node Name="BoundDiscardExpression" Base="BoundExpression">
     <!-- A discarded value, when a designator uses `_`. When the type is given as `var, its Type
-         is null before type inference, and it is replaced by a BoundDiscardedExpression with a non-null
+         is null before type inference, and it is replaced by a BoundDiscardExpression with a non-null
          type after inference. -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
   </Node>

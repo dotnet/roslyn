@@ -292,5 +292,245 @@ class C
             SyntaxFactory.ParseExpression("A is B < C, D > [ ] E").GetDiagnostics().Verify();
             SyntaxFactory.ParseExpression("A < B > C").GetDiagnostics().Verify();
         }
+
+        [Fact]
+        public void QueryContextualPatternVariable_01()
+        {
+            SyntaxFactory.ParseExpression("from s in a where s is string where s.Length > 1 select s").GetDiagnostics().Verify();
+            SyntaxFactory.ParseExpression("M(out int? x)").GetDiagnostics().Verify();
+        }
+
+        [Fact]
+        public void TypeDisambiguation_01()
+        {
+            UsingStatement(@"
+                var r = from s in a
+                        where s is X<T> // should disambiguate as a type here
+                        where M(s)
+                        select s as X<T>;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "r");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.QueryExpression);
+                            {
+                                N(SyntaxKind.FromClause);
+                                {
+                                    N(SyntaxKind.FromKeyword);
+                                    N(SyntaxKind.IdentifierToken, "s");
+                                    N(SyntaxKind.InKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                }
+                                N(SyntaxKind.QueryBody);
+                                {
+                                    N(SyntaxKind.WhereClause);
+                                    {
+                                        N(SyntaxKind.WhereKeyword);
+                                        N(SyntaxKind.IsExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "s");
+                                            }
+                                            N(SyntaxKind.IsKeyword);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "X");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "T");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.WhereClause);
+                                    {
+                                        N(SyntaxKind.WhereKeyword);
+                                        N(SyntaxKind.InvocationExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "M");
+                                            }
+                                            N(SyntaxKind.ArgumentList);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.Argument);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "s");
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.SelectClause);
+                                    {
+                                        N(SyntaxKind.SelectKeyword);
+                                        N(SyntaxKind.AsExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "s");
+                                            }
+                                            N(SyntaxKind.AsKeyword);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "X");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "T");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TypeDisambiguation_02()
+        {
+            UsingStatement(@"
+                var r = a is X<T> // should disambiguate as a type here
+                        is bool;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "r");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IsExpression);
+                            {
+                                N(SyntaxKind.IsExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                    N(SyntaxKind.IsKeyword);
+                                    N(SyntaxKind.GenericName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "X");
+                                        N(SyntaxKind.TypeArgumentList);
+                                        {
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "T");
+                                            }
+                                            N(SyntaxKind.GreaterThanToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.BoolKeyword);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TypeDisambiguation_03()
+        {
+            UsingStatement(@"
+                var r = a is X<T> // should disambiguate as a type here
+                        > Z;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "r");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.GreaterThanExpression);
+                            {
+                                N(SyntaxKind.IsExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                    N(SyntaxKind.IsKeyword);
+                                    N(SyntaxKind.GenericName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "X");
+                                        N(SyntaxKind.TypeArgumentList);
+                                        {
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "T");
+                                            }
+                                            N(SyntaxKind.GreaterThanToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Z");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
     }
 }

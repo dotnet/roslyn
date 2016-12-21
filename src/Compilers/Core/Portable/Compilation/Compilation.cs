@@ -1284,8 +1284,25 @@ namespace Microsoft.CodeAnalysis
             if (win32Resources == null)
                 return;
 
-            switch (DetectWin32ResourceForm(win32Resources))
+            Win32ResourceForm resourceForm;
+
+            try
             {
+                resourceForm = DetectWin32ResourceForm(win32Resources);
+            }
+            catch (EndOfStreamException)
+            {
+                diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_BadWin32Resource, NoLocation.Singleton, CodeAnalysisResources.UnrecognizedResourceFileFormat));
+                return;
+            }
+            catch (Exception ex)
+            {
+                diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_BadWin32Resource, NoLocation.Singleton, ex.Message));
+                return;
+            }
+
+            switch (resourceForm)
+            { 
                 case Win32ResourceForm.COFF:
                     moduleBeingBuilt.Win32ResourceSection = MakeWin32ResourcesFromCOFF(win32Resources, diagnostics);
                     break;

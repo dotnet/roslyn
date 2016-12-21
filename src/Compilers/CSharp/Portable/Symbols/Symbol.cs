@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SymbolKind.Assembly:
                     case SymbolKind.DynamicType:
                     case SymbolKind.NetModule:
-                    case SymbolKind.Discarded:
+                    case SymbolKind.Discard:
                         return false;
 
                     default:

@@ -86,6 +86,7 @@
     <ProjectReference Include="..\..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
       <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
       <Name>ServiceHub</Name>
+      <Aliases>global,hub</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
       <Project>{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}</Project>
@@ -178,20 +179,26 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="RemoteWorkspace\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Mocks\TestAnalyzerAssemblyLoader.cs" />
+    <Compile Include="Mocks\TestAssetSource.cs" />
     <Compile Include="Mocks\TestHostServices.cs" />
     <Compile Include="Mocks\InProcRemoteHostClientFactory.cs" />
+    <Compile Include="Mocks\TestOptionSet.cs" />
+    <Compile Include="Remote\JsonConverterTests.cs" />
     <Compile Include="Remote\RemoteHostClientServiceFactoryTests.cs" />
-    <Compile Include="ServiceHub\CalculateDiagnosticsTests.cs" />
+    <Compile Include="TestUtils.cs" />
+    <Compile Include="Services\SolutionServiceTests.cs" />
+    <Compile Include="Services\AssetStorageTests.cs" />
+    <Compile Include="Services\AssetServiceTests.cs" />
+    <Compile Include="Services\ServiceHubServicesTests.cs" />
+    <Compile Include="Services\VisualStudioDiagnosticAnalyzerExecutorTests.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -7246,7 +7246,7 @@ class C
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact/*(Skip = "https://github.com/dotnet/roslyn/issues/15508")*/, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
         public async Task TestDeconstruction3()
         {
@@ -7269,7 +7269,7 @@ class C
         (int x, (int, int)) = Method();
     }
 
-    private (int x, (int, int)) Method()
+    private object Method()
     {
         throw new NotImplementedException();
     }
@@ -7277,7 +7277,7 @@ class C
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact/*(Skip = "https://github.com/dotnet/roslyn/issues/15508")*/, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
         public async Task TestDeconstruction4()
         {
@@ -7300,7 +7300,7 @@ class C
         (int x, int) = Method();
     }
 
-    private (int x, int) Method()
+    private object Method()
     {
         throw new NotImplementedException();
     }

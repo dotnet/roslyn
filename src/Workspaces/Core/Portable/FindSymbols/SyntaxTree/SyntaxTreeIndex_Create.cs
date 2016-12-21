@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal sealed partial class SyntaxTreeIndex : AbstractPersistableState, IObjectWritable
+    internal sealed partial class SyntaxTreeIndex
     {
         // The probability of getting a false positive when calling ContainsIdentifier.
         private const double FalsePositiveProbability = 0.0001;

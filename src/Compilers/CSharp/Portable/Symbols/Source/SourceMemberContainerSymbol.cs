@@ -3163,8 +3163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     case SyntaxKind.ReturnStatement:
                                     case SyntaxKind.ThrowStatement:
                                     case SyntaxKind.SwitchStatement:
-                                    case SyntaxKind.WhileStatement:
-                                    case SyntaxKind.DoStatement:
                                     case SyntaxKind.LockStatement:
                                         ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeNonIndexerMembers,
                                                   innerStatement,

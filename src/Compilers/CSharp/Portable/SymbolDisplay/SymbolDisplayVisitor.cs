@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override void VisitDiscarded(IDiscardedSymbol symbol)
+        public override void VisitDiscard(IDiscardSymbol symbol)
         {
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
             {

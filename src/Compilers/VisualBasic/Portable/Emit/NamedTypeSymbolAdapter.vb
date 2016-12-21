@@ -877,27 +877,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return builder.ToImmutableAndFree
         End Function
 
-        Private ReadOnly Property IGenericTypeInstanceReferenceGenericType As INamedTypeReference Implements IGenericTypeInstanceReference.GenericType
+        Private Function IGenericTypeInstanceReferenceGetGenericType(context As EmitContext) As INamedTypeReference Implements IGenericTypeInstanceReference.GetGenericType
+            Debug.Assert((DirectCast(Me, ITypeReference)).AsGenericTypeInstanceReference IsNot Nothing)
+            Return GenericTypeImpl(context)
+        End Function
+
+        Private ReadOnly Property GenericTypeImpl(context As EmitContext) As INamedTypeReference
             Get
-                Debug.Assert((DirectCast(Me, ITypeReference)).AsGenericTypeInstanceReference IsNot Nothing)
-                Return GenericTypeImpl
+                Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
+                Return moduleBeingBuilt.Translate(Me.OriginalDefinition, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                                                  diagnostics:=context.Diagnostics, needDeclaration:=True)
             End Get
         End Property
 
-        Private ReadOnly Property GenericTypeImpl As INamedTypeReference
-            Get
-                Return Me.OriginalDefinition
-            End Get
-        End Property
+        Private Function ISpecializedNestedTypeReferenceGetUnspecializedVersion(context As EmitContext) As INestedTypeReference Implements ISpecializedNestedTypeReference.GetUnspecializedVersion
+            Debug.Assert((DirectCast(Me, ITypeReference)).AsSpecializedNestedTypeReference IsNot Nothing)
 
-        Private ReadOnly Property ISpecializedNestedTypeReferenceUnspecializedVersion As INestedTypeReference Implements ISpecializedNestedTypeReference.UnspecializedVersion
-            Get
-                Debug.Assert((DirectCast(Me, ITypeReference)).AsSpecializedNestedTypeReference IsNot Nothing)
-
-                Dim result = GenericTypeImpl.AsNestedTypeReference
-                Debug.Assert(result IsNot Nothing)
-                Return result
-            End Get
-        End Property
+            Dim result = GenericTypeImpl(context).AsNestedTypeReference
+            Debug.Assert(result IsNot Nothing)
+            Return result
+        End Function
     End Class
 End Namespace

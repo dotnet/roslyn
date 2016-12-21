@@ -1538,7 +1538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Property StaticInitializers As ArrayBuilder(Of ImmutableArray(Of FieldOrPropertyInitializer))
             Friend Property InstanceInitializers As ArrayBuilder(Of ImmutableArray(Of FieldOrPropertyInitializer))
 
-            Friend ReadOnly DeferredMemberDiagnostic As ArrayBuilder(Of ValueTuple(Of Symbol, Binder)) = ArrayBuilder(Of ValueTuple(Of Symbol, Binder)).GetInstance()
+            Friend ReadOnly DeferredMemberDiagnostic As ArrayBuilder(Of Symbol) = ArrayBuilder(Of Symbol).GetInstance()
 
             Friend StaticSyntaxLength As Integer = 0
             Friend InstanceSyntaxLength As Integer = 0
@@ -2922,9 +2922,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
-            For Each pair In members.DeferredMemberDiagnostic
-                Dim sym As Symbol = pair.Item1
-                Dim binder As Binder = pair.Item2
+            For Each sym As Symbol In members.DeferredMemberDiagnostic
 
                 ' Check name for duplicate type declarations
                 ' First check if the member name conflicts with a type declaration in the container then
@@ -2960,7 +2958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                              omitDiagnostics As Boolean)
 
             If Not omitDiagnostics Then
-                members.DeferredMemberDiagnostic.Add(ValueTuple.Create(sym, binder))
+                members.DeferredMemberDiagnostic.Add(sym)
             End If
 
             AddSymbolToMembers(sym, members.Members)

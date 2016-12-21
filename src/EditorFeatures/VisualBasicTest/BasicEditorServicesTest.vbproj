@@ -577,7 +577,6 @@
     <Compile Include="Utilities\CodeSnippets.vb" />
     <Compile Include="Utils.vb" />
     <EmbeddedResource Include="Formatting\XmlLiterals.resx" />
-    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="PerfTests\BasicPerfFindRefs.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

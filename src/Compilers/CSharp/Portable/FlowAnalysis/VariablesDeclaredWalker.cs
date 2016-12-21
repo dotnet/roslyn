@@ -122,16 +122,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLocalFunctionStatement(node);
         }
 
-        public override BoundNode VisitForEachStatement(BoundForEachStatement node)
+        public override void VisitForEachIterationVariable(BoundForEachStatement node)
         {
             if (IsInside)
             {
-                _variablesDeclared.Add(node.IterationVariableOpt);
+                if (node.IterationVariableOpt != null)
+                {
+                    _variablesDeclared.Add(node.IterationVariableOpt);
+                }
+
+                var leftVariables =
+                    (node.DeconstructionOpt?.DeconstructionAssignment?.LeftVariables)
+                    .GetValueOrDefault().NullToEmpty();
+                foreach (var variable in leftVariables)
+                {
+                    Visit(variable);
+                }
             }
-
-            return base.VisitForEachStatement(node);
         }
-
 
         protected override void VisitCatchBlock(BoundCatchBlock catchBlock, ref LocalState finallyState)
         {
@@ -163,31 +171,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitLvalue(BoundLocal node)
         {
-            CheckOutVarDeclaration(node);
-            base.VisitLvalue(node);
-        }
-
-        private void CheckOutVarDeclaration(BoundLocal node)
-        {
-            if (IsInside &&
-                !node.WasCompilerGenerated && node.Syntax.Kind() == SyntaxKind.DeclarationExpression)
-            {
-                var declaration = (DeclarationExpressionSyntax)node.Syntax;
-                if (declaration.Designation.Kind() == SyntaxKind.SingleVariableDesignation &&
-                    ((SingleVariableDesignationSyntax)declaration.Designation).Identifier == node.LocalSymbol.IdentifierToken &&
-                    declaration.Parent != null &&
-                    declaration.Parent.Kind() == SyntaxKind.Argument &&
-                    ((ArgumentSyntax)declaration.Parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword)
-                {
-                    _variablesDeclared.Add(node.LocalSymbol);
-                }
-            }
+            VisitLocal(node);
         }
 
         public override BoundNode VisitLocal(BoundLocal node)
         {
-            CheckOutVarDeclaration(node);
-            return base.VisitLocal(node);
+            if (IsInside && node.IsDeclaration)
+            {
+                _variablesDeclared.Add(node.LocalSymbol);
+            }
+
+            return null;
         }
     }
 }

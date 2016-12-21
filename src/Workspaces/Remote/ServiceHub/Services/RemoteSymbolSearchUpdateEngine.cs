@@ -12,21 +12,19 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private readonly SymbolSearchUpdateEngine _updateEngine;
 
-        public RemoteSymbolSearchUpdateEngine(Stream stream, IServiceProvider serviceProvider) 
+        public RemoteSymbolSearchUpdateEngine(Stream stream, IServiceProvider serviceProvider)
             : base(stream, serviceProvider)
         {
             _updateEngine = new SymbolSearchUpdateEngine(
                 new LogService(this), updateCancellationToken: this.CancellationToken);
         }
 
-        public Task UpdateContinuouslyAsync(
-            string sourceName, string localSettingsDirectory, byte[] solutionChecksum)
+        public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
         {
             return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
         }
 
-        public async Task<SerializablePackageWithTypeResult[]> FindPackagesWithTypeAsync(
-            string source, string name, int arity, byte[] solutionChecksum)
+        public async Task<SerializablePackageWithTypeResult[]> FindPackagesWithTypeAsync(string source, string name, int arity)
         {
             var results = await _updateEngine.FindPackagesWithTypeAsync(
                 source, name, arity).ConfigureAwait(false);
@@ -34,8 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return serializedResults;
         }
 
-        public async Task<SerializablePackageWithAssemblyResult[]> FindPackagesWithAssemblyAsync(
-            string source, string assemblyName, byte[] solutionChecksum)
+        public async Task<SerializablePackageWithAssemblyResult[]> FindPackagesWithAssemblyAsync(string source, string assemblyName)
         {
             var results = await _updateEngine.FindPackagesWithAssemblyAsync(
                 source, assemblyName).ConfigureAwait(false);
@@ -43,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return serializedResults;
         }
 
-        public async Task<SerializableReferenceAssemblyWithTypeResult[]> FindReferenceAssembliesWithTypeAsync(
-            string name, int arity, byte[] solutionChecksum)
+        public async Task<SerializableReferenceAssemblyWithTypeResult[]> FindReferenceAssembliesWithTypeAsync(string name, int arity)
         {
             var results = await _updateEngine.FindReferenceAssembliesWithTypeAsync(
                 name, arity).ConfigureAwait(false);

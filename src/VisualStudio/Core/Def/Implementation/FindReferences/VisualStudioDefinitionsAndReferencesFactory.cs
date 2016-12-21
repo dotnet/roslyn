@@ -40,8 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
             var displayParts = GetDisplayParts(filePath, lineNumber, charOffset);
             return new ExternalDefinitionItem(
-                GlyphTags.GetTags(definition.GetGlyph()),
-                displayParts, _serviceProvider, filePath, lineNumber, charOffset);
+                GlyphTags.GetTags(definition.GetGlyph()), displayParts,
+                _serviceProvider, filePath, lineNumber, charOffset);
         }
 
         private ImmutableArray<TaggedText> GetDisplayParts(
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 string filePath,
                 int lineNumber,
                 int charOffset) 
-                : base(tags, displayParts)
+                : base(tags, displayParts, ImmutableArray<TaggedText>.Empty)
             {
                 _serviceProvider = serviceProvider;
                 _filePath = filePath;
