@@ -2,6 +2,7 @@
 
 using System;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
         }
 
-        public MutableNamingStyle(NamingStyle namingStyle) 
+        public MutableNamingStyle(NamingStyle namingStyle)
             => NamingStyle = namingStyle;
 
         internal MutableNamingStyle Clone()

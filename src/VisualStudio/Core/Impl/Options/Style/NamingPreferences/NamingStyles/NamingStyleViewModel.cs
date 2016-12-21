@@ -18,12 +18,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         {
             _notificationService = notificationService;
             _style = style;
-            this.ID = style.ID;
-            this.RequiredPrefix = style.Prefix;
-            this.RequiredSuffix = style.Suffix;
-            this.WordSeparator = style.WordSeparator;
-            this.ItemName = style.Name;
-            this.CanBeDeleted = canBeDeleted;
+            ID = style.ID;
+            RequiredPrefix = style.Prefix;
+            RequiredSuffix = style.Suffix;
+            WordSeparator = style.WordSeparator;
+            ItemName = style.Name;
+            CanBeDeleted = canBeDeleted;
 
             CapitalizationSchemes = new List<CapitalizationDisplay>
                 {
@@ -155,8 +155,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
             public CapitalizationDisplay(Capitalization capitalization, string name)
             {
-                this.Capitalization = capitalization;
-                this.Name = name;
+                Capitalization = capitalization;
+                Name = name;
             }
         }
     }

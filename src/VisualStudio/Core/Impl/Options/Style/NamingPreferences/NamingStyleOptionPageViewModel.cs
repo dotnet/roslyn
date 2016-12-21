@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -29,16 +30,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         public ObservableCollection<SymbolSpecification> Specifications { get; set; }
         public ObservableCollection<MutableNamingStyle> NamingStyles { get; set; }
 
-        public NamingStyleOptionPageViewModel(SerializableNamingStylePreferencesInfo info)
+        public NamingStyleOptionPageViewModel(NamingStylePreferences info)
         {
             var viewModels = new List<NamingRuleViewModel>();
             foreach (var namingRule in info.NamingRules)
             {
-                var viewModel = new NamingRuleViewModel();
-
-                viewModel.NamingStyles = new ObservableCollection<MutableNamingStyle>(info.NamingStyles);
-                viewModel.Specifications = new ObservableCollection<SymbolSpecification>(info.SymbolSpecifications);
-                viewModel.NotificationPreferences = new List<NotificationOptionViewModel>(_notifications);
+                var viewModel = new NamingRuleViewModel()
+                {
+                    NamingStyles = new ObservableCollection<MutableNamingStyle>(info.NamingStyles),
+                    Specifications = new ObservableCollection<SymbolSpecification>(info.SymbolSpecifications),
+                    NotificationPreferences = new List<NotificationOptionViewModel>(_notifications)
+                };
 
                 viewModel.SelectedSpecification = viewModel.Specifications.Single(s => s.ID == namingRule.SymbolSpecificationID);
                 viewModel.SelectedStyle= viewModel.NamingStyles.Single(s => s.ID == namingRule.NamingStyleID);
@@ -91,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                 n.ID,
                 n.ItemName,
                 n.SymbolKindList.Where(s => s.IsChecked).Select(k => k.CreateSymbolKindOrTypeKind()).ToImmutableArray(),
-                n.AccessibilityList.Where(s => s.IsChecked).Select(a => new SymbolSpecification.AccessibilityKind(a._accessibility)).ToImmutableArray(),
+                n.AccessibilityList.Where(s => s.IsChecked).Select(a => a._accessibility).ToImmutableArray(),
                 n.ModifierList.Where(s => s.IsChecked).Select(m => new SymbolSpecification.ModifierKind(m._modifier)).ToImmutableArray()));
 
             Specifications.Clear();
@@ -133,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         private void SetMoveArrowStatuses()
         {
-            for (int i = 0; i < CodeStyleItems.Count; i++)
+            for (var i = 0; i < CodeStyleItems.Count; i++)
             {
                 CodeStyleItems[i].CanMoveUp = true;
                 CodeStyleItems[i].CanMoveDown = true;

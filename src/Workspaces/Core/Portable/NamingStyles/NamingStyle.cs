@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
+namespace Microsoft.CodeAnalysis.NamingStyles
 {
     internal partial struct NamingStyle
     {
@@ -99,13 +100,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             if (!name.StartsWith(Prefix))
             {
-                failureReason = string.Format(FeaturesResources.Missing_prefix_colon_0, Prefix);
+                failureReason = string.Format(WorkspacesResources.Missing_prefix_colon_0, Prefix);
                 return false;
             }
 
             if (!name.EndsWith(Suffix))
             {
-                failureReason = string.Format(FeaturesResources.Missing_suffix_colon_0, Suffix);
+                failureReason = string.Format(WorkspacesResources.Missing_suffix_colon_0, Suffix);
                 return false;
             }
 
@@ -192,24 +193,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private bool CheckPascalCase(string name, TextSpan nameSpan, out string reason)
             => CheckAllWords(
                 name, nameSpan, s_firstCharIsUpperCase,
-                FeaturesResources.These_words_must_begin_with_upper_case_characters_colon_0, out reason);
+                WorkspacesResources.These_words_must_begin_with_upper_case_characters_colon_0, out reason);
 
         private bool CheckAllUpper(string name, TextSpan nameSpan, out string reason)
             => CheckAllWords(
                 name, nameSpan, s_wordIsAllUpperCase,
-                FeaturesResources.These_words_cannot_contain_lower_case_characters_colon_0, out reason);
+                WorkspacesResources.These_words_cannot_contain_lower_case_characters_colon_0, out reason);
 
         private bool CheckAllLower(string name, TextSpan nameSpan, out string reason)
             => CheckAllWords(
                 name, nameSpan, s_wordIsAllLowerCase,
-                FeaturesResources.These_words_cannot_contain_lower_case_characters_colon_0, out reason);
+                WorkspacesResources.These_words_cannot_contain_lower_case_characters_colon_0, out reason);
 
         private bool CheckFirstAndRestWords(
-            string name, TextSpan nameSpan, 
+            string name, TextSpan nameSpan,
             Func<string, TextSpan, bool> firstWordCheck,
             Func<string, TextSpan, bool> restWordCheck,
             string firstResourceId,
-            string restResourceId, 
+            string restResourceId,
             out string reason)
         {
             reason = null;
@@ -252,15 +253,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private bool CheckCamelCase(string name, TextSpan nameSpan, out string reason)
             => CheckFirstAndRestWords(
                 name, nameSpan, s_firstCharIsLowerCase, s_firstCharIsUpperCase,
-                FeaturesResources.The_first_word_0_must_begin_with_a_lower_case_character,
-                FeaturesResources.These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0,
+                WorkspacesResources.The_first_word_0_must_begin_with_a_lower_case_character,
+                WorkspacesResources.These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0,
                 out reason);
 
         private bool CheckFirstUpper(string name, TextSpan nameSpan, out string reason)
             => CheckFirstAndRestWords(
                 name, nameSpan, s_firstCharIsUpperCase, s_firstCharIsLowerCase,
-                FeaturesResources.The_first_word_0_must_begin_with_an_upper_case_character,
-                FeaturesResources.These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0,
+                WorkspacesResources.The_first_word_0_must_begin_with_an_upper_case_character,
+                WorkspacesResources.These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0,
                 out reason);
 
         private string CreateCompliantNameDirectly(string name)
@@ -363,5 +364,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 suffix: namingStyleElement.Attribute(nameof(Suffix)).Value,
                 wordSeparator: namingStyleElement.Attribute(nameof(WordSeparator)).Value,
                 capitalizationScheme: (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value));
-}
+    }
 }

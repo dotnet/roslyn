@@ -12,25 +12,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
     public partial class NamingStylesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         private IDictionary<OptionKey, object> ClassNamesArePascalCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), ClassNamesArePascalCaseOptionString());
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), ClassNamesArePascalCaseOption());
 
         private IDictionary<OptionKey, object> MethodNamesArePascalCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), MethodNamesArePascalCaseOptionString());
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), MethodNamesArePascalCaseOption());
 
         private IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
-            var options = new Dictionary<OptionKey, object>();
-            options.Add(option, value);
+            var options = new Dictionary<OptionKey, object>
+            {
+                { option, value }
+            };
             return options;
         }
 
-        private string ClassNamesArePascalCaseOptionString()
+        private NamingStylePreferences ClassNamesArePascalCaseOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)),
-                ImmutableArray<SymbolSpecification.AccessibilityKind>.Empty,
+                ImmutableArray<Accessibility>.Empty,
                 ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
 
             var namingStyle = new MutableNamingStyle();
@@ -46,21 +48,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             namingRule.NamingStyleID = namingStyle.ID;
             namingRule.EnforcementLevel = DiagnosticSeverity.Error;
 
-            var info = new SerializableNamingStylePreferencesInfo();
+            var info = new NamingStylePreferences();
             info.SymbolSpecifications.Add(symbolSpecification);
             info.NamingStyles.Add(namingStyle);
             info.NamingRules.Add(namingRule);
 
-            return info.CreateXElement().ToString();
+            return info;
         }
 
-        private string MethodNamesArePascalCaseOptionString()
+        private NamingStylePreferences MethodNamesArePascalCaseOption()
         {
             var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
+                null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Method)),
-                ImmutableArray<SymbolSpecification.AccessibilityKind>.Empty,
+                ImmutableArray<Accessibility>.Empty,
                 ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
 
             var namingStyle = new MutableNamingStyle();
@@ -76,12 +78,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             namingRule.NamingStyleID = namingStyle.ID;
             namingRule.EnforcementLevel = DiagnosticSeverity.Error;
 
-            var info = new SerializableNamingStylePreferencesInfo();
+            var info = new NamingStylePreferences();
             info.SymbolSpecifications.Add(symbolSpecification);
             info.NamingStyles.Add(namingStyle);
             info.NamingRules.Add(namingRule);
 
-            return info.CreateXElement().ToString();
+            return info;
         }
     }
 }

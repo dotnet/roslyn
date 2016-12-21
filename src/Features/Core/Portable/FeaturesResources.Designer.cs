@@ -1756,24 +1756,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Missing prefix: &apos;{0}&apos;.
-        /// </summary>
-        internal static string Missing_prefix_colon_0 {
-            get {
-                return ResourceManager.GetString("Missing_prefix_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing suffix: &apos;{0}&apos;.
-        /// </summary>
-        internal static string Missing_suffix_colon_0 {
-            get {
-                return ResourceManager.GetString("Missing_suffix_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a static variable will prevent the debug session from continuing..
         /// </summary>
         internal static string Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing {
@@ -2575,24 +2557,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The first word, &apos;{0}&apos;, must begin with a lower case character.
-        /// </summary>
-        internal static string The_first_word_0_must_begin_with_a_lower_case_character {
-            get {
-                return ResourceManager.GetString("The_first_word_0_must_begin_with_a_lower_case_character", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The first word, &apos;{0}&apos;, must begin with an upper case character.
-        /// </summary>
-        internal static string The_first_word_0_must_begin_with_an_upper_case_character {
-            get {
-                return ResourceManager.GetString("The_first_word_0_must_begin_with_an_upper_case_character", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The member is defined in metadata..
         /// </summary>
         internal static string The_member_is_defined_in_metadata {
@@ -2625,51 +2589,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string The_symbol_does_not_have_an_icon {
             get {
                 return ResourceManager.GetString("The_symbol_does_not_have_an_icon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These non-leading words must begin with a lowercase letter: {0}.
-        /// </summary>
-        internal static string These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0 {
-            get {
-                return ResourceManager.GetString("These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These non-leading words must begin with an upper case letter: {0}.
-        /// </summary>
-        internal static string These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0 {
-            get {
-                return ResourceManager.GetString("These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These words cannot contain lower case characters: {0}.
-        /// </summary>
-        internal static string These_words_cannot_contain_lower_case_characters_colon_0 {
-            get {
-                return ResourceManager.GetString("These_words_cannot_contain_lower_case_characters_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These words cannot contain upper case characters: {0}.
-        /// </summary>
-        internal static string These_words_cannot_contain_upper_case_characters_colon_0 {
-            get {
-                return ResourceManager.GetString("These_words_cannot_contain_upper_case_characters_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These words must begin with upper case characters: {0}.
-        /// </summary>
-        internal static string These_words_must_begin_with_upper_case_characters_colon_0 {
-            get {
-                return ResourceManager.GetString("These_words_must_begin_with_upper_case_characters_colon_0", resourceCulture);
             }
         }
         

@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public Guid NamingStyleID;
         public DiagnosticSeverity EnforcementLevel;
 
-        public NamingRule GetRule(SerializableNamingStylePreferencesInfo info)
+        public NamingRule GetRule(NamingStylePreferences info)
         {
             return new NamingRule(
                 info.GetSymbolSpecification(SymbolSpecificationID),
-                info.GetNamingStyle(NamingStyleID),
+                info.GetNamingStyle(NamingStyleID).NamingStyle,
                 EnforcementLevel);
         }
 

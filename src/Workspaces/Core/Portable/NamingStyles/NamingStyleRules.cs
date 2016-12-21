@@ -1,43 +1,34 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal class NamingStylePreferencesInfo
+    internal class NamingStyleRules
     {
         public ImmutableArray<NamingRule> NamingRules { get; }
 
-        public NamingStylePreferencesInfo(ImmutableArray<NamingRule> namingRules)
+        public NamingStyleRules(ImmutableArray<NamingRule> namingRules)
         {
             NamingRules = namingRules;
         }
 
         internal bool TryGetApplicableRule(ISymbol symbol, out NamingRule applicableRule)
         {
-            if (NamingRules == null)
+            if (NamingRules != null &&
+                IsSymbolNameAnalyzable(symbol))
             {
-                applicableRule = null;
-                return false;
-            }
-
-            if (!IsSymbolNameAnalyzable(symbol))
-            {
-                applicableRule = null;
-                return false;
-            }
-            
-            foreach (var namingRule in NamingRules)
-            {
-                if (namingRule.SymbolSpecification.AppliesTo(symbol))
+                foreach (var namingRule in NamingRules)
                 {
-                    applicableRule = namingRule;
-                    return true;
+                    if (namingRule.SymbolSpecification.AppliesTo(symbol))
+                    {
+                        applicableRule = namingRule;
+                        return true;
+                    }
                 }
             }
 
-            applicableRule = null;
+            applicableRule = default(NamingRule);
             return false;
         }
 
