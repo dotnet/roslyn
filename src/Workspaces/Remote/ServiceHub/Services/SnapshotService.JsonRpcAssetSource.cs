@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, sessionId, checksums, mergedCancellationToken.Token))
                 {
                     return await _owner.Rpc.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
-                        new object[] { sessionId, checksums.Select(c => c.ToArray()).ToArray() },
+                        new object[] { sessionId, checksums.ToArray() },
                         (s, c) => ReadAssets(s, sessionId, checksums, c), mergedCancellationToken.Token).ConfigureAwait(false);
                 }
             }

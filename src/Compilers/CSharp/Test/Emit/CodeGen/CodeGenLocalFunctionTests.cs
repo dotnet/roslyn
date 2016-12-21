@@ -3127,6 +3127,38 @@ void Assign() { x = 5; }";
         }
 
         [Fact]
+        [WorkItem(15558, "https://github.com/dotnet/roslyn/issues/15558")]
+        public void CapturingSharesVar()
+        {
+            var src = @"
+int i = 0;
+
+int oldi<T>()
+    where T : struct
+    => (i += @sizeof<T>()) - @sizeof<T>();
+
+int @sizeof<T>()
+    where T : struct
+    => typeof(T).IsAssignableFrom(typeof(long))
+        ? sizeof(long)
+        : 1;
+
+while (i < 10)
+    System.Console.WriteLine(oldi<byte>());";
+
+            VerifyOutputInMain(src, @"0
+1
+2
+3
+4
+5
+6
+7
+8
+9");
+        }
+        
+        [Fact]
         [WorkItem(15599, "https://github.com/dotnet/roslyn/issues/15599")]
         public void NestedLocalFuncCapture()
         {
@@ -3171,6 +3203,148 @@ public class C {
     public static void Main() => new C().M();
 }";
             VerifyOutput(src, "7");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction()
+        {
+            var src = @"
+void Local<T>(T t, int count)
+{
+    if (count > 0)
+    {
+        Console.Write(t);
+        Local(t, count - 1);
+    }
+}
+
+Local(""A"", 5);
+";
+            VerifyOutputInMain(src, "AAAAA", "System");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction2()
+        {
+            var src = @"
+void Local<T>(T t, int count)
+{
+    if (count > 0)
+    {
+        Console.Write(t);
+        var action = new Action<T, int>(Local);
+        action(t, count - 1);
+    }
+}
+
+Local(""A"", 5);
+";
+            VerifyOutputInMain(src, "AAAAA", "System");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction3()
+        {
+            var src = @"
+void Local<T>(T t, int count)
+{
+    if (count > 0)
+    {
+        Console.Write(t);
+        var action = (Action<T, int>)Local;
+        action(t, count - 1);
+    }
+}
+
+Local(""A"", 5);
+";
+            VerifyOutputInMain(src, "AAAAA", "System");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction4()
+        {
+            var src = @"
+using System;
+class C
+{
+    public static void M<T>(T t)
+    {
+        void Local<U>(U u, int count)
+        {
+            if (count > 0)
+            {
+                Console.Write(t);
+                Console.Write(u);
+                Local(u, count - 1);
+            }
+        }
+        Local(""A"", 5);
+    }
+
+    public static void Main()
+    {
+        C.M(""B"");
+    }
+}";
+            VerifyOutput(src, "BABABABABA");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction5()
+        {
+            var src = @"
+using System;
+class C<T1>
+{
+    T1 t1;
+
+    public C(T1 t1)
+    {
+        this.t1 = t1;
+    }
+
+    public void M<T2>(T2 t2)
+    {
+        void L1<T3>(T3 t3)
+        {
+            void L2<T4>(T4 t4)
+            {
+                void L3<U>(U u, int count)
+                {
+                    if (count > 0)
+                    {
+                        Console.Write(t1);
+                        Console.Write(t2);
+                        Console.Write(t3);
+                        Console.Write(t4);
+                        Console.Write(u);
+                        L3(u, count - 1);
+                    }
+                }
+                L3(""A"", 5);
+            }
+            L2(""B"");
+        }
+        L1(""C"");
+    }
+
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var c = new C<string>(""D"");
+        c.M(""E"");
+    }
+}";
+            VerifyOutput(src, "DECBADECBADECBADECBADECBA");
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)

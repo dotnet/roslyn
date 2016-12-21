@@ -266,16 +266,20 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 currentLocalDeclarator,
                 currentLocalDeclarator.WithInitializer(null));
 
+            var rootWithoutInitializerTree = root.SyntaxTree.WithRootAndOptions(
+                rootWithoutInitializer, root.SyntaxTree.Options);
+
             // Fork the compilation so we can do this analysis.
             var newCompilation = semanticModel.Compilation.ReplaceSyntaxTree(
-                root.SyntaxTree, rootWithoutInitializer.SyntaxTree);
-            var newSemanticModel = newCompilation.GetSemanticModel(rootWithoutInitializer.SyntaxTree);
+                root.SyntaxTree, rootWithoutInitializerTree);
+            var newSemanticModel = newCompilation.GetSemanticModel(rootWithoutInitializerTree);
 
             // NOTE: there is no current compiler API to determine if a variable is definitely
             // assigned or not.  So, for now, we just get diagnostics for this block and see if
             // we get any definite assigment errors where we have a reference to the symbol. If
             // so, then we don't offer the fix.
 
+            rootWithoutInitializer = (CompilationUnitSyntax)rootWithoutInitializerTree.GetRoot(cancellationToken);
             var currentBlock = rootWithoutInitializer.GetCurrentNode(enclosingBlock);
             var diagnostics = newSemanticModel.GetDiagnostics(currentBlock.Span, cancellationToken);
 
