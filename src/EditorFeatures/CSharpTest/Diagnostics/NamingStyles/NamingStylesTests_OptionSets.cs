@@ -35,18 +35,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 ImmutableArray<Accessibility>.Empty,
                 ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
 
-            var namingStyle = new MutableNamingStyle();
-            namingStyle.CapitalizationScheme = Capitalization.PascalCase;
-            namingStyle.Name = "Name";
-            namingStyle.Prefix = "";
-            namingStyle.Suffix = "";
-            namingStyle.WordSeparator = "";
+            var namingStyle = new MutableNamingStyle()
+            {
+                CapitalizationScheme = Capitalization.PascalCase,
+                Name = "Name",
+                Prefix = "",
+                Suffix = "",
+                WordSeparator = ""
+            };
 
-
-            var namingRule = new SerializableNamingRule();
-            namingRule.SymbolSpecificationID = symbolSpecification.ID;
-            namingRule.NamingStyleID = namingStyle.ID;
-            namingRule.EnforcementLevel = DiagnosticSeverity.Error;
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = DiagnosticSeverity.Error
+            };
 
             var info = new NamingStylePreferences();
             info.SymbolSpecifications.Add(symbolSpecification);
