@@ -34,6 +34,8 @@
     "System.Runtime.InteropServices": "4.3.0",
     "System.Runtime.Loader": "4.3.0",
     "System.Runtime.Numerics": "4.3.0",
+    "System.Runtime.Serialization.Primitives": "4.3.0",
+    "System.Runtime.Serialization.Json": "4.3.0",
     "System.Security.Cryptography.Algorithms": "4.3.0",
     "System.Security.Cryptography.Encoding": "4.3.0",
     "System.Security.Cryptography.X509Certificates": "4.3.0",

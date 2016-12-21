@@ -10,18 +10,16 @@ RESTORE_SEMAPHORE_PATH = $(BINARIES_PATH)/restore.semaphore
 BOOTSTRAP_PATH = $(BINARIES_PATH)/Bootstrap
 BUILD_LOG_PATH =
 HOME_DIR = $(shell cd ~ && pwd)
-DOTNET_VERSION = 1.0.0-preview2-003131
+DOTNET_VERSION = 1.0.0-preview3-003223
 NUGET_VERSION = 3.5.0-beta2
 NUGET_EXE = $(shell pwd)/nuget.exe
 
 MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:Configuration=$(BUILD_CONFIGURATION)
 
 ifeq ($(OS_NAME),Linux)
-	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=ubuntu.14.04
-	DOTNET_PLATFORM = ubuntu-x64
+	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=$(shell . /etc/os-release && echo $$ID.$$VERSION_ID)
 else ifeq ($(OS_NAME),Darwin)
 	MSBUILD_ADDITIONALARGS := $(MSBUILD_ADDITIONALARGS) /p:BaseNuGetRuntimeIdentifier=osx.10.10
-	DOTNET_PLATFORM = osx-x64
 endif
 
 ifneq ($(BUILD_LOG_PATH),)
@@ -48,8 +46,12 @@ bootstrap: $(TOOLSET_PATH) $(RESTORE_SEMAPHORE_PATH)
 	$(MSBUILD_CMD) src/Compilers/VisualBasic/VbcCore/VbcCore.csproj && \
 	mkdir -p $(BOOTSTRAP_PATH) && \
 	cp -f Binaries/$(BUILD_CONFIGURATION)/Exes/CscCore/* $(BOOTSTRAP_PATH) && \
-	cp -f Binaries/$(BUILD_CONFIGURATION)/Exes/VbcCore/* $(BOOTSTRAP_PATH) && \
-	build/scripts/crossgen.sh $(BOOTSTRAP_PATH) && \
+	cp -f Binaries/$(BUILD_CONFIGURATION)/Exes/VbcCore/* $(BOOTSTRAP_PATH)
+
+ifneq ($(SKIP_CROSSGEN),true)
+	build/scripts/crossgen.sh $(BOOTSTRAP_PATH)
+endif
+
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 
 test:
@@ -85,6 +87,6 @@ $(TOOLSET_PATH): $(BINARIES_PATH)/dotnet-cli
 $(BINARIES_PATH)/dotnet-cli:
 	@mkdir -p $(BINARIES_PATH) ; \
 	pushd $(BINARIES_PATH) ; \
-	curl -O https://dotnetcli.blob.core.windows.net/dotnet/preview/Binaries/$(DOTNET_VERSION)/dotnet-dev-$(DOTNET_PLATFORM).$(DOTNET_VERSION).tar.gz && \
-	mkdir -p $(BINARIES_PATH)/dotnet-cli && \
-	tar -xzf dotnet-dev-$(DOTNET_PLATFORM).$(DOTNET_VERSION).tar.gz -C dotnet-cli
+	curl -O https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.sh ; \
+	chmod +x dotnet-install.sh ; \
+	./dotnet-install.sh --version "$(DOTNET_VERSION)" --install-dir "$(BINARIES_PATH)/dotnet-cli"

@@ -6728,7 +6728,7 @@ public class Test
         }
 
         [Fact(), WorkItem(546025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546025")]
-        public void TestWin32ResWithBadResFile_CS1583ERR_BadWin32Res()
+        public void TestWin32ResWithBadResFile_CS1583ERR_BadWin32Res_01()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"class Test { static void Main() {} }").Path;
             string badres = Temp.CreateFile().WriteAllBytes(TestResources.DiagnosticTests.badresfile).Path;
@@ -6747,6 +6747,31 @@ public class Test
 
             Assert.Equal(1, exitCode);
             Assert.Equal("error CS1583: Error reading Win32 resources -- Image is too small.", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(source);
+            CleanupAllGeneratedFiles(badres);
+        }
+
+        [Fact(), WorkItem(217718, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=217718")]
+        public void TestWin32ResWithBadResFile_CS1583ERR_BadWin32Res_02()
+        {
+            string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"class Test { static void Main() {} }").Path;
+            string badres = Temp.CreateFile().WriteAllBytes(new byte [] { 0, 0}).Path;
+
+            var baseDir = Path.GetDirectoryName(source);
+            var fileName = Path.GetFileName(source);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            int exitCode = new MockCSharpCompiler(null, baseDir, new[]
+            {
+                "/nologo",
+                "/preferreduilang:en",
+                "/win32res:" + badres,
+                source
+            }).Run(outWriter);
+
+            Assert.Equal(1, exitCode);
+            Assert.Equal("error CS1583: Error reading Win32 resources -- Unrecognized resource file format.", outWriter.ToString().Trim());
 
             CleanupAllGeneratedFiles(source);
             CleanupAllGeneratedFiles(badres);
