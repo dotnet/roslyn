@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         }
 
         internal XElement CreateXElement()
-            => new XElement(nameof(MutableNamingStyle),
+            => new XElement(nameof(NamingStyle),
                 new XAttribute(nameof(ID), ID),
                 new XAttribute(nameof(Name), Name),
                 new XAttribute(nameof(Prefix), Prefix ?? string.Empty),
