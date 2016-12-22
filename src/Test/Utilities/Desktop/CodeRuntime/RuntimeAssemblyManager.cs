@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Text;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
 {
     internal sealed class RuntimeAssemblyManager : MarshalByRefObject, IDisposable
     {

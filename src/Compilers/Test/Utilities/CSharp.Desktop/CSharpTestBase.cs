@@ -21,6 +21,7 @@ using Roslyn.Test.MetadataUtilities;
 using Roslyn.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
