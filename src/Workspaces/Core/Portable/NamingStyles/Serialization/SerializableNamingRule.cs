@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             return new NamingRule(
                 info.GetSymbolSpecification(SymbolSpecificationID),
-                info.GetNamingStyle(NamingStyleID).NamingStyle,
+                info.GetNamingStyle(NamingStyleID),
                 EnforcementLevel);
         }
 

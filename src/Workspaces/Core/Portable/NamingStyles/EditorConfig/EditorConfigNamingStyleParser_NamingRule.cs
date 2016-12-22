@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static bool TryGetSerializableNamingRule(
             string namingRuleTitle,
             SymbolSpecification symbolSpec,
-            MutableNamingStyle namingStyle,
+            NamingStyle namingStyle,
             IReadOnlyDictionary<string, object> conventionsDictionary,
             out SerializableNamingRule serializableNamingRule)
         {

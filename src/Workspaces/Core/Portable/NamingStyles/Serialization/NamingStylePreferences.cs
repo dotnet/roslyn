@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private readonly static int s_serializationVersion = 3;
 
         public readonly ImmutableArray<SymbolSpecification> SymbolSpecifications;
-        public readonly ImmutableArray<MutableNamingStyle> NamingStyles;
+        public readonly ImmutableArray<NamingStyle> NamingStyles;
         public readonly ImmutableArray<SerializableNamingRule> NamingRules;
 
         private readonly Lazy<NamingStyleRules> _lazyRules;
 
         internal NamingStylePreferences(
             ImmutableArray<SymbolSpecification> symbolSpecifications,
-            ImmutableArray<MutableNamingStyle> namingStyles,
+            ImmutableArray<NamingStyle> namingStyles,
             ImmutableArray<SerializableNamingRule> namingRules)
         {
             SymbolSpecifications = symbolSpecifications;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         internal NamingStylePreferences()
         {
             SymbolSpecifications = ImmutableArray<SymbolSpecification>.Empty;
-            NamingStyles = ImmutableArray<MutableNamingStyle>.Empty;
+            NamingStyles = ImmutableArray<NamingStyle>.Empty;
             NamingRules = ImmutableArray<SerializableNamingRule>.Empty;
         }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         public static string DefaultNamingPreferencesString => _defaultNamingPreferencesString;
 
-        internal MutableNamingStyle GetNamingStyle(Guid namingStyleID)
+        internal NamingStyle GetNamingStyle(Guid namingStyleID)
             => NamingStyles.Single(s => s.ID == namingStyleID);
 
         internal SymbolSpecification GetSymbolSpecification(Guid symbolSpecificationID)
@@ -125,9 +125,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                                           .Select(SymbolSpecification.FromXElement)
                                           .ToImmutableArray();
 
-        private static ImmutableArray<MutableNamingStyle> ParseNamingStyleListFromXElement(XElement namingStylesElement)
+        private static ImmutableArray<NamingStyle> ParseNamingStyleListFromXElement(XElement namingStylesElement)
             => namingStylesElement.Elements(nameof(NamingStyle))
-                                  .Select(e => new MutableNamingStyle(NamingStyle.FromXElement(e)))
+                                  .Select(NamingStyle.FromXElement)
                                   .ToImmutableArray();
 
         private static ImmutableArray<SerializableNamingRule> ParseNamingRuleTreeFromXElement(XElement namingRulesElement)

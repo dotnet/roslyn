@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public static NamingStylePreferences ParseDictionary(IReadOnlyDictionary<string, object> allRawConventions)
         {
             var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
-            var namingStyles = ArrayBuilder<MutableNamingStyle>.GetInstance();
+            var namingStyles = ArrayBuilder<NamingStyle>.GetInstance();
             var namingRules = ArrayBuilder<SerializableNamingRule>.GetInstance();
 
             var trimmedDictionary = TrimDictionary(allRawConventions);
