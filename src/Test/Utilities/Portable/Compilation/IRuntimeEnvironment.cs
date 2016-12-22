@@ -31,7 +31,7 @@ namespace Roslyn.Test.Utilities
             if (DesktopShim.FileNotFoundException.Type != null)
             {
                 assemblyName = "Roslyn.Test.Utilities.Desktop";
-                typeName = "Roslyn.Test.Utilities.DesktopRuntimeEnvironmentFactory";
+                typeName = "Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime.DesktopRuntimeEnvironmentFactory";
             }
             else
             {

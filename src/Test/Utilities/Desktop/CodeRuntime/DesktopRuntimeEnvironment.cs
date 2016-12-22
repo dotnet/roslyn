@@ -106,8 +106,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             // Many prominent assemblys like mscorlib are already in the RuntimeAssemblyManager.  Only 
             // add in the delta values to reduce serialization overhead going across AppDomains.
             var manager = runtimeData.Manager;
-            var missingList = manager.GetMissing(allModules.Select(x => x.Id).ToList());
-            var deltaList = allModules.Where(x => missingList.Contains(x.Id)).ToList();
+            var missingList = manager
+                .GetMissing(allModules.Select(x => new RuntimeModuleDataId(x.Id)).ToList())
+                .Select(x => x.Id);
+            var deltaList = allModules
+                .Where(x => missingList.Contains(x.Id))
+                .Select(x => new RuntimeModuleData(x))
+                .ToList();
             manager.AddModuleData(deltaList);
             manager.AddMainModuleMvid(mainModuleId.Mvid);
 
@@ -141,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
                 {
                     var data = s_runtimeDataCache[i];
                     var manager = data.Manager;
-                    if (!manager.HasConflicts(modules.Select(x => x.Id).ToList()))
+                    if (!manager.HasConflicts(modules.Select(x => new RuntimeModuleDataId(x.Id)).ToList()))
                     {
                         s_runtimeDataCache.RemoveAt(i);
                         return data;

@@ -88,6 +88,7 @@
     <Compile Include="AppDomainUtils.cs" />
     <Compile Include="CLRHelpers.cs" />
     <Compile Include="CodeRuntime\DesktopRuntimeEnvironmentFactory.cs" />
+    <Compile Include="CodeRuntime\RuntimeModuleData.cs" />
     <Compile Include="DesktopRuntimeUtil.cs" />
     <Compile Include="InstrumentationChecker.cs" />
     <Compile Include="ConditionalFactAttribute.cs" />

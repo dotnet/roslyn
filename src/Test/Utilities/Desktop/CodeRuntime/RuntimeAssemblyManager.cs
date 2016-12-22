@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             internal ModuleData ModuleData { get; }
             internal Assembly Assembly { get; }
             internal Kind Kind => Assembly != null ? Kind.Assembly : Kind.ModuleData;
-            internal ModuleDataId Id => Assembly != null ? new ModuleDataId(Assembly) : ModuleData.Id;
+            internal ModuleDataId Id => Assembly != null ? new ModuleDataId(Assembly, Assembly.ManifestModule.ModuleVersionId) : ModuleData.Id;
 
             internal AssemblyData(ModuleData moduleData)
             {
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
                 || _loadedAssemblies.Contains(assembly);
         }
 
-        internal bool ContainsNetModules()
+        public bool ContainsNetModules()
         {
             return _containsNetModules;
         }
@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
         /// return values that are already present. 
         /// </summary>
         /// <param name="modules"></param>
-        internal void AddModuleData(IEnumerable<ModuleData> modules)
+        public void AddModuleData(List<RuntimeModuleData> modules)
         {
-            foreach (var module in modules)
+            foreach (var module in modules.Select(x => x.Data))
             {
                 // If the module is already added then nothing else to do
                 AssemblyData assemblyData;
@@ -179,9 +179,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             }
         }
 
-        public bool HasConflicts(IEnumerable<ModuleDataId> moduleDataIds)
+        public bool HasConflicts(List<RuntimeModuleDataId> moduleDataIds)
         {
-            foreach (var id in moduleDataIds)
+            foreach (var id in moduleDataIds.Select(x => x.Id))
             {
                 AssemblyData assemblyData;
                 bool fullMatch;
@@ -203,16 +203,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
         /// <summary>
         /// Return the subset of IDs passed in which are not currently tracked by this instance.
         /// </summary>
-        public List<ModuleDataId> GetMissing(IEnumerable<ModuleDataId> moduleIds)
+        public List<RuntimeModuleDataId> GetMissing(List<RuntimeModuleDataId> moduleIds)
         {
-            var list = new List<ModuleDataId>();
-            foreach (var id in moduleIds)
+            var list = new List<RuntimeModuleDataId>();
+            foreach (var id in moduleIds.Select(x => x.Id))
             {
                 AssemblyData other;
                 bool fullMatch;
                 if (!TryGetMatchingByFullName(id, out other, out fullMatch) || !fullMatch)
                 {
-                    list.Add(id);
+                    list.Add(new RuntimeModuleDataId(id));
                 }
             }
 
@@ -284,33 +284,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             return null;
         }
 
-        /// <summary>
-        /// Loads given array of bytes as an assembly image using <see cref="System.Reflection.Assembly.Load"/> or <see cref="System.Reflection.Assembly.ReflectionOnlyLoad"/>.
-        /// </summary>
-        internal static Assembly LoadAsAssembly(string moduleName, ImmutableArray<byte> rawAssembly, bool reflectionOnly = false)
-        {
-            Debug.Assert(!rawAssembly.IsDefault);
-
-            byte[] bytes = rawAssembly.ToArray();
-
-            try
-            {
-                if (reflectionOnly)
-                {
-                    return Assembly.ReflectionOnlyLoad(bytes);
-                }
-                else
-                {
-                    return Assembly.Load(bytes);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Exception loading {moduleName} reflectionOnly:{reflectionOnly}", ex);
-            }
-        }
-
-        internal Assembly GetAssembly(string fullName, bool reflectionOnly)
+        private Assembly GetAssembly(string fullName, bool reflectionOnly)
         {
             AssemblyData data;
             if (!_fullNameToAssemblyDataMap.TryGetValue(fullName, out data))
@@ -355,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             return assembly.LoadModule(args.Name, rawModule.ToArray());
         }
 
-        internal SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName, IEnumerable<ModuleDataId> searchModules)
+        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName, List<ModuleDataId> searchModules)
         {
             try
             {
@@ -384,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             }
         }
 
-        internal SortedSet<string> GetFullyQualifiedTypeNames(string assemblyName)
+        private SortedSet<string> GetFullyQualifiedTypeNames(string assemblyName)
         {
             var typeNames = new SortedSet<string>();
             Assembly assembly = GetAssembly(assemblyName, true);
@@ -396,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
         public int Execute(string moduleName, int expectedOutputLength, out string output)
         {
             ImmutableArray<byte> bytes = GetModuleBytesByName(moduleName);
-            Assembly assembly = LoadAsAssembly(moduleName, bytes);
+            Assembly assembly = DesktopRuntimeUtil.LoadAsAssembly(moduleName, bytes);
             MethodInfo entryPoint = assembly.EntryPoint;
             Debug.Assert(entryPoint != null, "Attempting to execute an assembly that has no entrypoint; is your test trying to execute a DLL?");
 
