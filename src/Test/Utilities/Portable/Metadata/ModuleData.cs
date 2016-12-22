@@ -24,12 +24,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public string FullName { get; }
         public Guid Mvid { get; }
 
-        public ModuleDataId(Assembly assembly)
+        public ModuleDataId(Assembly assembly, Guid mvid)
         {
             SimpleName = assembly.GetName().Name;
             FullName = assembly.FullName;
-            // Replace with mvid
-            Mvid = default(Guid);
+            Mvid = mvid;
         }
 
         public ModuleDataId(string simpleName, string fullName, Guid mvid)
@@ -71,6 +70,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public ModuleData(AssemblyIdentity identity, OutputKind kind, ImmutableArray<byte> image, ImmutableArray<byte> pdb, bool inMemoryModule)
         {
             this.Id = new ModuleDataId(identity.Name, identity.GetDisplayName(), GetMvid(image));
+            this.Kind = kind;
+            this.Image = image;
+            this.Pdb = pdb;
+            this.InMemoryModule = inMemoryModule;
+        }
+
+        public ModuleData(ModuleDataId id, OutputKind kind, ImmutableArray<byte> image, ImmutableArray<byte> pdb, bool inMemoryModule)
+        {
+            this.Id = id;
             this.Kind = kind;
             this.Image = image;
             this.Pdb = pdb;

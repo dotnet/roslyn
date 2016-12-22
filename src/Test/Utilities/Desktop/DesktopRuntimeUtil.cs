@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -63,5 +65,32 @@ namespace Roslyn.Test.Utilities
                 return MetadataReference.CreateFromImage(image);
             }
         }
+
+        /// <summary>
+        /// Loads given array of bytes as an assembly image using <see cref="System.Reflection.Assembly.Load"/> or <see cref="System.Reflection.Assembly.ReflectionOnlyLoad"/>.
+        /// </summary>
+        internal static Assembly LoadAsAssembly(string moduleName, ImmutableArray<byte> rawAssembly, bool reflectionOnly = false)
+        {
+            Debug.Assert(!rawAssembly.IsDefault);
+
+            byte[] bytes = rawAssembly.ToArray();
+
+            try
+            {
+                if (reflectionOnly)
+                {
+                    return Assembly.ReflectionOnlyLoad(bytes);
+                }
+                else
+                {
+                    return Assembly.Load(bytes);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Exception loading {moduleName} reflectionOnly:{reflectionOnly}", ex);
+            }
+        }
+
     }
 }

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sourceFile.WriteAllText(completeIL);
 
                 var ilasmPath = Path.Combine(
-                    CorLightup.Desktop.GetAssemblyLocation(typeof(object).GetTypeInfo().Assembly),
+                    Path.GetDirectoryName(CorLightup.Desktop.GetAssemblyLocation(typeof(object).GetTypeInfo().Assembly)),
                     "ilasm.exe");
 
                 var arguments = string.Format(

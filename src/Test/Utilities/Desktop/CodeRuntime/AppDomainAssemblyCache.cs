@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
 {
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
                     return assembly;
                 }
 
-                var loadedAssembly = RuntimeAssemblyManager.LoadAsAssembly(moduleData.SimpleName, moduleData.Image, reflectionOnly);
+                var loadedAssembly = DesktopRuntimeUtil.LoadAsAssembly(moduleData.SimpleName, moduleData.Image, reflectionOnly);
 
                 // Validate the loaded assembly matches the value that we now have in the cache. 
                 if (!cache.TryGetValue(moduleData.Mvid, out assembly))
