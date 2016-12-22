@@ -48,6 +48,7 @@ namespace BuildBoss
                 allGood &= CheckForProperty(textWriter, "RemoveIntegerChecks");
                 allGood &= CheckForProperty(textWriter, "Deterministic");
                 allGood &= CheckForProperty(textWriter, "HighEntropyVA");
+                allGood &= CheckForProperty(textWriter, "DocumentationFile");
                 
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
