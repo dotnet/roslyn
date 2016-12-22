@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                  isEnabledByDefault: true);
 
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
-            builder[nameof(MutableNamingStyle)] = applicableRule.NamingStyle.CreateXElement().ToString();
+            builder[nameof(NamingStyle)] = applicableRule.NamingStyle.CreateXElement().ToString();
             builder["OptionName"] = nameof(SimplificationOptions.NamingPreferences);
             builder["OptionLanguage"] = context.Compilation.Language;
             context.ReportDiagnostic(Diagnostic.Create(descriptor, context.Symbol.Locations.First(), builder.ToImmutable()));
