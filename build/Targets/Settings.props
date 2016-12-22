@@ -3,6 +3,11 @@
   <Import Project="Versions.props"/>
 
   <PropertyGroup>
+    <JenkinsBuild>false</JenkinsBuild>
+    <JenkinsBuild Condition="'$(JENKINS_HOME)' != ''">true</JenkinsBuild>
+    <DeveloperBuild>false</DeveloperBuild>
+    <DeveloperBuild Condition="'$(OfficialBuild)' != 'true' and '$(JenkinsBuild)' != 'true'">true</DeveloperBuild>
+
     <ProjectDir>$(MSBuildThisFileDirectory)..\..\</ProjectDir>
     <NuGetToolPath>$(ProjectDir)nuget.exe</NuGetToolPath>
     <ToolsetPackagesDir>$(ProjectDir)build\ToolsetPackages\</ToolsetPackagesDir>
