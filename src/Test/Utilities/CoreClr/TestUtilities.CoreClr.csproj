@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <PropertyGroup>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <ProjectGuid>{67ca3eee-37f1-4edf-bd9b-c11911748f37}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Roslyn.Test.Utilities.CoreClr</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nonshipping>true</Nonshipping>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <DefineConstants>$(DefineConstants);DNX</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
+      <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
+      <Name>CompilerTestResources</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\PdbUtilities\PdbUtilities.csproj">
+      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
+      <Name>PdbUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
+      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
+      <Name>CSharpCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
+      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
+      <Name>BasicCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Portable\TestUtilities.csproj">
+      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
+      <Name>TestUtilities</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
+    <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Any CPU' ">
+    <PlatformTarget>
+    </PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Any CPU' ">
+    <PlatformTarget>
+    </PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <PlatformTarget>
+    </PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <PlatformTarget>
+    </PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Temp.cs" />
+  </ItemGroup>
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
+</Project>
