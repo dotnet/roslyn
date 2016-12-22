@@ -20,321 +20,318 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public abstract partial class CommonTestBase
+    public class CompilationVerifier
     {
-        public class CompilationVerifier
+        private readonly CommonTestBase _test;
+        private readonly Compilation _compilation;
+        private CompilationTestData _testData;
+        private readonly IEnumerable<ModuleData> _dependencies;
+        private ImmutableArray<Diagnostic> _diagnostics;
+        private IModuleSymbol _lazyModuleSymbol;
+        private IList<ModuleData> _allModuleData;
+
+        internal ImmutableArray<byte> EmittedAssemblyData;
+        internal ImmutableArray<byte> EmittedAssemblyPdb;
+
+        public CompilationVerifier(
+            CommonTestBase test,
+            Compilation compilation,
+            IEnumerable<ModuleData> dependencies = null)
         {
-            private readonly CommonTestBase _test;
-            private readonly Compilation _compilation;
-            private CompilationTestData _testData;
-            private readonly IEnumerable<ModuleData> _dependencies;
-            private ImmutableArray<Diagnostic> _diagnostics;
-            private IModuleSymbol _lazyModuleSymbol;
-            private IList<ModuleData> _allModuleData;
+            _test = test;
+            _compilation = compilation;
+            _dependencies = dependencies;
+        }
 
-            internal ImmutableArray<byte> EmittedAssemblyData;
-            internal ImmutableArray<byte> EmittedAssemblyPdb;
+        internal CompilationTestData TestData
+        {
+            get { return _testData; }
+        }
 
-            public CompilationVerifier(
-                CommonTestBase test,
-                Compilation compilation,
-                IEnumerable<ModuleData> dependencies = null)
+        public Compilation Compilation
+        {
+            get { return _compilation; }
+        }
+
+        public TempRoot Temp
+        {
+            get { return _test.Temp; }
+        }
+
+        internal ImmutableArray<Diagnostic> Diagnostics
+        {
+            get { return _diagnostics; }
+        }
+
+        internal ImmutableArray<ModuleMetadata> GetAllModuleMetadata()
+        {
+            if (EmittedAssemblyData == null)
             {
-                _test = test;
-                _compilation = compilation;
-                _dependencies = dependencies;
+                throw new InvalidOperationException("You must call Emit before calling GetAllModuleMetadata.");
             }
 
-            internal CompilationTestData TestData
-            {
-                get { return _testData; }
-            }
+            ImmutableArray<ModuleMetadata> modules = ImmutableArray.Create(ModuleMetadata.CreateFromImage(EmittedAssemblyData));
 
-            public Compilation Compilation
+            if (_allModuleData != null)
             {
-                get { return _compilation; }
-            }
-
-            public TempRoot Temp
-            {
-                get { return _test.Temp; }
-            }
-
-            internal ImmutableArray<Diagnostic> Diagnostics
-            {
-                get { return _diagnostics; }
-            }
-
-            internal ImmutableArray<ModuleMetadata> GetAllModuleMetadata()
-            {
-                if (EmittedAssemblyData == null)
+                var netModules = _allModuleData.Where(m => m.Kind == OutputKind.NetModule);
+                if (netModules.Any())
                 {
-                    throw new InvalidOperationException("You must call Emit before calling GetAllModuleMetadata.");
-                }
-
-                ImmutableArray<ModuleMetadata> modules = ImmutableArray.Create(ModuleMetadata.CreateFromImage(EmittedAssemblyData));
-
-                if (_allModuleData != null)
-                {
-                    var netModules = _allModuleData.Where(m => m.Kind == OutputKind.NetModule);
-                    if (netModules.Any())
-                    {
-                        modules = modules.Concat(
-                            ImmutableArray.CreateRange(netModules.Select(m => ModuleMetadata.CreateFromImage(m.Image))));
-                    }
-                }
-
-                return modules;
-            }
-
-            public void Emit(string expectedOutput, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool peVerify, SignatureDescription[] expectedSignatures)
-            {
-                using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
-                {
-                    string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
-                    _allModuleData = testEnvironment.GetAllModuleData();
-
-                    if (peVerify)
-                    {
-                        testEnvironment.PeVerify();
-                    }
-
-                    if (expectedSignatures != null)
-                    {
-                        MetadataSignatureUnitTestHelper.VerifyMemberSignatures(testEnvironment, expectedSignatures);
-                    }
-
-                    if (expectedOutput != null)
-                    {
-                        testEnvironment.Execute(mainModuleName, expectedOutput);
-                    }
+                    modules = modules.Concat(
+                        ImmutableArray.CreateRange(netModules.Select(m => ModuleMetadata.CreateFromImage(m.Image))));
                 }
             }
 
-            // TODO(tomat): Fold into CompileAndVerify. 
-            // Replace bool verify parameter with string[] expectedPeVerifyOutput. If null, no verification. If empty verify have to succeed. Otherwise compare errors.
-            public void EmitAndVerify(params string[] expectedPeVerifyOutput)
+            return modules;
+        }
+
+        public void Emit(string expectedOutput, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool peVerify, SignatureDescription[] expectedSignatures)
+        {
+            using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
             {
-                using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
+                string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
+                _allModuleData = testEnvironment.GetAllModuleData();
+
+                if (peVerify)
                 {
-                    string mainModuleName = Emit(testEnvironment, null, null);
-                    string[] actualOutput = testEnvironment.PeVerifyModules(new[] { mainModuleName }, throwOnError: false);
-                    Assert.Equal(expectedPeVerifyOutput, actualOutput);
-                }
-            }
-
-            private string Emit(IRuntimeEnvironment testEnvironment, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions)
-            {
-                testEnvironment.Emit(_compilation, manifestResources, emitOptions);
-
-                _diagnostics = testEnvironment.GetDiagnostics();
-                EmittedAssemblyData = testEnvironment.GetMainImage();
-                EmittedAssemblyPdb = testEnvironment.GetMainPdb();
-                _testData = ((IInternalRuntimeEnvironment)testEnvironment).GetCompilationTestData();
-
-                return _compilation.Assembly.Identity.GetDisplayName();
-            }
-
-            public CompilationVerifier VerifyIL(
-                string qualifiedMethodName,
-                XCData expectedIL,
-                bool realIL = false,
-                string sequencePoints = null,
-                [CallerFilePath]string callerPath = null,
-                [CallerLineNumber]int callerLine = 0)
-            {
-                return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: false);
-            }
-
-            public CompilationVerifier VerifyIL(
-                string qualifiedMethodName,
-                string expectedIL,
-                bool realIL = false,
-                string sequencePoints = null,
-                [CallerFilePath]string callerPath = null,
-                [CallerLineNumber]int callerLine = 0)
-            {
-                return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: true);
-            }
-
-            public void VerifyLocalSignature(
-                string qualifiedMethodName,
-                string expectedSignature,
-                [CallerLineNumber]int callerLine = 0,
-                [CallerFilePath]string callerPath = null)
-            {
-                var ilBuilder = _testData.GetMethodData(qualifiedMethodName).ILBuilder;
-                string actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder);
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
-            }
-
-            private CompilationVerifier VerifyILImpl(
-                string qualifiedMethodName,
-                string expectedIL,
-                bool realIL,
-                string sequencePoints,
-                string callerPath,
-                int callerLine,
-                bool escapeQuotes)
-            {
-                string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints);
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes, callerPath, callerLine);
-                return this;
-            }
-
-            public CompilationVerifier VerifyPdb(
-                XElement expectedPdb,
-                IMethodSymbol debugEntryPoint = null,
-                DebugInformationFormat format = 0,
-                PdbToXmlOptions options = 0,
-                [CallerLineNumber]int expectedValueSourceLine = 0,
-                [CallerFilePath]string expectedValueSourcePath = null)
-            {
-                _compilation.VerifyPdb(expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
-                return this;
-            }
-
-            public CompilationVerifier VerifyPdb(
-                string expectedPdb,
-                IMethodSymbol debugEntryPoint = null,
-                DebugInformationFormat format = 0,
-                PdbToXmlOptions options = 0,
-                [CallerLineNumber]int expectedValueSourceLine = 0,
-                [CallerFilePath]string expectedValueSourcePath = null)
-            {
-                _compilation.VerifyPdb(expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
-                return this;
-            }
-
-            public CompilationVerifier VerifyPdb(
-                string qualifiedMethodName,
-                string expectedPdb,
-                IMethodSymbol debugEntryPoint = null,
-                DebugInformationFormat format = 0,
-                PdbToXmlOptions options = 0,
-                [CallerLineNumber]int expectedValueSourceLine = 0,
-                [CallerFilePath]string expectedValueSourcePath = null)
-            {
-                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
-                return this;
-            }
-
-            public CompilationVerifier VerifyPdb(
-                string qualifiedMethodName,
-                XElement expectedPdb,
-                IMethodSymbol debugEntryPoint = null,
-                DebugInformationFormat format = 0,
-                PdbToXmlOptions options = 0,
-                [CallerLineNumber]int expectedValueSourceLine = 0,
-                [CallerFilePath]string expectedValueSourcePath = null)
-            {
-                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
-                return this;
-            }
-
-            public ISymUnmanagedReader3 CreateSymReader()
-            {
-                var pdbStream = new MemoryStream(EmittedAssemblyPdb.ToArray());
-                return SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt: null, metadataMemoryOwnerOpt: null);
-            }
-
-            public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null)
-            {
-                // TODO: Currently the qualifiedMethodName is a symbol display name while PDB need metadata name.
-                // So we need to pass the PDB metadata name of the method to sequencePoints (instead of just bool).
-
-                return VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints);
-            }
-
-            internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints = null)
-            {
-                Dictionary<int, string> markers = null;
-
-                if (sequencePoints != null)
-                {
-                    var actualPdbXml = PdbToXmlConverter.ToXml(
-                        pdbStream: new MemoryStream(EmittedAssemblyPdb.ToArray()),
-                        peStream: new MemoryStream(EmittedAssemblyData.ToArray()),
-                        options: PdbToXmlOptions.ResolveTokens |
-                                 PdbToXmlOptions.ThrowOnError |
-                                 PdbToXmlOptions.ExcludeDocuments |
-                                 PdbToXmlOptions.ExcludeCustomDebugInformation |
-                                 PdbToXmlOptions.ExcludeScopes,
-                        methodName: sequencePoints);
-
-                    markers = PdbValidation.GetMarkers(actualPdbXml);
+                    testEnvironment.PeVerify();
                 }
 
-                if (!realIL)
+                if (expectedSignatures != null)
                 {
-                    return ILBuilderVisualizer.ILBuilderToString(methodData.ILBuilder, markers: markers);
+                    MetadataSignatureUnitTestHelper.VerifyMemberSignatures(testEnvironment, expectedSignatures);
                 }
 
-                if (_lazyModuleSymbol == null)
+                if (expectedOutput != null)
                 {
-                    _lazyModuleSymbol = GetModuleSymbolForEmittedImage(EmittedAssemblyData, MetadataImportOptions.All);
-                }
-
-                return _lazyModuleSymbol != null ? _test.VisualizeRealIL(_lazyModuleSymbol, methodData, markers) : null;
-            }
-
-            public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)
-            {
-                Assert.Equal(expected, _testData.GetMethodsByName().ContainsKey(methodName));
-                return this;
-            }
-
-            public CompilationVerifier VerifyDiagnostics(params DiagnosticDescription[] expected)
-            {
-                _diagnostics.Verify(expected);
-                return this;
-            }
-
-            public IModuleSymbol GetModuleSymbolForEmittedImage()
-            {
-                return GetModuleSymbolForEmittedImage(EmittedAssemblyData, _compilation.Options.MetadataImportOptions);
-            }
-
-            private IModuleSymbol GetModuleSymbolForEmittedImage(ImmutableArray<byte> peImage, MetadataImportOptions importOptions)
-            {
-                if (peImage.IsDefault)
-                {
-                    return null;
-                }
-
-                var targetReference = LoadTestEmittedExecutableForSymbolValidation(peImage, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
-                var references = _compilation.References.Concat(new[] { targetReference });
-                var assemblies = _test.ReferencesToModuleSymbols(references, importOptions);
-                return assemblies.Last();
-            }
-
-            private static MetadataReference LoadTestEmittedExecutableForSymbolValidation(
-                ImmutableArray<byte> image,
-                OutputKind outputKind,
-                string display = null)
-            {
-                var moduleMetadata = ModuleMetadata.CreateFromImage(image);
-                moduleMetadata.Module.PretendThereArentNoPiaLocalTypes();
-
-                if (outputKind == OutputKind.NetModule)
-                {
-                    return moduleMetadata.GetReference(display: display);
-                }
-                else
-                {
-                    return AssemblyMetadata.Create(moduleMetadata).GetReference(display: display);
+                    testEnvironment.Execute(mainModuleName, expectedOutput);
                 }
             }
+        }
 
-            public void VerifyOperationTree(string expectedOperationTree, bool skipImplicitlyDeclaredSymbols = false)
+        // TODO(tomat): Fold into CompileAndVerify. 
+        // Replace bool verify parameter with string[] expectedPeVerifyOutput. If null, no verification. If empty verify have to succeed. Otherwise compare errors.
+        public void EmitAndVerify(params string[] expectedPeVerifyOutput)
+        {
+            using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
             {
-                _compilation.VerifyOperationTree(expectedOperationTree, skipImplicitlyDeclaredSymbols);
+                string mainModuleName = Emit(testEnvironment, null, null);
+                string[] actualOutput = testEnvironment.PeVerifyModules(new[] { mainModuleName }, throwOnError: false);
+                Assert.Equal(expectedPeVerifyOutput, actualOutput);
+            }
+        }
+
+        private string Emit(IRuntimeEnvironment testEnvironment, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions)
+        {
+            testEnvironment.Emit(_compilation, manifestResources, emitOptions);
+
+            _diagnostics = testEnvironment.GetDiagnostics();
+            EmittedAssemblyData = testEnvironment.GetMainImage();
+            EmittedAssemblyPdb = testEnvironment.GetMainPdb();
+            _testData = ((IInternalRuntimeEnvironment)testEnvironment).GetCompilationTestData();
+
+            return _compilation.Assembly.Identity.GetDisplayName();
+        }
+
+        public CompilationVerifier VerifyIL(
+            string qualifiedMethodName,
+            XCData expectedIL,
+            bool realIL = false,
+            string sequencePoints = null,
+            [CallerFilePath]string callerPath = null,
+            [CallerLineNumber]int callerLine = 0)
+        {
+            return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: false);
+        }
+
+        public CompilationVerifier VerifyIL(
+            string qualifiedMethodName,
+            string expectedIL,
+            bool realIL = false,
+            string sequencePoints = null,
+            [CallerFilePath]string callerPath = null,
+            [CallerLineNumber]int callerLine = 0)
+        {
+            return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: true);
+        }
+
+        public void VerifyLocalSignature(
+            string qualifiedMethodName,
+            string expectedSignature,
+            [CallerLineNumber]int callerLine = 0,
+            [CallerFilePath]string callerPath = null)
+        {
+            var ilBuilder = _testData.GetMethodData(qualifiedMethodName).ILBuilder;
+            string actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+        }
+
+        private CompilationVerifier VerifyILImpl(
+            string qualifiedMethodName,
+            string expectedIL,
+            bool realIL,
+            string sequencePoints,
+            string callerPath,
+            int callerLine,
+            bool escapeQuotes)
+        {
+            string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes, callerPath, callerLine);
+            return this;
+        }
+
+        public CompilationVerifier VerifyPdb(
+            XElement expectedPdb,
+            IMethodSymbol debugEntryPoint = null,
+            DebugInformationFormat format = 0,
+            PdbToXmlOptions options = 0,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            _compilation.VerifyPdb(expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            return this;
+        }
+
+        public CompilationVerifier VerifyPdb(
+            string expectedPdb,
+            IMethodSymbol debugEntryPoint = null,
+            DebugInformationFormat format = 0,
+            PdbToXmlOptions options = 0,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            _compilation.VerifyPdb(expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            return this;
+        }
+
+        public CompilationVerifier VerifyPdb(
+            string qualifiedMethodName,
+            string expectedPdb,
+            IMethodSymbol debugEntryPoint = null,
+            DebugInformationFormat format = 0,
+            PdbToXmlOptions options = 0,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            return this;
+        }
+
+        public CompilationVerifier VerifyPdb(
+            string qualifiedMethodName,
+            XElement expectedPdb,
+            IMethodSymbol debugEntryPoint = null,
+            DebugInformationFormat format = 0,
+            PdbToXmlOptions options = 0,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            return this;
+        }
+
+        public ISymUnmanagedReader3 CreateSymReader()
+        {
+            var pdbStream = new MemoryStream(EmittedAssemblyPdb.ToArray());
+            return SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt: null, metadataMemoryOwnerOpt: null);
+        }
+
+        public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null)
+        {
+            // TODO: Currently the qualifiedMethodName is a symbol display name while PDB need metadata name.
+            // So we need to pass the PDB metadata name of the method to sequencePoints (instead of just bool).
+
+            return VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints);
+        }
+
+        internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints = null)
+        {
+            Dictionary<int, string> markers = null;
+
+            if (sequencePoints != null)
+            {
+                var actualPdbXml = PdbToXmlConverter.ToXml(
+                    pdbStream: new MemoryStream(EmittedAssemblyPdb.ToArray()),
+                    peStream: new MemoryStream(EmittedAssemblyData.ToArray()),
+                    options: PdbToXmlOptions.ResolveTokens |
+                             PdbToXmlOptions.ThrowOnError |
+                             PdbToXmlOptions.ExcludeDocuments |
+                             PdbToXmlOptions.ExcludeCustomDebugInformation |
+                             PdbToXmlOptions.ExcludeScopes,
+                    methodName: sequencePoints);
+
+                markers = PdbValidation.GetMarkers(actualPdbXml);
             }
 
-            public void VerifyOperationTree(string symbolToVerify, string expectedOperationTree, bool skipImplicitlyDeclaredSymbols = false)
+            if (!realIL)
             {
-                _compilation.VerifyOperationTree(symbolToVerify, expectedOperationTree, skipImplicitlyDeclaredSymbols);
+                return ILBuilderVisualizer.ILBuilderToString(methodData.ILBuilder, markers: markers);
             }
+
+            if (_lazyModuleSymbol == null)
+            {
+                _lazyModuleSymbol = GetModuleSymbolForEmittedImage(EmittedAssemblyData, MetadataImportOptions.All);
+            }
+
+            return _lazyModuleSymbol != null ? _test.VisualizeRealIL(_lazyModuleSymbol, methodData, markers) : null;
+        }
+
+        public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)
+        {
+            Assert.Equal(expected, _testData.GetMethodsByName().ContainsKey(methodName));
+            return this;
+        }
+
+        public CompilationVerifier VerifyDiagnostics(params DiagnosticDescription[] expected)
+        {
+            _diagnostics.Verify(expected);
+            return this;
+        }
+
+        public IModuleSymbol GetModuleSymbolForEmittedImage()
+        {
+            return GetModuleSymbolForEmittedImage(EmittedAssemblyData, _compilation.Options.MetadataImportOptions);
+        }
+
+        private IModuleSymbol GetModuleSymbolForEmittedImage(ImmutableArray<byte> peImage, MetadataImportOptions importOptions)
+        {
+            if (peImage.IsDefault)
+            {
+                return null;
+            }
+
+            var targetReference = LoadTestEmittedExecutableForSymbolValidation(peImage, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
+            var references = _compilation.References.Concat(new[] { targetReference });
+            var assemblies = _test.ReferencesToModuleSymbols(references, importOptions);
+            return assemblies.Last();
+        }
+
+        private static MetadataReference LoadTestEmittedExecutableForSymbolValidation(
+            ImmutableArray<byte> image,
+            OutputKind outputKind,
+            string display = null)
+        {
+            var moduleMetadata = ModuleMetadata.CreateFromImage(image);
+            moduleMetadata.Module.PretendThereArentNoPiaLocalTypes();
+
+            if (outputKind == OutputKind.NetModule)
+            {
+                return moduleMetadata.GetReference(display: display);
+            }
+            else
+            {
+                return AssemblyMetadata.Create(moduleMetadata).GetReference(display: display);
+            }
+        }
+
+        public void VerifyOperationTree(string expectedOperationTree, bool skipImplicitlyDeclaredSymbols = false)
+        {
+            _compilation.VerifyOperationTree(expectedOperationTree, skipImplicitlyDeclaredSymbols);
+        }
+
+        public void VerifyOperationTree(string symbolToVerify, string expectedOperationTree, bool skipImplicitlyDeclaredSymbols = false)
+        {
+            _compilation.VerifyOperationTree(symbolToVerify, expectedOperationTree, skipImplicitlyDeclaredSymbols);
         }
     }
 }
