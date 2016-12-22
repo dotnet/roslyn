@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -35,14 +36,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 ImmutableArray<Accessibility>.Empty,
                 ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
 
-            var namingStyle = new MutableNamingStyle()
-            {
-                CapitalizationScheme = Capitalization.PascalCase,
-                Name = "Name",
-                Prefix = "",
-                Suffix = "",
-                WordSeparator = ""
-            };
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.PascalCase,
+                name: "Name",
+                prefix: "",
+                suffix: "",
+                wordSeparator: "");
             var namingRule = new SerializableNamingRule()
             {
                 SymbolSpecificationID = symbolSpecification.ID,
@@ -66,24 +66,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 ImmutableArray<Accessibility>.Empty,
                 ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
 
-            var namingStyle = new MutableNamingStyle()
-            {
-                CapitalizationScheme = Capitalization.PascalCase,
-                Name = "Name",
-                Prefix = "",
-                Suffix = "",
-                WordSeparator = ""
-            };
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.PascalCase,
+                name: "Name",
+                prefix: "",
+                suffix: "",
+                wordSeparator: "");
+
             var namingRule = new SerializableNamingRule()
             {
                 SymbolSpecificationID = symbolSpecification.ID,
                 NamingStyleID = namingStyle.ID,
                 EnforcementLevel = DiagnosticSeverity.Error
             };
-            var info = new NamingStylePreferences();
-            info.SymbolSpecifications.Add(symbolSpecification);
-            info.NamingStyles.Add(namingStyle);
-            info.NamingRules.Add(namingRule);
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
 
             return info;
         }

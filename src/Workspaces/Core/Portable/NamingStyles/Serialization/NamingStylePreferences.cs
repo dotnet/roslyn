@@ -36,13 +36,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             _lazyRules = new Lazy<NamingStyleRules>(CreateRules, isThreadSafe: true);
         }
 
-        internal NamingStylePreferences()
-        {
-            SymbolSpecifications = ImmutableArray<SymbolSpecification>.Empty;
-            NamingStyles = ImmutableArray<NamingStyle>.Empty;
-            NamingRules = ImmutableArray<SerializableNamingRule>.Empty;
-        }
-
         public static NamingStylePreferences Default => FromXElement(XElement.Parse(DefaultNamingPreferencesString));
 
         public static string DefaultNamingPreferencesString => _defaultNamingPreferencesString;
@@ -69,8 +62,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         internal static NamingStylePreferences FromXElement(XElement element)
         {
-            var namingPreferencesInfo = new NamingStylePreferences();
-
             var serializationVersion = int.Parse(element.Attribute("SerializationVersion").Value);
             if (serializationVersion != s_serializationVersion)
             {

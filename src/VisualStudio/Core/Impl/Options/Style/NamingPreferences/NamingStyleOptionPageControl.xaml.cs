@@ -1,15 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.Imaging;
@@ -135,7 +134,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         internal override void SaveSettings()
         {
-            var info = new NamingStylePreferences();
+            var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
+            var namingRules = ArrayBuilder<SerializableNamingRule>.GetInstance();
+            var namingStyles = ArrayBuilder<NamingStyle>.GetInstance();
 
             foreach (var item in _viewModel.CodeStyleItems)
             {
@@ -151,18 +152,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                     SymbolSpecificationID = item.SelectedSpecification.ID
                 };
 
-                info.NamingRules.Add(rule);
+                namingRules.Add(rule);
             }
 
             foreach (var item in _viewModel.Specifications)
             {
-                info.SymbolSpecifications.Add(item);
+                symbolSpecifications.Add(item);
             }
 
             foreach (var item in _viewModel.NamingStyles)
             {
-                info.NamingStyles.Add(item);
+                namingStyles.Add(item.NamingStyle);
             }
+
+            var info = new NamingStylePreferences(
+                symbolSpecifications.ToImmutableAndFree(),
+                namingStyles.ToImmutableAndFree(),
+                namingRules.ToImmutableAndFree());
 
             var oldOptions = OptionService.GetOptions();
             var newOptions = oldOptions.WithChangedOption(SimplificationOptions.NamingPreferences, _languageName, info);

@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             {
                 var viewModel = new NamingRuleViewModel()
                 {
-                    NamingStyles = new ObservableCollection<MutableNamingStyle>(info.NamingStyles),
+                    NamingStyles = new ObservableCollection<MutableNamingStyle>(info.NamingStyles.Select(n => new MutableNamingStyle(n))),
                     Specifications = new ObservableCollection<SymbolSpecification>(info.SymbolSpecifications),
                     NotificationPreferences = new List<NotificationOptionViewModel>(_notifications)
                 };
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
             CodeStyleItems = new ObservableCollection<NamingRuleViewModel>(viewModels);
             Specifications = new ObservableCollection<SymbolSpecification>(info.SymbolSpecifications);
-            NamingStyles = new ObservableCollection<MutableNamingStyle>(info.NamingStyles);
+            NamingStyles = new ObservableCollection<MutableNamingStyle>(info.NamingStyles.Select(n => new MutableNamingStyle(n)));
 
             SetMoveArrowStatuses();
         }
