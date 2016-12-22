@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
 {
     /// <summary>
     /// This is a singleton per AppDomain which manages all of the assemblies which were ever loaded into it.  

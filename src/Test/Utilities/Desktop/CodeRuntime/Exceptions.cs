@@ -3,9 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis;
 using static Roslyn.Test.Utilities.ExceptionHelper; 
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
 {
     [Serializable]
     public class EmitException : Exception

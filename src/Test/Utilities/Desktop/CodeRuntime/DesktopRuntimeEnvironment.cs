@@ -14,9 +14,9 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using static Roslyn.Test.Utilities.RuntimeUtilities; 
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
 {
-    public sealed class HostedRuntimeEnvironment : IDisposable, IRuntimeEnvironment, IInternalRuntimeEnvironment
+    public sealed class DesktopRuntimeEnvironment : IDisposable, IRuntimeEnvironment, IInternalRuntimeEnvironment
     {
         private sealed class RuntimeData : IDisposable
         {
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly CompilationTestData _testData = new CompilationTestData();
         private readonly IEnumerable<ModuleData> _additionalDependencies;
 
-        public HostedRuntimeEnvironment(IEnumerable<ModuleData> additionalDependencies = null)
+        public DesktopRuntimeEnvironment(IEnumerable<ModuleData> additionalDependencies = null)
         {
             _additionalDependencies = additionalDependencies;
         }
