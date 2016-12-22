@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -42,22 +43,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             var idToCachedResult = new ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>>(
                 concurrencyLevel: 2, capacity: 0);
+            var preferencesToRules = new ConcurrentDictionary<NamingStylePreferences, NamingStyleRules>(
+                concurrencyLevel: 2, capacity: 0, comparer: ReferenceEqualityComparer.Instance);
 
-            context.RegisterSymbolAction(c => SymbolAction(c, idToCachedResult), _symbolKinds);
+            context.RegisterSymbolAction(c => SymbolAction(c, idToCachedResult, preferencesToRules), _symbolKinds);
         }
 
         private static readonly Func<Guid, ConcurrentDictionary<string, string>> s_createCache =
             _ => new ConcurrentDictionary<string, string>(concurrencyLevel: 2, capacity: 0);
 
+        private static readonly Func<NamingStylePreferences, NamingStyleRules> s_createRules =
+            p => p.GetNamingStyleRules();
+
         private void SymbolAction(
             SymbolAnalysisContext context,
-            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult)
+            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult,
+            ConcurrentDictionary<NamingStylePreferences, NamingStyleRules> preferencesToRules)
         { 
-            var namingStyleRules = context.GetNamingStyleRulesAsync().GetAwaiter().GetResult();
-            if (namingStyleRules == null)
+            var namingPreferences = context.GetNamingStylePreferencesAsync().GetAwaiter().GetResult();
+            if (namingPreferences == null)
             {
                 return;
             }
+
+            var namingStyleRules = preferencesToRules.GetOrAdd(namingPreferences, s_createRules);
 
             if (!namingStyleRules.TryGetApplicableRule(context.Symbol, out var applicableRule) ||
                 applicableRule.EnforcementLevel == DiagnosticSeverity.Hidden)
