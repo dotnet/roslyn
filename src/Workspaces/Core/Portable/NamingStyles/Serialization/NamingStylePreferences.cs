@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Xml.Linq;
@@ -61,112 +60,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         internal XElement CreateXElement()
         {
-            return new XElement("NamingPreferencesInfo", 
+            return new XElement("NamingPreferencesInfo",
                 new XAttribute("SerializationVersion", s_serializationVersion),
-                CreateSymbolSpecificationListXElement(),
-                CreateNamingStyleListXElement(),
-                CreateNamingRuleTreeXElement());
+                new XElement(nameof(SymbolSpecification), SymbolSpecifications.Select(s => s.CreateXElement())),
+                new XElement(nameof(NamingStyle), NamingStyles.Select(n => n.CreateXElement())),
+                new XElement(nameof(NamingRules), NamingRules.Select(n => n.CreateXElement())));
         }
 
-        private XElement CreateNamingRuleTreeXElement()
-        {
-            var namingRulesElement = new XElement(nameof(NamingRules));
-
-            foreach (var namingRule in NamingRules)
-            {
-                namingRulesElement.Add(namingRule.CreateXElement());
-            }
-
-            return namingRulesElement;
-        }
-
-        private XElement CreateNamingStyleListXElement()
-        {
-            var namingStylesElement = new XElement(nameof(NamingStyles));
-
-            foreach (var namingStyle in NamingStyles)
-            {
-                namingStylesElement.Add(namingStyle.CreateXElement());
-            }
-
-            return namingStylesElement;
-        }
-
-        private XElement CreateSymbolSpecificationListXElement()
-        {
-            var symbolSpecificationsElement = new XElement(nameof(SymbolSpecifications));
-
-            foreach (var symbolSpecification in SymbolSpecifications)
-            {
-                symbolSpecificationsElement.Add(symbolSpecification.CreateXElement());
-            }
-
-            return symbolSpecificationsElement;
-        }
-
-        internal static NamingStylePreferences FromXElement(XElement namingPreferencesInfoElement)
+        internal static NamingStylePreferences FromXElement(XElement element)
         {
             var namingPreferencesInfo = new NamingStylePreferences();
 
-            var serializationVersion = int.Parse(namingPreferencesInfoElement.Attribute("SerializationVersion").Value);
+            var serializationVersion = int.Parse(element.Attribute("SerializationVersion").Value);
             if (serializationVersion != s_serializationVersion)
             {
-                namingPreferencesInfoElement = XElement.Parse(DefaultNamingPreferencesString);
+                element = XElement.Parse(DefaultNamingPreferencesString);
             }
 
             return new NamingStylePreferences(
-                ParseSymbolSpecificationListFromXElement(namingPreferencesInfoElement.Element(nameof(SymbolSpecifications))),
-                ParseNamingStyleListFromXElement(namingPreferencesInfoElement.Element(nameof(NamingStyles))),
-                ParseNamingRuleTreeFromXElement(namingPreferencesInfoElement.Element(nameof(NamingRules))));
+                element.Element(nameof(SymbolSpecifications)).Elements(nameof(SymbolSpecification))
+                       .Select(SymbolSpecification.FromXElement).ToImmutableArray(),
+                element.Element(nameof(NamingStyles)).Elements(nameof(NamingStyle))
+                       .Select(NamingStyle.FromXElement).ToImmutableArray(),
+                element.Element(nameof(NamingRules)).Elements(nameof(SerializableNamingRule))
+                       .Select(SerializableNamingRule.FromXElement).ToImmutableArray());
         }
-
-        private static ImmutableArray<SymbolSpecification> ParseSymbolSpecificationListFromXElement(XElement symbolSpecificationsElement)
-            => symbolSpecificationsElement.Elements(nameof(SymbolSpecification))
-                                          .Select(SymbolSpecification.FromXElement)
-                                          .ToImmutableArray();
-
-        private static ImmutableArray<NamingStyle> ParseNamingStyleListFromXElement(XElement namingStylesElement)
-            => namingStylesElement.Elements(nameof(NamingStyle))
-                                  .Select(NamingStyle.FromXElement)
-                                  .ToImmutableArray();
-
-        private static ImmutableArray<SerializableNamingRule> ParseNamingRuleTreeFromXElement(XElement namingRulesElement)
-            => namingRulesElement.Elements(nameof(SerializableNamingRule))
-                                 .Select(SerializableNamingRule.FromXElement)
-                                 .ToImmutableArray();
 
         public override bool Equals(object obj)
             => Equals(obj as NamingStylePreferences);
 
         public bool Equals(NamingStylePreferences other)
         {
-            if (object.ReferenceEquals(other, null))
-            {
-                return false;
-            }
-
-            return CreateXElement().ToString() == other.CreateXElement().ToString();
+            return !ReferenceEquals(other, null) &&
+                   CreateXElement().ToString() == other.CreateXElement().ToString();
         }
 
         public static bool operator ==(NamingStylePreferences left, NamingStylePreferences right)
-        {
-            var leftIsNull = object.ReferenceEquals(left, null);
-            var rightIsNull = object.ReferenceEquals(right, null);
-            if (leftIsNull && rightIsNull)
-            {
-                return true;
-            }
-            else if (leftIsNull)
-            {
-                return false;
-            }
-            else if (rightIsNull)
-            {
-                return false;
-            }
-
-            return left.Equals(right);
-        }
+            => left?.Equals(right) == true;
 
         public static bool operator !=(NamingStylePreferences left, NamingStylePreferences right)
             => !(left == right);
