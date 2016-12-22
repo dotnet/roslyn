@@ -14,17 +14,17 @@ using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
-
     public class RuntimeEnvironmentFactory
     {
-        internal static IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies = null)
-    {
+        private static readonly Lazy<Func<IRuntimeEnvironment>> s_lazyFactory = new Lazy<Func<IRuntimeEnvironment>>(GetFactoryFunc);
 
-#if DNX
-            return new CoreCLRRuntimeEnvironment(additionalDependencies);
-#else
-            return new HostedRuntimeEnvironment(additionalDependencies);
-#endif
+        internal static IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies = null)
+        {
+        }
+
+        private static Func<IRuntimeEnvironment> GetFactoryFunc()
+        {
+            throw new Exception();
         }
     }
 

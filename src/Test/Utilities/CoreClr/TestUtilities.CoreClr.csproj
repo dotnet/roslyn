@@ -4,7 +4,7 @@
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <ProjectGuid>{67ca3eee-37f1-4edf-bd9b-c11911748f37}</ProjectGuid>
+    <ProjectGuid>{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Test.Utilities.CoreClr</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -67,7 +67,8 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Temp.cs" />
+    <Compile Include="CoreCLRRuntimeEnvironment.cs" />
+    <Compile Include="Exceptions.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

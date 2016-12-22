@@ -37,6 +37,10 @@
       <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
       <Name>PdbUtilities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Portable\TestUtilities.csproj">
+      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
+      <Name>TestUtilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -90,7 +94,6 @@
     <Compile Include="ProcessUtilities.cs" />
     <Compile Include="AppDomainAssemblyCache.cs" />
     <Compile Include="Exceptions.cs" />
-    <Compile Include="ModuleData.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="RuntimeAssemblyManager.cs" />
     <Compile Include="SharedResourceHelpers.cs" />
@@ -102,7 +105,6 @@
     <Compile Include="HostedRuntimeEnvironment.cs" />
     <Compile Include="MetadataSignatureHelper.cs" />
     <Compile Include="MetadataSignatureUnitTestHelper.cs" />
-    <Compile Include="ProcessResult.cs" />
     <Compile Include="..\Portable\ReflectionAssert.cs">
       <Link>ReflectionAssert.cs</Link>
     </Compile>
@@ -164,6 +166,5 @@
       <CustomToolNamespace>Roslyn.Test.Utilities</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
-  <Import Project="..\Shared\TestUtilities.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
