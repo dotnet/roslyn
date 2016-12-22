@@ -24,6 +24,10 @@
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
+      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
+      <Name>TestUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Core\Source\Concord\Concord.csproj">
       <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
       <Name>Concord</Name>

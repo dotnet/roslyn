@@ -34,6 +34,10 @@
       <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
+      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
+      <Name>TestUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Core\Source\ExpressionCompiler\ExpressionCompiler.csproj">
       <Project>{b8da3a90-a60c-42e3-9d8e-6c67b800c395}</Project>
       <Name>ExpressionCompiler</Name>

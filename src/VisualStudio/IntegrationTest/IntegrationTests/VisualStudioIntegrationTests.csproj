@@ -132,6 +132,10 @@
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
+      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
+      <Name>TestUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj">
       <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
       <Name>WorkspacesTestUtilities</Name>
