@@ -510,9 +510,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>7__wrap" + StringExtensions.GetNumeral(number);
         }
 
-        internal static string LambdaCopyParameterName(ParameterSymbol sourceParameter)
+        internal static string LambdaCopyParameterName(int ordinal)
         {
-            return "<" + sourceParameter.Name + ">";
+            return "<p" + StringExtensions.GetNumeral(ordinal) + ">";
         }
     }
 }
