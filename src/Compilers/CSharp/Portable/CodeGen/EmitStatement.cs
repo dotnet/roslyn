@@ -1080,6 +1080,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var labelsBuilder = ArrayBuilder<KeyValuePair<ConstantValue, object>>.GetInstance();
             foreach (var section in sections)
             {
+                // all labels in a section are labeling the same region of code, 
+                // so we could use just the first one for a better codegen
                 object firstLabelInSection = null;
 
                 foreach (BoundSwitchLabel boundLabel in section.SwitchLabels)
@@ -1095,7 +1097,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         Debug.Assert(value != null
                             && SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(value));
 
-                        if (this.IsDebugPlus())
+                        // in debug we should be able to set breakpoints on individual case lables, 
+                        // so they should be kept separate and not collapse into a single one
+                        if (_ilEmitStyle == ILEmitStyle.Debug)
                         {
                             labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, label));
                         }
