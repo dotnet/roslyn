@@ -56,6 +56,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode(node);
         }
 
+        internal void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            var node = SyntaxFactory.ParseExpression(text);
+            // we validate the text roundtrips
+            Assert.Equal(text, node.ToFullString());
+            var actualErrors = node.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+            UsingNode(node);
+        }
+
         /// <summary>
         /// Parses given string and initializes a depth-first preorder enumerator.
         /// </summary>

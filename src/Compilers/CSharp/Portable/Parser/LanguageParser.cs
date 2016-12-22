@@ -6179,7 +6179,12 @@ tryAgain:
 
         private ScanTypeFlags ScanType(out SyntaxToken lastTokenOfType)
         {
-            ScanTypeFlags result = this.ScanNonArrayType(out lastTokenOfType);
+            return ScanType(ParseTypeMode.Normal, out lastTokenOfType);
+        }
+
+        private ScanTypeFlags ScanType(ParseTypeMode mode, out SyntaxToken lastTokenOfType)
+        {
+            ScanTypeFlags result = this.ScanNonArrayType(mode, out lastTokenOfType);
 
             if (result == ScanTypeFlags.NotType)
             {
@@ -6236,10 +6241,10 @@ tryAgain:
         private ScanTypeFlags ScanNonArrayType()
         {
             SyntaxToken lastTokenOfType;
-            return ScanNonArrayType(out lastTokenOfType);
+            return ScanNonArrayType(ParseTypeMode.Normal, out lastTokenOfType);
         }
 
-        private ScanTypeFlags ScanNonArrayType(out SyntaxToken lastTokenOfType)
+        private ScanTypeFlags ScanNonArrayType(ParseTypeMode mode, out SyntaxToken lastTokenOfType)
         {
             ScanTypeFlags result;
 
@@ -6311,17 +6316,27 @@ tryAgain:
             }
 
             // Now check for pointer type(s)
-            while (this.CurrentToken.Kind == SyntaxKind.AsteriskToken)
+            switch (mode)
             {
-                lastTokenOfType = this.EatToken();
-                if (result == ScanTypeFlags.GenericTypeOrExpression || result == ScanTypeFlags.NonGenericTypeOrExpression)
-                {
-                    result = ScanTypeFlags.PointerOrMultiplication;
-                }
-                else if (result == ScanTypeFlags.GenericTypeOrMethod)
-                {
-                    result = ScanTypeFlags.MustBeType;
-                }
+                case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
+                case ParseTypeMode.AfterTupleComma:
+                    // We are parsing the type for a declaration expression in a tuple, which does
+                    // not permit pointer types. In that context a `*` is parsed as a multiplication.
+                    break;
+                default:
+                    while (this.CurrentToken.Kind == SyntaxKind.AsteriskToken)
+                    {
+                        lastTokenOfType = this.EatToken();
+                        if (result == ScanTypeFlags.GenericTypeOrExpression || result == ScanTypeFlags.NonGenericTypeOrExpression)
+                        {
+                            result = ScanTypeFlags.PointerOrMultiplication;
+                        }
+                        else if (result == ScanTypeFlags.GenericTypeOrMethod)
+                        {
+                            result = ScanTypeFlags.MustBeType;
+                        }
+                    }
+                    break;
             }
 
             return result;
@@ -9193,6 +9208,9 @@ tryAgain:
             return false;
         }
 
+        /// <summary>
+        /// Parse a subexpression of the enclosing operator of the given precedence.
+        /// </summary>
         private ExpressionSyntax ParseSubExpression(Precedence precedence)
         {
             _recursionDepth++;
@@ -9419,7 +9437,7 @@ tryAgain:
 
         private ExpressionSyntax ParseIsExpression(ExpressionSyntax leftOperand, SyntaxToken opToken)
         {
-            var node = this.ParseTypeOrPattern();
+            var node = this.ParseTypeOrPatternForIsOperator();
             if (node is PatternSyntax)
             {
                 var result = _syntaxFactory.IsPatternExpression(leftOperand, opToken, (PatternSyntax)node);

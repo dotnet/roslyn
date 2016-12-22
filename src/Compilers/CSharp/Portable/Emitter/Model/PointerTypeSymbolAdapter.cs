@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context)
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode
         {
-            return Cci.PrimitiveTypeCode.Pointer;
+            get { return Cci.PrimitiveTypeCode.Pointer; }
         }
 
         TypeDefinitionHandle Cci.ITypeReference.TypeDef
