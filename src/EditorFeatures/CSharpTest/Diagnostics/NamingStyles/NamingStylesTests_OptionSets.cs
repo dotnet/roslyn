@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 NamingStyleID = namingStyle.ID,
                 EnforcementLevel = DiagnosticSeverity.Error
             };
-            var info = new NamingStylePreferences();
-            info.SymbolSpecifications.Add(symbolSpecification);
-            info.NamingStyles.Add(namingStyle);
-            info.NamingRules.Add(namingRule);
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
 
             return info;
         }

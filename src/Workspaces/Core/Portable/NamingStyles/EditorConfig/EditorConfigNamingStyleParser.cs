@@ -36,9 +36,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         public static NamingStylePreferences ParseDictionary(IReadOnlyDictionary<string, object> allRawConventions)
         {
-            var symbolSpecifications = new List<SymbolSpecification>();
-            var namingStyles = new List<MutableNamingStyle>();
-            var namingRules = new List<SerializableNamingRule>();
+            var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
+            var namingStyles = ArrayBuilder<MutableNamingStyle>.GetInstance();
+            var namingRules = ArrayBuilder<SerializableNamingRule>.GetInstance();
+
             var trimmedDictionary = TrimDictionary(allRawConventions);
 
             foreach (var namingRuleTitle in GetRuleTitles(trimmedDictionary))
@@ -59,7 +60,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 }
             }
 
-            return new NamingStylePreferences(symbolSpecifications, namingStyles, namingRules);
+            return new NamingStylePreferences(
+                symbolSpecifications.ToImmutableAndFree(),
+                namingStyles.ToImmutableAndFree(),
+                namingRules.ToImmutableAndFree());
         }
 
         private static Dictionary<string, object> TrimDictionary(IReadOnlyDictionary<string, object> allRawConventions)
