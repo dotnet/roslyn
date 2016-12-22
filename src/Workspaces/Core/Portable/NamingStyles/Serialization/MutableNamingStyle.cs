@@ -52,11 +52,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         internal MutableNamingStyle Clone()
             => new MutableNamingStyle(NamingStyle);
-
-        internal XElement CreateXElement()
-            => NamingStyle.CreateXElement();
-
-        internal static MutableNamingStyle FromXElement(XElement namingStyleElement)
-            => new MutableNamingStyle(NamingStyle.FromXElement(namingStyleElement));
     }
 }
