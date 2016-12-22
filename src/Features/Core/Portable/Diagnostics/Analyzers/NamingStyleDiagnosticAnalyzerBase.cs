@@ -44,22 +44,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             var idToCachedResult = new ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>>(
                 concurrencyLevel: 2, capacity: 0);
-            var preferencesToRules = new ConcurrentDictionary<NamingStylePreferences, NamingStyleRules>(
-                concurrencyLevel: 2, capacity: 0, comparer: ReferenceEqualityComparer.Instance);
 
-            context.RegisterSymbolAction(c => SymbolAction(c, idToCachedResult, preferencesToRules), _symbolKinds);
+            context.RegisterSymbolAction(c => SymbolAction(c, idToCachedResult), _symbolKinds);
         }
 
         private static readonly Func<Guid, ConcurrentDictionary<string, string>> s_createCache =
             _ => new ConcurrentDictionary<string, string>(concurrencyLevel: 2, capacity: 0);
 
-        private static readonly Func<NamingStylePreferences, NamingStyleRules> s_createRules =
-            p => p.GetNamingStyleRules();
-
         private void SymbolAction(
             SymbolAnalysisContext context,
-            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult,
-            ConcurrentDictionary<NamingStylePreferences, NamingStyleRules> preferencesToRules)
+            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult)
         { 
             var namingPreferences = context.GetNamingStylePreferencesAsync().GetAwaiter().GetResult();
             if (namingPreferences == null)
@@ -67,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return;
             }
 
-            var namingStyleRules = preferencesToRules.GetOrAdd(namingPreferences, s_createRules);
+            var namingStyleRules = namingPreferences.Rules;
 
             if (!namingStyleRules.TryGetApplicableRule(context.Symbol, out var applicableRule) ||
                 applicableRule.EnforcementLevel == DiagnosticSeverity.Hidden)

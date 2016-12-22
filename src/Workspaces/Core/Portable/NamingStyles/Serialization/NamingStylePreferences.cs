@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public readonly ImmutableArray<MutableNamingStyle> NamingStyles;
         public readonly ImmutableArray<SerializableNamingRule> NamingRules;
 
+        private readonly Lazy<NamingStyleRules> _lazyRules;
+
         internal NamingStylePreferences(
             ImmutableArray<SymbolSpecification> symbolSpecifications,
             ImmutableArray<MutableNamingStyle> namingStyles,
@@ -31,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             SymbolSpecifications = symbolSpecifications;
             NamingStyles = namingStyles;
             NamingRules = namingRules;
+
+            _lazyRules = new Lazy<NamingStyleRules>(CreateRules, isThreadSafe: true);
         }
 
         internal NamingStylePreferences()
@@ -45,19 +49,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public static string DefaultNamingPreferencesString => _defaultNamingPreferencesString;
 
         internal MutableNamingStyle GetNamingStyle(Guid namingStyleID)
-        {
-            return NamingStyles.Single(s => s.ID == namingStyleID);
-        }
+            => NamingStyles.Single(s => s.ID == namingStyleID);
 
         internal SymbolSpecification GetSymbolSpecification(Guid symbolSpecificationID)
-        {
-            return SymbolSpecifications.Single(s => s.ID == symbolSpecificationID);
-        }
+            => SymbolSpecifications.Single(s => s.ID == symbolSpecificationID);
 
-        public NamingStyleRules GetNamingStyleRules()
-        {
-            return new NamingStyleRules(NamingRules.Select(r => r.GetRule(this)).ToImmutableArray());
-        }
+        public NamingStyleRules Rules => _lazyRules.Value;
+
+        public NamingStyleRules CreateRules()
+            => new NamingStyleRules(NamingRules.Select(r => r.GetRule(this)).ToImmutableArray());
 
         internal XElement CreateXElement()
         {
@@ -156,15 +156,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             {
                 return true;
             }
-            else if(leftIsNull)
+            else if (leftIsNull)
             {
                 return false;
             }
-            else if(rightIsNull)
+            else if (rightIsNull)
             {
                 return false;
             }
-            
+
             return left.Equals(right);
         }
 
