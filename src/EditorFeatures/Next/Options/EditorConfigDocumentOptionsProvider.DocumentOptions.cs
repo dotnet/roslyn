@@ -2,6 +2,8 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.CodingConventions;
+using Microsoft.CodeAnalysis.ErrorLogger;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
@@ -10,37 +12,32 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         private class DocumentOptions : IDocumentOptions
         {
             private ICodingConventionsSnapshot _codingConventionSnapshot;
+            private readonly IErrorLoggerService _errorLogger;
 
-            public DocumentOptions(ICodingConventionsSnapshot codingConventionSnapshot)
+            public DocumentOptions(ICodingConventionsSnapshot codingConventionSnapshot, IErrorLoggerService errorLogger)
             {
                 _codingConventionSnapshot = codingConventionSnapshot;
+                _errorLogger = errorLogger;
             }
 
             public bool TryGetDocumentOption(Document document, OptionKey option, out object value)
             {
                 var editorConfigPersistence = option.Option.StorageLocations.OfType<EditorConfigStorageLocation>().SingleOrDefault();
-
                 if (editorConfigPersistence == null)
                 {
                     value = null;
                     return false;
                 }
 
-                if (_codingConventionSnapshot.TryGetConventionValue(editorConfigPersistence.KeyName, out value))
+                var allRawConventions = _codingConventionSnapshot.AllRawConventions;
+                try
                 {
-                    try
-                    {
-                        value = editorConfigPersistence.ParseValue(value.ToString(), option.Option.Type);
-                        return true;
-                    }
-                    catch (Exception)
-                    {
-                        // TODO: report this somewhere?
-                        return false;
-                    }
+                    return editorConfigPersistence.TryParseReadonlyDictionary(allRawConventions, option.Option.Type, out value);
                 }
-                else
+                catch (Exception ex)
                 {
+                    _errorLogger?.LogException(this, ex);
+                    value = null;
                     return false;
                 }
             }

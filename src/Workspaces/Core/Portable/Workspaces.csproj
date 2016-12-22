@@ -243,8 +243,8 @@
     <InternalsVisibleToTest Include="Roslyn.Services.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
@@ -370,6 +370,12 @@
     <Compile Include="Execution\SolutionAsset.cs" />
     <Compile Include="Execution\WellKnownSynchronizationKinds.cs" />
     <Compile Include="Experiments\IExperimentationService.cs" />
+    <Compile Include="NamingStyles\EditorConfig\EditorConfigSeverityStrings.cs" />
+    <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser.cs" />
+    <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser_NamingRule.cs" />
+    <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser_NamingStyle.cs" />
+    <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser_SymbolSpec.cs" />
+    <Compile Include="NamingStyles\Serialization\AccessibilityExtensions.cs" />
     <Compile Include="LanguageServices\TypeInferenceService\AbstractTypeInferenceService.AbstractTypeInferrer.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex_Persistence.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex_Forwarders.cs" />
@@ -385,6 +391,13 @@
     <Compile Include="PatternMatching\PatternMatches.cs" />
     <Compile Include="PatternMatching\PatternMatchKind.cs" />
     <Compile Include="Remote\RemoteSupportedLanguages.cs" />
+    <Compile Include="NamingStyles\Capitalization.cs" />
+    <Compile Include="NamingStyles\NamingRule.cs" />
+    <Compile Include="NamingStyles\NamingStyleRules.cs" />
+    <Compile Include="NamingStyles\Serialization\NamingStyle.cs" />
+    <Compile Include="NamingStyles\Serialization\SerializableNamingRule.cs" />
+    <Compile Include="NamingStyles\Serialization\NamingStylePreferences.cs" />
+    <Compile Include="NamingStyles\Serialization\SymbolSpecification.cs" />
     <Compile Include="Shared\Extensions\SolutionExtensions.cs" />
     <Compile Include="SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
     <Compile Include="Tags\WellKnownTags.cs" />

@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         private void MoveUp_Click(object sender, EventArgs e)
         {
-            int oldSelectedIndex = CodeStyleMembers.SelectedIndex;
+            var oldSelectedIndex = CodeStyleMembers.SelectedIndex;
             if (oldSelectedIndex > 0)
             {
                 _viewModel.MoveItem(oldSelectedIndex, oldSelectedIndex - 1);
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         private void MoveDown_Click(object sender, EventArgs e)
         {
-            int oldSelectedIndex = CodeStyleMembers.SelectedIndex;
+            var oldSelectedIndex = CodeStyleMembers.SelectedIndex;
             if (oldSelectedIndex < CodeStyleMembers.Items.Count - 1)
             {
                 _viewModel.MoveItem(oldSelectedIndex, oldSelectedIndex + 1);
@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             if (CodeStyleMembers.SelectedIndex >= 0)
             {
-                DataGridRow row = CodeStyleMembers.ItemContainerGenerator.ContainerFromIndex(CodeStyleMembers.SelectedIndex) as DataGridRow;
+                var row = CodeStyleMembers.ItemContainerGenerator.ContainerFromIndex(CodeStyleMembers.SelectedIndex) as DataGridRow;
                 if (row == null)
                 {
                     CodeStyleMembers.ScrollIntoView(CodeStyleMembers.SelectedItem);
@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
                 if (row != null)
                 {
-                    DataGridCell cell = row.FindDescendant<DataGridCell>();
+                    var cell = row.FindDescendant<DataGridCell>();
                     if (cell != null)
                     {
                         cell.Focus();
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         internal override void SaveSettings()
         {
-            var info = new SerializableNamingStylePreferencesInfo();
+            var info = new NamingStylePreferences();
 
             foreach (var item in _viewModel.CodeStyleItems)
             {
@@ -165,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             }
 
             var oldOptions = OptionService.GetOptions();
-            var newOptions = oldOptions.WithChangedOption(SimplificationOptions.NamingPreferences, _languageName, info.CreateXElement().ToString());
+            var newOptions = oldOptions.WithChangedOption(SimplificationOptions.NamingPreferences, _languageName, info);
             OptionService.SetOptions(newOptions);
             OptionLogger.Log(oldOptions, newOptions);
         }
@@ -174,16 +174,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             base.LoadSettings();
 
-            var options = OptionService.GetOption(SimplificationOptions.NamingPreferences, _languageName);
-            if (string.IsNullOrEmpty(options))
+            var preferences = OptionService.GetOption(SimplificationOptions.NamingPreferences, _languageName);
+            if (preferences == null)
             {
                 return;
             }
 
-            var namingPreferencesXml = this.OptionService.GetOption(SimplificationOptions.NamingPreferences, _languageName);
-            var preferencesInfo = SerializableNamingStylePreferencesInfo.FromXElement(XElement.Parse(namingPreferencesXml));
-            _viewModel = new NamingStyleOptionPageViewModel(preferencesInfo);
-            this.DataContext = _viewModel;
+            _viewModel = new NamingStyleOptionPageViewModel(preferences);
+            DataContext = _viewModel;
         }
 
         internal bool ContainsErrors()

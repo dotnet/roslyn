@@ -661,8 +661,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
+        // prefix comment
         {
-            // prefix comment
             if (int.TryParse(v, out int i))
             {
             }
@@ -691,8 +691,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
+        // suffix comment
         {
-            // suffix comment
             if (int.TryParse(v, out int i))
             {
             }
@@ -722,9 +722,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
+        // prefix comment
+        // suffix comment
         {
-            // prefix comment
-            // suffix comment
             if (int.TryParse(v, out int i))
             {
             }
@@ -913,6 +913,94 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             if (int.TryParse(v, out int /*prefix*/ i /*suffix*/))
             {
             }
+        }
+    }
+}", compareTokens: false);
+        }
+
+        [WorkItem(15994, "https://github.com/dotnet/roslyn/issues/15994")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestCommentsTrivia1()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(""Foo"");
+
+        int [|result|];
+        if (int.TryParse(""12"", out result))
+        {
+
+        }
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(""Foo"");
+
+        if (int.TryParse(""12"", out int result))
+        {
+
+        }
+    }
+}", compareTokens: false);
+        }
+
+        [WorkItem(15994, "https://github.com/dotnet/roslyn/issues/15994")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestCommentsTrivia2()
+        {
+            await TestAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(""Foo"");
+
+
+
+
+
+        // Foo
+
+
+
+        int [|result|];
+        if (int.TryParse(""12"", out result))
+        {
+
+        }
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(""Foo"");
+
+
+
+
+
+        // Foo
+
+
+
+        if (int.TryParse(""12"", out int result))
+        {
+
         }
     }
 }", compareTokens: false);

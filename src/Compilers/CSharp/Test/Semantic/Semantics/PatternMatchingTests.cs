@@ -4057,5 +4057,103 @@ public class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(19, 23)
                 );
         }
+
+        [Fact]
+        public void PointerTypeInPattern()
+        {
+            // pointer types are not supported in patterns. Therefore an attempt to use
+            // a pointer type will be interpreted by the parser as a multiplication
+            // (i.e. an expression that is a constant pattern rather than a declaration
+            // pattern)
+            var source =
+@"
+public class var {}
+unsafe public class Typ
+{
+    public static void Main(int* a, var* c, Typ* e)
+    {
+        {
+            if (a is int* b) {}
+            if (c is var* d) {}
+            if (e is Typ* f) {}
+        }
+        {
+            switch (a) { case int* b: break; }
+            switch (c) { case var* d: break; }
+            switch (e) { case Typ* f: break; }
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugDll);
+            compilation.VerifyDiagnostics(
+                //             if (a is int* b) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(8, 22),
+                // (13,31): error CS1525: Invalid expression term 'int'
+                //             switch (a) { case int* b: break; }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(13, 31),
+                // (5,37): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
+                //     public static void Main(int* a, var* c, Typ* e)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "var*").WithArguments("var").WithLocation(5, 37),
+                // (5,45): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Typ')
+                //     public static void Main(int* a, var* c, Typ* e)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "Typ*").WithArguments("Typ").WithLocation(5, 45),
+                // (8,27): error CS0103: The name 'b' does not exist in the current context
+                //             if (a is int* b) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(8, 27),
+                // (9,22): error CS0119: 'var' is a type, which is not valid in the given context
+                //             if (c is var* d) {}
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "var").WithArguments("var", "type").WithLocation(9, 22),
+                // (9,27): error CS0103: The name 'd' does not exist in the current context
+                //             if (c is var* d) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(9, 27),
+                // (10,22): error CS0119: 'Typ' is a type, which is not valid in the given context
+                //             if (e is Typ* f) {}
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Typ").WithArguments("Typ", "type").WithLocation(10, 22),
+                // (10,27): error CS0103: The name 'f' does not exist in the current context
+                //             if (e is Typ* f) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(10, 27),
+                // (13,36): error CS0103: The name 'b' does not exist in the current context
+                //             switch (a) { case int* b: break; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(13, 36),
+                // (14,31): error CS0119: 'var' is a type, which is not valid in the given context
+                //             switch (c) { case var* d: break; }
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "var").WithArguments("var", "type").WithLocation(14, 31),
+                // (14,36): error CS0103: The name 'd' does not exist in the current context
+                //             switch (c) { case var* d: break; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(14, 36),
+                // (15,31): error CS0119: 'Typ' is a type, which is not valid in the given context
+                //             switch (e) { case Typ* f: break; }
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Typ").WithArguments("Typ", "type").WithLocation(15, 31),
+                // (15,36): error CS0103: The name 'f' does not exist in the current context
+                //             switch (e) { case Typ* f: break; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(15, 36)
+                );
+        }
+
+        [Fact]
+        public void MultiplyInPattern()
+        {
+            // pointer types are not supported in patterns. Therefore an attempt to use
+            // a pointer type will be interpreted by the parser as a multiplication
+            // (i.e. an expression that is a constant pattern rather than a declaration
+            // pattern)
+            var source =
+@"
+public class Program
+{
+    public static void Main()
+    {
+        const int two = 2;
+        const int three = 3;
+        int six = two * three;
+        System.Console.WriteLine(six is two * three);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: "True");
+        }
     }
 }

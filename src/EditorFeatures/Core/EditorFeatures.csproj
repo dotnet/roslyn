@@ -89,7 +89,7 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
     <!-- Eventually a bunch of these unit tests should move into Roslyn.Services.Implementation.UnitTests
          and this should be removed. -->
