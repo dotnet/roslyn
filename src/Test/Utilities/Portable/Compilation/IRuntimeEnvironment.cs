@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -16,15 +17,39 @@ namespace Roslyn.Test.Utilities
 {
     public class RuntimeEnvironmentFactory
     {
-        private static readonly Lazy<Func<IRuntimeEnvironment>> s_lazyFactory = new Lazy<Func<IRuntimeEnvironment>>(GetFactoryFunc);
+        private static readonly Lazy<IRuntimeEnvironmentFactory> s_lazyFactory = new Lazy<IRuntimeEnvironmentFactory>(GetFactoryImplementation);
 
         internal static IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies = null)
         {
+            return s_lazyFactory.Value.Create(additionalDependencies);
         }
 
-        private static Func<IRuntimeEnvironment> GetFactoryFunc()
+        private static IRuntimeEnvironmentFactory GetFactoryImplementation()
         {
-            throw new Exception();
+            string assemblyName;
+            string typeName;
+            if (DesktopShim.FileNotFoundException.Type != null)
+            {
+                assemblyName = "Roslyn.Test.Utilities.Desktop";
+                typeName = "Roslyn.Test.Utilities.DesktopRuntimeEnvironmentFactory";
+            }
+            else
+            {
+                assemblyName = "Roslyn.Test.Utilities.CoreClr";
+                typeName = "Roslyn.Test.Utilities.CoreClrRuntimeEnvironmentFactory";
+            }
+
+            var thisAssemblyName = typeof(RuntimeEnvironmentFactory).GetTypeInfo().Assembly.GetName();
+            var name = new AssemblyName();
+            name.Name = assemblyName;
+            name.Version = thisAssemblyName.Version;
+            name.SetPublicKey(thisAssemblyName.GetPublicKey());
+            name.CultureName = thisAssemblyName.CultureName;
+            name.ProcessorArchitecture = thisAssemblyName.ProcessorArchitecture;
+
+            var assembly = Assembly.Load(name);
+            var type = assembly.GetType(typeName);
+            return (IRuntimeEnvironmentFactory)Activator.CreateInstance(type);
         }
     }
 
@@ -242,7 +267,6 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-
         public static string DumpAssemblyData(IEnumerable<ModuleData> modules, out string dumpDirectory)
         {
             dumpDirectory = null;
@@ -317,9 +341,14 @@ namespace Roslyn.Test.Utilities
         }
     }
 
+    public interface IRuntimeEnvironmentFactory
+    {
+        IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies);
+    }
+
     public interface IRuntimeEnvironment : IDisposable
     {
-        void Emit(Microsoft.CodeAnalysis.Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool usePdbForDebugging = false);
+        void Emit(Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool usePdbForDebugging = false);
         int Execute(string moduleName, string expectedOutput);
         ImmutableArray<byte> GetMainImage();
         ImmutableArray<byte> GetMainPdb();

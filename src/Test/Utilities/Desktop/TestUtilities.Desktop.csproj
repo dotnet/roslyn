@@ -87,28 +87,21 @@
     </Compile>
     <Compile Include="AppDomainUtils.cs" />
     <Compile Include="CLRHelpers.cs" />
+    <Compile Include="DesktopRuntimeEnvironmentFactory.cs" />
+    <Compile Include="DesktopRuntimeUtil.cs" />
     <Compile Include="InstrumentationChecker.cs" />
-    <Compile Include="CompilerTraitAttribute.cs" />
     <Compile Include="ConditionalFactAttribute.cs" />
     <Compile Include="ObjectReference.cs" />
-    <Compile Include="ProcessUtilities.cs" />
     <Compile Include="AppDomainAssemblyCache.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="RuntimeAssemblyManager.cs" />
     <Compile Include="SharedResourceHelpers.cs" />
     <Compile Include="CommonDiagnosticAnalyzers.cs" />
-    <Compile Include="CommonTestBase.CompilationVerifier.cs" />
-    <Compile Include="CommonTestBase.cs" />
     <Compile Include="CultureContext.cs" />
     <Compile Include="ErrorDiagnostics.cs" />
     <Compile Include="HostedRuntimeEnvironment.cs" />
     <Compile Include="MetadataSignatureHelper.cs" />
-    <Compile Include="MetadataSignatureUnitTestHelper.cs" />
-    <Compile Include="..\Portable\ReflectionAssert.cs">
-      <Link>ReflectionAssert.cs</Link>
-    </Compile>
-    <Compile Include="IlasmUtilities.cs" />
     <Compile Include="SigningTestHelpers.cs" />
     <Compile Include="TestHelpers.cs" />
     <Compile Include="TestResource.Designer.cs">

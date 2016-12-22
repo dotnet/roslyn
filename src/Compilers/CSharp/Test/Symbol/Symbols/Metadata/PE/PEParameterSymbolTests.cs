@@ -3,6 +3,7 @@
 using System;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             // {
             //   void M(object, object);
             // }
-            var reference = CreateReflectionEmitAssembly(moduleBuilder =>
+            var reference = DesktopRuntimeUtil.CreateReflectionEmitAssembly(moduleBuilder =>
                 {
                     var typeBuilder = moduleBuilder.DefineType(
                         "I",

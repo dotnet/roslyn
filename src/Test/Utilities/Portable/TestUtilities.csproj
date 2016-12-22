@@ -60,6 +60,7 @@
     </PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.CoreClr" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
@@ -70,6 +71,7 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Symbol.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Syntax.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
@@ -115,6 +117,7 @@
     <Compile Include="Assert\EqualityUtil`1.cs" />
     <Compile Include="Assert\TestExceptionUtilities.cs" />
     <Compile Include="Assert\WorkItemAttribute.cs" />
+    <Compile Include="CommonTestBase.CompilationVerifier.cs" />
     <Compile Include="CommonTestBase.cs" />
     <Compile Include="Compilation\CompilationDifference.cs" />
     <Compile Include="Compilation\CompilationExtensions.cs" />
@@ -157,11 +160,13 @@
     <Compile Include="FX\PinnedBlob.cs" />
     <Compile Include="FX\PinnedMetadata.cs" />
     <Compile Include="FX\ProcessResult.cs" />
+    <Compile Include="FX\ProcessUtilities.cs" />
     <Compile Include="FX\RegexExtensions.cs" />
     <Compile Include="FX\StringExtensions.cs" />
     <Compile Include="ICompilationVerifier.cs" />
     <Compile Include="MarkedSource\MarkupTestFile.cs" />
     <Compile Include="MarkedSource\SourceWithMarkedNodes.cs" />
+    <Compile Include="MetadataSignatureUnitTestHelper.cs" />
     <Compile Include="Metadata\CustomAttributeRow.cs" />
     <Compile Include="Metadata\DynamicAnalysisDataReader.cs" />
     <Compile Include="Metadata\EncValidation.cs" />

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
         }
 
-        internal ICompilationVerifier CompileAndVerify(
+        internal CompilationVerifier CompileAndVerify(
             string source,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -91,34 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 verify: verify);
         }
 
-        internal ICompilationVerifier CompileAndVerify(
-            string[] sources,
-            MetadataReference[] additionalRefs = null,
-            IEnumerable<ModuleData> dependencies = null,
-            Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly> validator = null,
-            Action<ModuleSymbol> symbolValidator = null,
-            SignatureDescription[] expectedSignatures = null,
-            string expectedOutput = null,
-            CompilationOptions options = null,
-            ParseOptions parseOptions = null,
-            bool verify = true)
-        {
-            return base.CompileAndVerify(
-                sources,
-                additionalRefs,
-                dependencies,
-                Translate2(sourceSymbolValidator),
-                validator,
-                Translate2(symbolValidator),
-                expectedSignatures,
-                expectedOutput,
-                options,
-                parseOptions,
-                verify);
-        }
-
-        internal ICompilationVerifier CompileAndVerifyExperimental(
+        internal CompilationVerifier CompileAndVerifyExperimental(
             string source,
             MessageID feature,
             string expectedOutput = null,
@@ -147,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 verify: verify);
         }
 
-        internal ICompilationVerifier CompileAndVerifyWinRt(
+        internal CompilationVerifier CompileAndVerifyWinRt(
             string source,
             string expectedOutput = null,
             MetadataReference[] additionalRefs = null,
@@ -167,29 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 compilation: compilation,
                 expectedOutput: expectedOutput,
                 verify: verify);
-        }
-
-        internal ICompilationVerifier CompileAndVerify(
-            Compilation compilation,
-            IEnumerable<ResourceDescription> manifestResources = null,
-            IEnumerable<ModuleData> dependencies = null,
-            Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly> validator = null,
-            Action<ModuleSymbol> symbolValidator = null,
-            SignatureDescription[] expectedSignatures = null,
-            string expectedOutput = null,
-            bool verify = true)
-        {
-            return base.CompileAndVerify(
-                compilation,
-                manifestResources,
-                dependencies,
-                Translate2(sourceSymbolValidator),
-                validator,
-                Translate2(symbolValidator),
-                expectedSignatures,
-                expectedOutput,
-                verify);
         }
     }
 
@@ -655,13 +605,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// <typeparam name="T">Expected type of the exception.</typeparam>
         /// <param name="source">Program to compile and execute.</param>
         /// <param name="expectedMessage">Ignored if null.</param>
-        internal ICompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false) where T : Exception
+        internal CompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false) where T : Exception
         {
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe));
             return CompileAndVerifyException<T>(comp, expectedMessage);
         }
 
-        internal ICompilationVerifier CompileAndVerifyException<T>(CSharpCompilation comp, string expectedMessage = null) where T : Exception
+        internal CompilationVerifier CompileAndVerifyException<T>(CSharpCompilation comp, string expectedMessage = null) where T : Exception
         {
             try
             {

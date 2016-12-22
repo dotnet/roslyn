@@ -46,7 +46,7 @@ namespace Roslyn.Test.Utilities
             {
                 foreach (var entry in additionalEnvironmentVars)
                 {
-                    startInfo.EnvironmentVariables[entry.Key] = entry.Value;
+                    startInfo.Environment[entry.Key] = entry.Value;
                 }
             }
 
@@ -73,7 +73,7 @@ namespace Roslyn.Test.Utilities
                 if (stdInput != null)
                 {
                     process.StandardInput.Write(stdInput);
-                    process.StandardInput.Close();
+                    process.StandardInput.Dispose();
                 }
 
                 process.WaitForExit();
@@ -122,7 +122,6 @@ namespace Roslyn.Test.Utilities
             string result = null;
 
             startInfo.CreateNoWindow = true;
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.RedirectStandardOutput = true;
             startInfo.UseShellExecute = false;
 

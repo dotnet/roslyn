@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// return values that are already present. 
         /// </summary>
         /// <param name="modules"></param>
-        public void AddModuleData(IEnumerable<ModuleData> modules)
+        internal void AddModuleData(IEnumerable<ModuleData> modules)
         {
             foreach (var module in modules)
             {
