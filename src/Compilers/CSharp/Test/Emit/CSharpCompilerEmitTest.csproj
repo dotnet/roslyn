@@ -75,6 +75,7 @@
     <Compile Include="Attributes\AttributeTests_Tuples.cs" />
     <Compile Include="Attributes\AttributeTests_WellKnownAttributes.cs" />
     <Compile Include="CodeGen\CodeGenCapturing.cs" />
+    <Compile Include="Emit\BinaryCompatibility.cs" />
     <Compile Include="Emit\DesktopStrongNameProviderTests.cs" />
     <Compile Include="Attributes\InternalsVisibleToAndStrongNameTests.cs" />
     <Compile Include="Attributes\WellKnownAttributesTestBase.cs" />
