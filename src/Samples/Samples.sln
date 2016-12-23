@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26021.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APISampleUnitTestsCS", "CSharp\APISampleUnitTests\APISampleUnitTestsCS.csproj", "{CFF49CC1-85B5-49F7-B14B-A6EBF2592DD2}"
 EndProject
@@ -157,6 +157,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtilities.FX45", "..\Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PdbUtilities", "..\Test\PdbUtilities\PdbUtilities.csproj", "{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtilities", "..\Test\Utilities\Portable\TestUtilities.csproj", "{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
@@ -164,7 +166,6 @@ Global
 		..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		..\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
 		..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{5f8d2414-064a-4b3a-9b42-8e2a04246be5}*SharedItemsImports = 4
-		..\Test\Utilities\Shared\TestUtilities.projitems*{76c6f005-c89d-4348-bb4a-391898dbeb52}*SharedItemsImports = 4
 		..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
 		..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
 		..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{b501a547-c911-4a05-ac6e-274a50dff30e}*SharedItemsImports = 4
@@ -1179,6 +1180,26 @@ Global
 		{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}.Release|x64.Build.0 = Release|x64
 		{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}.Release|x86.ActiveCfg = Release|Any CPU
 		{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}.Release|x86.Build.0 = Release|Any CPU
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Debug|ARM.ActiveCfg = Debug|ARM
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Debug|ARM.Build.0 = Debug|ARM
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Debug|x64.ActiveCfg = Debug|x64
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Debug|x64.Build.0 = Debug|x64
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Debug|x86.Build.0 = Debug|Any CPU
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Release|ARM.ActiveCfg = Release|ARM
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Release|ARM.Build.0 = Release|ARM
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Release|x64.ActiveCfg = Release|x64
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Release|x64.Build.0 = Release|x64
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Release|x86.ActiveCfg = Release|Any CPU
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1255,5 +1276,6 @@ Global
 		{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD} = {B769A73C-FA3A-43ED-B58E-AB037E503240}
 		{F7712928-1175-47B3-8819-EE086753DEE2} = {B769A73C-FA3A-43ED-B58E-AB037E503240}
 		{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED} = {B769A73C-FA3A-43ED-B58E-AB037E503240}
+		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5} = {B769A73C-FA3A-43ED-B58E-AB037E503240}
 	EndGlobalSection
 EndGlobal
