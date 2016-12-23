@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             return new XElement("NamingPreferencesInfo",
                 new XAttribute("SerializationVersion", s_serializationVersion),
-                new XElement(nameof(SymbolSpecification), SymbolSpecifications.Select(s => s.CreateXElement())),
-                new XElement(nameof(NamingStyle), NamingStyles.Select(n => n.CreateXElement())),
+                new XElement(nameof(SymbolSpecifications), SymbolSpecifications.Select(s => s.CreateXElement())),
+                new XElement(nameof(NamingStyles), NamingStyles.Select(n => n.CreateXElement())),
                 new XElement(nameof(NamingRules), NamingRules.Select(n => n.CreateXElement())));
         }
 
