@@ -13,18 +13,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal class SymbolSpecification
     {
-        public Guid ID { get; private set; }
-        public string Name { get; private set; }
-
-        public ImmutableArray<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; }
-        public ImmutableArray<Accessibility> ApplicableAccessibilityList { get; }
-        public ImmutableArray<ModifierKind> RequiredModifierList { get; }
-
-        internal SymbolSpecification()
-        {
-            ID = Guid.NewGuid();
-
-            ApplicableSymbolKindList = ImmutableArray.Create(
+        public static readonly SymbolSpecification All = new SymbolSpecification(
+            id: Guid.NewGuid(),
+            symbolSpecName: null,
+            symbolKindList: ImmutableArray.Create(
                 new SymbolKindOrTypeKind(SymbolKind.Namespace),
                 new SymbolKindOrTypeKind(TypeKind.Class),
                 new SymbolKindOrTypeKind(TypeKind.Struct),
@@ -37,18 +29,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(SymbolKind.Method),
                 new SymbolKindOrTypeKind(SymbolKind.Field),
-                new SymbolKindOrTypeKind(SymbolKind.Event));
-
-            ApplicableAccessibilityList = ImmutableArray.Create(
+                new SymbolKindOrTypeKind(SymbolKind.Event)),
+            accessibilityList: ImmutableArray.Create(
                 Accessibility.Public,
                 Accessibility.Internal,
                 Accessibility.Private,
                 Accessibility.Protected,
                 Accessibility.ProtectedAndInternal,
-                Accessibility.ProtectedOrInternal);
+                Accessibility.ProtectedOrInternal),
+            modifiers: ImmutableArray<ModifierKind>.Empty);
 
-            RequiredModifierList = ImmutableArray<ModifierKind>.Empty;
-        }
+        public Guid ID { get; }
+        public string Name { get; }
+
+        public ImmutableArray<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; }
+        public ImmutableArray<Accessibility> ApplicableAccessibilityList { get; }
+        public ImmutableArray<ModifierKind> RequiredModifierList { get; }
 
         public SymbolSpecification(
             Guid? id, string symbolSpecName,
