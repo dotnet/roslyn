@@ -4543,7 +4543,13 @@ class MyClass
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.WRN_GlobalAliasDefn, "global"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (2,7): warning CS0440: Defining an alias named 'global' is ill-advised since 'global::' always references the global namespace and not an alias
+                // using global = MyClass;   // CS0440
+                Diagnostic(ErrorCode.WRN_GlobalAliasDefn, "global").WithLocation(2, 7),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using global = MyClass;   // CS0440
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using global = MyClass;").WithLocation(2, 1));
         }
 
         [Fact]
