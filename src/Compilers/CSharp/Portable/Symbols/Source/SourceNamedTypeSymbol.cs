@@ -118,6 +118,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (declaration.Arity == 0)
             {
+                if (declaration.Kind != DeclarationKind.Enum)
+                {
+                    foreach (var syntaxRef in this.SyntaxReferences)
+                    {
+                        var constraintClauses = GetConstraintClauses((CSharpSyntaxNode)syntaxRef.GetSyntax());
+                        ReportErrorIfHasConstraints(constraintClauses, diagnostics);
+                    }
+                }
+
                 return ImmutableArray<TypeParameterSymbol>.Empty;
             }
 
