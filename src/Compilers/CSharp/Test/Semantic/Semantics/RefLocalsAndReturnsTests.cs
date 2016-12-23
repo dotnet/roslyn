@@ -998,5 +998,89 @@ class C
                 expectedOutput: "frog",
                 additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void RefQueryClause()
+        {
+            // a "ref" may not precede the expression of a query clause...
+            // simply because the grammar doesn't permit it. Here we check
+            // that the situation is diagnosed, either syntactically or semantically.
+            // The precise diagnostics are not important for the purposes of this test.
+            var text = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        C c = new C();
+        var z1 =
+            from x in c
+            select ref x;
+        var z2 =
+            from x in c
+            from C y in ref c
+            select y;
+    }
+
+    public C Select(RefFunc<C, C> c1) => this;
+    public C SelectMany(RefFunc<C, C> c1, RefFunc<C, C, C> c2) => this;
+    public C Cast<T>() => this;
+}
+public delegate ref TR RefFunc<T1, TR>(T1 t1);
+public delegate ref TR RefFunc<T1, T2, TR>(T1 t1, T2 t2);
+";
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (9,20): error CS1525: Invalid expression term 'ref'
+                //             select ref x;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(9, 20),
+                // (9,20): error CS1002: ; expected
+                //             select ref x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(9, 20),
+                // (9,25): error CS1001: Identifier expected
+                //             select ref x;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(9, 25),
+                // (12,25): error CS1525: Invalid expression term 'ref'
+                //             from C y in ref c
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(12, 25),
+                // (12,25): error CS0742: A query body must end with a select clause or a group clause
+                //             from C y in ref c
+                Diagnostic(ErrorCode.ERR_ExpectedSelectOrGroup, "ref").WithLocation(12, 25),
+                // (12,25): error CS1002: ; expected
+                //             from C y in ref c
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(12, 25),
+                // (13,20): error CS1002: ; expected
+                //             select y;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "y").WithLocation(13, 20),
+                // (9,20): error CS8150: By-value returns may only be used in methods that return by value
+                //             select ref x;
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "").WithLocation(9, 20),
+                // (9,24): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
+                //             select ref x;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(9, 24),
+                // (9,25): error CS8174: A declaration of a by-reference variable must have an initializer
+                //             select ref x;
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(9, 25),
+                // (12,25): error CS8150: By-value returns may only be used in methods that return by value
+                //             from C y in ref c
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "").WithLocation(12, 25),
+                // (12,25): error CS8150: By-value returns may only be used in methods that return by value
+                //             from C y in ref c
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "").WithLocation(12, 25),
+                // (12,29): error CS0118: 'c' is a variable but is used like a type
+                //             from C y in ref c
+                Diagnostic(ErrorCode.ERR_BadSKknown, "c").WithArguments("c", "variable", "type").WithLocation(12, 29),
+                // (13,13): error CS8174: A declaration of a by-reference variable must have an initializer
+                //             select y;
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "select").WithLocation(13, 13),
+                // (13,20): error CS0103: The name 'y' does not exist in the current context
+                //             select y;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(13, 20),
+                // (13,20): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //             select y;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "y").WithLocation(13, 20),
+                // (13,13): warning CS0168: The variable 'select' is declared but never used
+                //             select y;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "select").WithArguments("select").WithLocation(13, 13)
+                );
+        }
     }
 }

@@ -1443,8 +1443,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
         ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
         ERR_ExpressionTreeContainsOutVariable = 8198,
+        #endregion diagnostics for out var
+
+        #region more stragglers for C# 7
         ERR_VarInvocationLvalueReserved = 8199,
         ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
-        #endregion diagnostics for out var
+        ERR_ExpressionVariableInQueryClause = 8201,
+        #endregion more stragglers for C# 7
     }
 }
