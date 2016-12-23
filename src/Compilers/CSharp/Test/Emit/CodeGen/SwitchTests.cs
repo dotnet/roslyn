@@ -374,7 +374,7 @@ public class Test
 {
   public static int Main(string [] args)
   {
-    int ret = M(5);
+    int ret = M(100);
     Console.Write(ret);
     return(ret);
   }
@@ -391,6 +391,9 @@ public class Test
       case 5:
       case 6:
         return 1;
+
+      case 100:
+        goto case 3;
     }
 
     return 0;
@@ -399,15 +402,18 @@ public class Test
             var compVerifier = CompileAndVerify(text, expectedOutput: "1");
             compVerifier.VerifyIL("Test.M", @"
 {
-  // Code size        8 (0x8)
+  // Code size       13 (0xd)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.6
-  IL_0002:  bgt.un.s   IL_0006
-  IL_0004:  ldc.i4.1
-  IL_0005:  ret
-  IL_0006:  ldc.i4.0
-  IL_0007:  ret
+  IL_0002:  ble.un.s   IL_0009
+  IL_0004:  ldarg.0
+  IL_0005:  ldc.i4.s   100
+  IL_0007:  bne.un.s   IL_000b
+  IL_0009:  ldc.i4.1
+  IL_000a:  ret
+  IL_000b:  ldc.i4.0
+  IL_000c:  ret
 }
 "
             );
@@ -422,7 +428,7 @@ public class Test
 {
   public static int Main(string [] args)
   {
-    int ret = M(5);
+    int ret = M(100);
     Console.Write(ret);
     return(ret);
   }
@@ -431,10 +437,6 @@ public class Test
   {
     switch (i)
     {
-
-    // in debug we should be able to set breakpoints on individual case lables, 
-    // so they should be kept separate and not collapse into a single one
-
       case 0:       
       case 1:
       case 2:
@@ -443,6 +445,9 @@ public class Test
       case 5:
       case 6:
         return 1;
+
+      case 100:
+        goto case 3;
     }
 
     return 0;
@@ -451,31 +456,30 @@ public class Test
             var compVerifier = CompileAndVerify(text, expectedOutput: "1", options: TestOptions.DebugExe);
             compVerifier.VerifyIL("Test.M", @"
 {
-  // Code size       49 (0x31)
-  .maxstack  1
+  // Code size       28 (0x1c)
+  .maxstack  2
   .locals init (int V_0,
                 int V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.0
   IL_0003:  ldloc.0
-  IL_0004:  switch    (
-        IL_0027,
-        IL_0027,
-        IL_0027,
-        IL_0027,
-        IL_0027,
-        IL_0027,
-        IL_0027)
-  IL_0025:  br.s       IL_002b
-  IL_0027:  ldc.i4.1
-  IL_0028:  stloc.1
-  IL_0029:  br.s       IL_002f
-  IL_002b:  ldc.i4.0
-  IL_002c:  stloc.1
-  IL_002d:  br.s       IL_002f
-  IL_002f:  ldloc.1
-  IL_0030:  ret
+  IL_0004:  ldc.i4.6
+  IL_0005:  ble.un.s   IL_0010
+  IL_0007:  br.s       IL_0009
+  IL_0009:  ldloc.0
+  IL_000a:  ldc.i4.s   100
+  IL_000c:  beq.s      IL_0014
+  IL_000e:  br.s       IL_0016
+  IL_0010:  ldc.i4.1
+  IL_0011:  stloc.1
+  IL_0012:  br.s       IL_001a
+  IL_0014:  br.s       IL_0010
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.1
+  IL_0018:  br.s       IL_001a
+  IL_001a:  ldloc.1
+  IL_001b:  ret
 }
 "
             );
@@ -985,20 +989,17 @@ public class Test
             var compVerifier = CompileAndVerify(text, expectedOutput: "1");
             compVerifier.VerifyIL("Test.M", @"
 {
-  // Code size       22 (0x16)
+  // Code size       14 (0xe)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4     0x7fffffff
-  IL_0006:  beq.s      IL_0012
-  IL_0008:  ldarg.0
-  IL_0009:  ldc.i4     0x80000000
-  IL_000e:  sub
-  IL_000f:  ldc.i4.2
-  IL_0010:  bgt.un.s   IL_0014
-  IL_0012:  ldc.i4.1
-  IL_0013:  ret
-  IL_0014:  ldc.i4.0
-  IL_0015:  ret
+  IL_0006:  sub
+  IL_0007:  ldc.i4.3
+  IL_0008:  bgt.un.s   IL_000c
+  IL_000a:  ldc.i4.1
+  IL_000b:  ret
+  IL_000c:  ldc.i4.0
+  IL_000d:  ret
 }
 "
             );

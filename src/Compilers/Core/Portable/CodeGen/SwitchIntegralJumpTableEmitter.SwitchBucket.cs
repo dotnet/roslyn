@@ -21,6 +21,34 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             private readonly bool _isKnownDegenerate;
 
+            /// <summary>
+            ///  Degenerate buckets here are buckets with contiguous range of constants
+            ///  leading to the same label. Like:
+            ///
+            ///      case 0:
+            ///      case 1:
+            ///      case 2:
+            ///      case 3:
+            ///           DoOneThing();
+            ///           break;               
+            ///
+            ///      case 4:
+            ///      case 5:
+            ///      case 6:
+            ///      case 7:
+            ///           DoAnotherThing();
+            ///           break;   
+            ///  
+            ///  NOTE: A trivial bucket with only one label is by definition degenerate.
+            /// </summary>
+            internal bool IsDegenerate
+            {
+                get
+                {
+                    return _isKnownDegenerate;
+                }
+            }
+
             internal SwitchBucket(ImmutableArray<KeyValuePair<ConstantValue, object>> allLabels, int index)
             {
                 _startLabelIndex = index;
@@ -42,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             internal SwitchBucket(ImmutableArray<KeyValuePair<ConstantValue, object>> allLabels, int startIndex, int endIndex, bool isDegenerate)
             {
                 Debug.Assert((uint)startIndex <= (uint)endIndex);
+                Debug.Assert((uint)startIndex != (uint)endIndex || isDegenerate);
 
                 _startLabelIndex = startIndex;
                 _endLabelIndex = endIndex;
@@ -66,14 +95,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
-            internal bool IsDegenerate
-            {
-                get
-                {
-                    return _isKnownDegenerate;
-                }
-            }
-
             internal ulong BucketSize
             {
                 get
@@ -83,26 +104,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // if a bucket could be split into two degenerate ones
-            // specifies a label index where that split would occur
+            // specifies a label index where the second bucket would start
             // -1 indicates that the bucket cannot be split into degenerate ones
             //  0 indicates that the bucket is already degenerate
-            //
-            //  Degenerate buckets here are buckets with contiguous range of constants
-            //  leading to the same label. Like:
-            //
-            //      case 0:
-            //      case 1:
-            //      case 2:
-            //      case 3:
-            //           DoOneThing();
-            //           break;               
-            //
-            //      case 4:
-            //      case 5:
-            //      case 6:
-            //      case 7:
-            //           DoAnotherThing();
-            //           break;               
             // 
             // MOTIVATION:
             // Table switch will perform two branches (range check and the actual computed jump).
@@ -119,11 +123,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 get
                 {
-                    if (_startLabelIndex == _endLabelIndex)
+                    if (IsDegenerate)
                     {
-                        // single element bucket is already degenerate
                         return 0;
                     }
+
+                    Debug.Assert(_startLabelIndex != _endLabelIndex, "1-sized buckets should be already known as degenerate.");
 
                     var allLabels = this._allLabels;
                     var split = 0;
@@ -161,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     return false;
                 }
 
-                return nextConst.Int64Value - lastConst.Int64Value == 1;
+                return GetBucketSize(lastConst, nextConst) == 2;
             }
 
             private static ulong GetBucketSize(ConstantValue startConstant, ConstantValue endConstant)

@@ -1097,21 +1097,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         Debug.Assert(value != null
                             && SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(value));
 
-                        // in debug we should be able to set breakpoints on individual case lables, 
-                        // so they should be kept separate and not collapse into a single one
-                        if (_ilEmitStyle == ILEmitStyle.Debug)
+                        if (firstLabelInSection == null)
                         {
-                            labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, label));
+                            firstLabelInSection = label;
                         }
-                        else
-                        {
-                            if (firstLabelInSection == null)
-                            {
-                                firstLabelInSection = label;
-                            }
 
-                            labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, firstLabelInSection));
-                        }
+                        labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, firstLabelInSection));
                     }
                 }
             }
