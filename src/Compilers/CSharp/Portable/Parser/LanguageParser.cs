@@ -59,11 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private static bool IsNameGlobal(CSharpSyntaxNode node)
-        {
-            return IsName(node, SyntaxKind.GlobalKeyword);
-        }
-
         private static bool IsNameGet(CSharpSyntaxNode node)
         {
             return IsName(node, SyntaxKind.GetKeyword);
@@ -865,20 +860,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return _syntaxFactory.ExternAliasDirective(externToken, aliasToken, name, semicolon);
         }
 
-        private NameEqualsSyntax ParseNameEquals(bool warnOnGlobal = false)
+        private NameEqualsSyntax ParseNameEquals()
         {
             Debug.Assert(this.IsNamedAssignment());
-
-            var id = this.ParseIdentifierToken();
-            var equals = this.EatToken(SyntaxKind.EqualsToken);
-
-            // Warn on "using global = X".
-            if (warnOnGlobal && IsNameGlobal(id))
-            {
-                id = this.AddError(id, ErrorCode.WRN_GlobalAliasDefn);
-            }
-
-            return _syntaxFactory.NameEquals(_syntaxFactory.IdentifierName(id), equals);
+            return _syntaxFactory.NameEquals(
+                _syntaxFactory.IdentifierName(this.ParseIdentifierToken()),
+                this.EatToken(SyntaxKind.EqualsToken));
         }
 
         private UsingDirectiveSyntax ParseUsingDirective()
@@ -898,11 +885,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 staticToken = this.EatToken(SyntaxKind.StaticKeyword);
             }
 
-            NameEqualsSyntax alias = null;
-            if (this.IsNamedAssignment())
-            {
-                alias = ParseNameEquals(warnOnGlobal: true);
-            }
+            var alias = this.IsNamedAssignment() ? ParseNameEquals() : null;
 
             NameSyntax name;
             SyntaxToken semicolon;
