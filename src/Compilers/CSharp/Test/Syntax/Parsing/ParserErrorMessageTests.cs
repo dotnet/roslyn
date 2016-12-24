@@ -2566,8 +2566,7 @@ class A
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "="));
         }
 
-        [WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
-        [Fact]
+        [Fact, WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
         public void CS7014ERR_AttributesNotAllowed()
         {
             var test = @"
@@ -2586,16 +2585,25 @@ class Program
 }
 ";
 
-            ParseAndValidate(test,
-    // (10,13): error CS7014: Attributes are not valid in this context.
-    //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
-    Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]"),
-    // (10,42): error CS7014: Attributes are not valid in this context.
-    //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
-    Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]"),
-    // (11,13): error CS7014: Attributes are not valid in this context.
-    //             [ObsoleteAttribute(message)] int y
-    Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (10,13): error CS7014: Attributes are not valid in this context.
+                //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(10, 13),
+                // (10,42): error CS7014: Attributes are not valid in this context.
+                //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(10, 42),
+                // (11,13): error CS7014: Attributes are not valid in this context.
+                //             [ObsoleteAttribute(message)] int y
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(11, 13),
+                // (9,25): error CS1593: Delegate 'Action<int>' does not take 2 arguments
+                //         Action<int> a = delegate (
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, @"delegate (
+            [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
+            [ObsoleteAttribute(message)] int y
+        ) { }").WithArguments("System.Action<int>", "2").WithLocation(9, 25),
+                // (8,22): warning CS0219: The variable 'message' is assigned but its value is never used
+                //         const string message = "the parameter is obsolete";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "message").WithArguments("message").WithLocation(8, 22));
         }
 
         [WorkItem(863401, "DevDiv/Personal")]
