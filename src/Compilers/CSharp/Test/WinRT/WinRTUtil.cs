@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using static Microsoft.CodeAnalysis.Test.Utilities.CommonTestBase;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     internal static class WinRTUtil
     {
