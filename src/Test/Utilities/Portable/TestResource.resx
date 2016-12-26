@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -196,14 +196,18 @@ namespace My
                 var s2 = $@"x {1 , -2 :d}";
             }
 
+            int LocalFunction()
+            {
+            }
+
 #if DEBUG
       Console.WriteLine(export.iefSupplied.command);
 #endif
             const int? local = int.MaxValue;
             const Guid? local0 = new Guid(r.ToString());
 
-            var привет = local;
-            var мир = local;
+            var ?????? = local;
+            var ??? = local;
             var local3 = 0, local4 = 1;
             local3 = local4 = 1;
             var local5 = null as Action ?? null;
@@ -216,6 +220,11 @@ namespace My
                 lu = 1lu, Lu = 1Lu, lU = 1lU, LU = 1LU;
             int minInt32Value = -2147483648;
             int minInt64Value = -9223372036854775808L;
+
+            ref string stringRef;
+            stringRef = ref System.String.Empty;
+
+            ref string stringRef1 = ref System.String.Empty;
 
             bool @bool;
             byte @byte;
@@ -309,6 +318,10 @@ namespace My
                         goto default;
                         break;
                     }
+                case 4 when true:
+                    break;
+                case int i:
+                    break;
                 default:
                     {
                         return;
@@ -317,7 +330,8 @@ namespace My
             while (i &lt; 10)
             {
                 ++i;
-                if (true) continue;
+                if (i is int q) continue;
+                void LocalFcn() => throw null;
                 break;
             }
             do
@@ -548,14 +562,14 @@ namespace My
     {
         using System;
         using System.Collections;
-        public class Список
+        public class ??????
         {
             public static IEnumerable Power(int number, int exponent)
             {
-                Список Список = new Список();
-                Список.Main();
+                ?????? ?????? = new ??????();
+                ??????.Main();
                 int counter = (0 + 0);
-                int אתר = 0;
+                int ??? = 0;
                 while (++counter++ &lt; --exponent--)
                 {
                     result = result * number + +number+++++number;
@@ -882,8 +896,8 @@ L:
             Dim r As Integer
             Dim Varioblelocal? As Integer = Integer.MaxValue
             Dim Varioblelocal0? As Guid = New Guid(r.ToString())
-            Dim привет = local
-            Dim мир = local
+            Dim ?????? = local
+            Dim ??? = local
             Dim local3 = 0, local4 = 1
             Dim local5 = If(TryCast(Nothing, Action), Nothing)
             Dim local6 = TypeOf local5 Is Action
@@ -1195,11 +1209,11 @@ CaseLabel2:
 
     Namespace Test
 
-        Public Class Список
+        Public Class ??????
 
             Public Shared Function Power(ByVal number As Integer, ByVal exponent As Integer) As IEnumerable
-                Dim Список As New Список()
-                Список.Main()
+                Dim ?????? As New ??????()
+                ??????.Main()
                 Dim counter As Integer =(0 + 0)
                 Dim result As Integer = 0
             'Do While ++counter++ &lt; --exponent--
@@ -1904,8 +1918,8 @@ L:
             Dim Varioblelocal? As Integer = Integer.MaxValue
             Dim Varioblelocal0? As Guid = New Guid(r.ToString())
 
-            Dim привет = local
-            Dim мир = local
+            Dim ?????? = local
+            Dim ??? = local
             Dim local3 = 0, local4 = 1
             Dim local5 = If(TryCast(Nothing, Action), Nothing)
             Dim local6 = TypeOf local5 Is Action
@@ -2235,10 +2249,10 @@ CaseLabel2:
     Public Delegate Sub [Delegate](ByVal P As Object)
 
     Namespace Test
-        Public Class Список
+        Public Class ??????
             Public Shared Function Power(ByVal number As Integer, ByVal exponent As Integer) As IEnumerable
-                Dim Список As New Список()
-                Список.Main()
+                Dim ?????? As New ??????()
+                ??????.Main()
                 Dim counter As Integer = (0 + 0)
                 Dim result As Integer = 0
 
