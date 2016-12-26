@@ -329,12 +329,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             return assembly.LoadModule(args.Name, rawModule.ToArray());
         }
 
-        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName, List<ModuleDataId> searchModules)
+        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName, List<RuntimeModuleDataId> searchModules)
         {
             try
             {
                 var signatures = new SortedSet<string>();
-                foreach (var id in searchModules) // Check inside each assembly in the compilation
+                foreach (var id in searchModules.Select(x => x.Id)) // Check inside each assembly in the compilation
                 {
                     var assembly = GetAssembly(id.FullName, reflectionOnly: true);
                     foreach (var signature in MetadataSignatureHelper.GetMemberSignatures(assembly, fullyQualifiedTypeName, memberName))

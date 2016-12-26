@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26021.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "src\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -1180,22 +1180,22 @@ Global
 		{14118347-ED06-4608-9C45-18228273C712}.Release|x86.Build.0 = Release|Any CPU
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Debug|ARM.ActiveCfg = Debug|ARM
-		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Debug|ARM.Build.0 = Debug|ARM
+		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Debug|ARM.Build.0 = Debug|Any CPU
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Debug|x64.ActiveCfg = Debug|x64
-		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Debug|x64.Build.0 = Debug|x64
+		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Debug|x64.Build.0 = Debug|Any CPU
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Debug|x86.Build.0 = Debug|Any CPU
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|Any CPU.Build.0 = Release|Any CPU
-		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|ARM.ActiveCfg = Release|ARM
-		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|ARM.Build.0 = Release|ARM
+		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|ARM.ActiveCfg = Release|Any CPU
+		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|ARM.Build.0 = Release|Any CPU
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|x64.ActiveCfg = Release|x64
-		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|x64.Build.0 = Release|x64
+		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|x64.ActiveCfg = Release|Any CPU
+		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|x64.Build.0 = Release|Any CPU
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|x86.ActiveCfg = Release|Any CPU
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
