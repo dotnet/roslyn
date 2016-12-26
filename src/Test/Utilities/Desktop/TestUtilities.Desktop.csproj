@@ -105,11 +105,6 @@
     <Compile Include="MetadataSignatureHelper.cs" />
     <Compile Include="SigningTestHelpers.cs" />
     <Compile Include="TestHelpers.cs" />
-    <Compile Include="TestResource.Designer.cs">
-      <DependentUpon>TestResource.resx</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
     <Compile Include="ThrowingTraceListener.cs" />
     <Compile Include="Traits.cs" />
     <Compile Include="Win32Res.cs" />
@@ -152,13 +147,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="TestResource.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>TestResource.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>Roslyn.Test.Utilities</CustomToolNamespace>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
