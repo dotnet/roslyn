@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             {
                 string dumpDir;
                 RuntimeUtilities.DumpAssemblyData(ModuleDatas, out dumpDir);
-                throw new PeVerifyException(errors.ToString(), dumpDir);
+                throw new RuntimePeVerifyException(errors.ToString(), dumpDir);
             }
             return allOutput.ToArray();
         }

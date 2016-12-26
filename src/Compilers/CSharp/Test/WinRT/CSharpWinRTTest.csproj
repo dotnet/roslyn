@@ -20,6 +20,7 @@
     <Compile Include="Metadata\WinMdDumpTest.cs" />
     <Compile Include="Metadata\WinMdEventTests.cs" />
     <Compile Include="Metadata\WinMdMetadataTests.cs" />
+    <Compile Include="WinRTUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">

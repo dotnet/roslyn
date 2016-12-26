@@ -43,7 +43,6 @@
   <ItemGroup>
     <None Include="project.json" />
     <Compile Include="CoreCLRRuntimeEnvironment.cs" />
-    <Compile Include="Exceptions.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
