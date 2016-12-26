@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis;
 using static Roslyn.Test.Utilities.ExceptionHelper; 
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
+namespace Roslyn.Test.Utilities
 {
     public class EmitException : Exception
     {
