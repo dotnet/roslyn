@@ -304,16 +304,30 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
 
         public void PeVerify()
         {
-            var emitData = GetEmitData();
-            emitData.RuntimeData.PeverifyRequested = true;
-            emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName });
+            try
+            {
+                var emitData = GetEmitData();
+                emitData.RuntimeData.PeverifyRequested = true;
+                emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName });
+            }
+            catch (RuntimePeVerifyException e)
+            {
+                throw new PeVerifyException(e.Output, e.ExePath);
+            }
         }
 
         public string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true)
         {
-            var emitData = GetEmitData();
-            emitData.RuntimeData.PeverifyRequested = true;
-            return emitData.Manager.PeVerifyModules(modulesToVerify, throwOnError);
+            try
+            {
+                var emitData = GetEmitData();
+                emitData.RuntimeData.PeverifyRequested = true;
+                return emitData.Manager.PeVerifyModules(modulesToVerify, throwOnError);
+            }
+            catch (RuntimePeVerifyException e)
+            {
+                throw new PeVerifyException(e.Output, e.ExePath);
+            }
         }
 
         public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName)

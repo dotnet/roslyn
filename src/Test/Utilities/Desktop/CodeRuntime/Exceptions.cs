@@ -9,39 +9,30 @@ using static Roslyn.Test.Utilities.ExceptionHelper;
 namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
 {
     [Serializable]
-    public class EmitException : Exception
+    public class RuntimePeVerifyException : Exception
     {
-        public IEnumerable<Diagnostic> Diagnostics { get; }
+        public string Output { get; }
+        public string ExePath { get; }
 
-        protected EmitException(SerializationInfo info, StreamingContext context) 
-            : base(info, context) { }
-
-        public EmitException(IEnumerable<Diagnostic> diagnostics, string directory)
-            : base(GetMessageFromResult(diagnostics, directory))
+        protected RuntimePeVerifyException(SerializationInfo info, StreamingContext context) 
+            : base(info, context)
         {
-            this.Diagnostics = diagnostics;
+            Output = info.GetString(nameof(Output));
+            ExePath = info.GetString(nameof(ExePath));
         }
-    }
 
-    [Serializable]
-    public class PeVerifyException : Exception
-    {
-        protected PeVerifyException(SerializationInfo info, StreamingContext context) 
-            : base(info, context) { }
+        public RuntimePeVerifyException(string output, string exePath) 
+            : base(GetMessageFromResult(output, exePath))
+        {
+            Output = output;
+            ExePath = exePath;
+        }
 
-        public PeVerifyException(string output, string exePath) 
-            : base(GetMessageFromResult(output, exePath)) { }
-
-    }
-
-    [Serializable]
-    public class ExecutionException : Exception
-    {
-        public ExecutionException(string expectedOutput, string actualOutput, string exePath) 
-            : base(GetMessageFromResult(expectedOutput, actualOutput, exePath)) { }
-
-        public ExecutionException(Exception innerException, string exePath) 
-            : base(GetMessageFromException(innerException, exePath), innerException) { }
-
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue(nameof(Output), Output);
+            info.AddValue(nameof(ExePath), ExePath);
+        }
     }
 }

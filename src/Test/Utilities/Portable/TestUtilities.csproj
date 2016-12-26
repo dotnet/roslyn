@@ -124,6 +124,7 @@
     <Compile Include="Compilation\CompilationOutputFiles.cs" />
     <Compile Include="Compilation\CompilationTestDataExtensions.cs" />
     <Compile Include="Compilation\DiagnosticBagErrorLogger.cs" />
+    <Compile Include="Compilation\Exceptions.cs" />
     <Compile Include="Compilation\IRuntimeEnvironment.cs" />
     <Compile Include="Compilation\OperationTreeVerifier.cs" />
     <Compile Include="Compilation\TestOperationWalker.cs" />
