@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
         public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName)
         {
             var emitData = GetEmitData();
-            var searchIds = emitData.AllModuleData.Select(x => x.Id).ToList();
+            var searchIds = emitData.AllModuleData.Select(x => new RuntimeModuleDataId(x.Id)).ToList();
             return GetEmitData().Manager.GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName, searchIds);
         }
 
