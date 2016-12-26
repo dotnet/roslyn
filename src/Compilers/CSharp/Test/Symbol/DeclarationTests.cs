@@ -304,15 +304,12 @@ public class B
             var method = (MethodSymbol)type.GetMembers().First();
             Assert.Equal(1, countedTree.AccessCount);
 
-            // To get the return type, we need to get the type parameters of the containing type.
-            // That may cause us to go back to the syntax to check for Type-Parameter + Constraint
-            // issues.
-            var returnType = method.ReturnType;
-            Assert.Equal(3, countedTree.AccessCount);
-
             // Once we have the method, we shouldn't need to go back to syntax again.
+            var returnType = method.ReturnType;
+            Assert.Equal(1, countedTree.AccessCount);
+
             var parameterType = method.Parameters.Single();
-            Assert.Equal(3, countedTree.AccessCount);
+            Assert.Equal(1, countedTree.AccessCount);
         }
 
         private class CountedSyntaxTree : CSharpSyntaxTree

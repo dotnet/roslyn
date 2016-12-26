@@ -84,6 +84,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Nested types are never unified.
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.False;
             }
+
+            if (declaration.Arity == 0 && declaration.HasConstraints)
+            {
+                foreach (var syntaxRef in this.SyntaxReferences)
+                {
+                    var constraintClauses = GetConstraintClauses((CSharpSyntaxNode)syntaxRef.GetSyntax());
+                    ReportErrorIfHasConstraints(constraintClauses, diagnostics);
+                }
+            }
         }
 
         #region Syntax
@@ -118,15 +127,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (declaration.Arity == 0)
             {
-                if (declaration.Kind != DeclarationKind.Enum)
-                {
-                    foreach (var syntaxRef in this.SyntaxReferences)
-                    {
-                        var constraintClauses = GetConstraintClauses((CSharpSyntaxNode)syntaxRef.GetSyntax());
-                        ReportErrorIfHasConstraints(constraintClauses, diagnostics);
-                    }
-                }
-
                 return ImmutableArray<TypeParameterSymbol>.Empty;
             }
 
