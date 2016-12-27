@@ -2750,12 +2750,6 @@ parse_member_name:;
                 argumentList = _syntaxFactory.ArgumentList(openToken, default(SeparatedSyntaxList<ArgumentSyntax>), closeToken);
             }
 
-            if (isStatic)
-            {
-                // Static constructor can't have any base call
-                token = this.AddError(token, ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, name);
-            }
-
             return _syntaxFactory.ConstructorInitializer(kind, colon, token, argumentList);
         }
 
