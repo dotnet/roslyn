@@ -4,7 +4,6 @@
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{23683607-168A-4189-955E-908F0E80E60D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>DeplyDesktopTestRuntime_DoNotUse</AssemblyName>
