@@ -711,6 +711,7 @@ static int Baz = w;
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Y").WithArguments(typeName + ".C.Y"),
                 // (3,49): error CS0120: An object reference is required for the non-static field, method, or property 'Roslyn.Compilers.CSharp.UnitTests.Symbols.Source.InteractiveSessionTests.C.Z()'
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Z").WithArguments(typeName + ".C.Z()"));
+
         }
 
         [Fact]
