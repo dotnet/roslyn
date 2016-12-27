@@ -3,7 +3,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B5A6057A-EB4C-49FB-987D-943137E72E47}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>CommonNetCoreReferences_DoNotUse</AssemblyName>
@@ -16,11 +16,11 @@
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <NoStdLib>true</NoStdLib>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <PlatformTarget>x64</PlatformTarget>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <PlatformTarget>x64</PlatformTarget>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Class1.cs" />

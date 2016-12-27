@@ -4,7 +4,7 @@
   <Import Project="..\..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <Platform Condition="'$(Platform)' == ''">x64</Platform>
     <ProjectGuid>{6AA96934-D6B7-4CC8-990D-DB6B9DD56E34}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <StartupObject>Microsoft.CodeAnalysis.VisualBasic.Internal.VBSyntaxGenerator.Program</StartupObject>
@@ -21,11 +21,17 @@
     <NonShipping>true</NonShipping>
     <RoslynProjectType>ExeNonDeployment</RoslynProjectType>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <!-- Misspelling, bug in NuGet targets -->
+    <RuntimeIndentifier>x64</RuntimeIndentifier>
+    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <!-- Misspelling, bug in NuGet targets -->
+    <RuntimeIndentifier>x64</RuntimeIndentifier>
+    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup>
     <Import Include="Microsoft.VisualBasic" />

@@ -3,7 +3,7 @@
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <Import Project="..\..\..\build\Targets\GenerateCompilerExecutableBindingRedirects.targets" />
   <PropertyGroup>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{6E62A0FF-D0DC-4109-9131-AB8E60CDFF7B}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <StartupObject>Sub Main</StartupObject>

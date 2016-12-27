@@ -3,7 +3,7 @@
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <Import Project="..\..\..\build\Targets\GenerateCompilerExecutableBindingRedirects.targets" />
   <PropertyGroup>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{14118347-ED06-4608-9C45-18228273C712}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>CSharpInteractive</RootNamespace>
