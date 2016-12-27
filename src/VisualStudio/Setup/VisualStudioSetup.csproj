@@ -236,9 +236,11 @@
     <NuGetPackageToIncludeInVsix Include="System.Xml.XPath.XDocument" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisRuleSet />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisRuleSet />
   </PropertyGroup>
   <PropertyGroup>
