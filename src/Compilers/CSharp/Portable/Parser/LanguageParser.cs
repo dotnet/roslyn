@@ -2768,12 +2768,9 @@ parse_member_name:;
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
 
-            BlockSyntax body;
-            ArrowExpressionClauseSyntax expressionBody;
-            SyntaxToken semicolon;
-            this.ParseBlockAndExpressionBodiesWithSemicolon(out body, out expressionBody, out semicolon,
-                                                            requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedDeOrConstructor);
-
+            this.ParseBlockAndExpressionBodiesWithSemicolon(
+                out var body, out var expressionBody, out var semicolon,
+                requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedDeOrConstructor);
 
             var parameterList = _syntaxFactory.ParameterList(openParen, default(SeparatedSyntaxList<ParameterSyntax>), closeParen);
 
