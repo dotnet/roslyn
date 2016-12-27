@@ -2765,11 +2765,6 @@ parse_member_name:;
             var tilde = this.EatToken(SyntaxKind.TildeToken);
 
             var name = this.ParseIdentifierToken();
-            if (name.ValueText != typeName)
-            {
-                name = this.AddError(name, ErrorCode.ERR_BadDestructorName);
-            }
-
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
 
