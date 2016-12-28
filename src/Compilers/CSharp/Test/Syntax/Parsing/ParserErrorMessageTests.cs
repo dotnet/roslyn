@@ -1647,21 +1647,31 @@ Diagnostic(ErrorCode.ERR_ClassTypeExpected, "byte"));
             var test = @"
 namespace x
 {
-[foo(a=5, b)]
-class foo
+    [foo(a=5, b)]
+    class foo
     {
     }
-public class a
+    public class a
     {
-    public static int Main()
+        public static int Main()
         {
-        return 1;
+            return 1;
         }
     }
-}
-";
-
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "b"));
+}";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,6): error CS0616: 'foo' is not an attribute class
+                //     [foo(a=5, b)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "foo").WithArguments("x.foo").WithLocation(4, 6),
+                // (4,10): error CS0246: The type or namespace name 'a' could not be found (are you missing a using directive or an assembly reference?)
+                //     [foo(a=5, b)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("a").WithLocation(4, 10),
+                // (4,15): error CS1016: Named attribute argument expected
+                //     [foo(a=5, b)]
+                Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "b").WithLocation(4, 15),
+                // (4,15): error CS0103: The name 'b' does not exist in the current context
+                //     [foo(a=5, b)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(4, 15));
         }
 
         [Fact]
