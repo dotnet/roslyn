@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{A1455D30-55FC-45EF-8759-3AEBDB13D940}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.VisualStudio.Services.UnitTests</AssemblyName>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
