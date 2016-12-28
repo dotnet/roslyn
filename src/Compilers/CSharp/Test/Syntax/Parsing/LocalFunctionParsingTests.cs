@@ -299,7 +299,8 @@ class C
             EOF();
         }
 
-        [Fact, WorkItem(12280, "https://github.com/dotnet/roslyn/issues/12280")]
+        [Fact]
+        [WorkItem(12280, "https://github.com/dotnet/roslyn/issues/12280")]
         public void LocalFuncWithWhitespace()
         {
             var file = ParseFile(@"
