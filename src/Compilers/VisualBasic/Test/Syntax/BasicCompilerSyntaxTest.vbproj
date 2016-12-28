@@ -5,6 +5,7 @@
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{91F6F646-4F6E-449A-9AB4-2986348F329D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.VisualBasic.Syntax.UnitTests</AssemblyName>
@@ -58,13 +59,11 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
   </PropertyGroup>

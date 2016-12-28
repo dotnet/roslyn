@@ -5,6 +5,7 @@
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>0457d095-9f74-415c-b461-dd08d4503a34</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -22,10 +23,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="class1.cs" />

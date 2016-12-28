@@ -3,6 +3,7 @@
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{92412D1A-0F23-45B5-B196-58839C524917}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor</RootNamespace>
@@ -45,10 +46,8 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />

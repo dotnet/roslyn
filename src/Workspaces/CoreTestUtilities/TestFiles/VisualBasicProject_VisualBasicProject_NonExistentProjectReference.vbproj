@@ -4,6 +4,7 @@
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProductVersion></ProductVersion>
     <SchemaVersion></SchemaVersion>
     <ProjectGuid>{AC25ECDA-DE94-4FCF-A688-EB3A2BE3670C}</ProjectGuid>
@@ -15,7 +16,6 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <DefineDebug>true</DefineDebug>
@@ -28,7 +28,6 @@
     <DefineConstants>FURBY</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <DefineDebug>false</DefineDebug>
     <DefineTrace>true</DefineTrace>

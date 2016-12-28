@@ -3,6 +3,7 @@
   <Import Project="..\..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{76242A2D-2600-49DD-8C15-FEA07ECB1843}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace></RootNamespace>
@@ -13,10 +14,8 @@
     <ProjectTypeGuids>{14182A97-F7F0-4C62-8B27-98AA8AE2109A};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Core\Source\Concord\Concord.csproj">

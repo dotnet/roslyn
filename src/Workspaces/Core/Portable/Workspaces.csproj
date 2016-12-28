@@ -4,6 +4,7 @@
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
@@ -17,10 +18,8 @@
     <SkipApplyOptimizations>true</SkipApplyOptimizations>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

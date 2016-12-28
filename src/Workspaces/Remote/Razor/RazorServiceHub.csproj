@@ -6,6 +6,7 @@
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Remote.Razor.ServiceHub</RootNamespace>
@@ -13,10 +14,8 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

@@ -5,6 +5,10 @@
   <PropertyGroup>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <PlatformTarget>x64</PlatformTarget>
+    <!-- Misspelling, bug in NuGet targets -->
+    <RuntimeIndentifier>x64</RuntimeIndentifier>
+    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
     <ProjectGuid>{6DA08F12-32F2-4DD9-BBAD-982EB71A2C9B}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>DeployCompilerGeneratorToolsRuntime</RootNamespace>
@@ -18,16 +22,8 @@
     <NonShipping>true</NonShipping>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <PlatformTarget>x64</PlatformTarget>
-    <!-- Misspelling, bug in NuGet targets -->
-    <RuntimeIndentifier>x64</RuntimeIndentifier>
-    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <PlatformTarget>x64</PlatformTarget>
-    <!-- Misspelling, bug in NuGet targets -->
-    <RuntimeIndentifier>x64</RuntimeIndentifier>
-    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup>
     <None Include="project.json" />

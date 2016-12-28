@@ -5,6 +5,10 @@
   <PropertyGroup>
     <NonShipping>True</NonShipping>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <PlatformTarget>x64</PlatformTarget>
+    <!-- Misspelling, bug in NuGet targets -->
+    <RuntimeIndentifier>x64</RuntimeIndentifier>
+    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
     <ProjectGuid>{02459936-CD2C-4F61-B671-5C518F2A3DDC}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Roslyn.Compilers.Internal.BoundTreeGenerator</RootNamespace>
@@ -18,16 +22,8 @@
     <RoslynProjectType>ExeNonDeployment</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <PlatformTarget>x64</PlatformTarget>
-    <!-- Misspelling, bug in NuGet targets -->
-    <RuntimeIndentifier>x64</RuntimeIndentifier>
-    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <PlatformTarget>x64</PlatformTarget>
-    <!-- Misspelling, bug in NuGet targets -->
-    <RuntimeIndentifier>x64</RuntimeIndentifier>
-    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BoundNodeClassWriter.cs" />

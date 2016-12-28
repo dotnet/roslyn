@@ -3,6 +3,7 @@
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp</RootNamespace>
@@ -48,11 +49,9 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>

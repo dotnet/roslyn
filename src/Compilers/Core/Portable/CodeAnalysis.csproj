@@ -4,6 +4,7 @@
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
@@ -18,10 +19,8 @@
     <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.Native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">

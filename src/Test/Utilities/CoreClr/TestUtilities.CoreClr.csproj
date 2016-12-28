@@ -4,6 +4,7 @@
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Test.Utilities.CoreClr</AssemblyName>
@@ -15,10 +16,8 @@
     <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">

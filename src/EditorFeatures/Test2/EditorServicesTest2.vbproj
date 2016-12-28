@@ -4,6 +4,7 @@
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{3CEA0D69-00D3-40E5-A661-DC41EA07269B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Services.Editor2.UnitTests</AssemblyName>
@@ -159,13 +160,11 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
   </PropertyGroup>

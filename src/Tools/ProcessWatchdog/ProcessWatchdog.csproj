@@ -4,6 +4,7 @@
   <PropertyGroup>
     <NonShipping>True</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{1553DE60-A2B0-4FAF-B1B8-C0A7313781CC}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>ProcessWatchdog</RootNamespace>
@@ -13,10 +14,8 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

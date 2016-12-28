@@ -4,6 +4,7 @@
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>
@@ -104,13 +105,11 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
   </PropertyGroup>

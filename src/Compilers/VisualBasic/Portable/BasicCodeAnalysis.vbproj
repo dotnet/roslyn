@@ -4,6 +4,7 @@
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic</AssemblyName>
@@ -25,7 +26,6 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
@@ -34,7 +34,6 @@
     <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
     <NoWarn>$(NoWarn);42014</NoWarn>

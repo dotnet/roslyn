@@ -3,6 +3,7 @@
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{A31228BB-F05C-4D4A-B98A-0E681D876B7C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Services</RootNamespace>
@@ -11,10 +12,8 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">

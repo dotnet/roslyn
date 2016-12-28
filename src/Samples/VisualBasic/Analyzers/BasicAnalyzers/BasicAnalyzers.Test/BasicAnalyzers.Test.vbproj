@@ -3,6 +3,7 @@
   <Import Project="..\..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{5399E7A8-F8F1-4F2E-A5D2-9C96F3DD2A2D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>BasicAnalyzers.Tests</AssemblyName>
@@ -11,7 +12,6 @@
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
@@ -19,7 +19,6 @@
     <NoWarn>$(NoWarn);42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DefineDebug>false</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>

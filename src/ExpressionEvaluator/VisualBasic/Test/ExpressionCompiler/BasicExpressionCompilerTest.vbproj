@@ -4,6 +4,7 @@
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{AC5E3515-482C-4C6A-92D9-D0CEA687DFC2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests</AssemblyName>
@@ -64,13 +65,11 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
   </PropertyGroup>

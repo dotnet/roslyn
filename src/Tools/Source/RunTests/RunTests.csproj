@@ -4,6 +4,7 @@
   <PropertyGroup>
     <NonShipping>True</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>RunTests</RootNamespace>
@@ -13,10 +14,8 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup></PropertyGroup>
   <ItemGroup>

@@ -3,6 +3,7 @@
   <Import Project="..\..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProductVersion>8.0.30703</ProductVersion>
     <ProjectGuid>{E5603AB0-C831-4044-8E44-3CA853B6A152}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -13,7 +14,6 @@
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
@@ -23,7 +23,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>

@@ -6,6 +6,7 @@
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices</RootNamespace>
@@ -19,10 +20,8 @@
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <!-- We need to mark our NuGet.VisualStudio package reference as EmbedInteropTypes.  However,
        as this package comes from project.json there is no way to do that in the json file.

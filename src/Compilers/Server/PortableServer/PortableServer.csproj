@@ -4,6 +4,10 @@
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <PlatformTarget>x64</PlatformTarget>
+    <!-- Misspelling, bug in NuGet targets -->
+    <RuntimeIndentifier>x64</RuntimeIndentifier>
+    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
     <ProjectGuid>{06B26DCB-7A12-48EF-AE50-708593ABD05F}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CompilerServer</RootNamespace>
@@ -40,20 +44,12 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <NoStdLib>true</NoStdLib>
-    <PlatformTarget>x64</PlatformTarget>
-    <!-- Misspelling, bug in NuGet targets -->
-    <RuntimeIndentifier>x64</RuntimeIndentifier>
-    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <NoStdLib>true</NoStdLib>
-    <PlatformTarget>x64</PlatformTarget>
-    <!-- Misspelling, bug in NuGet targets -->
-    <RuntimeIndentifier>x64</RuntimeIndentifier>
-    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>

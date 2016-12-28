@@ -20,6 +20,7 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <ScrubbedSamplePath>VisualBasic\ConvertToAutoProperty</ScrubbedSamplePath>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{DA0874AB-377A-48CF-99FF-0B209916309D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>ConvertToAutoPropertyVB</RootNamespace>
@@ -35,10 +36,8 @@
     <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup>
     <OptionExplicit>On</OptionExplicit>

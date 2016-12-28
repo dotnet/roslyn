@@ -6,6 +6,7 @@
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{D49439D7-56D2-450F-A4F0-74CB95D620E6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices.VisualBasic</AssemblyName>
@@ -65,10 +66,8 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BasicVSResources.Designer.vb">

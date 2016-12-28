@@ -3,6 +3,7 @@
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{E2AE5575-436C-4CA5-9471-89D923FE84C6}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -44,7 +45,6 @@
     <Reference Include="System" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
@@ -52,7 +52,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <ErrorReport>prompt</ErrorReport>

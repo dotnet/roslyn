@@ -4,6 +4,7 @@
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{ABC7262E-1053-49F3-B846-E3091BB92E8C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace></RootNamespace>
@@ -14,10 +15,8 @@
     <RoslynProjectType>UnitTestDesktop</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

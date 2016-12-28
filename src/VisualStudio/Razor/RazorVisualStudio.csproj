@@ -6,6 +6,7 @@
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient</RootNamespace>
@@ -13,10 +14,8 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

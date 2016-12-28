@@ -4,6 +4,7 @@
   <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{5002636A-FE8D-40BF-8818-AB513A2194FA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
@@ -16,10 +17,8 @@
     <FakeSignToolPath>$(NuGetPackageRoot)\FakeSign\0.9.2\tools\FakeSign.exe</FakeSignToolPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <None Include="project.json" />

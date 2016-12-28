@@ -3,6 +3,7 @@
   <Import Project="..\..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{409C5A1C-D4DE-43C4-86E1-F598C60B794B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>CSharpAnalyzers</RootNamespace>
@@ -13,7 +14,6 @@
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
@@ -22,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>

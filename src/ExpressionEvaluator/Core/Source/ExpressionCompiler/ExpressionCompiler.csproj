@@ -3,6 +3,7 @@
   <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{B8DA3A90-A60C-42E3-9D8E-6C67B800C395}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
@@ -67,11 +68,9 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DefineConstants>$(DefineConstants);EXPRESSIONCOMPILER</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DefineConstants>$(DefineConstants);EXPRESSIONCOMPILER</DefineConstants>
   </PropertyGroup>
   <ItemGroup>

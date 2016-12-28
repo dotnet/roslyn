@@ -4,6 +4,7 @@
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{21A01C2D-2501-4619-8144-48977DD22D9C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.Scripting.TestUtilities</AssemblyName>
@@ -15,10 +16,8 @@
     <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

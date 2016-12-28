@@ -3,6 +3,7 @@
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x86</Platform>
+    <PlatformTarget>x86</PlatformTarget>
     <ProductVersion>8.0.30703</ProductVersion>
     <ProjectGuid>{0C3675A2-4DE8-4A86-BC2E-ABFC9CEB6BC5}</ProjectGuid>
     <OutputType>Exe</OutputType>
@@ -24,7 +25,6 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>false</Optimize>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -32,7 +32,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <PlatformTarget>x86</PlatformTarget>
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>

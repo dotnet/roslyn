@@ -5,6 +5,10 @@
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <PlatformTarget>x64</PlatformTarget>
+    <!-- Misspelling, bug in NuGet targets -->
+    <RuntimeIndentifier>x64</RuntimeIndentifier>
+    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
     <ProjectGuid>{909B656F-6095-4AC2-A5AB-C3F032315C45}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <StartupObject></StartupObject>
@@ -24,16 +28,8 @@
     <RoslynProjectType>ExeNonDeployment</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <PlatformTarget>x64</PlatformTarget>
-    <!-- Misspelling, bug in NuGet targets -->
-    <RuntimeIndentifier>x64</RuntimeIndentifier>
-    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <PlatformTarget>x64</PlatformTarget>
-    <!-- Misspelling, bug in NuGet targets -->
-    <RuntimeIndentifier>x64</RuntimeIndentifier>
-    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.vb" />

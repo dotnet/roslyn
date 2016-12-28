@@ -4,6 +4,10 @@
   <Import Project="..\..\..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <PlatformTarget>x64</PlatformTarget>
+    <!-- Misspelling, bug in NuGet targets -->
+    <RuntimeIndentifier>x64</RuntimeIndentifier>
+    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
     <ProjectGuid>{288089C5-8721-458E-BE3E-78990DAB5E2D}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Roslyn.Compilers.CSharp.Internal.CSharpSyntaxGenerator</RootNamespace>
@@ -18,16 +22,8 @@
     <RoslynProjectType>ExeNonDeployment</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <PlatformTarget>x64</PlatformTarget>
-    <!-- Misspelling, bug in NuGet targets -->
-    <RuntimeIndentifier>x64</RuntimeIndentifier>
-    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <PlatformTarget>x64</PlatformTarget>
-    <!-- Misspelling, bug in NuGet targets -->
-    <RuntimeIndentifier>x64</RuntimeIndentifier>
-    <NuGetRuntimeIdentifier>$(BaseNuGetRuntimeIdentifier)-$(RuntimeIndentifier)</NuGetRuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AbstractFileWriter.cs" />

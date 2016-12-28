@@ -4,6 +4,7 @@
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x86</Platform>
+    <PlatformTarget>x86</PlatformTarget>
     <ProjectGuid>{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.IntegrationTest.Setup</RootNamespace>
@@ -24,10 +25,8 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <None Include="project.json" />
