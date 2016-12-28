@@ -2628,16 +2628,61 @@ public static class GenExtensions<X>
 }
 ";
 
-            ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"));
+            CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
+                // (22,39): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(ref this X x) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(22, 39),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (10,39): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(ref this U u) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(10, 39),
+                // (10,39): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     public static void Foo<T,U,V>(ref this U u) {}
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(10, 39),
+                // (16,32): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo(ref this X x) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(16, 32),
+                // (8,35): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T>(ref this T t) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(8, 35),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (8,35): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     public static void Foo<T>(ref this T t) {}
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(8, 35),
+                // (6,32): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo(ref this int i) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(6, 32),
+                // (6,32): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     public static void Foo(ref this int i) {}
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(6, 32),
+                // (18,35): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T>(ref this T t) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(18, 35),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (19,35): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T>(ref this X x) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(19, 35),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (21,39): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(ref this U u) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(21, 39),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (15,32): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo(ref this int i) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(15, 32),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21));
         }
 
         [WorkItem(906072, "DevDiv/Personal")]
@@ -2670,16 +2715,61 @@ public static class GenExtensions<X>
 }
 ";
 
-            ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"));
+            CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
+                // (10,40): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(this out U u) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(10, 40),
+                // (10,35): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     public static void Foo<T,U,V>(this out U u) {}
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(10, 35),
+                // (8,36): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T>(this out T t) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(8, 36),
+                // (8,31): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     public static void Foo<T>(this out T t) {}
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(8, 31),
+                // (22,40): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(this out X x) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(22, 40),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (6,33): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo(this out int i) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(6, 33),
+                // (6,28): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     public static void Foo(this out int i) {}
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(6, 28),
+                // (16,33): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo(this out X x) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(16, 33),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (18,36): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T>(this out T t) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(18, 36),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (19,36): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T>(this out X x) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(19, 36),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (21,40): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(this out U u) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(21, 40),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (15,33): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo(this out int i) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(15, 33),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21));
         }
 
         [WorkItem(863402, "DevDiv/Personal")]
@@ -2712,16 +2802,61 @@ public static class GenExtensions<X>
 }
 ";
 
-            ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"));
+            CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
+                // (10,40): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T,U,V>(this params U[] uArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(10, 40),
+                // (10,35): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     public static void Foo<T,U,V>(this params U[] uArr) {}
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(10, 35),
+                // (8,36): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T>(this params T[] tArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(8, 36),
+                // (8,31): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     public static void Foo<T>(this params T[] tArr) {}
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(8, 31),
+                // (6,33): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo(this params int[] iArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(6, 33),
+                // (6,28): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     public static void Foo(this params int[] iArr) {}
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(6, 28),
+                // (22,40): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T,U,V>(this params X[] xArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(22, 40),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (16,33): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo(this params X[] xArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(16, 33),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (18,36): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T>(this params T[] tArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(18, 36),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (19,36): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T>(this params X[] xArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(19, 36),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (21,40): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T,U,V>(this params U[] uArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(21, 40),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (15,33): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo(this params int[] iArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(15, 33),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21));
         }
 
         [Fact, WorkItem(535930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535930")]
@@ -2741,40 +2876,37 @@ public static class Extensions
 }
 ";
             // Extra errors
-            ParseAndValidate(test,
-    // (6,33): error CS1107: A parameter can only have one 'this' modifier
-    //     public static void Foo(this this t) {}
-    Diagnostic(ErrorCode.ERR_DupParamMod, "this").WithArguments("this"),
-    // (6,39): error CS1001: Identifier expected
-    //     public static void Foo(this this t) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-    // (7,37): error CS1001: Identifier expected
-    //     public static void Foo(this int this) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "this"),
-    // (7,37): error CS1003: Syntax error, ',' expected
-    //     public static void Foo(this int this) {}
-    Diagnostic(ErrorCode.ERR_SyntaxError, "this").WithArguments(",", "this"),
-    // (7,41): error CS1031: Type expected
-    //     public static void Foo(this int this) {}
-    Diagnostic(ErrorCode.ERR_TypeExpected, ")"),
-    // (7,41): error CS1001: Identifier expected
-    //     public static void Foo(this int this) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-    // (9,34): error CS1001: Identifier expected
-    //     public static void Foo(this t) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-    // (10,32): error CS1001: Identifier expected
-    //     public static void Foo(int this) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "this"),
-    // (10,32): error CS1003: Syntax error, ',' expected
-    //     public static void Foo(int this) {}
-    Diagnostic(ErrorCode.ERR_SyntaxError, "this").WithArguments(",", "this"),
-    // (10,36): error CS1031: Type expected
-    //     public static void Foo(int this) {}
-    Diagnostic(ErrorCode.ERR_TypeExpected, ")"),
-    // (10,36): error CS1001: Identifier expected
-    //     public static void Foo(int this) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
+            CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
+                // (10,32): error CS1100: Method 'Foo' has a parameter modifier 'this' which is not on the first parameter
+                //     public static void Foo(int this) {}
+                Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("Foo").WithLocation(10, 32),
+                // (7,37): error CS1100: Method 'Foo' has a parameter modifier 'this' which is not on the first parameter
+                //     public static void Foo(this int this) {}
+                Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("Foo").WithLocation(7, 37),
+                // (7,28): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     public static void Foo(this int this) {}
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(7, 28),
+                // (9,33): error CS0246: The type or namespace name 't' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static void Foo(this t) {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "t").WithArguments("t").WithLocation(9, 33),
+                // (9,28): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     public static void Foo(this t) {}
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(9, 28),
+                // (6,33): error CS1107: A parameter can only have one 'this' modifier
+                //     public static void Foo(this this t) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "this").WithArguments("this").WithLocation(6, 33),
+                // (6,38): error CS0246: The type or namespace name 't' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static void Foo(this this t) {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "t").WithArguments("t").WithLocation(6, 38),
+                // (6,28): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     public static void Foo(this this t) {}
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(6, 28),
+                // (9,24): error CS0111: Type 'Extensions' already defines a member called 'Foo' with the same parameter types
+                //     public static void Foo(this t) {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo").WithArguments("Foo", "Extensions").WithLocation(9, 24),
+                // (10,24): error CS0111: Type 'Extensions' already defines a member called 'Foo' with the same parameter types
+                //     public static void Foo(int this) {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo").WithArguments("Foo", "Extensions").WithLocation(10, 24));
         }
 
         [WorkItem(863405, "DevDiv/Personal")]
@@ -2807,16 +2939,34 @@ public static class GenExtensions<X>
 }
 ";
 
-            ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"));
+            CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
+                // (10,39): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T,U,V>(ref out U u) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(10, 39),
+                // (8,35): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T>(ref out T t) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(8, 35),
+                // (6,32): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo(ref out int i) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(6, 32),
+                // (22,39): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T,U,V>(ref out X x) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(22, 39),
+                // (16,32): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo(ref out X x) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(16, 32),
+                // (18,35): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T>(ref out T t) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(18, 35),
+                // (19,35): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T>(ref out X x) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(19, 35),
+                // (21,39): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T,U,V>(ref out U u) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(21, 39),
+                // (15,32): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo(ref out int i) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(15, 32));
         }
 
         [Fact]
@@ -3924,7 +4074,16 @@ public class Test
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "ref"), Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "out"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (7,35): error CS1611: The params parameter cannot be declared as ref or out
+                //     public static void boo(params out int[] a) 
+                Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "out").WithLocation(7, 35),
+                // (4,35): error CS1611: The params parameter cannot be declared as ref or out
+                //     public static void foo(params ref int[] a) 
+                Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "ref").WithLocation(4, 35),
+                // (7,24): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                //     public static void boo(params out int[] a) 
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "boo").WithArguments("a").WithLocation(7, 24));
         }
 
         [Fact]
