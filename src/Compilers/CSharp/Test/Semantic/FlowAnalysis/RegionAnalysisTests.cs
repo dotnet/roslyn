@@ -1594,7 +1594,7 @@ unsafe public class Test
             Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
             Assert.Equal("p", GetSymbolNamesJoined(analysis.Captured));
             Assert.Equal("i", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
-            Assert.Equal("<p>", GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Equal("<p0>", GetSymbolNamesJoined(analysis.VariablesDeclared));
 
             Assert.Equal("p", GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
@@ -1602,7 +1602,7 @@ unsafe public class Test
             Assert.Equal("p", GetSymbolNamesJoined(analysis.ReadInside));
             Assert.Equal("i", GetSymbolNamesJoined(analysis.ReadOutside));
 
-            Assert.Equal("<p>", GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("<p0>", GetSymbolNamesJoined(analysis.WrittenInside));
             Assert.Equal("i, p, d", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
