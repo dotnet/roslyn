@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             set
             {
-                UpdateProjectDisplayName(value);
+                ExecuteForegroundAction(() => UpdateProjectDisplayName(value));
             }
         }
 
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             set
             {
-                UpdateProjectFilePath(value);
+                ExecuteForegroundAction(() => UpdateProjectFilePath(value));
             }
         }
 
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             set
             {
-                SetIntellisenseBuildResultAndNotifyWorkspaceHosts(value);
+                ExecuteForegroundAction(() => SetIntellisenseBuildResultAndNotifyWorkspaceHosts(value));
             }
         }
 
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             set
             {
-                NormalizeAndSetBinOutputPathAndRelatedData(value);
+                ExecuteForegroundAction(() => NormalizeAndSetBinOutputPathAndRelatedData(value));
             }
         }
 
