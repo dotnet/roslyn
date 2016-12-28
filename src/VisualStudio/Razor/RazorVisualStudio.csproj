@@ -5,7 +5,7 @@
   </PropertyGroup>
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient</RootNamespace>

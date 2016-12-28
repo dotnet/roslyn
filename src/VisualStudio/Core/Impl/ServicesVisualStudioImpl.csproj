@@ -45,7 +45,7 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{C0E80510-4FBE-4B0C-AF2C-4F473787722C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.Implementation</RootNamespace>

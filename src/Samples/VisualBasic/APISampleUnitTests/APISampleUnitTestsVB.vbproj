@@ -30,7 +30,7 @@
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <ScrubbedSamplePath>VisualBasic\APISampleUnitTestsVB</ScrubbedSamplePath>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{A5C3CAA6-206D-41D1-9BE9-D8B5437D0D95}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>APISampleUnitTestsVB</RootNamespace>
@@ -39,11 +39,11 @@
     </VBRuntime>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
