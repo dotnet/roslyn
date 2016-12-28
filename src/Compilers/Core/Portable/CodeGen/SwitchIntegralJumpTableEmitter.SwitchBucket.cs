@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ///           DoAnotherThing();
             ///           break;   
             ///  
-            ///  NOTE: A trivial bucket with only one label is by definition degenerate.
+            ///  NOTE: A trivial bucket with only one case constant is by definition degenerate.
             /// </summary>
             internal bool IsDegenerate
             {
@@ -108,17 +108,24 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // -1 indicates that the bucket cannot be split into degenerate ones
             //  0 indicates that the bucket is already degenerate
             // 
-            // MOTIVATION:
-            // Table switch will perform two branches (range check and the actual computed jump).
-            // Computed jump costs the same or more expensive than a regular conditional branch.
-            // So compbined cost would be 2+ conditional branches.
-            // Based on benchmarks it is actually closer to 3
+            // Code Review question: why are we supporting splitting only in two buckets. Why not in more?
+            // Explanation:
+            //  The input here is a "dense" bucket - the one that previous heuristics 
+            //  determined as not worth splitting. 
             //
-            // On the other hand, handling a degenerate bucket requires only 1 compare (range check) 
-            // so crumbling one bucket into two degenerate ones, when possible, is advantageous.
+            //  A dense bucket has rough execution cost of 1 conditional branch (range check) 
+            //  and 1 computed branch (which cost roughly the same as conditional one or perhaps more).
+            //  The only way to surely beat that cost via splitting is if the bucket can be 
+            //  split into 2 degenerate buckets. Then we have just 2 conditional branches.
             //
-            // One relatively common case that may result in degenerate switches is in async/iterator 
-            // state machines when control flow must use cascading dispatch into try blocks
+            //  3 degenerate buckets would require up to 3 conditional branches. 
+            //  On some hardware computed jumps may cost significantly more than 
+            //  conditional ones (because they are harder to predict or whatever), 
+            //  so it could still be profitable, but I did not want to guess that.
+            //
+            //  Basically if we have 3 degenerate buckets that can be merged into a dense bucket, 
+            //  we prefer a dense bucket, which we emit as "switch" opcode.
+            //
             internal int DegenerateBucketSplit
             {
                 get
