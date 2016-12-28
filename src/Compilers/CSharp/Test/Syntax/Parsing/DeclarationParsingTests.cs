@@ -1139,6 +1139,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestNonGenericMethodWithTypeConstraintBound()
+        {
+            var text = "class a { void M() where b : c { } }";
+
+            CreateCompilationWithMscorlib(text).GetDeclarationDiagnostics().Verify(
+                // (1,20): error CS0080: Constraints are not allowed on non-generic declarations
+                // class a { void M() where b : c { } }
+                Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(1, 20));
+        }
+
+        [Fact]
         public void TestClassWithNewConstraintBound()
         {
             var text = "class a<b> where b : new() { }";
