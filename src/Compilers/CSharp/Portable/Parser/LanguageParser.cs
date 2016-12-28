@@ -2694,7 +2694,7 @@ parse_member_name:;
             {
                 var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true);
 
-                var initializer = this.CurrentToken.Kind == SyntaxKind.ColonToken
+                ConstructorInitializerSyntax initializer = this.CurrentToken.Kind == SyntaxKind.ColonToken
                     ? this.ParseConstructorInitializer()
                     : null;
 
@@ -2940,8 +2940,8 @@ parse_member_name:;
                 {
                     // Use else if, rather than if, because if we see both a constructor initializer and a constraint clause, we're too lost to recover.
                     var colonToken = this.CurrentToken;
-                    // Set isStatic to false because pretending we're in a static constructor will just result in more errors.
-                    var initializer = this.ParseConstructorInitializer();
+
+                    ConstructorInitializerSyntax initializer = this.ParseConstructorInitializer();
                     initializer = this.AddErrorToFirstToken(initializer, ErrorCode.ERR_UnexpectedToken, colonToken.Text);
                     paramList = AddTrailingSkippedSyntax(paramList, initializer);
 
