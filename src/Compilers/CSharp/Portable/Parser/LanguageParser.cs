@@ -2699,7 +2699,7 @@ parse_member_name:;
                     : null;
 
                 this.ParseBlockAndExpressionBodiesWithSemicolon(
-                    out var body, out var expressionBody, out var semicolon,
+                    out BlockSyntax body, out ArrowExpressionClauseSyntax expressionBody, out SyntaxToken semicolon,
                     requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedDeOrConstructor);
 
                 var decl = _syntaxFactory.ConstructorDeclaration(attributes, modifiers.ToList(), name, paramList, initializer, body, expressionBody, semicolon);
