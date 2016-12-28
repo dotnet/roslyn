@@ -2577,7 +2577,7 @@ class Program
     static void Main()
     {
         const string message = ""the parameter is obsolete"";
-        Action<int> a = delegate (
+        Action<int, int> a = delegate (
             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
             [ObsoleteAttribute(message)] int y
         ) { };
@@ -2595,12 +2595,6 @@ class Program
                 // (11,13): error CS7014: Attributes are not valid in this context.
                 //             [ObsoleteAttribute(message)] int y
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(11, 13),
-                // (9,25): error CS1593: Delegate 'Action<int>' does not take 2 arguments
-                //         Action<int> a = delegate (
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, @"delegate (
-            [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
-            [ObsoleteAttribute(message)] int y
-        ) { }").WithArguments("System.Action<int>", "2").WithLocation(9, 25),
                 // (8,22): warning CS0219: The variable 'message' is assigned but its value is never used
                 //         const string message = "the parameter is obsolete";
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "message").WithArguments("message").WithLocation(8, 22));
