@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -31,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var parameterSyntax in syntax.Parameters)
             {
-                SyntaxToken outKeyword;
-                SyntaxToken refKeyword;
-                SyntaxToken paramsKeyword;
-                SyntaxToken thisKeyword;
-                var refKind = GetModifiers(parameterSyntax.Modifiers, out outKeyword, out refKeyword, out paramsKeyword, out thisKeyword);
+                CheckParameterModifiers(parameterSyntax, diagnostics);
+
+                var refKind = GetModifiers(parameterSyntax.Modifiers,
+                    out var outKeyword, out var refKeyword,
+                    out var paramsKeyword, out var thisKeyword);
 
                 if (parameterSyntax.IsArgList)
                 {
@@ -96,6 +97,112 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             binder.ValidateParameterNameConflicts(typeParameters, parameters, diagnostics);
             return parameters;
+        }
+
+        private static void CheckParameterModifiers(
+            ParameterSyntax parameter, DiagnosticBag diagnostics)
+        {
+            var seenThis = false;
+            var seenRef = false;
+            var seenOut = false;
+            var seenParams = false;
+
+            foreach (var modifier in parameter.Modifiers)
+            {
+                switch (modifier.Kind())
+                {
+                    case SyntaxKind.ThisKeyword:
+                        if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                        }
+                        else if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadOutWithThis, modifier.GetLocation());
+                        }
+                        else if (seenRef)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadRefWithThis, modifier.GetLocation());
+                        }
+                        else if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParamModThis, modifier.GetLocation());
+                        }
+                        else
+                        {
+                            seenThis = true;
+                        }
+                        break;
+
+                    case SyntaxKind.RefKeyword:
+                        if (seenRef)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
+                        }
+                        else if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadRefWithThis, modifier.GetLocation());
+                        }
+                        else if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ParamsCantBeRefOut, modifier.GetLocation());
+                        }
+                        else if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_MultiParamMod, modifier.GetLocation());
+                        }
+                        else
+                        {
+                            seenRef = true;
+                        }
+                        break;
+
+                    case SyntaxKind.OutKeyword:
+                        if (seenOut)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
+                        }
+                        else if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadOutWithThis, modifier.GetLocation());
+                        }
+                        else if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ParamsCantBeRefOut, modifier.GetLocation());
+                        }
+                        else if (seenRef)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_MultiParamMod, modifier.GetLocation());
+                        }
+                        else
+                        {
+                            seenOut = true;
+                        }
+                        break;
+
+                    case SyntaxKind.ParamsKeyword:
+                        if (seenParams)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ParamsKeyword));
+                        }
+                        else if (seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadParamModThis, modifier.GetLocation());
+                        }
+                        else if (seenRef || seenOut || seenThis)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_MultiParamMod, modifier.GetLocation());
+                        }
+                        else
+                        {
+                            seenParams = true;
+                        }
+                        break;
+
+                    default:
+                        throw new InvalidOperationException();
+                }
+            }
         }
 
         private static void ReportParameterErrors(
