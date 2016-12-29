@@ -1647,21 +1647,30 @@ Diagnostic(ErrorCode.ERR_ClassTypeExpected, "byte"));
             var test = @"
 namespace x
 {
-[foo(a=5, b)]
-class foo
+    class FooAttribute : System.Attribute
+    {
+        public int a;
+    }
+
+    [Foo(a=5, b)]
+    class Bar
     {
     }
-public class a
+    public class a
     {
-    public static int Main()
+        public static int Main()
         {
-        return 1;
+            return 1;
         }
     }
-}
-";
-
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "b"));
+}";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (9,15): error CS1016: Named attribute argument expected
+                //     [Foo(a=5, b)]
+                Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "b").WithLocation(9, 15),
+                // (9,15): error CS0103: The name 'b' does not exist in the current context
+                //     [Foo(a=5, b)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(9, 15));
         }
 
         [Fact]

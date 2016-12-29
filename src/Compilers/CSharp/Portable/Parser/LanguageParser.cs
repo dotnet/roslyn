@@ -1094,14 +1094,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var argNodes = _pool.AllocateSeparated<AttributeArgumentSyntax>();
                 try
                 {
-                    bool shouldHaveName = false;
 tryAgain:
                     if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                     {
                         if (this.IsPossibleAttributeArgument() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                         {
                             // first argument
-                            argNodes.Add(this.ParseAttributeArgument(ref shouldHaveName));
+                            argNodes.Add(this.ParseAttributeArgument());
 
                             // comma + argument or end?
                             while (true)
@@ -1113,7 +1112,7 @@ tryAgain:
                                 else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleAttributeArgument())
                                 {
                                     argNodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                                    argNodes.Add(this.ParseAttributeArgument(ref shouldHaveName));
+                                    argNodes.Add(this.ParseAttributeArgument());
                                 }
                                 else if (this.SkipBadAttributeArgumentTokens(ref openParen, argNodes, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                                 {
@@ -1152,7 +1151,7 @@ tryAgain:
             return this.IsPossibleExpression();
         }
 
-        private AttributeArgumentSyntax ParseAttributeArgument(ref bool shouldHaveName)
+        private AttributeArgumentSyntax ParseAttributeArgument()
         {
             // Need to parse both "real" named arguments and attribute-style named arguments.
             // We track attribute-style named arguments only with fShouldHaveName.
@@ -1169,7 +1168,6 @@ tryAgain:
                             var name = this.ParseIdentifierToken();
                             var equals = this.EatToken(SyntaxKind.EqualsToken);
                             nameEquals = _syntaxFactory.NameEquals(_syntaxFactory.IdentifierName(name), equals);
-                            shouldHaveName = true;
                         }
 
                         break;
@@ -1180,20 +1178,12 @@ tryAgain:
                             nameColon = _syntaxFactory.NameColon(name, colonToken);
                             nameColon = CheckFeatureAvailability(nameColon, MessageID.IDS_FeatureNamedArgument);
                         }
-
                         break;
                 }
             }
 
-            var expr = this.ParseExpressionCore();
-
-            // Not named -- give an error if it's supposed to be
-            if (shouldHaveName && nameEquals == null)
-            {
-                expr = this.AddError(expr, ErrorCode.ERR_NamedArgumentExpected);
-            }
-
-            return _syntaxFactory.AttributeArgument(nameEquals, nameColon, expr);
+            return _syntaxFactory.AttributeArgument(
+                nameEquals, nameColon, this.ParseExpressionCore());
         }
 
         [Flags]
