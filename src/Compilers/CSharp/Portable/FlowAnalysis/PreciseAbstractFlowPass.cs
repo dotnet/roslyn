@@ -1664,11 +1664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
-            foreach (BoundExpression variable in node.LeftVariables)
-            {
-                VisitLvalue(variable);
-            }
-
+            node.Left.VisitAllElements(x => this.VisitLvalue(x));
             VisitRvalue(node.Right);
 
             return null;

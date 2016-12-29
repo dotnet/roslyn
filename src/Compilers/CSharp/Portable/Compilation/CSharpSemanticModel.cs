@@ -97,7 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.OmittedTypeArgument:
                 case SyntaxKind.RefExpression:
-                case SyntaxKind.DeclarationExpression:
                     // These are just placeholders and are not separately meaningful.
                     return false;
 
@@ -118,7 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (node is ExpressionSyntax && (isSpeculative || allowNamedArgumentName || !SyntaxFacts.IsNamedArgumentName(node))) ||
                         (node is ConstructorInitializerSyntax) ||
                         (node is AttributeSyntax) ||
-                        (node is CrefSyntax);
+                        (node is CrefSyntax) ||
+                        (node is DeclarationExpressionSyntax);
             }
         }
 

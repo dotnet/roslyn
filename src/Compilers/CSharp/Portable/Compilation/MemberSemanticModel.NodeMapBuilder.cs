@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
             {
-                VisitList(node.LeftVariables);
+                Visit(node.Left);
                 Visit(node.Right);
                 // don't map the deconstruction, conversion or assignment steps
                 return null;

@@ -2202,7 +2202,11 @@ class C
 
                 var lhs = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().First();
                 Assert.Equal(@"var (x1, (x2, x3))", lhs.ToString());
-                Assert.Null(model.GetTypeInfo(lhs).Type);
+                Assert.Equal("(System.Int32, (System.Int32, System.String))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+
+                var lhsNested = tree.GetRoot().DescendantNodes().OfType<ParenthesizedVariableDesignationSyntax>().ElementAt(1);
+                Assert.Equal(@"(x2, x3)", lhsNested.ToString());
+                Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(lhsNested).Type.ToTestDisplayString());  // TODO FIX null-ref
 
                 var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
@@ -4993,7 +4997,7 @@ class C
             Assert.Null(model.GetDeclaredSymbol(discard1));
             var tuple1 = (DeclarationExpressionSyntax)discard1.Parent.Parent;
             Assert.Equal("var (_, x)", tuple1.ToString());
-            //Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(tuple1).Type.ToTestDisplayString()); // fix null type  https://github.com/dotnet/roslyn/issues/15450
+            Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(tuple1).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -5050,7 +5054,7 @@ class C
             Assert.Null(model.GetDeclaredSymbol(discard1));
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent.Parent;
             Assert.Equal("var (_, x)", declaration1.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
+            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
 
             var discard3 = GetDiscardIdentifiers(tree).First();
             Assert.Equal("(_, var x)", discard3.Parent.Parent.ToString());
@@ -5977,27 +5981,20 @@ class C
             string source = @"
 class C
 {
-    public int a;
-    public void Deconstruct(out int b)
-    {
-        b = a;
-    }
-
     static void Main()
     {
-        var p = new C() { a = 10 };
-        var (p2) = p;
+        var (p2) = (1, 2);
     }
 }
 ";
             var compilation = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             compilation.VerifyDiagnostics(
-                // (13,20): error CS8134: Deconstruction must contain at least two variables.
-                //         var (p2) = p;
-                Diagnostic(ErrorCode.ERR_DeconstructTooFewElements, "p").WithLocation(13, 20),
-                // (13,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'p2'.
-                //         var (p2) = p;
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "p2").WithArguments("p2").WithLocation(13, 14)
+                // (6,16): error CS1003: Syntax error, ',' expected
+                //         var (p2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(6, 16),
+                // (6,16): error CS1001: Identifier expected
+                //         var (p2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 16)
                 );
         }
 

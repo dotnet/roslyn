@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundDeconstructionAssignmentOperator BindDeconstructionAssignment(
                                                         CSharpSyntaxNode node,
+                                                        ExpressionSyntax left,
                                                         ExpressionSyntax right,
                                                         ArrayBuilder<DeconstructionVariable> checkedVariables,
                                                         DiagnosticBag diagnostics,
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 FailRemainingInferences(checkedVariables, diagnostics);
 
                 return new BoundDeconstructionAssignmentOperator(
-                            node, FlattenDeconstructVariables(checkedVariables), boundRHS,
+                            node, DeconstructVariablesAsTuple(left, checkedVariables), boundRHS,
                             ImmutableArray<BoundDeconstructionDeconstructStep>.Empty,
                             ImmutableArray<BoundDeconstructionAssignmentStep>.Empty,
                             ImmutableArray<BoundDeconstructionAssignmentStep>.Empty,
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             FailRemainingInferences(checkedVariables, diagnostics);
 
             return new BoundDeconstructionAssignmentOperator(
-                            node, FlattenDeconstructVariables(checkedVariables), boundRHS,
+                            node, DeconstructVariablesAsTuple(left, checkedVariables), boundRHS,
                             deconstructions, conversions, assignments, constructions, returnType, hasErrors: hasErrors);
         }
 
@@ -530,27 +531,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundDeconstructionAssignmentStep(node, op, outputPlaceholder);
         }
 
-        private static ImmutableArray<BoundExpression> FlattenDeconstructVariables(ArrayBuilder<DeconstructionVariable> variables)
+        private BoundTupleLiteral DeconstructVariablesAsTuple(SyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables)
         {
-            var builder = ArrayBuilder<BoundExpression>.GetInstance(variables.Count);
-            FlattenDeconstructVariables(variables, builder);
-
-            return builder.ToImmutableAndFree();
-        }
-
-        private static void FlattenDeconstructVariables(ArrayBuilder<DeconstructionVariable> variables, ArrayBuilder<BoundExpression> builder)
-        {
+            int count = variables.Count;
+            var argBuilder = ArrayBuilder<BoundExpression>.GetInstance(count);
+            var elementsBuilder = ArrayBuilder<TypeSymbol>.GetInstance(count);
+            var locationsBuilder = ArrayBuilder<Location>.GetInstance(count);
             foreach (var variable in variables)
             {
                 if (variable.HasNestedVariables)
                 {
-                    FlattenDeconstructVariables(variable.NestedVariables, builder);
+                    var nestedTuple = DeconstructVariablesAsTuple(variable.Syntax, variable.NestedVariables);
+                    argBuilder.Add(nestedTuple);
+                    elementsBuilder.Add(nestedTuple.Type);
                 }
                 else
                 {
-                    builder.Add(variable.Single);
+                    var single = variable.Single;
+                    argBuilder.Add(single);
+                    elementsBuilder.Add(single.Type);
                 }
+                locationsBuilder.Add(variable.Syntax.Location);
             }
+
+            var type = TupleTypeSymbol.Create(syntax.Location,
+                elementsBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
+                elementNames: default(ImmutableArray<string>), compilation: this.Compilation);
+
+            return new BoundTupleLiteral(syntax: syntax, argumentNamesOpt: default(ImmutableArray<string>),
+                arguments: argBuilder.ToImmutableAndFree(), type: type);
         }
 
         /// <summary>
@@ -690,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             DeconstructionVariable locals = BindDeconstructionVariables(left, diagnostics, ref declaration, ref expression);
             Debug.Assert(locals.HasNestedVariables);
-            var result = BindDeconstructionAssignment(deconstruction, right, locals.NestedVariables, diagnostics, rhsPlaceholder: rightPlaceholder);
+            var result = BindDeconstructionAssignment(deconstruction, left, right, locals.NestedVariables, diagnostics, rhsPlaceholder: rightPlaceholder);
             FreeDeconstructionVariables(locals.NestedVariables);
             return result;
         }

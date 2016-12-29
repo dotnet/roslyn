@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var placeholders = ArrayBuilder<BoundValuePlaceholderBase>.GetInstance();
 
             // evaluate left-hand-side side-effects
-            ImmutableArray<BoundExpression> lhsTargets = GetAssignmentTargetsAndSideEffects(node.LeftVariables, temps, stores);
+            ImmutableArray<BoundExpression> lhsTargets = GetAssignmentTargetsAndSideEffects(node.Left, temps, stores);
 
             // get or make right-hand-side values
             BoundExpression loweredRight = VisitExpression(node.Right);
@@ -152,21 +152,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Adds the side effects to stores and returns temporaries (as a flat list) to access them.
         /// </summary>
-        private ImmutableArray<BoundExpression> GetAssignmentTargetsAndSideEffects(ImmutableArray<BoundExpression> variables, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores)
+        private ImmutableArray<BoundExpression> GetAssignmentTargetsAndSideEffects(BoundTupleExpression variables, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores)
         {
-            var assignmentTargets = ArrayBuilder<BoundExpression>.GetInstance(variables.Length);
+            var assignmentTargets = ArrayBuilder<BoundExpression>.GetInstance();
 
-            foreach (var variable in variables)
-            {
-                if (variable.Kind == BoundKind.DiscardExpression)
+            variables.VisitAllElements(
+                (variable, args) =>
                 {
-                    assignmentTargets.Add(variable);
-                }
-                else
-                {
-                    assignmentTargets.Add(TransformCompoundAssignmentLHS(variable, stores, temps, isDynamicAssignment: variable.Type.IsDynamic()));
-                }
-            }
+                    if (variable.Kind == BoundKind.DiscardExpression)
+                    {
+                        assignmentTargets.Add(variable);
+                    }
+                    else
+                    {
+                        assignmentTargets.Add(this.TransformCompoundAssignmentLHS(variable, args.stores, args.temps, isDynamicAssignment: variable.Type.IsDynamic()));
+                    }
+                },
+                (temps: temps, stores: stores)
+            );
 
             return assignmentTargets.ToImmutableAndFree();
         }
