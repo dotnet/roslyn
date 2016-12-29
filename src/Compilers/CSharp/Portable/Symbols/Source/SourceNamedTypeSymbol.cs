@@ -132,7 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var syntaxTree = syntaxRef.SyntaxTree;
 
                 TypeParameterListSyntax tpl;
-                switch (typeDecl.Kind())
+                SyntaxKind typeKind = typeDecl.Kind();
+                switch (typeKind)
                 {
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
@@ -150,11 +151,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(typeDecl.Kind());
                 }
 
+                bool isInterfaceOrDelegate = typeKind == SyntaxKind.InterfaceDeclaration || typeKind == SyntaxKind.DelegateDeclaration;
                 var parameterBuilder = new List<TypeParameterBuilder>();
                 parameterBuilders1.Add(parameterBuilder);
                 int i = 0;
                 foreach (var tp in tpl.Parameters)
                 {
+                    if (tp.VarianceKeyword.Kind() != SyntaxKind.None &&
+                        !isInterfaceOrDelegate)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, tp.VarianceKeyword.GetLocation());
+                    }
+
                     var name = typeParameterNames[i];
                     var location = new SourceLocation(tp.Identifier);
                     var varianceKind = typeParameterVarianceKeywords[i];
