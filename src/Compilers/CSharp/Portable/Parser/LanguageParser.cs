@@ -1572,7 +1572,6 @@ tryAgain:
             var typeParameters = this.ParseTypeParameterList(allowVariance: classOrStructOrInterface.Kind == SyntaxKind.InterfaceKeyword);
 
             _termState = saveTerm;
-            bool hasTypeParams = typeParameters != null;
             var baseList = this.ParseBaseList();
 
             // Parse class body
@@ -1584,7 +1583,7 @@ tryAgain:
                 if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                 {
                     constraints = _pool.Allocate<TypeParameterConstraintClauseSyntax>();
-                    this.ParseTypeParameterConstraintClauses(hasTypeParams, constraints);
+                    this.ParseTypeParameterConstraintClauses(constraints);
                 }
 
                 var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
@@ -1884,18 +1883,11 @@ tryAgain:
                 this.PeekToken(2).Kind == SyntaxKind.ColonToken;
         }
 
-        private void ParseTypeParameterConstraintClauses(bool isAllowed, SyntaxListBuilder list)
+        private void ParseTypeParameterConstraintClauses(SyntaxListBuilder list)
         {
             while (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
             {
-                var constraint = this.ParseTypeParameterConstraintClause();
-                if (!isAllowed)
-                {
-                    constraint = this.AddErrorToFirstToken(constraint, ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl);
-                    isAllowed = true; // silence any further errors
-                }
-
-                list.Add(constraint);
+                list.Add(this.ParseTypeParameterConstraintClause());
             }
         }
 
@@ -2895,7 +2887,7 @@ parse_member_name:;
                 if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                 {
                     constraints = _pool.Allocate<TypeParameterConstraintClauseSyntax>();
-                    this.ParseTypeParameterConstraintClauses(typeParameterList != null, constraints);
+                    this.ParseTypeParameterConstraintClauses(constraints);
                 }
                 else if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
                 {
@@ -4931,7 +4923,7 @@ tryAgain:
                 if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                 {
                     constraints = _pool.Allocate<TypeParameterConstraintClauseSyntax>();
-                    this.ParseTypeParameterConstraintClauses(typeParameters != null, constraints);
+                    this.ParseTypeParameterConstraintClauses(constraints);
                 }
 
                 _termState = saveTerm;
@@ -8713,7 +8705,7 @@ tryAgain:
             if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
             {
                 constraints = _pool.Allocate<TypeParameterConstraintClauseSyntax>();
-                this.ParseTypeParameterConstraintClauses(typeParameterListOpt != null, constraints);
+                this.ParseTypeParameterConstraintClauses(constraints);
                 forceLocalFunc = true;
             }
 

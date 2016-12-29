@@ -95,9 +95,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isMetadataVirtualIgnoringModifiers);
 
-            _typeParameters = (syntax.Arity == 0) ?
-                ImmutableArray<TypeParameterSymbol>.Empty :
-                MakeTypeParameters(syntax, diagnostics);
+            if (syntax.Arity == 0)
+            {
+                _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics);
+            }
+            else
+            {
+                _typeParameters = MakeTypeParameters(syntax, diagnostics);
+            }
 
             bool hasBlockBody = syntax.Body != null;
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;

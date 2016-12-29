@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+                ReportErrorIfHasConstraints(_syntax.ConstraintClauses, diagnostics);
             }
 
             if (IsExtensionMethod)
