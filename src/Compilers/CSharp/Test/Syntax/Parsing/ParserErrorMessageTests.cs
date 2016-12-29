@@ -1711,10 +1711,19 @@ public class mine {
 }
 ";
 
-            ParseAndValidate(test,
-                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch"),
-                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch"),
-                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (16,9): error CS1017: Catch clauses cannot follow the general catch clause of a try statement
+                //         catch (S1) {}
+                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch").WithLocation(16, 9),
+                // (17,9): error CS1017: Catch clauses cannot follow the general catch clause of a try statement
+                //         catch (S) {}
+                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch").WithLocation(17, 9),
+                // (18,9): error CS1017: Catch clauses cannot follow the general catch clause of a try statement
+                //         catch when (false) {}
+                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch").WithLocation(18, 9),
+                // (18,21): warning CS7095: Filter expression is a constant, consider removing the filter
+                //         catch when (false) {}
+                Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(18, 21));
         }
 
         [Fact]

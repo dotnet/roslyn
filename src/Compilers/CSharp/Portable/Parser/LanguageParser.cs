@@ -7649,7 +7649,6 @@ tryAgain:
             try
             {
                 bool hasEnd = false;
-                bool hasCatchAll = false;
 
                 if (this.CurrentToken.Kind == SyntaxKind.CatchKeyword)
                 {
@@ -7657,9 +7656,7 @@ tryAgain:
                     catches = _pool.Allocate<CatchClauseSyntax>();
                     while (this.CurrentToken.Kind == SyntaxKind.CatchKeyword)
                     {
-                        var clause = this.ParseCatchClause(hasCatchAll);
-                        hasCatchAll |= clause.Declaration == null && clause.Filter == null;
-                        catches.Add(clause);
+                        catches.Add(this.ParseCatchClause());
                     }
                 }
 
@@ -7704,17 +7701,11 @@ tryAgain:
                 || this.CurrentToken.Kind == SyntaxKind.FinallyKeyword;
         }
 
-        private CatchClauseSyntax ParseCatchClause(bool hasCatchAll)
+        private CatchClauseSyntax ParseCatchClause()
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.CatchKeyword);
 
             var @catch = this.EatToken();
-
-            // Check for the error of catch clause following empty catch here.
-            if (hasCatchAll)
-            {
-                @catch = this.AddError(@catch, ErrorCode.ERR_TooManyCatches);
-            }
 
             CatchDeclarationSyntax decl = null;
             var saveTerm = _termState;
