@@ -3278,7 +3278,7 @@ public class MyClass
                 // (8,16): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or lambda expressions.
                 //         fixed (TypedReference tr) { }
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "TypedReference").WithArguments("System.TypedReference"),
-                // (8,31): error CS0210: You must provide an initializer in a fixed or using statement declaration
+                // (8,31): error CS0210: You must provide an initializer in a 'fixed' statement declaration
                 //         fixed (TypedReference tr) { }
                 Diagnostic(ErrorCode.ERR_FixedMustInit, "tr"),
                 // (6,37): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.

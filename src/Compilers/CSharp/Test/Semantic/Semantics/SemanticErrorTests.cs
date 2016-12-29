@@ -7684,7 +7684,7 @@ public class MyClass
                 // (13,18): error CS0209: The type of a local declared in a fixed statement must be a pointer type
                 //       fixed (int i)    // CS0209
                 Diagnostic(ErrorCode.ERR_BadFixedInitType, "i"),
-                // (13,18): error CS0210: You must provide an initializer in a fixed or using statement declaration
+                // (13,18): error CS0210: You must provide an initializer in a 'fixed' statement declaration
                 //       fixed (int i)    // CS0209
                 Diagnostic(ErrorCode.ERR_FixedMustInit, "i"),
 
@@ -7717,13 +7717,13 @@ class Test
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (7,27): error CS0210: You must provide an initializer in a fixed or using statement declaration
+                // (7,27): error CS0210: You must provide an initializer in a 'using' statement declaration
                 //       using (StreamWriter w) // CS0210
                 Diagnostic(ErrorCode.ERR_FixedMustInit, "w").WithLocation(7, 27),
-                // (12,27): error CS0210: You must provide an initializer in a fixed or using statement declaration
+                // (12,27): error CS0210: You must provide an initializer in a 'using' statement declaration
                 //       using (StreamWriter x, y) // CS0210, CS0210
                 Diagnostic(ErrorCode.ERR_FixedMustInit, "x").WithLocation(12, 27),
-                // (12,30): error CS0210: You must provide an initializer in a fixed or using statement declaration
+                // (12,30): error CS0210: You must provide an initializer in a 'using' statement declaration
                 //       using (StreamWriter x, y) // CS0210, CS0210
                 Diagnostic(ErrorCode.ERR_FixedMustInit, "y").WithLocation(12, 30),
                 // (9,10): error CS0165: Use of unassigned local variable 'w'
