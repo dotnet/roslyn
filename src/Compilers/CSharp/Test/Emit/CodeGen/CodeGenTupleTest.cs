@@ -8368,6 +8368,54 @@ class C<T>
         public void Constraints_04()
         {
             var source = @"
+using System.Collections.Generic;
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+        where T2 : struct
+    {
+        public ValueTuple(T1 _1, T2 _2)
+        {
+        }
+    }
+}
+class C<T> where T : class
+{
+    List<(T, T)> field = null;
+    (U, U) M<U>(U x) where U : class
+    {
+        var t0 = new C<int>();
+        var t1 = M((1, 2));
+        return default((U, U));
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source);
+            comp.VerifyDiagnostics(
+                // (16,12): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
+                //     (U, U) M<U>(U x) where U : class
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M").WithArguments("System.ValueTuple<T1, T2>", "T2", "U").WithLocation(16, 12),
+                // (15,14): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
+                //     List<(T, T)> field = null;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "T").WithArguments("System.ValueTuple<T1, T2>", "T2", "T").WithLocation(15, 14),
+                // (18,24): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                //         var t0 = new C<int>();
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("C<T>", "T", "int").WithLocation(18, 24),
+                // (19,18): error CS0452: The type '(int, int)' must be a reference type in order to use it as parameter 'U' in the generic type or method 'C<T>.M<U>(U)'
+                //         var t1 = M((1, 2));
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M").WithArguments("C<T>.M<U>(U)", "U", "(int, int)").WithLocation(19, 18),
+                // (20,28): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
+                //         return default((U, U));
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "U").WithArguments("System.ValueTuple<T1, T2>", "T2", "U").WithLocation(20, 28),
+                // (15,18): warning CS0414: The field 'C<T>.field' is assigned but its value is never used
+                //     List<(T, T)> field = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field").WithArguments("C<T>.field").WithLocation(15, 18)
+            );
+        }
+
+        [Fact]
+        public void Constraints_05()
+        {
+            var source = @"
 namespace System
 {
     public struct ValueTuple<T1>

@@ -13159,6 +13159,52 @@ BC32106: Type argument 'U' does not satisfy the 'Class' constraint for type para
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
 <file name="a.vb"><![CDATA[
+Imports System.Collections.Generic
+Namespace System
+    Public Structure ValueTuple(Of T1, T2 As Structure)   
+        Sub New(_1 As T1, _2 As T2)       
+        End Sub
+    End Structure
+End Namespace
+Class C(Of T As Class)
+    Dim field As List(Of (T, T))
+    Function M(Of U As Class)(x As (U, U)) As (U, U)
+        Dim t0 = New C(Of Integer)()
+        Dim t1 = M((1, 2))
+        Return (Nothing, Nothing)
+    End Function
+End Class
+]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC32105: Type argument 'T' does not satisfy the 'Structure' constraint for type parameter 'T2'.
+    Dim field As List(Of (T, T))
+                             ~
+BC32105: Type argument 'U' does not satisfy the 'Structure' constraint for type parameter 'T2'.
+    Function M(Of U As Class)(x As (U, U)) As (U, U)
+                              ~
+BC32105: Type argument 'U' does not satisfy the 'Structure' constraint for type parameter 'T2'.
+    Function M(Of U As Class)(x As (U, U)) As (U, U)
+                                              ~~~~~~
+BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T'.
+        Dim t0 = New C(Of Integer)()
+                          ~~~~~~~
+BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'U'.
+        Dim t1 = M((1, 2))
+                 ~
+BC32105: Type argument 'Object' does not satisfy the 'Structure' constraint for type parameter 'T2'.
+        Return (Nothing, Nothing)
+                         ~~~~~~~
+</errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub Constraints_05()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+<file name="a.vb"><![CDATA[
 Namespace System
     Public Structure ValueTuple(Of T1 As Class)
         Public Sub New(item1 As T1)

@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false; // continue walking types
         }
 
-        public static bool CheckConstraints(
+        public static void CheckConstraints(
             this TupleTypeSymbol tuple,
             ConversionsBase conversions,
             SyntaxNode typeSyntax,
@@ -400,24 +400,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol type = tuple.TupleUnderlyingType;
             if (!RequiresChecking(type))
             {
-                return true;
+                return;
             }
 
             if (typeSyntax.HasErrors)
             {
-                return false;
+                return;
             }
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             var underlyingTupleTypeChain = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             TupleTypeSymbol.GetUnderlyingTypeChain(type, underlyingTupleTypeChain);
 
-            bool result = true;
             int offset = 0;
             foreach (var underlyingTuple in underlyingTupleTypeChain)
             {
                 ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-                result &= CheckTypeConstraints(underlyingTuple, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+                CheckTypeConstraints(underlyingTuple, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
                 if (useSiteDiagnosticsBuilder != null)
                 {
@@ -441,8 +440,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             underlyingTupleTypeChain.Free();
             diagnosticsBuilder.Free();
-
-            return result;
         }
 
         public static bool CheckConstraintsForNonTuple(
@@ -496,7 +493,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             // We do not report element locations in method parameters and return types
-            // so we will simply unwrap the type if it was a tuple.
+            // so we will simply unwrap the type if it was a tuple. We are relying on
+            // TypeSymbolExtensions.VisitType to dig into the "Rest" tuple so that they
+            // will be recursively unwrapped as well.
             type = (NamedTypeSymbol)type.TupleUnderlyingTypeOrSelf();
 
             if (!RequiresChecking(type))

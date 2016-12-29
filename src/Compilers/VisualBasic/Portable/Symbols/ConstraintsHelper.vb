@@ -426,29 +426,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Public Function CheckConstraints(
-                                        tuple As TupleTypeSymbol,
-                                        syntaxNode As SyntaxNode,
-                                        elementLocations As ImmutableArray(Of Location),
-                                        diagnostics As DiagnosticBag) As Boolean
+        Public Sub CheckConstraints(
+                                    tuple As TupleTypeSymbol,
+                                    syntaxNode As SyntaxNode,
+                                    elementLocations As ImmutableArray(Of Location),
+                                    diagnostics As DiagnosticBag)
             Dim type As NamedTypeSymbol = tuple.TupleUnderlyingType
             If Not RequiresChecking(type) Then
-                Return True
+                Return
             End If
 
             If syntaxNode.HasErrors Then
-                Return False
+                Return
             End If
 
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim underlyingTupleTypeChain = ArrayBuilder(Of NamedTypeSymbol).GetInstance
             TupleTypeSymbol.GetUnderlyingTypeChain(type, underlyingTupleTypeChain)
 
-            Dim result As Boolean = True
             Dim offset As Integer = 0
             For Each underlyingTuple In underlyingTupleTypeChain
                 Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-                result = result And CheckTypeConstraints(underlyingTuple, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+                CheckTypeConstraints(underlyingTuple, diagnosticsBuilder, useSiteDiagnosticsBuilder)
 
                 If useSiteDiagnosticsBuilder IsNot Nothing Then
                     diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -470,9 +469,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             underlyingTupleTypeChain.Free()
             diagnosticsBuilder.Free()
-
-            Return result
-        End Function
+        End Sub
 
         <Extension()>
         Public Function CheckConstraintsForNonTuple(
@@ -509,7 +506,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                         <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
             ' We do not report element locations in method parameters and return types
-            ' so we will simply unwrap the type if it was a tuple.
+            ' so we will simply unwrap the type if it was a tuple. We are relying on
+            ' TypeSymbolExtensions.VisitType to dig into the "Rest" tuple so that they
+            ' will be recursively unwrapped as well.
             type = DirectCast(type.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
 
             If Not RequiresChecking(type) Then
