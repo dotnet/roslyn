@@ -380,6 +380,9 @@
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser_NamingRule.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser_NamingStyle.cs" />
     <Compile Include="NamingStyles\EditorConfig\EditorConfigNamingStyleParser_SymbolSpec.cs" />
+    <Compile Include="NamingStyles\NamingStyle.cs" />
+    <Compile Include="NamingStyles\NamingStyle.WordSpanEnumerable.cs" />
+    <Compile Include="NamingStyles\NamingStyle.WordSpanEnumerator.cs" />
     <Compile Include="NamingStyles\Serialization\AccessibilityExtensions.cs" />
     <Compile Include="LanguageServices\TypeInferenceService\AbstractTypeInferenceService.AbstractTypeInferrer.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex_Persistence.cs" />
@@ -399,7 +402,7 @@
     <Compile Include="NamingStyles\Capitalization.cs" />
     <Compile Include="NamingStyles\NamingRule.cs" />
     <Compile Include="NamingStyles\NamingStyleRules.cs" />
-    <Compile Include="NamingStyles\Serialization\NamingStyle.cs" />
+    <Compile Include="NamingStyles\Serialization\MutableNamingStyle.cs" />
     <Compile Include="NamingStyles\Serialization\SerializableNamingRule.cs" />
     <Compile Include="NamingStyles\Serialization\NamingStylePreferences.cs" />
     <Compile Include="NamingStyles\Serialization\SymbolSpecification.cs" />

@@ -1,10 +1,12 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -26,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         public ObservableCollection<NamingRuleViewModel> CodeStyleItems { get; set; }
         public ObservableCollection<SymbolSpecification> Specifications { get; set; }
-        public ObservableCollection<NamingStyle> NamingStyles { get; set; }
+        public ObservableCollection<MutableNamingStyle> NamingStyles { get; set; }
 
         public NamingStyleOptionPageViewModel(NamingStylePreferences info)
         {
@@ -35,10 +37,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             {
                 var viewModel = new NamingRuleViewModel()
                 {
-                    NamingStyles = new ObservableCollection<NamingStyle>(info.NamingStyles),
+                    NamingStyles = new ObservableCollection<MutableNamingStyle>(info.NamingStyles.Select(n => new MutableNamingStyle(n))),
                     Specifications = new ObservableCollection<SymbolSpecification>(info.SymbolSpecifications),
                     NotificationPreferences = new List<NotificationOptionViewModel>(_notifications)
                 };
+
                 viewModel.SelectedSpecification = viewModel.Specifications.Single(s => s.ID == namingRule.SymbolSpecificationID);
                 viewModel.SelectedStyle= viewModel.NamingStyles.Single(s => s.ID == namingRule.NamingStyleID);
                 viewModel.SelectedNotificationPreference = viewModel.NotificationPreferences.Single(n => n.Notification.Value == namingRule.EnforcementLevel);
@@ -48,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
             CodeStyleItems = new ObservableCollection<NamingRuleViewModel>(viewModels);
             Specifications = new ObservableCollection<SymbolSpecification>(info.SymbolSpecifications);
-            NamingStyles = new ObservableCollection<NamingStyle>(info.NamingStyles);
+            NamingStyles = new ObservableCollection<MutableNamingStyle>(info.NamingStyles.Select(n => new MutableNamingStyle(n)));
 
             SetMoveArrowStatuses();
         }
@@ -87,11 +90,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         internal void UpdateSpecificationList(ManageSymbolSpecificationsDialogViewModel viewModel)
         {
             var symbolSpecifications = viewModel.Items.Cast<SymbolSpecificationViewModel>().Select(n => new SymbolSpecification(
-                id: n.ID,
-                symbolSpecName: n.ItemName,
-                symbolKindList: n.SymbolKindList.Where(s => s.IsChecked).Select(k => k.CreateSymbolKindOrTypeKind()).ToList(),
-                accessibilityList: n.AccessibilityList.Where(s => s.IsChecked).Select(a => a._accessibility).ToList(),
-                modifiers: n.ModifierList.Where(s => s.IsChecked).Select(m => new SymbolSpecification.ModifierKind(m._modifier)).ToList()));
+                n.ID,
+                n.ItemName,
+                n.SymbolKindList.Where(s => s.IsChecked).Select(k => k.CreateSymbolKindOrTypeKind()).ToImmutableArray(),
+                n.AccessibilityList.Where(s => s.IsChecked).Select(a => a._accessibility).ToImmutableArray(),
+                n.ModifierList.Where(s => s.IsChecked).Select(m => new SymbolSpecification.ModifierKind(m._modifier)).ToImmutableArray()));
 
             Specifications.Clear();
             foreach (var specification in symbolSpecifications)
@@ -151,15 +154,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         internal void UpdateStyleList(ManageNamingStylesDialogViewModel viewModel)
         {
-            var namingStyles = viewModel.Items.Cast<NamingStyleViewModel>().Select(n => new NamingStyle
-            {
-                ID = n.ID,
-                Name = n.ItemName,
-                Prefix = n.RequiredPrefix,
-                Suffix = n.RequiredSuffix,
-                WordSeparator = n.WordSeparator,
-                CapitalizationScheme = n.CapitalizationSchemes[n.CapitalizationSchemeIndex].Capitalization
-            });
+            var namingStyles = viewModel.Items.Cast<NamingStyleViewModel>().Select(n => new MutableNamingStyle(
+                new NamingStyle(
+                    id: n.ID,
+                    name: n.ItemName,
+                    prefix: n.RequiredPrefix,
+                    suffix: n.RequiredSuffix,
+                    wordSeparator: n.WordSeparator,
+                    capitalizationScheme: n.CapitalizationSchemes[n.CapitalizationSchemeIndex].Capitalization)));
 
             NamingStyles.Clear();
             foreach (var style in namingStyles)
@@ -197,16 +199,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             public NamingRuleViewModel()
             {
                 Specifications = new ObservableCollection<SymbolSpecification>();
-                NamingStyles = new ObservableCollection<NamingStyle>();
+                NamingStyles = new ObservableCollection<MutableNamingStyle>();
                 NotificationPreferences = new List<NotificationOptionViewModel>();
             }
 
             private SymbolSpecification _selectedSpecification;
-            private NamingStyle _selectedNamingStyle;
+            private MutableNamingStyle _selectedNamingStyle;
             private NotificationOptionViewModel _selectedNotification;
 
             public ObservableCollection<SymbolSpecification> Specifications { get; set; }
-            public ObservableCollection<NamingStyle> NamingStyles { get; set; }
+            public ObservableCollection<MutableNamingStyle> NamingStyles { get; set; }
             public IEnumerable<NotificationOptionViewModel> NotificationPreferences { get; set; }
 
             public SymbolSpecification SelectedSpecification
@@ -221,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                 }
             }
 
-            public NamingStyle SelectedStyle
+            public MutableNamingStyle SelectedStyle
             {
                 get
                 {
