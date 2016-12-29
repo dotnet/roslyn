@@ -7,6 +7,7 @@
     "System.Collections.Immutable": "1.1.36",
     "Microsoft.VisualStudio.CoreUtility": [ "14.3.25407", "15.0.25726-Preview5" ],
     "Microsoft.VisualStudio.Editor": [ "14.3.25407", "15.0.25726-Preview5" ],
+    "Microsoft.VisualStudio.GraphModel": [ "14.3.25407", "15.0.25726-Preview5" ],
     "Microsoft.VisualStudio.Imaging": [ "14.3.25407", "15.0.25726-Preview5" ],
     "Microsoft.VisualStudio.ImageCatalog": [ "14.3.25407", "15.0.25726-Preview5" ],
     "Microsoft.VisualStudio.Shell.Immutable.10.0": "10.0.30319",
