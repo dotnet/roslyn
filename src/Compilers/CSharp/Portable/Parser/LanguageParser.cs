@@ -7722,18 +7722,17 @@ tryAgain:
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 var openParen = this.EatToken();
+
                 _termState |= TerminatorState.IsEndOfCatchClause;
-                var type = this.ParseClassType();
-                SyntaxToken name = null;
-
-                if (this.IsTrueIdentifier())
-                {
-                    name = this.ParseIdentifierToken();
-                }
-
+                var type = this.ParseType();
+                SyntaxToken name = this.IsTrueIdentifier()
+                    ? this.ParseIdentifierToken()
+                    : null;
                 _termState = saveTerm;
-                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                decl = _syntaxFactory.CatchDeclaration(openParen, type, name, closeParen);
+
+                decl = _syntaxFactory.CatchDeclaration(
+                    openParen, type, name, 
+                    this.EatToken(SyntaxKind.CloseParenToken));
             }
 
             CatchFilterClauseSyntax filter = null;
@@ -7790,31 +7789,6 @@ tryAgain:
             return this.CurrentToken.Kind == SyntaxKind.CloseBraceToken
                 || this.CurrentToken.Kind == SyntaxKind.CatchKeyword
                 || this.CurrentToken.Kind == SyntaxKind.FinallyKeyword;
-        }
-
-        private TypeSyntax ParseClassType()
-        {
-            var type = this.ParseType();
-            switch (type.Kind)
-            {
-                case SyntaxKind.PredefinedType:
-                    var kt = ((PredefinedTypeSyntax)type).Keyword.Kind;
-                    if (kt != SyntaxKind.ObjectKeyword && kt != SyntaxKind.StringKeyword)
-                    {
-                        goto default;
-                    }
-
-                    break;
-                default:
-                    if (!SyntaxFacts.IsName(type.Kind))
-                    {
-                        type = this.AddError(type, ErrorCode.ERR_ClassTypeExpected);
-                    }
-
-                    break;
-            }
-
-            return type;
         }
 
         private StatementSyntax ParseCheckedStatement()

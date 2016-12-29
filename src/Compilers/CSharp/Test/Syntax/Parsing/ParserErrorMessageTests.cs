@@ -1644,9 +1644,16 @@ public class Test
 }
 ";
 
-            ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_ClassTypeExpected, "int"),
-Diagnostic(ErrorCode.ERR_ClassTypeExpected, "byte"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (10,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         catch(int)
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "int").WithLocation(10, 15),
+                // (13,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         catch(byte)
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "byte").WithLocation(13, 15),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1));
         }
 
         [WorkItem(863382, "DevDiv/Personal")]
