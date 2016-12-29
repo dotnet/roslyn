@@ -2981,5 +2981,38 @@ class C
 
             End Using
         End Function
+
+        <WorkItem(16236, "https://github.com/dotnet/roslyn/issues/16236")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NameCompletionSorting() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+interface ISyntaxFactsService {}
+class C
+{
+    void M()
+    {
+        ISyntaxFactsService $$
+    }
+} </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+
+                Dim expectedOrder =
+                    {
+                        "syntaxFactsService",
+                        "syntaxFacts",
+                        "factsService",
+                        "syntax",
+                        "service"
+                    }
+
+                Dim items = state.CurrentCompletionPresenterSession.CompletionItems
+                Assert.Equal(expectedOrder.Count, items.Count)
+                For i = 0 To expectedOrder.Count - 1
+                    Assert.Equal(expectedOrder(i), items(i).DisplayText)
+                Next
+            End Using
+        End Function
     End Class
 End Namespace

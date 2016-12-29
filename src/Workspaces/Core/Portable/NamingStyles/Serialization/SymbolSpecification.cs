@@ -74,6 +74,67 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                    AnyMatches(this.ApplicableAccessibilityList, symbol);
         }
 
+        internal bool AppliesTo(SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility accessibility)
+        {
+            if (ApplicableSymbolKindList.Any() && !ApplicableSymbolKindList.Any(k => k.Equals(kind)))
+            {
+                return false;
+            }
+
+            if (!IgnoreModifiers(RequiredModifierList))
+            {
+                var collapsedModifiers = CollapseModifiers(RequiredModifierList);
+                if (modifiers != collapsedModifiers)
+                {
+                    return false;
+                }
+            }
+
+            if (ApplicableAccessibilityList.Any() && accessibility != Accessibility.NotApplicable && !ApplicableAccessibilityList.Any(k => k == accessibility))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool IgnoreModifiers(ImmutableArray<ModifierKind> requiredModifierList)
+        {
+            return requiredModifierList.Length == 1 && requiredModifierList[0].ModifierKindWrapper == ModifierKindEnum.Ignore;
+        }
+
+        private DeclarationModifiers CollapseModifiers(ImmutableArray<ModifierKind> requiredModifierList)
+        {
+            if (requiredModifierList == default(ImmutableArray<ModifierKind>))
+            {
+                return new DeclarationModifiers();
+            }
+
+            DeclarationModifiers result = new DeclarationModifiers();
+            foreach (var modifier in requiredModifierList)
+            {
+                switch (modifier.ModifierKindWrapper)
+                {
+                    case ModifierKindEnum.IsAbstract:
+                        result = result.WithIsAbstract(true);
+                        break;
+                    case ModifierKindEnum.IsStatic:
+                        result = result.WithIsStatic(true);
+                        break;
+                    case ModifierKindEnum.IsAsync:
+                        result = result.WithAsync(true);
+                        break;
+                    case ModifierKindEnum.IsReadOnly:
+                        result = result.WithIsReadOnly(true);
+                        break;
+                    case ModifierKindEnum.IsConst:
+                        result = result.WithIsConst(true);
+                        break;
+                }
+            }
+            return result;
+        }
+
         private bool AnyMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
             where TSymbolMatcher : ISymbolMatcher
         {
@@ -360,7 +421,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             IsStatic,
             IsAsync,
             IsReadOnly,
-            IsConst
+            IsConst,
+            Ignore // This matches any modifiers
         }
     }
 }
