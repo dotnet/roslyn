@@ -21,7 +21,7 @@
     "Microsoft.VisualStudio.Shell.Interop.9.0": "9.0.30729",
     "Microsoft.VisualStudio.Shell.Interop.10.0": "10.0.30319",
     "Microsoft.VisualStudio.TextManager.Interop": "7.10.6070",
-    "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": "14.3.25407",
+    "Microsoft.VisualStudio.ComponentModelHost": "14.3.25407-alpha",
     "System.Collections.Immutable": "1.1.36",
     "System.Reflection.Metadata": "1.0.21"
   },

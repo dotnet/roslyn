@@ -4,9 +4,22 @@
     "Microsoft.VisualStudio.Shell.15.0": "15.0.25726-Preview5",
     "Microsoft.VisualStudio.Shell.Immutable.10.0": "15.0.25413-Preview5",
     "Microsoft.VisualStudio.Shell.Immutable.11.0": "15.0.25413-Preview5",
-    "RoslynDependencies.Microsoft.VisualStudio.CallHierarchy.Package.Definitions": {
-      "version": "14.3.25407",
-      "suppressParent": "all"
+    "Microsoft.VisualStudio.CallHierarchy.Package.Definitions": "14.3.25407-alpha",
+    "Microsoft.VisualStudio.Shell.Immutable.10.0": {
+        "version": "15.0.25413-Preview5",
+        "include": "runtime"
+    },
+    "Microsoft.VisualStudio.Shell.Immutable.14.0": {
+        "version": "15.0.25403-Preview5",
+        "include": "runtime"
+    },
+    "Microsoft.VisualStudio.Shell.14.0": {
+        "version": "14.3.25407",
+        "include": "runtime"
+    },
+    "RoslynDependencies.Microsoft.VisualStudio.GraphModel": {
+        "version": "14.3.25407",
+        "include": "none"
     }
   },
   "frameworks": {

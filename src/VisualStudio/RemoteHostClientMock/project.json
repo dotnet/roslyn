@@ -1,6 +1,11 @@
 ﻿{
   "dependencies": {
-    "Newtonsoft.Json": "8.0.3"
+    "Newtonsoft.Json": "8.0.3",
+    "Microsoft.VisualStudio.ComponentModelHost": "15.0.25824-RC",
+    "RoslynDependencies.Microsoft.VisualStudio.GraphModel": {
+        "version": "14.3.25407",
+        "include": "none"
+    }
   },
   "frameworks": {
     "net46": { }
