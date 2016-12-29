@@ -13161,6 +13161,40 @@ BC32106: Type argument 'U' does not satisfy the 'Class' constraint for type para
 <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
 Namespace System
+    Public Structure ValueTuple(Of T1, T2 As Class)   
+        Sub New(_1 As T1, _2 As T2)       
+        End Sub
+    End Structure
+End Namespace
+Class C(Of T As Class)
+    Dim field As List(Of (T, T))
+    Function M(Of U As Class)(x As U) As (U, U)
+        Dim t0 = New C(Of Integer)()
+        Dim t1 = M(1)
+        Return (Nothing, Nothing)
+    End Function
+End Class
+]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T'.
+        Dim t0 = New C(Of Integer)()
+                          ~~~~~~~
+BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'U'.
+        Dim t1 = M(1)
+                 ~
+</errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub Constraints_05()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+<file name="a.vb"><![CDATA[
+Imports System.Collections.Generic
+Namespace System
     Public Structure ValueTuple(Of T1, T2 As Structure)   
         Sub New(_1 As T1, _2 As T2)       
         End Sub
@@ -13201,7 +13235,7 @@ BC32105: Type argument 'Object' does not satisfy the 'Structure' constraint for 
         End Sub
 
         <Fact()>
-        Public Sub Constraints_05()
+        Public Sub Constraints_06()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
 <file name="a.vb"><![CDATA[

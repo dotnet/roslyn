@@ -748,6 +748,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             builder.Add(BindDeclarationVariables(declType, n, diagnostics));
                         }
                         var subExpressions = builder.ToImmutableAndFree();
+
+                        // We will not check constraints at this point as this code path
+                        // is failure-only and the caller is expected to produce a diagnostic.
                         var tupleType = TupleTypeSymbol.Create(
                             null,
                             subExpressions.SelectAsArray(e => e.Type),

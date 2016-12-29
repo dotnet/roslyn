@@ -8372,6 +8372,45 @@ using System.Collections.Generic;
 namespace System
 {
     public struct ValueTuple<T1, T2>
+        where T2 : class
+    {
+        public ValueTuple(T1 _1, T2 _2)
+        {
+        }
+    }
+}
+class C<T> where T : class
+{
+    List<(T, T)> field = null;
+    (U, U) M<U>(U x) where U : class
+    {
+        var t0 = new C<int>();
+        var t1 = M(1);
+        return default((U, U));
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source);
+            comp.VerifyDiagnostics(
+                // (18,24): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                //         var t0 = new C<int>();
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("C<T>", "T", "int").WithLocation(18, 24),
+                // (19,18): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'U' in the generic type or method 'C<T>.M<U>(U)'
+                //         var t1 = M(1);
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M").WithArguments("C<T>.M<U>(U)", "U", "int").WithLocation(19, 18),
+                // (15,18): warning CS0414: The field 'C<T>.field' is assigned but its value is never used
+                //     List<(T, T)> field = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field").WithArguments("C<T>.field").WithLocation(15, 18)
+            );
+        }
+
+        [Fact]
+        public void Constraints_05()
+        {
+            var source = @"
+using System.Collections.Generic;
+namespace System
+{
+    public struct ValueTuple<T1, T2>
         where T2 : struct
     {
         public ValueTuple(T1 _1, T2 _2)
@@ -8413,7 +8452,7 @@ class C<T> where T : class
         }
 
         [Fact]
-        public void Constraints_05()
+        public void Constraints_06()
         {
             var source = @"
 namespace System
