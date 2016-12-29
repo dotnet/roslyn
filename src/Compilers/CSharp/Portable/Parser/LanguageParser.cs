@@ -956,19 +956,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
-        private void ParseAttributeDeclarations(SyntaxListBuilder list, bool allowAttributes = true)
+        private void ParseAttributeDeclarations(SyntaxListBuilder list)
         {
             var saveTerm = _termState;
             _termState |= TerminatorState.IsAttributeDeclarationTerminator;
+
             while (this.IsPossibleAttributeDeclaration())
             {
-                var section = this.ParseAttributeDeclaration();
-                if (!allowAttributes)
-                {
-                    section = this.AddError(section, ErrorCode.ERR_AttributesNotAllowed);
-                }
-
-                list.Add(section);
+                list.Add(this.ParseAttributeDeclaration());
             }
 
             _termState = saveTerm;
@@ -2656,7 +2651,8 @@ parse_member_name:;
             return true;
         }
 
-        private ConstructorDeclarationSyntax ParseConstructorDeclaration(string typeName, SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private ConstructorDeclarationSyntax ParseConstructorDeclaration(
+            string typeName, SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             var name = this.ParseIdentifierToken();
             Debug.Assert(name.ValueText == typeName);
@@ -2665,7 +2661,7 @@ parse_member_name:;
             _termState |= TerminatorState.IsEndOfMethodSignature;
             try
             {
-                var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true);
+                var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true);
 
                 ConstructorInitializerSyntax initializer = this.CurrentToken.Kind == SyntaxKind.ColonToken
                     ? this.ParseConstructorInitializer()
@@ -2899,7 +2895,7 @@ parse_member_name:;
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfMethodSignature;
 
-            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
+            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true);
 
             var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
             try
@@ -3014,7 +3010,7 @@ parse_member_name:;
 
             var type = this.ParseType();
 
-            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true);
+            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true);
             if (paramList.Parameters.Count != 1)
             {
                 paramList = this.AddErrorToFirstToken(paramList, ErrorCode.ERR_OvlUnaryOperatorExpected);
@@ -3102,7 +3098,7 @@ parse_member_name:;
                 }
             }
 
-            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true);
+            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true);
 
             switch (paramList.Parameters.Count)
             {
@@ -3779,7 +3775,7 @@ parse_member_name:;
             return false;
         }
 
-        internal ParameterListSyntax ParseParenthesizedParameterList(bool allowThisKeyword, bool allowDefaults, bool allowAttributes)
+        internal ParameterListSyntax ParseParenthesizedParameterList(bool allowThisKeyword, bool allowDefaults)
         {
             if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameterList(this.CurrentNode as CSharp.Syntax.ParameterListSyntax))
             {
@@ -3795,7 +3791,7 @@ parse_member_name:;
 
                 SyntaxToken open;
                 SyntaxToken close;
-                this.ParseParameterList(out open, parameters, out close, openKind, closeKind, allowThisKeyword, allowDefaults, allowAttributes);
+                this.ParseParameterList(out open, parameters, out close, openKind, closeKind, allowThisKeyword, allowDefaults);
                 return _syntaxFactory.ParameterList(open, parameters, close);
             }
             finally
@@ -3820,7 +3816,7 @@ parse_member_name:;
 
                 SyntaxToken open;
                 SyntaxToken close;
-                this.ParseParameterList(out open, parameters, out close, openKind, closeKind, allowThisKeyword: false, allowDefaults: allowDefaults, allowAttributes: true);
+                this.ParseParameterList(out open, parameters, out close, openKind, closeKind, allowThisKeyword: false, allowDefaults: allowDefaults);
                 return _syntaxFactory.BracketedParameterList(open, parameters, close);
             }
             finally
@@ -3892,8 +3888,7 @@ parse_member_name:;
             SyntaxKind openKind,
             SyntaxKind closeKind,
             bool allowThisKeyword,
-            bool allowDefaults,
-            bool allowAttributes)
+            bool allowDefaults)
         {
             open = this.EatToken(openKind);
 
@@ -3917,7 +3912,7 @@ tryAgain:
                         // first parameter
                         attributes.Clear();
                         modifiers.Clear();
-                        var parameter = this.ParseParameter(attributes, modifiers, allowThisKeyword, allowDefaults, allowAttributes);
+                        var parameter = this.ParseParameter(attributes, modifiers, allowThisKeyword, allowDefaults);
                         nodes.Add(parameter);
                         hasParams = modifiers.Any((int)SyntaxKind.ParamsKeyword);
                         hasArgList = parameter.Identifier.Kind == SyntaxKind.ArgListKeyword;
@@ -3940,7 +3935,7 @@ tryAgain:
                                 nodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                                 attributes.Clear();
                                 modifiers.Clear();
-                                parameter = this.ParseParameter(attributes, modifiers, allowThisKeyword, allowDefaults, allowAttributes);
+                                parameter = this.ParseParameter(attributes, modifiers, allowThisKeyword, allowDefaults);
                                 if (parameter.IsMissing && this.IsPossibleParameter(allowThisKeyword))
                                 {
                                     // ensure we always consume tokens
@@ -4080,15 +4075,14 @@ tryAgain:
             SyntaxListBuilder<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             bool allowThisKeyword,
-            bool allowDefaults,
-            bool allowAttributes)
+            bool allowDefaults)
         {
             if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameter(this.CurrentNode as CSharp.Syntax.ParameterSyntax, attributes, modifiers))
             {
                 return (ParameterSyntax)this.EatNode();
             }
 
-            this.ParseAttributeDeclarations(attributes, allowAttributes);
+            this.ParseAttributeDeclarations(attributes);
             this.ParseParameterModifiers(modifiers, allowThisKeyword);
 
             var hasArgList = this.CurrentToken.Kind == SyntaxKind.ArgListKeyword;
@@ -4966,7 +4960,7 @@ tryAgain:
             {
                 var typeParameterListOpt = this.ParseTypeParameterList(allowVariance: false);
                 var paramList = ParseParenthesizedParameterList(
-                    allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
+                    allowThisKeyword: true, allowDefaults: true);
 
                 if (!paramList.IsMissing &&
                      (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
@@ -5058,7 +5052,7 @@ tryAgain:
             _termState |= TerminatorState.IsEndOfMethodSignature;
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList(allowVariance: true);
-            var parameterList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true);
+            var parameterList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true);
             var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
             try
             {
@@ -7141,7 +7135,7 @@ tryAgain:
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfMethodSignature;
 
-            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
+            var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true);
 
             _termState = saveTerm;
             var separatedParameters = paramList.Parameters.GetWithSeparators();
@@ -8829,7 +8823,7 @@ tryAgain:
 
             TypeParameterListSyntax typeParameterListOpt = this.ParseTypeParameterList(allowVariance: false);
             // "await f<T>()" still makes sense, so don't force accept a local function if there's a type parameter list.
-            ParameterListSyntax paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
+            ParameterListSyntax paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true);
             // "await x()" is ambiguous (see note at start of this method), but we assume "await x(await y)" is meant to be a function if it's in a non-async context.
             if (!forceLocalFunc)
             {
@@ -11090,7 +11084,7 @@ tryAgain:
             ParameterListSyntax parameterList = null;
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
-                parameterList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: false, allowAttributes: false);
+                parameterList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: false);
             }
 
             // In mismatched braces cases (missing a }) it is possible for delegate declarations to be
