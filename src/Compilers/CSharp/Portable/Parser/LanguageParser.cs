@@ -2920,17 +2920,6 @@ parse_member_name:;
                     // our context again (perhaps an open brace).
                 }
 
-                // When a generic method overrides a generic method declared in a base
-                // class, or is an explicit interface member implementation of a method in
-                // a base interface, the method shall not specify any type-parameter-
-                // constraints-clauses. In these cases, the type parameters of the method
-                // inherit constraints from the method being overridden or implemented
-                if (!constraints.IsNull && constraints.Count > 0 &&
-                    ((explicitInterfaceOpt != null) || (modifiers != null && modifiers.Any((int)SyntaxKind.OverrideKeyword))))
-                {
-                    constraints[0] = this.AddErrorToFirstToken(constraints[0], ErrorCode.ERR_OverrideWithConstraints);
-                }
-
                 _termState = saveTerm;
 
                 BlockSyntax blockBody;
