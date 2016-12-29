@@ -226,6 +226,47 @@ public struct C
         }
 
         [Fact]
+        public void RefValueUnsafeToReturn()
+        {
+            var text = @"
+using System;
+
+class C
+{
+    private static ref int Test()
+    {
+        int aa = 42;
+        var tr = __makeref(aa);
+
+        ref var r = ref Test2(ref __refvalue(tr, int));
+
+        return ref r;
+    }
+
+    private static ref int Test2(ref int r)
+    {
+        return ref r;
+    }
+
+    private static ref int Test3(TypedReference tr)
+    {
+        return ref __refvalue(tr, int);
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (13,20): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref r;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(13, 20),
+                // (23,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                //         return ref __refvalue(tr, int);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "__refvalue(tr, int)").WithLocation(23, 20)
+
+                );
+        }
+
+        [Fact]
         public void MakeRefTest03_Dynamic_Bind()
         {
             var text = @"
