@@ -1,5 +1,5 @@
 <Project DefaultTargets="Build" InitialTargets="ValidateMSBuildToolsVersion" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- The UsingTask, UseSharedCompilation, and ToolPath/Exe variables all interact to 
+  <!-- The UsingTask, UseSharedCompilation, and ToolPath/Exe variables all interact to
        choose which compiler path to use and whether or not to use the compiler server.
        If UsingTask and UseSharedCompilation are set then the compiler server next to the
        task will be used (i.e., the one in this package).

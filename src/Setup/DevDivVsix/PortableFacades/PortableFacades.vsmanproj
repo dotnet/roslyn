@@ -14,8 +14,8 @@
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.targets" />
 
-  <Target Name="BeforeBuild"> 
-    <MSBuild Projects="PortableFacades.swixproj" Targets="Build" /> 
+  <Target Name="BeforeBuild">
+    <MSBuild Projects="PortableFacades.swixproj" Targets="Build" />
   </Target>
 
   <ItemGroup>

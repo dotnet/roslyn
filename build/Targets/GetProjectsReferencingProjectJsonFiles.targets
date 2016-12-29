@@ -30,7 +30,7 @@
       <_ProjectReferencingProjectJsonFile
           Include="#:$(MSBuildProjectFullPath)"
           Condition=" '$(NuGetWriteEntryPoint)' == 'true' " />
-      <_ProjectReferencingProjectJsonFile 
+      <_ProjectReferencingProjectJsonFile
         Include="$(MsBuildProjectFullPath)|%(NuGetFullPathForOutput.Identity)" Condition=" %(NuGetFullPathForOutput.Identity) != '' " />
     </ItemGroup>
 

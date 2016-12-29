@@ -3,9 +3,9 @@
 
   <Choose>
     <When Condition="'$(RoslynProjectType)' == 'ExeNonDeployment'">
-      <!-- Some Exes are not designed to be directly runnable.  Typically for size savings in 
+      <!-- Some Exes are not designed to be directly runnable.  Typically for size savings in
            our build output.  They are made runnable by deployment projects that reference
-           them.  --> 
+           them.  -->
       <PropertyGroup>
         <_CopyReferences>false</_CopyReferences>
         <_CopyProjectReferences>false</_CopyProjectReferences>
@@ -22,14 +22,14 @@
     </When>
     <When Condition="'$(RoslynProjectType)' == 'UnitTestPortable' or '$(RoslynProjectType)' == 'UnitTestDesktop'">
       <!-- Portable DLLs don't have a supported mechanism for deploying their dependencies
-           as a part of a normal build.  This breaks developer workflows like F5, TDD, and 
+           as a part of a normal build.  This breaks developer workflows like F5, TDD, and
            standard unit testing.
 
            For developer convenience we use an unsupported way of deploying dependencies.  This
            includes NuGet and standard references.  This is not done on official builds because
            it's not a supported mechanism hence we don't rely on it for official validation.
-           
-           This bug tracks getting an official solution out of MSBuild.  
+
+           This bug tracks getting an official solution out of MSBuild.
 
            https://github.com/Microsoft/msbuild/issues/1499 -->
       <PropertyGroup>
@@ -155,7 +155,7 @@
   <Choose>
     <When Condition="'$(SignAssembly)' == 'true'">
       <Choose>
-        <!-- Shipping binaries are always public signed.  In the case of an official build $(OfficialBuild) the 
+        <!-- Shipping binaries are always public signed.  In the case of an official build $(OfficialBuild) the
              binaries will be real signed as a post processing step. -->
         <When Condition="'$(NonShipping)' != 'true'">
           <PropertyGroup>
@@ -282,7 +282,7 @@
        1) In some cases, we need to include the contents of a NuGet package that is otherwise
           contained within the SuppressFromVsix list, because we're actually the component
           inside Visual Studio that ships that component
-       
+
        2) The SDK targets don't currently look at the ReferenceCopyLocalPaths produced
           by the NuGet build task. -->
 
@@ -333,7 +333,7 @@
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
   <Import Project="GenerateInternalsVisibleTo.targets" />
   <Import Project="GenerateCompilerInternals.targets" />
-  
+
   <ItemDefinitionGroup>
     <VSIXSourceItem>
       <Visible>false</Visible>
@@ -376,8 +376,8 @@
     <ValidateBootstrap BootstrapPath="$(BootstrapBuildPath)" />
   </Target>
 
-  <!-- 
-    When running our determinism tests we need to copy the diagnostic file from the intermediate directory 
+  <!--
+    When running our determinism tests we need to copy the diagnostic file from the intermediate directory
     to the location of the binary.  This ensures .dll and .dll.key are next to each other to be picked up
     by our test scripts
   -->
@@ -414,7 +414,7 @@
     </PropertyGroup>
   </Target>
 
-  <!-- The path to IBCMerge.exe must be specified at build time via $(IbcMergePath).  Typically this is passed as a 
+  <!-- The path to IBCMerge.exe must be specified at build time via $(IbcMergePath).  Typically this is passed as a
        build definition variable -->
   <Target Name="ApplyOptimizations"
           Condition="'$(OfficialBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)') AND Exists('$(IbcMergePath)')"
@@ -430,16 +430,16 @@
 
   </Target>
 
-  <!-- This is part of our developer convenience work to allow easy testing of our portable 
-       unit test projects.  It's a similar mechanism to CopyNuGetImplementations but is 
+  <!-- This is part of our developer convenience work to allow easy testing of our portable
+       unit test projects.  It's a similar mechanism to CopyNuGetImplementations but is
        both unsupported and somewhat special cased to our build setup.
 
-       This bug tracks getting an official solution out of MSBuild.  
+       This bug tracks getting an official solution out of MSBuild.
 
        https://github.com/Microsoft/msbuild/issues/1499 -->
-  <Target Name="DeployPortableOnDeveloperBuild" 
+  <Target Name="DeployPortableOnDeveloperBuild"
           Condition="'$(_IsAnyPortableUnitTest)' == 'true' and '$(DeveloperBuild)' == 'true' and '$(OS)' == 'Windows_NT'">
-    <ResolveNuGetPackageAssets 
+    <ResolveNuGetPackageAssets
        IncludeFrameworkReferences="true"
        NuGetPackagesDirectory="$(NuGetPackageRoot)"
        RuntimeIdentifier="win7"

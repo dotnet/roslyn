@@ -1,9 +1,9 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Choose>
     <When Condition="'$(OfficialBuild)' != 'true'">
-      <!-- On non-official builds we don't burn in a git sha.  In large part because it 
+      <!-- On non-official builds we don't burn in a git sha.  In large part because it
            hurts our determinism efforts as binaries which should be the same between
-           builds will not (due to developers building against different HEAD 
+           builds will not (due to developers building against different HEAD
            values -->
       <PropertyGroup>
         <GitHeadSha>&lt;developer build&gt;</GitHeadSha>
@@ -105,7 +105,7 @@
     </CreateItem>
 
     <!-- The necessity of this Task is tracked by https://github.com/dotnet/roslyn/issues/8421 -->
-    <WriteCodeFragmentEx 
+    <WriteCodeFragmentEx
         AssemblyAttributes="@(AssemblyVersionAttribute)"
         Language="$(Language)"
         OutputFile="$(GeneratedAssemblyInfoFile)">

@@ -12,10 +12,10 @@
     <MSBuild Projects="DevDivVsix\PortableFacades\PortableFacades.vsmanproj" />
     <MSBuild Projects="DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" />
     <MSBuild Projects="DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj" />
-    
+
     <!-- Dependencies -->
     <!-- <MSBuild Projects="..\..\..\Closed\Test\Resources\TestResourcesProprietary.csproj" /> -->
-    
+
     <!-- Microsoft.NetFX20 -->
     <MSBuild Projects="..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj" />
 

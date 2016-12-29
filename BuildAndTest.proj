@@ -88,10 +88,10 @@
     <ItemGroup>
 
       <!-- MakeConst unit tests tracked by https://github.com/dotnet/roslyn/issues/5918 -->
-      <TestAssemblies Condition="'$(Test64)' != 'true'" 
+      <TestAssemblies Condition="'$(Test64)' != 'true'"
                       Include="$(OutputDirectory)\UnitTests*\**\$(IncludePattern);" />
 
-      <TestAssemblies Condition="'$(Test64)' == 'true'" 
+      <TestAssemblies Condition="'$(Test64)' == 'true'"
                       Include="$(OutputDirectory)\UnitTests*\**\$(IncludePattern);"
                       Exclude="$(OutputDirectory)\UnitTests*\**\Roslyn.Interactive*" />
 
@@ -104,7 +104,7 @@
       <RunTestsExe>Binaries\$(Configuration)\Exes\RunTests\RunTests.exe</RunTestsExe>
       <RunTestsArgs>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')</RunTestsArgs>
     </PropertyGroup>
-    
+
     <Exec Condition="'$(TestVsi)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
 
     <Exec Command="&quot;$(RunTestsExe)&quot; $(RunTestsArgs)" />

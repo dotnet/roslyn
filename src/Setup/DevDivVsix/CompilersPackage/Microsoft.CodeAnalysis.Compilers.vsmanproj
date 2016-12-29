@@ -18,9 +18,9 @@
     <RoslynVsixFileToCopy Include="..\..\MSBuildScripts\roslyn.bat" />
   </ItemGroup>
 
-  <Target Name="BeforeBuild"> 
+  <Target Name="BeforeBuild">
     <Copy SourceFiles="@(RoslynVsixFileToCopy)" DestinationFolder="$(OutputPath)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
-    <MSBuild Projects="Microsoft.CodeAnalysis.Compilers.swixproj" Targets="Build" /> 
+    <MSBuild Projects="Microsoft.CodeAnalysis.Compilers.swixproj" Targets="Build" />
   </Target>
 
   <ItemGroup>

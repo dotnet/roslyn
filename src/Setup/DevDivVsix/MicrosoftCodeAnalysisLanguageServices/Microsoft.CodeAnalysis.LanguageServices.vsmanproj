@@ -26,7 +26,7 @@
     <RoslynVsixFileToCopy Include="$(OutputPath)..\Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix" />
   </ItemGroup>
 
-  <Target Name="BeforeBuild"> 
+  <Target Name="BeforeBuild">
     <Copy SourceFiles="@(RoslynVsixFileToCopy)" DestinationFolder="$(OutputPath)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
   </Target>
 

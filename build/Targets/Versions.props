@@ -5,7 +5,7 @@
   <!-- This controls the version numbers of the build that we are producing -->
 
   <Import Project="Dependencies.props" />
-  
+
   <PropertyGroup>
     <!-- This is the assembly version of Roslyn from the .NET assembly perspective. It should only be revved during significant point releases. -->
     <RoslynAssemblyVersionBase Condition="'$(RoslynAssemblyVersion)' == ''">2.0.0</RoslynAssemblyVersionBase>
@@ -33,7 +33,7 @@
     <Error Condition="$(BuildNumber.Split('.').Length) != 2">BuildNumber should have two parts (in the form of 'x.y')</Error>
 
     <!-- Split the build parts out from the BuildNumber which is given to us by MicroBuild in the format of yyyymmdd.nn
-         where BuildNumberFiveDigitDateStamp is ymmdd (such as 60615) and BuildNumberBuildOfTheDay is nn (which represents the nth build 
+         where BuildNumberFiveDigitDateStamp is ymmdd (such as 60615) and BuildNumberBuildOfTheDay is nn (which represents the nth build
          started that day). So the first build of the day, 20160615.1, will produce something similar to BuildNumberFiveDigitDateStamp: 60615,
          BuildNumberBuildOfTheDayPadded: 01; and the 12th build of the day, 20160615.12, will produce BuildNumberFiveDigitDateStamp: 60615, BuildNumberBuildOfTheDay: 12 -->
     <!-- Additionally, in order ensure the value fits in the 16-bit PE header fields, we will only take the last five digits of the BuildNumber, so
@@ -50,7 +50,7 @@
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and '$(OS)' != 'Windows_NT'">$(HOME)\.nuget\packages</NuGetPackageRoot>
     <NuGetPackagesDirectory>$(NuGetPackageRoot)</NuGetPackagesDirectory>
   </PropertyGroup>
-  
+
   <Choose>
     <When Condition="'$(OfficialBuild)' == 'true' OR '$(UseShippingAssemblyVersion)' == 'true'">
       <PropertyGroup>
