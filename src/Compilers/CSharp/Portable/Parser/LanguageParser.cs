@@ -2769,7 +2769,7 @@ parse_member_name:;
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
 
             this.ParseBlockAndExpressionBodiesWithSemicolon(
-                out var body, out var expressionBody, out var semicolon,
+                out BlockSyntax body, out ArrowExpressionClauseSyntax expressionBody, out SyntaxToken semicolon,
                 requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedDeOrConstructor);
 
             var parameterList = _syntaxFactory.ParameterList(openParen, default(SeparatedSyntaxList<ParameterSyntax>), closeParen);
