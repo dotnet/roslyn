@@ -3878,8 +3878,9 @@ public class Test
     }
 }
 ";
-
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private"), Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public"));
+            CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private"), 
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public"));
         }
 
         [Fact]
@@ -3897,7 +3898,9 @@ public class Test
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public"), Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private"));
+            CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public"),
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private"));
         }
 
         [WorkItem(863423, "DevDiv/Personal")]
