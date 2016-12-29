@@ -3526,6 +3526,28 @@ public class Program
         }
 
         [Fact]
+        public void ThrowExpressionWithNullableDecimal()
+        {
+            var source = @"
+using System;
+public class ITest
+{
+    public decimal Test() => 1m;
+}
+
+public class TestClass
+{
+    public void Test(ITest test)
+    {
+        var result = test?.Test() ?? throw new Exception();
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void ThrowExpressionForParameterValidation()
         {
             var source =
