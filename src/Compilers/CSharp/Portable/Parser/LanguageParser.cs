@@ -2667,18 +2667,13 @@ parse_member_name:;
             {
                 var paramList = this.ParseParenthesizedParameterList(allowThisKeyword: false, allowDefaults: true, allowAttributes: true);
 
-                ConstructorInitializerSyntax initializer = null;
-                if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
-                {
-                    bool isStatic = modifiers != null && modifiers.Any((int)SyntaxKind.StaticKeyword);
-                    initializer = this.ParseConstructorInitializer(name.ValueText, isStatic);
-                }
+                ConstructorInitializerSyntax initializer = this.CurrentToken.Kind == SyntaxKind.ColonToken
+                    ? this.ParseConstructorInitializer()
+                    : null;
 
-                BlockSyntax body;
-                ArrowExpressionClauseSyntax expressionBody;
-                SyntaxToken semicolon;
-                this.ParseBlockAndExpressionBodiesWithSemicolon(out body, out expressionBody, out semicolon,
-                                                                requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedDeOrConstructor);
+                this.ParseBlockAndExpressionBodiesWithSemicolon(
+                    out BlockSyntax body, out ArrowExpressionClauseSyntax expressionBody, out SyntaxToken semicolon,
+                    requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedDeOrConstructor);
 
                 var decl = _syntaxFactory.ConstructorDeclaration(attributes, modifiers.ToList(), name, paramList, initializer, body, expressionBody, semicolon);
                 return CheckForBlockAndExpressionBody(body, expressionBody, decl);
@@ -2689,7 +2684,7 @@ parse_member_name:;
             }
         }
 
-        private ConstructorInitializerSyntax ParseConstructorInitializer(string name, bool isStatic)
+        private ConstructorInitializerSyntax ParseConstructorInitializer()
         {
             var colon = this.EatToken(SyntaxKind.ColonToken);
 
@@ -2721,12 +2716,6 @@ parse_member_name:;
                 var openToken = this.EatToken(SyntaxKind.OpenParenToken, reportError);
                 var closeToken = this.EatToken(SyntaxKind.CloseParenToken, reportError);
                 argumentList = _syntaxFactory.ArgumentList(openToken, default(SeparatedSyntaxList<ArgumentSyntax>), closeToken);
-            }
-
-            if (isStatic)
-            {
-                // Static constructor can't have any base call
-                token = this.AddError(token, ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, name);
             }
 
             return _syntaxFactory.ConstructorInitializer(kind, colon, token, argumentList);
@@ -2924,8 +2913,8 @@ parse_member_name:;
                 {
                     // Use else if, rather than if, because if we see both a constructor initializer and a constraint clause, we're too lost to recover.
                     var colonToken = this.CurrentToken;
-                    // Set isStatic to false because pretending we're in a static constructor will just result in more errors.
-                    ConstructorInitializerSyntax initializer = this.ParseConstructorInitializer(identifier.ValueText, isStatic: false);
+
+                    ConstructorInitializerSyntax initializer = this.ParseConstructorInitializer();
                     initializer = this.AddErrorToFirstToken(initializer, ErrorCode.ERR_UnexpectedToken, colonToken.Text);
                     paramList = AddTrailingSkippedSyntax(paramList, initializer);
 

@@ -667,7 +667,13 @@ namespace x
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "base").WithArguments("cly"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (12,24): error CS0514: 'cly': static constructor cannot have an explicit 'this' or 'base' constructor call
+                //         static cly() : base(0){} // sc0514
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "base").WithArguments("cly").WithLocation(12, 24),
+                // (8,18): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'clx.clx(int)'
+                //     public class cly : clx
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "cly").WithArguments("i", "x.clx.clx(int)").WithLocation(8, 18));
         }
 
         [Fact]
@@ -681,7 +687,10 @@ class C
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("C"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (5,18): error CS0514: 'C': static constructor cannot have an explicit 'this' or 'base' constructor call
+                //     static C() : this() { } //CS0514
+                Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("C").WithLocation(5, 18));
         }
 
         [Fact]
