@@ -94,12 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var p in parameterSyntaxList.Value)
                 {
-                    if (p.AttributeLists.Count > 0 && syntax.Kind() == SyntaxKind.AnonymousMethodExpression)
+                    foreach (var attributeList in p.AttributeLists)
                     {
-                        foreach (var attributeList in p.AttributeLists)
-                        {
-                            Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
-                        }
+                        Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
                     }
 
                     if (p.IsArgList)
