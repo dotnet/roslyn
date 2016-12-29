@@ -5254,9 +5254,12 @@ class C {
             var file = this.ParseFile(text);
 
             Assert.NotNull(file);
-            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal((int)ErrorCode.ERR_DefaultValueNotAllowed, file.Errors()[0].Code);
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (5,28): error CS1065: Default values are not valid in this context.
+                //      F f = delegate (int x = 0) { };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 28));
         }
 
         [WorkItem(537865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537865")]

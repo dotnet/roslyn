@@ -2416,7 +2416,10 @@ class C
         D d = delegate (this object o) { };
     }
 }";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics();
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (6,25): error CS0027: Keyword 'this' is not available in the current context
+                //         D d = delegate (this object o) { };
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 25));
         }
 
         [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2572,7 +2575,8 @@ class A
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "="));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "="));
         }
 
         [Fact]
@@ -2586,7 +2590,8 @@ class A
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "="));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "="));
         }
 
         [Fact, WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
