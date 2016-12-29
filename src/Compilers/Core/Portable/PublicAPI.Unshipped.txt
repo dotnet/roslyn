@@ -729,6 +729,7 @@ Microsoft.CodeAnalysis.SymbolDisplayMemberOptions.IncludeRef = 128 -> Microsoft.
 Microsoft.CodeAnalysis.SymbolKind.Discard = 19 -> Microsoft.CodeAnalysis.SymbolKind
 Microsoft.CodeAnalysis.Text.SourceText.CanBeEmbedded.get -> bool
 Microsoft.CodeAnalysis.Text.SourceText.GetChecksum() -> System.Collections.Immutable.ImmutableArray<byte>
+Microsoft.CodeAnalysis.Compilation.CreateErrorNamespaceSymbol(Microsoft.CodeAnalysis.INamespaceSymbol container, string name) -> Microsoft.CodeAnalysis.INamespaceSymbol
 abstract Microsoft.CodeAnalysis.CompilationOptions.Language.get -> string
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void

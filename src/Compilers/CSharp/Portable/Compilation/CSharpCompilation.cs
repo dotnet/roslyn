@@ -169,9 +169,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             get;
         }
 
-        public override INamedTypeSymbol CreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity)
+        protected override INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity)
         {
-            return new ExtendedErrorTypeSymbol((NamespaceOrTypeSymbol)container, name, arity, null);
+            return new ExtendedErrorTypeSymbol(
+                       container.EnsureCSharpSymbolOrNull<INamespaceOrTypeSymbol, NamespaceOrTypeSymbol>(nameof(container)), 
+                       name, arity, errorInfo: null);
+        }
+
+        protected override INamespaceSymbol CommonCreateErrorNamespaceSymbol(INamespaceSymbol container, string name)
+        {
+            return new MissingNamespaceSymbol(
+                       container.EnsureCSharpSymbolOrNull<INamespaceSymbol, NamespaceSymbol>(nameof(container)), 
+                       name);
         }
 
         #region Constructors and Factories

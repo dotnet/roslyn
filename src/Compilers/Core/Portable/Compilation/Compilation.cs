@@ -200,7 +200,42 @@ namespace Microsoft.CodeAnalysis
         /// Returns a new INamedTypeSymbol representing an error type with the given name and arity
         /// in the given optional container.
         /// </summary>
-        public abstract INamedTypeSymbol CreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity);
+        public INamedTypeSymbol CreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity)
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (arity < 0)
+            {
+                throw new ArgumentException(nameof(arity));
+            }
+
+            return CommonCreateErrorTypeSymbol(container, name, arity);
+        }
+
+        protected abstract INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity);
+
+        /// <summary>
+        /// Returns a new INamespaceSymbol representing an error (missing) namespace with the given name.
+        /// </summary>
+        public INamespaceSymbol CreateErrorNamespaceSymbol(INamespaceSymbol container, string name)
+        {
+            if (container == null)
+            {
+                throw new ArgumentNullException(nameof(container));
+            }
+
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            return CommonCreateErrorNamespaceSymbol(container, name);
+        }
+
+        protected abstract INamespaceSymbol CommonCreateErrorNamespaceSymbol(INamespaceSymbol container, string name);
 
         #region Name
 
