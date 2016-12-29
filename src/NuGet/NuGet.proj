@@ -6,8 +6,8 @@
     <!-- NuGetPerBuildPreReleaseVersion -->
     <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetPerBuildPreReleaseVersion) $(OutDir)NuGet\PerBuildPreRelease" Condition="'$(NuGetPerBuildPreReleaseVersion)' != ''" />
 
-    <!-- NuGetPreReleaseVersion -->
-    <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetPreReleaseVersion) $(OutDir)NuGet\PreRelease" Condition="'$(NuGetPreReleaseVersion)' != ''"/>
+    <!-- NuGetFinalPreReleaseVersion -->
+    <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetFinalPreReleaseVersion) $(OutDir)NuGet\PreRelease" Condition="'$(NuGetFinalPreReleaseVersion)' != ''"/>
 
     <!-- NuGetReleaseVersion -->
     <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetReleaseVersion) $(OutDir)NuGet\Release" Condition="'$(NuGetReleaseVersion)' != ''" />

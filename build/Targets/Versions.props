@@ -44,6 +44,7 @@
 
     <!-- NuGet version -->
     <NuGetReleaseVersion>$(RoslynFileVersionBase)</NuGetReleaseVersion>
+    <NuGetFinalPreReleaseVersion>$(NuGetPreReleaseVersion)-final</NuGetFinalPreReleaseVersion>
     <NuGetPerBuildPreReleaseVersion>$(NuGetPreReleaseVersion)-$(BuildNumberFiveDigitDateStamp)-$(BuildNumberBuildOfTheDayPadded)</NuGetPerBuildPreReleaseVersion>
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == ''">$(NUGET_PACKAGES)</NuGetPackageRoot> <!-- Respect environment variable if set -->
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and '$(OS)' == 'Windows_NT'">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
