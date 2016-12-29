@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckParameterModifiers(parameterSyntax, diagnostics);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers,
-                    out var outKeyword, out var refKeyword,
-                    out var paramsKeyword, out var thisKeyword);
+                    out SyntaxToken outKeyword, out SyntaxToken refKeyword,
+                    out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
 
                 if (parameterSyntax.IsArgList)
                 {
