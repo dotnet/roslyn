@@ -94,6 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var p in parameterSyntaxList.Value)
                 {
+                    foreach (var attributeList in p.AttributeLists)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
+                    }
+
                     if (p.IsArgList)
                     {
                         Error(diagnostics, ErrorCode.ERR_IllegalVarArgs, p);
