@@ -2832,10 +2832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol merged = MergeTupleNames(MergeDynamic(old, @new, _conversions.CorLibrary), @new);
             dict.Remove(old);
-            if (!dict.ContainsKey(merged))
-            {
-                dict.Add(merged, merged);
-            }
+            Add(dict, merged);
         }
 
         private sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
