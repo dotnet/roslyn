@@ -6,7 +6,7 @@
     "Microsoft.VisualStudio.Shell.14.0": "14.3.25407",
     "Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime": "14.3.25407",
     "Microsoft.VisualStudio.ComponentModelHost": "14.3.25407-alpha",
-    "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "14.3.25420",
+    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "14.3.25420-alpha",
     "Microsoft.VisualStudio.ImageCatalog": "14.3.25407",
     "Microsoft.VisualStudio.Text.UI": "14.3.25407",
     "Microsoft.VisualStudio.Text.UI.Wpf": "14.3.25407"

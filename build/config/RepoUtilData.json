@@ -6,6 +6,7 @@
     "System.Reflection.Metadata": "1.0.21",
     "System.Collections.Immutable": "1.1.36",
     "Microsoft.VisualStudio.CoreUtility": "14.3.25407",
+    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "14.3.25420-alpha",
     "Microsoft.VisualStudio.Editor": "14.3.25407",
     "Microsoft.VisualStudio.Language.NavigateTo.Interfaces": "14.3.25407-alpha",
     "Microsoft.VisualStudio.Imaging": "14.3.25407",

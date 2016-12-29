@@ -5,6 +5,7 @@
     "Microsoft.VisualStudio.Shell.Immutable.10.0": "15.0.25413-Preview5",
     "Microsoft.VisualStudio.Shell.Immutable.11.0": "15.0.25413-Preview5",
     "Microsoft.VisualStudio.CallHierarchy.Package.Definitions": "14.3.25407-alpha",
+    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.25802-alpha",
     "Microsoft.VisualStudio.Shell.Immutable.10.0": {
         "version": "15.0.25413-Preview5",
         "include": "runtime"

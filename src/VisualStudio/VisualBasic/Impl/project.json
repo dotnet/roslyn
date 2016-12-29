@@ -6,7 +6,7 @@
     "Microsoft.VisualStudio.Language.Intellisense": "14.3.25407",
     "RoslynDependencies.Microsoft.VisualStudio.GraphModel": "14.3.25407",
     "Microsoft.VisualStudio.ComponentModelHost": "14.3.25407-alpha",
-    "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "14.3.25420",
+    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "14.3.25420-alpha",
     "Microsoft.VisualStudio.Shell.Design": "14.3.25407"
   },
   "frameworks": {

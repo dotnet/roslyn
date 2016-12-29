@@ -24,7 +24,7 @@
     "Microsoft.VisualStudio.CallHierarchy.Package.Definitions": "14.3.25407-alpha",
     "Microsoft.VisualStudio.Language.CallHierarchy": "14.3.25407-alpha",
     "Microsoft.VisualStudio.ComponentModelHost": "14.3.25407-alpha",
-    "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "14.3.25420",
+    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "14.3.25420-alpha",
     "Microsoft.VisualStudio.Shell.Design": "14.3.25407",
     "Microsoft.VisualStudio.Language.NavigateTo.Interfaces": "14.3.25407-alpha",
     "Microsoft.VisualStudio.TextManager.Interop.10.0": "10.0.30319",

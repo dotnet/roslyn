@@ -21,6 +21,7 @@
     "Microsoft.VisualStudio.Text.Internal": "14.3.25407-alpha",
     "RoslynDependencies.Microsoft.VisualStudio.Platform.VSEditor": "14.3.25407",
     "Microsoft.VisualStudio.InteractiveWindow": "2.0.0-beta5-60820-04",
+    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.25802-alpha",
     "RoslynDependencies.Microsoft.VisualStudio.GraphModel": {
         "version": "14.3.25407",
         "include": "none"

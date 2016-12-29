@@ -15,7 +15,7 @@
     "RoslynDependencies.Microsoft.VisualStudio.Progression": "14.3.25407",
     "RoslynDependencies.Microsoft.VisualStudio.GraphModel": "14.3.25407",
     "Microsoft.VisualStudio.ComponentModelHost": "14.3.25407-alpha",
-    "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "14.3.25420",
+    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "14.3.25420-alpha",
     "Microsoft.VisualStudio.Language.CallHierarchy": "14.3.25407-alpha",
     "Microsoft.VisualStudio.Imaging": "14.3.25407",
     "Microsoft.VisualStudio.Text.Data": "14.3.25407",
