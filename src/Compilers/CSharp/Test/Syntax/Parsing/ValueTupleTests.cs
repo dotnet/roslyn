@@ -712,12 +712,12 @@ class Program
 }
 ";
             ParseAndValidate(test,
-                // (4,16): error CS8124: Tuple must contain at least two elements.
-                //     object a = (x: 3l);
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(x: 3l)").WithLocation(4, 16),
                 // (4,21): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
                 //     object a = (x: 3l);
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 21)
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 21),
+                // (4,22): error CS8124: Tuple must contain at least two elements.
+                //     object a = (x: 3l);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 22)
                 );
         }
     }
