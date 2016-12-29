@@ -869,6 +869,11 @@ public class X
                 //                   select 12 is var y12 && Print(y12);
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y12").WithLocation(25, 36)
                 );
+
+            // Because expression variables are not permitted in query clauses (https://github.com/dotnet/roslyn/issues/15910)
+            // this program cannot be run. However, once we allow that (https://github.com/dotnet/roslyn/issues/15619)
+            // the program wil be capable of being run. In that case the following (commented code) would test for the expected output.
+
 //            CompileAndVerify(compilation, expectedOutput:
 //@"1
 //3

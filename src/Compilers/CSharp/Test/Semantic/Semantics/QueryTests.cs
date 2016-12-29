@@ -2379,5 +2379,91 @@ class Program
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(22, 55)
                 );
         }
+
+        [WorkItem(15910, "https://github.com/dotnet/roslyn/issues/15910")]
+        [Fact]
+        public void ExpressionVariablesInQueryClause_03()
+        {
+            var csSource = @"
+using System.Linq;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var a = new[] { (1, 2), (3, 4) };
+        var za = from x in M(a, (int qa, int wa) = a[0]) select x; // scoping ok
+        var zc = from x in a from y in M(a, (int z, int w) = x) select x; // error 1
+        var zd = from x in a from int y in M(a, (int z, int w) = x) select x; // error 2
+        var ze = from x in a from y in M(a, (int z, int w) = x) where true select x; // error 3
+        var zf = from x in a from int y in M(a, (int z, int w) = x) where true select x; // error 4
+        var zg = from x in a let y = M(x, (int z, int w) = x) select x; // error 5
+        var zh = from x in a where M(x, (int z, int w) = x).Item1 == 1 select x; // error 6
+        var zi = from x in a join y in M(a, (int qi, int wi) = a[0]) on x equals y select x; // scoping ok
+        var zj = from x in a join y in a on M(x, (int z, int w) = x) equals y select x; // error 7
+        var zk = from x in a join y in a on x equals M(y, (int z, int w) = y) select x; // error 8
+        var zl = from x in a orderby M(x, (int z, int w) = x) select x; // error 9
+        var zm = from x in a orderby x, M(x, (int z, int w) = x) select x; // error 10
+        var zn = from x in a group M(x, (int z, int w) = x) by x; // error 11
+        var zo = from x in a group x by M(x, (int z, int w) = x); // error 12
+    }
+    public static T M<T>(T x, (int, int) z) => x;
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSystemCore(csSource)
+                .GetDiagnostics()
+                .Where(d => d.Code != (int)ErrorCode.ERR_DeclarationExpressionNotPermitted)
+                .Verify(
+                // (10,50): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //         var zc = from x in a from y in M(a, (int z, int w) = x) select x; // error 1
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(10, 50),
+                // (11,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //         var zd = from x in a from int y in M(a, (int z, int w) = x) select x; // error 2
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(11, 54),
+                // (12,50): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //         var ze = from x in a from y in M(a, (int z, int w) = x) where true select x; // error 3
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(12, 50),
+                // (13,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //         var zf = from x in a from int y in M(a, (int z, int w) = x) where true select x; // error 4
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(13, 54),
+                // (14,48): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //         var zg = from x in a let y = M(x, (int z, int w) = x) select x; // error 5
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(14, 48),
+                // (15,46): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //         var zh = from x in a where M(x, (int z, int w) = x).Item1 == 1 select x; // error 6
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(15, 46),
+                // (17,55): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //         var zj = from x in a join y in a on M(x, (int z, int w) = x) equals y select x; // error 7
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(17, 55),
+                // (18,64): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //         var zk = from x in a join y in a on x equals M(y, (int z, int w) = y) select x; // error 8
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(18, 64),
+                // (19,48): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //         var zl = from x in a orderby M(x, (int z, int w) = x) select x; // error 9
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(19, 48),
+                // (20,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //         var zm = from x in a orderby x, M(x, (int z, int w) = x) select x; // error 10
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(20, 51),
+                // (21,46): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //         var zn = from x in a group M(x, (int z, int w) = x) by x; // error 11
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(21, 46),
+                // (22,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //         var zo = from x in a group x by M(x, (int z, int w) = x); // error 12
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(22, 51)
+                );
+        }
     }
 }
