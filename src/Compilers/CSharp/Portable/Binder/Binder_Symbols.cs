@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (typesArray.Length < 2)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.UnexpectedValue(typesArray.Length);
             }
 
             return TupleTypeSymbol.Create(syntax.Location,

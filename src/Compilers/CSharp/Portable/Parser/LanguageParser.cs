@@ -6693,12 +6693,13 @@ tryAgain:
                     }
                 }
 
-                if (list.Count < 1)
-                {
-                    list.Add(_syntaxFactory.TupleElement(this.CreateMissingIdentifierName(), identifier: null));
-                }
                 if (list.Count < 2)
                 {
+                    if (list.Count < 1)
+                    {
+                        list.Add(_syntaxFactory.TupleElement(this.CreateMissingIdentifierName(), identifier: null));
+                    }
+
                     list.AddSeparator(SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
                     var missingElement = _syntaxFactory.TupleElement(this.CreateMissingIdentifierName(), identifier: null);
                     list.Add(this.AddError(missingElement, ErrorCode.ERR_TupleTooFewElements));
