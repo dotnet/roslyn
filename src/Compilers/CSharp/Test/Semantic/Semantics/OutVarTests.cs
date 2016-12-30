@@ -175,10 +175,10 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,20): error CS8184: A declaration is not allowed in this context.
+                // (6,20): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (int x1, long x2));
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x1").WithLocation(6, 20),
-                // (6,28): error CS8184: A declaration is not allowed in this context.
+                // (6,28): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (int x1, long x2));
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "long x2").WithLocation(6, 28),
                 // (6,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
@@ -187,12 +187,12 @@ public class Cls
                 // (6,19): error CS1510: A ref or out value must be an assignable variable
                 //         Test1(out (int x1, long x2));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(int x1, long x2)").WithLocation(6, 19),
-                // (6,24): error CS0165: Use of unassigned local variable 'x1'
+                // (6,20): error CS0165: Use of unassigned local variable 'x1'
                 //         Test1(out (int x1, long x2));
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 24),
-                // (6,33): error CS0165: Use of unassigned local variable 'x2'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x1").WithArguments("x1").WithLocation(6, 20),
+                // (6,28): error CS0165: Use of unassigned local variable 'x2'
                 //         Test1(out (int x1, long x2));
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "long x2").WithArguments("x2").WithLocation(6, 28)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -232,13 +232,13 @@ public class Cls
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (6,20): error CS8184: A declaration is not allowed in this context.
+                // (6,20): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (int x1, (long x2, byte x3)));
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x1").WithLocation(6, 20),
-                // (6,29): error CS8184: A declaration is not allowed in this context.
+                // (6,29): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (int x1, (long x2, byte x3)));
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "long x2").WithLocation(6, 29),
-                // (6,38): error CS8184: A declaration is not allowed in this context.
+                // (6,38): error CS8185: A declaration is not allowed in this context.
                 //         Test1(out (int x1, (long x2, byte x3)));
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "byte x3").WithLocation(6, 38),
                 // (6,28): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
@@ -250,15 +250,15 @@ public class Cls
                 // (6,19): error CS1510: A ref or out value must be an assignable variable
                 //         Test1(out (int x1, (long x2, byte x3)));
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(int x1, (long x2, byte x3))").WithLocation(6, 19),
-                // (6,24): error CS0165: Use of unassigned local variable 'x1'
+                // (6,20): error CS0165: Use of unassigned local variable 'x1'
                 //         Test1(out (int x1, (long x2, byte x3)));
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 24),
-                // (6,34): error CS0165: Use of unassigned local variable 'x2'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x1").WithArguments("x1").WithLocation(6, 20),
+                // (6,29): error CS0165: Use of unassigned local variable 'x2'
                 //         Test1(out (int x1, (long x2, byte x3)));
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 34),
-                // (6,43): error CS0165: Use of unassigned local variable 'x3'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "long x2").WithArguments("x2").WithLocation(6, 29),
+                // (6,38): error CS0165: Use of unassigned local variable 'x3'
                 //         Test1(out (int x1, (long x2, byte x3)));
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(6, 43)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "byte x3").WithArguments("x3").WithLocation(6, 38)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -853,17 +853,17 @@ public class Cls
 
         private static void VerifyModelForOutVarWithoutDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForOutVar(model, decl, false, true, false, false, references);
+            VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: false, verifyDataFlow: false, references: references);
         }
 
         private static void VerifyModelForOutVar(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForOutVar(model, decl, false, true, false, true, references);
+            VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: false, verifyDataFlow: true, references: references);
         }
 
         private static void VerifyModelForOutVarInNotExecutableCode(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForOutVar(model, decl, false, false, false, true, references);
+            VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: false, isShadowed: false, verifyDataFlow: true, references: references);
         }
 
         private static void VerifyModelForOutVar(
@@ -926,17 +926,23 @@ public class Cls
             }
         }
 
-        private static void AssertInfoForDeclarationExpressionSyntax(SemanticModel model, DeclarationExpressionSyntax decl)
+        private static void AssertInfoForDeclarationExpressionSyntax(SemanticModel model, DeclarationExpressionSyntax decl, bool expectSymbol = true, bool expectType = true)
         {
             var symbolInfo = model.GetSymbolInfo(decl);
-            Assert.Null(symbolInfo.Symbol);
+            if (expectSymbol)
+            {
+                Assert.NotNull(symbolInfo.Symbol);
+            }
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(symbolInfo, ((CSharpSemanticModel)model).GetSymbolInfo(decl));
 
             var typeInfo = model.GetTypeInfo(decl);
-            Assert.Null(typeInfo.Type);
-            Assert.Null(typeInfo.ConvertedType);
+            if (expectType)
+            {
+                Assert.NotNull(typeInfo.Type);
+                Assert.NotNull(typeInfo.ConvertedType);
+            }
             Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl));
 
             var conversion = model.ClassifyConversion(decl, model.Compilation.ObjectType, false);
@@ -13139,7 +13145,7 @@ public class X
             Assert.Equal(2, x14Decl.Length);
             Assert.Equal(4, x14Ref.Length);
             VerifyModelForOutVar(model, x14Decl[0], x14Ref);
-            VerifyModelForOutVar(model, x14Decl[1], false, true, true);
+            VerifyModelForOutVar(model, x14Decl[1], isDelegateCreation: false, isExecutableCode: true, isShadowed: true);
 
             var x15Decl = GetOutVarDeclarations(tree, "x15").ToArray();
             var x15Ref = GetReferences(tree, "x15").ToArray();
@@ -13898,7 +13904,7 @@ public class X
             VerifyNotAnOutLocal(model, x14Ref[1]);
             VerifyNotAnOutLocal(model, x14Ref[2]);
             VerifyNotAnOutLocal(model, x14Ref[3]);
-            VerifyModelForOutVar(model, x14Decl, false, true, true);
+            VerifyModelForOutVar(model, x14Decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: true);
 
             var x16Decl = GetOutVarDeclarations(tree, "x16").Single();
             var x16Ref = GetReferences(tree, "x16").ToArray();
@@ -17324,7 +17330,7 @@ public class Cls
 
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
-            VerifyModelForOutVar(model, x1Decl, true, true, false, true, x1Ref);
+            VerifyModelForOutVar(model, x1Decl, isDelegateCreation: true, isExecutableCode: true, isShadowed: false, verifyDataFlow: true, references: x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
             Assert.Equal("var x1", model.GetDeclaredSymbol(GetVariableDesignation(x1Decl)).ToTestDisplayString());
@@ -17953,12 +17959,12 @@ public class Cls
                 // (7,25): error CS8197: Cannot infer the type of implicitly-typed out variable 'x1'.
                 //         Test2(x[out var x1]);
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithArguments("x1").WithLocation(7, 25),
-                // (9,25): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                // (9,21): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         Test2(x[out var _]);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(9, 25),
-                // (9,25): error CS8183: Cannot infer the type of implicitly-typed discard.
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var _").WithArguments("1", "out").WithLocation(9, 21),
+                // (9,21): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         Test2(x[out var _]);
-                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(9, 25)
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "var _").WithLocation(9, 21)
                 );
         }
 
@@ -18439,9 +18445,9 @@ public class Cls
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
             var comp = CreateCompilationWithMscorlib(text, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics(
-                // (7,27): error CS8183: Cannot infer the type of implicitly-typed discard.
+                // (7,23): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         var x = d[out var _];
-                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(7, 27)
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "var _").WithLocation(7, 23)
                 );
         }
 
@@ -18877,9 +18883,9 @@ public class Cls
                 // (9,18): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //             [out var x1] = 3,
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var x1").WithArguments("1", "out").WithLocation(9, 18),
-                // (10,22): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                // (10,18): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //             [out var _] = 4,
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(10, 22),
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var _").WithArguments("1", "out").WithLocation(10, 18),
                 // (11,18): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //             [out _] = 5
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "_").WithArguments("1", "out").WithLocation(11, 18),
@@ -20914,7 +20920,7 @@ public class X
             Assert.False(model.LookupNames(decl.SpanStart).Contains(identifierText));
             Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
 
-            AssertInfoForDeclarationExpressionSyntax(model, decl);
+            AssertInfoForDeclarationExpressionSyntax(model, decl, expectSymbol: false, expectType: false);
 
             VerifyModelNotSupported(model, references);
         }
@@ -23433,7 +23439,7 @@ class H
 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
 
-            CompileAndVerify(compilation, expectedOutput:@"1").VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"1").VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -27354,7 +27360,7 @@ class H
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
-                VerifyModelForOutField(model, x1Decl, x1Ref);
+                VerifyModelForOutField(model, x1Decl, x1Ref); // TODO FIX problem with verifying type (which is inferred to int). No member model returned.
             }
 
             {
@@ -28175,7 +28181,9 @@ class Program
             var inFieldDeclaratorArgumentlist = declarator != null && declarator.Parent.Parent.Kind() != SyntaxKind.LocalDeclarationStatement &&
                                            (declarator.ArgumentList?.Contains(decl)).GetValueOrDefault();
 
-            AssertInfoForDeclarationExpressionSyntax(model, decl);
+            // We're not able to get type information at such location (out var argument in global code) at this point
+            // Seee https://github.com/dotnet/roslyn/issues/13569
+            AssertInfoForDeclarationExpressionSyntax(model, decl, expectType: false);
 
             foreach (var reference in references)
             {
@@ -28665,9 +28673,9 @@ public class C
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(out object)' and 'C.M(out int)'
                 //         M(out _);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(out object)", "C.M(out int)").WithLocation(9, 9),
-                // (10,20): error CS1503: Argument 1: cannot convert from 'out byte' to 'out object'
+                // (10,15): error CS1503: Argument 1: cannot convert from 'out byte' to 'out object'
                 //         M(out byte _);
-                Diagnostic(ErrorCode.ERR_BadArgType, "_").WithArguments("1", "out byte", "out object").WithLocation(10, 20)
+                Diagnostic(ErrorCode.ERR_BadArgType, "byte _").WithArguments("1", "out byte", "out object").WithLocation(10, 15)
                 );
         }
 
@@ -28694,9 +28702,9 @@ public static class S
                 // (7,18): error CS1503: Argument 2: cannot convert from 'out A' to 'out B'
                 //         a.M2(out A x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "A x").WithArguments("2", "out A", "out B").WithLocation(7, 18),
-                // (8,20): error CS1503: Argument 2: cannot convert from 'out A' to 'out B'
+                // (8,18): error CS1503: Argument 2: cannot convert from 'out A' to 'out B'
                 //         a.M2(out A _);
-                Diagnostic(ErrorCode.ERR_BadArgType, "_").WithArguments("2", "out A", "out B").WithLocation(8, 20)
+                Diagnostic(ErrorCode.ERR_BadArgType, "A _").WithArguments("2", "out A", "out B").WithLocation(8, 18)
                 );
         }
     }

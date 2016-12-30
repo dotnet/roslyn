@@ -510,8 +510,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(expression);
 
-            DeclarationExpressionSyntax parent;
-
             if (!CanGetSemanticInfo(expression, allowNamedArgumentName: true))
             {
                 return SymbolInfo.None;
@@ -521,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Named arguments handled in special way.
                 return this.GetNamedArgumentSymbolInfo((IdentifierNameSyntax)expression, cancellationToken);
             }
-            else if (SyntaxFacts.IsDeclarationExpressionType(expression, out parent))
+            else if (SyntaxFacts.IsDeclarationExpressionType(expression, out DeclarationExpressionSyntax parent))
             {
                 if (parent.Designation.Kind() != SyntaxKind.SingleVariableDesignation)
                 {
@@ -529,6 +527,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return TypeFromVariable((SingleVariableDesignationSyntax)parent.Designation, cancellationToken);
+            }
+            else if (expression is DeclarationExpressionSyntax declaration)
+            {
+                if (declaration.Designation.Kind() != SyntaxKind.SingleVariableDesignation)
+                {
+                    return SymbolInfo.None;
+                }
+
+                var symbol = GetDeclaredSymbol((SingleVariableDesignationSyntax)declaration.Designation, cancellationToken);
+                return new SymbolInfo(symbol);
             }
 
             return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);

@@ -1202,18 +1202,18 @@ class C
                 // (7,22): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         (int x, var (err1, y)) = (0, new C());
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "err1").WithArguments("System.ArgIterator").WithLocation(7, 22),
-                // (8,22): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                // (8,10): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         (ArgIterator err2, var err3) = M2();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err2").WithArguments("System.ArgIterator").WithLocation(8, 22),
-                // (8,32): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "ArgIterator err2").WithArguments("System.ArgIterator").WithLocation(8, 10),
+                // (8,28): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         (ArgIterator err2, var err3) = M2();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err3").WithArguments("System.ArgIterator").WithLocation(8, 32),
-                // (9,31): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "var err3").WithArguments("System.ArgIterator").WithLocation(8, 28),
+                // (9,19): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         foreach ((ArgIterator err4, var err5) in new[] { M2() })
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err4").WithArguments("System.ArgIterator").WithLocation(9, 31),
-                // (9,41): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "ArgIterator err4").WithArguments("System.ArgIterator").WithLocation(9, 19),
+                // (9,37): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         foreach ((ArgIterator err4, var err5) in new[] { M2() })
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err5").WithArguments("System.ArgIterator").WithLocation(9, 41),
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "var err5").WithArguments("System.ArgIterator").WithLocation(9, 37),
                 // (16,17): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         return (default(ArgIterator), default(ArgIterator));
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "default(ArgIterator)").WithArguments("System.ArgIterator").WithLocation(16, 17),
@@ -1262,18 +1262,18 @@ unsafe class C
                 // (6,22): error CS0306: The type 'int*' may not be used as a type argument
                 //         (int x, var (err1, y)) = (0, new C());
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "err1").WithArguments("int*").WithLocation(6, 22),
-                // (7,14): error CS0306: The type 'int*' may not be used as a type argument
+                // (7,10): error CS0306: The type 'int*' may not be used as a type argument
                 //         (var err2, var err3) = M2();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err2").WithArguments("int*").WithLocation(7, 14),
-                // (7,24): error CS0306: The type 'int*' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "var err2").WithArguments("int*").WithLocation(7, 10),
+                // (7,20): error CS0306: The type 'int*' may not be used as a type argument
                 //         (var err2, var err3) = M2();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err3").WithArguments("int*").WithLocation(7, 24),
-                // (8,23): error CS0306: The type 'int*' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "var err3").WithArguments("int*").WithLocation(7, 20),
+                // (8,19): error CS0306: The type 'int*' may not be used as a type argument
                 //         foreach ((var err4, var err5) in new[] { M2() })
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err4").WithArguments("int*").WithLocation(8, 23),
-                // (8,33): error CS0306: The type 'int*' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "var err4").WithArguments("int*").WithLocation(8, 19),
+                // (8,29): error CS0306: The type 'int*' may not be used as a type argument
                 //         foreach ((var err4, var err5) in new[] { M2() })
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err5").WithArguments("int*").WithLocation(8, 33),
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "var err5").WithArguments("int*").WithLocation(8, 29),
                 // (15,17): error CS0306: The type 'int*' may not be used as a type argument
                 //         return (default(int*), default(int*));
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "default(int*)").WithArguments("int*").WithLocation(15, 17),
