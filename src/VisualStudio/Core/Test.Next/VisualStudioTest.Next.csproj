@@ -189,7 +189,6 @@
     <Compile Include="Mocks\TestAnalyzerAssemblyLoader.cs" />
     <Compile Include="Mocks\TestAssetSource.cs" />
     <Compile Include="Mocks\TestHostServices.cs" />
-    <Compile Include="Mocks\InProcRemoteHostClientFactory.cs" />
     <Compile Include="Mocks\TestOptionSet.cs" />
     <Compile Include="Remote\JsonConverterTests.cs" />
     <Compile Include="Remote\RemoteHostClientServiceFactoryTests.cs" />
