@@ -6,22 +6,18 @@
   <Import Project="..\..\build\Targets\Settings.props" />
 
   <ItemGroup>
-    <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project Include="Deployment\Current\Roslyn.Deployment.Full.csproj">
+    <Project Include="Deployment\Current\Roslyn.Deployment.Full.csproj">
       <!-- No reason to rebuild the VSIXes again that were built previously -->
       <AdditionalProperties>BuildProjectReferences=false</AdditionalProperties>
     </Project>
-    <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project Include="Deployment\Next\Roslyn.Deployment.Full.Next.csproj">
+    <Project Include="Deployment\Next\Roslyn.Deployment.Full.Next.csproj">
       <!-- No reason to rebuild the VSIXes again that were built previously -->
       <AdditionalProperties>BuildProjectReferences=false</AdditionalProperties>
     </Project>
   </ItemGroup>
 
   <ItemGroup>
-    <PowerShellScriptsToCopy Include="PowerShell\*.ps1"/>
+    <PowerShellScriptsToCopy Include="PowerShell\*.ps1" />
   </ItemGroup>
 
   <Target Name="Build">
@@ -30,8 +26,8 @@
     <MSBuild Projects="@(Project)" Targets="Build" BuildInParallel="false" />
 
     <Copy SourceFiles="@(PowerShellScriptsToCopy)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(PowerShellScriptsToCopy)" DestinationFolder="Templates\CSharp\Diagnostic\Analyzer"/>
-    <Copy SourceFiles="@(PowerShellScriptsToCopy)" DestinationFolder="Templates\VisualBasic\Diagnostic\Analyzer\tools"/>
+    <Copy SourceFiles="@(PowerShellScriptsToCopy)" DestinationFolder="Templates\CSharp\Diagnostic\Analyzer" />
+    <Copy SourceFiles="@(PowerShellScriptsToCopy)" DestinationFolder="Templates\VisualBasic\Diagnostic\Analyzer\tools" />
 
     <!-- Roslyn SDK -->
     <!-- Because the SDK references 1.0 versions of roslyn, we want it to build into its own folder to avoid overwriting other components -->

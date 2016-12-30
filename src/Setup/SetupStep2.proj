@@ -8,7 +8,7 @@
 
     <!-- Build CoreXT packages for insertion into DevDiv (order of the following actions matters) -->
     <MSBuild Projects="DevDivInsertionFiles\DevDivInsertionFiles.sln" />
-    <Exec Command='"$(OutDir)\Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe" "$(OutDir)\" "$(MSBuildThisFileDirectory)\" "$(NuGetPackageRoot)" $(AssemblyVersion)' LogStandardErrorAsError="true" />
+    <Exec Command="&quot;$(OutDir)\Exes\DevDivInsertionFiles\Roslyn.BuildDevDivInsertionFiles.exe&quot; &quot;$(OutDir)\&quot; &quot;$(MSBuildThisFileDirectory)\&quot; &quot;$(NuGetPackageRoot)&quot; $(AssemblyVersion)" LogStandardErrorAsError="true" />
     <MSBuild Projects="DevDivPackages\Roslyn.proj" />
     <MSBuild Projects="DevDivVsix\PortableFacades\PortableFacades.vsmanproj" />
     <MSBuild Projects="DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" />

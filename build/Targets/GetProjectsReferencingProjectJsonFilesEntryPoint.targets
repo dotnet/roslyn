@@ -5,25 +5,11 @@
         <ItemGroup>
             <NuGet_ProjectReferenceToResolveItems Include="$(NuGet_ProjectReferenceToResolve)" />
         </ItemGroup>
-        <MsBuild
-            Projects="@(NuGet_ProjectReferenceToResolveItems)"
-            Targets="_NuGet_GetProjectsReferencingProjectJsonInternal"
-            BuildInParallel="false"
-            Properties="
-                %(_MSBuildProjectReferenceExistent.SetConfiguration);
-                %(_MSBuildProjectReferenceExistent.SetPlatform);
-                CustomAfterMicrosoftCommonTargets=$(NuGetCustomAfterBuildTargetPath);
-                NuGetWriteEntryPoint=true"
-            RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)">
+        <MsBuild Projects="@(NuGet_ProjectReferenceToResolveItems)" Targets="_NuGet_GetProjectsReferencingProjectJsonInternal" BuildInParallel="false" Properties="                 %(_MSBuildProjectReferenceExistent.SetConfiguration);                 %(_MSBuildProjectReferenceExistent.SetPlatform);                 CustomAfterMicrosoftCommonTargets=$(NuGetCustomAfterBuildTargetPath);                 NuGetWriteEntryPoint=true" RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)">
 
-            <Output
-                TaskParameter="TargetOutputs"
-                ItemName="_ProjectReferencingProjectJsonFile" />
+            <Output TaskParameter="TargetOutputs" ItemName="_ProjectReferencingProjectJsonFile" />
         </MsBuild>
 
-        <WriteLinesToFile
-            File="$(ResultsFile)"
-            Lines="@(_ProjectReferencingProjectJsonFile)"
-            Overwrite="true" />
+        <WriteLinesToFile File="$(ResultsFile)" Lines="@(_ProjectReferencingProjectJsonFile)" Overwrite="true" />
     </Target>
 </Project>

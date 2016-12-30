@@ -42,6 +42,6 @@
     <Compile Include="CSharpClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <BadElement/>
+  <BadElement />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

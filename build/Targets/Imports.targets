@@ -34,8 +34,8 @@
 
            https://github.com/Microsoft/msbuild/issues/1499 -->
       <PropertyGroup>
-        <_CopyReferences>$(DeveloperBuild></_CopyReferences>
-        <_CopyProjectReferences>$(DeveloperBuild></_CopyProjectReferences>
+        <_CopyReferences>$(DeveloperBuild&gt;</_CopyReferences>
+        <_CopyProjectReferences>$(DeveloperBuild&gt;</_CopyProjectReferences>
         <_IsAnyUnitTest>true</_IsAnyUnitTest>
         <_IsAnyPortableUnitTest>true</_IsAnyPortableUnitTest>
         <CopyNuGetImplementations>false</CopyNuGetImplementations>
@@ -227,8 +227,7 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.NuGet.targets" Condition="'$(OS)' != 'Windows_NT'" />
 
   <!-- The portable v5.0 framework is delivered over NuGet, so std resolution should be disabled -->
-  <Import Project="DisableStandardFrameworkResolution.targets"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND '$(TargetFrameworkVersion)' == 'v5.0'" />
+  <Import Project="DisableStandardFrameworkResolution.targets" Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND '$(TargetFrameworkVersion)' == 'v5.0'" />
 
   <Choose>
     <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND '$(TargetFrameworkVersion)' == 'v5.0'">
@@ -293,9 +292,7 @@
         <NuGetPackageToIncludeInVsix>%(NuGetPackageToIncludeInVsix.Identity)</NuGetPackageToIncludeInVsix>
       </_ReferenceCopyLocalPathsWithPotentialInclusions>
 
-      <VSIXCopyLocalReferenceSourceItem Include="@(_ReferenceCopyLocalPathsWithPotentialInclusions)"
-        Condition="'%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageId)' == '%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageToIncludeInVsix)' and
-                   '%(_ReferenceCopyLocalPathsWithPotentialInclusions.Extension)' != '.pdb'">
+      <VSIXCopyLocalReferenceSourceItem Include="@(_ReferenceCopyLocalPathsWithPotentialInclusions)" Condition="'%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageId)' == '%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageToIncludeInVsix)' and                    '%(_ReferenceCopyLocalPathsWithPotentialInclusions.Extension)' != '.pdb'">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
       </VSIXCopyLocalReferenceSourceItem>
@@ -313,19 +310,7 @@
        strange since we actually _implement_ DTE and use it as an exchange type with generics in a few places. -->
   <Target Name="LinkVSSDKEmbeddableAssemblies" DependsOnTargets="ResolveReferences" AfterTargets="ResolveReferences">
     <ItemGroup>
-      <ReferencePath Condition="
-              '%(FileName)' == 'Microsoft.VisualStudio.Shell.Embeddable'
-           or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.0'
-           or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime'
-           or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime'
-           or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime'
-           or '%(Filename)' == 'Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime'
-           or '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime'
-           or '%(FileName)' == 'Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime'
-           or '%(FileName)' == 'Microsoft.VisualStudio.ProjectSystem.Interop'
-           or '%(FileName)' == 'stdole'
-           or '%(FileName)' == 'Microsoft.VisualStudio.CommandBars'
-              ">
+      <ReferencePath Condition="               '%(FileName)' == 'Microsoft.VisualStudio.Shell.Embeddable'            or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.0'            or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime'            or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime'            or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime'            or '%(Filename)' == 'Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime'            or '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime'            or '%(FileName)' == 'Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime'            or '%(FileName)' == 'Microsoft.VisualStudio.ProjectSystem.Interop'            or '%(FileName)' == 'stdole'            or '%(FileName)' == 'Microsoft.VisualStudio.CommandBars'               ">
         <EmbedInteropTypes>true</EmbedInteropTypes>
       </ReferencePath>
     </ItemGroup>
@@ -367,10 +352,8 @@
     <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
   </PropertyGroup>
 
-  <Target Name="RestoreToolsetCheck"
-      Condition="'$(BuildingProject)' == 'true'">
-      <Error Text="Toolset packages have not been restored, run Restore.cmd before building"
-             Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
+  <Target Name="RestoreToolsetCheck" Condition="'$(BuildingProject)' == 'true'">
+      <Error Text="Toolset packages have not been restored, run Restore.cmd before building" Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
   </Target>
 
   <Target Name="CheckBootstrapState" Condition="'$(BootstrapBuildPath)' != ''" AfterTargets="CoreCompile">
@@ -383,17 +366,10 @@
     by our test scripts
   -->
   <Target Name="CopyDeterministicBuildDiagnosticFile" Condition="'$(DebugDeterminism)' != ''" AfterTargets="CoreCompile">
-    <Copy
-        Condition="Exists(@(IntermediateAssembly -> '%(fullpath).key'))"
-        SourceFiles="@(IntermediateAssembly -> '%(fullpath).key')"
-        DestinationFolder="$(OutDir)" />
+    <Copy Condition="Exists(@(IntermediateAssembly -&gt; '%(fullpath).key'))" SourceFiles="@(IntermediateAssembly -&gt; '%(fullpath).key')" DestinationFolder="$(OutDir)" />
   </Target>
 
-  <Target Name="PostCompileBinaryModification"
-          AfterTargets="CoreCompile"
-          DependsOnTargets="ApplyOptimizations"
-          Inputs="@(IntermediateAssembly)"
-          Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
+  <Target Name="PostCompileBinaryModification" AfterTargets="CoreCompile" DependsOnTargets="ApplyOptimizations" Inputs="@(IntermediateAssembly)" Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
 
     <!-- Write out a sentinel timestamp file to prevent unnecessary work in incremental builds. -->
     <Touch AlwaysCreate="true" Files="$(PostCompileBinaryModificationSentinelFile)" />
@@ -404,10 +380,7 @@
   </Target>
 
   <!-- Support for rolling optimization data into assemblies. -->
-  <Target Name="ForceGenerationOfBindingRedirects"
-          AfterTargets="ResolveAssemblyReferences"
-          BeforeTargets="GenerateBindingRedirects"
-          Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">
+  <Target Name="ForceGenerationOfBindingRedirects" AfterTargets="ResolveAssemblyReferences" BeforeTargets="GenerateBindingRedirects" Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">
 
     <PropertyGroup>
       <!-- Needs to be set in a target because it has to be set after the initial evaluation in the common targets -->
@@ -417,14 +390,10 @@
 
   <!-- The path to IBCMerge.exe must be specified at build time via $(IbcMergePath).  Typically this is passed as a
        build definition variable -->
-  <Target Name="ApplyOptimizations"
-          Condition="'$(OfficialBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)') AND Exists('$(IbcMergePath)')"
-          Inputs="@(IntermediateAssembly)"
-          Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
+  <Target Name="ApplyOptimizations" Condition="'$(OfficialBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)') AND Exists('$(IbcMergePath)')" Inputs="@(IntermediateAssembly)" Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
 
       <Message Text="Adding optimization data to @(IntermediateAssembly)" />
-      <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;"
-            ConsoleToMSBuild="true">
+      <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;" ConsoleToMSBuild="true">
         <Output TaskParameter="ConsoleOutput" PropertyName="IbcMergeOutput" />
       </Exec>
       <Message Text="$(IbcMergeOutput)" />
@@ -438,15 +407,8 @@
        This bug tracks getting an official solution out of MSBuild.
 
        https://github.com/Microsoft/msbuild/issues/1499 -->
-  <Target Name="DeployPortableOnDeveloperBuild"
-          Condition="'$(_IsAnyPortableUnitTest)' == 'true' and '$(DeveloperBuild)' == 'true' and '$(OS)' == 'Windows_NT'">
-    <ResolveNuGetPackageAssets
-       IncludeFrameworkReferences="true"
-       NuGetPackagesDirectory="$(NuGetPackageRoot)"
-       RuntimeIdentifier="win7"
-       ProjectLanguage="$(ProjectLanguage)"
-       ProjectLockFile="$(MSBuildThisFileDirectory)..\..\src\Test\DeployDesktopTestRuntime\project.lock.json"
-       TargetMonikers=".NETFramework,Version=v4.6">
+  <Target Name="DeployPortableOnDeveloperBuild" Condition="'$(_IsAnyPortableUnitTest)' == 'true' and '$(DeveloperBuild)' == 'true' and '$(OS)' == 'Windows_NT'">
+    <ResolveNuGetPackageAssets IncludeFrameworkReferences="true" NuGetPackagesDirectory="$(NuGetPackageRoot)" RuntimeIdentifier="win7" ProjectLanguage="$(ProjectLanguage)" ProjectLockFile="$(MSBuildThisFileDirectory)..\..\src\Test\DeployDesktopTestRuntime\project.lock.json" TargetMonikers=".NETFramework,Version=v4.6">
 
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="ReferenceCopyLocalPaths" />
     </ResolveNuGetPackageAssets>

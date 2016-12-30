@@ -8,5 +8,5 @@
   <Target Name="Build">
     <Copy SourceFiles="@(VsixUploadConfigs)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
   </Target>
-  <Target Name="Clean"/>
+  <Target Name="Clean" />
 </Project>
