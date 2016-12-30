@@ -6,7 +6,7 @@
   <ItemGroup Label="Redist">
     <NuSpec Include="Microsoft.NetFX20.nuspec" />
   </ItemGroup>
-  <Target Name="Build" Inputs="@(NuSpec)" Outputs="@(NuSpec-&gt;NuGet\$(NuGetVersionType)\%(Identity).$(NuGetVersion).nupkg">
+  <Target Name="Build" Inputs="@(NuSpec)" Outputs="@(NuSpec -&gt; NuGet\$(NuGetVersionType)\%(Identity).$(NuGetVersion).nupkg">
     <PropertyGroup>
       <NuGetArguments>-prop currentVersion="$(NuGetVersion)"</NuGetArguments>
       <NuGetOutDir>$(OutDir)NuGet\$(NuGetVersionType)</NuGetOutDir>

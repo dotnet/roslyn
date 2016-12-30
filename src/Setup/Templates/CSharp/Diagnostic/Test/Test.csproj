@@ -37,12 +37,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    $if$ ($targetframeworkversion$ &gt;= 3.5)
+    $if$ ($targetframeworkversion$ >= 3.5)
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     $endif$
-    $if$ ($targetframeworkversion$ &gt;= 4.0)
+    $if$ ($targetframeworkversion$ >= 4.0)
     <Reference Include="Microsoft.CSharp" />
     $endif$
     <Reference Include="System.Data" />

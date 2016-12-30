@@ -8,8 +8,10 @@
 
   <!-- Always use the local build task, even if we just shell out to an exe in case there are
        new properties in the local build task. -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="$(ToolsetCompilerPath)\Microsoft.Build.Tasks.CodeAnalysis.dll" />
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc" AssemblyFile="$(ToolsetCompilerPath)\Microsoft.Build.Tasks.CodeAnalysis.dll" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc"
+             AssemblyFile="$(ToolsetCompilerPath)\Microsoft.Build.Tasks.CodeAnalysis.dll" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc"
+             AssemblyFile="$(ToolsetCompilerPath)\Microsoft.Build.Tasks.CodeAnalysis.dll" />
   <PropertyGroup>
     <CSharpCoreTargetsPath>$(ToolsetCompilerPath)\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
     <VisualBasicCoreTargetsPath>$(ToolsetCompilerPath)\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>

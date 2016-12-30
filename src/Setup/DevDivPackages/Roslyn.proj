@@ -18,10 +18,11 @@
       <Version Condition="'$(NuGetPerBuildPreReleaseVersion)' == ''">$(NuGetReleaseVersion)-cibuild</Version>
     </NuSpec>
   </ItemGroup>
-  <Target Name="Build" Inputs="@(NuSpec)" Outputs="@(NuSpec-&gt;$(PackagesOutDir)\%(Filename)%(Extension).%(Version).nupkg">
+  <Target Name="Build" Inputs="@(NuSpec)" Outputs="@(NuSpec -&gt; $(PackagesOutDir)\%(Filename)%(Extension).%(Version).nupkg">
     <MakeDir Directories="$(PackagesOutDir)" Condition="!Exists('$(PackagesOutDir)')" />
     <!-- nuget doesn't set exitcode when the value of an arg is invalid -->
-    <Exec Command="Pack.cmd %(NuSpec.FullPath) %(NuSpec.Version) $(OutDir) $(PackagesOutDir)" CustomErrorRegularExpression="pack: invalid arguments" />
+    <Exec Command="Pack.cmd %(NuSpec.FullPath) %(NuSpec.Version) $(OutDir) $(PackagesOutDir)"
+          CustomErrorRegularExpression="pack: invalid arguments" />
   </Target>
   <Target Name="Clean">
     <RemoveDir Directories="$(PackagesOutDir)" />

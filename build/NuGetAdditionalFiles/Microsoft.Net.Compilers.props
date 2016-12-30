@@ -10,13 +10,19 @@
        the executable in the MSBuild install path will be executed. -->
 
   <Target Name="ValidateMSBuildToolsVersion" Condition="'$(BuildingProject)' == 'true'">
-    <Error Text="Microsoft.Net.Compilers is only supported on MSBuild v14.0 and above" Condition="'$(MSBuildToolsVersion)' == '2.0'                    OR '$(MSBuildToolsVersion)' == '3.5'                    OR '$(MSBuildToolsVersion)' == '4.0'                    OR '$(MSBuildToolsVersion)' == '12.0'" />
+    <Error Text="Microsoft.Net.Compilers is only supported on MSBuild v14.0 and above"
+           Condition="'$(MSBuildToolsVersion)' == '2.0' OR
+                      '$(MSBuildToolsVersion)' == '3.5' OR
+                      '$(MSBuildToolsVersion)' == '4.0' OR
+                      '$(MSBuildToolsVersion)' == '12.0'" />
   </Target>
 
   <!-- Always use the local build task, even if we just shell out to an exe in case there are
        new properties in the local build task. -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="$(MSBuildThisFileDirectory)..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll" />
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc" AssemblyFile="$(MSBuildThisFileDirectory)..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc"
+             AssemblyFile="$(MSBuildThisFileDirectory)..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc"
+             AssemblyFile="$(MSBuildThisFileDirectory)..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll" />
   <PropertyGroup>
     <!-- By default don't use the compiler server in Visual Studio. -->
     <UseSharedCompilation Condition="'$(UseSharedCompilation)' == ''">false</UseSharedCompilation>

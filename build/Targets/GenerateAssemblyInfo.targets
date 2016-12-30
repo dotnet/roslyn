@@ -16,7 +16,7 @@
         <GitHeadSha>$(BUILD_SOURCEVERSION)</GitHeadSha>
       </PropertyGroup>
     </When>
-    <When Condition="'$(BUILD_SOURCEVERSION)' == '' and '$(GIT_COMMIT)' != ''">
+    <When Condition="'$(BUILD_SOURCEVERSION)' == '' AND '$(GIT_COMMIT)' != ''">
       <PropertyGroup>
         <GitHeadSha>$(GIT_COMMIT)</GitHeadSha>
       </PropertyGroup>
@@ -27,8 +27,8 @@
         <DotGitDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../.git'))</DotGitDir>
         <HeadFileContent Condition="Exists('$(DotGitDir)/HEAD')">$([System.IO.File]::ReadAllText('$(DotGitDir)/HEAD').Trim())</HeadFileContent>
         <RefPath Condition="$(HeadFileContent.StartsWith('ref: '))">$(DotGitDir)/$(HeadFileContent.Substring(5))</RefPath>
-        <GitHeadSha Condition="'$(RefPath)' != '' and Exists('$(RefPath)')">$([System.IO.File]::ReadAllText('$(RefPath)').Trim())</GitHeadSha>
-        <GitHeadSha Condition="'$(HeadFileContent)' != '' and '$(RefPath)' == ''">$(HeadFileContent)</GitHeadSha>
+        <GitHeadSha Condition="'$(RefPath)' != '' AND Exists('$(RefPath)')">$([System.IO.File]::ReadAllText('$(RefPath)').Trim())</GitHeadSha>
+        <GitHeadSha Condition="'$(HeadFileContent)' != '' AND '$(RefPath)' == ''">$(HeadFileContent)</GitHeadSha>
       </PropertyGroup>
     </Otherwise>
   </Choose>
@@ -94,14 +94,22 @@
   <!-- Depends on PrepareForBuild because the latter is responsible for calling MakeDir(IntermediateOutputPath).
   Without it, if we do a design-time build of a project (e.g. in Workspace.LoadSolution) immediately following
   a tfpt treeclean, WriteCodeFragment may fail because the obj folder doesn't even exist at that time.  -->
-  <Target Name="GenerateAssemblyInfoFile" Inputs="$(MSBuildThisFileFullPath)" Outputs="$(GeneratedAssemblyInfoFile)" DependsOnTargets="PrepareForBuild" Condition="('$(Language)' == 'C#' or '$(Language)' == 'VB')">
+  <Target Name="GenerateAssemblyInfoFile"
+          Inputs="$(MSBuildThisFileFullPath)"
+          Outputs="$(GeneratedAssemblyInfoFile)"
+          DependsOnTargets="PrepareForBuild"
+          Condition="('$(Language)' == 'C#' OR '$(Language)' == 'VB')">
 
-    <CreateItem Include="System.Reflection.AssemblyMetadataAttribute" AdditionalMetadata="_Parameter1=Serviceable;_Parameter2=True" Condition="'$(ServiceablePackage)' == 'true'">
+    <CreateItem Include="System.Reflection.AssemblyMetadataAttribute"
+                AdditionalMetadata="_Parameter1=Serviceable;_Parameter2=True"
+                Condition="'$(ServiceablePackage)' == 'true'">
       <Output TaskParameter="Include" ItemName="AssemblyVersionAttribute" />
     </CreateItem>
 
     <!-- The necessity of this Task is tracked by https://github.com/dotnet/roslyn/issues/8421 -->
-    <WriteCodeFragmentEx AssemblyAttributes="@(AssemblyVersionAttribute)" Language="$(Language)" OutputFile="$(GeneratedAssemblyInfoFile)">
+    <WriteCodeFragmentEx AssemblyAttributes="@(AssemblyVersionAttribute)"
+                         Language="$(Language)"
+                         OutputFile="$(GeneratedAssemblyInfoFile)">
       <Output TaskParameter="OutputFile" ItemName="Compile" />
       <Output TaskParameter="OutputFile" ItemName="FileWrites" />
     </WriteCodeFragmentEx>
