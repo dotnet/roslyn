@@ -3542,9 +3542,46 @@ public class TestClass
         var result = test?.Test() ?? throw new Exception();
     }
 }";
+            // DEBUG
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
+
+            var verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("TestClass.Test", @"{
+    // Code size       18 (0x12)
+    .maxstack  1
+    .locals init (decimal V_0, //result
+                    decimal V_1)
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  brtrue.s   IL_000a
+    IL_0004:  newobj     ""System.Exception..ctor()""
+    IL_0009:  throw
+    IL_000a:  ldarg.1
+    IL_000b:  call       ""decimal ITest.Test()""
+    IL_0010:  stloc.0
+    IL_0011:  ret
+}");
+
+            // RELEASE
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
+
+            verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("TestClass.Test", @"{
+    // Code size       17 (0x11)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.1
+    IL_000a:  call       ""decimal ITest.Test()""
+    IL_000f:  pop
+    IL_0010:  ret
+}");
         }
 
         [Fact]
