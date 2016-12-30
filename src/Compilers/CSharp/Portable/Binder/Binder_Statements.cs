@@ -1572,7 +1572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We will already have given an error for "this" used outside of a constructor, 
                 // instance method, or instance accessor. Assume that "this" is a variable if it is in a struct.
-                if (!thisref.Type.IsValueType || kind == BindValueKind.RefReturn)
+                if (!thisref.Type.IsValueType ^ kind == BindValueKind.RefReturn)
                 {
                     // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
                     Error(diagnostics, GetThisLvalueError(kind), node, ThisParameterSymbol.SymbolName);
