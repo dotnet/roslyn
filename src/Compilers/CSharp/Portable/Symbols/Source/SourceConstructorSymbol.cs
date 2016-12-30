@@ -76,7 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var bodyBinder = binderFactory.GetBinder(parameterList, syntax, this).WithContainingMemberOrLambda(this);
 
             SyntaxToken arglistToken;
-            _lazyParameters = ParameterHelpers.MakeParameters(bodyBinder, this, parameterList, true, out arglistToken, diagnostics, false);
+            _lazyParameters = ParameterHelpers.MakeParameters(
+                bodyBinder, this, parameterList, out arglistToken, diagnostics, 
+                allowRefOrOut: true, allowThis: false, beStrict: false);
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             _lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
 

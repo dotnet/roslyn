@@ -162,9 +162,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _binder,
                 this,
                 _syntax.ParameterList,
-                allowRefOrOut: true,
                 arglistToken: out arglistToken,
                 diagnostics: diagnostics,
+                allowRefOrOut: true,
+                allowThis: true,
                 beStrict: true);
 
             var isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
