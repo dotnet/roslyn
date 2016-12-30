@@ -9325,6 +9325,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Public signing is not supported for netmodules..
+        '''</summary>
+        Friend ReadOnly Property ERR_PublicSignNetModule() As String
+            Get
+                Return ResourceManager.GetString("ERR_PublicSignNetModule", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Public sign was specified and requires a public key, but no public key was specified.
         '''</summary>
         Friend ReadOnly Property ERR_PublicSignNoKey() As String
@@ -12672,6 +12681,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property WRN_AsyncSubCouldBeFunction_Title() As String
             Get
                 Return ResourceManager.GetString("WRN_AsyncSubCouldBeFunction_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Attribute &apos;{0}&apos; is ignored when public signing is specified..
+        '''</summary>
+        Friend ReadOnly Property WRN_AttributeIgnoredWhenPublicSigning() As String
+            Get
+                Return ResourceManager.GetString("WRN_AttributeIgnoredWhenPublicSigning", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Attribute is ignored when public signing is specified..
+        '''</summary>
+        Friend ReadOnly Property WRN_AttributeIgnoredWhenPublicSigning_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_AttributeIgnoredWhenPublicSigning_Title", resourceCulture)
             End Get
         End Property
         
