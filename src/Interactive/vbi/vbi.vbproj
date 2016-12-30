@@ -9,7 +9,6 @@
     <ProjectGuid>{6E62A0FF-D0DC-4109-9131-AB8E60CDFF7B}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <StartupObject>Sub Main</StartupObject>
-    <RootNamespace></RootNamespace>
     <AssemblyName>vbi</AssemblyName>
     <Prefer32Bit>false</Prefer32Bit>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>

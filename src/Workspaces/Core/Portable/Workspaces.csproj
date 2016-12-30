@@ -16,6 +16,7 @@
     <ServiceablePackage>true</ServiceablePackage>
     <!-- Temporary workaround for CLR bug, VSO #290723. Please remove the below line once this bug is fixed. -->
     <SkipApplyOptimizations>true</SkipApplyOptimizations>
+    <DefineConstants>$(DefineConstants);WORKSPACE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -186,9 +187,6 @@
       <Link>InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
   </ItemGroup>
-  <PropertyGroup>
-    <DefineConstants>$(DefineConstants);WORKSPACE</DefineConstants>
-  </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />

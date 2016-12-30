@@ -14,9 +14,7 @@
     <RoslynProjectType>DeploymentTest</RoslynProjectType>
     <OutDir>$(OutDir)UnitTests\Portable\</OutDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>false</DebugSymbols>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <None Include="project.json" />

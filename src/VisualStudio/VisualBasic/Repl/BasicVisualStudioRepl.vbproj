@@ -70,7 +70,6 @@
       <Private>false</Private>
     </Reference>
     <Reference Include="WindowsBase" />
-    <Import Include="Microsoft.VisualBasic" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="VisualBasicInteractiveCommandHandler.vb" />

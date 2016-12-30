@@ -8,7 +8,6 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{ABC7262E-1053-49F3-B846-E3091BB92E8C}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace></RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>

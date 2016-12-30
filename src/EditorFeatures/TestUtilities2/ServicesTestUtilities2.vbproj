@@ -8,8 +8,6 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>
-    </RootNamespace>
     <AssemblyName>Roslyn.Services.Test.Utilities2</AssemblyName>
     <OptionStrict>Off</OptionStrict>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
@@ -105,15 +103,8 @@
       <Name>ServicesTestUtilities</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />

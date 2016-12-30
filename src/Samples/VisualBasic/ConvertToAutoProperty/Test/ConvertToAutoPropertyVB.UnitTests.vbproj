@@ -14,6 +14,8 @@
     <OptionStrict>Off</OptionStrict>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <RoslynProjectType>UnitTest</RoslynProjectType>
+    <NoWarn>$(NoWarn);41999,42016,42030,42104,42108,42109</NoWarn>
+    <WarningsAsErrors>41998,42004,42020,42021,42022,42026,42029,42031,42105,42106,42107,42353,42354,42355</WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
@@ -69,20 +71,8 @@
       <Name>ConvertToAutoPropertyVB</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <NoWarn>$(NoWarn);41999,42016,42030,42104,42108,42109</NoWarn>
-    <WarningsAsErrors>41998,42004,42020,42021,42022,42026,42029,42031,42105,42106,42107,42353,42354,42355</WarningsAsErrors>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineDebug>false</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-    <NoWarn>$(NoWarn);41999,42016,42030,42104,42108,42109</NoWarn>
-    <WarningsAsErrors>41998,42004,42020,42021,42022,42026,42029,42031,42105,42106,42107,42353,42354,42355</WarningsAsErrors>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -90,10 +80,6 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Import Include="System" />
-    <Import Include="System.Collections.Generic" />
-    <Import Include="System.Diagnostics" />
-    <Import Include="System.Linq" />
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
