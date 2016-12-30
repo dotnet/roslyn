@@ -3280,7 +3280,7 @@ public class MyClass
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "TypedReference").WithArguments("System.TypedReference"),
                 // (8,31): error CS0210: You must provide an initializer in a 'fixed' statement declaration
                 //         fixed (TypedReference tr) { }
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "tr"),
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "tr").WithArguments("fixed"),
                 // (6,37): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     unsafe async public static void F()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F"));

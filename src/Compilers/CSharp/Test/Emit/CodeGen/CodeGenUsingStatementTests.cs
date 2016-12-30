@@ -2317,7 +2317,7 @@ struct MyManagedClass1 : IDisposable
     { }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FixedMustInit, "res2"));
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FixedMustInit, "res2").WithArguments("using"));
         }
 
         // Dispose() called for both objects when exception thrown in compound case

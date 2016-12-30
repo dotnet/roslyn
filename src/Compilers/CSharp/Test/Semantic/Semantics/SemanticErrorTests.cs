@@ -7686,7 +7686,7 @@ public class MyClass
                 Diagnostic(ErrorCode.ERR_BadFixedInitType, "i"),
                 // (13,18): error CS0210: You must provide an initializer in a 'fixed' statement declaration
                 //       fixed (int i)    // CS0209
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "i"),
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "i").WithArguments("fixed"),
 
                 // (4,15): warning CS0649: Field 'Point.x' is never assigned to, and will always have its default value 0
                 //    public int x, y;
@@ -7719,13 +7719,13 @@ class Test
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (7,27): error CS0210: You must provide an initializer in a 'using' statement declaration
                 //       using (StreamWriter w) // CS0210
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "w").WithLocation(7, 27),
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "w").WithArguments("using").WithLocation(7, 27),
                 // (12,27): error CS0210: You must provide an initializer in a 'using' statement declaration
                 //       using (StreamWriter x, y) // CS0210, CS0210
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "x").WithLocation(12, 27),
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "x").WithArguments("using").WithLocation(12, 27),
                 // (12,30): error CS0210: You must provide an initializer in a 'using' statement declaration
                 //       using (StreamWriter x, y) // CS0210, CS0210
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "y").WithLocation(12, 30),
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "y").WithArguments("using").WithLocation(12, 30),
                 // (9,10): error CS0165: Use of unassigned local variable 'w'
                 //          w.WriteLine("Hello there");
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "w").WithArguments("w").WithLocation(9, 10)

@@ -5961,7 +5961,7 @@ unsafe class C
             CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,21): error CS0210: You must provide an initializer in a 'fixed' statement declaration
                 //         fixed (int* p) //missing initializer
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "p"));
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "p").WithArguments("fixed"));
         }
 
         [Fact]
@@ -6044,7 +6044,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")"),
                 // (8,29): error CS0210: You must provide an initializer in a 'fixed' statement declaration
                 //         fixed (int* p = &x, var q = p) //multiple declarations (vs declarators)
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "var"),
+                Diagnostic(ErrorCode.ERR_FixedMustInit, "var").WithArguments("fixed"),
                 // (8,33): error CS0103: The name 'q' does not exist in the current context
                 //         fixed (int* p = &x, var q = p) //multiple declarations (vs declarators)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "q").WithArguments("q"));
