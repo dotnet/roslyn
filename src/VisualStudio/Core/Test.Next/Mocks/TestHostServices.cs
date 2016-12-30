@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Test.Utilities.Remote;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
 {
