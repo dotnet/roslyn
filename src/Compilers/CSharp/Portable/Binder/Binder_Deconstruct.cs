@@ -737,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, component.Designation);
                         }
 
-                        return BindDeconstructionVariables(declType, component.Designation, diagnostics);
+                        return BindDeconstructionVariables(declType, component.Designation, declaration, diagnostics);
                     }
                 case SyntaxKind.TupleExpression:
                     {
@@ -770,6 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private DeconstructionVariable BindDeconstructionVariables(
             TypeSymbol declType,
             VariableDesignationSyntax node,
+            CSharpSyntaxNode syntax,
             DiagnosticBag diagnostics)
         {
             switch (node.Kind())
@@ -790,9 +791,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance();
                         foreach (var n in tuple.Variables)
                         {
-                            builder.Add(BindDeconstructionVariables(declType, n, diagnostics));
+                            builder.Add(BindDeconstructionVariables(declType, n, tuple, diagnostics));
                         }
-                        return new DeconstructionVariable(builder, node);
+                        return new DeconstructionVariable(builder, syntax);
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());

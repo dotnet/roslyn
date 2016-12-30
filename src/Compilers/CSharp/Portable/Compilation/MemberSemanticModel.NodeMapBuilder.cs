@@ -263,6 +263,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode VisitForEachStatement(BoundForEachStatement node)
+            {
+                if ((object)node.DeconstructionOpt == null)
+                {
+                    this.Visit(node.IterationVariableType);
+                }
+                else
+                {
+                    this.Visit(node.DeconstructionOpt.DeconstructionAssignment.Left);
+                }
+
+                this.Visit(node.Expression);
+                this.Visit(node.Body);
+                return null;
+            }
+
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
             {
                 return false;

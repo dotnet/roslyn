@@ -21,5 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return this.Update(binder.CreateErrorType("var"));
         }
+
+        public override Symbol ExpressionSymbol
+        {
+            get
+            {
+                return new DiscardSymbol(this.Type);
+            }
+        }
     }
 }

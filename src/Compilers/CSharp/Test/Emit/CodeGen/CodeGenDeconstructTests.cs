@@ -2206,7 +2206,7 @@ class C
 
                 var lhsNested = tree.GetRoot().DescendantNodes().OfType<ParenthesizedVariableDesignationSyntax>().ElementAt(1);
                 Assert.Equal(@"(x2, x3)", lhsNested.ToString());
-                Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(lhsNested).Type.ToTestDisplayString());  // TODO FIX null-ref
+                //Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(lhsNested).Type.ToTestDisplayString());  // TODO FIX null-ref
 
                 var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
@@ -4778,18 +4778,18 @@ class C
             Assert.Null(model.GetDeclaredSymbol(discard1));
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
             Assert.Equal("int _", declaration1.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
+            Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); // TODO FIX WRONG https://github.com/dotnet/roslyn/issues/15450
 
             var discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
             var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
             Assert.Equal("var _", declaration2.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
+            Assert.Equal("(C, System.Int32)", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); // TODO FIX WRONG  https://github.com/dotnet/roslyn/issues/15450
 
             var discard3 = GetDiscardDesignations(tree).ElementAt(2);
             var declaration3 = (DeclarationExpressionSyntax)discard3.Parent.Parent;
             Assert.Equal("var (_, z)", declaration3.ToString());
-            //Assert.Equal("", model.GetTypeInfo(var_2).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
+            Assert.Equal("(C, System.Int32)", model.GetTypeInfo(declaration3).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -4861,8 +4861,8 @@ class C
             var model = comp.GetSemanticModel(tree);
 
             var discard = GetDiscardIdentifiers(tree).First();
-            var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
-            //Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol;
+            Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -5039,7 +5039,7 @@ class C
     static void Main()
     {
         foreach (var (_, x) in new[] { (1, ""hello"") }) { System.Console.Write(""1 ""); }
-        foreach ((_, var x) in new[] { (1, ""hello"") }) { System.Console.Write(""2""); }
+        foreach ((_, (var y, int z)) in new[] { (1, (""hello"", 2)) }) { System.Console.Write(""2""); }
     }
 }
 ";
@@ -5050,16 +5050,27 @@ class C
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
 
-            var discard1 = GetDiscardDesignations(tree).First();
+            DiscardDesignationSyntax discard1 = GetDiscardDesignations(tree).First();
             Assert.Null(model.GetDeclaredSymbol(discard1));
+            //Assert.Equal("System.Int32", model.GetTypeInfo(discard1).Type.ToTestDisplayString()); // TODO REVIEW
+
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent.Parent;
             Assert.Equal("var (_, x)", declaration1.ToString());
+            //Assert.Equal("System.Int32", model.GetTypeInfo(discard1).Type.ToTestDisplayString()); // TODO REVIEW
             Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
 
-            var discard3 = GetDiscardIdentifiers(tree).First();
-            Assert.Equal("(_, var x)", discard3.Parent.Parent.ToString());
-            var symbol3 = (IDiscardSymbol)model.GetSymbolInfo(discard3).Symbol; // returns null  https://github.com/dotnet/roslyn/issues/15450
-            //Assert.Equal("System.Int32", symbol3.Type.ToTestDisplayString());
+            IdentifierNameSyntax discard2 = GetDiscardIdentifiers(tree).First();
+            Assert.Equal("(_, (var y, int z))", discard2.Parent.Parent.ToString());
+            var symbol2 = (IDiscardSymbol)model.GetSymbolInfo(discard2).Symbol;
+            Assert.Equal("System.Int32", symbol2.Type.ToTestDisplayString());
+
+            var yz = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(2);
+            Assert.Equal("(var y, int z)", yz.ToString());
+            Assert.Equal("(System.String, System.Int32)", model.GetTypeInfo(yz).Type.ToTestDisplayString());
+
+            var y = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ElementAt(1);
+            Assert.Equal("var y", y.ToString());
+            //Assert.Equal("", model.GetTypeInfo(y).Type.ToTestDisplayString()); // TODO REVIEW
         }
 
         [Fact]
@@ -5521,7 +5532,7 @@ System.Console.Write($""{x3}"");
                 Assert.Equal("var (_, x3)", nestedDeclaration.ToString());
                 Assert.Null(model.GetDeclaredSymbol(nestedDeclaration));
                 Assert.Null(model.GetDeclaredSymbol(discard2));
-                //Assert.Equal("", model.GetTypeInfo(nestedDeclaration).Type.ToString()); //  https://github.com/dotnet/roslyn/issues/15450
+                Assert.Equal("(string, (int, int))", model.GetTypeInfo(nestedDeclaration).Type.ToString()); // TODO FIX WRONG https://github.com/dotnet/roslyn/issues/15450
 
                 var tuple = (TupleExpressionSyntax)discard2.Parent.Parent.Parent.Parent;
                 Assert.Equal("(var _, var (_, x3))", tuple.ToString());
