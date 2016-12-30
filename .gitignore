@@ -9,6 +9,7 @@
 .vs/
 
 # Build results
+[Aa]rtifacts/
 [Bb]inaries/
 [Dd]ebug/
 [Rr]elease/
