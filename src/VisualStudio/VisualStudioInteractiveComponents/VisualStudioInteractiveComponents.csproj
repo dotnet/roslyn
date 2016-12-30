@@ -206,10 +206,8 @@
     <NuGetPackageToIncludeInVsix Include="System.Xml.XPath.XDocument" />
     <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <None Include="project.json" />
     <None Include="source.extension.vsixmanifest">
