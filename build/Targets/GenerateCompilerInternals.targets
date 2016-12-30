@@ -81,7 +81,7 @@
       <GeneratedSyntaxModelGetText>@(SyntaxGetTextDefinition -&gt; '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModelGetText>
     </PropertyGroup>
 
-    <Exec Command="$(SyntaxGenerator) &quot;@(SyntaxGetTextDefinition)&quot; &quot;$(GeneratedSyntaxModelGetText)&quot;/gettext"
+    <Exec Command="$(SyntaxGenerator) &quot;@(SyntaxGetTextDefinition)&quot; &quot;$(GeneratedSyntaxModelGetText)&quot; /gettext"
           Outputs="$(GeneratedSyntaxModelGetText)">
       <Output TaskParameter="Outputs" ItemName="FileWrites" />
     </Exec>
@@ -106,7 +106,7 @@
       <GeneratedSyntaxModelTests>@(SyntaxTestDefinition -&gt; '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModelTests>
     </PropertyGroup>
 
-    <Exec Command="$(SyntaxGenerator) &quot;@(SyntaxTestDefinition)&quot; &quot;$(GeneratedSyntaxModelTests)&quot;/test"
+    <Exec Command="$(SyntaxGenerator) &quot;@(SyntaxTestDefinition)&quot; &quot;$(GeneratedSyntaxModelTests)&quot; /test"
           Outputs="$(GeneratedSyntaxModelTests)">
       <Output TaskParameter="Outputs" ItemName="FileWrites" />
     </Exec>

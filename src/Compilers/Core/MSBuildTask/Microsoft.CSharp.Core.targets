@@ -33,7 +33,7 @@
 
     <PropertyGroup>
       <!-- To match historical behavior, when inside VS11+ disable the warning from csc.exe indicating that no sources were passed in-->
-      <NoWarn Condition="'$(BuildingInsideVisualStudio)' == 'true' AND '$(VisualStudioVersion)' != '' AND '$(VisualStudioVersion)'&gt; '10.0'">$(NoWarn);2008</NoWarn>
+      <NoWarn Condition="'$(BuildingInsideVisualStudio)' == 'true' AND '$(VisualStudioVersion)' != '' AND '$(VisualStudioVersion)' &gt; '10.0'">$(NoWarn);2008</NoWarn>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(TargetingClr2Framework)' == 'true'">
@@ -82,7 +82,7 @@
          CodePage="$(CodePage)"
          DebugType="$(DebugType)"
          DefineConstants="$(DefineConstants)"
-         elaySign="$(DelaySign)"
+         DelaySign="$(DelaySign)"
          DisabledWarnings="$(NoWarn)"
          DocumentationFile="@(DocFileItem)"
          EmbeddedFiles="@(EmbeddedFiles)"
