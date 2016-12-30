@@ -161,14 +161,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (variable.Kind == BoundKind.DiscardExpression)
                     {
-                        assignmentTargets.Add(variable);
+                        args.targets.Add(variable);
                     }
                     else
                     {
-                        assignmentTargets.Add(this.TransformCompoundAssignmentLHS(variable, args.stores, args.temps, isDynamicAssignment: variable.Type.IsDynamic()));
+                        args.targets.Add(this.TransformCompoundAssignmentLHS(variable, args.stores, args.temps, isDynamicAssignment: variable.Type.IsDynamic()));
                     }
                 },
-                (temps: temps, stores: stores)
+                (temps: temps, stores: stores, targets: assignmentTargets)
             );
 
             return assignmentTargets.ToImmutableAndFree();

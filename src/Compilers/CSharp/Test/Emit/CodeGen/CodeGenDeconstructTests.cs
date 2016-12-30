@@ -2206,7 +2206,7 @@ class C
 
                 var lhsNested = tree.GetRoot().DescendantNodes().OfType<ParenthesizedVariableDesignationSyntax>().ElementAt(1);
                 Assert.Equal(@"(x2, x3)", lhsNested.ToString());
-                //Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(lhsNested).Type.ToTestDisplayString());  // TODO FIX null-ref
+                Assert.Null(model.GetTypeInfo(lhsNested).Type);
 
                 var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
@@ -4778,13 +4778,13 @@ class C
             Assert.Null(model.GetDeclaredSymbol(discard1));
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
             Assert.Equal("int _", declaration1.ToString());
-            Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); // TODO FIX WRONG https://github.com/dotnet/roslyn/issues/15450
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
 
             var discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
             var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
             Assert.Equal("var _", declaration2.ToString());
-            Assert.Equal("(C, System.Int32)", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); // TODO FIX WRONG  https://github.com/dotnet/roslyn/issues/15450
+            Assert.Equal("C", model.GetTypeInfo(declaration2).Type.ToTestDisplayString());
 
             var discard3 = GetDiscardDesignations(tree).ElementAt(2);
             var declaration3 = (DeclarationExpressionSyntax)discard3.Parent.Parent;
@@ -5052,11 +5052,11 @@ class C
 
             DiscardDesignationSyntax discard1 = GetDiscardDesignations(tree).First();
             Assert.Null(model.GetDeclaredSymbol(discard1));
-            //Assert.Equal("System.Int32", model.GetTypeInfo(discard1).Type.ToTestDisplayString()); // TODO REVIEW
+            Assert.Null(model.GetTypeInfo(discard1).Type);
 
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent.Parent;
             Assert.Equal("var (_, x)", declaration1.ToString());
-            //Assert.Equal("System.Int32", model.GetTypeInfo(discard1).Type.ToTestDisplayString()); // TODO REVIEW
+            Assert.Null(model.GetTypeInfo(discard1).Type);
             Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
 
             IdentifierNameSyntax discard2 = GetDiscardIdentifiers(tree).First();
@@ -5070,7 +5070,7 @@ class C
 
             var y = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ElementAt(1);
             Assert.Equal("var y", y.ToString());
-            //Assert.Equal("", model.GetTypeInfo(y).Type.ToTestDisplayString()); // TODO REVIEW
+            Assert.Equal("System.String", model.GetTypeInfo(y).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -5532,7 +5532,7 @@ System.Console.Write($""{x3}"");
                 Assert.Equal("var (_, x3)", nestedDeclaration.ToString());
                 Assert.Null(model.GetDeclaredSymbol(nestedDeclaration));
                 Assert.Null(model.GetDeclaredSymbol(discard2));
-                Assert.Equal("(string, (int, int))", model.GetTypeInfo(nestedDeclaration).Type.ToString()); // TODO FIX WRONG https://github.com/dotnet/roslyn/issues/15450
+                Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(nestedDeclaration).Type.ToTestDisplayString());
 
                 var tuple = (TupleExpressionSyntax)discard2.Parent.Parent.Parent.Parent;
                 Assert.Equal("(var _, var (_, x3))", tuple.ToString());
@@ -5554,7 +5554,7 @@ class C
 {
     static void Main()
     {
-        foreach ((var _, int _, _, var (_, _), int x) in new[] { (1, 2, 3, (4, 5), 6) })
+        foreach ((var _, int _, _, var (_, _), int x) in new[] { (1L, 2, 3, (""hello"", 5), 6) })
         {
             System.Console.Write(x);
         }
@@ -5570,23 +5570,37 @@ class C
 
             var discard1 = GetDiscardDesignations(tree).First();
             Assert.Null(model.GetDeclaredSymbol(discard1));
+            Assert.True(model.GetSymbolInfo(discard1).IsEmpty);
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
             Assert.Equal("var _", declaration1.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
+            Assert.Equal("System.Int64", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
 
             var discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
+            Assert.True(model.GetSymbolInfo(discard2).IsEmpty);
             var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
             Assert.Equal("int _", declaration2.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration2).Type.ToTestDisplayString());
 
             var discard3 = GetDiscardIdentifiers(tree).First();
+            Assert.Equal("_", discard3.Parent.ToString());
             Assert.Null(model.GetDeclaredSymbol(discard3));
-            //Assert.Equal("System.Int32", model.GetTypeInfo(discard3).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
+            var discard3Symbol = (IDiscardSymbol)model.GetSymbolInfo(discard3).Symbol;
+            Assert.Equal("System.Int32", discard3Symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(discard3).Type.ToTestDisplayString());
+
+            var discard4 = GetDiscardDesignations(tree).ElementAt(2);
+            Assert.Null(model.GetDeclaredSymbol(discard4));
+            Assert.True(model.GetSymbolInfo(discard4).IsEmpty);
+            Assert.Null(model.GetTypeInfo(discard4).Type);
+
+            var nestedDeclaration = (DeclarationExpressionSyntax)discard4.Parent.Parent;
+            Assert.Equal("var (_, _)", nestedDeclaration.ToString());
+            Assert.Equal("(System.String, System.Int32)", model.GetTypeInfo(nestedDeclaration).Type.ToTestDisplayString());
         }
 
         [Fact]
-        public void DiscardInCSharp6Foreach()
+        public void UnderscoreInCSharp6Foreach()
         {
             var source =
 @"
@@ -5609,15 +5623,6 @@ class C
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "M 1");
-
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-
-            //var discard1 = GetDiscardDesignations(tree).First();
-            //Assert.Null(model.GetDeclaredSymbol(discard1));
-            //var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
-            //Assert.Equal("var _", declaration1.ToString());
-            ////Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
         }
 
         [Fact]
@@ -5645,8 +5650,6 @@ class C
                 //         foreach (_ in M())
                 Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "_").WithLocation(6, 18)
                 );
-            // TODO: test SemanticModel.GetTypeInfo on the wildcard here.
-            // see https://github.com/dotnet/roslyn/issues/15450
         }
 
         [Fact]
@@ -5953,21 +5956,21 @@ class C
 
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             compilation.VerifyDiagnostics(
-                // (6,10): error CS8184: A declaration is not allowed in this context.
+                // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (int x1, string x2);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x1").WithLocation(6, 10),
-                // (6,18): error CS8184: A declaration is not allowed in this context.
+                // (6,18): error CS8185: A declaration is not allowed in this context.
                 //         (int x1, string x2);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "string x2").WithLocation(6, 18),
                 // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         (int x1, string x2);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x1, string x2)").WithLocation(6, 9),
-                // (6,14): error CS0165: Use of unassigned local variable 'x1'
+                // (6,10): error CS0165: Use of unassigned local variable 'x1'
                 //         (int x1, string x2);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(6, 14),
-                // (6,25): error CS0165: Use of unassigned local variable 'x2'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x1").WithArguments("x1").WithLocation(6, 10),
+                // (6,18): error CS0165: Use of unassigned local variable 'x2'
                 //         (int x1, string x2);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(6, 25)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "string x2").WithArguments("x2").WithLocation(6, 18)
                 );
 
             var tree = compilation.SyntaxTrees.First();

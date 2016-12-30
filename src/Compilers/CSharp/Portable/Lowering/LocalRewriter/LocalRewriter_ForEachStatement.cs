@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (variable.Kind == BoundKind.Local)
                     {
-                        builder.Add(((BoundLocal)variable).LocalSymbol);
+                        b.Add(((BoundLocal)variable).LocalSymbol);
                     }
                 }, builder);
             return builder.ToImmutableAndFree();

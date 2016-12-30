@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    variables[i] = new DeconstructionVariable(SetInferredType(pending, foundTypes[i], diagnostics), pending.Syntax);
+                    variables[i] = new DeconstructionVariable(SetInferredType(pending, foundTypes[i], diagnostics), variable.Syntax);
                 }
             }
         }
@@ -737,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, component.Designation);
                         }
 
-                        return BindDeconstructionVariables(declType, component.Designation, declaration, diagnostics);
+                        return BindDeconstructionVariables(declType, component.Designation, component, diagnostics);
                     }
                 case SyntaxKind.TupleExpression:
                     {
@@ -778,12 +778,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SingleVariableDesignation:
                     {
                         var single = (SingleVariableDesignationSyntax)node;
-                        return new DeconstructionVariable(BindDeconstructionVariable(declType, single, diagnostics), node);
+                        return new DeconstructionVariable(BindDeconstructionVariable(declType, single, syntax, diagnostics), syntax);
                     }
                 case SyntaxKind.DiscardDesignation:
                     {
                         var discarded = (DiscardDesignationSyntax)node;
-                        return new DeconstructionVariable(BindDiscardExpression(discarded, declType), node);
+                        return new DeconstructionVariable(BindDiscardExpression(syntax, declType), syntax);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var builder = ArrayBuilder<DeconstructionVariable>.GetInstance();
                         foreach (var n in tuple.Variables)
                         {
-                            builder.Add(BindDeconstructionVariables(declType, n, tuple, diagnostics));
+                            builder.Add(BindDeconstructionVariables(declType, n, n, diagnostics));
                         }
                         return new DeconstructionVariable(builder, syntax);
                     }
@@ -801,10 +801,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static BoundDiscardExpression BindDiscardExpression(
-            DiscardDesignationSyntax designation,
+            SyntaxNode syntax,
             TypeSymbol declType)
         {
-            return new BoundDiscardExpression(designation, declType);
+            return new BoundDiscardExpression(syntax, declType);
         }
 
         /// <summary>
@@ -815,6 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindDeconstructionVariable(
             TypeSymbol declType,
             SingleVariableDesignationSyntax designation,
+            CSharpSyntaxNode syntax,
             DiagnosticBag diagnostics)
         {
             SourceLocalSymbol localSymbol = LookupLocal(designation.Identifier);
@@ -829,10 +830,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)declType != null)
                 {
-                    return new BoundLocal(designation, localSymbol, isDeclaration: true, constantValueOpt: null, type: declType, hasErrors: hasErrors);
+                    return new BoundLocal(syntax, localSymbol, isDeclaration: true, constantValueOpt: null, type: declType, hasErrors: hasErrors);
                 }
 
-                return new DeconstructionVariablePendingInference(designation, localSymbol, receiverOpt: null);
+                return new DeconstructionVariablePendingInference(syntax, localSymbol, receiverOpt: null);
             }
 
             // Is this a field?
@@ -859,7 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             type: fieldType);
             }
 
-            return new DeconstructionVariablePendingInference(designation, field, receiver);
+            return new DeconstructionVariablePendingInference(syntax, field, receiver);
         }
     }
 }

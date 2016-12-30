@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression SetInferredType(TypeSymbol type, Binder binderOpt, DiagnosticBag diagnostics)
         {
             Debug.Assert(binderOpt != null || (object)type != null);
-            Debug.Assert(this.Syntax.Kind() == SyntaxKind.SingleVariableDesignation);
+            Debug.Assert(this.Syntax.Kind() == SyntaxKind.SingleVariableDesignation || this.Syntax.Kind() == SyntaxKind.DeclarationExpression);
 
             bool inferenceFailed = ((object)type == null);
 

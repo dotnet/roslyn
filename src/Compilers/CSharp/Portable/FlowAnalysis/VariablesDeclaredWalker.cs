@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _variablesDeclared.Add(node.IterationVariableOpt);
                 }
 
-                node.DeconstructionOpt?.DeconstructionAssignment?.Left?.VisitAllElements(x => Visit(x));
+                node.DeconstructionOpt?.DeconstructionAssignment?.Left?.VisitAllElements(x => this.Visit(x));
             }
         }
 
