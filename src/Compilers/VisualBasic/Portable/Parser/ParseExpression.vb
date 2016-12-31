@@ -1294,9 +1294,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If argumentBuilder.Count < 2 Then
                 argumentBuilder.AddSeparator(InternalSyntaxFactory.MissingToken(SyntaxKind.CommaToken))
 
-                Dim missingExpression = SyntaxFactory.SimpleArgument(nameColonEquals:=Nothing, expression:=SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier()))
-                missingExpression = ReportSyntaxError(missingExpression, ERRID.ERR_TupleTooFewElements)
-                argumentBuilder.Add(missingExpression)
+                Dim missing = SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier())
+                missing = ReportSyntaxError(missing, ERRID.ERR_TupleTooFewElements)
+                argumentBuilder.Add(SyntaxFactory.SimpleArgument(nameColonEquals:=Nothing, expression:=missing))
             End If
 
             Dim arguments = argumentBuilder.ToList

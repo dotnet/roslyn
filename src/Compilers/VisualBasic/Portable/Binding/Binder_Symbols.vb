@@ -757,7 +757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim locationsArray As ImmutableArray(Of Location) = locations.ToImmutableAndFree()
 
                 If typesArray.Length < 2 Then
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(typesArray.Length)
                 End If
 
                 Return TupleTypeSymbol.Create(syntax.GetLocation,

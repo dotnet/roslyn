@@ -6701,8 +6701,8 @@ tryAgain:
                     }
 
                     list.AddSeparator(SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
-                    var missingElement = _syntaxFactory.TupleElement(this.CreateMissingIdentifierName(), identifier: null);
-                    list.Add(this.AddError(missingElement, ErrorCode.ERR_TupleTooFewElements));
+                    var missing = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TupleTooFewElements);
+                    list.Add(_syntaxFactory.TupleElement(missing, identifier: null));
                 }
 
                 var close = this.EatToken(SyntaxKind.CloseParenToken);
@@ -10384,8 +10384,8 @@ tryAgain:
                 if (list.Count < 2)
                 {
                     list.AddSeparator(SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
-                    var missingExpression = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TupleTooFewElements);
-                    list.Add(_syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: missingExpression));
+                    var missing = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TupleTooFewElements);
+                    list.Add(_syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: missing));
                 }
 
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
