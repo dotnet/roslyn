@@ -1101,9 +1101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
+
             var errors = file.Errors();
-            Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, errors[0].Code);
+            Assert.Equal(0, errors.Length);
 
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
@@ -1131,6 +1131,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
             Assert.NotNull(cs.CloseBraceToken);
+
+            CreateCompilationWithMscorlib(text).GetDeclarationDiagnostics().Verify(
+                // (1,9): error CS0080: Constraints are not allowed on non-generic declarations
+                // class a where b : c { }
+                Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(1, 9));
+        }
+
+        [Fact]
+        public void TestNonGenericMethodWithTypeConstraintBound()
+        {
+            var text = "class a { void M() where b : c { } }";
+
+            CreateCompilationWithMscorlib(text).GetDeclarationDiagnostics().Verify(
+                // (1,20): error CS0080: Constraints are not allowed on non-generic declarations
+                // class a { void M() where b : c { } }
+                Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(1, 20));
         }
 
         [Fact]
@@ -5254,9 +5270,12 @@ class C {
             var file = this.ParseFile(text);
 
             Assert.NotNull(file);
-            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal((int)ErrorCode.ERR_DefaultValueNotAllowed, file.Errors()[0].Code);
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (5,28): error CS1065: Default values are not valid in this context.
+                //      F f = delegate (int x = 0) { };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 28));
         }
 
         [WorkItem(537865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537865")]

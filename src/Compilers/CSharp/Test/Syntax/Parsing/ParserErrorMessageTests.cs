@@ -709,7 +709,10 @@ namespace x
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (6,10): error CS0574: Name of destructor must match name of class
+                //         ~iiii(){}
+                Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii").WithLocation(6, 10));
         }
 
         // Extra same errors
@@ -1711,10 +1714,19 @@ public class mine {
 }
 ";
 
-            ParseAndValidate(test,
-                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch"),
-                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch"),
-                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (16,9): error CS1017: Catch clauses cannot follow the general catch clause of a try statement
+                //         catch (S1) {}
+                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch").WithLocation(16, 9),
+                // (17,9): error CS1017: Catch clauses cannot follow the general catch clause of a try statement
+                //         catch (S) {}
+                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch").WithLocation(17, 9),
+                // (18,9): error CS1017: Catch clauses cannot follow the general catch clause of a try statement
+                //         catch when (false) {}
+                Diagnostic(ErrorCode.ERR_TooManyCatches, "catch").WithLocation(18, 9),
+                // (18,21): warning CS7095: Filter expression is a constant, consider removing the filter
+                //         catch when (false) {}
+                Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(18, 21));
         }
 
         [Fact]
@@ -2155,8 +2167,13 @@ public class Extensions
    public static void Main(){} 
 } 
 ";
-
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (6,22): error CS0027: Keyword 'this' is not available in the current context
+                //    public Extensions(this int i) {} 
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 22),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1));
         }
 
         [Fact]
@@ -2362,7 +2379,10 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
     C(this object o) { }
 }";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (3,7): error CS0027: Keyword 'this' is not available in the current context
+                //     C(this object o) { }
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(3, 7));
         }
 
         [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2376,7 +2396,10 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
         get { return null; }
     }
 }";
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (3,17): error CS0027: Keyword 'this' is not available in the current context
+                //     object this[this object o]
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(3, 17));
         }
 
         [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2384,7 +2407,10 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
         {
             var test = @"delegate void D(this object o);";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (1,17): error CS0027: Keyword 'this' is not available in the current context
+                // delegate void D(this object o);
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(1, 17));
         }
 
         [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2399,19 +2425,28 @@ class C
         D d = delegate (this object o) { };
     }
 }";
-            ParseAndValidate(test,
-                // (6,25): error CS1026: ) expected
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "this").WithLocation(6, 25),
-                // (6,25): error CS1514: { expected
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "this").WithLocation(6, 25),
-                // (6,25): error CS1002: ; expected
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(6, 25),
-                // (6,30): error CS1002: ; expected
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "object").WithLocation(6, 30),
-                // (6,38): error CS1002: ; expected
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 38),
-                // (6,38): error CS1513: } expected
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 38));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (6,25): error CS0027: Keyword 'this' is not available in the current context
+                //         D d = delegate (this object o) { };
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 25));
+        }
+
+        [Fact]
+        public void ERR_ThisInBadContext01()
+        {
+            var test =
+@"class C
+{
+    public static implicit operator int(this C c) { return 0; }
+    public static C operator +(this C c1, C c2) { return null; }
+}";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,32): error CS0027: Keyword 'this' is not available in the current context
+                //     public static C operator +(this C c1, C c2) { return null; }
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(4, 32),
+                // (3,41): error CS0027: Keyword 'this' is not available in the current context
+                //     public static implicit operator int(this C c) { return 0; }
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(3, 41));
         }
 
         [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2567,7 +2602,10 @@ class A
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "="));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (5,27): error CS1065: Default values are not valid in this context.
+                //     D d1 = delegate(int x = 42) { };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 27));
         }
 
         [Fact]
@@ -2581,7 +2619,10 @@ class A
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "="));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (5,34): error CS1065: Default values are not valid in this context.
+                //     D d1 = delegate(int x, int y = 42) { };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
         }
 
         [Fact, WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
@@ -2648,16 +2689,52 @@ public static class GenExtensions<X>
 }
 ";
 
-            ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"),
-Diagnostic(ErrorCode.ERR_BadRefWithThis, "this"));
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (10,39): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(ref this U u) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(10, 39),
+                // (22,39): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(ref this X x) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(22, 39),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (8,35): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T>(ref this T t) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(8, 35),
+                // (16,32): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo(ref this X x) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(16, 32),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (6,32): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo(ref this int i) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(6, 32),
+                // (18,35): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T>(ref this T t) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(18, 35),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (19,35): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T>(ref this X x) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(19, 35),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (21,39): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(ref this U u) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(21, 39),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (15,32): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
+                //     public static void Foo(ref this int i) {}
+                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(15, 32),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21));
         }
 
         [WorkItem(906072, "DevDiv/Personal")]
@@ -2690,16 +2767,52 @@ public static class GenExtensions<X>
 }
 ";
 
-            ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"),
-Diagnostic(ErrorCode.ERR_BadOutWithThis, "out"));
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (10,40): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(this out U u) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(10, 40),
+                // (8,36): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T>(this out T t) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(8, 36),
+                // (6,33): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo(this out int i) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(6, 33),
+                // (22,40): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(this out X x) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(22, 40),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (16,33): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo(this out X x) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(16, 33),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (18,36): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T>(this out T t) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(18, 36),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (19,36): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T>(this out X x) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(19, 36),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (21,40): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(this out U u) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(21, 40),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (15,33): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo(this out int i) {}
+                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(15, 33),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21));
         }
 
         [WorkItem(863402, "DevDiv/Personal")]
@@ -2732,16 +2845,52 @@ public static class GenExtensions<X>
 }
 ";
 
-            ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"),
-Diagnostic(ErrorCode.ERR_BadParamModThis, "params"));
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (22,40): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T,U,V>(this params X[] xArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(22, 40),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (16,33): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo(this params X[] xArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(16, 33),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (18,36): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T>(this params T[] tArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(18, 36),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (19,36): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T>(this params X[] xArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(19, 36),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (21,40): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T,U,V>(this params U[] uArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(21, 40),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (15,33): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo(this params int[] iArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(15, 33),
+                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X>
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
+                // (10,40): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T,U,V>(this params U[] uArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(10, 40),
+                // (8,36): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo<T>(this params T[] tArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(8, 36),
+                // (6,33): error CS1104: A parameter array cannot be used with 'this' modifier on an extension method
+                //     public static void Foo(this params int[] iArr) {}
+                Diagnostic(ErrorCode.ERR_BadParamModThis, "params").WithLocation(6, 33));
         }
 
         [Fact, WorkItem(535930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535930")]
@@ -2761,40 +2910,28 @@ public static class Extensions
 }
 ";
             // Extra errors
-            ParseAndValidate(test,
-    // (6,33): error CS1107: A parameter can only have one 'this' modifier
-    //     public static void Foo(this this t) {}
-    Diagnostic(ErrorCode.ERR_DupParamMod, "this").WithArguments("this"),
-    // (6,39): error CS1001: Identifier expected
-    //     public static void Foo(this this t) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-    // (7,37): error CS1001: Identifier expected
-    //     public static void Foo(this int this) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "this"),
-    // (7,37): error CS1003: Syntax error, ',' expected
-    //     public static void Foo(this int this) {}
-    Diagnostic(ErrorCode.ERR_SyntaxError, "this").WithArguments(",", "this"),
-    // (7,41): error CS1031: Type expected
-    //     public static void Foo(this int this) {}
-    Diagnostic(ErrorCode.ERR_TypeExpected, ")"),
-    // (7,41): error CS1001: Identifier expected
-    //     public static void Foo(this int this) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-    // (9,34): error CS1001: Identifier expected
-    //     public static void Foo(this t) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
-    // (10,32): error CS1001: Identifier expected
-    //     public static void Foo(int this) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "this"),
-    // (10,32): error CS1003: Syntax error, ',' expected
-    //     public static void Foo(int this) {}
-    Diagnostic(ErrorCode.ERR_SyntaxError, "this").WithArguments(",", "this"),
-    // (10,36): error CS1031: Type expected
-    //     public static void Foo(int this) {}
-    Diagnostic(ErrorCode.ERR_TypeExpected, ")"),
-    // (10,36): error CS1001: Identifier expected
-    //     public static void Foo(int this) {}
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (10,32): error CS1100: Method 'Foo' has a parameter modifier 'this' which is not on the first parameter
+                //     public static void Foo(int this) {}
+                Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("Foo").WithLocation(10, 32),
+                // (7,37): error CS1100: Method 'Foo' has a parameter modifier 'this' which is not on the first parameter
+                //     public static void Foo(this int this) {}
+                Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("Foo").WithLocation(7, 37),
+                // (9,33): error CS0246: The type or namespace name 't' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static void Foo(this t) {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "t").WithArguments("t").WithLocation(9, 33),
+                // (6,33): error CS1107: A parameter can only have one 'this' modifier
+                //     public static void Foo(this this t) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "this").WithArguments("this").WithLocation(6, 33),
+                // (6,38): error CS0246: The type or namespace name 't' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static void Foo(this this t) {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "t").WithArguments("t").WithLocation(6, 38),
+                // (9,24): error CS0111: Type 'Extensions' already defines a member called 'Foo' with the same parameter types
+                //     public static void Foo(this t) {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo").WithArguments("Foo", "Extensions").WithLocation(9, 24),
+                // (10,24): error CS0111: Type 'Extensions' already defines a member called 'Foo' with the same parameter types
+                //     public static void Foo(int this) {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo").WithArguments("Foo", "Extensions").WithLocation(10, 24));
         }
 
         [WorkItem(863405, "DevDiv/Personal")]
@@ -2827,16 +2964,34 @@ public static class GenExtensions<X>
 }
 ";
 
-            ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"),
-Diagnostic(ErrorCode.ERR_MultiParamMod, "out"));
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (10,39): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T,U,V>(ref out U u) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(10, 39),
+                // (8,35): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T>(ref out T t) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(8, 35),
+                // (6,32): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo(ref out int i) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(6, 32),
+                // (22,39): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T,U,V>(ref out X x) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(22, 39),
+                // (16,32): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo(ref out X x) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(16, 32),
+                // (18,35): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T>(ref out T t) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(18, 35),
+                // (19,35): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T>(ref out X x) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(19, 35),
+                // (21,39): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo<T,U,V>(ref out U u) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(21, 39),
+                // (15,32): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                //     public static void Foo(ref out int i) {}
+                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(15, 32));
         }
 
         [Fact]
@@ -3898,8 +4053,13 @@ public class Test
     }
 }
 ";
-
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private"), Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public"));
+            CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
+                // (17,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         private add{}
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private").WithLocation(17, 9),
+                // (18,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         public remove{}
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public").WithLocation(18, 9));
         }
 
         [Fact]
@@ -3917,7 +4077,13 @@ public class Test
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public"), Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private"));
+            CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
+                // (7,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         public add { }
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public").WithLocation(7, 9),
+                // (8,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         private remove { }
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private").WithLocation(8, 9));
         }
 
         [WorkItem(863423, "DevDiv/Personal")]
@@ -3944,7 +4110,16 @@ public class Test
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "ref"), Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "out"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (7,35): error CS1611: The params parameter cannot be declared as ref or out
+                //     public static void boo(params out int[] a) 
+                Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "out").WithLocation(7, 35),
+                // (4,35): error CS1611: The params parameter cannot be declared as ref or out
+                //     public static void foo(params ref int[] a) 
+                Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "ref").WithLocation(4, 35),
+                // (7,24): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                //     public static void boo(params out int[] a) 
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "boo").WithArguments("a").WithLocation(7, 24));
         }
 
         [Fact]
