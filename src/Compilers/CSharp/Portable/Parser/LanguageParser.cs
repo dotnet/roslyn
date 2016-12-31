@@ -7546,14 +7546,16 @@ tryAgain:
 
                 _termState |= TerminatorState.IsEndOfCatchClause;
                 var type = this.ParseType();
-                SyntaxToken name = this.IsTrueIdentifier()
-                    ? this.ParseIdentifierToken()
-                    : null;
+                SyntaxToken name = null;
+                if (this.IsTrueIdentifier())
+                {
+                    name = this.ParseIdentifierToken();
+                }
+
                 _termState = saveTerm;
 
-                decl = _syntaxFactory.CatchDeclaration(
-                    openParen, type, name, 
-                    this.EatToken(SyntaxKind.CloseParenToken));
+                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+                decl = _syntaxFactory.CatchDeclaration(openParen, type, name, closeParen);
             }
 
             CatchFilterClauseSyntax filter = null;
