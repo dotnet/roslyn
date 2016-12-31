@@ -91,9 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<BoundExpression> _arguments;
 
         private readonly TypeSymbol[] _fixedResults;
-        private readonly Dictionary<TypeSymbol, TypeSymbol>[] _exactBounds;
-        private readonly Dictionary<TypeSymbol, TypeSymbol>[] _upperBounds;
-        private readonly Dictionary<TypeSymbol, TypeSymbol>[] _lowerBounds;
+        private readonly HashSet<TypeSymbol>[] _exactBounds;
+        private readonly HashSet<TypeSymbol>[] _upperBounds;
+        private readonly HashSet<TypeSymbol>[] _lowerBounds;
         private Dependency[,] _dependencies; // Initialized lazily
         private bool _dependenciesDirty;
 
@@ -262,9 +262,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _formalParameterRefKinds = formalParameterRefKinds;
             _arguments = arguments;
             _fixedResults = new TypeSymbol[methodTypeParameters.Length];
-            _exactBounds = new Dictionary<TypeSymbol, TypeSymbol>[methodTypeParameters.Length];
-            _upperBounds = new Dictionary<TypeSymbol, TypeSymbol>[methodTypeParameters.Length];
-            _lowerBounds = new Dictionary<TypeSymbol, TypeSymbol>[methodTypeParameters.Length];
+            _exactBounds = new HashSet<TypeSymbol>[methodTypeParameters.Length];
+            _upperBounds = new HashSet<TypeSymbol>[methodTypeParameters.Length];
+            _lowerBounds = new HashSet<TypeSymbol>[methodTypeParameters.Length];
             _dependencies = null;
             _dependenciesDirty = false;
         }
@@ -438,28 +438,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private void AddBound(TypeSymbol addedBound, Dictionary<TypeSymbol, TypeSymbol>[] collectedBounds, TypeParameterSymbol methodTypeParameter)
+        private void AddBound(TypeSymbol addedBound, HashSet<TypeSymbol>[] collectedBounds, TypeParameterSymbol methodTypeParameter)
         {
             Debug.Assert(IsUnfixedTypeParameter(methodTypeParameter));
             int methodTypeParameterIndex = methodTypeParameter.Ordinal;
 
             if (collectedBounds[methodTypeParameterIndex] == null)
             {
-                collectedBounds[methodTypeParameterIndex] = new Dictionary<TypeSymbol, TypeSymbol>(EqualsIgnoringComparer.Instance);
+                collectedBounds[methodTypeParameterIndex] = new HashSet<TypeSymbol>();
             }
 
-            if (collectedBounds[methodTypeParameterIndex].TryGetValue(addedBound, out TypeSymbol found))
-            {
-                // if they differ in terms of tuple names or dynamic-ness, let's take the type with merged names and dynamic-ness
-                if (!found.Equals(addedBound))
-                {
-                    MergeAndReplace(collectedBounds[methodTypeParameterIndex], found, addedBound);
-                }
-            }
-            else
-            {
-                collectedBounds[methodTypeParameterIndex].Add(addedBound, addedBound);
-            }
+            collectedBounds[methodTypeParameterIndex].Add(addedBound);
         }
 
         private void AddLowerBound(TypeParameterSymbol methodTypeParameter, TypeSymbol lowerBound)
@@ -2389,11 +2378,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lower = _lowerBounds[iParam];
             var upper = _upperBounds[iParam];
 
-            if (exact != null && exact.Count >= 2)
-            {
-                return false;
-            }
-
             var candidates = new Dictionary<TypeSymbol, TypeSymbol>(EqualsIgnoringComparer.Instance);
 
             // Optimization: if we have one exact bound then we need not add any
@@ -2403,22 +2387,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (lower != null)
                 {
-                    foreach (var lowerBound in lower.Keys)
+                    foreach (var lowerBound in lower)
                     {
-                        Add(candidates, lowerBound);
+                        AddOrMerge(candidates, lowerBound);
                     }
                 }
                 if (upper != null)
                 {
-                    foreach (var upperBound in upper.Keys)
+                    foreach (var upperBound in upper)
                     {
-                        Add(candidates, upperBound);
+                        AddOrMerge(candidates, upperBound);
                     }
                 }
             }
             else
             {
-                Add(candidates, exact.Keys.First());
+                foreach (var exactBound in exact)
+                {
+                    AddOrMerge(candidates, exactBound);
+                }
+
+                if (candidates.Count >= 2)
+                {
+                    return false;
+                }
             }
 
             if (candidates.Count == 0)
@@ -2434,7 +2426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (lower != null)
             {
-                foreach (var bound in lower.Keys)
+                foreach (var bound in lower)
                 {
                     // Make a copy; don't modify the collection as we're iterating it.
                     foreach (var candidate in initialCandidates)
@@ -2459,7 +2451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (upper != null)
             {
-                foreach (var bound in upper.Keys)
+                foreach (var bound in upper)
                 {
                     foreach (var candidate in initialCandidates)
                     {
@@ -2814,9 +2806,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (type.SpecialType != SpecialType.System_Void);
         }
 
-        private static void Add(Dictionary<TypeSymbol, TypeSymbol> dict, TypeSymbol entry)
+        private void AddOrMerge(Dictionary<TypeSymbol, TypeSymbol> dict, TypeSymbol entry)
         {
-            if (!dict.ContainsKey(entry))
+            if (dict.TryGetValue(entry, out TypeSymbol found))
+            {
+                MergeAndReplace(dict, found, entry);
+            }
+            else
             {
                 dict.Add(entry, entry);
             }
@@ -2832,7 +2828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol merged = MergeTupleNames(MergeDynamic(old, @new, _conversions.CorLibrary), @new);
             dict.Remove(old);
-            Add(dict, merged);
+            dict.Add(merged, merged);
         }
 
         private sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
