@@ -10,6 +10,7 @@
     <RootNamespace>Roslyn.Setup.BuildTasks</RootNamespace>
     <AssemblyName>Roslyn.Setup.BuildTasks</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
