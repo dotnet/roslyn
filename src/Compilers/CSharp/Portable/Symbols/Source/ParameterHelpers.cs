@@ -17,9 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             Symbol owner,
             BaseParameterListSyntax syntax,
-            bool allowRefOrOut,
             out SyntaxToken arglistToken,
             DiagnosticBag diagnostics,
+            bool allowRefOrOut,
+            bool allowThis,
             bool beStrict)
         {
             arglistToken = default(SyntaxToken);
@@ -37,6 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var refKind = GetModifiers(parameterSyntax.Modifiers,
                     out SyntaxToken outKeyword, out SyntaxToken refKeyword,
                     out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
+
+                if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
+                }
 
                 if (parameterSyntax.IsArgList)
                 {

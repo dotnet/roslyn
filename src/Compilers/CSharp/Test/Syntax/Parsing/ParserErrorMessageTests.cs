@@ -2167,8 +2167,13 @@ public class Extensions
    public static void Main(){} 
 } 
 ";
-
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (6,22): error CS0027: Keyword 'this' is not available in the current context
+                //    public Extensions(this int i) {} 
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 22),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1));
         }
 
         [Fact]
@@ -2374,7 +2379,10 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
     C(this object o) { }
 }";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (3,7): error CS0027: Keyword 'this' is not available in the current context
+                //     C(this object o) { }
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(3, 7));
         }
 
         [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2388,7 +2396,10 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
         get { return null; }
     }
 }";
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (3,17): error CS0027: Keyword 'this' is not available in the current context
+                //     object this[this object o]
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(3, 17));
         }
 
         [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2396,7 +2407,10 @@ Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly")
         {
             var test = @"delegate void D(this object o);";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "this").WithArguments("", "this"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (1,17): error CS0027: Keyword 'this' is not available in the current context
+                // delegate void D(this object o);
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(1, 17));
         }
 
         [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2411,19 +2425,28 @@ class C
         D d = delegate (this object o) { };
     }
 }";
-            ParseAndValidate(test,
-                // (6,25): error CS1026: ) expected
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "this").WithLocation(6, 25),
-                // (6,25): error CS1514: { expected
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "this").WithLocation(6, 25),
-                // (6,25): error CS1002: ; expected
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(6, 25),
-                // (6,30): error CS1002: ; expected
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "object").WithLocation(6, 30),
-                // (6,38): error CS1002: ; expected
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 38),
-                // (6,38): error CS1513: } expected
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 38));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (6,25): error CS0027: Keyword 'this' is not available in the current context
+                //         D d = delegate (this object o) { };
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 25));
+        }
+
+        [Fact]
+        public void ERR_ThisInBadContext01()
+        {
+            var test =
+@"class C
+{
+    public static implicit operator int(this C c) { return 0; }
+    public static C operator +(this C c1, C c2) { return null; }
+}";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,32): error CS0027: Keyword 'this' is not available in the current context
+                //     public static C operator +(this C c1, C c2) { return null; }
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(4, 32),
+                // (3,41): error CS0027: Keyword 'this' is not available in the current context
+                //     public static implicit operator int(this C c) { return 0; }
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(3, 41));
         }
 
         [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2579,7 +2602,10 @@ class A
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "="));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (5,27): error CS1065: Default values are not valid in this context.
+                //     D d1 = delegate(int x = 42) { };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 27));
         }
 
         [Fact]
@@ -2593,7 +2619,10 @@ class A
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "="));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (5,34): error CS1065: Default values are not valid in this context.
+                //     D d1 = delegate(int x, int y = 42) { };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
         }
 
         [Fact, WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
