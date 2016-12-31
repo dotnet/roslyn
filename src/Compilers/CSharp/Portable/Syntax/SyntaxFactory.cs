@@ -1816,7 +1816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
             using (var parser = MakeParser(lexer))
             {
-                var node = parser.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true);
+                var node = parser.ParseParenthesizedParameterList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (ParameterListSyntax)node.CreateRed();
             }

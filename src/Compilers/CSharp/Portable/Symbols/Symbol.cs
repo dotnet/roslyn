@@ -1089,6 +1089,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SymbolDisplay.ToMinimalDisplayParts(this, semanticModel, position, format);
         }
 
+        protected static void ReportErrorIfHasConstraints(
+            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, DiagnosticBag diagnostics)
+        {
+            if (constraintClauses.Count > 0)
+            {
+                diagnostics.Add(
+                    ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl,
+                    constraintClauses[0].WhereKeyword.GetLocation());
+            }
+        }
+
         #region ISymbol Members
 
         SymbolKind ISymbol.Kind
