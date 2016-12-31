@@ -311,6 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case SyntaxKind.ForStatement:
                         case SyntaxKind.ForEachStatement:
+                        case SyntaxKind.ForEachVariableStatement:
                         case SyntaxKind.WhileStatement:
                             // For loop constructs, only warn if we see a block following the statement.
                             // That indicates code like:  "while (x) ; { }"

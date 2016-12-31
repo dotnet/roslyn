@@ -7407,6 +7407,9 @@ tryAgain:
 
         private StatementSyntax ParseEmbeddedStatement()
         {
+            // The consumers of embedded statements are expecting to receive a non-null statement 
+            // yet there are several error conditions that can lead ParseStatementCore to return 
+            // null.  When that occurs create an error empty Statement and return it to the caller.
             return this.ParseStatementCore() ?? SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
         }
 
