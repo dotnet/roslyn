@@ -273,11 +273,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (node.Kind())
             {
+                case SyntaxKind.LocalDeclarationStatement:
+                    // Local declarations are not legal in contexts where we need embedded statements.
+                    diagnostics.Add(ErrorCode.ERR_BadEmbeddedStmt, node.GetLocation());
+
+                    // fall through
+                    goto case SyntaxKind.ExpressionStatement;
+
                 case SyntaxKind.ExpressionStatement:
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:
-                case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.ReturnStatement:
                 case SyntaxKind.ThrowStatement:
                     binder = this.GetBinder(node);
@@ -286,6 +292,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalFunctionStatement:
+                    // Labeled statements and local function statements are not legal in contexts where we need embedded statements.
+                    diagnostics.Add(ErrorCode.ERR_BadEmbeddedStmt, node.GetLocation());
+
                     binder = this.GetBinder(node);
                     Debug.Assert(binder != null);
                     return binder.WrapWithVariablesAndLocalFunctionsIfAny(node, binder.BindStatement(node, diagnostics));
@@ -295,6 +304,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binder = this.GetBinder(switchStatement.Expression);
                     Debug.Assert(binder != null);
                     return binder.WrapWithVariablesIfAny(switchStatement.Expression, binder.BindStatement(node, diagnostics));
+
+                case SyntaxKind.EmptyStatement:
+                    var emptyStatement = (EmptyStatementSyntax)node;
+                    switch (node.Parent.Kind())
+                    {
+                        case SyntaxKind.ForStatement:
+                        case SyntaxKind.ForEachStatement:
+                        case SyntaxKind.WhileStatement:
+                            if (emptyStatement.SemicolonToken.GetNextToken().Kind() == SyntaxKind.OpenBraceToken)
+                            {
+                                // For loop constructs, only warn if we see a block following the statement.
+                                // That indicates code like:  "while (x) ; { }"
+                                // which is most likely a bug.
+                                diagnostics.Add(ErrorCode.WRN_PossibleMistakenNullStatement, node.GetLocation());
+                            }
+                            break;
+
+                        default:
+                            // For non-loop constructs, always warn.  This is for code like:
+                            // "if (x) ;" which is almost certainly a bug.
+                            diagnostics.Add(ErrorCode.WRN_PossibleMistakenNullStatement, node.GetLocation());
+                            break;
+                    }
+
+                    // fall through
+                    goto default;
 
                 default:
                     return BindStatement(node, diagnostics);
@@ -360,65 +395,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundThrowStatement(node, boundExpr, hasErrors);
         }
 
-        private static bool IsEmbeddedStatementParent(SyntaxNode node)
-        {
-            if (node != null)
-            {
-                switch (node.Kind())
-                {
-                    case SyntaxKind.FixedStatement:
-                    case SyntaxKind.DoStatement:
-                    case SyntaxKind.IfStatement:
-                    case SyntaxKind.ElseClause:
-                    case SyntaxKind.LockStatement:
-                    case SyntaxKind.UsingStatement:
-                    case SyntaxKind.ForStatement:
-                    case SyntaxKind.ForEachStatement:
-                    case SyntaxKind.WhileStatement:
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
         private static BoundStatement BindEmpty(EmptyStatementSyntax node, DiagnosticBag diagnostics)
         {
-            if (IsEmbeddedStatementParent(node.Parent))
-            {
-                switch (node.Parent.Kind())
-                {
-                    default:
-                        // For non-loop constructs, always warn.  This is for code like:
-                        // "if (x) ;" which is almost certainly a bug.
-                        diagnostics.Add(ErrorCode.WRN_PossibleMistakenNullStatement, node.GetLocation());
-                        break;
-
-                    case SyntaxKind.ForStatement:
-                    case SyntaxKind.ForEachStatement:
-                    case SyntaxKind.WhileStatement:
-                        if (node.SemicolonToken.GetNextToken().Kind() == SyntaxKind.OpenBraceToken)
-                        {
-                            // For loop constructs, only warn if we see a block following the statement.
-                            // That indicates code like:  "while (x) ; { }"
-                            // which is most likely a bug.
-                            diagnostics.Add(ErrorCode.WRN_PossibleMistakenNullStatement, node.GetLocation());
-                        }
-                        break;
-                }
-            }
-
             return new BoundNoOpStatement(node, NoOpStatementFlavor.Default);
         }
 
         private BoundLabeledStatement BindLabeled(LabeledStatementSyntax node, DiagnosticBag diagnostics)
         {
-            if (IsEmbeddedStatementParent(node.Parent))
-            {
-                // Labeled statements are not legal in contexts where we need embedded statements.
-                diagnostics.Add(ErrorCode.ERR_BadEmbeddedStmt, node.GetLocation());
-            }
-
             // TODO: verify that goto label lookup was valid (e.g. error checking of symbol resolution for labels)
             bool hasError = false;
 
@@ -494,12 +477,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindLocalFunctionStatement(LocalFunctionStatementSyntax node, DiagnosticBag diagnostics)
         {
-            if (IsEmbeddedStatementParent(node.Parent))
-            {
-                // Local functions are not legal in contexts where we need embedded statements.
-                diagnostics.Add(ErrorCode.ERR_BadEmbeddedStmt, node.GetLocation());
-            }
-
             // already defined symbol in containing block
             var localSymbol = this.LookupLocalFunction(node.Identifier);
 
@@ -600,12 +577,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundStatement BindLocalDeclarationStatement(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
-            if (IsEmbeddedStatementParent(node.Parent))
-            {
-                // Local declarations are not legal in contexts where we need embedded statements.
-                diagnostics.Add(ErrorCode.ERR_BadEmbeddedStmt, node.GetLocation());
-            }
-
             return BindDeclarationStatementParts(node, diagnostics);
         }
 
