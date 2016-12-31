@@ -312,14 +312,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SyntaxKind.ForStatement:
                         case SyntaxKind.ForEachStatement:
                         case SyntaxKind.WhileStatement:
-                            if (emptyStatement.SemicolonToken.GetNextToken().Kind() == SyntaxKind.OpenBraceToken)
+                            // For loop constructs, only warn if we see a block following the statement.
+                            // That indicates code like:  "while (x) ; { }"
+                            // which is most likely a bug.
+                            if (emptyStatement.SemicolonToken.GetNextToken().Kind() != SyntaxKind.OpenBraceToken)
                             {
-                                // For loop constructs, only warn if we see a block following the statement.
-                                // That indicates code like:  "while (x) ; { }"
-                                // which is most likely a bug.
-                                diagnostics.Add(ErrorCode.WRN_PossibleMistakenNullStatement, node.GetLocation());
+                                break;
                             }
-                            break;
+
+                            goto default;
 
                         default:
                             // For non-loop constructs, always warn.  This is for code like:
