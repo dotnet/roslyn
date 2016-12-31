@@ -3590,14 +3590,7 @@ parse_member_name:;
                 this.ParseAttributeDeclarations(accAttrs);
                 this.ParseModifiers(accMods);
 
-                if (isEvent)
-                {
-                    if (accMods != null && accMods.Count > 0)
-                    {
-                        accMods[0] = this.AddError(accMods[0], ErrorCode.ERR_NoModifiersOnAccessor);
-                    }
-                }
-                else
+                if (!isEvent)
                 {
                     if (accMods != null && accMods.Count > 0)
                     {
