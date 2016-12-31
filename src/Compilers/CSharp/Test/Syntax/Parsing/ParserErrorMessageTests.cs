@@ -2422,6 +2422,24 @@ class C
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 25));
         }
 
+        [Fact]
+        public void ERR_ThisInBadContext01()
+        {
+            var test =
+@"class C
+{
+    public static implicit operator int(this C c) { return 0; }
+    public static C operator +(this C c1, C c2) { return null; }
+}";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,32): error CS0027: Keyword 'this' is not available in the current context
+                //     public static C operator +(this C c1, C c2) { return null; }
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(4, 32),
+                // (3,41): error CS0027: Keyword 'this' is not available in the current context
+                //     public static implicit operator int(this C c) { return 0; }
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(3, 41));
+        }
+
         [Fact, WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
         public void CS1041ERR_IdentifierExpectedKW06()
         {
@@ -2576,7 +2594,9 @@ class A
 ";
 
             CreateCompilationWithMscorlib(test).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "="));
+                // (5,27): error CS1065: Default values are not valid in this context.
+                //     D d1 = delegate(int x = 42) { };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 27));
         }
 
         [Fact]
@@ -2591,7 +2611,9 @@ class A
 ";
 
             CreateCompilationWithMscorlib(test).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "="));
+                // (5,34): error CS1065: Default values are not valid in this context.
+                //     D d1 = delegate(int x, int y = 42) { };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 34));
         }
 
         [Fact, WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]
