@@ -3879,8 +3879,12 @@ public class Test
 }
 ";
             CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
-                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private"), 
-                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public"));
+                // (17,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         private add{}
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private").WithLocation(17, 9),
+                // (18,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         public remove{}
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public").WithLocation(18, 9));
         }
 
         [Fact]
@@ -3899,8 +3903,12 @@ public class Test
 ";
 
             CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
-                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public"),
-                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private"));
+                // (7,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         public add { }
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "public").WithLocation(7, 9),
+                // (8,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         private remove { }
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private").WithLocation(8, 9));
         }
 
         [WorkItem(863423, "DevDiv/Personal")]
