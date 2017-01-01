@@ -6,12 +6,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionParsingTests : ParsingTests
     {
+        public LocalFunctionParsingTests(ITestOutputHelper output) : base(output) { }
+
         [Fact]
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         public void IncompleteLocalFunc()

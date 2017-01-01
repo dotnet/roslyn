@@ -757,9 +757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim locationsArray As ImmutableArray(Of Location) = locations.ToImmutableAndFree()
 
                 If typesArray.Length < 2 Then
-                    elementNames?.Free()
-                    diagnostics.Add(ERRID.ERR_TupleTooFewElements, syntax.GetLocation)
-                    Return ErrorTypeSymbol.UnknownResultType
+                    Throw ExceptionUtilities.UnexpectedValue(typesArray.Length)
                 End If
 
                 Return TupleTypeSymbol.Create(syntax.GetLocation,

@@ -5,11 +5,16 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SeparatedSyntaxListParsingTests : ParsingTests
     {
+        public SeparatedSyntaxListParsingTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
             return SyntaxFactory.ParseSyntaxTree(text, options: options);
@@ -242,6 +247,21 @@ class M<,> { }
                         N(SyntaxKind.TupleType);
                         {
                             N(SyntaxKind.OpenParenToken);
+                            M(SyntaxKind.TupleElement);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            M(SyntaxKind.TupleElement);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
                             N(SyntaxKind.CloseParenToken);
                         }
                     }
@@ -272,6 +292,21 @@ class M<,> { }
                         N(SyntaxKind.TupleType);
                         {
                             N(SyntaxKind.OpenParenToken);
+                            M(SyntaxKind.TupleElement);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            M(SyntaxKind.TupleElement);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
                             N(SyntaxKind.CloseParenToken);
                         }
                     }
@@ -434,7 +469,7 @@ class M<,> { }
                                             {
                                                 N(SyntaxKind.NumericLiteralExpression);
                                                 {
-                                                    N(SyntaxKind.NumericLiteralToken);
+                                                    N(SyntaxKind.NumericLiteralToken, "1");
                                                 }
                                             }
                                             N(SyntaxKind.CommaToken);
@@ -442,7 +477,7 @@ class M<,> { }
                                             {
                                                 N(SyntaxKind.NumericLiteralExpression);
                                                 {
-                                                    N(SyntaxKind.NumericLiteralToken);
+                                                    N(SyntaxKind.NumericLiteralToken, "1");
                                                 }
                                             }
                                             N(SyntaxKind.CloseParenToken);
