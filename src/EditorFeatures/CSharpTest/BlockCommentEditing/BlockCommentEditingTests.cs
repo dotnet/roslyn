@@ -69,6 +69,42 @@ $$
             await VerifyAsync(code, expected);
         }
 
+        [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task EofCase0()
+        {
+            var code = @"
+/* */$$";
+            var expected = @"
+/* */
+$$";
+            await VerifyAsync(code, expected);
+        }
+
+        [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task EofCase1()
+        {
+            var code = @"
+    /*$$";
+            var expected = @"
+    /*
+     * $$";
+            await VerifyAsync(code, expected);
+        }
+
+        [WorkItem(16128, "https://github.com/dotnet/roslyn/issues/16128")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task EofCase2()
+        {
+            var code = @"
+    /***$$";
+            var expected = @"
+    /***
+     * $$";
+            await VerifyAsync(code, expected);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
         public async Task InsertOnStartLine0()
         {

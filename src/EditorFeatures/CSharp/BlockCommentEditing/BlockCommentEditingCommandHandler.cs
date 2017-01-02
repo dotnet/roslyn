@@ -160,7 +160,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 
         private static bool IsCaretInsideBlockCommentSyntax(SnapshotPoint caretPosition)
         {
-            var document = caretPosition.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var snapshot = caretPosition.Snapshot;
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return false;
@@ -170,7 +171,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(caretPosition, CancellationToken.None);
 
             var isBlockComment = trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
-            return isBlockComment && trivia.FullSpan.Start < caretPosition;
+            if (isBlockComment)
+            {
+                var span = trivia.FullSpan;
+                if (span.Start < caretPosition && caretPosition < span.End)
+                {
+                    return true;
+                }
+
+                // FindTriviaAndAdjustForEndOfFile always returns something if position is EOF,
+                // whether or not the result includes the position.
+                // And the SyntaxTrivia for block comments always ends on EOF, closed or not.
+                // So we need to handle
+                // /**/|EOF
+                // and
+                // /*  |EOF
+                if (caretPosition == snapshot.Length)
+                {
+                    if (span.Length < 4) // "/**/".Length
+                    {
+                        return true;
+                    }
+
+                    if (!trivia.ContainsDiagnostics)
+                    {
+                        return false;
+                    }
+
+                    var textBeforeCaret = snapshot.GetText((int)caretPosition - 2, 2);
+                    return textBeforeCaret != "*/";
+                }
+            }
+
+            return false;
         }
     }
 }
