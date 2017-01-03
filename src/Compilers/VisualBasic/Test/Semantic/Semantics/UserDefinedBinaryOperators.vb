@@ -2546,6 +2546,88 @@ End Module
 
         End Sub
 
+        <WorkItem(14688, "https://github.com/dotnet/roslyn/issues/14688")>
+        <Fact>
+        Public Sub OperatorsWithDefaultParameters_WithoutValue()
+            Dim compilationDef =
+<compilation name="OperatorsWithDefaultValuesAreNotBound">
+    <file name="a.vb"><![CDATA[
+Public Class Foo
+    Public Shared Operator Not(Optional x As Foo) As Boolean 'BIND1:"x" 'BIND2:"Foo"
+        Return True
+    End Operator
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim model = GetSemanticModel(compilation, "a.vb")
+
+            Dim identifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 1)
+            Assert.NotNull(identifierSyntax.Identifier)
+            Assert.Equal("x", identifierSyntax.Identifier.Value)
+
+            Dim typeSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 2)
+            Dim symbolInfo = model.GetSymbolInfo(typeSyntax)
+            Assert.NotNull(symbolInfo.Symbol)
+            Dim symbol = TryCast(symbolInfo.Symbol, NamedTypeSymbol)
+            Assert.NotNull(symbol)
+            Assert.Equal("Foo", symbol.Name)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC33010: 'operator' parameters cannot be declared 'Optional'.
+    Public Shared Operator Not(Optional x As Foo) As Boolean 'BIND1:"x" 'BIND2:"Foo"
+                               ~~~~~~~~
+BC30201: Expression expected.
+    Public Shared Operator Not(Optional x As Foo) As Boolean 'BIND1:"x" 'BIND2:"Foo"
+                                                ~
+BC30812: Optional parameters must specify a default value.
+    Public Shared Operator Not(Optional x As Foo) As Boolean 'BIND1:"x" 'BIND2:"Foo"
+                                                ~
+</expected>)
+        End Sub
+
+        <WorkItem(14688, "https://github.com/dotnet/roslyn/issues/14688")>
+        <Fact>
+        Public Sub OperatorsWithDefaultParameters_WithValue()
+            Dim compilationDef =
+<compilation name="OperatorsWithDefaultValuesAreNotBound">
+    <file name="a.vb"><![CDATA[
+Public Class Foo
+    Public Shared Operator Not(Optional x As Foo = Nothing) As Boolean 'BIND1:"x" 'BIND2:"Foo" 'BIND3:"Nothing"
+        Return False
+    End Operator
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim model = GetSemanticModel(compilation, "a.vb")
+
+            Dim identifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 1)
+            Assert.NotNull(identifierSyntax.Identifier)
+            Assert.Equal("x", identifierSyntax.Identifier.Value)
+
+            Dim typeSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 2)
+            Dim symbolInfo = model.GetSymbolInfo(typeSyntax)
+            Assert.NotNull(symbolInfo.Symbol)
+            Dim symbol = TryCast(symbolInfo.Symbol, NamedTypeSymbol)
+            Assert.NotNull(symbol)
+            Assert.Equal("Foo", symbol.Name)
+
+            Dim literalSyntax = CompilationUtils.FindBindingText(Of LiteralExpressionSyntax)(compilation, "a.vb", 3)
+            Assert.NotNull(literalSyntax.Token)
+            Assert.Equal(Nothing, literalSyntax.Token.Value)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC33010: 'operator' parameters cannot be declared 'Optional'.
+    Public Shared Operator Not(Optional x As Foo = Nothing) As Boolean 'BIND1:"x" 'BIND2:"Foo" 'BIND3:"Nothing"
+                               ~~~~~~~~
+</expected>)
+        End Sub
+
     End Class
 
 End Namespace
