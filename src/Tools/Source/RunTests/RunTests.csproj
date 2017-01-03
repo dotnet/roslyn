@@ -16,7 +16,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <PropertyGroup></PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -47,7 +46,7 @@
     <Compile Include="ConsoleUtil.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program..Json.cs" />
+    <Compile Include="Program.Json.cs" />
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
