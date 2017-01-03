@@ -2,13 +2,14 @@ Param(
     [string]$sourcePath = $null,
     [string]$binariesPath = $null
 )
+
 set-strictmode -version 2.0
 $ErrorActionPreference="Stop"
 
-[Void][Reflection.Assembly]::LoadWithPartialName('System.IO.Compression.FileSystem')
-
 try
 {
+    [Void][Reflection.Assembly]::LoadWithPartialName('System.IO.Compression.FileSystem')
+
     write-host "Verify Toolset binaries folder"
     
     # Files whech are deployed but do not need to be included in deployment
@@ -51,7 +52,7 @@ try
     $nuspecAssemblies = 
         $nuspecxml.package.files.file | 
         %{ $_.src } | 
-        ? { (-not $_.Contains("$")) -and (-not $_.EndsWith(".config")) -and (-not $_.EndsWith(".rsp")) } | 
+        ? { (-not $_.Contains("$")) } | 
         %{ split-path -leaf $_ } |
         sort-object;
 
@@ -71,7 +72,7 @@ try
     write-host "checking nuspec files"
     foreach ($file in $nuspecAssemblies)
     {
-        write-host "`t $file"
+        write-host "`t$file"
         $target = join-path $deploymentPath $file
         if (-not (test-path $target))
         {
@@ -103,7 +104,7 @@ try
     write-host "checking vsix files"
     foreach ($file in $msbuildroslynfiles)
     {
-        write-host "`t $file"
+        write-host "`t$file"
         $target = join-path $deploymentPath $file
         if (-not (test-path $target))
         {
@@ -114,9 +115,10 @@ try
 
     if (-not $allGood)
     {
-        exit 1
+        throw [System.IO.FileNotFoundException] "A file was missing from setup. Review script output for more details."
     }
     
+    write-host "script completed successfully."
     exit 0
 }
 catch [exception]
