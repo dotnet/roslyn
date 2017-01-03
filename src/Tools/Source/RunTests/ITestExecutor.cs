@@ -15,14 +15,16 @@ namespace RunTests
         internal string NoTrait { get; }
         internal bool UseHtml { get; }
         internal bool Test64 { get; }
+        internal bool TestVsi { get; }
 
-        internal TestExecutionOptions(string xunitPath, string trait, string noTrait, bool useHtml, bool test64)
+        internal TestExecutionOptions(string xunitPath, string trait, string noTrait, bool useHtml, bool test64, bool testVsi)
         {
             XunitPath = xunitPath;
             Trait = trait;
             NoTrait = noTrait;
             UseHtml = useHtml;
             Test64 = test64;
+            TestVsi = testVsi;
         }
     }
 
@@ -40,7 +42,7 @@ namespace RunTests
         internal bool IsResultFromCache { get; }
 
         /// <summary>
-        /// Path to the results file.  Can be null in the case xunit error'd and did not create one. 
+        /// Path to the results file.  Can be null in the case xunit error'd and did not create one.
         /// </summary>
         internal string ResultsFilePath { get; }
 

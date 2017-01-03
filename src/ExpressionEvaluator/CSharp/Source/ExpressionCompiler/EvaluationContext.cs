@@ -12,6 +12,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.DiaSymReader;
@@ -300,13 +301,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var statementSyntax = expr.ParseStatement(statementDiagnostics);
                 Debug.Assert((statementSyntax == null) || !statementDiagnostics.HasAnyErrors());
                 statementDiagnostics.Free();
-
-                if (statementSyntax != null && !statementSyntax.IsKind(SyntaxKind.ExpressionStatement)) // Prefer to parse expression statements as expressions.
+                var isExpressionStatement = statementSyntax.IsKind(SyntaxKind.ExpressionStatement);
+                if (statementSyntax != null && !isExpressionStatement)
                 {
                     formatSpecifiers = null;
 
-                    if (statementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement) ||
-                        statementSyntax.IsKind(SyntaxKind.DeconstructionDeclarationStatement))
+                    if (statementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement))
                     {
                         return statementSyntax;
                     }

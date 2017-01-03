@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                 .InstanceConstructors
                 .Where(c => c.IsAccessibleWithin(within))
                 .Where(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
+                .ToImmutableArrayOrEmpty()
                 .Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart);
 
             return accessibleConstructors.Select(c =>

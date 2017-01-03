@@ -17,7 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // For each captured variable, information about its replacement.  May be populated lazily (that is, not all
         // upfront) by subclasses.  Specifically, the async rewriter produces captured symbols for temps, including
         // ref locals, lazily.
-        protected readonly Dictionary<Symbol, CapturedSymbolReplacement> proxies = new Dictionary<Symbol, CapturedSymbolReplacement>();
+        // The lambda rewriter also saves/restores the proxies across passes, since local function
+        // reference rewriting is done in a separate pass but still requires the frame proxies
+        // created in the first pass.
+        protected Dictionary<Symbol, CapturedSymbolReplacement> proxies = new Dictionary<Symbol, CapturedSymbolReplacement>();
 
         // A mapping from every local variable to its replacement local variable.  Local variables are replaced when
         // their types change due to being inside of a generic method.  Otherwise we reuse the original local (even
@@ -157,10 +160,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var newOuterLocals = RewriteLocals(node.OuterLocals);
             BoundStatement initializer = (BoundStatement)this.Visit(node.Initializer);
+            var newInnerLocals = RewriteLocals(node.InnerLocals);
             BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
             BoundStatement increment = (BoundStatement)this.Visit(node.Increment);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(newOuterLocals, initializer, condition, increment, body, node.BreakLabel, node.ContinueLabel);
+            return node.Update(newOuterLocals, initializer, newInnerLocals, condition, increment, body, node.BreakLabel, node.ContinueLabel);
+        }
+
+        public override BoundNode VisitDoStatement(BoundDoStatement node)
+        {
+            var newLocals = RewriteLocals(node.Locals);
+            BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
+            BoundStatement body = (BoundStatement)this.Visit(node.Body);
+            return node.Update(newLocals, condition, body, node.BreakLabel, node.ContinueLabel);
+        }
+
+        public override BoundNode VisitWhileStatement(BoundWhileStatement node)
+        {
+            var newLocals = RewriteLocals(node.Locals);
+            BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
+            BoundStatement body = (BoundStatement)this.Visit(node.Body);
+            return node.Update(newLocals, condition, body, node.BreakLabel, node.ContinueLabel);
         }
 
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)

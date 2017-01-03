@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Roslyn.Utilities;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -93,15 +94,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Maps {array type, method kind} tuples to implementing pseudo-methods.
         /// </summary>
-        private readonly ConcurrentDictionary<ValueTuple<byte, Cci.IArrayTypeReference>, ArrayMethod> _dict =
-            new ConcurrentDictionary<ValueTuple<byte, Cci.IArrayTypeReference>, ArrayMethod>();
+        private readonly ConcurrentDictionary<(byte methodKind, Cci.IArrayTypeReference arrayType), ArrayMethod> _dict =
+            new ConcurrentDictionary<(byte, Cci.IArrayTypeReference), ArrayMethod>();
 
         /// <summary>
         /// lazily fetches or creates a new array method.
         /// </summary>
         private ArrayMethod GetArrayMethod(Cci.IArrayTypeReference arrayType, ArrayMethodKind id)
         {
-            var key = ValueTuple.Create((byte)id, arrayType);
+            var key = ((byte)id, arrayType);
             ArrayMethod result;
 
             var dict = _dict;
@@ -245,14 +246,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return new ArrayMethodParameterInfo(index);
         }
 
+        public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers
+            => ImmutableArray<Cci.ICustomModifier>.Empty;
+
         public ImmutableArray<Cci.ICustomModifier> CustomModifiers
             => ImmutableArray<Cci.ICustomModifier>.Empty;
 
         public bool IsByReference => false;
-
-        public bool IsModified => false;
-
-        public ushort CountOfCustomModifiersPrecedingByRef => 0;
 
         public virtual Cci.ITypeReference GetType(EmitContext context)
             => context.Module.GetPlatformType(Cci.PlatformType.SystemInt32, context);
@@ -335,6 +335,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public Cci.CallingConvention CallingConvention => Cci.CallingConvention.HasThis;
 
         public ushort ParameterCount => (ushort)_parameters.Length;
+
+        public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers
+            => ImmutableArray<Cci.ICustomModifier>.Empty;
 
         public ImmutableArray<Cci.ICustomModifier> ReturnValueCustomModifiers
             => ImmutableArray<Cci.ICustomModifier>.Empty;

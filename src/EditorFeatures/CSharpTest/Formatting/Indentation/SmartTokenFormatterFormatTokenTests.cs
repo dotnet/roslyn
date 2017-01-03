@@ -628,7 +628,7 @@ class Program
             int indentationLine,
             int expectedSpace)
         {
-            Assert.NotNull(await Record.ExceptionAsync(async () => await GetSmartTokenFormatterIndentationAsync(code, indentationLine, '{')));
+            Assert.NotNull(await Record.ExceptionAsync(() => GetSmartTokenFormatterIndentationAsync(code, indentationLine, '{')));
         }
 
         private async Task ExpectException_SmartTokenFormatterCloseBraceAsync(
@@ -636,7 +636,7 @@ class Program
             int indentationLine,
             int expectedSpace)
         {
-            Assert.NotNull(await Record.ExceptionAsync(async () => await GetSmartTokenFormatterIndentationAsync(code, indentationLine, '}')));
+            Assert.NotNull(await Record.ExceptionAsync(() => GetSmartTokenFormatterIndentationAsync(code, indentationLine, '}')));
         }
     }
 }

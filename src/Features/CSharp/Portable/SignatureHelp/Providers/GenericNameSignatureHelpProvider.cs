@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             CancellationToken cancellationToken,
             out SyntaxToken genericIdentifier, out SyntaxToken lessThanToken)
         {
-            GenericNameSyntax name;
-            if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out name))
+            if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out GenericNameSyntax name))
             {
                 genericIdentifier = name.Identifier;
                 lessThanToken = name.TypeArgumentList.LessThanToken;
@@ -75,9 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            SyntaxToken genericIdentifier, lessThanToken;
             if (!TryGetGenericIdentifier(root, position, document.GetLanguageService<ISyntaxFactsService>(), trigger.Kind, cancellationToken,
-                    out genericIdentifier, out lessThanToken))
+                    out var genericIdentifier, out var lessThanToken))
             {
                 return;
             }
@@ -119,8 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
             var accessibleSymbols =
-                symbols.Where(s => s.GetArity() > 0)
-                       .Where(s => s is INamedTypeSymbol || s is IMethodSymbol)
+                symbols.WhereAsArray(s => s.GetArity() > 0)
+                       .WhereAsArray(s => s is INamedTypeSymbol || s is IMethodSymbol)
                        .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
                        .Sort(symbolDisplayService, semanticModel, genericIdentifier.SpanStart);
 
@@ -142,15 +140,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
         protected override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
-            SyntaxToken genericIdentifier, lessThanToken;
             if (!TryGetGenericIdentifier(root, position, syntaxFacts, SignatureHelpTriggerKind.Other, cancellationToken,
-                    out genericIdentifier, out lessThanToken))
+                    out var genericIdentifier, out var lessThanToken))
             {
                 return null;
             }
 
-            GenericNameSyntax genericName;
-            if (genericIdentifier.TryParseGenericName(cancellationToken, out genericName))
+            if (genericIdentifier.TryParseGenericName(cancellationToken, out var genericName))
             {
                 // Because we synthesized the generic name, it will have an index starting at 0
                 // instead of at the actual position it's at in the text.  Because of this, we need to

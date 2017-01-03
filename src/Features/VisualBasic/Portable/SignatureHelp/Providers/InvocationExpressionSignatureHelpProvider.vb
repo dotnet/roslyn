@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
 
             ' if the symbol could be bound, replace that item in the symbol list
             If matchedMethodSymbol IsNot Nothing AndAlso matchedMethodSymbol.IsGenericMethod Then
-                memberGroup = memberGroup.Select(Function(m) If(matchedMethodSymbol.OriginalDefinition Is m, matchedMethodSymbol, m))
+                memberGroup = memberGroup.SelectAsArray(Function(m) If(matchedMethodSymbol.OriginalDefinition Is m, matchedMethodSymbol, m))
             End If
 
             memberGroup = memberGroup.Sort(symbolDisplayService, semanticModel, invocationExpression.SpanStart)
@@ -97,7 +97,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                    SpecializedCollections.EmptyList(Of IPropertySymbol),
                    semanticModel.LookupSymbols(position, expressionType, includeReducedExtensionMethods:=True).
                                  OfType(Of IPropertySymbol).
-                                 Where(Function(p) p.IsIndexer).
+                                 ToImmutableArrayOrEmpty().
+                                 WhereAsArray(Function(p) p.IsIndexer).
                                  FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
                                  Sort(symbolDisplayService, semanticModel, invocationExpression.SpanStart))
 

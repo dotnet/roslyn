@@ -32,14 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             var syntaxKindsMissing = new HashSet<SyntaxKind>();
 
             // AllInOneCSharpCode has no deconstruction or declaration expression
-            syntaxKindsMissing.Add(SyntaxKind.TypedVariableComponent);
-            syntaxKindsMissing.Add(SyntaxKind.ParenthesizedVariableComponent);
             syntaxKindsMissing.Add(SyntaxKind.SingleVariableDesignation);
             syntaxKindsMissing.Add(SyntaxKind.ParenthesizedVariableDesignation);
-            syntaxKindsMissing.Add(SyntaxKind.DeconstructionDeclarationStatement);
-            syntaxKindsMissing.Add(SyntaxKind.VariableComponentAssignment);
-            syntaxKindsMissing.Add(SyntaxKind.ForEachComponentStatement);
+            syntaxKindsMissing.Add(SyntaxKind.ForEachVariableStatement);
             syntaxKindsMissing.Add(SyntaxKind.DeclarationExpression);
+            syntaxKindsMissing.Add(SyntaxKind.DiscardDesignation);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.Regular))

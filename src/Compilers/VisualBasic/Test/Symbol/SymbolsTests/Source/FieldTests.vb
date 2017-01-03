@@ -62,8 +62,7 @@ End Class
             Dim fieldType = DirectCast(field.Type, INamedTypeSymbol)
 
             Assert.False(fieldType.IsTupleType)
-            Assert.True(fieldType.TupleElementTypes.IsDefault)
-            Assert.True(fieldType.TupleElementNames.IsDefault)
+            Assert.True(fieldType.TupleElements.IsDefault)
         End Sub
 
         <Fact>

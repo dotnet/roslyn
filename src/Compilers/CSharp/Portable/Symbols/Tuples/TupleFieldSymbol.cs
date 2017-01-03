@@ -146,16 +146,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal class TupleElementFieldSymbol : TupleFieldSymbol
     {
         private readonly ImmutableArray<Location> _locations;
+        private readonly TupleElementFieldSymbol _correspondingDefaultField;
 
         // default tuple elements like Item1 or Item20 could be provided by the user or
         // otherwise implicitly declared by compiler
         private readonly bool _isImplicitlyDeclared;
 
-        public TupleElementFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, int tupleElementIndex, Location location, bool isImplicitlyDeclared)
-            : base(container, underlyingField, tupleElementIndex)
+        public TupleElementFieldSymbol(
+            TupleTypeSymbol container, 
+            FieldSymbol underlyingField, 
+            int tupleElementIndex, 
+            Location location, 
+            bool isImplicitlyDeclared, 
+            TupleElementFieldSymbol correspondingDefaultFieldOpt)
+
+            : base(container, underlyingField, (object)correspondingDefaultFieldOpt == null ? tupleElementIndex << 1 : (tupleElementIndex << 1) + 1)
         {
             _locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(location);
             _isImplicitlyDeclared = isImplicitlyDeclared;
+
+            Debug.Assert((correspondingDefaultFieldOpt == null) == this.IsDefaultTupleElement);
+            Debug.Assert(correspondingDefaultFieldOpt == null || correspondingDefaultFieldOpt.IsDefaultTupleElement);
+
+            _correspondingDefaultField = correspondingDefaultFieldOpt ?? this;
         }
 
         public override ImmutableArray<Location> Locations
@@ -209,6 +222,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return base.AssociatedSymbol;
             }
         }
+
+        public override FieldSymbol CorrespondingTupleField
+        {
+            get
+            {
+                return _correspondingDefaultField;
+            }
+        }
     }
 
     /// <summary>
@@ -230,8 +251,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly string _name;
 
-        public TupleVirtualElementFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, string name, int tupleElementIndex, Location location, bool isImplicitlyDeclared)
-            : base(container, underlyingField, tupleElementIndex, location, isImplicitlyDeclared)
+        public TupleVirtualElementFieldSymbol(
+            TupleTypeSymbol container, 
+            FieldSymbol underlyingField, 
+            string name, 
+            int tupleElementIndex, 
+            Location location, 
+            bool isImplicitlyDeclared, 
+            TupleElementFieldSymbol correspondingDefaultFieldOpt)
+
+            : base(container, underlyingField, tupleElementIndex, location, isImplicitlyDeclared, correspondingDefaultFieldOpt)
         {
             Debug.Assert(name != null);
             Debug.Assert(name != underlyingField.Name || !container.UnderlyingNamedType.Equals(underlyingField.ContainingType, TypeCompareKind.IgnoreDynamicAndTupleNames),

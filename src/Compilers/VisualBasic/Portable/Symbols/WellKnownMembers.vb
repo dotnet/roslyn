@@ -364,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If type.IsValueTupleType() Then
                         result = New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(Assembly.Modules(0), emittedName,
-                                       Function(t) ErrorFactory.ErrorInfo(ERRID.ERR_ValueTupleTypeRefResolutionError, t))
+                                       Function(t) ErrorFactory.ErrorInfo(ERRID.ERR_ValueTupleTypeRefResolutionError1, t))
                     Else
                         result = New MissingMetadataTypeSymbol.TopLevel(Assembly.Modules(0), emittedName)
                     End If

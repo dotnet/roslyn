@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 _listener = listener;
                 _optionService = _registration.GetService<IOptionService>();
-                _optionService.OptionChanged += OnOptionChanged;
 
                 // event and worker queues
                 _shutdownNotificationSource = new CancellationTokenSource();
@@ -74,11 +73,25 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _registration.Workspace.DocumentOpened += OnDocumentOpened;
                     _registration.Workspace.DocumentClosed += OnDocumentClosed;
                 }
+
+                // subscribe to option changed event after all required fields are set
+                // otherwise, we can get null exception when running OnOptionChanged handler
+                _optionService.OptionChanged += OnOptionChanged;
             }
 
             public int CorrelationId
             {
                 get { return _registration.CorrelationId; }
+            }
+
+            public void AddAnalyzer(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
+            {
+                // add analyzer
+                _documentAndProjectWorkerProcessor.AddAnalyzer(analyzer, highPriorityForActiveFile);
+
+                // and ask to re-analyze whole solution for the given analyzer
+                var set = _registration.CurrentSolution.Projects.SelectMany(p => p.DocumentIds).ToSet();
+                Reanalyze(analyzer, set);
             }
 
             public void Shutdown(bool blockingShutdown)
@@ -134,12 +147,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     SolutionCrawlerLogger.LogOptionChanged(CorrelationId, value);
                     return;
-                }
-
-                // Changing the UseV2Engine option is a no-op as we have a single engine now.
-                if (e.Option == Diagnostics.InternalDiagnosticsOptions.UseDiagnosticEngineV2)
-                {
-                    _documentAndProjectWorkerProcessor.ChangeDiagnosticsEngine((bool)e.Value);
                 }
 
                 ReanalyzeOnOptionChange(sender, e);
@@ -510,7 +517,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectParseOptionChanged);
                 }
 
-                if (projectChanges.GetAddedMetadataReferences().Any() || 
+                if (projectChanges.GetAddedMetadataReferences().Any() ||
                     projectChanges.GetAddedProjectReferences().Any() ||
                     projectChanges.GetAddedAnalyzerReferences().Any() ||
                     projectChanges.GetRemovedMetadataReferences().Any() ||
@@ -533,7 +540,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private async Task EnqueueWorkItemAsync(Document oldDocument, Document newDocument)
             {
                 var differenceService = newDocument.GetLanguageService<IDocumentDifferenceService>();
-                if (differenceService != null)
+
+                if (differenceService == null)
+                {
+                    // For languages that don't use a Roslyn syntax tree, they don't export a document difference service.
+                    // The whole document should be considered as changed in that case.
+                    await EnqueueWorkItemAsync(newDocument, InvocationReasons.DocumentChanged).ConfigureAwait(false);
+                }
+                else
                 {
                     var differenceResult = await differenceService.GetDifferenceAsync(oldDocument, newDocument, _shutdownToken).ConfigureAwait(false);
 

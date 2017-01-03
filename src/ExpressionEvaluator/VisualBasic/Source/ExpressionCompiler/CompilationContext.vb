@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
                                 Dim methodName = GetNextMethodName(methodBuilder)
                                 Dim syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken))
-                                Dim local = PlaceholderLocalSymbol.Create(typeNameDecoder, _currentFrame, Compilation.SourceAssembly, [alias])
+                                Dim local = PlaceholderLocalSymbol.Create(typeNameDecoder, _currentFrame, [alias])
                                 Dim aliasMethod = Me.CreateMethod(
                                     container,
                                     methodName,

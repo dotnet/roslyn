@@ -33,12 +33,12 @@ class Foo
             const string code = @"
 class Foo
 {
-    {|hint:{|collapse:[Bar]
+    {|hint:{|textspan:[Bar]
     |}$$~Foo();|}
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -47,14 +47,14 @@ class Foo
             const string code = @"
 class Foo
 {
-    {|hint:{|collapse:// Summary:
+    {|hint:{|textspan:// Summary:
     //     This is a summary.
     [Bar]
     |}$$~Foo();|}
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

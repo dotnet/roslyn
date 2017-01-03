@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -290,7 +291,7 @@ class C{i}
 
                 var textView = workspace.Documents.Single().GetTextView();
 
-                var handler = new ChangeSignatureCommandHandler();
+                var handler = new CSharpChangeSignatureCommandHandler(TestWaitIndicator.Default);
                 var delegatedToNext = false;
                 Func<CommandState> nextHandler = () =>
                 {

@@ -21,7 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                           considerType:=True,
                                           considerReadWriteModifiers:=False,
                                           considerOptionalParameters:=True,
-                                          considerCustomModifiers:=True)
+                                          considerCustomModifiers:=True,
+                                          considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to search for properties that have identical signatures in every regard.
@@ -31,7 +32,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                           considerType:=True,
                                           considerReadWriteModifiers:=True,
                                           considerOptionalParameters:=True,
-                                          considerCustomModifiers:=True)
+                                          considerCustomModifiers:=True,
+                                          considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to compare potential WinRT fake properties in type projection.
@@ -48,7 +50,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                           considerType:=False,
                                           considerReadWriteModifiers:=False,
                                           considerOptionalParameters:=False,
-                                          considerCustomModifiers:=False)
+                                          considerCustomModifiers:=False,
+                                          considerTupleNames:=False)
 
         ' Compare the property name (no explicit part)
         Private ReadOnly _considerName As Boolean
@@ -65,16 +68,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Consider custom modifiers on/in parameters and return types (if return is considered).
         Private ReadOnly _considerCustomModifiers As Boolean
 
+        ' Consider tulpe names in parameters and return types (if return is considered).
+        Private ReadOnly _considerTupleNames As Boolean
+
         Private Sub New(considerName As Boolean,
                         considerType As Boolean,
                         considerReadWriteModifiers As Boolean,
                         considerOptionalParameters As Boolean,
-                        considerCustomModifiers As Boolean)
+                        considerCustomModifiers As Boolean,
+                        considerTupleNames As Boolean)
             Me._considerName = considerName
             Me._considerType = considerType
             Me._considerReadWriteModifiers = considerReadWriteModifiers
             Me._considerOptionalParameters = considerOptionalParameters
             Me._considerCustomModifiers = considerCustomModifiers
+            Me._considerTupleNames = considerTupleNames
         End Sub
 
 #Region "IEqualityComparer(Of PropertySymbol) Members"
@@ -100,13 +108,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             If _considerType Then
-                If Not HaveSameTypes(prop1, prop2, _considerCustomModifiers) Then
+                Dim comparison As TypeCompareKind = MethodSignatureComparer.MakeTypeCompareKind(_considerCustomModifiers, _considerTupleNames)
+                If Not HaveSameTypes(prop1, prop2, comparison) Then
                     Return False
                 End If
             End If
 
             If prop1.ParameterCount > 0 OrElse prop2.ParameterCount > 0 Then
-                If Not MethodSignatureComparer.HaveSameParameterTypes(prop1.Parameters, Nothing, prop2.Parameters, Nothing, False, _considerCustomModifiers) Then
+                If Not MethodSignatureComparer.HaveSameParameterTypes(prop1.Parameters, Nothing, prop2.Parameters, Nothing, False, _considerCustomModifiers, _considerTupleNames) Then
                     Return False
                 End If
             End If
@@ -156,14 +165,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            If (comparisons And (SymbolComparisonResults.ReturnTypeMismatch Or SymbolComparisonResults.CustomModifierMismatch)) <> 0 Then
+            If (comparisons And (SymbolComparisonResults.ReturnTypeMismatch Or SymbolComparisonResults.CustomModifierMismatch Or SymbolComparisonResults.TupleNamesMismatch)) <> 0 Then
                 results = results Or MethodSignatureComparer.DetailedReturnTypeCompare(prop1.ReturnsByRef,
                                                                                        New TypeWithModifiers(prop1.Type, prop1.TypeCustomModifiers),
+                                                                                       prop1.RefCustomModifiers,
                                                                                        Nothing,
                                                                                        prop2.ReturnsByRef,
                                                                                        New TypeWithModifiers(prop2.Type, prop2.TypeCustomModifiers),
+                                                                                       prop2.RefCustomModifiers,
                                                                                        Nothing,
-                                                                                       comparisons)
+                                                                                       comparisons,
+                                                                                       stopIfAny)
                 If (stopIfAny And results) <> 0 Then
                     GoTo Done
                 End If
@@ -191,7 +203,7 @@ Done:
         End Function
 #End Region
 
-        Private Shared Function HaveSameTypes(prop1 As PropertySymbol, prop2 As PropertySymbol, considerCustomModifiers As Boolean) As Boolean
+        Private Shared Function HaveSameTypes(prop1 As PropertySymbol, prop2 As PropertySymbol, comparison As TypeCompareKind) As Boolean
             If prop1.ReturnsByRef <> prop2.ReturnsByRef Then
                 Return False
             End If
@@ -200,9 +212,14 @@ Done:
             Dim type2 = prop2.Type
 
             ' the runtime compares custom modifiers using (effectively) SequenceEqual
-            Return If(considerCustomModifiers,
-                      type1 = type2 AndAlso prop1.TypeCustomModifiers.SequenceEqual(prop2.TypeCustomModifiers),
-                      type1.IsSameTypeIgnoringCustomModifiers(type2))
+            If (comparison And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 AndAlso
+                (Not prop1.TypeCustomModifiers.SequenceEqual(prop2.TypeCustomModifiers) OrElse
+                Not prop1.RefCustomModifiers.SequenceEqual(prop2.RefCustomModifiers)) Then
+
+                Return False
+            End If
+
+            Return type1.IsSameType(type2, comparison)
         End Function
 
     End Class

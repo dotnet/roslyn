@@ -21,14 +21,14 @@ class C
 {
     void M()
     {
-        {|hint:$$() => {|collapse:{
+        {|hint:$$() => {|textspan:{
             x();
         };|}|}
     }
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -54,14 +54,14 @@ class C
 {
     void M()
     {
-        someMethod(42, ""test"", false, {|hint:$$(x, y, z) => {|collapse:{
+        someMethod(42, ""test"", false, {|hint:$$(x, y, z) => {|textspan:{
             return x + y + z;
         }|}|}, ""other arguments"");
     }
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -72,14 +72,14 @@ class C
 {
     void M()
     {
-        someMethod(42, ""test"", false, {|hint:$$(x, y, z) => {|collapse:{
+        someMethod(42, ""test"", false, {|hint:$$(x, y, z) => {|textspan:{
             return x + y + z;
         }|}|});
     }
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
     }
 }

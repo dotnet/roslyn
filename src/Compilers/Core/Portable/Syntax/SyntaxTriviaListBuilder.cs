@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {
@@ -17,6 +19,18 @@ namespace Microsoft.CodeAnalysis.Syntax
         public static SyntaxTriviaListBuilder Create()
         {
             return new SyntaxTriviaListBuilder(4);
+        }
+
+        public static SyntaxTriviaList Create(IEnumerable<SyntaxTrivia> trivia)
+        {
+            if (trivia == null)
+            {
+                return new SyntaxTriviaList();
+            }
+
+            var builder = SyntaxTriviaListBuilder.Create();
+            builder.AddRange(trivia);
+            return builder.ToList();
         }
 
         public int Count
@@ -39,6 +53,17 @@ namespace Microsoft.CodeAnalysis.Syntax
                 }
 
                 return _nodes[index];
+            }
+        }
+
+        public void AddRange(IEnumerable<SyntaxTrivia> items)
+        {
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    this.Add(item);
+                }
             }
         }
 

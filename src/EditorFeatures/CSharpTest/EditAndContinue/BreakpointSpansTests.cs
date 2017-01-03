@@ -391,6 +391,21 @@ $$    (
 }");
         }
 
+        [Fact]
+        public void ForEachDeconstructionStatementExpression()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) in [|Foo().B$$ar()|])
+    {
+    }
+  }
+}");
+        }
+
         #region Lambdas
 
         [Fact]
@@ -2505,6 +2520,255 @@ expr().blah())
         }
 
         [Fact]
+        public void OnForEachDeconstructionKeyword1()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+$$    [|foreach|] (var (x, y) in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionKeyword2()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    [|fo$$reach|] (var (x, y) in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionKeyword3()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    [|foreach|]    $$    
+(var (x, y) in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionKeyword4()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    [|foreach|]        
+$$         (var (x, y) in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionKeyword5()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    [|foreach|] $$(var (x, y) in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionType1()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (   $$   
+[|var (x, y)|] in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionType2()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach ([|v$$ar (x, y)|] in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionIdentifier()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach ([|var (v$$v, y)|] in expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionIn1()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) [|i$$n|] expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionIn2()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) 
+$$         [|in|] expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionIn3()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) 
+         [|in|] $$
+expr().blah())
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionExpr1()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) in [|expr($$).blah()|])
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionExpr2()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) in [|expr().blah()|]   
+     $$    )
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionExpr3()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) in 
+   $$ [|expr().blah()|]   
+     )
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionStatement()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    [|foreach|](var (x, y) in expr().blah())    $$ 
+    {
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void OnForEachDeconstructionBlock1()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    foreach (var (x, y) in expr().blah())
+  $$ [|{|]
+    }
+  }
+}");
+        }
+
+        [Fact]
         public void OnUsingWithDecl1()
         {
             TestSpan(
@@ -3984,6 +4248,416 @@ $$        int
 @"class C
 {
     public int Id { get { return 42; } set { [|}|] $$}
+}");
+        }
+
+        [Fact]
+        public void WhenClause_1()
+        {
+            TestSpan(
+@"class C
+{
+  string s;
+  bool b;
+  void Foo()
+  {
+    switch (s)
+    {
+$$      case string s [|when b|]:
+        break;
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void WhenClause_2()
+        {
+            TestSpan(
+@"class C
+{
+  string s;
+  bool b;
+  void Foo()
+  {
+    switch (s)
+    {
+      case string s [|whe$$n b|]:
+        break;
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void WhenClause_3()
+        {
+            TestSpan(
+@"class C
+{
+  string s;
+  bool b;
+  void Foo()
+  {
+    switch (s)
+    {
+      case string s [|when b|]:$$
+        break;
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void PatternSwitchCase_1()
+        {
+            TestSpan(
+@"class C
+{
+  string s;
+  bool b;
+  void Foo()
+  {
+    switch (s)
+    {
+$$      case string s:
+      default:
+        [|break;|]
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void PatternSwitchCase_2()
+        {
+            TestSpan(
+@"class C
+{
+  string s;
+  bool b;
+  void Foo()
+  {
+    switch (s)
+    {
+      $$case string s:
+      default:
+        [|break;|]
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void PatternSwitchCase_3()
+        {
+            TestSpan(
+@"class C
+{
+  string s;
+  bool b;
+  void Foo()
+  {
+    switch (s)
+    {
+      case string s:$$
+      default:
+        [|break;|]
+    }
+  }
+}");
+        }
+
+        [Fact]
+        public void DeconstructionDeclarationStatement_1()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+$$    [|var (x, y) = (1, 2);|]
+  }
+}");
+        }
+
+        [Fact]
+        public void DeconstructionDeclarationStatement_2()
+        {
+            TestSpan(
+@"class C
+{
+  void Foo()
+  {
+    [|var (x, y) = $$(1, 2);|]
+  }
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody1()
+        {
+            TestSpan(
+@"class C
+{
+    public int Id { get => [|12$$3|]; }
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody2()
+        {
+            TestSpan(
+@"class C
+{
+    public int Id { get $$=> [|123|]; }
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody3()
+        {
+            TestSpan(
+@"class C
+{
+    $$public int Id { get => [|123|]; }
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody4()
+        {
+            TestSpan(
+@"class C
+{
+    public int Id { get => [|123|];   $$ }
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody5()
+        {
+            TestSpan(
+@"class C
+{
+$$    public event Action Foo { add => [|123|]; remove => 456; }
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody6()
+        {
+            TestSpan(
+@"class C
+{
+    public event Action Foo { add => [|123|];$$ remove => 456; }
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody7()
+        {
+            TestSpan(
+@"class C
+{
+    public event Action Foo { add => 123; $$remove => [|456|]; }
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnAccessorExpressionBody8()
+        {
+            TestSpan(
+@"class C
+{
+    public event Action Foo { add => 123; remove => [|456|]; }$$
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnCtorExpressionBody1()
+        {
+            TestSpan(
+@"class C
+{
+$$    public C() => [|x = 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnCtorExpressionBody2()
+        {
+            TestSpan(
+@"class C
+{
+    public C() => $$[|x = 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnCtorExpressionBody3()
+        {
+            TestSpan(
+@"class C
+{
+    public C() => [|x =$$ 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnCtorExpressionBody4()
+        {
+            TestSpan(
+@"class C
+{
+    public C() => [|x = 1|]$$;
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnCtorExpressionBody5()
+        {
+            TestSpan(
+@"class C
+{
+    public C() => [|x = 1|];$$
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnDtorExpressionBody1()
+        {
+            TestSpan(
+@"class C
+{
+$$    public ~C() => [|x = 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnDtorExpressionBody2()
+        {
+            TestSpan(
+@"class C
+{
+    public ~C() => $$[|x = 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnDtorExpressionBody3()
+        {
+            TestSpan(
+@"class C
+{
+    public ~C() => [|x =$$ 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnDtorExpressionBody4()
+        {
+            TestSpan(
+@"class C
+{
+    public ~C() => [|x = 1|]$$;
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void OnDtorExpressionBody5()
+        {
+            TestSpan(
+@"class C
+{
+    public ~C() => [|x = 1|];$$
+}");
+        }
+
+        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        public void OnLocalFunctionDecl_1()
+        {
+            TestSpan(
+@"class C
+{
+    static void M()
+    {
+$$        int Local(object[] a)
+        [|{|]
+            return a.Length;
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        public void OnLocalFunctionDecl_2()
+        {
+            TestSpan(
+@"class C
+{
+    static void M()
+    {
+        int Local(object[] a)$$
+        [|{|]
+            return a.Length;
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        public void OnLocalFunctionDecl_3()
+        {
+            TestSpan(
+@"class C
+{
+    static void M()
+    {
+        int Local(object[] a)
+$$        [|{|]
+            return a.Length;
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        public void OnLocalFunctionDecl_4()
+        {
+            TestSpan(
+@"class C
+{
+    static void M()
+    {
+$$        int Local(object[] a) => [|a.Length|];
+    }
+}");
+        }
+
+        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        public void OnLocalFunctionDecl_5()
+        {
+            TestSpan(
+@"class C
+{
+    static void M()
+    {
+        int Local(object$$[] a) => [|a.Length|];
+    }
+}");
+        }
+
+        [Fact, WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
+        public void OnLocalFunctionDecl_6()
+        {
+            TestSpan(
+@"class C
+{
+    static void M()
+    {
+        int Local(object[] a) => [|a.Length|];$$
+    }
 }");
         }
     }

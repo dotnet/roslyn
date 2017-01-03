@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 protected override bool TryTake_NoLock(DocumentId key, out WorkItem workInfo)
                 {
                     workInfo = default(WorkItem);
-
-                    var documentMap = default(Dictionary<DocumentId, WorkItem>);
-                    if (_documentWorkQueue.TryGetValue(key.ProjectId, out documentMap) &&
+                    if (_documentWorkQueue.TryGetValue(key.ProjectId, out var documentMap) &&
                         documentMap.TryGetValue(key, out workInfo))
                     {
                         documentMap.Remove(key);
@@ -100,15 +98,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected override bool AddOrReplace_NoLock(WorkItem item)
                 {
-                    // now document work
-                    var existingWorkItem = default(WorkItem);
                     Cancel_NoLock(item.DocumentId);
 
                     // see whether we need to update
                     var key = item.DocumentId;
-                    var documentMap = default(Dictionary<DocumentId, WorkItem>);
-                    if (_documentWorkQueue.TryGetValue(key.ProjectId, out documentMap) &&
-                        documentMap.TryGetValue(key, out existingWorkItem))
+                    // now document work
+                    if (_documentWorkQueue.TryGetValue(key.ProjectId, out var documentMap) &&
+                        documentMap.TryGetValue(key, out var existingWorkItem))
                     {
                         // TODO: should I care about language when replace it?
                         Contract.Requires(existingWorkItem.Language == item.Language);

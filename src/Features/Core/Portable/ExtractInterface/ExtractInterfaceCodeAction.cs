@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                     operations = new CodeActionOperation[]
                         {
                         new ApplyChangesOperation(extractInterfaceResult.UpdatedSolution),
-                        new NavigationOperation(extractInterfaceResult.NavigationDocumentId, position: 0)
+                        new DocumentNavigationOperation(extractInterfaceResult.NavigationDocumentId, position: 0)
                         };
                 }
             }

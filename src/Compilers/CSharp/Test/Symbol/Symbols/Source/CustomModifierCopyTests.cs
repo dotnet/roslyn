@@ -876,19 +876,19 @@ class C : I
 ";
             var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp2.VerifyDiagnostics(
-                // (4,28): error CS8141: The tuple element names in the signature of method 'C.M((object, object))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
+                // (4,28): error CS8141: The tuple element names in the signature of method 'C.I.M((object, object))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
                 //     (object a, object b) I.M((object, object) x) { return x; }
-                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.M((object, object))", "I.M((object c, object d))").WithLocation(4, 28),
-                // (2,11): error CS0535: 'C' does not implement interface member 'I.M((object c, object d))'
-                // class C : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.M((object c, object d))").WithLocation(2, 11)
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.I.M((object, object))", "I.M((object c, object d))").WithLocation(4, 28)
                 );
 
             var classMethod2 = comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
 
-            Assert.Equal("(System.Object a, System.Object b) C.M((System.Object, System.Object) x)", classMethod2.ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod2.ReturnType.TupleUnderlyingType.ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod2.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+            Assert.Equal("(System.Object a, System.Object b) C.I.M((System.Object, System.Object) x)", classMethod2.ToTestDisplayString());
+            Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
+                classMethod2.ReturnType.TupleUnderlyingType.ToTestDisplayString());
+
+            Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
+                classMethod2.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
 
             var source3 = @"
 class C : I
@@ -898,19 +898,17 @@ class C : I
 ";
             var comp3 = CreateCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp3.VerifyDiagnostics(
-                // (4,24): error CS8141: The tuple element names in the signature of method 'C.M((object c, object d))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
+                // (4,24): error CS8141: The tuple element names in the signature of method 'C.I.M((object c, object d))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
                 //     (object, object) I.M((object c, object d) x) { return x; }
-                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.M((object c, object d))", "I.M((object c, object d))").WithLocation(4, 24),
-                // (2,11): error CS0535: 'C' does not implement interface member 'I.M((object c, object d))'
-                // class C : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.M((object c, object d))").WithLocation(2, 11)
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("C.I.M((object c, object d))", "I.M((object c, object d))").WithLocation(4, 24)
                 );
 
             var classMethod3 = comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
 
-            Assert.Equal("(System.Object, System.Object) C.M((System.Object c, System.Object d) x)", classMethod3.ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod3.ReturnType.TupleUnderlyingType.ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.Object, System.Object>",
+            Assert.Equal("(System.Object, System.Object) C.I.M((System.Object c, System.Object d) x)", classMethod3.ToTestDisplayString());
+            Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
+                    classMethod3.ReturnType.TupleUnderlyingType.ToTestDisplayString());
+            Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
                     classMethod3.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
 
             var source4 = @"
@@ -994,17 +992,14 @@ class C : I
 ";
             var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp2.VerifyDiagnostics(
-                // (4,24): error CS8141: The tuple element names in the signature of method 'C.P' must match the tuple element names of interface method 'I.P' (including on the return type).
+                // (4,24): error CS8141: The tuple element names in the signature of method 'C.I.P' must match the tuple element names of interface method 'I.P' (including on the return type).
                 //     (object, object) I.P { get; set; }
-                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "P").WithArguments("C.P", "I.P").WithLocation(4, 24),
-                // (2,11): error CS0535: 'C' does not implement interface member 'I.P'
-                // class C : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.P").WithLocation(2, 11)
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "P").WithArguments("C.I.P", "I.P").WithLocation(4, 24)
                 );
 
             var classProperty2 = comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetProperty("I.P");
 
-            Assert.Equal("(System.Object, System.Object) C.P { get; set; }", classProperty2.ToTestDisplayString());
+            Assert.Equal("(System.Object, System.Object) C.I.P { get; set; }", classProperty2.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object, System.Object>", classProperty2.Type.TupleUnderlyingType.ToTestDisplayString());
 
             var source3 = @"
@@ -1183,7 +1178,8 @@ class C : Base
                     classProperty2.Type.TupleUnderlyingType.ToTestDisplayString());
 
             Assert.Equal("(System.Object, System.Object) C.M((System.Object c, System.Object d) y)", classMethod2.ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod2.ReturnType.TupleUnderlyingType.ToTestDisplayString());
+            Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
+                    classMethod2.ReturnType.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
                     classMethod2.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
 

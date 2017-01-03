@@ -220,7 +220,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var generatedProperty = GenerateProperty(generatedPropertyName, finalFieldName, originalField.DeclaredAccessibility, originalField, field.ContainingType, new SyntaxAnnotation(), document, cancellationToken);
 
             var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
-            var solutionWithProperty = await AddPropertyAsync(document, document.Project.Solution, field, generatedProperty, cancellationToken).ConfigureAwait(false);
+            var solutionWithProperty = await AddPropertyAsync(
+                document, document.Project.Solution, field, generatedProperty, cancellationToken).ConfigureAwait(false);
 
             return new Result(solutionWithProperty, originalField.ToDisplayString(), originalField.GetGlyph());
         }
@@ -275,7 +276,9 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
 
             var fieldDeclaration = field.DeclaringSyntaxReferences.First();
-            var options = new CodeGenerationOptions(contextLocation: fieldDeclaration.SyntaxTree.GetLocation(fieldDeclaration.Span));
+            var options = new CodeGenerationOptions(
+                contextLocation: fieldDeclaration.SyntaxTree.GetLocation(fieldDeclaration.Span),
+                parseOptions: fieldDeclaration.SyntaxTree.Options);
 
             var destination = field.ContainingType;
             var updatedDocument = await codeGenerationService.AddPropertyAsync(destinationSolution, destination, property, options, cancellationToken)
@@ -287,7 +290,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             return updatedDocument.Project.Solution;
         }
 
-        protected IPropertySymbol GenerateProperty(string propertyName, string fieldName, Accessibility accessibility, IFieldSymbol field, INamedTypeSymbol containingSymbol, SyntaxAnnotation annotation, Document document, CancellationToken cancellationToken)
+        protected IPropertySymbol GenerateProperty(
+            string propertyName, string fieldName, 
+            Accessibility accessibility, 
+            IFieldSymbol field, 
+            INamedTypeSymbol containingSymbol, 
+            SyntaxAnnotation annotation, 
+            Document document, 
+            CancellationToken cancellationToken)
         {
             var factory = document.GetLanguageService<SyntaxGenerator>();
 

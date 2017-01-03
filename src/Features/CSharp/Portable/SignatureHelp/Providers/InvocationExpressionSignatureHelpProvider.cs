@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,11 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
         private bool IsTriggerToken(SyntaxToken token)
         {
-            return !token.IsKind(SyntaxKind.None) &&
-                token.ValueText.Length == 1 &&
-                IsTriggerCharacter(token.ValueText[0]) &&
-                token.Parent is ArgumentListSyntax &&
-                token.Parent.Parent is InvocationExpressionSyntax;
+            return SignatureHelpUtilities.IsTriggerParenOrComma<InvocationExpressionSyntax>(token, IsTriggerCharacter);
         }
 
         private static bool IsArgumentListToken(InvocationExpressionSyntax expression, SyntaxToken token)
@@ -61,8 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            InvocationExpressionSyntax invocationExpression;
-            if (!TryGetInvocationExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), trigger.Kind, cancellationToken, out invocationExpression))
+            if (!TryGetInvocationExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), trigger.Kind, cancellationToken, out var invocationExpression))
             {
                 return;
             }
@@ -76,11 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
             // get the regular signature help items
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
-            var methodGroup = semanticModel
-                .GetMemberGroup(invocationExpression.Expression, cancellationToken)
-                .OfType<IMethodSymbol>()
-                .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation);
-
+            var methodGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken)
+                                                       .OfType<IMethodSymbol>()
+                                                       .ToImmutableArray()
+                                                       .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation);
             // try to bind to the actual method
             var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
             var matchedMethodSymbol = symbolInfo.Symbol as IMethodSymbol;
@@ -88,10 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             // if the symbol could be bound, replace that item in the symbol list
             if (matchedMethodSymbol != null && matchedMethodSymbol.IsGenericMethod)
             {
-                methodGroup = methodGroup.Select(m => matchedMethodSymbol.OriginalDefinition == m ? matchedMethodSymbol : m);
+                methodGroup = methodGroup.SelectAsArray(m => matchedMethodSymbol.OriginalDefinition == m ? matchedMethodSymbol : m);
             }
 
-            methodGroup = methodGroup.Sort(symbolDisplayService, semanticModel, invocationExpression.SpanStart);
+            methodGroup = methodGroup.Sort(
+                symbolDisplayService, semanticModel, invocationExpression.SpanStart);
 
             var expressionType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
 
@@ -124,14 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
         protected override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
-            InvocationExpressionSyntax expression;
             if (TryGetInvocationExpression(
                     root,
                     position,
                     syntaxFacts,
                     SignatureHelpTriggerKind.Other,
                     cancellationToken,
-                    out expression) &&
+                    out var expression) &&
                 currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
             {
                 return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position);

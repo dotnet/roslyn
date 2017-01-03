@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Gets the source language ("C#" or "Visual Basic").
+        /// </summary>
+        public abstract string Language { get; }
+
+        /// <summary>
         /// Creates a new options instance with the specified source code kind.
         /// </summary>
         public ParseOptions WithKind(SourceCodeKind kind)

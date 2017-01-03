@@ -1,10 +1,14 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -19,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             protected const char DoubleQuoteChar = '"';
 
             private readonly Func<TStringResult> _readString;
-            private readonly Func<int> _readInteger;
+            private readonly Func<bool> _readBoolean;
             private readonly Func<RefKind> _readRefKind;
 
             protected string Data { get; private set; }
@@ -30,7 +34,7 @@ namespace Microsoft.CodeAnalysis
             public Reader()
             {
                 _readString = ReadString;
-                _readInteger = ReadInteger;
+                _readBoolean = ReadBoolean;
                 _readRefKind = () => (RefKind)ReadInteger();
             }
 
@@ -163,6 +167,11 @@ namespace Microsoft.CodeAnalysis
                 return ReadArray(_readString);
             }
 
+            public ImmutableArray<bool> ReadBooleanArray()
+            {
+                return ReadArray(_readBoolean);
+            }
+
             public ImmutableArray<RefKind> ReadRefKindArray()
             {
                 return ReadArray(_readRefKind);
@@ -193,192 +202,6 @@ namespace Microsoft.CodeAnalysis
                 EatCloseParen();
 
                 return builder.MoveToImmutable();
-            }
-        }
-
-        private abstract class Reader<TSymbolResult, TStringResult> : Reader<TStringResult>
-        {
-            private readonly Dictionary<int, TSymbolResult> _idToResult = new Dictionary<int, TSymbolResult>();
-            private readonly Func<TSymbolResult> _readSymbolKey;
-
-            public Reader()
-            {
-                _readSymbolKey = ReadSymbolKey;
-            }
-
-            protected override void Initialize(string data, CancellationToken cancellationToken)
-            {
-                base.Initialize(data, cancellationToken);
-            }
-
-            public override void Dispose()
-            {
-                base.Dispose();
-                _idToResult.Clear();
-            }
-
-            public TSymbolResult ReadFirstSymbolKey()
-            {
-                return ReadSymbolKeyWorker(first: true);
-            }
-
-            public TSymbolResult ReadSymbolKey()
-            {
-                return ReadSymbolKeyWorker(first: false);
-            }
-
-            private TSymbolResult ReadSymbolKeyWorker(bool first)
-            {
-                CancellationToken.ThrowIfCancellationRequested();
-                if (!first)
-                {
-                    EatSpace();
-                }
-
-                var type = (SymbolKeyType)Data[Position];
-                if (type == SymbolKeyType.Null)
-                {
-                    Eat(type);
-                    return default(TSymbolResult);
-                }
-
-                EatOpenParen();
-                TSymbolResult result;
-
-                type = (SymbolKeyType)Data[Position];
-                Eat(type);
-
-                if (type == SymbolKeyType.Reference)
-                {
-                    var id = ReadInteger();
-                    result = _idToResult[id];
-                }
-                else
-                {
-                    result = ReadWorker(type);
-                    var id = ReadInteger();
-                    _idToResult[id] = result;
-                }
-
-                EatCloseParen();
-
-                return result;
-            }
-
-            protected abstract TSymbolResult ReadWorker(SymbolKeyType type);
-
-            public ImmutableArray<TSymbolResult> ReadSymbolKeyArray()
-            {
-                return ReadArray(_readSymbolKey);
-            }
-        }
-
-        private class GetHashCodeReader : Reader<int, int>
-        {
-            private static readonly ObjectPool<GetHashCodeReader> s_pool =
-                new ObjectPool<GetHashCodeReader>(() => new GetHashCodeReader());
-
-            private GetHashCodeReader()
-            {
-            }
-
-            public static GetHashCodeReader GetReader(string data)
-            {
-                var reader = s_pool.Allocate();
-                reader.Initialize(data);
-                return reader;
-            }
-
-            public override void Dispose()
-            {
-                base.Dispose();
-
-                s_pool.Free(this);
-            }
-
-            private void Initialize(string data)
-            {
-                base.Initialize(data, CancellationToken.None);
-            }
-
-            protected override int CreateResultForString(int start, int end, bool hasEmbeddedQuote)
-            {
-                var result = 1;
-
-                // Note: we hash all strings to lowercase. It will mean more collisions, but
-                // it provides a uniform hashing strategy for all keys.
-                for (var i = start; i < end; i++)
-                {
-                    result = Hash.Combine((int)char.ToLower(Data[i]), result);
-                }
-                return result;
-            }
-
-            protected override int CreateNullForString()
-            {
-                return 0;
-            }
-
-            public int ReadSymbolKeyArrayHashCode()
-            {
-                return HashArray(ReadSymbolKeyArray());
-            }
-
-            public int ReadRefKindArrayHashCode()
-            {
-                var array = ReadRefKindArray();
-                var value = 1;
-                if (!array.IsDefault)
-                {
-                    foreach (var v in array)
-                    {
-                        value = Hash.Combine((int)v, value);
-                    }
-                }
-                return value;
-            }
-
-            private static int HashArray(ImmutableArray<int> array)
-            {
-                var value = 1;
-                if (!array.IsDefault)
-                {
-                    foreach (var v in array)
-                    {
-                        value = Hash.Combine(value, v);
-                    }
-                }
-                return value;
-            }
-
-            protected override int ReadWorker(SymbolKeyType type)
-            {
-                switch (type)
-                {
-                    case SymbolKeyType.Alias: return AliasSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.BodyLevel: return BodyLevelSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.ConstructedMethod: return ConstructedMethodSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.NamedType: return NamedTypeSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.ErrorType: return ErrorTypeSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.Field: return FieldSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.DynamicType: return DynamicTypeSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.Method: return MethodSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.Namespace: return NamespaceSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.PointerType: return PointerTypeSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.Parameter: return ParameterSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.Property: return PropertySymbolKey.GetHashCode(this);
-                    case SymbolKeyType.ArrayType: return ArrayTypeSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.Assembly: return AssemblySymbolKey.GetHashCode(this);
-                    case SymbolKeyType.TupleType: return TupleTypeSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.Module: return ModuleSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.Event: return EventSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.ReducedExtensionMethod: return ReducedExtensionMethodSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.TypeParameter: return TypeParameterSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.AnonymousType: return AnonymousTypeSymbolKey.GetHashCode(this);
-                    case SymbolKeyType.TypeParameterOrdinal: return TypeParameterOrdinalSymbolKey.GetHashCode(this);
-                }
-
-                throw new NotImplementedException();
             }
         }
 
@@ -454,10 +277,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private class SymbolKeyReader : Reader<SymbolKeyResolution, string>
+        private class SymbolKeyReader : Reader<string>
         {
             private static readonly ObjectPool<SymbolKeyReader> s_readerPool =
                 new ObjectPool<SymbolKeyReader>(() => new SymbolKeyReader());
+
+            private readonly Dictionary<int, SymbolKeyResolution> _idToResult = new Dictionary<int, SymbolKeyResolution>();
+            private readonly Func<SymbolKeyResolution> _readSymbolKey;
+            private readonly Func<Location> _readLocation;
 
             public Compilation Compilation { get; private set; }
             public bool IgnoreAssemblyKey { get; private set; }
@@ -467,6 +294,21 @@ namespace Microsoft.CodeAnalysis
 
             private SymbolKeyReader()
             {
+                _readSymbolKey = ReadSymbolKey;
+                _readLocation = ReadLocation;
+            }
+
+            public override void Dispose()
+            {
+                base.Dispose();
+                _idToResult.Clear();
+                Compilation = null;
+                IgnoreAssemblyKey = false;
+                Comparer = null;
+                CurrentMethod = null;
+
+                // Place us back in the pool for future use.
+                s_readerPool.Free(this);
             }
 
             public static SymbolKeyReader GetReader(
@@ -476,18 +318,6 @@ namespace Microsoft.CodeAnalysis
                 var reader = s_readerPool.Allocate();
                 reader.Initialize(data, compilation, ignoreAssemblyKey, cancellationToken);
                 return reader;
-            }
-
-            public override void Dispose()
-            {
-                base.Dispose();
-                Compilation = null;
-                IgnoreAssemblyKey = false;
-                Comparer = null;
-                CurrentMethod = null;
-
-                // Place us back in the pool for future use.
-                s_readerPool.Free(this);
             }
 
             private void Initialize(
@@ -502,50 +332,6 @@ namespace Microsoft.CodeAnalysis
                 Comparer = ignoreAssemblyKey
                     ? SymbolEquivalenceComparer.IgnoreAssembliesInstance
                     : SymbolEquivalenceComparer.Instance;
-            }
-
-            protected override string CreateResultForString(int start, int end, bool hasEmbeddedQuote)
-            {
-                var substring = Data.Substring(start, end - start);
-                var result = hasEmbeddedQuote
-                    ? substring.Replace("\"\"", "\"")
-                    : substring;
-                return result;
-            }
-
-            protected override string CreateNullForString()
-            {
-                return null;
-            }
-
-            protected override SymbolKeyResolution ReadWorker(SymbolKeyType type)
-            {
-                switch (type)
-                {
-                    case SymbolKeyType.Alias: return AliasSymbolKey.Resolve(this);
-                    case SymbolKeyType.BodyLevel: return BodyLevelSymbolKey.Resolve(this);
-                    case SymbolKeyType.ConstructedMethod: return ConstructedMethodSymbolKey.Resolve(this);
-                    case SymbolKeyType.NamedType: return NamedTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.ErrorType: return ErrorTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.Field: return FieldSymbolKey.Resolve(this);
-                    case SymbolKeyType.DynamicType: return DynamicTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.Method: return MethodSymbolKey.Resolve(this);
-                    case SymbolKeyType.Namespace: return NamespaceSymbolKey.Resolve(this);
-                    case SymbolKeyType.PointerType: return PointerTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.Parameter: return ParameterSymbolKey.Resolve(this);
-                    case SymbolKeyType.Property: return PropertySymbolKey.Resolve(this);
-                    case SymbolKeyType.ArrayType: return ArrayTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.Assembly: return AssemblySymbolKey.Resolve(this);
-                    case SymbolKeyType.TupleType: return TupleTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.Module: return ModuleSymbolKey.Resolve(this);
-                    case SymbolKeyType.Event: return EventSymbolKey.Resolve(this);
-                    case SymbolKeyType.ReducedExtensionMethod: return ReducedExtensionMethodSymbolKey.Resolve(this);
-                    case SymbolKeyType.TypeParameter: return TypeParameterSymbolKey.Resolve(this);
-                    case SymbolKeyType.AnonymousType: return AnonymousTypeSymbolKey.Resolve(this);
-                    case SymbolKeyType.TypeParameterOrdinal: return TypeParameterOrdinalSymbolKey.Resolve(this);
-                }
-
-                throw new NotImplementedException();
             }
 
             internal bool ParameterTypesMatch(
@@ -573,6 +359,172 @@ namespace Microsoft.CodeAnalysis
 
                 return true;
             }
+
+            internal SyntaxTree GetSyntaxTree(string filePath)
+            {
+                return this.Compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == filePath);
+            }
+
+            #region Symbols
+
+            public SymbolKeyResolution ReadFirstSymbolKey()
+            {
+                return ReadSymbolKeyWorker(first: true);
+            }
+
+            public SymbolKeyResolution ReadSymbolKey()
+            {
+                return ReadSymbolKeyWorker(first: false);
+            }
+
+            private SymbolKeyResolution ReadSymbolKeyWorker(bool first)
+            {
+                CancellationToken.ThrowIfCancellationRequested();
+                if (!first)
+                {
+                    EatSpace();
+                }
+
+                var type = (SymbolKeyType)Data[Position];
+                if (type == SymbolKeyType.Null)
+                {
+                    Eat(type);
+                    return default(SymbolKeyResolution);
+                }
+
+                EatOpenParen();
+                SymbolKeyResolution result;
+
+                type = (SymbolKeyType)Data[Position];
+                Eat(type);
+
+                if (type == SymbolKeyType.Reference)
+                {
+                    var id = ReadInteger();
+                    result = _idToResult[id];
+                }
+                else
+                {
+                    result = ReadWorker(type);
+                    var id = ReadInteger();
+                    _idToResult[id] = result;
+                }
+
+                EatCloseParen();
+
+                return result;
+            }
+
+            private SymbolKeyResolution ReadWorker(SymbolKeyType type)
+            {
+                switch (type)
+                {
+                    case SymbolKeyType.Alias: return AliasSymbolKey.Resolve(this);
+                    case SymbolKeyType.BodyLevel: return BodyLevelSymbolKey.Resolve(this);
+                    case SymbolKeyType.ConstructedMethod: return ConstructedMethodSymbolKey.Resolve(this);
+                    case SymbolKeyType.NamedType: return NamedTypeSymbolKey.Resolve(this);
+                    case SymbolKeyType.ErrorType: return ErrorTypeSymbolKey.Resolve(this);
+                    case SymbolKeyType.Field: return FieldSymbolKey.Resolve(this);
+                    case SymbolKeyType.DynamicType: return DynamicTypeSymbolKey.Resolve(this);
+                    case SymbolKeyType.Method: return MethodSymbolKey.Resolve(this);
+                    case SymbolKeyType.Namespace: return NamespaceSymbolKey.Resolve(this);
+                    case SymbolKeyType.PointerType: return PointerTypeSymbolKey.Resolve(this);
+                    case SymbolKeyType.Parameter: return ParameterSymbolKey.Resolve(this);
+                    case SymbolKeyType.Property: return PropertySymbolKey.Resolve(this);
+                    case SymbolKeyType.ArrayType: return ArrayTypeSymbolKey.Resolve(this);
+                    case SymbolKeyType.Assembly: return AssemblySymbolKey.Resolve(this);
+                    case SymbolKeyType.TupleType: return TupleTypeSymbolKey.Resolve(this);
+                    case SymbolKeyType.Module: return ModuleSymbolKey.Resolve(this);
+                    case SymbolKeyType.Event: return EventSymbolKey.Resolve(this);
+                    case SymbolKeyType.ReducedExtensionMethod: return ReducedExtensionMethodSymbolKey.Resolve(this);
+                    case SymbolKeyType.TypeParameter: return TypeParameterSymbolKey.Resolve(this);
+                    case SymbolKeyType.AnonymousType: return AnonymousTypeSymbolKey.Resolve(this);
+                    case SymbolKeyType.AnonymousFunctionOrDelegate: return AnonymousFunctionOrDelegateSymbolKey.Resolve(this);
+                    case SymbolKeyType.TypeParameterOrdinal: return TypeParameterOrdinalSymbolKey.Resolve(this);
+                }
+
+                throw new NotImplementedException();
+            }
+
+            public ImmutableArray<SymbolKeyResolution> ReadSymbolKeyArray()
+            {
+                return ReadArray(_readSymbolKey);
+            }
+
+            #endregion
+
+            #region Strings
+
+            protected override string CreateResultForString(int start, int end, bool hasEmbeddedQuote)
+            {
+                var substring = Data.Substring(start, end - start);
+                var result = hasEmbeddedQuote
+                    ? substring.Replace("\"\"", "\"")
+                    : substring;
+                return result;
+            }
+
+            protected override string CreateNullForString()
+            {
+                return null;
+            }
+
+            #endregion
+
+            #region Locations
+
+            public Location ReadLocation()
+            {
+                EatSpace();
+                if ((SymbolKeyType)Data[Position] == SymbolKeyType.Null)
+                {
+                    Eat(SymbolKeyType.Null);
+                    return null;
+                }
+
+                var kind = (LocationKind)ReadInteger();
+                if (kind == LocationKind.None)
+                {
+                    return Location.None;
+                }
+                else if (kind == LocationKind.SourceFile)
+                {
+                    var filePath = ReadString();
+                    var start = ReadInteger();
+                    var length = ReadInteger();
+                    return CreateSourceLocation(filePath, start, length);
+                }
+                else
+                {
+                    Debug.Assert(kind == LocationKind.MetadataFile);
+                    var assembly = ReadSymbolKey();
+                    var moduleName = ReadString();
+                    return CreateModuleLocation(assembly, moduleName);
+                }
+            }
+
+            private Location CreateSourceLocation(string filePath, int start, int length)
+            {
+                var syntaxTree = GetSyntaxTree(filePath);
+                Debug.Assert(syntaxTree != null);
+                return Location.Create(syntaxTree, new TextSpan(start, length));
+            }
+
+            private Location CreateModuleLocation(
+                SymbolKeyResolution assembly, string moduleName)
+            {
+                var symbol = assembly.GetAnySymbol() as IAssemblySymbol;
+                Debug.Assert(symbol != null);
+                var module = symbol.Modules.FirstOrDefault(m => m.MetadataName == moduleName);
+                return module.Locations.FirstOrDefault();
+            }
+
+            public ImmutableArray<Location> ReadLocationArray()
+            {
+                return ReadArray(_readLocation);
+            }
+
+            #endregion
         }
     }
 }

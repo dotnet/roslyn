@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
             else if (token.Kind() == SyntaxKind.CloseParenToken)
             {
-                var statement = token.GetAncestor<ForEachComponentStatementSyntax>();
-                if (statement != null && token.Span.End == statement.VariableComponent.Span.End)
+                var statement = token.GetAncestor<ForEachVariableStatementSyntax>();
+                if (statement != null && token.Span.End == statement.Variable.Span.End)
                 {
                     return true;
                 }

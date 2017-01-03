@@ -3,6 +3,7 @@
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ImplementInterface
 
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ImplementInterface
             Else
                 Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
                     Nothing,
-                    New CodeAnalysis.VisualBasic.CodeFixes.ImplementInterface.ImplementInterfaceCodeFixProvider())
+                    New VisualBasicImplementInterfaceCodeFixProvider())
             End If
         End Function
 

@@ -233,11 +233,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            ushort Cci.IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
+            ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.RefCustomModifiers
             {
                 get
                 {
-                    return UnderlyingParameterTypeInformation.CountOfCustomModifiersPrecedingByRef;
+                    return UnderlyingParameterTypeInformation.RefCustomModifiers;
                 }
             }
 

@@ -1478,5 +1478,72 @@ End Class";
                 await state.AssertNoTag();
             }
         }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        [WorkItem(14159, "https://github.com/dotnet/roslyn/issues/14159")]
+        public async Task RenameTrackingNotOnWellKnownValueTupleType()
+        {
+            var workspaceXml = @"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" LanguageVersion=""7"">
+        <Document>
+using System;
+
+class C
+{
+    void M()
+    {
+        var x = new ValueTuple$$&lt;int&gt;();
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple&lt;T1&gt;
+    {
+        public T1 Item1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            using (var state = await RenameTrackingTestState.CreateFromWorkspaceXmlAsync(workspaceXml, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("2");
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        [WorkItem(14159, "https://github.com/dotnet/roslyn/issues/14159")]
+        public async Task RenameTrackingOnThingsCalledValueTupleThatAreNotTheWellKnownType()
+        {
+            var workspaceXml = @"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" LanguageVersion=""7"">
+        <Document>
+class C
+{
+    void M()
+    {
+        var x = new ValueTuple$$&lt;int&gt;();
+    }
+}
+
+public struct ValueTuple&lt;T1&gt;
+{
+    public T1 Item1;
+}
+        </Document>
+    </Project>
+</Workspace>";
+            using (var state = await RenameTrackingTestState.CreateFromWorkspaceXmlAsync(workspaceXml, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("2");
+                await state.AssertTag("ValueTuple", "ValueTuple2");
+            }
+        }
     }
 }

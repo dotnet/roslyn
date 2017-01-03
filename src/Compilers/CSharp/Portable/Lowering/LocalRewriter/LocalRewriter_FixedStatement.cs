@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // }
                         return true;
                     case SyntaxKind.ForEachStatement:
-                    case SyntaxKind.ForEachComponentStatement:
+                    case SyntaxKind.ForEachVariableStatement:
                         // We're being conservative here - there's actually only
                         // a try block if the enumerator is disposable, but we
                         // can't tell that from the syntax.  Dev11 checks in the

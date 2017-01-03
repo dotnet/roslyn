@@ -1037,36 +1037,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundLocalDeconstructionDeclaration : BoundStatement
-    {
-        protected override OperationKind StatementKind => OperationKind.None;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitNoneOperation(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitNoneOperation(this, argument);
-        }
-    }
-
-    internal sealed partial class BoundVoid : BoundExpression
-    {
-        protected override OperationKind ExpressionKind => OperationKind.None;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitNoneOperation(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitNoneOperation(this, argument);
-        }
-    }
-
     internal partial class BoundCompoundAssignmentOperator : ICompoundAssignmentExpression
     {
         BinaryOperationKind ICompoundAssignmentExpression.BinaryOperationKind => Expression.DeriveBinaryOperationKind(this.Operator.Kind);
@@ -3039,8 +3009,26 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundDeclarationPattern
     {
         public BoundDeclarationPattern(SyntaxNode syntax, LocalSymbol localSymbol, BoundTypeExpression declaredType, bool isVar, bool hasErrors = false)
-            : this(syntax, localSymbol, new BoundLocal(syntax, localSymbol, null, declaredType.Type), declaredType, isVar, hasErrors)
+            : this(syntax, localSymbol, localSymbol == null ? new BoundDiscardExpression(syntax, declaredType.Type) : (BoundExpression)new BoundLocal(syntax, localSymbol, null, declaredType.Type), declaredType, isVar, hasErrors)
         {
         }
+    }
+
+    partial class BoundDiscardExpression
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            return visitor.VisitNoneOperation(this, argument);
+        }
+
+        // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+        protected override OperationKind ExpressionKind => OperationKind.None;
     }
 }

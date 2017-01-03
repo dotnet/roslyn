@@ -1031,8 +1031,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 diagnostics.Add(receiver, useSiteDiagnostics)
 
-                If oldReceiver.WasCompilerGenerated AndAlso receiver IsNot oldReceiver AndAlso oldReceiver.Kind = BoundKind.MeReference Then
-                    receiver.SetWasCompilerGenerated()
+                If oldReceiver.WasCompilerGenerated AndAlso receiver IsNot oldReceiver Then
+                    Select Case oldReceiver.Kind
+                        Case BoundKind.MeReference,
+                             BoundKind.WithLValueExpressionPlaceholder,
+                             BoundKind.WithRValueExpressionPlaceholder
+                            receiver.SetWasCompilerGenerated()
+                    End Select
                 End If
             End If
 
@@ -1728,7 +1733,7 @@ ProduceBoundNode:
                             commonReturnType = returnType
 
                         ElseIf commonReturnType IsNot ErrorTypeSymbol.UnknownResultType AndAlso
-                            Not commonReturnType.IsSameTypeIgnoringCustomModifiers(returnType) Then
+                            Not commonReturnType.IsSameTypeIgnoringAll(returnType) Then
                             commonReturnType = ErrorTypeSymbol.UnknownResultType
                         End If
                     End If
@@ -2455,7 +2460,7 @@ ProduceBoundNode:
 
             If argument.IsSupportingAssignment() Then
 
-                If Not (argument.IsLValue() AndAlso targetType.IsSameTypeIgnoringCustomModifiers(argument.Type)) Then
+                If Not (argument.IsLValue() AndAlso targetType.IsSameTypeIgnoringAll(argument.Type)) Then
 
                     If Not ReportByValConversionErrors(param, argument, targetType, reportNarrowingConversions, diagnostics,
                                                        diagnosticNode:=diagnosticNode,

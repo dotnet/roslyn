@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             Span = defaultSpan;
 
-            Items = items.IsDefault ? ImmutableArray<CompletionItem>.Empty : items;
+            Items = items.NullToEmpty();
             Rules = rules ?? CompletionRules.Default;
             SuggestionModeItem = suggestionModeItem;
             IsExclusive = isExclusive;

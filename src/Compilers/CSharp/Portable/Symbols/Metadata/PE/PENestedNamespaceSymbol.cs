@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PENamespaceSymbol containingNamespace,
             IEnumerable<IGrouping<string, TypeDefinitionHandle>> typesByNS)
         {
-            Debug.Assert(name != null && name.Length > 0);
+            Debug.Assert(name != null);
             Debug.Assert((object)containingNamespace != null);
             Debug.Assert(typesByNS != null);
 

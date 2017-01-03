@@ -17,32 +17,80 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMe
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInSubNoModifiers() As Task
             Await TestAsync(
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Sub Test() \n [|Await Task.Delay(1)|] \n End Sub \n End Module"),
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Async Sub TestAsync() \n Await Task.Delay(1) \n End Sub \n End Module"),
+"Imports System
+Imports System.Threading.Tasks
+Module Program
+    Sub Test()
+        [|Await Task.Delay(1)|] 
+ End Sub
+End Module",
+"Imports System
+Imports System.Threading.Tasks
+Module Program
+    Async Sub TestAsync()
+        Await Task.Delay(1)
+    End Sub
+End Module",
                 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInSubWithModifiers() As Task
             Await TestAsync(
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Public Shared Sub Test() \n [|Await Task.Delay(1)|] \n End Sub \n End Module"),
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Public Shared Async Sub TestAsync() \n Await Task.Delay(1) \n End Sub \n End Module"),
+"Imports System
+Imports System.Threading.Tasks
+Module Program
+    Public Shared Sub Test()
+        [|Await Task.Delay(1)|] 
+ End Sub
+End Module",
+"Imports System
+Imports System.Threading.Tasks
+Module Program
+    Public Shared Async Sub TestAsync()
+        Await Task.Delay(1)
+    End Sub
+End Module",
                 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInFunctionNoModifiers() As Task
             Await TestAsync(
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Function Test() As Integer \n [|Await Task.Delay(1)|] \n Function Sub \n End Module"),
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Async Function TestAsync() As Task(Of Integer) \n Await Task.Delay(1) \n Function Sub \n End Module")
+"Imports System
+Imports System.Threading.Tasks
+Module Program
+    Function Test() As Integer
+        [|Await Task.Delay(1)|] 
+ Function Sub
+ End Module",
+"Imports System
+Imports System.Threading.Tasks
+Module Program
+    Async Function TestAsync() As Task(Of Integer)
+        Await Task.Delay(1)
+ Function Sub
+ End Module"
                 )
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInFunctionWithModifiers() As Task
             Await TestAsync(
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Public Shared Function Test() As Integer \n [|Await Task.Delay(1)|] \n Function Sub \n End Module"),
-                NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Public Shared Async Function TestAsync() As Task(Of Integer) \n Await Task.Delay(1) \n Function Sub \n End Module")
+"Imports System
+Imports System.Threading.Tasks
+Module Program
+    Public Shared Function Test() As Integer
+        [|Await Task.Delay(1)|] 
+ Function Sub
+ End Module",
+"Imports System
+Imports System.Threading.Tasks
+Module Program
+    Public Shared Async Function TestAsync() As Task(Of Integer)
+        Await Task.Delay(1)
+ Function Sub
+ End Module"
                 )
         End Function
 
@@ -84,7 +132,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMe
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>
         Public Async Function TestAwaitInMember() As Task
-            Await TestMissingAsync(NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Dim x =[| Await Task.Delay(3)|] \n End Module"))
+            Await TestMissingAsync("Imports System
+Imports System.Threading.Tasks
+Module Program
+    Dim x =[| Await Task.Delay(3)|] 
+ End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)>

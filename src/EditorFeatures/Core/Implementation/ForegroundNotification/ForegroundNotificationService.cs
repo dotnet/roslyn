@@ -119,9 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             {
                 var processedCount = 0;
                 var startProcessingTime = Environment.TickCount;
-
-                PendingWork pendingWork;
-                while (_workQueue.TryGetWorkItem(startProcessingTime, out pendingWork))
+                while (_workQueue.TryGetWorkItem(startProcessingTime, out var pendingWork))
                 {
                     var done = true;
 

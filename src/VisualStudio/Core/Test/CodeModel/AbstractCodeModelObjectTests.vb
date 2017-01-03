@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Partial Public MustInherit Class AbstractCodeModelObjectTests(Of TCodeModelObject As Class)
@@ -59,7 +60,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddProperty(code As XElement, expectedCode As XElement, data As PropertyData) As Task
+        Protected Overridable Function TestAddProperty(code As XElement, expectedCode As XElement, data As PropertyData,
+                                                       Optional options As IDictionary(Of OptionKey, Object) = Nothing) As Task
             Throw New NotImplementedException
         End Function
 

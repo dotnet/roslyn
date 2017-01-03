@@ -726,13 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         // Ensure the return type has been translated. (Necessary
                         // for cases of untranslated anonymous types.)
-                        var returnType = expressionOpt.Type;
-                        var byRefType = returnType as ByRefReturnErrorTypeSymbol;
-                        if ((object)byRefType != null)
-                        {
-                            returnType = byRefType.ReferencedType;
-                        }
-                        _module.Translate(returnType, boundReturnStatement.Syntax, _diagnostics);
+                        _module.Translate(expressionOpt.Type, boundReturnStatement.Syntax, _diagnostics);
                     }
                     _builder.EmitRet(expressionOpt == null);
                 }
@@ -1081,11 +1075,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSwitchBody(switchStatement.InnerLocals, switchSections, breakLabel, switchStatement.Syntax);
         }
 
-        private static KeyValuePair<ConstantValue, object>[] GetSwitchCaseLabels(ImmutableArray<BoundSwitchSection> sections, ref LabelSymbol fallThroughLabel)
+        private KeyValuePair<ConstantValue, object>[] GetSwitchCaseLabels(ImmutableArray<BoundSwitchSection> sections, ref LabelSymbol fallThroughLabel)
         {
             var labelsBuilder = ArrayBuilder<KeyValuePair<ConstantValue, object>>.GetInstance();
             foreach (var section in sections)
             {
+                // all labels in a section are labeling the same region of code, 
+                // so we could use just the first one for a better codegen
+                object firstLabelInSection = null;
+
                 foreach (BoundSwitchLabel boundLabel in section.SwitchLabels)
                 {
                     var label = boundLabel.Label;
@@ -1098,7 +1096,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var value = boundLabel.ConstantValueOpt;
                         Debug.Assert(value != null
                             && SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(value));
-                        labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, label));
+
+                        if (firstLabelInSection == null)
+                        {
+                            firstLabelInSection = label;
+                        }
+
+                        labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, firstLabelInSection));
                     }
                 }
             }

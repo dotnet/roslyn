@@ -128,19 +128,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             if (asyncExpansionManager != null)
             {
                 // Call the asynchronous IExpansionManager API from a background thread
-                Task.Factory.StartNew(async () => await PopulateSnippetCacheAsync(asyncExpansionManager).ConfigureAwait(false),
-                                CancellationToken.None,
-                                TaskCreationOptions.None,
-                                TaskScheduler.Default).CompletesAsyncOperation(token);
-
+                Task.Run(() => PopulateSnippetCacheAsync(asyncExpansionManager))
+                    .CompletesAsyncOperation(token);
             }
             else
             {
                 // Call the synchronous IVsExpansionManager API from the UI thread
                 Task.Factory.StartNew(() => PopulateSnippetCacheOnForeground(_expansionManager),
-                                CancellationToken.None,
-                                TaskCreationOptions.None,
-                                ForegroundTaskScheduler).CompletesAsyncOperation(token);                
+                    CancellationToken.None,
+                    TaskCreationOptions.None,
+                    ForegroundTaskScheduler).CompletesAsyncOperation(token);                
             }
         }
 
@@ -173,8 +170,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         private void PopulateSnippetCacheOnForeground(IVsExpansionManager expansionManager)
         {
             AssertIsForeground();
-
-            IVsExpansionEnumeration expansionEnumerator = null;
             expansionManager.EnumerateExpansions(
                 _languageGuidForSnippets,
                 fShortCutOnly: 0,
@@ -182,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 iCountTypes: 0,
                 fIncludeNULLType: 1,
                 fIncludeDuplicates: 1, // Allows snippets with the same title but different shortcuts
-                pEnum: out expansionEnumerator);
+                pEnum: out var expansionEnumerator);
 
             PopulateSnippetCacheFromExpansionEnumeration(expansionEnumerator);
         }

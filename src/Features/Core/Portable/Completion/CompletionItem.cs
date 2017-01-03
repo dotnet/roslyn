@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion
             this.SortText = sortText ?? this.DisplayText;
             this.Span = span;
             this.Properties = properties ?? ImmutableDictionary<string, string>.Empty;
-            this.Tags = tags.IsDefault ? ImmutableArray<string>.Empty : tags;
+            this.Tags = tags.NullToEmpty();
             this.Rules = rules ?? CompletionItemRules.Default;
         }
 

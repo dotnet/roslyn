@@ -1226,11 +1226,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 For Each baseClassSyntax In types
                     Dim typeSymbol = binder.BindTypeSyntax(baseClassSyntax, diagBag, suppressUseSiteError:=True)
 
-                    If interfacesInThisPartial.Contains(typeSymbol) Then
+                    If Not interfacesInThisPartial.Add(typeSymbol) Then
                         Binder.ReportDiagnostic(diagBag, baseClassSyntax, ERRID.ERR_InterfaceImplementedTwice1, typeSymbol)
                     Else
-                        interfacesInThisPartial.Add(typeSymbol)
-
                         ' Check to make sure the base interfaces are valid.
                         Select Case typeSymbol.TypeKind
                             Case TypeKind.TypeParameter
@@ -2132,6 +2130,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' If we start caching information about ComSourceInterfacesAttribute here, implementation of HasComSourceInterfacesAttribute function should be changed accordingly.
             ' If we start caching information about ComVisibleAttribute here, implementation of GetComVisibleState function should be changed accordingly.
 
+            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+            End If
+
             Dim decoded As Boolean = False
 
             Select Case Me.TypeKind
@@ -2209,7 +2211,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SerializableAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasSerializableAttribute = True
-
+                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
+                    arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasExcludeFromCodeCoverageAttribute = True
                 ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasSpecialNameAttribute = True
 
@@ -2326,6 +2329,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                  diagnostics)
             End If
         End Sub
+
+        Friend NotOverridable Overrides ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
+            Get
+                Dim data = GetDecodedWellKnownAttributeData()
+                Return data IsNot Nothing AndAlso data.HasExcludeFromCodeCoverageAttribute
+            End Get
+        End Property
 
         Friend NotOverridable Overrides ReadOnly Property HasSpecialName As Boolean
             Get

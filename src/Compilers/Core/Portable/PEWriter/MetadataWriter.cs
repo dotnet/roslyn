@@ -1235,7 +1235,7 @@ namespace Microsoft.Cci
 
         internal PrimitiveTypeCode GetConstantTypeCode(ILocalDefinition constant)
         {
-            return constant.CompileTimeValue.Type.TypeCode(Context);
+            return constant.CompileTimeValue.Type.TypeCode;
         }
 
         private BlobHandle GetPermissionSetBlobHandle(ImmutableArray<ICustomAttribute> permissionSet)
@@ -1944,13 +1944,6 @@ namespace Microsoft.Cci
             this.AddCustomAttributesToTable(typeDefs, def => GetTypeDefinitionHandle(def));
             this.AddCustomAttributesToTable(GetParameterDefs(), def => GetParameterHandle(def));
 
-            // Attributes on interface implementation entries 5
-            foreach (ITypeDefinition typeDef in typeDefs)
-            {
-                var interfaceImpls = typeDef.Interfaces(Context);
-                this.AddCustomAttributesToTable(interfaceImpls);
-            }
-
             // TODO: attributes on member reference entries 6
             if (this.IsFullMetadata)
             {
@@ -1970,10 +1963,6 @@ namespace Microsoft.Cci
             // TODO: this.AddCustomAttributesToTable(assembly.Resources, 18);
 
             this.AddCustomAttributesToTable(sortedGenericParameters, TableIndex.GenericParam);
-            foreach (var param in sortedGenericParameters)
-            {
-                this.AddCustomAttributesToTable(param.GetConstraints(Context));
-            }
         }
 
         private void AddAssemblyAttributesToTable()
@@ -2069,6 +2058,16 @@ namespace Microsoft.Cci
                 {
                     AddCustomAttributeToTable(parentHandle, customAttribute);
                 }
+            }
+        }
+
+        private void AddCustomAttributesToTable(
+            EntityHandle handle,
+            ImmutableArray<ICustomAttribute> attributes)
+        {
+            foreach (var attr in attributes)
+            {
+                AddCustomAttributeToTable(handle, attr);
             }
         }
 
@@ -2368,7 +2367,9 @@ namespace Microsoft.Cci
             }
         }
 
-        private void PopulateGenericParameters(ImmutableArray<IGenericParameter> sortedGenericParameters)
+
+        private void PopulateGenericParameters(
+            ImmutableArray<IGenericParameter> sortedGenericParameters)
         {
             foreach (IGenericParameter genericParameter in sortedGenericParameters)
             {
@@ -2383,9 +2384,10 @@ namespace Microsoft.Cci
 
                 foreach (var refWithAttributes in genericParameter.GetConstraints(Context))
                 {
-                    metadata.AddGenericParameterConstraint(
+                    var genericConstraintHandle = metadata.AddGenericParameterConstraint(
                         genericParameter: genericParameterHandle,
                         constraint: GetTypeHandle(refWithAttributes.TypeRef));
+                    AddCustomAttributesToTable(genericConstraintHandle, refWithAttributes.Attributes);
                 }
             }
         }
@@ -2421,9 +2423,10 @@ namespace Microsoft.Cci
                 var typeDefHandle = GetTypeDefinitionHandle(typeDef);
                 foreach (var interfaceImpl in typeDef.Interfaces(Context))
                 {
-                    metadata.AddInterfaceImplementation(
+                    var handle = metadata.AddInterfaceImplementation(
                         type: typeDefHandle,
                         implementedInterface: GetTypeHandle(interfaceImpl.TypeRef));
+                    AddCustomAttributesToTable(handle, interfaceImpl.Attributes);
                 }
             }
         }
@@ -2730,7 +2733,7 @@ namespace Microsoft.Cci
                     ISpecializedNestedTypeReference sneTypeRef = nestedTypeRef.AsSpecializedNestedTypeReference;
                     if (sneTypeRef != null)
                     {
-                        scopeTypeRef = sneTypeRef.UnspecializedVersion.GetContainingType(Context);
+                        scopeTypeRef = sneTypeRef.GetUnspecializedVersion(Context).GetContainingType(Context);
                     }
                     else
                     {
@@ -3224,32 +3227,25 @@ namespace Microsoft.Cci
 
         private void SerializeParameterInformation(ParameterTypeEncoder encoder, IParameterTypeInformation parameterTypeInformation)
         {
-            var modifiers = parameterTypeInformation.CustomModifiers;
-            ushort numberOfModifiersPrecedingByRef = parameterTypeInformation.CountOfCustomModifiersPrecedingByRef;
-            int numberOfRemainingModifiers = modifiers.Length - numberOfModifiersPrecedingByRef;
-
-            Debug.Assert(numberOfModifiersPrecedingByRef == 0 || parameterTypeInformation.IsByReference);
-
-            if (numberOfModifiersPrecedingByRef > 0)
-            {
-                SerializeCustomModifiers(encoder.CustomModifiers(), modifiers, 0, numberOfModifiersPrecedingByRef);
-            }
-
             var type = parameterTypeInformation.GetType(Context);
+
             if (module.IsPlatformType(type, PlatformType.SystemTypedReference))
             {
+                Debug.Assert(!parameterTypeInformation.IsByReference);
+                SerializeCustomModifiers(encoder.CustomModifiers(), parameterTypeInformation.CustomModifiers);
+
                 encoder.TypedReference();
-                return;
             }
-
-            var typeEncoder = encoder.Type(parameterTypeInformation.IsByReference);
-
-            if (numberOfRemainingModifiers > 0)
+            else
             {
-                SerializeCustomModifiers(typeEncoder.CustomModifiers(), modifiers, numberOfModifiersPrecedingByRef, numberOfRemainingModifiers);
-            }
+                Debug.Assert(parameterTypeInformation.RefCustomModifiers.Length == 0 || parameterTypeInformation.IsByReference);
+                SerializeCustomModifiers(encoder.CustomModifiers(), parameterTypeInformation.RefCustomModifiers);
 
-            SerializeTypeReference(typeEncoder, type);
+                var typeEncoder = encoder.Type(parameterTypeInformation.IsByReference);
+
+                SerializeCustomModifiers(typeEncoder.CustomModifiers(), parameterTypeInformation.CustomModifiers);
+                SerializeTypeReference(typeEncoder, type);
+            }
         }
 
         private void SerializeFieldSignature(IFieldReference fieldReference, BlobBuilder builder)
@@ -3589,22 +3585,30 @@ namespace Microsoft.Cci
             ParametersEncoder parametersEncoder;
 
             encoder.Parameters(declaredParameters.Length + varargParameters.Length, out returnTypeEncoder, out parametersEncoder);
-            if (signature.ReturnValueCustomModifiers.Length > 0)
-            {
-                SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), signature.ReturnValueCustomModifiers);
-            }
 
             if (module.IsPlatformType(returnType, PlatformType.SystemTypedReference))
             {
+                Debug.Assert(!signature.ReturnValueIsByRef);
+                SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), signature.ReturnValueCustomModifiers);
+
                 returnTypeEncoder.TypedReference();
             }
             else if (module.IsPlatformType(returnType, PlatformType.SystemVoid))
             {
+                Debug.Assert(!signature.ReturnValueIsByRef);
+                SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), signature.ReturnValueCustomModifiers);
+
                 returnTypeEncoder.Void();
             }
             else
             {
-                SerializeTypeReference(returnTypeEncoder.Type(signature.ReturnValueIsByRef), returnType);
+                Debug.Assert(signature.RefCustomModifiers.Length == 0 || signature.ReturnValueIsByRef);
+                SerializeCustomModifiers(returnTypeEncoder.CustomModifiers(), signature.RefCustomModifiers);
+
+                var typeEncoder = returnTypeEncoder.Type(signature.ReturnValueIsByRef);
+
+                SerializeCustomModifiers(typeEncoder.CustomModifiers(), signature.ReturnValueCustomModifiers);
+                SerializeTypeReference(typeEncoder, returnType);
             }
 
             foreach (IParameterTypeInformation parameter in declaredParameters)
@@ -3631,7 +3635,7 @@ namespace Microsoft.Cci
 
                 // TYPEDREF is only allowed in RetType, Param, LocalVarSig signatures
                 Debug.Assert(!module.IsPlatformType(typeReference, PlatformType.SystemTypedReference));
-				
+
                 var modifiedTypeReference = typeReference as IModifiedTypeReference;
                 if (modifiedTypeReference != null)
                 {
@@ -3640,7 +3644,7 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                var primitiveType = typeReference.TypeCode(Context);
+                var primitiveType = typeReference.TypeCode;
                 if (primitiveType != PrimitiveTypeCode.Pointer && primitiveType != PrimitiveTypeCode.NotPrimitive)
                 {
                     SerializePrimitiveType(encoder, primitiveType);
@@ -3651,16 +3655,8 @@ namespace Microsoft.Cci
                 if (pointerTypeReference != null)
                 {
                     typeReference = pointerTypeReference.GetTargetType(Context);
-                    if (module.IsPlatformType(typeReference, PlatformType.SystemVoid))
-                    {
-                        encoder.VoidPointer();
-                        return;
-                    }
-                    else
-                    {
-                        encoder = encoder.Pointer();
-                        continue;
-                    }
+                    encoder = encoder.Pointer();
+                    continue;
                 }
 
                 IGenericTypeParameterReference genericTypeParameterReference = typeReference.AsGenericTypeParameterReference;
@@ -3708,7 +3704,7 @@ namespace Microsoft.Cci
 
                 if (typeReference.IsTypeSpecification())
                 {
-                    ITypeReference uninstantiatedTypeReference = typeReference.GetUninstantiatedGenericType();
+                    ITypeReference uninstantiatedTypeReference = typeReference.GetUninstantiatedGenericType(Context);
 
                     // Roslyn's uninstantiated type is the same object as the instantiated type for
                     // types closed over their type parameters, so to speak.
@@ -3799,6 +3795,13 @@ namespace Microsoft.Cci
                     encoder.String();
                     break;
 
+                case PrimitiveTypeCode.Void:
+                    // "void" is handled specifically for "void*" with custom modifiers.
+                    // If SignatureTypeEncoder supports such cases directly, this can
+                    // be removed. See https://github.com/dotnet/corefx/issues/14571.
+                    encoder.Builder.WriteByte((byte)System.Reflection.Metadata.PrimitiveTypeCode.Void);
+                    break;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(primitiveType);
             }
@@ -3833,7 +3836,7 @@ namespace Microsoft.Cci
             // ELEMENT_TYPE_U4, ELEMENT_TYPE_I8, ELEMENT_TYPE_U8, ELEMENT_TYPE_R4, ELEMENT_TYPE_R8, ELEMENT_TYPE_STRING.
             // An enum is specified as a single byte 0x55 followed by a SerString.
 
-            var primitiveType = typeReference.TypeCode(Context);
+            var primitiveType = typeReference.TypeCode;
             if (primitiveType != PrimitiveTypeCode.NotPrimitive)
             {
                 SerializePrimitiveType(encoder, primitiveType);
@@ -3912,14 +3915,8 @@ namespace Microsoft.Cci
 
         private void SerializeCustomModifiers(CustomModifiersEncoder encoder, ImmutableArray<ICustomModifier> modifiers)
         {
-            SerializeCustomModifiers(encoder, modifiers, 0, modifiers.Length);
-        }
-
-        private void SerializeCustomModifiers(CustomModifiersEncoder encoder, ImmutableArray<ICustomModifier> modifiers, int start, int count)
-        {
-            for (int i = 0; i < count; i++)
+            foreach (var modifier in modifiers)
             {
-                var modifier = modifiers[start + i];
                 encoder = encoder.AddModifier(GetTypeHandle(modifier.GetModifier(Context)), modifier.IsOptional);
             }
         }
@@ -3935,7 +3932,7 @@ namespace Microsoft.Cci
             ISpecializedNestedTypeReference specializedNestedType = nestedType.AsSpecializedNestedTypeReference;
             if (specializedNestedType != null)
             {
-                nestedType = specializedNestedType.UnspecializedVersion;
+                nestedType = specializedNestedType.GetUnspecializedVersion(Context);
             }
 
             int result = 0;

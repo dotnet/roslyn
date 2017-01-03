@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
+using Microsoft.VisualStudio.Debugger.Clr.NativeCompilation;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Utilities;
@@ -56,6 +57,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     ptr = module.GetMetaDataBytesPtr(out size);
                     Debug.Assert(size > 0);
                     block = GetMetadataBlock(ptr, size);
+                }
+                catch (NotImplementedException e) when (module is DkmClrNcModuleInstance)
+                {
+                    // DkmClrNcModuleInstance.GetMetaDataBytesPtr not implemented in Dev14.
+                    throw new NotImplementedMetadataException(e);
                 }
                 catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
                 {

@@ -80,10 +80,8 @@ namespace Microsoft.CodeAnalysis.Esent
                 return SpecializedTasks.Default<Stream>();
             }
 
-            int nameId;
-            EsentStorage.Key key;
-            if (!TryGetProjectAndDocumentKey(document, out key) ||
-                !TryGetUniqueNameId(name, out nameId))
+            if (!TryGetProjectAndDocumentKey(document, out var key) ||
+                !TryGetUniqueNameId(name, out var nameId))
             {
                 return SpecializedTasks.Default<Stream>();
             }
@@ -101,10 +99,8 @@ namespace Microsoft.CodeAnalysis.Esent
                 return SpecializedTasks.Default<Stream>();
             }
 
-            int nameId;
-            EsentStorage.Key key;
-            if (!TryGetProjectKey(project, out key) ||
-                !TryGetUniqueNameId(name, out nameId))
+            if (!TryGetProjectKey(project, out var key) ||
+                !TryGetUniqueNameId(name, out var nameId))
             {
                 return SpecializedTasks.Default<Stream>();
             }
@@ -122,8 +118,7 @@ namespace Microsoft.CodeAnalysis.Esent
                 return SpecializedTasks.Default<Stream>();
             }
 
-            int nameId;
-            if (!TryGetUniqueNameId(name, out nameId))
+            if (!TryGetUniqueNameId(name, out var nameId))
             {
                 return SpecializedTasks.Default<Stream>();
             }
@@ -172,10 +167,8 @@ namespace Microsoft.CodeAnalysis.Esent
                 return SpecializedTasks.False;
             }
 
-            int nameId;
-            EsentStorage.Key key;
-            if (!TryGetProjectAndDocumentKey(document, out key) ||
-                !TryGetUniqueNameId(name, out nameId))
+            if (!TryGetProjectAndDocumentKey(document, out var key) ||
+                !TryGetUniqueNameId(name, out var nameId))
             {
                 return SpecializedTasks.False;
             }
@@ -194,10 +187,8 @@ namespace Microsoft.CodeAnalysis.Esent
                 return SpecializedTasks.False;
             }
 
-            int nameId;
-            EsentStorage.Key key;
-            if (!TryGetProjectKey(project, out key) ||
-                !TryGetUniqueNameId(name, out nameId))
+            if (!TryGetProjectKey(project, out var key) ||
+                !TryGetUniqueNameId(name, out var nameId))
             {
                 return SpecializedTasks.False;
             }
@@ -216,8 +207,7 @@ namespace Microsoft.CodeAnalysis.Esent
                 return SpecializedTasks.False;
             }
 
-            int nameId;
-            if (!TryGetUniqueNameId(name, out nameId))
+            if (!TryGetUniqueNameId(name, out var nameId))
             {
                 return SpecializedTasks.False;
             }
@@ -337,12 +327,8 @@ namespace Microsoft.CodeAnalysis.Esent
         private bool TryGetProjectAndDocumentKey(Document document, out EsentStorage.Key key)
         {
             key = default(EsentStorage.Key);
-
-            int projectId;
-            int projectNameId;
-            int documentId;
-            if (!TryGetProjectId(document.Project, out projectId, out projectNameId) ||
-                !TryGetUniqueFileId(document.FilePath, out documentId))
+            if (!TryGetProjectId(document.Project, out var projectId, out var projectNameId) ||
+                !TryGetUniqueFileId(document.FilePath, out var documentId))
             {
                 return false;
             }
@@ -354,10 +340,7 @@ namespace Microsoft.CodeAnalysis.Esent
         private bool TryGetProjectKey(Project project, out EsentStorage.Key key)
         {
             key = default(EsentStorage.Key);
-
-            int projectId;
-            int projectNameId;
-            if (!TryGetProjectId(project, out projectId, out projectNameId))
+            if (!TryGetProjectId(project, out var projectId, out var projectNameId))
             {
                 return false;
             }

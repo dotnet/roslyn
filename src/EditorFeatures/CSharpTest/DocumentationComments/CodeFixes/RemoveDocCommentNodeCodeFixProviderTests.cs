@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
-        public async Task RemovesDuplicateParamTag_BothParamTagsOnSameLine_NothingBetweenThem()
+        public async Task RemovesDuplicateParamTag_BothParamTagsOnSameLine_NothingBetweenThem1()
         {
             var initial =
 @"class Program
@@ -173,6 +173,62 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments.C
     /// 
     /// </summary>
     /// <param name=""value""></param>
+    public void Fizz(int value) {}
+}
+";
+            await TestAsync(initial, expected);
+        }
+
+        [WorkItem(13436, "https://github.com/dotnet/roslyn/issues/13436")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
+        public async Task RemovesTag_BothParamTagsOnSameLine_NothingBetweenThem2()
+        {
+            var initial =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param [|name=""a""|]></param><param name=""value""></param>
+    public void Fizz(int value) {}
+}
+";
+
+            var expected =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name=""value""></param>
+    public void Fizz(int value) {}
+}
+";
+            await TestAsync(initial, expected);
+        }
+
+        [WorkItem(13436, "https://github.com/dotnet/roslyn/issues/13436")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
+        public async Task RemovesTag_TrailingTextAfterTag()
+        {
+            var initial =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param [|name=""a""|]></param> a
+    public void Fizz(int value) {}
+}
+";
+
+            var expected =
+@"class Program
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    ///  a
     public void Fizz(int value) {}
 }
 ";

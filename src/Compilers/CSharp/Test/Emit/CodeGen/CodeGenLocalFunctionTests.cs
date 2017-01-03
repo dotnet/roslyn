@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using System;
 using Xunit;
 
@@ -29,6 +30,432 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
+        [Fact]
+        [WorkItem(243633, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/243633")]
+        public void CaptureGenericFieldAndParameter()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+
+class Test<T>
+{
+    T Value;
+
+    public bool Foo(IEqualityComparer<T> comparer)
+    {
+        bool local(T tmp)
+        {
+            return comparer.Equals(tmp, this.Value);
+        }
+        return local(this.Value);
+    }
+}
+";
+            var comp = CompileAndVerify(src);
+        }
+
+        [Fact]
+        public void CaptureGenericField()
+        {
+            var src = @"
+using System;
+class C<T>
+{
+    T Value = default(T);
+    public void M()
+    {
+        void L()
+        {
+            Console.WriteLine(Value);
+        }
+        var f = (Action)(() => L());
+        f();
+    }
+}
+class C2
+{
+    public static void Main(string[] args) => new C<int>().M();
+}
+";
+            VerifyOutput(src, "0");
+        }
+
+        [Fact]
+        public void CaptureGenericParam()
+        {
+            var src = @"
+using System;
+class C<T>
+{
+    T Value = default(T);
+    public void M<U>(U val2)
+    {
+        void L()
+        {
+            Console.WriteLine(Value);
+            Console.WriteLine(val2);
+        }
+        var f = (Action)(() => L());
+        f();
+    }
+}
+class C2
+{
+    public static void Main(string[] args) => new C<int>().M(10);
+}
+";
+            VerifyOutput(src, @"0
+10");
+        }
+
+        [Fact]
+        public void CaptureGenericParamInGenericLocalFunc()
+        {
+            var src = @"
+using System;
+class C<T>
+{
+    T Value = default(T);
+    public void M<U>(U v1)
+    {
+        void L<V>(V v2) where V : T
+        {
+            Console.WriteLine(Value);
+            Console.WriteLine(v1);
+            Console.WriteLine(v2);
+        }
+        var f = (Action)(() => L<T>(Value));
+        f();
+    }
+}
+class C2
+{
+    public static void Main(string[] args) => new C<int>().M(10);
+}
+";
+            VerifyOutput(src, @"0
+10
+0");
+        }
+
+        [Fact]
+        public void DeepNestedLocalFuncsWithDifferentCaptures()
+        {
+            var src = @"
+using System;
+class C
+{
+    int P = 100000;
+    void M()
+    {
+        C Local1() => this;
+        int capture1 = 1;
+        Func<int> f1 = () => capture1 + Local1().P;
+        Console.WriteLine(f1());
+        {
+            C Local2() => Local1();
+            int capture2 = 10;
+            Func<int> f2 = () => capture2 + Local2().P;
+            Console.WriteLine(f2());
+            {
+                C Local3() => Local2();
+
+                int capture3 = 100;
+                Func<int> f3 = () => capture1 + capture2 + capture3 + Local3().P;
+                Console.WriteLine(f3());
+
+                Console.WriteLine(Local3().P);
+            }
+        }
+    }
+    public static void Main() => new C().M();
+}";
+            VerifyOutput(src, @"100001
+100010
+100111
+100000");
+        }
+
+        [Fact]
+        public void LotsOfMutuallyRecursiveLocalFunctions()
+        {
+            var src = @"
+class C
+{
+    int P = 0;
+    public void M()
+    {
+        int Local1() => this.P;
+        int Local2() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local3() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local4() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local5() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local6() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local7() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local8() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local9() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local10() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local11() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+        int Local12() => Local12() + Local11() + Local10() + Local9() + Local8() + Local7() + Local6() + Local5() + Local4() + Local3() + Local2() + Local1();
+
+        Local1();
+        Local2();
+        Local3();
+        Local4();
+        Local5();
+        Local6();
+        Local7();
+        Local8();
+        Local9();
+        Local10();
+        Local11();
+        Local12();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFuncAndLambdaWithDifferentThis()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 1;
+    public void M()
+    {
+        int Local(int x) => x + this.P;
+
+        int y = 10;
+        var a = new Func<int>(() => Local(y));
+        Console.WriteLine(a());
+    }
+
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M();
+    }
+}";
+            VerifyOutput(src, "11");
+        }
+
+        [Fact]
+        public void LocalFuncAndLambdaWithDifferentThis2()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 1;
+    public void M()
+    {
+        int Local() => 10 + this.P;
+        int Local2(int x) => x + Local();
+
+        int y = 100;
+        var a = new Func<int>(() => Local2(y));
+        Console.WriteLine(a());
+    }
+
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M();
+    }
+}";
+            VerifyOutput(src, "111");
+        }
+
+        [Fact]
+        public void LocalFuncAndLambdaWithDifferentThis3()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 1;
+    public void M()
+    {
+        int Local() 
+        {
+            if (this.P < 5)
+            {
+                return Local2(this.P++);
+            }
+            else
+            {
+                return 1;
+            }
+        }
+        int Local2(int x) => x + Local();
+
+        int y = 100;
+        var a = new Func<int>(() => Local2(y));
+        Console.WriteLine(a());
+    }
+
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M();
+    }
+}";
+            VerifyOutput(src, "111");
+
+        }
+
+        [Fact]
+        public void LocalFuncAndLambdaWithDifferentThis4()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 1;
+    public void M()
+    {
+        int Local(int x) => x + this.P;
+
+        int y = 10;
+        var a = new Func<int>(() =>
+        {
+            var b = (Func<int, int>)Local;
+            return b(y);
+        });
+        Console.WriteLine(a());
+    }
+
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M();
+    }
+}";
+            VerifyOutput(src, "11");
+        }
+
+        [Fact]
+        public void LocalFuncAndLambdaWithDifferentThis5()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 1;
+    public void M()
+    {
+        int Local(int x) => x + this.P;
+
+        int y = 10;
+        var a = new Func<int>(() =>
+        {
+            var b = new Func<int, int>(Local);
+            return b(y);
+        });
+        Console.WriteLine(a());
+    }
+
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M();
+    }
+}";
+            VerifyOutput(src, "11");
+        }
+
+        [Fact]
+        public void TwoFrames()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 0;
+    public void M()
+    {
+        int x = 0;
+
+        var a = new Func<int>(() =>
+        {
+            int Local() => x + this.P;
+            int z = 0;
+            int Local3() => z + Local();
+            return Local3();
+        });
+        Console.WriteLine(a());
+    }
+
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M();
+    }
+}";
+            VerifyOutput(src, "0");
+        }
+
+        [Fact]
+        public void SameFrame()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 1;
+    public void M()
+    {
+        int x = 10;
+        int Local() => x + this.P;
+
+        int y = 100;
+        int Local2() => y + Local();
+        Console.WriteLine(Local2());
+    }
+
+    public static void Main(string[] args)
+    {
+        var c = new C();
+        c.M();
+    }
+}";
+            VerifyOutput(src, "111");
+        }
+
+        [Fact]
+        public void MutuallyRecursiveThisCapture()
+        {
+            var src = @"
+using System;
+class C
+{
+    private int P = 1;
+    public void M()
+    {
+        int Local()
+        {
+            if (this.P < 5)
+            {
+                return Local2(this.P++);
+            }
+            else
+            {
+                return 1;
+            }
+        }
+        int Local2(int x) => x + Local();
+        Console.WriteLine(Local());
+    }
+    public static void Main() => new C().M();
+}";
+            VerifyOutput(src, "11");
+        }
+
         [Fact]
         [CompilerTrait(CompilerFeature.Dynamic)]
         public void DynamicParameterLocalFunction()
@@ -168,7 +595,7 @@ LocalFuncName();
 Console.Write(' ');
 CallerMemberName();
 ";
-            VerifyOutputInMain(source, "LocalFuncName Main", "System", "System.Runtime.CompilerServices");
+            VerifyOutputInMain(source, "Main Main", "System", "System.Runtime.CompilerServices");
         }
 
 
@@ -2643,6 +3070,281 @@ class Program
 }
 ";
             VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+        }
+
+        [Fact]
+        public void UnsafeCalls()
+        {
+            var src = @"
+using System;
+class C
+{
+    public static void Main(string[] args)
+    {
+        int x = 2;
+        int y = 0;
+
+        unsafe void Local(ref int x2)
+        {
+            fixed (int* ptr = &x2)
+            {
+                Local2(ptr);
+            }
+        }
+        unsafe int* Local2(int* ptr)
+        {
+            (*ptr)++;
+            y++;
+
+            return null;
+        }
+
+        while (x < 10)
+        {
+            Local(ref x);
+            x++;
+        }
+
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+    }
+}";
+            VerifyOutput(src, "10\r\n4", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+        }
+
+        [Fact]
+        [WorkItem(15322, "https://github.com/dotnet/roslyn/issues/15322")]
+        public void UseBeforeDeclaration()
+        {
+            var src = @"
+Assign();
+Local();
+int x;
+void Local() => System.Console.WriteLine(x);
+void Assign() { x = 5; }";
+
+            VerifyOutputInMain(src, "5");
+        }
+
+        [Fact]
+        [WorkItem(15558, "https://github.com/dotnet/roslyn/issues/15558")]
+        public void CapturingSharesVar()
+        {
+            var src = @"
+int i = 0;
+
+int oldi<T>()
+    where T : struct
+    => (i += @sizeof<T>()) - @sizeof<T>();
+
+int @sizeof<T>()
+    where T : struct
+    => typeof(T).IsAssignableFrom(typeof(long))
+        ? sizeof(long)
+        : 1;
+
+while (i < 10)
+    System.Console.WriteLine(oldi<byte>());";
+
+            VerifyOutputInMain(src, @"0
+1
+2
+3
+4
+5
+6
+7
+8
+9");
+        }
+        
+        [Fact]
+        [WorkItem(15599, "https://github.com/dotnet/roslyn/issues/15599")]
+        public void NestedLocalFuncCapture()
+        {
+            var src = @"
+using System;
+public class C {
+    int instance = 11;
+    public void M() {
+        int M() => instance;
+
+        {
+            int local = 11;
+            bool M2() => local == M();
+            Console.WriteLine(M2());
+        }
+    }
+
+    public static void Main() => new C().M();
+}";
+            VerifyOutput(src, "True");
+        }
+
+        [Fact]
+        [WorkItem(15599, "https://github.com/dotnet/roslyn/issues/15599")]
+        public void NestedLocalFuncCapture2()
+        {
+            var src = @"
+using System;
+public class C {
+    int instance = 0b1;
+    public void M() {
+        int var1 = 0b10;
+        int M() => var1 + instance;
+
+        {
+            int local = 0b100;
+            int M2() => local + M();
+            Console.WriteLine(M2());
+        }
+    }
+
+    public static void Main() => new C().M();
+}";
+            VerifyOutput(src, "7");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction()
+        {
+            var src = @"
+void Local<T>(T t, int count)
+{
+    if (count > 0)
+    {
+        Console.Write(t);
+        Local(t, count - 1);
+    }
+}
+
+Local(""A"", 5);
+";
+            VerifyOutputInMain(src, "AAAAA", "System");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction2()
+        {
+            var src = @"
+void Local<T>(T t, int count)
+{
+    if (count > 0)
+    {
+        Console.Write(t);
+        var action = new Action<T, int>(Local);
+        action(t, count - 1);
+    }
+}
+
+Local(""A"", 5);
+";
+            VerifyOutputInMain(src, "AAAAA", "System");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction3()
+        {
+            var src = @"
+void Local<T>(T t, int count)
+{
+    if (count > 0)
+    {
+        Console.Write(t);
+        var action = (Action<T, int>)Local;
+        action(t, count - 1);
+    }
+}
+
+Local(""A"", 5);
+";
+            VerifyOutputInMain(src, "AAAAA", "System");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction4()
+        {
+            var src = @"
+using System;
+class C
+{
+    public static void M<T>(T t)
+    {
+        void Local<U>(U u, int count)
+        {
+            if (count > 0)
+            {
+                Console.Write(t);
+                Console.Write(u);
+                Local(u, count - 1);
+            }
+        }
+        Local(""A"", 5);
+    }
+
+    public static void Main()
+    {
+        C.M(""B"");
+    }
+}";
+            VerifyOutput(src, "BABABABABA");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction5()
+        {
+            var src = @"
+using System;
+class C<T1>
+{
+    T1 t1;
+
+    public C(T1 t1)
+    {
+        this.t1 = t1;
+    }
+
+    public void M<T2>(T2 t2)
+    {
+        void L1<T3>(T3 t3)
+        {
+            void L2<T4>(T4 t4)
+            {
+                void L3<U>(U u, int count)
+                {
+                    if (count > 0)
+                    {
+                        Console.Write(t1);
+                        Console.Write(t2);
+                        Console.Write(t3);
+                        Console.Write(t4);
+                        Console.Write(u);
+                        L3(u, count - 1);
+                    }
+                }
+                L3(""A"", 5);
+            }
+            L2(""B"");
+        }
+        L1(""C"");
+    }
+
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var c = new C<string>(""D"");
+        c.M(""E"");
+    }
+}";
+            VerifyOutput(src, "DECBADECBADECBADECBADECBA");
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)

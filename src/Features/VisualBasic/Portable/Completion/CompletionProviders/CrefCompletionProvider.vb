@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 rules:=GetRules(displayString))
         End Function
 
-        Public Overrides Function GetDescriptionAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
+        Protected Overrides Function GetDescriptionWorkerAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
             If CommonCompletionItem.HasDescription(item) Then
                 Return Task.FromResult(CommonCompletionItem.GetDescription(item))
             Else

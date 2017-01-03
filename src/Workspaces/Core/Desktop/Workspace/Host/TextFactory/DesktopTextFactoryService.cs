@@ -21,6 +21,13 @@ namespace Microsoft.CodeAnalysis.Host
         public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            var temporaryStorageReader = reader as TemporaryStorageServiceFactory.DirectMemoryAccessStreamReader;
+            if (temporaryStorageReader != null)
+            {
+                return SourceText.From(temporaryStorageReader, temporaryStorageReader.Length, encoding);
+            }
+
             return SourceText.From(reader.ReadToEnd(), encoding);
         }
     }

@@ -1,62 +1,70 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpAddBracesDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal sealed class CSharpAddBracesDiagnosticAnalyzer : 
+        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private static readonly LocalizableString s_localizableTitle =
-            new LocalizableResourceString(nameof(FeaturesResources.Add_braces), FeaturesResources.ResourceManager,
-                typeof(FeaturesResources));
-
-        private static readonly LocalizableString s_localizableMessage =
-            new LocalizableResourceString(nameof(WorkspacesResources.Add_braces_to_0_statement), WorkspacesResources.ResourceManager,
-                typeof(WorkspacesResources));
-
-        private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.AddBracesDiagnosticId,
-                                                                    s_localizableTitle,
-                                                                    s_localizableMessage,
-                                                                    DiagnosticCategory.Style,
-                                                                    DiagnosticSeverity.Hidden,
-                                                                    isEnabledByDefault: true);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(s_descriptor);
+        public CSharpAddBracesDiagnosticAnalyzer()
+            : base(IDEDiagnosticIds.AddBracesDiagnosticId,
+                   new LocalizableResourceString(nameof(FeaturesResources.Add_braces), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(WorkspacesResources.Add_braces_to_0_statement), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
+        {
+        }
 
         public bool OpenFileOnly(Workspace workspace) => false;
 
-        public override void Initialize(AnalysisContext context)
-        {
-            var syntaxKindsOfInterest =
-            ImmutableArray.Create(SyntaxKind.IfStatement,
+        private static readonly ImmutableArray<SyntaxKind> s_syntaxKindsOfInterest =
+            ImmutableArray.Create(
+                SyntaxKind.IfStatement,
                 SyntaxKind.ElseClause,
                 SyntaxKind.ForStatement,
                 SyntaxKind.ForEachStatement,
-                SyntaxKind.ForEachComponentStatement,
+                SyntaxKind.ForEachVariableStatement,
                 SyntaxKind.WhileStatement,
                 SyntaxKind.DoStatement,
                 SyntaxKind.UsingStatement,
                 SyntaxKind.LockStatement);
 
-            context.RegisterSyntaxNodeAction(AnalyzeNode, syntaxKindsOfInterest);
-        }
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterSyntaxNodeAction(AnalyzeNode, s_syntaxKindsOfInterest);
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         public void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
+            var syntaxTree = context.Node.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
             var node = context.Node;
 
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
+            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferBraces);
+            if (!option.Value)
+            {
+                return;
+            }
+
+            var descriptor = GetDescriptorWithSeverity(option.Notification.Value);
             if (node.IsKind(SyntaxKind.IfStatement))
             {
                 var ifStatement = (IfStatementSyntax)node;
                 if (AnalyzeIfStatement(ifStatement))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                        ifStatement.IfKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.IfKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        ifStatement.IfKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.IfKeyword)));
                 }
             }
 
@@ -65,8 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var elseClause = (ElseClauseSyntax)node;
                 if (AnalyzeElseClause(elseClause))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                        elseClause.ElseKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ElseKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        elseClause.ElseKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.ElseKeyword)));
                 }
             }
 
@@ -75,18 +84,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var forStatement = (ForStatementSyntax)node;
                 if (AnalyzeForStatement(forStatement))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                        forStatement.ForKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ForKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        forStatement.ForKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.ForKeyword)));
                 }
             }
 
-            if (node.IsKind(SyntaxKind.ForEachStatement) || node.IsKind(SyntaxKind.ForEachComponentStatement))
+            if (node.IsKind(SyntaxKind.ForEachStatement) || node.IsKind(SyntaxKind.ForEachVariableStatement))
             {
                 var forEachStatement = (CommonForEachStatementSyntax)node;
                 if (AnalyzeForEachStatement(forEachStatement))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                        forEachStatement.ForEachKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ForEachKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        forEachStatement.ForEachKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.ForEachKeyword)));
                 }
             }
 
@@ -95,8 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var whileStatement = (WhileStatementSyntax)node;
                 if (AnalyzeWhileStatement(whileStatement))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                        whileStatement.WhileKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.WhileKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        whileStatement.WhileKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.WhileKeyword)));
                 }
             }
 
@@ -105,8 +117,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var doStatement = (DoStatementSyntax)node;
                 if (AnalyzeDoStatement(doStatement))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                        doStatement.DoKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.DoKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        doStatement.DoKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.DoKeyword)));
                 }
             }
 
@@ -115,8 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var usingStatement = (UsingStatementSyntax)context.Node;
                 if (AnalyzeUsingStatement(usingStatement))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                        usingStatement.UsingKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.UsingKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        usingStatement.UsingKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.UsingKeyword)));
                 }
             }
 
@@ -125,8 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 var lockStatement = (LockStatementSyntax)context.Node;
                 if (AnalyzeLockStatement(lockStatement))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(s_descriptor,
-                        lockStatement.LockKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.LockKeyword)));
+                    context.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        lockStatement.LockKeyword.GetLocation(),
+                        SyntaxFacts.GetText(SyntaxKind.LockKeyword)));
                 }
             }
         }

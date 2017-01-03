@@ -72,9 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     case TriviaLocation.AfterEndOfSpan:
                         return callsite.GetLastToken(includeZeroWidth: true).GetNextToken(includeZeroWidth: true);
                     case TriviaLocation.AfterBeginningOfSpan:
-                        return method.Body.OpenBraceToken.GetNextToken(includeZeroWidth: true);
+                        return method.Body != null
+                            ? method.Body.OpenBraceToken.GetNextToken(includeZeroWidth: true)
+                            : method.ExpressionBody.ArrowToken.GetNextToken(includeZeroWidth: true);
                     case TriviaLocation.BeforeEndOfSpan:
-                        return method.Body.CloseBraceToken.GetPreviousToken(includeZeroWidth: true);
+                        return method.Body != null
+                            ? method.Body.CloseBraceToken.GetPreviousToken(includeZeroWidth: true)
+                            : method.SemicolonToken;
                 }
 
                 return Contract.FailWithReturn<SyntaxToken>("can't happen");
@@ -91,12 +95,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 // but not others can be dealt with here.
 
                 // method has no statement in them. so basically two trivia list now pointing to same thing. "{" and "}"
-                if (tokenPair.PreviousToken == method.Body.OpenBraceToken &&
-                    tokenPair.NextToken == method.Body.CloseBraceToken)
+                if (method.Body != null)
                 {
-                    return (location == TriviaLocation.AfterBeginningOfSpan) ?
-                        SpecializedCollections.SingletonEnumerable<SyntaxTrivia>(SyntaxFactory.ElasticMarker) :
-                        SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
+                    if (tokenPair.PreviousToken == method.Body.OpenBraceToken &&
+                        tokenPair.NextToken == method.Body.CloseBraceToken)
+                    {
+                        return (location == TriviaLocation.AfterBeginningOfSpan) 
+                            ? SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticMarker) 
+                            : SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
+                    }
+                }
+                else
+                {
+                    if (tokenPair.PreviousToken == method.ExpressionBody.ArrowToken &&
+                        tokenPair.NextToken.GetPreviousToken() == method.SemicolonToken)
+                    {
+                        return (location == TriviaLocation.AfterBeginningOfSpan) 
+                            ? SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticMarker)
+                            : SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
+                    }
                 }
 
                 var previousTriviaPair = triviaMap.ContainsKey(tokenPair.PreviousToken) ? triviaMap[tokenPair.PreviousToken] : default(LeadingTrailingTriviaPair);

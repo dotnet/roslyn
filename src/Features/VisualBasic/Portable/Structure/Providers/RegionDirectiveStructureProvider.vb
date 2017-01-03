@@ -1,7 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -22,15 +22,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Protected Overrides Sub CollectBlockSpans(regionDirective As RegionDirectiveTriviaSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
-                                                  cancellationToken As CancellationToken)
-            Dim matchingDirective = regionDirective.GetMatchingStartOrEndDirective(cancellationToken)
+                                                  options As OptionSet,
+                                                  CancellationToken As CancellationToken)
+            Dim matchingDirective = regionDirective.GetMatchingStartOrEndDirective(CancellationToken)
             If matchingDirective IsNot Nothing Then
-                spans.Add(CreateRegion(
-                    TextSpan.FromBounds(regionDirective.SpanStart, matchingDirective.Span.End),
+                Dim autoCollapse = options.GetOption(
+                    BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.VisualBasic)
+
+                Dim span = TextSpan.FromBounds(regionDirective.SpanStart, matchingDirective.Span.End)
+                spans.AddIfNotNull(CreateBlockSpan(
+                    span, span,
                     GetBannerText(regionDirective),
-                    autoCollapse:=False,
+                    autoCollapse:=autoCollapse,
                     isDefaultCollapsed:=True,
-                    type:=BlockTypes.Nonstructural,
+                    type:=BlockTypes.PreprocessorRegion,
                     isCollapsible:=True))
             End If
         End Sub

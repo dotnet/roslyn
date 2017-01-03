@@ -8155,7 +8155,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y) = x;", CSharpFeaturesResources.deconstruction));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y) = x", CSharpFeaturesResources.deconstruction));
         }
 
         [Fact]
@@ -8424,7 +8424,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y) = o2;", CSharpFeaturesResources.deconstruction));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "var (x, y) = o2", CSharpFeaturesResources.deconstruction));
         }
 
         [Fact]
@@ -8456,7 +8456,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "(x, y)", CSharpFeaturesResources.tuple));
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "(x, y) = o2", CSharpFeaturesResources.deconstruction));
         }
 
         [Fact]

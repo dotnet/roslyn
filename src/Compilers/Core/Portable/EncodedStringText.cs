@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             try
             {
-                return Decode(stream, defaultEncoding ?? getEncoding.Value, checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
+                return Decode(stream, defaultEncoding ?? getEncoding.Value, checksumAlgorithm, throwIfBinaryDetected: detectEncoding, canBeEmbedded: canBeEmbedded);
             }
             catch (DecoderFallbackException e)
             {

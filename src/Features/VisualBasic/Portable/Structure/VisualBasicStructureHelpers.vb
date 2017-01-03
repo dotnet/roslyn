@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Module VisualBasicOutliningHelpers
@@ -18,13 +19,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Return "' " & comment.ToString().Substring(1).Trim() & SpaceEllipsis
         End Function
 
-        Private Function CreateCommentsRegion(startComment As SyntaxTrivia, endComment As SyntaxTrivia) As BlockSpan
-            Return CreateRegion(
-                TextSpan.FromBounds(startComment.SpanStart, endComment.Span.End),
+        Private Function CreateCommentsRegion(startComment As SyntaxTrivia,
+                                              endComment As SyntaxTrivia) As BlockSpan?
+            Dim span = TextSpan.FromBounds(startComment.SpanStart, endComment.Span.End)
+            Return CreateBlockSpan(
+                span, span,
                 GetCommentBannerText(startComment),
                 autoCollapse:=True,
-                type:=BlockTypes.Nonstructural,
-                isCollapsible:=True)
+                type:=BlockTypes.Comment,
+                isCollapsible:=True,
+                isDefaultCollapsed:=False)
         End Function
 
         ' For testing purposes
@@ -50,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                         trivia.Kind <> SyntaxKind.EndOfFileToken Then
 
                         If startComment IsNot Nothing Then
-                            spans.Add(CreateCommentsRegion(startComment.Value, endComment.Value))
+                            spans.AddIfNotNull(CreateCommentsRegion(startComment.Value, endComment.Value))
                             startComment = Nothing
                             endComment = Nothing
                         End If
@@ -59,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
                 ' Add any final span
                 If startComment IsNot Nothing Then
-                    spans.Add(CreateCommentsRegion(startComment.Value, endComment.Value))
+                    spans.AddIfNotNull(CreateCommentsRegion(startComment.Value, endComment.Value))
                 End If
             End If
         End Sub
@@ -75,15 +79,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             CollectCommentsRegions(triviaList, spans)
         End Sub
 
-        Friend Function CreateRegion(
+        Friend Function CreateBlockSpan(
                 span As TextSpan,
+                hintSpan As TextSpan,
                 bannerText As String,
                 autoCollapse As Boolean,
                 type As String,
                 isCollapsible As Boolean,
-                Optional isDefaultCollapsed As Boolean = False) As BlockSpan
+                isDefaultCollapsed As Boolean) As BlockSpan?
             Return New BlockSpan(
                 textSpan:=span,
+                hintSpan:=hintSpan,
                 bannerText:=bannerText,
                 autoCollapse:=autoCollapse,
                 isDefaultCollapsed:=isDefaultCollapsed,
@@ -91,40 +97,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 isCollapsible:=isCollapsible)
         End Function
 
-        Friend Function CreateRegionFromBlock(
+        Friend Function CreateBlockSpanFromBlock(
                 blockNode As SyntaxNode,
                 bannerText As String,
                 autoCollapse As Boolean,
                 type As String,
-                isCollapsible As Boolean) As BlockSpan
-            Return CreateRegion(blockNode.Span, bannerText, autoCollapse, type, isCollapsible)
+                isCollapsible As Boolean) As BlockSpan?
+            Return CreateBlockSpan(
+                blockNode.Span, GetHintSpan(blockNode),
+                bannerText, autoCollapse,
+                type, isCollapsible, isDefaultCollapsed:=False)
         End Function
 
-        Friend Function CreateRegionFromBlock(
+        Friend Function CreateBlockSpanFromBlock(
                 blockNode As SyntaxNode,
                 bannerNode As SyntaxNode,
                 autoCollapse As Boolean,
                 type As String,
-                isCollapsible As Boolean) As BlockSpan
-            Return CreateRegion(
-                blockNode.Span, GetNodeBannerText(bannerNode),
-                autoCollapse, type, isCollapsible)
+                isCollapsible As Boolean) As BlockSpan?
+            Return CreateBlockSpan(
+                blockNode.Span, GetHintSpan(blockNode),
+                GetNodeBannerText(bannerNode),
+                autoCollapse, type, isCollapsible, isDefaultCollapsed:=False)
         End Function
 
-        Friend Function CreateRegion(syntaxList As IEnumerable(Of SyntaxNode),
-                                     bannerText As String,
-                                     autoCollapse As Boolean,
-                                     type As String,
-                                     isCollapsible As Boolean) As BlockSpan
-            If syntaxList.IsEmpty() Then
-                Return Nothing
+        Private Function GetHintSpan(blockNode As SyntaxNode) As TextSpan
+            ' Don't include attributes in the hint-span for a block.  We don't want
+            ' the attributes to show up when users hover over indent guide lines.
+            Dim firstToken = blockNode.GetFirstToken()
+            If firstToken.Kind() = SyntaxKind.LessThanToken AndAlso
+               firstToken.Parent.IsKind(SyntaxKind.AttributeList) Then
+
+                Dim attributeOwner = firstToken.Parent.Parent
+                For Each child In attributeOwner.ChildNodesAndTokens
+                    If child.Kind() <> SyntaxKind.AttributeList Then
+                        Return TextSpan.FromBounds(child.SpanStart, child.Span.End)
+                    End If
+                Next
             End If
 
-            Dim startPos = syntaxList.First().SpanStart
-            Dim endPos = syntaxList.Last().Span.End
-            Return CreateRegion(
-                TextSpan.FromBounds(startPos, endPos), bannerText,
-                autoCollapse, type, isCollapsible)
+            Return blockNode.Span
         End Function
     End Module
 End Namespace

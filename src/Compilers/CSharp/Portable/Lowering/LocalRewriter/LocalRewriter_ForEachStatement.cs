@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -470,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     V v = (V)s.Chars[p];   /* OR */   (D1 d1, ...) = (V)s.Chars[p];
             //     /*node.Body*/
             // }
-            BoundStatement result = RewriteForStatement(
+            BoundStatement result = RewriteForStatementWithoutInnerLocals(
                 original: node,
                 outerLocals: ImmutableArray.Create(stringVar, positionVar),
                 rewrittenInitializer: initializer,
@@ -520,10 +519,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 iterationVarDecl = new BoundExpressionStatement(assignment.Syntax, loweredAssignment);
                 RemovePlaceholderReplacement(deconstruction.TargetPlaceholder);
 
-                iterationVariables = assignment.LeftVariables.SelectAsArray(v => ((BoundLocal)v).LocalSymbol);
+                iterationVariables = GetLocalSymbols(assignment.LeftVariables);
             }
 
             return iterationVarDecl;
+        }
+
+        private static ImmutableArray<LocalSymbol> GetLocalSymbols(ImmutableArray<BoundExpression> leftVariables)
+        {
+            var builder = ArrayBuilder<LocalSymbol>.GetInstance();
+            foreach (var variable in leftVariables)
+            {
+                if (variable.Kind == BoundKind.Local)
+                {
+                    builder.Add(((BoundLocal)variable).LocalSymbol);
+                }
+            }
+            return builder.ToImmutableAndFree();
         }
 
         private static BoundBlock CreateBlockDeclaringIterationVariables(
@@ -656,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
             //     /*node.Body*/
             // }
-            BoundStatement result = RewriteForStatement(
+            BoundStatement result = RewriteForStatementWithoutInnerLocals(
                 original: node,
                 outerLocals: ImmutableArray.Create<LocalSymbol>(arrayVar, positionVar),
                 rewrittenInitializer: initializer,
@@ -842,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continueLabel = new GeneratedLabelSymbol("continue"); // Should not affect emitted code since unused
                 }
 
-                forLoop = RewriteForStatement(
+                forLoop = RewriteForStatementWithoutInnerLocals(
                     original: node,
                     outerLocals: ImmutableArray.Create(positionVar[dimension]),
                     rewrittenInitializer: positionVarDecl,
@@ -937,7 +949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.Instrument)
             {
                 CommonForEachStatementSyntax forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
-                if (forEachSyntax is ForEachComponentStatementSyntax)
+                if (forEachSyntax is ForEachVariableStatementSyntax)
                 {
                     iterationVarDecl = _instrumenter.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl);
                 }

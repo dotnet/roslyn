@@ -22,5 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         [ExportOption]
         public static readonly Option<bool> CodeRefactorings = new Option<bool>(nameof(EditorComponentOnOffOptions), nameof(CodeRefactorings), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Code Refactorings"));
+
+        [ExportOption]
+        public static readonly Option<bool> ShowCodeRefactoringsWhenQueriedForCodeFixes = new Option<bool>(
+            nameof(EditorComponentOnOffOptions), nameof(ShowCodeRefactoringsWhenQueriedForCodeFixes), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(ShowCodeRefactoringsWhenQueriedForCodeFixes)));
     }
 }

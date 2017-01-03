@@ -15,11 +15,6 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKey(symbol.ContainingType);
             }
 
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                return Hash.Combine(reader.ReadString(), reader.ReadSymbolKey());
-            }
-
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();

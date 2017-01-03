@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             NamespaceDeclarationSyntax namespaceDeclaration,
             ArrayBuilder<BlockSpan> spans,
+            OptionSet options,
             CancellationToken cancellationToken)
         {
             // add leading comments
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             if (!namespaceDeclaration.OpenBraceToken.IsMissing &&
                 !namespaceDeclaration.CloseBraceToken.IsMissing)
             {
-                spans.Add(CSharpStructureHelpers.CreateBlockSpan(
+                spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                     namespaceDeclaration,
                     namespaceDeclaration.Name.GetLastToken(includeZeroWidth: true),
                     autoCollapse: false,
@@ -40,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), spans);
             }
 
-            spans.Add(CSharpStructureHelpers.CreateBlockSpan(
+            spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 externsAndUsings, autoCollapse: true, 
-                type: BlockTypes.Nonstructural, isCollapsible: true));
+                type: BlockTypes.Imports, isCollapsible: true));
 
             // finally, add any leading comments before the end of the namespace block
             if (!namespaceDeclaration.CloseBraceToken.IsMissing)

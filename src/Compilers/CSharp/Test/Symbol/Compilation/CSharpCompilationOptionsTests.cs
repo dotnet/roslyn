@@ -367,6 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 typeof(CSharpCompilationOptions),
+                "Language",
                 "AllowUnsafe",
                 "Usings",
                 "TopLevelBinderFlags");

@@ -91,6 +91,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             public int? TrySplit()
             {
+                var nodeToReplace = GetNodeToReplace();
+
+                if (CursorPosition <= nodeToReplace.SpanStart || CursorPosition >= nodeToReplace.Span.End)
+                {
+                    return null;
+                }
+
                 if (!CheckToken())
                 {
                     return null;

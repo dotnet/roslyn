@@ -286,8 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                         continue;
                     }
 
-                    SnapshotSpan span;
-                    if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, viewSnapshot, out span))
+                    if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, viewSnapshot, out var span))
                     {
                         continue;
                     }

@@ -73,7 +73,8 @@ namespace Roslyn.Test.Performance.Utilities
             // in a project in the solution and have already been deployed
             // to a binaries folder
 
-            foreach (var configuration in new string[] {"debug", "release"}) {
+            foreach (var configuration in new string[] {"debug", "release"})
+            {
                 var configurationIndex = _workingDir.IndexOf(configuration, StringComparison.CurrentCultureIgnoreCase);
                 if (configurationIndex != -1)
                 {
@@ -87,7 +88,7 @@ namespace Roslyn.Test.Performance.Utilities
         /// <returns>
         /// The path to TAO
         /// </returns>
-        public string TaoPath => Path.Combine(MyBinaries(), "Tao");
+        public string TaoPath => Path.Combine(MyBinaries(), "exes", "EditorTestApp", "Tao");
 
         /// Downloads a zip from azure store and extracts it into
         /// the ./temp directory.

@@ -15,11 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         internal SynchronizationContextTaskScheduler(SynchronizationContext synchronizationContext)
         {
-            if (synchronizationContext == null)
-                throw new ArgumentNullException(nameof(synchronizationContext));
-
             _postCallback = new SendOrPostCallback(PostCallback);
-            _synchronizationContext = synchronizationContext;
+            _synchronizationContext = synchronizationContext ?? throw new ArgumentNullException(nameof(synchronizationContext));
         }
 
         public override Int32 MaximumConcurrencyLevel

@@ -8,11 +8,14 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class DeclarationParsingTests : ParsingTests
     {
+        public DeclarationParsingTests(ITestOutputHelper output) : base(output) { }
+
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
             return SyntaxFactory.ParseSyntaxTree(text, options);
@@ -5769,16 +5772,13 @@ class C
                                             N(SyntaxKind.OutKeyword);
                                             N(SyntaxKind.DeclarationExpression);
                                             {
-                                                N(SyntaxKind.TypedVariableComponent);
+                                                N(SyntaxKind.IdentifierName);
                                                 {
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken, "var");
-                                                    }
-                                                    N(SyntaxKind.SingleVariableDesignation);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken, "x");
-                                                    }
+                                                    N(SyntaxKind.IdentifierToken, "var");
+                                                }
+                                                N(SyntaxKind.SingleVariableDesignation);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "x");
                                                 }
                                             }
                                         }

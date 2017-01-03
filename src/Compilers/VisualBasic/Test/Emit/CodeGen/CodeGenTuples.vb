@@ -4,10 +4,12 @@ Imports System.Collections.Immutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     <CompilerTrait(CompilerFeature.Tuples)>
@@ -39,7 +41,29 @@ Namespace System
         End Function
     End Structure
 End Namespace
+
+namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter Or AttributeTargets.Property Or AttributeTargets.ReturnValue Or AttributeTargets.Class Or AttributeTargets.Struct )>
+    public class TupleElementNamesAttribute : Inherits Attribute
+        public Sub New(transformNames As String())
+	    End Sub
+    End Class
+End Namespace
+
 "
+
+        ReadOnly s_tupleattributes As String = "
+namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter Or AttributeTargets.Property Or AttributeTargets.ReturnValue Or AttributeTargets.Class Or AttributeTargets.Struct )>
+    public class TupleElementNamesAttribute : Inherits Attribute
+        public Sub New(transformNames As String())
+	    End Sub
+    End Class
+End Namespace
+
+"
+
+
         ReadOnly s_trivial3uple As String = "
 Namespace System
     Public Structure ValueTuple(Of T1, T2, T3)
@@ -54,6 +78,7 @@ Namespace System
         End Sub
     End Structure
 End Namespace
+
 "
         ReadOnly s_trivialRemainingTuples As String = "
 Namespace System
@@ -83,6 +108,7 @@ Namespace System
     End Structure
 End Namespace
 "
+
         <Fact>
         Public Sub TupleTypeBinding()
 
@@ -125,9 +151,188 @@ hello
         End Sub
 
         <Fact>
+        Public Sub TupleTypeBindingTypeChar()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+option strict on
+
+Imports System
+Module C
+
+    Sub Main()
+        Dim t as (A%, B$) = Nothing
+        console.writeline(t.GetType())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+System.ValueTuple`2[System.Int32,System.String]
+            ]]>)
+
+            verifier.VerifyDiagnostics()
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (System.ValueTuple(Of Integer, String) V_0) //t
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "System.ValueTuple(Of Integer, String)"
+  IL_0008:  ldloc.0
+  IL_0009:  box        "System.ValueTuple(Of Integer, String)"
+  IL_000e:  call       "Function Object.GetType() As System.Type"
+  IL_0013:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0018:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub TupleTypeBindingTypeChar1()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+option strict off
+
+Imports System
+Module C
+
+    Sub Main()
+        Dim t as (A%, B$) = Nothing
+        console.writeline(t.GetType())
+    End Sub
+End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+System.ValueTuple`2[System.Int32,System.String]
+            ]]>)
+
+            verifier.VerifyDiagnostics()
+
+            verifier.VerifyIL("C.Main", <![CDATA[
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (System.ValueTuple(Of Integer, String) V_0) //t
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "System.ValueTuple(Of Integer, String)"
+  IL_0008:  ldloc.0
+  IL_0009:  box        "System.ValueTuple(Of Integer, String)"
+  IL_000e:  call       "Function Object.GetType() As System.Type"
+  IL_0013:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0018:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub TupleTypeBindingTypeCharErr()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+
+    Sub Main()
+        Dim t as (A% As String, B$ As String, C As String$) = nothing
+        console.writeline(t.A.Length)  'A should not take the type from % in this case
+
+        Dim t1 as (String$, String%) = nothing
+        console.writeline(t1.GetType())
+
+        Dim B = 1
+        
+        Dim t2 = (A% := "qq", B$) 
+        console.writeline(t2.A.Length) 'A should not take the type from % in this case
+
+        Dim t3 As (V1(), V2%()) = Nothing
+        console.writeline(t3.Item1.Length) 
+    End Sub
+
+   Async Sub T()
+        Dim t4 as (Integer% As String, Await As String, Function$) = nothing
+        console.writeline(t4.Integer.Length)  
+        console.writeline(t4.Await.Length)  
+        console.writeline(t4.Function.Length)  
+
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+        console.writeline(t4.Function.Length)  
+
+    End Sub
+
+    class V2
+    end class
+End Module
+
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30302: Type character '%' cannot be used in a declaration with an explicit type.
+        Dim t as (A% As String, B$ As String, C As String$) = nothing
+                  ~~
+BC30302: Type character '$' cannot be used in a declaration with an explicit type.
+        Dim t as (A% As String, B$ As String, C As String$) = nothing
+                                ~~
+BC30468: Type declaration characters are not valid in this context.
+        Dim t as (A% As String, B$ As String, C As String$) = nothing
+                                                   ~~~~~~~
+BC37262: Tuple element names must be unique.
+        Dim t1 as (String$, String%) = nothing
+                            ~~~~~~~
+BC37270: Type characters cannot be used in tuple literals.
+        Dim t2 = (A% := "qq", B$) 
+                  ~~
+BC30277: Type character '$' does not match declared data type 'Integer'.
+        Dim t2 = (A% := "qq", B$) 
+                              ~~
+BC30002: Type 'V1' is not defined.
+        Dim t3 As (V1(), V2%()) = Nothing
+                   ~~
+BC32017: Comma, ')', or a valid expression continuation expected.
+        Dim t3 As (V1(), V2%()) = Nothing
+                            ~
+BC42356: This async method lacks 'Await' operators and so will run synchronously. Consider using the 'Await' operator to await non-blocking API calls, or 'Await Task.Run(...)' to do CPU-bound work on a background thread.
+   Async Sub T()
+             ~
+BC30302: Type character '%' cannot be used in a declaration with an explicit type.
+        Dim t4 as (Integer% As String, Await As String, Function$) = nothing
+                   ~~~~~~~~
+BC30183: Keyword is not valid as an identifier.
+        Dim t4 as (Integer% As String, Await As String, Function$) = nothing
+                                       ~~~~~
+BC30180: Keyword does not name a type.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                   ~
+BC30180: Keyword does not name a type.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                                       ~
+BC30002: Type 'Junk2' is not defined.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                                                     ~~~~~
+BC32017: Comma, ')', or a valid expression continuation expected.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                                                           ~~~~~~~~
+BC30002: Type 'Junk4' is not defined.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                                                                     ~~~~~
+BC32017: Comma, ')', or a valid expression continuation expected.
+        Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
+                                                                           ~~~~~
+</errors>)
+        End Sub
+
+        <Fact>
         Public Sub TupleTypeBindingNoTuple()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 
 Imports System
@@ -154,12 +359,9 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         Dim t as (Integer, Integer)
                  ~~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
-        Dim t as (Integer, Integer)
-                 ~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         Dim t1 as (A As Integer, B As Integer)
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
+BC37268: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
         Dim t1 as (A As Integer, B As Integer)
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -182,7 +384,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 (, )
             ]]>)
 
@@ -203,7 +405,7 @@ End Module
         <Fact()>
         Public Sub TupleDefaultType001err()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 
 Imports System
@@ -245,7 +447,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.ValueTuple`2[System.Object[],System.Object[]]
 System.ValueTuple`2[System.Object,System.Object][]
             ]]>)
@@ -272,7 +474,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 VB$AnonymousDelegate_0`1[System.ValueTuple`2[System.Object,System.Object][]]
 VB$AnonymousDelegate_0`1[System.ValueTuple`2[System.Object,System.Object]][]
             ]]>)
@@ -303,7 +505,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.Object[]
 System.Object[,]
 
@@ -335,7 +537,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 VB$AnonymousDelegate_0`2[System.Int32,VB$AnonymousDelegate_1`1[System.Int32]]
 VB$AnonymousDelegate_0`2[System.Int64,System.ValueTuple`2[System.Object[],System.Object[]][]]
             ]]>)
@@ -374,7 +576,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.String
 System.String
 System.String
@@ -385,7 +587,7 @@ System.String
         <Fact()>
         Public Sub TupleDefaultType006err()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 Module C
@@ -407,7 +609,7 @@ Module C
 End Module
 
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -442,7 +644,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.Action
 VB$AnonymousDelegate_0
             ]]>)
@@ -451,7 +653,7 @@ VB$AnonymousDelegate_0
         <Fact()>
         Public Sub TupleDefaultType007err()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 Module C
@@ -479,7 +681,7 @@ Module C
 End Module
 
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -729,6 +931,14 @@ Namespace System
     End Structure
 End Namespace
 
+namespace System.Runtime.CompilerServices
+    &lt;AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter Or AttributeTargets.Property Or AttributeTargets.ReturnValue Or AttributeTargets.Class Or AttributeTargets.Struct )>
+    public class TupleElementNamesAttribute : Inherits Attribute
+        public Sub New(transformNames As String())
+	    End Sub
+    End Class
+End Namespace
+
     </file>
 </compilation>, expectedOutput:=<![CDATA[
 42
@@ -828,17 +1038,45 @@ Module C
         t.a17 = 42
         t.a12 = t.a17
         console.writeline(t.a12)
+
+        TestArray()
+        TestNullable()
     End Sub
+
+    Sub TestArray()
+        Dim t = New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                    a5 as integer, a6 as integer, a7 as integer, a8 as integer,
+                    a9 as integer, a10 as Integer, a11 as Integer, a12 as Integer,
+                    a13 as integer, a14 as integer, a15 as integer, a16 as integer,
+                    a17 as integer, a18 as integer)() {Nothing}
+
+        t(0).a17 = 42
+        t(0).a12 = t(0).a17
+        console.writeline(t(0).a12)
+    End Sub
+
+        Sub TestNullable()
+        Dim t as New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                    a5 as integer, a6 as integer, a7 as integer, a8 as integer,
+                    a9 as integer, a10 as Integer, a11 as Integer, a12 as Integer,
+                    a13 as integer, a14 as integer, a15 as integer, a16 as integer,
+                    a17 as integer, a18 as integer)?
+
+        console.writeline(t.HasValue)
+    End Sub
+
 End Module
 
     </file>
 </compilation>, expectedOutput:=<![CDATA[
 42
+42
+False
             ]]>, additionalRefs:=s_valueTupleRefs)
 
             verifier.VerifyIL("C.Main", <![CDATA[
 {
-  // Code size       64 (0x40)
+  // Code size       74 (0x4a)
   .maxstack  2
   .locals init (System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)) V_0) //t
   IL_0000:  ldloca.s   V_0
@@ -857,9 +1095,55 @@ End Module
   IL_0030:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)).Rest As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)"
   IL_0035:  ldfld      "System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer, Integer, Integer)).Item5 As Integer"
   IL_003a:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_003f:  ret
+  IL_003f:  call       "Sub C.TestArray()"
+  IL_0044:  call       "Sub C.TestNullable()"
+  IL_0049:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact>
+        Public Sub TupleNewLongErr()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+
+Imports System
+Module C
+
+    Sub Main()
+        Dim t = New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                    a5 as integer, a6 as integer, a7 as integer, a8 as integer,
+                    a9 as integer, a10 as Integer, a11 as Integer, a12 as String,
+                    a13 as integer, a14 as integer, a15 as integer, a16 as integer,
+                    a17 as integer, a18 as integer)
+
+        console.writeline(t.a12.Length)
+
+        Dim t1 As New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+            a5 as integer, a6 as integer, a7 as integer, a8 as integer,
+            a9 as integer, a10 as Integer, a11 as Integer, a12 as String,
+            a13 as integer, a14 as integer, a15 as integer, a16 as integer,
+            a17 as integer, a18 as integer)
+
+        console.writeline(t1.a12.Length)
+
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            ' should not complain about missing constructor
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim t = New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim t1 As New (a1 as Integer, a2 as Integer, a3 as Integer, a4 as integer,
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
         End Sub
 
         <Fact>
@@ -985,6 +1269,14 @@ Namespace System
     End Structure
 End Namespace
 
+namespace System.Runtime.CompilerServices
+    &lt;AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter Or AttributeTargets.Property Or AttributeTargets.ReturnValue Or AttributeTargets.Class Or AttributeTargets.Struct )>
+    public class TupleElementNamesAttribute : Inherits Attribute
+        public Sub New(transformNames As String())
+	    End Sub
+    End Class
+End Namespace
+
     </file>
 </compilation>, useLatestFramework:=True, expectedOutput:="42
 123
@@ -1011,7 +1303,7 @@ End module
 
             comp.AssertTheseDiagnostics(
 <errors>
-    BC30269: 'Public Sub Test(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures.
+BC37271: 'Public Sub Test(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names, including 'Public Sub Test(x As (c As Integer, d As Integer))'.
     Sub Test(x as (a as integer, b as Integer))
         ~~~~
 </errors>)
@@ -1037,7 +1329,7 @@ End module
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30269: 'Public Sub Test(x As (Integer, Integer))' has multiple definitions with identical signatures.
+BC37271: 'Public Sub Test(x As (Integer, Integer))' has multiple definitions with identical signatures with different tuple element names, including 'Public Sub Test(x As (a As Integer, b As Integer))'.
     Sub Test(x as (integer,Integer))
         ~~~~
 </errors>)
@@ -1419,7 +1711,7 @@ End Module
             Assert.Equal("(a:=100, b:=100)", node.ToString())
             Assert.Equal("(a As Integer, b As Integer)", model.GetTypeInfo(node).Type.ToDisplayString())
             Assert.Equal("(x As System.Byte, y As System.Byte)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
         End Sub
 
         <Fact>
@@ -2283,6 +2575,907 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub NarrowingFromNumericConstant_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+    Shared Sub Main()
+        Dim x1 As Byte = 300
+        Dim x2 As Byte() = { 300 }
+        Dim x3 As (Byte, Byte) = (300, 300)
+
+        Dim x4 As Byte? = 300
+        Dim x5 As Byte?() = { 300 }
+        Dim x6 As (Byte?, Byte?) = (300, 300)
+        Dim x7 As (Byte, Byte)? = (300, 300)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+
+    Shared Sub M1 (x as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M1 (x as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M2 (x as Byte(), y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M2 (x as Byte(), y as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M3 (x as (Byte, Byte))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M3 (x as (Short, Short))
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M4 (x as (Byte, Byte), y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M4 (x as (Byte, Byte), y as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M5 (x as Byte?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M5 (x as Short?)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M6 (x as (Byte?, Byte?))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M6 (x as (Short?, Short?))
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M7 (x as (Byte, Byte)?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M7 (x as (Short, Short)?)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M8 (x as (Byte, Byte)?, y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M8 (x as (Byte, Byte)?, y as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub Main()
+        M1(70000)
+        M2({ 300 }, 70000)
+        M3((70000, 70000))
+        M4((300, 300), 70000)
+
+        M5(70000)
+        M6((70000, 70000))
+        M7((70000, 70000))
+        M8((300, 300), 70000)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"Byte
+Byte
+Byte
+Byte
+Byte
+Byte
+Byte
+Byte")
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_03()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub M1 (x as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M1 (x as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M2 (x as Byte(), y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M2 (x as Byte(), y as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M3 (x as (Byte, Byte))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M3 (x as (Short, Short))
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M4 (x as (Byte, Byte), y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M4 (x as (Byte, Byte), y as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M5 (x as Byte?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M5 (x as Short?)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M6 (x as (Byte?, Byte?))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M6 (x as (Short?, Short?))
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M7 (x as (Byte, Byte)?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M7 (x as (Short, Short)?)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub M8 (x as (Byte, Byte)?, y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M8 (x as (Byte, Byte)?, y as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+
+    Shared Sub Main()
+        M1(70000)
+        M2({ 300 }, 70000)
+        M3((70000, 70000))
+        M4((300, 300), 70000)
+
+        M5(70000)
+        M6((70000, 70000))
+        M7((70000, 70000))
+        M8((300, 300), 70000)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"Byte
+Byte
+Byte
+Byte
+Byte
+Byte
+Byte
+Byte")
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_04()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+
+    Shared Sub M1 (x as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M1 (x as Integer)
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M2 (x as Byte?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M2 (x as Integer?)
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M3 (x as Byte())
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M3 (x as Integer())
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M4 (x as (Byte, Byte))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M4 (x as (Integer, Integer))
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M5 (x as (Byte?, Byte?))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M5 (x as (Integer?, Integer?))
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M6 (x as (Byte, Byte)?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M6 (x as (Integer, Integer)?)
+        System.Console.WriteLine("Integer")
+    End Sub
+    
+    Shared Sub M7 (x as (Byte, Byte)())
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M7 (x as (Integer, Integer)())
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub Main()
+        M1(1)
+        M2(1)
+        M3({1})
+        M4((1, 1))
+        M5((1, 1))
+        M6((1, 1))
+        M7({(1, 1)})
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(True), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"Integer
+Integer
+Integer
+Integer
+Integer
+Integer
+Integer")
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_05()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+
+    Shared Sub M1 (x as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M1 (x as Long)
+        System.Console.WriteLine("Long")
+    End Sub
+
+    Shared Sub M2 (x as Byte?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M2 (x as Long?)
+        System.Console.WriteLine("Long")
+    End Sub
+
+    Shared Sub M3 (x as Byte())
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M3 (x as Long())
+        System.Console.WriteLine("Long")
+    End Sub
+
+    Shared Sub M4 (x as (Byte, Byte))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M4 (x as (Long, Long))
+        System.Console.WriteLine("Long")
+    End Sub
+
+    Shared Sub M5 (x as (Byte?, Byte?))
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M5 (x as (Long?, Long?))
+        System.Console.WriteLine("Long")
+    End Sub
+
+    Shared Sub M6 (x as (Byte, Byte)?)
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M6 (x as (Long, Long)?)
+        System.Console.WriteLine("Long")
+    End Sub
+    
+    Shared Sub M7 (x as (Byte, Byte)())
+        System.Console.WriteLine("Byte")
+    End Sub
+    Shared Sub M7 (x as (Long, Long)())
+        System.Console.WriteLine("Long")
+    End Sub
+
+    Shared Sub Main()
+        M1(1)
+        M2(1)
+        M3({1})
+        M4((1, 1))
+        M5((1, 1))
+        M6((1, 1))
+        M7({(1, 1)})
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(True), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"Long
+Long
+Long
+Long
+Long
+Long
+Long")
+        End Sub
+
+        <Fact>
+        <WorkItem(14473, "https://github.com/dotnet/roslyn/issues/14473")>
+        Public Sub NarrowingFromNumericConstant_06()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub M2 (x as Byte?)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M3 (x as Byte())
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M5 (x as (Byte?, Byte?))
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M6 (x as Byte?())
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M7 (x as (Byte, Byte)())
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub Main()
+        Dim a as Byte? = 1
+        Dim b as Byte() = {1}
+        Dim c as (Byte?, Byte?) = (1, 1)
+        Dim d as Byte?() = {1}
+        Dim e as (Byte, Byte)() = {(1, 1)}
+        M2(1)
+        M3({1})
+        M5((1, 1))
+        M6({1})
+        M7({(1, 1)})
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(True), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"Byte
+Byte
+Byte
+Byte
+Byte")
+        End Sub
+
+        <Fact>
+        <WorkItem(14473, "https://github.com/dotnet/roslyn/issues/14473")>
+        Public Sub NarrowingFromNumericConstant_07()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub M1 (x as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M2 (x as Byte(), y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M3 (x as (Byte, Byte))
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M4 (x as (Byte, Byte), y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M5 (x as Byte?)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M6 (x as (Byte?, Byte?))
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M7 (x as (Byte, Byte)?)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M8 (x as (Byte, Byte)?, y as Byte)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub Main()
+        M1(300)
+        M2({ 300 }, 300)
+        M3((300, 300))
+        M4((300, 300), 300)
+
+        M5(70000)
+        M6((70000, 70000))
+        M7((70000, 70000))
+        M8((300, 300), 300)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"Byte
+Byte
+Byte
+Byte
+Byte
+Byte
+Byte
+Byte")
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_08()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+
+    Shared Sub Main()
+        Dim x00 As (Integer, Integer) = (1, 1)
+        Dim x01 As (Byte, Integer) = (1, 1)
+        Dim x02 As (Integer, Byte) = (1, 1)
+        Dim x03 As (Byte, Long) = (1, 1)
+        Dim x04 As (Long, Byte) = (1, 1)
+        Dim x05 As (Byte, Integer) = (300, 1)
+        Dim x06 As (Integer, Byte) = (1, 300)
+        Dim x07 As (Byte, Long) = (300, 1)
+        Dim x08 As (Long, Byte) = (1, 300)
+        Dim x09 As (Long, Long) = (1, 300)
+        Dim x10 As (Byte, Byte) = (1, 300)
+        Dim x11 As (Byte, Byte) = (300, 1)
+        Dim one As Integer = 1
+        Dim x12 As (Byte, Byte, Byte) = (one, 300, 1)
+        Dim x13 As (Byte, Byte, Byte) = (300, one, 1)
+        Dim x14 As (Byte, Byte, Byte) = (300, 1, one)
+        Dim x15 As (Byte, Byte) = (one, one)
+        Dim x16 As (Integer, (Byte, Integer)) = (1, (1, 1))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ToArray()
+
+            AssertConversions(model, nodes(0), ConversionKind.Identity, ConversionKind.Identity, ConversionKind.Identity)
+            AssertConversions(model, nodes(1), ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.Identity)
+            AssertConversions(model, nodes(2), ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.Identity,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(3), ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric)
+            AssertConversions(model, nodes(4), ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(5), ConversionKind.NarrowingTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.Identity)
+            AssertConversions(model, nodes(6), ConversionKind.NarrowingTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.Identity,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(7), ConversionKind.NarrowingTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric)
+            AssertConversions(model, nodes(8), ConversionKind.NarrowingTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(9), ConversionKind.WideningTuple,
+                              ConversionKind.WideningNumeric,
+                              ConversionKind.WideningNumeric)
+            AssertConversions(model, nodes(10), ConversionKind.NarrowingTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(11), ConversionKind.NarrowingTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(12), ConversionKind.NarrowingTuple,
+                              ConversionKind.NarrowingNumeric,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(13), ConversionKind.NarrowingTuple,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.NarrowingNumeric,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+            AssertConversions(model, nodes(14), ConversionKind.NarrowingTuple,
+                              ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.NarrowingNumeric)
+            AssertConversions(model, nodes(15), ConversionKind.NarrowingTuple,
+                              ConversionKind.NarrowingNumeric,
+                              ConversionKind.NarrowingNumeric)
+            AssertConversions(model, nodes(16), ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant,
+                              ConversionKind.Identity,
+                              ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant)
+        End Sub
+
+        Private Shared Sub AssertConversions(model As SemanticModel, literal As TupleExpressionSyntax, aggregate As ConversionKind, ParamArray parts As ConversionKind())
+            If parts.Length > 0 Then
+                Assert.Equal(literal.Arguments.Count, parts.Length)
+
+                For i As Integer = 0 To parts.Length - 1
+                    Assert.Equal(parts(i), model.GetConversion(literal.Arguments(i).Expression).Kind)
+                Next
+            End If
+
+            Assert.Equal(aggregate, model.GetConversion(literal).Kind)
+        End Sub
+
+        <Fact>
+        Public Sub Narrowing_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub M2 (x as Byte?)
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub M5 (x as (Byte?, Byte?))
+        System.Console.WriteLine("Byte")
+    End Sub
+
+    Shared Sub Main()
+        Dim x as integer = 1
+        Dim a as Byte? = x
+        Dim b as (Byte?, Byte?) = (x, x)
+        M2(x)
+        M5((x, x))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(True), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp,
+<expected>
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte?'.
+        Dim a as Byte? = x
+                         ~
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte?'.
+        Dim b as (Byte?, Byte?) = (x, x)
+                                   ~
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte?'.
+        Dim b as (Byte?, Byte?) = (x, x)
+                                      ~
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte?'.
+        M2(x)
+           ~
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte?'.
+        M5((x, x))
+            ~
+BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Byte?'.
+        M5((x, x))
+               ~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub Narrowing_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub Main()
+        Dim x as integer = 1
+        Dim x1 = CType(x, Byte)
+        Dim x2 = CType(x, Byte?)
+        Dim x3 = CType((x, x), (Byte, Integer))
+        Dim x4 = CType((x, x), (Byte?, Integer?))
+        Dim x5 = CType((x, x), (Byte, Integer)?)
+        Dim x6 = CType((x, x), (Byte?, Integer?)?)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub Narrowing_03()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub Main()
+        Dim x as (Integer, Integer) = (1, 1)
+        Dim x3 = CType(x, (Byte, Integer))
+        Dim x4 = CType(x, (Byte?, Integer?))
+        Dim x5 = CType(x, (Byte, Integer)?)
+        Dim x6 = CType(x, (Byte?, Integer?)?)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub Narrowing_04()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub Main()
+        Dim x as (Integer, Integer) = (1, 1)
+        Dim x3 as (Byte, Integer) = x
+        Dim x4 as (Byte?, Integer?) = x
+        Dim x5 as (Byte, Integer)? = x
+        Dim x6 as (Byte?, Integer?)?= x
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp,
+<expected>
+BC30512: Option Strict On disallows implicit conversions from '(Integer, Integer)' to '(Byte, Integer)'.
+        Dim x3 as (Byte, Integer) = x
+                                    ~
+BC30512: Option Strict On disallows implicit conversions from '(Integer, Integer)' to '(Byte?, Integer?)'.
+        Dim x4 as (Byte?, Integer?) = x
+                                      ~
+BC30512: Option Strict On disallows implicit conversions from '(Integer, Integer)' to '(Byte, Integer)?'.
+        Dim x5 as (Byte, Integer)? = x
+                                     ~
+BC30512: Option Strict On disallows implicit conversions from '(Integer, Integer)' to '(Byte?, Integer?)?'.
+        Dim x6 as (Byte?, Integer?)?= x
+                                      ~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub OverloadResolution_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Public Class C
+
+    Shared Sub M1 (x as Short)
+        System.Console.WriteLine("Short")
+    End Sub
+    Shared Sub M1 (x as Integer)
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M2 (x as Short?)
+        System.Console.WriteLine("Short")
+    End Sub
+    Shared Sub M2 (x as Integer?)
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M3 (x as (Short, Short))
+        System.Console.WriteLine("Short")
+    End Sub
+    Shared Sub M3(x as (Integer, Integer))
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M4 (x as (Short?, Short?))
+        System.Console.WriteLine("Short")
+    End Sub
+    Shared Sub M4(x as (Integer?, Integer?))
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub M5 (x as (Short, Short)?)
+        System.Console.WriteLine("Short")
+    End Sub
+    Shared Sub M5(x as (Integer, Integer)?)
+        System.Console.WriteLine("Integer")
+    End Sub
+
+    Shared Sub Main()
+        Dim x as Byte = 1
+        M1(x)
+        M2(x)
+        M3((x, x))
+        M4((x, x))
+        M5((x, x))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"Short
+Short
+Short
+Short
+Short")
+        End Sub
+
+        <Fact>
+        Public Sub FailedDueToNumericOverflow_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+
+    Shared Sub Main()
+        Dim x1 As Byte = 300
+        Dim x2 as (Integer, Byte) = (300, 300)
+        Dim x3 As Byte? = 300
+        Dim x4 as (Integer?, Byte?) = (300, 300)
+        Dim x5 as (Integer, Byte)? = (300, 300)
+        Dim x6 as (Integer?, Byte?)? = (300, 300)
+
+        System.Console.WriteLine(x1)
+        System.Console.WriteLine(x2)
+        System.Console.WriteLine(x3)
+        System.Console.WriteLine(x4)
+        System.Console.WriteLine(x5)
+        System.Console.WriteLine(x6)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp, <expected></expected>)
+
+            CompileAndVerify(comp, expectedOutput:=
+"44
+(300, 44)
+44
+(300, 44)
+(300, 44)
+(300, 44)")
+
+            comp = comp.WithOptions(comp.Options.WithOverflowChecks(True))
+
+            AssertTheseDiagnostics(comp,
+<expected>
+BC30439: Constant expression not representable in type 'Byte'.
+        Dim x1 As Byte = 300
+                         ~~~
+BC30439: Constant expression not representable in type 'Byte'.
+        Dim x2 as (Integer, Byte) = (300, 300)
+                                          ~~~
+BC30439: Constant expression not representable in type 'Byte?'.
+        Dim x3 As Byte? = 300
+                          ~~~
+BC30439: Constant expression not representable in type 'Byte?'.
+        Dim x4 as (Integer?, Byte?) = (300, 300)
+                                            ~~~
+BC30439: Constant expression not representable in type 'Byte'.
+        Dim x5 as (Integer, Byte)? = (300, 300)
+                                           ~~~
+BC30439: Constant expression not representable in type 'Byte?'.
+        Dim x6 as (Integer?, Byte?)? = (300, 300)
+                                             ~~~
+</expected>)
+        End Sub
+
+        <Fact>
         Public Sub MethodTypeInference001()
 
             Dim verifier = CompileAndVerify(
@@ -2461,6 +3654,70 @@ System.String
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
+
+Imports System
+        Module C
+            Sub Main()
+                Dim q = "q"
+                Dim a As Object = "a"
+
+                System.Console.WriteLine(Test((q, a)))
+
+                System.Console.WriteLine(q)
+                System.Console.WriteLine(a)
+
+                System.Console.WriteLine(Test((Ps, Po)))
+
+                System.Console.WriteLine(q)
+                System.Console.WriteLine(a)
+            End Sub
+
+            Function Test(Of T)(ByRef x As (T, T)) As (T, T)
+                Console.WriteLine(GetType(T))
+
+                x.Item1 = x.Item2
+
+                Return x
+            End Function
+
+            Public Property Ps As String
+                Get
+                    Return "q"
+                End Get
+                Set(value As String)
+                    System.Console.WriteLine("written1 !!!")
+                End Set
+            End Property
+
+            Public Property Po As Object
+                Get
+                    Return "a"
+                End Get
+                Set(value As Object)
+                    System.Console.WriteLine("written2 !!!")
+                End Set
+            End Property
+        End Module
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+System.Object
+(a, a)
+q
+a
+System.Object
+(a, a)
+q
+a
+            ]]>)
+        End Sub
+
+        <Fact>
+        Public Sub MethodTypeInference004a()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
 Imports System
 Module C
     Sub Main()
@@ -2503,7 +3760,9 @@ Module C
         Dim q = "q"
         Dim a as object = "a"
 
-        System.Console.WriteLine(Test((q, a)))
+        Dim t = (q, a)
+
+        System.Console.WriteLine(Test(t))
 
         System.Console.WriteLine(q)
         System.Console.WriteLine(a)
@@ -2523,7 +3782,7 @@ End Module
             comp.AssertTheseDiagnostics(
 <errors>
 BC36651: Data type(s) of the type parameter(s) in method 'Public Function Test(Of T)(ByRef x As (T, T)) As (T, T)' cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.
-        System.Console.WriteLine(Test((q, a)))
+        System.Console.WriteLine(Test(t))
                                  ~~~~
 </errors>)
 
@@ -3110,7 +4369,7 @@ End Module
         <Fact>
         Public Sub TupleTypeMismatch_01()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 Module C
@@ -3134,7 +4393,7 @@ BC30311: Value of type '(Integer, String, Integer)' cannot be converted to '(Int
         Public Sub TupleTypeMismatch_02()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 Module C
@@ -3158,7 +4417,7 @@ BC30311: Value of type '(Integer, Object, Integer)' cannot be converted to '(Int
         Public Sub LongTupleTypeMismatch()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 Module C
@@ -3178,9 +4437,6 @@ BC37267: Predefined type 'ValueTuple(Of )' is not defined or imported.
 BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
         Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
-        Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of )' is not defined or imported.
         Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
                                                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -3188,9 +4444,6 @@ BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
         Dim x As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = ("Alice", 2, 3, 4, 5, 6, 7, 8)
                                                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of )' is not defined or imported.
-        Dim y As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8)
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
         Dim y As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = (1, 2, 3, 4, 5, 6, 7, 8)
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
@@ -3210,7 +4463,7 @@ BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
         Public Sub TupleTypeWithLateDiscoveredName()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 Module C
@@ -3848,7 +5101,7 @@ End Class
         Public Sub TupleUsageWithoutTupleLibrary()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 
@@ -3868,9 +5121,6 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
                  ~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         Dim x As (Integer, String) = (1, "hello")
-                 ~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
-        Dim x As (Integer, String) = (1, "hello")
                                      ~~~~~~~~~~~~
 </errors>)
 
@@ -3880,7 +5130,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         Public Sub TupleUsageWithMissingTupleMembers()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 
@@ -3910,7 +5160,7 @@ BC35000: Requested operation is not available because the runtime library functi
         Public Sub TupleWithDuplicateNames()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 
@@ -3941,7 +5191,7 @@ BC37262: Tuple element names must be unique.
         Public Sub TupleWithDuplicateReservedNames()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 
@@ -3976,7 +5226,7 @@ BC37261: Tuple element name 'Item2' is only allowed at position 2.
         Public Sub TupleWithNonReservedNames()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 
@@ -4030,7 +5280,7 @@ null]]>)
         Public Sub TupleWithDuplicateMemberNames()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 
@@ -4058,7 +5308,7 @@ BC37262: Tuple element names must be unique.
         Public Sub TupleWithReservedMemberNames()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 
@@ -4099,7 +5349,7 @@ BC37260: Tuple element name 'Rest' is disallowed at any position.
         Public Sub TupleWithExistingUnderlyingMemberNames()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 
@@ -4261,7 +5511,7 @@ End Class
         Public Sub GenericTupleWithoutTupleLibrary_01()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Class C
     Shared Sub Main()
@@ -4280,7 +5530,7 @@ End Class
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
     Public Shared Function M(Of T1, T2)() As (first As T1, second As T2)
                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
+BC37268: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
     Public Shared Function M(Of T1, T2)() As (first As T1, second As T2)
                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
@@ -4316,7 +5566,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
             Assert.True(mFirst.GetAttributes().IsEmpty)
             'Assert.Null(mFirst.GetUseSiteDiagnostic())
             Assert.False(mFirst.Locations.IsEmpty)
-            Assert.Equal("first", mFirst.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.Equal("first As T1", mFirst.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
             Assert.False(mFirst.IsImplicitlyDeclared)
             Assert.Null(mFirst.TypeLayoutOffset)
 
@@ -4345,7 +5595,7 @@ BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
         Public Sub GenericTupleWithoutTupleLibrary_02()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="NoTuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Class C
     Function M(Of T1, T2, T3, T4, T5, T6, T7, T8, T9)() As (T1, T2, T3, T4, T5, T6, T7, T8, T9)
@@ -4361,9 +5611,6 @@ End Namespace
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
-    Function M(Of T1, T2, T3, T4, T5, T6, T7, T8, T9)() As (T1, T2, T3, T4, T5, T6, T7, T8, T9)
-                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37267: Predefined type 'ValueTuple(Of ,,,,,,,)' is not defined or imported.
     Function M(Of T1, T2, T3, T4, T5, T6, T7, T8, T9)() As (T1, T2, T3, T4, T5, T6, T7, T8, T9)
                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -4503,7 +5750,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:="42 Alice")
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:="42 Alice")
 
         End Sub
 
@@ -4631,7 +5878,7 @@ End Class
         Public Sub DuplicateTupleMethodsNotAllowed()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 Class C
@@ -4786,7 +6033,7 @@ End Class
         <Fact>
         Public Sub TupleUnsupportedInUsingStatment()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports VT2 = (Integer, Integer)
 ]]></file>
@@ -4811,7 +6058,7 @@ Imports VT2 = (Integer, Integer)
         Public Sub MissingTypeInAlias()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><![CDATA[
 Imports System
 Imports VT2 = System.ValueTuple(Of Integer, Integer) ' ValueTuple is referenced but does not exist
@@ -4844,7 +6091,7 @@ End Namespace
         Public Sub MultipleDefinitionsOfValueTuple()
 
             Dim source1 =
-<compilation name="comp1">
+<compilation>
     <file name="a.vb">
 Public Module M1
     &lt;System.Runtime.CompilerServices.Extension()&gt;
@@ -4856,7 +6103,7 @@ End Module
 </compilation>
 
             Dim source2 =
-<compilation name="comp2">
+<compilation>
     <file name="a.vb">
 Public Module M2
     &lt;System.Runtime.CompilerServices.Extension()&gt;
@@ -4873,7 +6120,7 @@ End Module
             comp2.AssertNoDiagnostics()
 
             Dim source =
-<compilation name="comp">
+<compilation>
     <file name="a.vb">
 Imports System
 Imports M1
@@ -4993,13 +6240,21 @@ End Class
                 Assert.Contains(CodeAnalysisResources.TupleElementNameCountMismatch, ex.Message)
             End Try
 
+            Dim tree = VisualBasicSyntaxTree.ParseText("Class C")
+            Dim loc1 = Location.Create(tree, New TextSpan(0, 1))
+            Try
+                comp.CreateTupleTypeSymbol(vt2, elementLocations:=ImmutableArray.Create(loc1))
+                Assert.True(False)
+            Catch ex As ArgumentException
+                Assert.Contains(CodeAnalysisResources.TupleElementLocationCountMismatch, ex.Message)
+            End Try
         End Sub
 
         <Fact>
         Public Sub CreateTupleTypeSymbol_WithValueTuple()
 
             Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><%= s_trivial2uple %></file>
 </compilation>)
 
@@ -5013,10 +6268,44 @@ End Class
             Assert.True(tupleWithoutNames.IsTupleType)
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.TupleUnderlyingType.Kind)
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString())
-            Assert.True(tupleWithoutNames.TupleElementNames.IsDefault)
-            Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault)
+            Assert.Equal((New String() {"System.Int32", "System.String"}), ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
+            Assert.All(tupleWithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
+        End Sub
 
+        Private Shared Function ElementTypeNames(tuple As INamedTypeSymbol) As IEnumerable(Of String)
+            Return tuple.TupleElements.Select(Function(t) t.Type.ToTestDisplayString())
+        End Function
+
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_Locations()
+
+            Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><%= s_trivial2uple %></file>
+</compilation>)
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef, tupleComp.ToMetadataReference()})
+
+            Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As TypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, stringType)
+
+            Dim tree = VisualBasicSyntaxTree.ParseText("Class C")
+            Dim loc1 = Location.Create(tree, New TextSpan(0, 1))
+            Dim loc2 = Location.Create(tree, New TextSpan(1, 1))
+            Dim tuple = comp.CreateTupleTypeSymbol(
+                vt2, ImmutableArray.Create("i1", "i2"), ImmutableArray.Create(loc1, loc2))
+
+            Assert.True(tuple.IsTupleType)
+            Assert.Equal(SymbolKind.NamedType, tuple.TupleUnderlyingType.Kind)
+            Assert.Equal("(i1 As System.Int32, i2 As System.String)", tuple.ToTestDisplayString())
+            Assert.Equal(New String() {"System.Int32", "System.String"}, ElementTypeNames(tuple))
+            Assert.Equal(SymbolKind.NamedType, tuple.Kind)
+            Assert.Equal(loc1, tuple.GetMembers("i1").Single.Locations.Single())
+            Assert.Equal(loc2, tuple.GetMembers("i2").Single.Locations.Single())
         End Sub
 
         <Fact>
@@ -5032,10 +6321,11 @@ End Class
             Assert.True(tupleWithoutNames.IsTupleType)
             Assert.Equal(SymbolKind.ErrorType, tupleWithoutNames.TupleUnderlyingType.Kind)
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString())
-            Assert.True(tupleWithoutNames.TupleElementNames.IsDefault)
-            Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault)
+            Assert.Equal(New String() {"System.Int32", "System.String"}, ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
-
+            Assert.All(tupleWithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5051,10 +6341,11 @@ End Class
             Assert.True(tupleWithoutNames.IsTupleType)
             Assert.Equal(SymbolKind.ErrorType, tupleWithoutNames.TupleUnderlyingType.Kind)
             Assert.Equal("(Alice As System.Int32, Bob As System.String)", tupleWithoutNames.ToTestDisplayString())
-            Assert.Equal(New String() {"Alice", "Bob"}, tupleWithoutNames.TupleElementNames)
-            Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal(New String() {"Alice", "Bob"}, GetTupleElementNames(tupleWithoutNames))
+            Assert.Equal(New String() {"System.Int32", "System.String"}, ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
-
+            Assert.All(tupleWithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5071,12 +6362,11 @@ End Class
             Assert.True(tupleWithSomeNames.IsTupleType)
             Assert.Equal(SymbolKind.ErrorType, tupleWithSomeNames.TupleUnderlyingType.Kind)
             Assert.Equal("(System.Int32, Item2 As System.String, Charlie As System.Int32)", tupleWithSomeNames.ToTestDisplayString())
-            Assert.Equal(New String() {Nothing, "Item2", "Charlie"}, tupleWithSomeNames.TupleElementNames)
-            Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32"},
-                         tupleWithSomeNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
-
+            Assert.Equal(New String() {Nothing, "Item2", "Charlie"}, GetTupleElementNames(tupleWithSomeNames))
+            Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32"}, ElementTypeNames(tupleWithSomeNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithSomeNames.Kind)
-
+            Assert.All(tupleWithSomeNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5090,10 +6380,11 @@ End Class
 
             Assert.True(tupleWithoutNames.IsTupleType)
             Assert.Equal("(Item2 As System.Int32, Item1 As System.Int32)", tupleWithoutNames.ToTestDisplayString())
-            Assert.Equal(New String() {"Item2", "Item1"}, tupleWithoutNames.TupleElementNames)
-            Assert.Equal(New String() {"System.Int32", "System.Int32"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal(New String() {"Item2", "Item1"}, GetTupleElementNames(tupleWithoutNames))
+            Assert.Equal(New String() {"System.Int32", "System.Int32"}, ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
-
+            Assert.All(tupleWithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5113,11 +6404,12 @@ End Class
             Assert.Equal("(System.Int32, System.String, System.Int32, System.String, System.Int32, System.String, System.Int32, System.String)",
                          tuple8WithoutNames.ToTestDisplayString())
 
-            Assert.True(tuple8WithoutNames.TupleElementNames.IsDefault)
+            Assert.True(GetTupleElementNames(tuple8WithoutNames).IsDefault)
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String"},
-                         tuple8WithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
-
+                         ElementTypeNames(tuple8WithoutNames))
+            Assert.All(tuple8WithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5137,11 +6429,12 @@ End Class
             Assert.Equal("(Alice1 As System.Int32, Alice2 As System.String, Alice3 As System.Int32, Alice4 As System.String, Alice5 As System.Int32, Alice6 As System.String, Alice7 As System.Int32, Alice8 As System.String)",
                          tuple8WithNames.ToTestDisplayString())
 
-            Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8"}, tuple8WithNames.TupleElementNames)
+            Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8"}, GetTupleElementNames(tuple8WithNames))
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String"},
-                         tuple8WithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
-
+                         ElementTypeNames(tuple8WithNames))
+            Assert.All(tuple8WithNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5161,11 +6454,12 @@ End Class
             Assert.Equal("(System.Int32, System.String, System.Int32, System.String, System.Int32, System.String, System.Int32, System.String, System.Int32)",
                          tuple9WithoutNames.ToTestDisplayString())
 
-            Assert.True(tuple9WithoutNames.TupleElementNames.IsDefault)
+            Assert.True(GetTupleElementNames(tuple9WithoutNames).IsDefault)
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
-                         tuple9WithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
-
+                         ElementTypeNames(tuple9WithoutNames))
+            Assert.All(tuple9WithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5185,11 +6479,12 @@ End Class
             Assert.Equal("(Alice1 As System.Int32, Alice2 As System.String, Alice3 As System.Int32, Alice4 As System.String, Alice5 As System.Int32, Alice6 As System.String, Alice7 As System.Int32, Alice8 As System.String, Alice9 As System.Int32)",
                          tuple9WithNames.ToTestDisplayString())
 
-            Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8", "Alice9"}, tuple9WithNames.TupleElementNames)
+            Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8", "Alice9"}, GetTupleElementNames(tuple9WithNames))
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
-                         tuple9WithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
-
+                         ElementTypeNames(tuple9WithNames))
+            Assert.All(tuple9WithNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5209,18 +6504,19 @@ End Class
             Assert.Equal("(Item1 As System.Int32, Item2 As System.String, Item3 As System.Int32, Item4 As System.String, Item5 As System.Int32, Item6 As System.String, Item7 As System.Int32, Item8 As System.String, Item9 As System.Int32)",
                          tuple9WithNames.ToTestDisplayString())
 
-            Assert.Equal(New String() {"Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9"}, tuple9WithNames.TupleElementNames)
+            Assert.Equal(New String() {"Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9"}, GetTupleElementNames(tuple9WithNames))
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
-                         tuple9WithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
-
+                         ElementTypeNames(tuple9WithNames))
+            Assert.All(tuple9WithNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
         Public Sub CreateTupleTypeSymbol_ElementTypeIsError()
 
             Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><%= s_trivial2uple %></file>
 </compilation>)
 
@@ -5232,11 +6528,12 @@ End Class
 
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
 
-            Dim types = tupleWithoutNames.TupleElementTypes
+            Dim types = tupleWithoutNames.TupleElements.SelectAsArray(Function(e) e.Type)
             Assert.Equal(2, types.Length)
             Assert.Equal(SymbolKind.NamedType, types(0).Kind)
             Assert.Equal(SymbolKind.ErrorType, types(1).Kind)
-
+            Assert.All(tupleWithoutNames.GetMembers().OfType(Of IFieldSymbol)().Select(Function(f) f.Locations.FirstOrDefault()),
+                Sub(Loc) Assert.Equal(Loc, Nothing))
         End Sub
 
         <Fact>
@@ -5246,20 +6543,40 @@ End Class
 
             Dim intType As NamedTypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
             Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType)
+            Dim vt3 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T3).Construct(intType, intType, intType)
 
-            ' Illegal VB identifier and blank
-            Dim tuple2 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("123", ""))
-            Assert.Equal({"123", ""}, tuple2.TupleElementNames)
+            ' Illegal VB identifier, space and null
+            Dim tuple2 = comp.CreateTupleTypeSymbol(vt3, ImmutableArray.Create("123", " ", Nothing))
+            Assert.Equal({"123", " ", Nothing}, GetTupleElementNames(tuple2))
 
             ' Reserved keywords
             Dim tuple3 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("return", "class"))
-            Assert.Equal({"return", "class"}, tuple3.TupleElementNames)
+            Assert.Equal({"return", "class"}, GetTupleElementNames(tuple3))
 
             Try
                 comp.CreateTupleTypeSymbol(underlyingType:=intType)
                 Assert.True(False)
             Catch ex As ArgumentException
                 Assert.Contains(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, ex.Message)
+            End Try
+
+        End Sub
+
+        <Fact>
+        Public Sub CreateTupleTypeSymbol_EmptyNames()
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef})
+
+            Dim intType As NamedTypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType)
+
+            Try
+                ' Illegal VB identifier and empty
+                Dim tuple2 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("123", ""))
+                Assert.True(False)
+            Catch ex As ArgumentException
+                Assert.Contains(CodeAnalysisResources.TupleElementNameEmpty, ex.Message)
+                Assert.Contains("1", ex.Message)
             End Try
 
         End Sub
@@ -5307,7 +6624,7 @@ End Class
         Public Sub CreateTupleTypeSymbol2_WithValueTuple()
 
             Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><%= s_trivial2uple %></file>
 </compilation>)
 
@@ -5320,10 +6637,39 @@ End Class
             Assert.True(tupleWithoutNames.IsTupleType)
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.TupleUnderlyingType.Kind)
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString())
-            Assert.True(tupleWithoutNames.TupleElementNames.IsDefault)
-            Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault)
+            Assert.Equal(New String() {"System.Int32", "System.String"}, ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
 
+        End Sub
+
+        <Fact>
+        Public Sub CreateTupleTypeSymbol2_Locations()
+
+            Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><%= s_trivial2uple %></file>
+</compilation>)
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef, tupleComp.ToMetadataReference()})
+
+            Dim intType As ITypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim stringType As ITypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+            Dim tree = VisualBasicSyntaxTree.ParseText("Class C")
+            Dim loc1 = Location.Create(tree, New TextSpan(0, 1))
+            Dim loc2 = Location.Create(tree, New TextSpan(1, 1))
+            Dim tuple = comp.CreateTupleTypeSymbol(
+                ImmutableArray.Create(intType, stringType),
+                ImmutableArray.Create("i1", "i2"),
+                ImmutableArray.Create(loc1, loc2))
+
+            Assert.True(tuple.IsTupleType)
+            Assert.Equal(SymbolKind.NamedType, tuple.TupleUnderlyingType.Kind)
+            Assert.Equal("(i1 As System.Int32, i2 As System.String)", tuple.ToTestDisplayString())
+            Assert.Equal(New String() {"System.Int32", "System.String"}, ElementTypeNames(tuple))
+            Assert.Equal(SymbolKind.NamedType, tuple.Kind)
+            Assert.Equal(loc1, tuple.GetMembers("i1").Single().Locations.Single())
+            Assert.Equal(loc2, tuple.GetMembers("i2").Single().Locations.Single())
         End Sub
 
         <Fact>
@@ -5338,8 +6684,8 @@ End Class
             Assert.True(tupleWithoutNames.IsTupleType)
             Assert.Equal(SymbolKind.ErrorType, tupleWithoutNames.TupleUnderlyingType.Kind)
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString())
-            Assert.True(tupleWithoutNames.TupleElementNames.IsDefault)
-            Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault)
+            Assert.Equal(New String() {"System.Int32", "System.String"}, ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
 
         End Sub
@@ -5356,8 +6702,8 @@ End Class
             Assert.True(tupleWithoutNames.IsTupleType)
             Assert.Equal(SymbolKind.ErrorType, tupleWithoutNames.TupleUnderlyingType.Kind)
             Assert.Equal("(Alice As System.Int32, Bob As System.String)", tupleWithoutNames.ToTestDisplayString())
-            Assert.Equal(New String() {"Alice", "Bob"}, tupleWithoutNames.TupleElementNames)
-            Assert.Equal(New String() {"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal(New String() {"Alice", "Bob"}, GetTupleElementNames(tupleWithoutNames))
+            Assert.Equal(New String() {"System.Int32", "System.String"}, ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
 
         End Sub
@@ -5372,8 +6718,8 @@ End Class
 
             Assert.True(tupleWithoutNames.IsTupleType)
             Assert.Equal("(Item2 As System.Int32, Item1 As System.Int32)", tupleWithoutNames.ToTestDisplayString())
-            Assert.Equal(New String() {"Item2", "Item1"}, tupleWithoutNames.TupleElementNames)
-            Assert.Equal(New String() {"System.Int32", "System.Int32"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal(New String() {"Item2", "Item1"}, GetTupleElementNames(tupleWithoutNames))
+            Assert.Equal(New String() {"System.Int32", "System.Int32"}, ElementTypeNames(tupleWithoutNames))
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
 
         End Sub
@@ -5392,10 +6738,10 @@ End Class
             Assert.Equal("(System.Int32, System.String, System.Int32, System.String, System.Int32, System.String, System.Int32, System.String)",
                          tuple8WithoutNames.ToTestDisplayString())
 
-            Assert.True(tuple8WithoutNames.TupleElementNames.IsDefault)
+            Assert.True(GetTupleElementNames(tuple8WithoutNames).IsDefault)
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String"},
-                         tuple8WithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+                         ElementTypeNames(tuple8WithoutNames))
 
         End Sub
 
@@ -5413,10 +6759,10 @@ End Class
             Assert.Equal("(Alice1 As System.Int32, Alice2 As System.String, Alice3 As System.Int32, Alice4 As System.String, Alice5 As System.Int32, Alice6 As System.String, Alice7 As System.Int32, Alice8 As System.String)",
                          tuple8WithNames.ToTestDisplayString())
 
-            Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8"}, tuple8WithNames.TupleElementNames)
+            Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8"}, GetTupleElementNames(tuple8WithNames))
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String"},
-                         tuple8WithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+                         ElementTypeNames(tuple8WithNames))
 
         End Sub
 
@@ -5434,10 +6780,10 @@ End Class
             Assert.Equal("(System.Int32, System.String, System.Int32, System.String, System.Int32, System.String, System.Int32, System.String, System.Int32)",
                          tuple9WithoutNames.ToTestDisplayString())
 
-            Assert.True(tuple9WithoutNames.TupleElementNames.IsDefault)
+            Assert.True(GetTupleElementNames(tuple9WithoutNames).IsDefault)
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
-                         tuple9WithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+                         ElementTypeNames(tuple9WithoutNames))
 
         End Sub
 
@@ -5455,10 +6801,10 @@ End Class
             Assert.Equal("(Alice1 As System.Int32, Alice2 As System.String, Alice3 As System.Int32, Alice4 As System.String, Alice5 As System.Int32, Alice6 As System.String, Alice7 As System.Int32, Alice8 As System.String, Alice9 As System.Int32)",
                          tuple9WithNames.ToTestDisplayString())
 
-            Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8", "Alice9"}, tuple9WithNames.TupleElementNames)
+            Assert.Equal(New String() {"Alice1", "Alice2", "Alice3", "Alice4", "Alice5", "Alice6", "Alice7", "Alice8", "Alice9"}, GetTupleElementNames(tuple9WithNames))
 
             Assert.Equal(New String() {"System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32"},
-                         tuple9WithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+                         ElementTypeNames(tuple9WithNames))
 
         End Sub
 
@@ -5466,7 +6812,7 @@ End Class
         Public Sub CreateTupleTypeSymbol2_ElementTypeIsError()
 
             Dim tupleComp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><%= s_trivial2uple %></file>
 </compilation>)
 
@@ -5477,7 +6823,7 @@ End Class
 
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind)
 
-            Dim types = tupleWithoutNames.TupleElementTypes
+            Dim types = tupleWithoutNames.TupleElements.SelectAsArray(Function(e) e.Type)
             Assert.Equal(2, types.Length)
             Assert.Equal(SymbolKind.NamedType, types(0).Kind)
             Assert.Equal(SymbolKind.ErrorType, types(1).Kind)
@@ -5492,14 +6838,24 @@ End Class
             Dim intType As ITypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
 
             ' Illegal VB identifier and blank
-            Dim tuple2 = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, intType), ImmutableArray.Create("123", ""))
-            Assert.Equal({"123", ""}, tuple2.TupleElementNames)
+            Dim tuple2 = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, intType), ImmutableArray.Create("123", " "))
+            Assert.Equal({"123", " "}, GetTupleElementNames(tuple2))
 
             ' Reserved keywords
             Dim tuple3 = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, intType), ImmutableArray.Create("return", "class"))
-            Assert.Equal({"return", "class"}, tuple3.TupleElementNames)
+            Assert.Equal({"return", "class"}, GetTupleElementNames(tuple3))
 
         End Sub
+
+        Private Shared Function GetTupleElementNames(tuple As INamedTypeSymbol) As ImmutableArray(Of String)
+            Dim elements = tuple.TupleElements
+
+            If elements.All(Function(e) e.IsImplicitlyDeclared) Then
+                Return Nothing
+            End If
+
+            Return elements.SelectAsArray(Function(e) e.ProvidedTupleElementNameOrNull)
+        End Function
 
         <Fact>
         Public Sub CreateTupleTypeSymbol2_CSharpElements()
@@ -5521,7 +6877,7 @@ End Class
         Public Sub CreateTupleTypeSymbol_ComparingSymbols()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb">
 Class C
     Dim F As System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (a As String, b As String))
@@ -5559,7 +6915,7 @@ additionalRefs:=s_valueTupleRefs)
         Public Sub TupleMethodsOnNonTupleType()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef})
-            Dim intType As INamedTypeSymbol = comp.GetSpecialType(SpecialType.System_String)
+            Dim intType As NamedTypeSymbol = comp.GetSpecialType(SpecialType.System_String)
 
             Assert.False(intType.IsTupleType)
             Assert.True(intType.TupleElementNames.IsDefault)
@@ -5571,7 +6927,7 @@ additionalRefs:=s_valueTupleRefs)
         Public Sub TupleTargetTypeAndConvert01()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
 Class C
@@ -5641,7 +6997,7 @@ End Class
         Public Sub TupleImplicitConversionFail01()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
 Class C
@@ -5690,7 +7046,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
         Public Sub TupleExplicitConversionFail01()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
 Class C
@@ -5736,7 +7092,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
         Public Sub TupleImplicitConversionFail02()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
 Class C
@@ -5785,7 +7141,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
         Public Sub TupleInferredLambdStrictOn()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
 Class C
@@ -5844,7 +7200,7 @@ Class C
 End Class
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:=<![CDATA[
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 System.ValueTuple`2[System.Int32,VB$AnonymousDelegate_0`1[System.Object]]
 System.ValueTuple`2[System.Object,VB$AnonymousDelegate_1`2[System.Object,System.Object]]
 System.ValueTuple`2[System.Int32,VB$AnonymousDelegate_1`2[System.Object,System.Object]]
@@ -5855,7 +7211,7 @@ System.ValueTuple`2[System.Int32,VB$AnonymousDelegate_1`2[System.Object,System.O
         Public Sub TupleImplicitConversionFail03()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
 Class C
@@ -5910,7 +7266,7 @@ BC36625: Lambda expression cannot be converted to 'String' because 'String' is n
         Public Sub TupleImplicitConversionFail04()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
 Class C
@@ -5959,7 +7315,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
         Public Sub TupleImplicitConversionFail05()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><![CDATA[
 Class C
     Shared Sub Main()
@@ -6033,7 +7389,7 @@ BC37267: Predefined type 'ValueTuple(Of ,,)' is not defined or imported.
         <Fact>
         Public Sub TupleImplicitConversionFail06()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
 Imports System
@@ -6069,7 +7425,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Strin
         <Fact>
         Public Sub TupleExplicitConversionFail06()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="comp">
+<compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
 Imports System
@@ -6226,21 +7582,34 @@ Option Strict On
 Imports System
 Class C
     Shared Sub Main()
-        Test((Function() 7, Function() 8))
+        Test1((Function() 7, Function() 8))
+        Test2(Function() 7, Function() 8)
     End Sub
-    Shared Sub Test(Of T)(x As (T, T))
+    Shared Sub Test1(Of T)(x As (T, T))
         Console.WriteLine("first")
     End Sub
-    Shared Sub Test(x As (Object, Object))
+    Shared Sub Test1(x As (Object, Object))
         Console.WriteLine("second")
     End Sub
-    Shared Sub Test(Of T)(x As (Func(Of T), Func(Of T)))
+    Shared Sub Test1(Of T)(x As (Func(Of T), Func(Of T)))
         Console.WriteLine("third")
         Console.WriteLine(x.Item1().ToString())
     End Sub
+
+    Shared Sub Test2(Of T)(x As T, y as T)
+        Console.WriteLine("first")
+    End Sub
+    Shared Sub Test2(x As Object, y as Object)
+        Console.WriteLine("second")
+    End Sub
+    Shared Sub Test2(Of T)(x As Func(Of T), y as Func(Of T))
+        Console.WriteLine("third")
+    End Sub
 End Class
     </file>
-</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[second]]>)
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=
+"first
+first")
 
             verifier.VerifyDiagnostics()
 
@@ -6301,7 +7670,7 @@ End Class
     </file>
 </compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[second
 first
-second]]>)
+first]]>)
 
             verifier.VerifyDiagnostics()
 
@@ -6398,7 +7767,7 @@ fourth]]>)
 
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/13277")>
+        <Fact()>
         <WorkItem(13277, "https://github.com/dotnet/roslyn/issues/13277")>
         Public Sub CreateTupleTypeSymbol_UnderlyingTypeIsError()
 
@@ -6407,9 +7776,7 @@ fourth]]>)
             Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
             Dim vt2 = comp.CreateErrorTypeSymbol(Nothing, "ValueTuple", 2).Construct(intType, intType)
 
-            Dim tuple = comp.CreateTupleTypeSymbol(vt2, Nothing)
-            ' Crashes in IsTupleCompatible
-
+            Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(underlyingType:=vt2))
         End Sub
 
         <Fact>
@@ -6425,7 +7792,7 @@ Module C
 End Module
 
     </file>
- </compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+ </compilation>, additionalRefs:=s_valueTupleRefs)
 
             Dim comp = verifier.Compilation
             Dim tree = comp.SyntaxTrees(0)
@@ -6450,7 +7817,7 @@ Public Class A
      End Function
 End Class
      </file>
- </compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+ </compilation>, additionalRefs:=s_valueTupleRefs)
             libComp.AssertNoDiagnostics()
 
 
@@ -7602,7 +8969,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, expectedOutput:="1 hello 3")
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:="1 hello 3")
 
         End Sub
 
@@ -7610,13 +8977,13 @@ End Module
         <WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")>
         Public Sub TupleCoVariance()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Interface I(Of Out T)
     Function M() As System.ValueTuple(Of Integer, T)
 End Interface
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -7630,13 +8997,13 @@ BC36726: Type 'T' cannot be used for the 'T2' in 'System.ValueTuple(Of T1, T2)' 
         <WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")>
         Public Sub TupleCoVariance2()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Interface I(Of Out T)
     Function M() As (Integer, T)
 End Interface
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -7650,13 +9017,13 @@ BC36726: Type 'T' cannot be used for the 'T2' in 'System.ValueTuple(Of T1, T2)' 
         <WorkItem(13705, "https://github.com/dotnet/roslyn/issues/13705")>
         Public Sub TupleContraVariance()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Interface I(Of In T)
     Sub M(x As (Boolean, T))
 End Interface
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
@@ -8511,7 +9878,7 @@ Module C
 End Module
 
     </file>
-</compilation>, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+</compilation>, additionalRefs:=s_valueTupleRefs,
                 options:=TestOptions.DebugExe, expectedOutput:="9",
                 sourceSymbolValidator:=
                     Sub(m As ModuleSymbol)
@@ -9013,7 +10380,7 @@ False
         <Fact>
         Public Sub TupleConversion01()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 
 Module C
@@ -9056,7 +10423,7 @@ BC41009: The tuple element name 'f' is ignored because a different name is speci
         Public Sub TupleConversion01_StrictOn()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
 Module C
@@ -9109,7 +10476,7 @@ BC41009: The tuple element name 'f' is ignored because a different name is speci
         Public Sub TupleConversion02()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9133,7 +10500,7 @@ BC30311: Value of type '(Integer, Object, Integer)' cannot be converted to '(c A
         Public Sub TupleConvertedType01()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9150,9 +10517,24 @@ End Module
             Dim node = nodes.OfType(Of TupleExpressionSyntax)().Single()
 
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
-            Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
-            Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Dim typeInfo As TypeInfo = model.GetTypeInfo(node)
+            Assert.Equal("(e As System.Int32, f As System.String)", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
+
+            Dim e = node.Arguments(0).Expression
+            Assert.Equal("1", e.ToString())
+            typeInfo = model.GetTypeInfo(e)
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.Int16", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(e).Kind)
+
+            Dim f = node.Arguments(1).Expression
+            Assert.Equal("""hello""", f.ToString())
+            typeInfo = model.GetTypeInfo(f)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(f).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9163,7 +10545,7 @@ End Module
         Public Sub TupleConvertedType01_StrictOn()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Option Strict On
 Module C
@@ -9183,7 +10565,7 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9194,7 +10576,7 @@ End Module
         Public Sub TupleConvertedType01insource()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9222,7 +10604,7 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (c As System.Int16, d As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Assert.Equal("System.Nullable(Of (c As System.Int16, d As System.String))", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (c As System.Int16, d As System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
@@ -9236,7 +10618,7 @@ End Module
         Public Sub TupleConvertedType01insourceImplicit()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9257,7 +10639,7 @@ End Module
             Dim typeInfo As TypeInfo = model.GetTypeInfo(node)
             Assert.Equal("(System.Int32, System.String)", typeInfo.Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", typeInfo.ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             CompileAndVerify(comp)
 
@@ -9267,7 +10649,7 @@ End Module
         Public Sub TupleConvertedType02()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9287,7 +10669,21 @@ End Module
             Dim typeInfo As TypeInfo = model.GetTypeInfo(node)
             Assert.Equal("(e As System.Int32, f As System.String)", typeInfo.Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", typeInfo.ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
+
+            Dim e = node.Arguments(0).Expression
+            Assert.Equal("1", e.ToString())
+            typeInfo = model.GetTypeInfo(e)
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.Int16", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(e).Kind)
+
+            Dim f = node.Arguments(1).Expression
+            Assert.Equal("""hello""", f.ToString())
+            typeInfo = model.GetTypeInfo(f)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(f).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9298,7 +10694,7 @@ End Module
         Public Sub TupleConvertedType02insource00()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9317,11 +10713,12 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
+            Assert.Equal("DirectCast((e:=1, f:=""hello""), (c As Short, d As String))", node.Parent.ToString())
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9332,7 +10729,7 @@ End Module
         Public Sub TupleConvertedType02insource00_StrictOn()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Option Strict On
 Module C
@@ -9352,11 +10749,11 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int16, b As System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int16, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9367,7 +10764,7 @@ End Module
         Public Sub TupleConvertedType02insource01()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9401,7 +10798,7 @@ End Module
         Public Sub TupleConvertedType02insource01_StrictOn()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Option Strict On
 Module C
@@ -9436,7 +10833,7 @@ End Module
         Public Sub TupleConvertedType02insource02()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9456,7 +10853,7 @@ End Module
             Assert.Equal("DirectCast((x), (c As Long, d As String))", node.ToString())
             Assert.Equal("(c As System.Int64, d As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Object, b As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of ParenthesizedExpressionSyntax)().Single()
             Assert.Equal("(x)", x.ToString())
@@ -9470,7 +10867,7 @@ End Module
         Public Sub TupleConvertedType03()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9489,7 +10886,7 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (a As System.Int32, b As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As System.Nullable(Of (a As System.Int32, b As System.String))", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9500,7 +10897,7 @@ End Module
         Public Sub TupleConvertedType03insource()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9519,7 +10916,7 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (c As System.Int32, d As System.String))", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningNullable, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple, model.GetConversion(node).Kind)
 
             Assert.Equal("DirectCast((e:=1, f:=""hello""), (c As Integer, d As String)?)", node.Parent.ToString())
             Assert.Equal("System.Nullable(Of (c As System.Int32, d As System.String))", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
@@ -9535,7 +10932,7 @@ End Module
         Public Sub TupleConvertedType04()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9569,7 +10966,7 @@ End Module
         Public Sub TupleConvertedType05()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9599,7 +10996,7 @@ End Module
         Public Sub TupleConvertedType05insource()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9629,7 +11026,7 @@ End Module
         Public Sub TupleConvertedType05insource_StrictOn()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Option Strict On
 Module C
@@ -9660,7 +11057,7 @@ End Module
         Public Sub TupleConvertedType06()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9679,7 +11076,21 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("(a As System.Int16, b As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
+
+            Dim e = node.Arguments(0).Expression
+            Assert.Equal("1", e.ToString())
+            Dim typeInfo = model.GetTypeInfo(e)
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.Int16", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.WideningNumeric Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(e).Kind)
+
+            Dim f = node.Arguments(1).Expression
+            Assert.Equal("""hello""", f.ToString())
+            typeInfo = model.GetTypeInfo(f)
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(f).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As (a As System.Int16, b As System.String)", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9690,7 +11101,7 @@ End Module
         Public Sub TupleConvertedType06insource()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9717,7 +11128,7 @@ End Module
             Assert.Equal("(e:=1, f:=""hello"")", node.ToString())
             Assert.Equal("(e As System.Int32, f As System.String)", model.GetTypeInfo(node).Type.ToTestDisplayString())
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
@@ -9732,7 +11143,7 @@ End Module
         Public Sub TupleConvertedTypeNull01()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9751,7 +11162,7 @@ End Module
             Assert.Equal("(e:=1, f:=Nothing)", node.ToString())
             Assert.Null(model.GetTypeInfo(node).Type)
             Assert.Equal("(a As System.Int16, b As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
             Assert.Equal("x As (a As System.Int16, b As System.String)", model.GetDeclaredSymbol(x).ToTestDisplayString())
@@ -9762,7 +11173,7 @@ End Module
         Public Sub TupleConvertedTypeNull01insource()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Module C
     Sub Main()
@@ -9789,7 +11200,7 @@ End Module
             Assert.Equal("(e:=1, f:=Nothing)", node.ToString())
             Assert.Null(model.GetTypeInfo(node).Type)
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(node).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.InvolvesNarrowingFromNumericConstant, model.GetConversion(node).Kind)
 
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("(c As System.Int16, d As System.String)", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
@@ -9804,7 +11215,7 @@ End Module
         Public Sub TupleConvertedTypeUDC01()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Class C
     Shared Sub Main()
@@ -9848,7 +11259,7 @@ options:=TestOptions.DebugExe)
         Public Sub TupleConvertedTypeUDC01_StrictOn()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Option Strict On
 Class C
@@ -9890,7 +11301,7 @@ BC30512: Option Strict On disallows implicit conversions from 'C.C1' to 'String'
         Public Sub TupleConvertedTypeUDC01insource()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Class C
     Shared Sub Main()
@@ -9939,7 +11350,7 @@ options:=TestOptions.DebugExe)
         Public Sub TupleConvertedTypeUDC02()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Class C
     Shared Sub Main()
@@ -9983,7 +11394,7 @@ options:=TestOptions.DebugExe)
         Public Sub TupleConvertedTypeUDC03()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Class C
     Shared Sub Main()
@@ -10030,7 +11441,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
         Public Sub TupleConvertedTypeUDC03_StrictOn()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Option Strict On
 Class C
@@ -10080,7 +11491,7 @@ BC30512: Option Strict On disallows implicit conversions from '(String, String)'
         Public Sub TupleConvertedTypeUDC04()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Public Class C
     Shared Sub Main()
@@ -10146,7 +11557,7 @@ options:=TestOptions.DebugExe)
         Public Sub TupleConvertedTypeUDC05()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Public Class C
     Shared Sub Main()
@@ -10218,7 +11629,7 @@ options:=TestOptions.DebugExe)
         Public Sub TupleConvertedTypeUDC06()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Public Class C
     Shared Sub Main()
@@ -10289,7 +11700,7 @@ options:=TestOptions.DebugExe)
         Public Sub TupleConvertedTypeUDC07_StrictOff_Narrowing()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="Tuples">
+<compilation>
     <file name="a.vb">
 Public Class C
     Shared Sub Main()
@@ -10325,6 +11736,7035 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
 
             CompileAndVerify(comp, expectedOutput:="C1 C+C1")
 
+        End Sub
+
+        <Fact>
+        Public Sub TupleConvertedTypeUDC07()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+Public Class C
+    Shared Sub Main()
+        Dim x As C1 = M1()
+        System.Console.Write(x.ToString())
+    End Sub
+
+    Shared Function M1() As (Integer, String)
+        Return (1, "qq")
+    End Function
+
+    Public Class C1
+        Public Dim val As (Byte, String)
+
+        Public Sub New(ByVal arg As (Byte, String))
+            val = arg
+        End Sub
+
+        Public Shared Widening Operator CType(ByVal arg As (Byte, String)) As C1
+            System.Console.Write("C1 ")
+            Return New C1(arg)
+        End Operator
+    End Class
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30512: Option Strict On disallows implicit conversions from '(Integer, String)' to 'C.C1'.
+        Dim x As C1 = M1()
+                      ~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test((Nothing, Nothing))
+        Test((1, 1))
+        Test((Function() 7, Function() 8), 2)
+    End Sub
+
+    Shared Sub Test(Of T)(x As (T, T))
+        System.Console.WriteLine("first")
+    End Sub
+
+    Shared Sub Test(x As (Object, Object))
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test(Of T)(x As (System.Func(Of T), System.Func(Of T)), y As T)
+        System.Console.WriteLine("third")
+        System.Console.WriteLine(x.Item1().ToString())
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+second
+first
+third
+7
+")
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test1((Function() 7, Function() 8))
+        Test2(Function() 7, Function() 8)
+        Test3((Function() 7, Function() 8))
+    End Sub
+
+    Shared Sub Test1(Of T)(x As (T, T))
+        System.Console.WriteLine("first")
+    End Sub
+
+    Shared Sub Test1(x As (Object, Object))
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test1(Of T)(x As (System.Func(Of T), System.Func(Of T)))
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test2(Of T)(x As T, y As T)
+        System.Console.WriteLine("first")
+    End Sub
+
+    Shared Sub Test2(x As Object, y As Object)
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test2(Of T)(x As System.Func(Of T), y As System.Func(Of T))
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test3(Of T)(x As (T, T)?)
+        System.Console.WriteLine("first")
+    End Sub
+
+    Shared Sub Test3(x As (Object, Object)?)
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test3(Of T)(x As (System.Func(Of T), System.Func(Of T))?)
+        System.Console.WriteLine("third")
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+first
+first
+first")
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test1((Function() 7, Function() 8))
+        Test2(Function() 7, Function() 8)
+        Test3((Function() 7, Function() 8))
+    End Sub
+
+    Shared Sub Test1(x As (System.Func(Of Integer), System.Func(Of Integer)))
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test1(x As (System.Func(Of Integer, Integer), System.Func(Of Integer, Integer)))
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test2(x As System.Func(Of Integer), y As System.Func(Of Integer))
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test2(x As System.Func(Of Integer, Integer), y As System.Func(Of Integer, Integer))
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test3(x As (System.Func(Of Integer), System.Func(Of Integer))?)
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test3(x As (System.Func(Of Integer, Integer), System.Func(Of Integer, Integer))?)
+        System.Console.WriteLine("third")
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+second
+second
+second")
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Dim int = 1
+        Dim a = Function(x as Integer) x
+        Test1(a, int)
+        Test2((a, int))
+        Test3((a, int))
+
+        Dim b = (a, int)
+        Test2(b)
+        Test3(b)
+    End Sub
+
+    Shared Sub Test1(x As System.Action(Of Integer), y As Integer)
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test1(x As System.Func(Of Integer, Integer), y As Integer)
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test2(x As (System.Action(Of Integer), Integer))
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test2(x As (System.Func(Of Integer, Integer), Integer))
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test3(x As (System.Action(Of Integer), Integer)?)
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test3(x As (System.Func(Of Integer, Integer), Integer)?)
+        System.Console.WriteLine("third")
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+third
+third
+third
+third
+third")
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_03()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Imports System
+
+Public Class C
+
+    Shared Sub Main()
+        Dim int as integer = 1
+        Dim x00 As (Integer, Func(Of Integer)) = (int, Function() int)
+        Dim x01 As (Integer, Func(Of Long)) = (int, Function() int)
+        Dim x02 As (Integer, Action) = (int, Function() int)
+        Dim x03 As (Integer, Object) = (int, Function() int)
+        Dim x04 As (Integer, Func(Of Short)) = (int, Function() int)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ToArray()
+
+            AssertConversions(model, nodes(0), ConversionKind.WideningTuple, ConversionKind.Identity, ConversionKind.Widening Or ConversionKind.Lambda)
+            AssertConversions(model, nodes(1), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWidening,
+                              ConversionKind.Identity,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWidening)
+            AssertConversions(model, nodes(2), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs,
+                              ConversionKind.Identity,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs)
+            AssertConversions(model, nodes(3), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda,
+                              ConversionKind.Identity,
+                              ConversionKind.WideningReference Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda)
+            AssertConversions(model, nodes(4), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.Identity,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelNarrowing)
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_04()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Imports System
+
+Public Class C
+
+    Shared Sub Main()
+        Dim int as integer = 1
+        Dim x00 As (Func(Of Integer), Integer) = (Function() int, int)
+        Dim x01 As (Func(Of Long), Integer) = (Function() int, int)
+        Dim x02 As (Action, Integer) = (Function() int, int)
+        Dim x03 As (Object, Integer) = (Function() int, int)
+        Dim x04 As (Func(Of Short), Integer) = (Function() int, int)
+        Dim x05 As (Func(Of Short), Func(Of Long)) = (Function() int, Function() int)
+        Dim x06 As (Func(Of Long), Func(Of Short)) = (Function() int, Function() int)
+        Dim x07 As (Short, (Func(Of Long), Func(Of Short))) = (int, (Function() int, Function() int))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ToArray()
+
+            AssertConversions(model, nodes(0), ConversionKind.WideningTuple, ConversionKind.Widening Or ConversionKind.Lambda, ConversionKind.Identity)
+            AssertConversions(model, nodes(1), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWidening,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWidening,
+                              ConversionKind.Identity)
+            AssertConversions(model, nodes(2), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs,
+                              ConversionKind.Identity)
+            AssertConversions(model, nodes(3), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda,
+                              ConversionKind.WideningReference Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda,
+                              ConversionKind.Identity)
+            AssertConversions(model, nodes(4), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.Identity)
+            AssertConversions(model, nodes(5), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWidening)
+            AssertConversions(model, nodes(6), ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWidening,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelNarrowing)
+            AssertConversions(model, nodes(7), ConversionKind.NarrowingTuple Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.NarrowingNumeric,
+                              ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelNarrowing)
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_05()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Imports System
+
+Public Class C
+
+    Shared Sub Main()
+        Dim int as integer = 1
+        Dim x00 As (Integer, Func(Of Integer))? = (int, Function() int)
+        Dim x01 As (Short, Func(Of Long))? = (int, Function() int)
+        Dim x02 As (Integer, Action)? = (int, Function() int)
+        Dim x03 As (Integer, Object)? = (int, Function() int)
+        Dim x04 As (Integer, Func(Of Short))? = (int, Function() int)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().ToArray()
+
+            AssertConversions(model, nodes(0), ConversionKind.WideningNullableTuple, ConversionKind.Identity, ConversionKind.Widening Or ConversionKind.Lambda)
+            AssertConversions(model, nodes(1), ConversionKind.NarrowingNullableTuple Or ConversionKind.DelegateRelaxationLevelWidening,
+                              ConversionKind.NarrowingNumeric,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWidening)
+            AssertConversions(model, nodes(2), ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs,
+                              ConversionKind.Identity,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs)
+            AssertConversions(model, nodes(3), ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda,
+                              ConversionKind.Identity,
+                              ConversionKind.WideningReference Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda)
+            AssertConversions(model, nodes(4), ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelNarrowing,
+                              ConversionKind.Identity,
+                              ConversionKind.Widening Or ConversionKind.Lambda Or ConversionKind.DelegateRelaxationLevelNarrowing)
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_06()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Imports System
+
+Public Class C
+
+    Shared Sub Main()
+        Dim int as integer = 1
+        Dim t = (int, Function() int)
+        Dim x00 As (Integer, Func(Of Integer)) = t
+        Dim x01 As (Integer, Func(Of Long)) = t
+        Dim x02 As (Integer, Action) = t
+        Dim x03 As (Integer, Object) = t
+        Dim x04 As (Integer, Func(Of Short)) = t
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "t").ToArray()
+
+            Assert.Equal(ConversionKind.WideningTuple, model.GetConversion(nodes(0)).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWidening, model.GetConversion(nodes(1)).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs, model.GetConversion(nodes(2)).Kind)
+            Assert.Equal(ConversionKind.WideningTuple Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda, model.GetConversion(nodes(3)).Kind)
+            Assert.Equal(ConversionKind.NarrowingTuple Or ConversionKind.DelegateRelaxationLevelNarrowing, model.GetConversion(nodes(4)).Kind)
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_07()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Imports System
+
+Public Class C
+
+    Shared Sub Main()
+        Dim int as integer = 1
+        Dim t = (int, Function() int)
+        Dim x00 As (Integer, Func(Of Integer))? = t
+        Dim x01 As (Integer, Func(Of Long))? = t
+        Dim x02 As (Integer, Action)? = t
+        Dim x03 As (Integer, Object)? = t
+        Dim x04 As (Integer, Func(Of Short))? = t
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "t").ToArray()
+
+            Assert.Equal(ConversionKind.WideningNullableTuple, model.GetConversion(nodes(0)).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWidening, model.GetConversion(nodes(1)).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs, model.GetConversion(nodes(2)).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda, model.GetConversion(nodes(3)).Kind)
+            Assert.Equal(ConversionKind.NarrowingNullableTuple Or ConversionKind.DelegateRelaxationLevelNarrowing, model.GetConversion(nodes(4)).Kind)
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_08()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Imports System
+
+Public Class C
+
+    Shared Sub Main()
+        Dim int as integer = 1
+        Dim t? = (int, Function() int)
+        Dim x00 As (Integer, Func(Of Integer))? = t
+        Dim x01 As (Integer, Func(Of Long))? = t
+        Dim x02 As (Integer, Action)? = t
+        Dim x03 As (Integer, Object)? = t
+        Dim x04 As (Integer, Func(Of Short))? = t
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "t").ToArray()
+
+            Assert.Equal(ConversionKind.WideningNullableTuple, model.GetConversion(nodes(0)).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWidening, model.GetConversion(nodes(1)).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs, model.GetConversion(nodes(2)).Kind)
+            Assert.Equal(ConversionKind.WideningNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda, model.GetConversion(nodes(3)).Kind)
+            Assert.Equal(ConversionKind.NarrowingNullableTuple Or ConversionKind.DelegateRelaxationLevelNarrowing, model.GetConversion(nodes(4)).Kind)
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevel_09()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Imports System
+
+Public Class C
+
+    Shared Sub Main()
+        Dim int as integer = 1
+        Dim t? = (int, Function() int)
+        Dim x00 As (Integer, Func(Of Integer)) = t
+        Dim x01 As (Integer, Func(Of Long)) = t
+        Dim x02 As (Integer, Action) = t
+        Dim x03 As (Integer, Object) = t
+        Dim x04 As (Integer, Func(Of Short)) = t
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe.WithOverflowChecks(False), additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "t").ToArray()
+
+            Assert.Equal(ConversionKind.NarrowingNullableTuple, model.GetConversion(nodes(0)).Kind)
+            Assert.Equal(ConversionKind.NarrowingNullableTuple Or ConversionKind.DelegateRelaxationLevelWidening, model.GetConversion(nodes(1)).Kind)
+            Assert.Equal(ConversionKind.NarrowingNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningDropReturnOrArgs, model.GetConversion(nodes(2)).Kind)
+            Assert.Equal(ConversionKind.NarrowingNullableTuple Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda, model.GetConversion(nodes(3)).Kind)
+            Assert.Equal(ConversionKind.NarrowingNullableTuple Or ConversionKind.DelegateRelaxationLevelNarrowing, model.GetConversion(nodes(4)).Kind)
+        End Sub
+
+        <Fact>
+        Public Sub AnonymousDelegate_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Dim int = 1
+        Dim a = Function(x as Integer) x
+        Test1(a)
+        Test2((a, int))
+        Test3((a, int))
+
+        Dim b = (a, int)
+        Test2(b)
+        Test3(b)
+    End Sub
+
+    Shared Sub Test1(x As Object)
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test2(x As (Object, Integer))
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test3(x As (Object, Integer)?)
+        System.Console.WriteLine("second")
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+second
+second
+second
+second
+second")
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/14529")>
+        <WorkItem(14529, "https://github.com/dotnet/roslyn/issues/14529")>
+        <WorkItem(14530, "https://github.com/dotnet/roslyn/issues/14530")>
+        Public Sub AnonymousDelegate_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Dim int = 1
+        Dim a = Function(x as Integer) x
+        Test1(a)
+        Test2((a, int))
+        Test3((a, int)) 
+
+        Dim b = (a, int)
+        Test2(b)
+        Test3(b) 
+
+        Test4({a})
+    End Sub
+
+    Shared Sub Test1(Of T)(x As System.Func(Of T, T))
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test2(Of T)(x As (System.Func(Of T, T), Integer))
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test3(Of T)(x As (System.Func(Of T, T), Integer)?)
+        System.Console.WriteLine("third")
+    End Sub
+
+    Shared Sub Test4(Of T)(x As System.Func(Of T, T)())
+        System.Console.WriteLine("third")
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+third
+third
+third
+third
+third
+third")
+        End Sub
+
+        <Fact>
+        Public Sub UserDefinedConversions_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+    Shared Sub Main()
+        Dim int = 1
+        Dim tuple = (int, int)
+        Dim a as (A, Integer) = tuple
+        Dim b as (A, Integer) = (int, int)
+        Dim c as (A, Integer)? = tuple
+        Dim d as (A, Integer)? = (int, int)
+
+        System.Console.WriteLine(a)
+        System.Console.WriteLine(b)
+        System.Console.WriteLine(c)
+        System.Console.WriteLine(d)
+    End Sub
+End Class
+
+Class A
+    Public Shared Widening Operator CType(val As String) As A
+        System.Console.WriteLine(val)
+        Return New A()
+    End Operator
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+1
+1
+1
+1
+(A, 1)
+(A, 1)
+(A, 1)
+(A, 1)")
+        End Sub
+
+        <Fact>
+        Public Sub UserDefinedConversions_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+    Shared Sub Main()
+        Dim int = 1
+        Dim val as new B()
+        Dim tuple = (val, int)
+        Dim a as (Integer, Integer) = tuple
+        Dim b as (Integer, Integer) = (val, int)
+        Dim c as (Integer, Integer)? = tuple
+        Dim d as (Integer, Integer)? = (val, int)
+
+        System.Console.WriteLine(a)
+        System.Console.WriteLine(b)
+        System.Console.WriteLine(c)
+        System.Console.WriteLine(d)
+    End Sub
+End Class
+
+Class B
+    Public Shared Widening Operator CType(val As B) As String
+        System.Console.WriteLine(val Is Nothing)
+        Return "2"
+    End Operator
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+False
+False
+False
+False
+(2, 1)
+(2, 1)
+(2, 1)
+(2, 1)")
+        End Sub
+
+        <Fact>
+        <WorkItem(14530, "https://github.com/dotnet/roslyn/issues/14530")>
+        Public Sub UserDefinedConversions_03()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+
+Public Class C
+    Shared Sub Main()
+        Dim int = 1
+        Dim ad = Function() 2
+        Dim tuple = (ad, int)
+        Dim a as (A, Integer) = tuple
+        Dim b as (A, Integer) = (ad, int)
+        Dim c as (A, Integer)? = tuple
+        Dim d as (A, Integer)? = (ad, int)
+
+        System.Console.WriteLine(a)
+        System.Console.WriteLine(b)
+        System.Console.WriteLine(c)
+        System.Console.WriteLine(d)
+    End Sub
+End Class
+
+Class A
+    Public Shared Widening Operator CType(val As System.Func(Of Integer, Integer)) As A
+        System.Console.WriteLine(val)
+        Return New A()
+    End Operator
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+System.Func`2[System.Int32,System.Int32]
+System.Func`2[System.Int32,System.Int32]
+System.Func`2[System.Int32,System.Int32]
+System.Func`2[System.Int32,System.Int32]
+(A, 1)
+(A, 1)
+(A, 1)
+(A, 1)")
+        End Sub
+
+        <Fact>
+        Public Sub Inference02_Addressof()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Function M() As Integer
+        Return 7
+    End Function
+
+    Shared Sub Main()
+        Test((AddressOf M, AddressOf M))
+    End Sub
+
+    Shared Sub Test(Of T)(x As (T, T))
+        System.Console.WriteLine("first")
+    End Sub
+
+    Shared Sub Test(x As (Object, Object))
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test(Of T)(x As (System.Func(Of T), System.Func(Of T)))
+        System.Console.WriteLine("third")
+        System.Console.WriteLine(x.Item1().ToString())
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+third
+7
+")
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference03_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test((Function(x) x, Function(x) x))
+    End Sub
+
+    Shared Sub Test(Of T)(x As (T, T))
+    End Sub
+
+    Shared Sub Test(x As (Object, Object))
+    End Sub
+
+    Shared Sub Test(Of T)(x As (System.Func(Of Integer, T), System.Func(Of T, T)))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC30521: Overload resolution failed because no accessible 'Test' is most specific for these arguments:
+    'Public Shared Sub Test(Of <generated method>)(x As (<generated method>, <generated method>))': Not most specific.
+    'Public Shared Sub Test(Of Integer)(x As (Func(Of Integer, Integer), Func(Of Integer, Integer)))': Not most specific.
+        Test((Function(x) x, Function(x) x))
+        ~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub Inference03_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test((Function(x) x, Function(x) x))
+    End Sub
+
+    Shared Sub Test(x As (Object, Object))
+        System.Console.WriteLine("second")
+    End Sub
+
+    Shared Sub Test(Of T)(x As (System.Func(Of Integer, T), System.Func(Of T, T)))
+        System.Console.WriteLine("third")
+        System.Console.WriteLine(x.Item1(5).ToString())
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+third
+5
+")
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference03_03()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test((Function(x) x, Function(x) x))
+    End Sub
+
+    Shared Sub Test(Of T)(x As T, y As T)
+        System.Console.WriteLine("first")
+    End Sub
+
+    Shared Sub Test(x As (Object, Object))
+        System.Console.WriteLine("second")
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+second
+")
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference05()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Test((Function(x) x.x, Function(x) x.Item2))
+        Test((Function(x) x.bob, Function(x) x.Item1))
+    End Sub
+
+    Shared Sub Test(Of T)(x As (f1 As Func(Of (x As Byte, y As Byte), T), f2 As Func(Of (Integer, Integer), T)))
+        Console.WriteLine("first")
+        Console.WriteLine(x.f1((2, 3)).ToString())
+        Console.WriteLine(x.f2((2, 3)).ToString())
+    End Sub
+
+    Shared Sub Test(Of T)(x As (f1 As Func(Of (alice As Integer, bob As Integer), T), f2 As Func(Of (Integer, Integer), T)))
+        Console.WriteLine("second")
+        Console.WriteLine(x.f1((4, 5)).ToString())
+        Console.WriteLine(x.f2((4, 5)).ToString())
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="first
+2
+3
+second
+5
+4
+")
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference08()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Test1((a:=1, b:=2), (c:=3, d:=4))
+        Test2((a:=1, b:=2), (c:=3, d:=4), Function(t) t.Item2)
+        Test2((a:=1, b:=2), (a:=3, b:=4), Function(t) t.a)
+        Test2((a:=1, b:=2), (c:=3, d:=4), Function(t) t.a)
+    End Sub
+
+    Shared Sub Test1(Of T)(x As T, y As T)
+        Console.WriteLine("test1")
+        Console.WriteLine(x)
+    End Sub
+
+    Shared Sub Test2(Of T)(x As T, y As T, f As Func(Of T, Integer))
+        Console.WriteLine("test2_1")
+        Console.WriteLine(f(x))
+    End Sub
+
+    Shared Sub Test2(Of T)(x As T, y As Object, f As Func(Of T, Integer))
+        Console.WriteLine("test2_2")
+        Console.WriteLine(f(x))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+test1
+(1, 2)
+test2_1
+2
+test2_1
+1
+test2_2
+1
+")
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference08t()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Dim ab = (a:=1, b:=2)
+        Dim cd = (c:=3, d:=4)
+
+        Test1(ab, cd)
+        Test2(ab, cd, Function(t) t.Item2)
+        Test2(ab, ab, Function(t) t.a)
+        Test2(ab, cd, Function(t) t.a)
+    End Sub
+
+    Shared Sub Test1(Of T)(x As T, y As T)
+        Console.WriteLine("test1")
+        Console.WriteLine(x)
+    End Sub
+
+    Shared Sub Test2(Of T)(x As T, y As T, f As Func(Of T, Integer))
+        Console.WriteLine("test2_1")
+        Console.WriteLine(f(x))
+    End Sub
+
+    Shared Sub Test2(Of T)(x As T, y As Object, f As Func(Of T, Integer))
+        Console.WriteLine("test2_2")
+        Console.WriteLine(f(x))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+test1
+(1, 2)
+test2_1
+2
+test2_1
+1
+test2_2
+1
+")
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference09()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Test1((a:=1, b:=2), DirectCast(1, ValueType))
+    End Sub
+
+    Shared Sub Test1(Of T)(x As T, y As T)
+        Console.Write(GetType(T))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="System.ValueType")
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference10()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Dim t = (a:=1, b:=2)
+        Test1(t, DirectCast(1, ValueType))
+    End Sub
+
+    Shared Sub Test1(Of T)(ByRef x As T, y As T)
+        Console.Write(GetType(T))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC36651: Data type(s) of the type parameter(s) in method 'Public Shared Sub Test1(Of T)(ByRef x As T, y As T)' cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.
+        Test1(t, DirectCast(1, ValueType))
+        ~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference11()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Dim ab = (a:=1, b:=2)
+        Dim cd = (c:=1, d:=2)
+
+        Test3(ab, cd)
+
+        Test1(ab, cd)
+        Test2(ab, cd)
+    End Sub
+
+    Shared Sub Test1(Of T)(ByRef x As T, y As T)
+        Console.Write(GetType(T))
+    End Sub
+
+    Shared Sub Test2(Of T)(x As T, ByRef y As T)
+        Console.Write(GetType(T))
+    End Sub
+
+    Shared Sub Test3(Of T)(ByRef x As T, ByRef y As T)
+        Console.Write(GetType(T))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+</errors>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+
+            Dim test3 = tree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().First()
+
+            Assert.Equal("Sub C.Test3(Of (System.Int32, System.Int32))(ByRef x As (System.Int32, System.Int32), ByRef y As (System.Int32, System.Int32))",
+                         model.GetSymbolInfo(test3).Symbol.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference12()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=DirectCast(1, Object)))
+        Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(c:=1, d:=2)))
+        Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(1, 2)))
+        Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(a:=1, b:=2)))
+    End Sub
+
+    Shared Sub Test1(Of T, U)(x As (T, U), y As (T, U))
+        Console.WriteLine(GetType(U))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+System.Object
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+")
+
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/14152")>
+        Public Sub Inference13()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=DirectCast(1, Object)))
+        Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(c:=1, d:=2)))
+        Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(1, 2)))
+        Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(a:=1, b:=2)))
+    End Sub
+
+    Shared Sub Test1(Of T, U)(x As (T, U)?, y As (T, U))
+        Console.WriteLine(GetType(U))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+System.Object
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+")
+            ' Compiled code fails at runtime, trying to convert the object to a ValueTuple
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference14()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(c:=1, d:=2)))
+        Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(1, 2)))
+        Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(a:=1, b:=2)))
+    End Sub
+
+    Shared Sub Test1(Of T, U As Structure)(x As (T, U)?, y As (T, U)?)
+        Console.WriteLine(GetType(U))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+")
+            ' In C#, there are errors because names matter during best type inference
+            ' This should get fixed after issue https://github.com/dotnet/roslyn/issues/13938 is fixed
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference15()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Test1((a:="1", b:=Nothing), (a:=Nothing, b:="w"), Function(x) x.z)
+    End Sub
+
+    Shared Sub Test1(Of T, U)(x As (T, U), y As (T, U), f As Func(Of (x As T, z As U), T))
+        Console.WriteLine(GetType(U))
+        Console.WriteLine(f(y))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+System.String
+w
+")
+
+        End Sub
+
+        <Fact>
+        Public Sub Inference16()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Dim x = (1, 2, 3)
+        Test(x)
+
+        Dim x1 = (1, 2, CType(3, Long))
+        Test(x1)
+
+        Dim x2 = (1, DirectCast(2, Object), CType(3, Long))
+        Test(x2)
+    End Sub
+
+    Shared Sub Test(Of T)(x As (T, T, T))
+        Console.WriteLine(GetType(T))
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+System.Int32
+System.Int64
+System.Object
+")
+
+        End Sub
+
+        <Fact>
+        Public Sub RestrictedTypes1()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Dim x = (1, 2, New ArgIterator())
+        Dim y As (x As Integer, y As Object) = (1, 2, New ArgIterator())
+        Dim z As (x As Integer, y As ArgIterator) = (1, 2, New ArgIterator())
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim x = (1, 2, New ArgIterator())
+                       ~~~~~~~~~~~~~~~~~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim y As (x As Integer, y As Object) = (1, 2, New ArgIterator())
+                                                      ~~~~~~~~~~~~~~~~~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim z As (x As Integer, y As ArgIterator) = (1, 2, New ArgIterator())
+                                ~~~~~~~~~~~~~~~~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim z As (x As Integer, y As ArgIterator) = (1, 2, New ArgIterator())
+                                                           ~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub RestrictedTypes2()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Dim y As (x As Integer, y As ArgIterator)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC42024: Unused local variable: 'y'.
+        Dim y As (x As Integer, y As ArgIterator)
+            ~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim y As (x As Integer, y As ArgIterator)
+                                ~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub ImplementInterface()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Interface I
+    Function M(value As (x As Integer, y As String)) As (Alice As Integer, Bob As String)
+    ReadOnly Property P1 As (Alice As Integer, Bob As String)
+End Interface
+Public Class C
+    Implements I
+
+    Shared Sub Main()
+        Dim c = New C()
+        Dim x = c.M(c.P1)
+        Console.Write(x)
+    End Sub
+
+    Public Function M(value As (x As Integer, y As String)) As (Alice As Integer, Bob As String) Implements I.M
+        Return value
+    End Function
+    ReadOnly Property P1 As (Alice As Integer, Bob As String) Implements I.P1
+        Get
+            Return (r:=1, s:="hello")
+        End Get
+    End Property
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(1, hello)")
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleTypeArguments()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Interface I(Of TA, TB As TA)
+   Function M(a As TA, b As TB) As (TA, TB)
+End Interface
+
+Public Class C
+    Implements I(Of (Integer, String), (Alice As Integer, Bob As String))
+
+    Shared Sub Main()
+        Dim c = New C()
+        Dim x = c.M((1, "Australia"), (2, "Brazil"))
+        Console.Write(x)
+    End Sub
+
+    Public Function M(x As (Integer, String), y As (Alice As Integer, Bob As String)) As ((Integer, String), (Alice As Integer, Bob As String)) Implements I(Of (Integer, String), (Alice As Integer, Bob As String)).M
+        Return (x, y)
+    End Function
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="((1, Australia), (2, Brazil))")
+
+        End Sub
+
+        <Fact>
+        Public Sub OverrideGenericInterfaceWithDifferentNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Interface I(Of TA, TB As TA)
+   Function M(paramA As TA, paramB As TB) As (returnA As TA, returnB As TB)
+End Interface
+
+Public Class C
+    Implements I(Of (a As Integer, b As String), (Integer, String))
+
+    Public Overridable Function M(x As ((Integer, Integer), (Integer, Integer))) As (x As (Integer, Integer), y As (Integer, Integer)) Implements I(Of (b As Integer, a As Integer), (a As Integer, b As Integer)).M
+        Throw New Exception()
+    End Function
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.DebugDll, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30149: Class 'C' must implement 'Function M(paramA As (a As Integer, b As String), paramB As (Integer, String)) As (returnA As (a As Integer, b As String), returnB As (Integer, String))' for interface 'I(Of (a As Integer, b As String), (Integer, String))'.
+    Implements I(Of (a As Integer, b As String), (Integer, String))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31035: Interface 'I(Of (b As Integer, a As Integer), (a As Integer, b As Integer))' is not implemented by this class.
+    Public Overridable Function M(x As ((Integer, Integer), (Integer, Integer))) As (x As (Integer, Integer), y As (Integer, Integer)) Implements I(Of (b As Integer, a As Integer), (a As Integer, b As Integer)).M
+                                                                                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleWithoutFeatureFlag()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Class C
+    Shared Sub Main()
+        Dim x As (Integer, Integer) = (1, 1)
+    End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.DebugDll, additionalRefs:=s_valueTupleRefs,
+parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic14))
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC36716: Visual Basic 14.0 does not support tuples.
+        Dim x As (Integer, Integer) = (1, 1)
+                 ~~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 14.0 does not support tuples.
+        Dim x As (Integer, Integer) = (1, 1)
+                                      ~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub DefaultAndFriendlyElementNames_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Class C
+    Shared Sub Main()
+        Dim v1 = M1()
+        Console.WriteLine($"{v1.Item1} {v1.Item2}")
+
+        Dim v2 = M2()
+        Console.WriteLine($"{v2.Item1} {v2.Item2} {v2.a2} {v2.b2}")
+
+        Dim v6 = M6()
+        Console.WriteLine($"{v6.Item1} {v6.Item2} {v6.item1} {v6.item2}")
+
+        Console.WriteLine(v1.ToString())
+        Console.WriteLine(v2.ToString())
+        Console.WriteLine(v6.ToString())
+    End Sub
+
+    Shared Function M1() As (Integer, Integer)
+        Return (1, 11)
+    End Function
+    Shared Function M2() As (a2 As Integer, b2 As Integer)
+        Return (2, 22)
+    End Function
+    Shared Function M6() As (item1 As Integer, item2 As Integer)
+        Return (6, 66)
+    End Function
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+1 11
+2 22 2 22
+6 66 6 66
+(1, 11)
+(2, 22)
+(6, 66)
+")
+
+            Dim c = comp.GetTypeByMetadataName("C")
+
+            Dim m1Tuple = DirectCast(c.GetMember(Of MethodSymbol)("M1").ReturnType, NamedTypeSymbol)
+            Dim m2Tuple = DirectCast(c.GetMember(Of MethodSymbol)("M2").ReturnType, NamedTypeSymbol)
+            Dim m6Tuple = DirectCast(c.GetMember(Of MethodSymbol)("M6").ReturnType, NamedTypeSymbol)
+
+            AssertTestDisplayString(m1Tuple.GetMembers(),
+                "(System.Int32, System.Int32).Item1 As System.Int32",
+                "(System.Int32, System.Int32).Item2 As System.Int32",
+                "Sub (System.Int32, System.Int32)..ctor()",
+                "Sub (System.Int32, System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32)",
+                "Function (System.Int32, System.Int32).Equals(obj As System.Object) As System.Boolean",
+                "Function (System.Int32, System.Int32).Equals(other As (System.Int32, System.Int32)) As System.Boolean",
+                "Function (System.Int32, System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
+                "Function (System.Int32, System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
+                "Function (System.Int32, System.Int32).CompareTo(other As (System.Int32, System.Int32)) As System.Int32",
+                "Function (System.Int32, System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
+                "Function (System.Int32, System.Int32).GetHashCode() As System.Int32",
+                "Function (System.Int32, System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+                "Function (System.Int32, System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+                "Function (System.Int32, System.Int32).ToString() As System.String",
+                "Function (System.Int32, System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
+                "Function (System.Int32, System.Int32).System.ITupleInternal.get_Size() As System.Int32",
+                "ReadOnly Property (System.Int32, System.Int32).System.ITupleInternal.Size As System.Int32"
+                )
+
+            Assert.Equal({
+                ".ctor",
+                ".ctor",
+                "CompareTo",
+                "Equals",
+                "Equals",
+                "GetHashCode",
+                "Item1",
+                "Item2",
+                "System.Collections.IStructuralComparable.CompareTo",
+                "System.Collections.IStructuralEquatable.Equals",
+                "System.Collections.IStructuralEquatable.GetHashCode",
+                "System.IComparable.CompareTo",
+                "System.ITupleInternal.get_Size",
+                "System.ITupleInternal.GetHashCode",
+                "System.ITupleInternal.Size",
+                "System.ITupleInternal.ToStringEnd",
+                "ToString"},
+                DirectCast(m1Tuple, TupleTypeSymbol).UnderlyingDefinitionToMemberMap.Values.Select(Function(s) s.Name).OrderBy(Function(s) s).ToArray()
+                )
+
+            AssertTestDisplayString(m2Tuple.GetMembers(),
+                "(a2 As System.Int32, b2 As System.Int32).Item1 As System.Int32",
+                "(a2 As System.Int32, b2 As System.Int32).a2 As System.Int32",
+                "(a2 As System.Int32, b2 As System.Int32).Item2 As System.Int32",
+                "(a2 As System.Int32, b2 As System.Int32).b2 As System.Int32",
+                "Sub (a2 As System.Int32, b2 As System.Int32)..ctor()",
+                "Sub (a2 As System.Int32, b2 As System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32)",
+                "Function (a2 As System.Int32, b2 As System.Int32).Equals(obj As System.Object) As System.Boolean",
+                "Function (a2 As System.Int32, b2 As System.Int32).Equals(other As (System.Int32, System.Int32)) As System.Boolean",
+                "Function (a2 As System.Int32, b2 As System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
+                "Function (a2 As System.Int32, b2 As System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
+                "Function (a2 As System.Int32, b2 As System.Int32).CompareTo(other As (System.Int32, System.Int32)) As System.Int32",
+                "Function (a2 As System.Int32, b2 As System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
+                "Function (a2 As System.Int32, b2 As System.Int32).GetHashCode() As System.Int32",
+                "Function (a2 As System.Int32, b2 As System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+                "Function (a2 As System.Int32, b2 As System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+                "Function (a2 As System.Int32, b2 As System.Int32).ToString() As System.String",
+                "Function (a2 As System.Int32, b2 As System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
+                "Function (a2 As System.Int32, b2 As System.Int32).System.ITupleInternal.get_Size() As System.Int32",
+                "ReadOnly Property (a2 As System.Int32, b2 As System.Int32).System.ITupleInternal.Size As System.Int32"
+                )
+
+            Assert.Equal({
+                ".ctor",
+                ".ctor",
+                "CompareTo",
+                "Equals",
+                "Equals",
+                "GetHashCode",
+                "Item1",
+                "Item2",
+                "System.Collections.IStructuralComparable.CompareTo",
+                "System.Collections.IStructuralEquatable.Equals",
+                "System.Collections.IStructuralEquatable.GetHashCode",
+                "System.IComparable.CompareTo",
+                "System.ITupleInternal.get_Size",
+                "System.ITupleInternal.GetHashCode",
+                "System.ITupleInternal.Size",
+                "System.ITupleInternal.ToStringEnd",
+                "ToString"},
+                DirectCast(m2Tuple, TupleTypeSymbol).UnderlyingDefinitionToMemberMap.Values.Select(Function(s) s.Name).OrderBy(Function(s) s).ToArray()
+                )
+
+            AssertTestDisplayString(m6Tuple.GetMembers(),
+                "(Item1 As System.Int32, Item2 As System.Int32).Item1 As System.Int32",
+                "(Item1 As System.Int32, Item2 As System.Int32).Item2 As System.Int32",
+                "Sub (Item1 As System.Int32, Item2 As System.Int32)..ctor()",
+                "Sub (Item1 As System.Int32, Item2 As System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32)",
+                "Function (Item1 As System.Int32, Item2 As System.Int32).Equals(obj As System.Object) As System.Boolean",
+                "Function (Item1 As System.Int32, Item2 As System.Int32).Equals(other As (System.Int32, System.Int32)) As System.Boolean",
+                "Function (Item1 As System.Int32, Item2 As System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
+                "Function (Item1 As System.Int32, Item2 As System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
+                "Function (Item1 As System.Int32, Item2 As System.Int32).CompareTo(other As (System.Int32, System.Int32)) As System.Int32",
+                "Function (Item1 As System.Int32, Item2 As System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
+                "Function (Item1 As System.Int32, Item2 As System.Int32).GetHashCode() As System.Int32",
+                "Function (Item1 As System.Int32, Item2 As System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+                "Function (Item1 As System.Int32, Item2 As System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+                "Function (Item1 As System.Int32, Item2 As System.Int32).ToString() As System.String",
+                "Function (Item1 As System.Int32, Item2 As System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
+                "Function (Item1 As System.Int32, Item2 As System.Int32).System.ITupleInternal.get_Size() As System.Int32",
+                "ReadOnly Property (Item1 As System.Int32, Item2 As System.Int32).System.ITupleInternal.Size As System.Int32"
+                )
+
+            Assert.Equal({
+                ".ctor",
+                ".ctor",
+                "CompareTo",
+                "Equals",
+                "Equals",
+                "GetHashCode",
+                "Item1",
+                "Item2",
+                "System.Collections.IStructuralComparable.CompareTo",
+                "System.Collections.IStructuralEquatable.Equals",
+                "System.Collections.IStructuralEquatable.GetHashCode",
+                "System.IComparable.CompareTo",
+                "System.ITupleInternal.get_Size",
+                "System.ITupleInternal.GetHashCode",
+                "System.ITupleInternal.Size",
+                "System.ITupleInternal.ToStringEnd",
+                "ToString"},
+                DirectCast(m6Tuple, TupleTypeSymbol).UnderlyingDefinitionToMemberMap.Values.Select(Function(s) s.Name).OrderBy(Function(s) s).ToArray()
+                )
+
+            Assert.Equal("", m1Tuple.Name)
+            Assert.Equal(SymbolKind.NamedType, m1Tuple.Kind)
+            Assert.Equal(TypeKind.Struct, m1Tuple.TypeKind)
+            Assert.False(m1Tuple.IsImplicitlyDeclared)
+            Assert.True(m1Tuple.IsTupleType)
+            Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32)", m1Tuple.TupleUnderlyingType.ToTestDisplayString())
+            Assert.Same(m1Tuple, m1Tuple.ConstructedFrom)
+            Assert.Same(m1Tuple, m1Tuple.OriginalDefinition)
+            AssertTupleTypeEquality(m1Tuple)
+            Assert.Same(m1Tuple.TupleUnderlyingType.ContainingSymbol, m1Tuple.ContainingSymbol)
+            Assert.Null(m1Tuple.EnumUnderlyingType)
+
+            Assert.Equal({
+                "Item1",
+                "Item2",
+                ".ctor",
+                "Equals",
+                "System.Collections.IStructuralEquatable.Equals",
+                "System.IComparable.CompareTo",
+                "CompareTo",
+                "System.Collections.IStructuralComparable.CompareTo",
+                "GetHashCode",
+                "System.Collections.IStructuralEquatable.GetHashCode",
+                "System.ITupleInternal.GetHashCode",
+                "ToString",
+                "System.ITupleInternal.ToStringEnd",
+                "System.ITupleInternal.get_Size",
+                "System.ITupleInternal.Size"},
+                m1Tuple.MemberNames.ToArray())
+
+            Assert.Equal({
+                "Item1",
+                "a2",
+                "Item2",
+                "b2",
+                ".ctor",
+                "Equals",
+                "System.Collections.IStructuralEquatable.Equals",
+                "System.IComparable.CompareTo",
+                "CompareTo",
+                "System.Collections.IStructuralComparable.CompareTo",
+                "GetHashCode",
+                "System.Collections.IStructuralEquatable.GetHashCode",
+                "System.ITupleInternal.GetHashCode",
+                "ToString",
+                "System.ITupleInternal.ToStringEnd",
+                "System.ITupleInternal.get_Size",
+                "System.ITupleInternal.Size"},
+                m2Tuple.MemberNames.ToArray())
+
+            Assert.Equal(0, m1Tuple.Arity)
+            Assert.True(m1Tuple.TypeParameters.IsEmpty)
+            Assert.Equal("System.ValueType", m1Tuple.BaseType.ToTestDisplayString())
+            Assert.False(m1Tuple.HasTypeArgumentsCustomModifiers)
+            Assert.False(m1Tuple.IsComImport)
+            Assert.True(m1Tuple.TypeArgumentsNoUseSiteDiagnostics.IsEmpty)
+            Assert.True(m1Tuple.GetAttributes().IsEmpty)
+            Assert.Equal("(a2 As System.Int32, b2 As System.Int32).Item1 As System.Int32", m2Tuple.GetMembers("Item1").Single().ToTestDisplayString())
+            Assert.Equal("(a2 As System.Int32, b2 As System.Int32).a2 As System.Int32", m2Tuple.GetMembers("a2").Single().ToTestDisplayString())
+            Assert.True(m1Tuple.GetTypeMembers().IsEmpty)
+            Assert.True(m1Tuple.GetTypeMembers("C9").IsEmpty)
+            Assert.True(m1Tuple.GetTypeMembers("C9", 0).IsEmpty)
+            Assert.Equal(6, m1Tuple.Interfaces.Length)
+
+            Assert.True(m1Tuple.GetTypeMembersUnordered().IsEmpty)
+            Assert.Equal(1, m1Tuple.Locations.Length)
+            Assert.Equal("(Integer, Integer)", m1Tuple.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.Equal("(a2 As Integer, b2 As Integer)", m2Tuple.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+
+            AssertTupleTypeEquality(m2Tuple)
+            AssertTupleTypeEquality(m6Tuple)
+
+            Assert.False(m1Tuple.Equals(m2Tuple))
+            Assert.False(m1Tuple.Equals(m6Tuple))
+            Assert.False(m6Tuple.Equals(m2Tuple))
+            AssertTupleTypeMembersEquality(m1Tuple, m2Tuple)
+            AssertTupleTypeMembersEquality(m1Tuple, m6Tuple)
+            AssertTupleTypeMembersEquality(m2Tuple, m6Tuple)
+
+            Dim m1Item1 = DirectCast(m1Tuple.GetMembers()(0), FieldSymbol)
+            Dim m2Item1 = DirectCast(m2Tuple.GetMembers()(0), FieldSymbol)
+            Dim m2a2 = DirectCast(m2Tuple.GetMembers()(1), FieldSymbol)
+
+            AssertNonvirtualTupleElementField(m1Item1)
+            AssertNonvirtualTupleElementField(m2Item1)
+            AssertVirtualTupleElementField(m2a2)
+
+            Assert.True(m1Item1.IsTupleField)
+            Assert.Same(m1Item1, m1Item1.OriginalDefinition)
+            Assert.True(m1Item1.Equals(m1Item1))
+            Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32).Item1 As System.Int32", m1Item1.TupleUnderlyingField.ToTestDisplayString())
+            Assert.Null(m1Item1.AssociatedSymbol)
+            Assert.Same(m1Tuple, m1Item1.ContainingSymbol)
+            Assert.Same(m1Tuple.TupleUnderlyingType, m1Item1.TupleUnderlyingField.ContainingSymbol)
+            Assert.True(m1Item1.CustomModifiers.IsEmpty)
+            Assert.True(m1Item1.GetAttributes().IsEmpty)
+            Assert.Null(m1Item1.GetUseSiteErrorInfo())
+            Assert.False(m1Item1.Locations.IsEmpty)
+            Assert.True(m1Item1.DeclaringSyntaxReferences.IsEmpty)
+            Assert.Equal("Item1", m1Item1.TupleUnderlyingField.Name)
+            Assert.True(m1Item1.IsImplicitlyDeclared)
+            Assert.Null(m1Item1.TypeLayoutOffset)
+
+            Assert.True(m2Item1.IsTupleField)
+            Assert.Same(m2Item1, m2Item1.OriginalDefinition)
+            Assert.True(m2Item1.Equals(m2Item1))
+            Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32).Item1 As System.Int32", m2Item1.TupleUnderlyingField.ToTestDisplayString())
+            Assert.Null(m2Item1.AssociatedSymbol)
+            Assert.Same(m2Tuple, m2Item1.ContainingSymbol)
+            Assert.Same(m2Tuple.TupleUnderlyingType, m2Item1.TupleUnderlyingField.ContainingSymbol)
+            Assert.True(m2Item1.CustomModifiers.IsEmpty)
+            Assert.True(m2Item1.GetAttributes().IsEmpty)
+            Assert.Null(m2Item1.GetUseSiteErrorInfo())
+            Assert.False(m2Item1.Locations.IsEmpty)
+            Assert.Equal("Item1", m2Item1.Name)
+            Assert.Equal("Item1", m2Item1.TupleUnderlyingField.Name)
+            Assert.NotEqual(m2Item1.Locations.Single(), m2Item1.TupleUnderlyingField.Locations.Single())
+            Assert.Equal("MetadataFile(System.ValueTuple.dll)", m2Item1.TupleUnderlyingField.Locations.Single().ToString())
+            Assert.Equal("SourceFile(a.vb[589..591))", m2Item1.Locations.Single().ToString())
+            Assert.True(m2Item1.IsImplicitlyDeclared)
+            Assert.Null(m2Item1.TypeLayoutOffset)
+
+            Assert.True(m2a2.IsTupleField)
+            Assert.Same(m2a2, m2a2.OriginalDefinition)
+            Assert.True(m2a2.Equals(m2a2))
+            Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32).Item1 As System.Int32", m2a2.TupleUnderlyingField.ToTestDisplayString())
+            Assert.Null(m2a2.AssociatedSymbol)
+            Assert.Same(m2Tuple, m2a2.ContainingSymbol)
+            Assert.Same(m2Tuple.TupleUnderlyingType, m2a2.TupleUnderlyingField.ContainingSymbol)
+            Assert.True(m2a2.CustomModifiers.IsEmpty)
+            Assert.True(m2a2.GetAttributes().IsEmpty)
+            Assert.Null(m2a2.GetUseSiteErrorInfo())
+            Assert.False(m2a2.Locations.IsEmpty)
+            Assert.Equal("a2 As Integer", m2a2.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.Equal("Item1", m2a2.TupleUnderlyingField.Name)
+            Assert.False(m2a2.IsImplicitlyDeclared)
+            Assert.Null(m2a2.TypeLayoutOffset)
+        End Sub
+
+        Private Sub AssertTupleTypeEquality(tuple As NamedTypeSymbol)
+            Assert.True(tuple.Equals(tuple))
+
+            Dim members = tuple.GetMembers()
+
+            For i = 0 To members.Length - 1
+                For j = 0 To members.Length - 1
+                    If i <> j Then
+                        Assert.NotSame(members(i), members(j))
+                        Assert.False(members(i).Equals(members(j)))
+                        Assert.False(members(j).Equals(members(i)))
+                    End If
+                Next
+            Next
+
+            Dim underlyingMembers = tuple.TupleUnderlyingType.GetMembers()
+
+            For Each m In members
+                Assert.False(underlyingMembers.Any(Function(u) u.Equals(m)))
+                Assert.False(underlyingMembers.Any(Function(u) m.Equals(u)))
+            Next
+
+        End Sub
+
+        Private Sub AssertTupleTypeMembersEquality(tuple1 As NamedTypeSymbol, tuple2 As NamedTypeSymbol)
+            Assert.NotSame(tuple1, tuple2)
+
+            If tuple1.Equals(tuple2) Then
+                Assert.True(tuple2.Equals(tuple1))
+                Dim members1 = tuple1.GetMembers()
+                Dim members2 = tuple2.GetMembers()
+                Assert.Equal(members1.Length, members2.Length)
+
+                For i = 0 To members1.Length - 1
+                    Assert.NotSame(members1(i), members2(i))
+                    Assert.True(members1(i).Equals(members2(i)))
+                    Assert.True(members2(i).Equals(members1(i)))
+                    Assert.Equal(members2(i).GetHashCode(), members1(i).GetHashCode())
+
+                    If members1(i).Kind = SymbolKind.Method Then
+                        Dim parameters1 = DirectCast(members1(i), MethodSymbol).Parameters
+                        Dim parameters2 = DirectCast(members2(i), MethodSymbol).Parameters
+                        AssertTupleMembersParametersEquality(parameters1, parameters2)
+
+                        Dim typeParameters1 = DirectCast(members1(i), MethodSymbol).TypeParameters
+                        Dim typeParameters2 = DirectCast(members2(i), MethodSymbol).TypeParameters
+                        Assert.Equal(typeParameters1.Length, typeParameters2.Length)
+                        For j = 0 To typeParameters1.Length - 1
+                            Assert.NotSame(typeParameters1(j), typeParameters2(j))
+                            Assert.True(typeParameters1(j).Equals(typeParameters2(j)))
+                            Assert.True(typeParameters2(j).Equals(typeParameters1(j)))
+                            Assert.Equal(typeParameters2(j).GetHashCode(), typeParameters1(j).GetHashCode())
+                        Next
+                    ElseIf members1(i).Kind = SymbolKind.Property Then
+                        Dim parameters1 = DirectCast(members1(i), PropertySymbol).Parameters
+                        Dim parameters2 = DirectCast(members2(i), PropertySymbol).Parameters
+                        AssertTupleMembersParametersEquality(parameters1, parameters2)
+                    End If
+                Next
+
+                For i = 0 To members1.Length - 1
+                    For j = 0 To members2.Length
+                        If i <> j Then
+                            Assert.NotSame(members1(i), members2(j))
+                            Assert.False(members1(i).Equals(members2(j)))
+                        End If
+                    Next
+                Next
+            Else
+                Assert.False(tuple2.Equals(tuple1))
+                Dim members1 = tuple1.GetMembers()
+                Dim members2 = tuple2.GetMembers()
+                For Each m In members1
+                    Assert.False(members2.Any(Function(u) u.Equals(m)))
+                    Assert.False(members2.Any(Function(u) m.Equals(u)))
+                Next
+            End If
+        End Sub
+
+        Private Sub AssertTupleMembersParametersEquality(parameters1 As ImmutableArray(Of ParameterSymbol), parameters2 As ImmutableArray(Of ParameterSymbol))
+            Assert.Equal(parameters1.Length, parameters2.Length)
+            For j = 0 To parameters1.Length - 1
+                Assert.NotSame(parameters1(j), parameters2(j))
+                Assert.True(parameters1(j).Equals(parameters2(j)))
+                Assert.True(parameters2(j).Equals(parameters1(j)))
+                Assert.Equal(parameters2(j).GetHashCode(), parameters1(j).GetHashCode())
+            Next
+        End Sub
+
+        Private Sub AssertVirtualTupleElementField(sym As FieldSymbol)
+            Assert.True(sym.IsTupleField)
+            Assert.True(sym.IsVirtualTupleField)
+
+            ' it is an element so must have nonnegative index
+            Assert.True(sym.TupleElementIndex >= 0)
+        End Sub
+
+        Private Sub AssertNonvirtualTupleElementField(sym As FieldSymbol)
+            Assert.True(sym.IsTupleField)
+            Assert.False(sym.IsVirtualTupleField)
+
+            ' it is an element so must have nonnegative index
+            Assert.True(sym.TupleElementIndex >= 0)
+
+            ' if it was 8th or after, it would be virtual
+            Assert.True(sym.TupleElementIndex < TupleTypeSymbol.RestPosition - 1)
+        End Sub
+
+        Private Shared Sub AssertTestDisplayString(symbols As ImmutableArray(Of Symbol), ParamArray baseLine As String())
+            AssertEx.Equal(symbols.Select(Function(s) s.ToTestDisplayString()), baseLine)
+        End Sub
+
+        <Fact>
+        Public Sub DefaultAndFriendlyElementNames_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Class C
+    Shared Sub Main()
+        Dim v3 = M3()
+        Console.WriteLine(v3.Item1)
+        Console.WriteLine(v3.Item2)
+        Console.WriteLine(v3.Item3)
+        Console.WriteLine(v3.Item4)
+        Console.WriteLine(v3.Item5)
+        Console.WriteLine(v3.Item6)
+        Console.WriteLine(v3.Item7)
+        Console.WriteLine(v3.Item8)
+        Console.WriteLine(v3.Item9)
+        Console.WriteLine(v3.Rest.Item1)
+        Console.WriteLine(v3.Rest.Item2)
+
+        Console.WriteLine(v3.ToString())
+    End Sub
+
+    Shared Function M3() As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)
+        Return (31, 32, 33, 34, 35, 36, 37, 38, 39)
+    End Function
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+31
+32
+33
+34
+35
+36
+37
+38
+39
+38
+39
+(31, 32, 33, 34, 35, 36, 37, 38, 39)
+")
+
+            Dim c = comp.GetTypeByMetadataName("C")
+
+            Dim m3Tuple = DirectCast(c.GetMember(Of MethodSymbol)("M3").ReturnType, NamedTypeSymbol)
+
+            AssertTestDisplayString(m3Tuple.GetMembers(),
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item1 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item2 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item3 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item4 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item5 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item6 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item7 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Rest As (System.Int32, System.Int32)",
+"Sub (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor()",
+"Sub (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32, item3 As System.Int32, item4 As System.Int32, item5 As System.Int32, item6 As System.Int32, item7 As System.Int32, rest As (System.Int32, System.Int32))",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Equals(obj As System.Object) As System.Boolean",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Equals(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32, System.Int32))) As System.Boolean",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).CompareTo(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32, System.Int32))) As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).GetHashCode() As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).ToString() As System.String",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.get_Size() As System.Int32",
+"ReadOnly Property (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.Size As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item9 As System.Int32"
+                )
+
+            Dim m3Item8 = DirectCast(m3Tuple.GetMembers("Item8").Single(), FieldSymbol)
+
+            AssertVirtualTupleElementField(m3Item8)
+
+            Assert.True(m3Item8.IsTupleField)
+            Assert.Same(m3Item8, m3Item8.OriginalDefinition)
+            Assert.True(m3Item8.Equals(m3Item8))
+            Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32).Item1 As System.Int32", m3Item8.TupleUnderlyingField.ToTestDisplayString())
+            Assert.Null(m3Item8.AssociatedSymbol)
+            Assert.Same(m3Tuple, m3Item8.ContainingSymbol)
+            Assert.NotEqual(m3Tuple.TupleUnderlyingType, m3Item8.TupleUnderlyingField.ContainingSymbol)
+            Assert.True(m3Item8.CustomModifiers.IsEmpty)
+            Assert.True(m3Item8.GetAttributes().IsEmpty)
+            Assert.Null(m3Item8.GetUseSiteErrorInfo())
+            Assert.False(m3Item8.Locations.IsEmpty)
+            Assert.True(m3Item8.DeclaringSyntaxReferences.IsEmpty)
+            Assert.Equal("Item1", m3Item8.TupleUnderlyingField.Name)
+            Assert.True(m3Item8.IsImplicitlyDeclared)
+            Assert.Null(m3Item8.TypeLayoutOffset)
+
+            Dim m3TupleRestTuple = DirectCast(DirectCast(m3Tuple.GetMembers("Rest").Single(), FieldSymbol).Type, NamedTypeSymbol)
+            AssertTestDisplayString(m3TupleRestTuple.GetMembers(),
+                "(System.Int32, System.Int32).Item1 As System.Int32",
+                "(System.Int32, System.Int32).Item2 As System.Int32",
+                "Sub (System.Int32, System.Int32)..ctor()",
+                "Sub (System.Int32, System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32)",
+                "Function (System.Int32, System.Int32).Equals(obj As System.Object) As System.Boolean",
+                "Function (System.Int32, System.Int32).Equals(other As (System.Int32, System.Int32)) As System.Boolean",
+                "Function (System.Int32, System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
+                "Function (System.Int32, System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
+                "Function (System.Int32, System.Int32).CompareTo(other As (System.Int32, System.Int32)) As System.Int32",
+                "Function (System.Int32, System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
+                "Function (System.Int32, System.Int32).GetHashCode() As System.Int32",
+                "Function (System.Int32, System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+                "Function (System.Int32, System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+                "Function (System.Int32, System.Int32).ToString() As System.String",
+                "Function (System.Int32, System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
+                "Function (System.Int32, System.Int32).System.ITupleInternal.get_Size() As System.Int32",
+                "ReadOnly Property (System.Int32, System.Int32).System.ITupleInternal.Size As System.Int32"
+                )
+
+            Assert.True(m3TupleRestTuple.IsTupleType)
+            AssertTupleTypeEquality(m3TupleRestTuple)
+            Assert.True(m3TupleRestTuple.Locations.IsEmpty)
+            Assert.True(m3TupleRestTuple.DeclaringSyntaxReferences.IsEmpty)
+
+            For Each m In m3TupleRestTuple.GetMembers().OfType(Of FieldSymbol)()
+                Assert.True(m.Locations.IsEmpty)
+            Next
+
+        End Sub
+
+        <Fact>
+        Public Sub DefaultAndFriendlyElementNames_03()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Class C
+    Shared Sub Main()
+        Dim v4 = M4()
+        Console.WriteLine(v4.Item1)
+        Console.WriteLine(v4.Item2)
+        Console.WriteLine(v4.Item3)
+        Console.WriteLine(v4.Item4)
+        Console.WriteLine(v4.Item5)
+        Console.WriteLine(v4.Item6)
+        Console.WriteLine(v4.Item7)
+        Console.WriteLine(v4.Item8)
+        Console.WriteLine(v4.Item9)
+        Console.WriteLine(v4.Rest.Item1)
+        Console.WriteLine(v4.Rest.Item2)
+
+        Console.WriteLine(v4.a4)
+        Console.WriteLine(v4.b4)
+        Console.WriteLine(v4.c4)
+        Console.WriteLine(v4.d4)
+        Console.WriteLine(v4.e4)
+        Console.WriteLine(v4.f4)
+        Console.WriteLine(v4.g4)
+        Console.WriteLine(v4.h4)
+        Console.WriteLine(v4.i4)
+
+        Console.WriteLine(v4.ToString())
+    End Sub
+
+    Shared Function M4() As (a4 As Integer, b4 As Integer, c4 As Integer, d4 As Integer, e4 As Integer, f4 As Integer, g4 As Integer, h4 As Integer, i4 As Integer)
+        Return (41, 42, 43, 44, 45, 46, 47, 48, 49)
+    End Function
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+41
+42
+43
+44
+45
+46
+47
+48
+49
+48
+49
+41
+42
+43
+44
+45
+46
+47
+48
+49
+(41, 42, 43, 44, 45, 46, 47, 48, 49)
+")
+
+            Dim c = comp.GetTypeByMetadataName("C")
+
+            Dim m4Tuple = DirectCast(c.GetMember(Of MethodSymbol)("M4").ReturnType, NamedTypeSymbol)
+            AssertTupleTypeEquality(m4Tuple)
+
+            AssertTestDisplayString(m4Tuple.GetMembers(),
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).Item1 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).a4 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).Item2 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).b4 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).Item3 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).c4 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).Item4 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).d4 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).Item5 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).e4 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).Item6 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).f4 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).Item7 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).g4 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).Rest As (System.Int32, System.Int32)",
+"Sub (a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32)..ctor()",
+"Sub (a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32, item3 As System.Int32, item4 As System.Int32, item5 As System.Int32, item6 As System.Int32, item7 As System.Int32, rest As (System.Int32, System.Int32))",
+"Function (a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).Equals(obj As System.Object) As System.Boolean",
+"Function (a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).Equals(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32, System.Int32))) As System.Boolean",
+"Function (a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
+"Function (a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
+"Function (a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).CompareTo(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32, System.Int32))) As System.Int32",
+"Function (a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
+"Function (a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).GetHashCode() As System.Int32",
+"Function (a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).ToString() As System.String",
+"Function (a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
+"Function (a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).System.ITupleInternal.get_Size() As System.Int32",
+"ReadOnly Property (a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).System.ITupleInternal.Size As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).Item8 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).h4 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).Item9 As System.Int32",
+"(a4 As System.Int32, b4 As System.Int32, c4 As System.Int32, d4 As System.Int32, e4 As System.Int32, f4 As System.Int32, g4 As System.Int32, h4 As System.Int32, i4 As System.Int32).i4 As System.Int32"
+)
+
+            Dim m4Item8 = DirectCast(m4Tuple.GetMembers("Item8").Single(), FieldSymbol)
+
+            AssertVirtualTupleElementField(m4Item8)
+
+            Assert.True(m4Item8.IsTupleField)
+            Assert.Same(m4Item8, m4Item8.OriginalDefinition)
+            Assert.True(m4Item8.Equals(m4Item8))
+            Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32).Item1 As System.Int32", m4Item8.TupleUnderlyingField.ToTestDisplayString())
+            Assert.Null(m4Item8.AssociatedSymbol)
+            Assert.Same(m4Tuple, m4Item8.ContainingSymbol)
+            Assert.NotEqual(m4Tuple.TupleUnderlyingType, m4Item8.TupleUnderlyingField.ContainingSymbol)
+            Assert.True(m4Item8.CustomModifiers.IsEmpty)
+            Assert.True(m4Item8.GetAttributes().IsEmpty)
+            Assert.Null(m4Item8.GetUseSiteErrorInfo())
+            Assert.False(m4Item8.Locations.IsEmpty)
+            Assert.Equal("Item1", m4Item8.TupleUnderlyingField.Name)
+            Assert.True(m4Item8.IsImplicitlyDeclared)
+            Assert.Null(m4Item8.TypeLayoutOffset)
+
+            Dim m4h4 = DirectCast(m4Tuple.GetMembers("h4").Single(), FieldSymbol)
+
+            AssertVirtualTupleElementField(m4h4)
+
+            Assert.True(m4h4.IsTupleField)
+            Assert.Same(m4h4, m4h4.OriginalDefinition)
+            Assert.True(m4h4.Equals(m4h4))
+            Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32).Item1 As System.Int32", m4h4.TupleUnderlyingField.ToTestDisplayString())
+            Assert.Null(m4h4.AssociatedSymbol)
+            Assert.Same(m4Tuple, m4h4.ContainingSymbol)
+            Assert.NotEqual(m4Tuple.TupleUnderlyingType, m4h4.TupleUnderlyingField.ContainingSymbol)
+            Assert.True(m4h4.CustomModifiers.IsEmpty)
+            Assert.True(m4h4.GetAttributes().IsEmpty)
+            Assert.Null(m4h4.GetUseSiteErrorInfo())
+            Assert.False(m4h4.Locations.IsEmpty)
+            Assert.Equal("Item1", m4h4.TupleUnderlyingField.Name)
+            Assert.False(m4h4.IsImplicitlyDeclared)
+            Assert.Null(m4h4.TypeLayoutOffset)
+
+            Dim m4TupleRestTuple = DirectCast(DirectCast(m4Tuple.GetMembers("Rest").Single(), FieldSymbol).Type, NamedTypeSymbol)
+            AssertTestDisplayString(m4TupleRestTuple.GetMembers(),
+"(System.Int32, System.Int32).Item1 As System.Int32",
+"(System.Int32, System.Int32).Item2 As System.Int32",
+"Sub (System.Int32, System.Int32)..ctor()",
+"Sub (System.Int32, System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32)",
+"Function (System.Int32, System.Int32).Equals(obj As System.Object) As System.Boolean",
+"Function (System.Int32, System.Int32).Equals(other As (System.Int32, System.Int32)) As System.Boolean",
+"Function (System.Int32, System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
+"Function (System.Int32, System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
+"Function (System.Int32, System.Int32).CompareTo(other As (System.Int32, System.Int32)) As System.Int32",
+"Function (System.Int32, System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
+"Function (System.Int32, System.Int32).GetHashCode() As System.Int32",
+"Function (System.Int32, System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (System.Int32, System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (System.Int32, System.Int32).ToString() As System.String",
+"Function (System.Int32, System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
+"Function (System.Int32, System.Int32).System.ITupleInternal.get_Size() As System.Int32",
+"ReadOnly Property (System.Int32, System.Int32).System.ITupleInternal.Size As System.Int32"
+ )
+
+            For Each m In m4TupleRestTuple.GetMembers().OfType(Of FieldSymbol)()
+                Assert.True(m.Locations.IsEmpty)
+            Next
+
+        End Sub
+
+        <Fact>
+        Public Sub DefaultAndFriendlyElementNames_04()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Class C
+    Shared Sub Main()
+        Dim v4 = M4()
+        Console.WriteLine(v4.Rest.a4)
+        Console.WriteLine(v4.Rest.b4)
+        Console.WriteLine(v4.Rest.c4)
+        Console.WriteLine(v4.Rest.d4)
+        Console.WriteLine(v4.Rest.e4)
+        Console.WriteLine(v4.Rest.f4)
+        Console.WriteLine(v4.Rest.g4)
+        Console.WriteLine(v4.Rest.h4)
+        Console.WriteLine(v4.Rest.i4)
+
+        Console.WriteLine(v4.ToString())
+    End Sub
+
+    Shared Function M4() As (a4 As Integer, b4 As Integer, c4 As Integer, d4 As Integer, e4 As Integer, f4 As Integer, g4 As Integer, h4 As Integer, i4 As Integer)
+        Return (41, 42, 43, 44, 45, 46, 47, 48, 49)
+    End Function
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30456: 'a4' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v4.Rest.a4)
+                          ~~~~~~~~~~
+BC30456: 'b4' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v4.Rest.b4)
+                          ~~~~~~~~~~
+BC30456: 'c4' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v4.Rest.c4)
+                          ~~~~~~~~~~
+BC30456: 'd4' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v4.Rest.d4)
+                          ~~~~~~~~~~
+BC30456: 'e4' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v4.Rest.e4)
+                          ~~~~~~~~~~
+BC30456: 'f4' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v4.Rest.f4)
+                          ~~~~~~~~~~
+BC30456: 'g4' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v4.Rest.g4)
+                          ~~~~~~~~~~
+BC30456: 'h4' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v4.Rest.h4)
+                          ~~~~~~~~~~
+BC30456: 'i4' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v4.Rest.i4)
+                          ~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub DefaultAndFriendlyElementNames_05()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Class C
+    Shared Sub Main()
+        Dim v5 = M5()
+        Console.WriteLine(v5.Item1)
+        Console.WriteLine(v5.Item2)
+        Console.WriteLine(v5.Item3)
+        Console.WriteLine(v5.Item4)
+        Console.WriteLine(v5.Item5)
+        Console.WriteLine(v5.Item6)
+        Console.WriteLine(v5.Item7)
+        Console.WriteLine(v5.Item8)
+        Console.WriteLine(v5.Item9)
+        Console.WriteLine(v5.Item10)
+        Console.WriteLine(v5.Item11)
+        Console.WriteLine(v5.Item12)
+        Console.WriteLine(v5.Item13)
+        Console.WriteLine(v5.Item14)
+        Console.WriteLine(v5.Item15)
+        Console.WriteLine(v5.Item16)
+        Console.WriteLine(v5.Rest.Item1)
+        Console.WriteLine(v5.Rest.Item2)
+        Console.WriteLine(v5.Rest.Item3)
+        Console.WriteLine(v5.Rest.Item4)
+        Console.WriteLine(v5.Rest.Item5)
+        Console.WriteLine(v5.Rest.Item6)
+        Console.WriteLine(v5.Rest.Item7)
+        Console.WriteLine(v5.Rest.Item8)
+        Console.WriteLine(v5.Rest.Item9)
+        Console.WriteLine(v5.Rest.Rest.Item1)
+        Console.WriteLine(v5.Rest.Rest.Item2)
+
+        Console.WriteLine(v5.ToString())
+    End Sub
+
+    Shared Function M5() As (Item1 As Integer, Item2 As Integer, Item3 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Item8 As Integer,
+        Item9 As Integer, Item10 As Integer, Item11 As Integer, Item12 As Integer, Item13 As Integer, Item14 As Integer, Item15 As Integer, Item16 As Integer)
+        Return (501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516)
+    End Function
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+501
+502
+503
+504
+505
+506
+507
+508
+509
+510
+511
+512
+513
+514
+515
+516
+508
+509
+510
+511
+512
+513
+514
+515
+516
+515
+516
+(501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516)
+")
+
+            Dim c = comp.GetTypeByMetadataName("C")
+
+            Dim m5Tuple = DirectCast(c.GetMember(Of MethodSymbol)("M5").ReturnType, NamedTypeSymbol)
+            AssertTupleTypeEquality(m5Tuple)
+
+            AssertTestDisplayString(m5Tuple.GetMembers(),
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item1 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item2 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item3 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item4 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item5 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item6 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item7 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Rest As (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)",
+"Sub (Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32)..ctor()",
+"Sub (Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32, item3 As System.Int32, item4 As System.Int32, item5 As System.Int32, item6 As System.Int32, item7 As System.Int32, rest As (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32))",
+"Function (Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Equals(obj As System.Object) As System.Boolean",
+"Function (Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Equals(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32))) As System.Boolean",
+"Function (Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
+"Function (Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
+"Function (Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).CompareTo(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32))) As System.Int32",
+"Function (Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
+"Function (Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).GetHashCode() As System.Int32",
+"Function (Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).ToString() As System.String",
+"Function (Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
+"Function (Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).System.ITupleInternal.get_Size() As System.Int32",
+"ReadOnly Property (Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).System.ITupleInternal.Size As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item8 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item9 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item10 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item11 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item12 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item13 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item14 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item15 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32, Item9 As System.Int32, Item10 As System.Int32, Item11 As System.Int32, Item12 As System.Int32, Item13 As System.Int32, Item14 As System.Int32, Item15 As System.Int32, Item16 As System.Int32).Item16 As System.Int32"
+)
+
+            Dim m5Item8 = DirectCast(m5Tuple.GetMembers("Item8").Single(), FieldSymbol)
+
+            AssertVirtualTupleElementField(m5Item8)
+
+            Assert.True(m5Item8.IsTupleField)
+            Assert.Same(m5Item8, m5Item8.OriginalDefinition)
+            Assert.True(m5Item8.Equals(m5Item8))
+            Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32, System.Int32)).Item1 As System.Int32", m5Item8.TupleUnderlyingField.ToTestDisplayString())
+            Assert.Null(m5Item8.AssociatedSymbol)
+            Assert.Same(m5Tuple, m5Item8.ContainingSymbol)
+            Assert.NotEqual(m5Tuple.TupleUnderlyingType, m5Item8.TupleUnderlyingField.ContainingSymbol)
+            Assert.True(m5Item8.CustomModifiers.IsEmpty)
+            Assert.True(m5Item8.GetAttributes().IsEmpty)
+            Assert.Null(m5Item8.GetUseSiteErrorInfo())
+            Assert.False(m5Item8.Locations.IsEmpty)
+            Assert.Equal("Item8 As Integer", m5Item8.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.Equal("Item1", m5Item8.TupleUnderlyingField.Name)
+            Assert.False(m5Item8.IsImplicitlyDeclared)
+            Assert.Null(m5Item8.TypeLayoutOffset)
+
+            Dim m5TupleRestTuple = DirectCast(DirectCast(m5Tuple.GetMembers("Rest").Single(), FieldSymbol).Type, NamedTypeSymbol)
+            AssertVirtualTupleElementField(m5Item8)
+
+            AssertTestDisplayString(m5TupleRestTuple.GetMembers(),
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item1 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item2 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item3 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item4 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item5 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item6 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item7 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Rest As (System.Int32, System.Int32)",
+"Sub (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor()",
+"Sub (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32, item3 As System.Int32, item4 As System.Int32, item5 As System.Int32, item6 As System.Int32, item7 As System.Int32, rest As (System.Int32, System.Int32))",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Equals(obj As System.Object) As System.Boolean",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Equals(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32, System.Int32))) As System.Boolean",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).CompareTo(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32, System.Int32))) As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).GetHashCode() As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).ToString() As System.String",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.get_Size() As System.Int32",
+"ReadOnly Property (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.Size As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item9 As System.Int32"
+)
+
+            For Each m In m5TupleRestTuple.GetMembers().OfType(Of FieldSymbol)()
+                If m.Name <> "Rest" Then
+                    Assert.True(m.Locations.IsEmpty)
+                Else
+                    Assert.Equal("Rest", m.Name)
+                End If
+            Next
+
+            Dim m5TupleRestTupleRestTuple = DirectCast(DirectCast(m5TupleRestTuple.GetMembers("Rest").Single(), FieldSymbol).Type, NamedTypeSymbol)
+            AssertTupleTypeEquality(m5TupleRestTupleRestTuple)
+
+            AssertTestDisplayString(m5TupleRestTuple.GetMembers(),
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item1 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item2 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item3 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item4 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item5 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item6 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item7 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Rest As (System.Int32, System.Int32)",
+"Sub (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor()",
+"Sub (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32, item3 As System.Int32, item4 As System.Int32, item5 As System.Int32, item6 As System.Int32, item7 As System.Int32, rest As (System.Int32, System.Int32))",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Equals(obj As System.Object) As System.Boolean",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Equals(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32, System.Int32))) As System.Boolean",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).CompareTo(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32, System.Int32))) As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).GetHashCode() As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).ToString() As System.String",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
+"Function (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.get_Size() As System.Int32",
+"ReadOnly Property (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.Size As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8 As System.Int32",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item9 As System.Int32"
+)
+
+            For Each m In m5TupleRestTupleRestTuple.GetMembers().OfType(Of FieldSymbol)()
+                Assert.True(m.Locations.IsEmpty)
+            Next
+
+        End Sub
+
+        <Fact>
+        Public Sub DefaultAndFriendlyElementNames_06()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Class C
+    Shared Sub Main()
+        Dim v5 = M5()
+        Console.WriteLine(v5.Rest.Item10)
+        Console.WriteLine(v5.Rest.Item11)
+        Console.WriteLine(v5.Rest.Item12)
+        Console.WriteLine(v5.Rest.Item13)
+        Console.WriteLine(v5.Rest.Item14)
+        Console.WriteLine(v5.Rest.Item15)
+        Console.WriteLine(v5.Rest.Item16)
+
+        Console.WriteLine(v5.Rest.Rest.Item3)
+        Console.WriteLine(v5.Rest.Rest.Item4)
+        Console.WriteLine(v5.Rest.Rest.Item5)
+        Console.WriteLine(v5.Rest.Rest.Item6)
+        Console.WriteLine(v5.Rest.Rest.Item7)
+        Console.WriteLine(v5.Rest.Rest.Item8)
+        Console.WriteLine(v5.Rest.Rest.Item9)
+        Console.WriteLine(v5.Rest.Rest.Item10)
+        Console.WriteLine(v5.Rest.Rest.Item11)
+        Console.WriteLine(v5.Rest.Rest.Item12)
+        Console.WriteLine(v5.Rest.Rest.Item13)
+        Console.WriteLine(v5.Rest.Rest.Item14)
+        Console.WriteLine(v5.Rest.Rest.Item15)
+        Console.WriteLine(v5.Rest.Rest.Item16)
+    End Sub
+
+    Shared Function M5() As (Item1 As Integer, Item2 As Integer, Item3 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Item8 As Integer,
+        Item9 As Integer, Item10 As Integer, Item11 As Integer, Item12 As Integer, Item13 As Integer, Item14 As Integer, Item15 As Integer, Item16 As Integer)
+        Return (501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516)
+    End Function
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30456: 'Item10' is not a member of '(Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Item10)
+                          ~~~~~~~~~~~~~~
+BC30456: 'Item11' is not a member of '(Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Item11)
+                          ~~~~~~~~~~~~~~
+BC30456: 'Item12' is not a member of '(Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Item12)
+                          ~~~~~~~~~~~~~~
+BC30456: 'Item13' is not a member of '(Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Item13)
+                          ~~~~~~~~~~~~~~
+BC30456: 'Item14' is not a member of '(Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Item14)
+                          ~~~~~~~~~~~~~~
+BC30456: 'Item15' is not a member of '(Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Item15)
+                          ~~~~~~~~~~~~~~
+BC30456: 'Item16' is not a member of '(Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Item16)
+                          ~~~~~~~~~~~~~~
+BC30456: 'Item3' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Rest.Item3)
+                          ~~~~~~~~~~~~~~~~~~
+BC30456: 'Item4' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Rest.Item4)
+                          ~~~~~~~~~~~~~~~~~~
+BC30456: 'Item5' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Rest.Item5)
+                          ~~~~~~~~~~~~~~~~~~
+BC30456: 'Item6' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Rest.Item6)
+                          ~~~~~~~~~~~~~~~~~~
+BC30456: 'Item7' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Rest.Item7)
+                          ~~~~~~~~~~~~~~~~~~
+BC30456: 'Item8' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Rest.Item8)
+                          ~~~~~~~~~~~~~~~~~~
+BC30456: 'Item9' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Rest.Item9)
+                          ~~~~~~~~~~~~~~~~~~
+BC30456: 'Item10' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Rest.Item10)
+                          ~~~~~~~~~~~~~~~~~~~
+BC30456: 'Item11' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Rest.Item11)
+                          ~~~~~~~~~~~~~~~~~~~
+BC30456: 'Item12' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Rest.Item12)
+                          ~~~~~~~~~~~~~~~~~~~
+BC30456: 'Item13' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Rest.Item13)
+                          ~~~~~~~~~~~~~~~~~~~
+BC30456: 'Item14' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Rest.Item14)
+                          ~~~~~~~~~~~~~~~~~~~
+BC30456: 'Item15' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Rest.Item15)
+                          ~~~~~~~~~~~~~~~~~~~
+BC30456: 'Item16' is not a member of '(Integer, Integer)'.
+        Console.WriteLine(v5.Rest.Rest.Item16)
+                          ~~~~~~~~~~~~~~~~~~~
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub DefaultAndFriendlyElementNames_07()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Class C
+    Shared Sub Main()
+    End Sub
+
+    Shared Function M7() As (Item9 As Integer, Item1 As Integer, Item2 As Integer, Item3 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Item8 As Integer)
+        Return (701, 702, 703, 704, 705, 706, 707, 708, 709)
+    End Function
+End Class
+<%= s_trivial2uple %><%= s_trivial3uple %><%= s_trivialRemainingTuples %>
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37261: Tuple element name 'Item9' is only allowed at position 9.
+    Shared Function M7() As (Item9 As Integer, Item1 As Integer, Item2 As Integer, Item3 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Item8 As Integer)
+                             ~~~~~
+BC37261: Tuple element name 'Item1' is only allowed at position 1.
+    Shared Function M7() As (Item9 As Integer, Item1 As Integer, Item2 As Integer, Item3 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Item8 As Integer)
+                                               ~~~~~
+BC37261: Tuple element name 'Item2' is only allowed at position 2.
+    Shared Function M7() As (Item9 As Integer, Item1 As Integer, Item2 As Integer, Item3 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Item8 As Integer)
+                                                                 ~~~~~
+BC37261: Tuple element name 'Item3' is only allowed at position 3.
+    Shared Function M7() As (Item9 As Integer, Item1 As Integer, Item2 As Integer, Item3 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Item8 As Integer)
+                                                                                   ~~~~~
+BC37261: Tuple element name 'Item4' is only allowed at position 4.
+    Shared Function M7() As (Item9 As Integer, Item1 As Integer, Item2 As Integer, Item3 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Item8 As Integer)
+                                                                                                     ~~~~~
+BC37261: Tuple element name 'Item5' is only allowed at position 5.
+    Shared Function M7() As (Item9 As Integer, Item1 As Integer, Item2 As Integer, Item3 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Item8 As Integer)
+                                                                                                                       ~~~~~
+BC37261: Tuple element name 'Item6' is only allowed at position 6.
+    Shared Function M7() As (Item9 As Integer, Item1 As Integer, Item2 As Integer, Item3 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Item8 As Integer)
+                                                                                                                                         ~~~~~
+BC37261: Tuple element name 'Item7' is only allowed at position 7.
+    Shared Function M7() As (Item9 As Integer, Item1 As Integer, Item2 As Integer, Item3 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Item8 As Integer)
+                                                                                                                                                           ~~~~~
+BC37261: Tuple element name 'Item8' is only allowed at position 8.
+    Shared Function M7() As (Item9 As Integer, Item1 As Integer, Item2 As Integer, Item3 As Integer, Item4 As Integer, Item5 As Integer, Item6 As Integer, Item7 As Integer, Item8 As Integer)
+                                                                                                                                                                             ~~~~~
+</errors>)
+
+            Dim c = comp.GetTypeByMetadataName("C")
+
+            Dim m7Tuple = DirectCast(c.GetMember(Of MethodSymbol)("M7").ReturnType, NamedTypeSymbol)
+            AssertTupleTypeEquality(m7Tuple)
+
+            AssertTestDisplayString(m7Tuple.GetMembers(),
+"Sub (Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32)..ctor()",
+"Sub (Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32, item3 As System.Int32, item4 As System.Int32, item5 As System.Int32, item6 As System.Int32, item7 As System.Int32, rest As (System.Int32, System.Int32))",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item8 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item7 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item9 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item8 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item1 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item9 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item2 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item1 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item3 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item2 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item4 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item3 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item5 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item4 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item6 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item5 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item7 As System.Int32",
+"(Item9 As System.Int32, Item1 As System.Int32, Item2 As System.Int32, Item3 As System.Int32, Item4 As System.Int32, Item5 As System.Int32, Item6 As System.Int32, Item7 As System.Int32, Item8 As System.Int32).Item6 As System.Int32"
+                )
+
+        End Sub
+
+        <Fact>
+        Public Sub DefaultAndFriendlyElementNames_08()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+    End Sub
+
+    Shared Function M8() As (a1 As Integer, a2 As Integer, a3 As Integer, a4 As Integer, a5 As Integer, a6 As Integer, a7 As Integer, Item1 As Integer)
+        Return (801, 802, 803, 804, 805, 806, 807, 808)
+    End Function
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37261: Tuple element name 'Item1' is only allowed at position 1.
+    Shared Function M8() As (a1 As Integer, a2 As Integer, a3 As Integer, a4 As Integer, a5 As Integer, a6 As Integer, a7 As Integer, Item1 As Integer)
+                                                                                                                                      ~~~~~
+</errors>)
+
+            Dim c = comp.GetTypeByMetadataName("C")
+
+            Dim m8Tuple = DirectCast(c.GetMember(Of MethodSymbol)("M8").ReturnType, NamedTypeSymbol)
+            AssertTupleTypeEquality(m8Tuple)
+
+            AssertTestDisplayString(m8Tuple.GetMembers(),
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Item1 As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).a1 As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Item2 As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).a2 As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Item3 As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).a3 As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Item4 As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).a4 As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Item5 As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).a5 As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Item6 As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).a6 As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Item7 As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).a7 As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Rest As (System.Int32)",
+"Sub (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32)..ctor()",
+"Sub (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32, item3 As System.Int32, item4 As System.Int32, item5 As System.Int32, item6 As System.Int32, item7 As System.Int32, rest As (System.Int32))",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Equals(obj As System.Object) As System.Boolean",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Equals(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32))) As System.Boolean",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).CompareTo(other As System.ValueTuple(Of System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32))) As System.Int32",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).GetHashCode() As System.Int32",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).ToString() As System.String",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
+"Function (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.ITupleInternal.get_Size() As System.Int32",
+"ReadOnly Property (a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).System.ITupleInternal.Size As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Item8 As System.Int32",
+"(a1 As System.Int32, a2 As System.Int32, a3 As System.Int32, a4 As System.Int32, a5 As System.Int32, a6 As System.Int32, a7 As System.Int32, Item1 As System.Int32).Item1 As System.Int32"
+)
+
+            Dim m8Item8 = DirectCast(m8Tuple.GetMembers("Item8").Single(), FieldSymbol)
+
+            AssertVirtualTupleElementField(m8Item8)
+
+            Assert.True(m8Item8.IsTupleField)
+            Assert.Same(m8Item8, m8Item8.OriginalDefinition)
+            Assert.True(m8Item8.Equals(m8Item8))
+            Assert.Equal("System.ValueTuple(Of System.Int32).Item1 As System.Int32", m8Item8.TupleUnderlyingField.ToTestDisplayString())
+            Assert.Null(m8Item8.AssociatedSymbol)
+            Assert.Same(m8Tuple, m8Item8.ContainingSymbol)
+            Assert.NotEqual(m8Tuple.TupleUnderlyingType, m8Item8.TupleUnderlyingField.ContainingSymbol)
+            Assert.True(m8Item8.CustomModifiers.IsEmpty)
+            Assert.True(m8Item8.GetAttributes().IsEmpty)
+            Assert.Null(m8Item8.GetUseSiteErrorInfo())
+            Assert.False(m8Item8.Locations.IsEmpty)
+            Assert.Equal("Item1", m8Item8.TupleUnderlyingField.Name)
+            Assert.True(m8Item8.IsImplicitlyDeclared)
+            Assert.Null(m8Item8.TypeLayoutOffset)
+
+            Dim m8Item1 = DirectCast(m8Tuple.GetMembers("Item1").Last(), FieldSymbol)
+
+            AssertVirtualTupleElementField(m8Item1)
+
+            Assert.True(m8Item1.IsTupleField)
+            Assert.Same(m8Item1, m8Item1.OriginalDefinition)
+            Assert.True(m8Item1.Equals(m8Item1))
+            Assert.Equal("System.ValueTuple(Of System.Int32).Item1 As System.Int32", m8Item1.TupleUnderlyingField.ToTestDisplayString())
+            Assert.Null(m8Item1.AssociatedSymbol)
+            Assert.Same(m8Tuple, m8Item1.ContainingSymbol)
+            Assert.NotEqual(m8Tuple.TupleUnderlyingType, m8Item1.TupleUnderlyingField.ContainingSymbol)
+            Assert.True(m8Item1.CustomModifiers.IsEmpty)
+            Assert.True(m8Item1.GetAttributes().IsEmpty)
+            Assert.Null(m8Item1.GetUseSiteErrorInfo())
+            Assert.False(m8Item1.Locations.IsEmpty)
+            Assert.Equal("Item1", m8Item1.TupleUnderlyingField.Name)
+            Assert.False(m8Item1.IsImplicitlyDeclared)
+            Assert.Null(m8Item1.TypeLayoutOffset)
+
+            Dim m8TupleRestTuple = DirectCast(DirectCast(m8Tuple.GetMembers("Rest").Single(), FieldSymbol).Type, NamedTypeSymbol)
+            AssertTupleTypeEquality(m8TupleRestTuple)
+
+            AssertTestDisplayString(m8TupleRestTuple.GetMembers(),
+"(System.Int32).Item1 As System.Int32",
+"Sub (System.Int32)..ctor()",
+"Sub (System.Int32)..ctor(item1 As System.Int32)",
+"Function (System.Int32).Equals(obj As System.Object) As System.Boolean",
+"Function (System.Int32).Equals(other As (System.Int32)) As System.Boolean",
+"Function (System.Int32).System.Collections.IStructuralEquatable.Equals(other As System.Object, comparer As System.Collections.IEqualityComparer) As System.Boolean",
+"Function (System.Int32).System.IComparable.CompareTo(other As System.Object) As System.Int32",
+"Function (System.Int32).CompareTo(other As (System.Int32)) As System.Int32",
+"Function (System.Int32).System.Collections.IStructuralComparable.CompareTo(other As System.Object, comparer As System.Collections.IComparer) As System.Int32",
+"Function (System.Int32).GetHashCode() As System.Int32",
+"Function (System.Int32).System.Collections.IStructuralEquatable.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (System.Int32).System.ITupleInternal.GetHashCode(comparer As System.Collections.IEqualityComparer) As System.Int32",
+"Function (System.Int32).ToString() As System.String",
+"Function (System.Int32).System.ITupleInternal.ToStringEnd() As System.String",
+"Function (System.Int32).System.ITupleInternal.get_Size() As System.Int32",
+"ReadOnly Property (System.Int32).System.ITupleInternal.Size As System.Int32"
+)
+
+        End Sub
+
+        <Fact>
+        Public Sub DefaultAndFriendlyElementNames_09()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Dim v1 = (1, 11)
+        Console.WriteLine(v1.Item1)
+        Console.WriteLine(v1.Item2)
+
+        Dim v2 = (a2:=2, b2:=22)
+        Console.WriteLine(v2.Item1)
+        Console.WriteLine(v2.Item2)
+        Console.WriteLine(v2.a2)
+        Console.WriteLine(v2.b2)
+
+        Dim v6 = (item1:=6, item2:=66)
+        Console.WriteLine(v6.Item1)
+        Console.WriteLine(v6.Item2)
+        Console.WriteLine(v6.item1)
+        Console.WriteLine(v6.item2)
+
+        Console.WriteLine(v1.ToString())
+        Console.WriteLine(v2.ToString())
+        Console.WriteLine(v6.ToString())
+    End Sub
+
+End Class
+<%= s_trivial2uple %>
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe)
+
+            CompileAndVerify(comp, expectedOutput:="
+1
+11
+2
+22
+2
+22
+6
+66
+6
+66
+{1, 11}
+{2, 22}
+{6, 66}
+")
+
+            Dim c = comp.GetTypeByMetadataName("C")
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of TupleExpressionSyntax)().First()
+
+            Dim m1Tuple = DirectCast(model.LookupSymbols(node.SpanStart, name:="v1").OfType(Of LocalSymbol)().Single().Type, NamedTypeSymbol)
+            Dim m2Tuple = DirectCast(model.LookupSymbols(node.SpanStart, name:="v2").OfType(Of LocalSymbol)().Single().Type, NamedTypeSymbol)
+            Dim m6Tuple = DirectCast(model.LookupSymbols(node.SpanStart, name:="v6").OfType(Of LocalSymbol)().Single().Type, NamedTypeSymbol)
+
+            AssertTestDisplayString(m1Tuple.GetMembers(),
+"Sub (System.Int32, System.Int32)..ctor()",
+"(System.Int32, System.Int32).Item1 As System.Int32",
+"(System.Int32, System.Int32).Item2 As System.Int32",
+"Sub (System.Int32, System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32)",
+"Function (System.Int32, System.Int32).ToString() As System.String"
+)
+
+            AssertTestDisplayString(m2Tuple.GetMembers(),
+"Sub (a2 As System.Int32, b2 As System.Int32)..ctor()",
+"(a2 As System.Int32, b2 As System.Int32).Item1 As System.Int32",
+"(a2 As System.Int32, b2 As System.Int32).a2 As System.Int32",
+"(a2 As System.Int32, b2 As System.Int32).Item2 As System.Int32",
+"(a2 As System.Int32, b2 As System.Int32).b2 As System.Int32",
+"Sub (a2 As System.Int32, b2 As System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32)",
+"Function (a2 As System.Int32, b2 As System.Int32).ToString() As System.String"
+)
+
+            AssertTestDisplayString(m6Tuple.GetMembers(),
+"Sub (Item1 As System.Int32, Item2 As System.Int32)..ctor()",
+"(Item1 As System.Int32, Item2 As System.Int32).Item1 As System.Int32",
+"(Item1 As System.Int32, Item2 As System.Int32).Item2 As System.Int32",
+"Sub (Item1 As System.Int32, Item2 As System.Int32)..ctor(item1 As System.Int32, item2 As System.Int32)",
+"Function (Item1 As System.Int32, Item2 As System.Int32).ToString() As System.String"
+)
+
+            Assert.Equal("", m1Tuple.Name)
+            Assert.Equal(SymbolKind.NamedType, m1Tuple.Kind)
+            Assert.Equal(TypeKind.Struct, m1Tuple.TypeKind)
+            Assert.False(m1Tuple.IsImplicitlyDeclared)
+            Assert.True(m1Tuple.IsTupleType)
+            Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32)", m1Tuple.TupleUnderlyingType.ToTestDisplayString())
+            Assert.Same(m1Tuple, m1Tuple.ConstructedFrom)
+            Assert.Same(m1Tuple, m1Tuple.OriginalDefinition)
+            AssertTupleTypeEquality(m1Tuple)
+            Assert.Same(m1Tuple.TupleUnderlyingType.ContainingSymbol, m1Tuple.ContainingSymbol)
+            Assert.Null(m1Tuple.GetUseSiteErrorInfo())
+            Assert.Null(m1Tuple.EnumUnderlyingType)
+            Assert.Equal({".ctor", "Item1", "Item2", "ToString"},
+                         m1Tuple.MemberNames.ToArray())
+            Assert.Equal({".ctor", "Item1", "a2", "Item2", "b2", "ToString"},
+                         m2Tuple.MemberNames.ToArray())
+            Assert.Equal(0, m1Tuple.Arity)
+            Assert.True(m1Tuple.TypeParameters.IsEmpty)
+            Assert.Equal("System.ValueType", m1Tuple.BaseType.ToTestDisplayString())
+            Assert.False(m1Tuple.HasTypeArgumentsCustomModifiers)
+            Assert.False(m1Tuple.IsComImport)
+            Assert.True(m1Tuple.TypeArgumentsNoUseSiteDiagnostics.IsEmpty)
+            Assert.True(m1Tuple.GetAttributes().IsEmpty)
+            Assert.Equal("(a2 As System.Int32, b2 As System.Int32).Item1 As System.Int32", m2Tuple.GetMembers("Item1").Single().ToTestDisplayString())
+            Assert.Equal("(a2 As System.Int32, b2 As System.Int32).a2 As System.Int32", m2Tuple.GetMembers("a2").Single().ToTestDisplayString())
+            Assert.True(m1Tuple.GetTypeMembers().IsEmpty)
+            Assert.True(m1Tuple.GetTypeMembers("C9").IsEmpty)
+            Assert.True(m1Tuple.GetTypeMembers("C9", 0).IsEmpty)
+            Assert.True(m1Tuple.Interfaces.IsEmpty)
+            Assert.True(m1Tuple.GetTypeMembersUnordered().IsEmpty)
+            Assert.Equal(1, m1Tuple.Locations.Length)
+            Assert.Equal("(1, 11)", m1Tuple.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.Equal("(a2:=2, b2:=22)", m2Tuple.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.Equal("Public Structure ValueTuple(Of T1, T2)", m1Tuple.TupleUnderlyingType.DeclaringSyntaxReferences.Single().GetSyntax().ToString().Substring(0, 38))
+
+            AssertTupleTypeEquality(m2Tuple)
+            AssertTupleTypeEquality(m6Tuple)
+
+            Assert.False(m1Tuple.Equals(m2Tuple))
+            Assert.False(m1Tuple.Equals(m6Tuple))
+            Assert.False(m6Tuple.Equals(m2Tuple))
+            AssertTupleTypeMembersEquality(m1Tuple, m2Tuple)
+            AssertTupleTypeMembersEquality(m1Tuple, m6Tuple)
+            AssertTupleTypeMembersEquality(m2Tuple, m6Tuple)
+
+            Dim m1Item1 = DirectCast(m1Tuple.GetMembers()(1), FieldSymbol)
+            AssertNonvirtualTupleElementField(m1Item1)
+
+            Assert.True(m1Item1.IsTupleField)
+            Assert.Same(m1Item1, m1Item1.OriginalDefinition)
+            Assert.True(m1Item1.Equals(m1Item1))
+            Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32).Item1 As System.Int32", m1Item1.TupleUnderlyingField.ToTestDisplayString())
+            Assert.Null(m1Item1.AssociatedSymbol)
+            Assert.Same(m1Tuple, m1Item1.ContainingSymbol)
+            Assert.Same(m1Tuple.TupleUnderlyingType, m1Item1.TupleUnderlyingField.ContainingSymbol)
+            Assert.True(m1Item1.CustomModifiers.IsEmpty)
+            Assert.True(m1Item1.GetAttributes().IsEmpty)
+            Assert.Null(m1Item1.GetUseSiteErrorInfo())
+            Assert.False(m1Item1.Locations.IsEmpty)
+            Assert.True(m1Item1.DeclaringSyntaxReferences.IsEmpty)
+            Assert.Equal("Item1", m1Item1.TupleUnderlyingField.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.True(m1Item1.IsImplicitlyDeclared)
+            Assert.Null(m1Item1.TypeLayoutOffset)
+
+            Dim m2Item1 = DirectCast(m2Tuple.GetMembers()(1), FieldSymbol)
+            AssertNonvirtualTupleElementField(m2Item1)
+
+            Assert.True(m2Item1.IsTupleField)
+            Assert.Same(m2Item1, m2Item1.OriginalDefinition)
+            Assert.True(m2Item1.Equals(m2Item1))
+            Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32).Item1 As System.Int32", m2Item1.TupleUnderlyingField.ToTestDisplayString())
+            Assert.Null(m2Item1.AssociatedSymbol)
+            Assert.Same(m2Tuple, m2Item1.ContainingSymbol)
+            Assert.Same(m2Tuple.TupleUnderlyingType, m2Item1.TupleUnderlyingField.ContainingSymbol)
+            Assert.True(m2Item1.CustomModifiers.IsEmpty)
+            Assert.True(m2Item1.GetAttributes().IsEmpty)
+            Assert.Null(m2Item1.GetUseSiteErrorInfo())
+            Assert.False(m2Item1.Locations.IsEmpty)
+            Assert.True(m2Item1.DeclaringSyntaxReferences.IsEmpty)
+            Assert.Equal("Item1", m2Item1.TupleUnderlyingField.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.NotEqual(m2Item1.Locations.Single(), m2Item1.TupleUnderlyingField.Locations.Single())
+            Assert.Equal("SourceFile(a.vb[760..765))", m2Item1.TupleUnderlyingField.Locations.Single().ToString())
+            Assert.Equal("SourceFile(a.vb[175..177))", m2Item1.Locations.Single().ToString())
+            Assert.True(m2Item1.IsImplicitlyDeclared)
+            Assert.Null(m2Item1.TypeLayoutOffset)
+
+            Dim m2a2 = DirectCast(m2Tuple.GetMembers()(2), FieldSymbol)
+            AssertVirtualTupleElementField(m2a2)
+
+            Assert.True(m2a2.IsTupleField)
+            Assert.Same(m2a2, m2a2.OriginalDefinition)
+            Assert.True(m2a2.Equals(m2a2))
+            Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32).Item1 As System.Int32", m2a2.TupleUnderlyingField.ToTestDisplayString())
+            Assert.Null(m2a2.AssociatedSymbol)
+            Assert.Same(m2Tuple, m2a2.ContainingSymbol)
+            Assert.Same(m2Tuple.TupleUnderlyingType, m2a2.TupleUnderlyingField.ContainingSymbol)
+            Assert.True(m2a2.CustomModifiers.IsEmpty)
+            Assert.True(m2a2.GetAttributes().IsEmpty)
+            Assert.Null(m2a2.GetUseSiteErrorInfo())
+            Assert.False(m2a2.Locations.IsEmpty)
+            Assert.Equal("a2", m2a2.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.Equal("Item1", m2a2.TupleUnderlyingField.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+            Assert.False(m2a2.IsImplicitlyDeclared)
+            Assert.Null(m2a2.TypeLayoutOffset)
+
+            Dim m1ToString = m1Tuple.GetMember(Of MethodSymbol)("ToString")
+
+            Assert.True(m1ToString.IsTupleMethod)
+            Assert.Same(m1ToString, m1ToString.OriginalDefinition)
+            Assert.Same(m1ToString, m1ToString.ConstructedFrom)
+            Assert.Equal("Function System.ValueTuple(Of System.Int32, System.Int32).ToString() As System.String",
+                         m1ToString.TupleUnderlyingMethod.ToTestDisplayString())
+            Assert.Same(m1ToString.TupleUnderlyingMethod, m1ToString.TupleUnderlyingMethod.ConstructedFrom)
+            Assert.Same(m1Tuple, m1ToString.ContainingSymbol)
+            Assert.Same(m1Tuple.TupleUnderlyingType, m1ToString.TupleUnderlyingMethod.ContainingType)
+            Assert.Null(m1ToString.AssociatedSymbol)
+            Assert.True(m1ToString.ExplicitInterfaceImplementations.IsEmpty)
+            Assert.False(m1ToString.ReturnType.SpecialType = SpecialType.System_Void)
+            Assert.True(m1ToString.TypeArguments.IsEmpty)
+            Assert.True(m1ToString.TypeParameters.IsEmpty)
+            Assert.True(m1ToString.GetAttributes().IsEmpty)
+            Assert.Null(m1ToString.GetUseSiteErrorInfo())
+            Assert.Equal("Function System.ValueType.ToString() As System.String",
+                         m1ToString.OverriddenMethod.ToTestDisplayString())
+            Assert.False(m1ToString.Locations.IsEmpty)
+            Assert.Equal("Public Overrides Function ToString()", m1ToString.DeclaringSyntaxReferences.Single().GetSyntax().ToString().Substring(0, 36))
+            Assert.Equal(m1ToString.Locations.Single(), m1ToString.TupleUnderlyingMethod.Locations.Single())
+
+        End Sub
+
+        <Fact>
+        Public Sub OverriddenMethodWithDifferentTupleNamesInReturn()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Function M1() As (a As Integer, b As Integer)
+        Return (1, 2)
+    End Function
+    Public Overridable Function M2() As (a As Integer, b As Integer)
+        Return (1, 2)
+    End Function
+    Public Overridable Function M3() As (a As Integer, b As Integer)()
+        Return {(1, 2)}
+    End Function
+    Public Overridable Function M4() As (a As Integer, b As Integer)?
+        Return (1, 2)
+    End Function
+    Public Overridable Function M5() As (c As (a As Integer, b As Integer), d As Integer)
+        Return ((1, 2), 3)
+    End Function
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Function M1() As (A As Integer, B As Integer)
+        Return (1, 2)
+    End Function
+    Public Overrides Function M2() As (notA As Integer, notB As Integer)
+        Return (1, 2)
+    End Function
+    Public Overrides Function M3() As (notA As Integer, notB As Integer)()
+        Return {(1, 2)}
+    End Function
+    Public Overrides Function M4() As (notA As Integer, notB As Integer)?
+        Return (1, 2)
+    End Function
+    Public Overrides Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)
+        Return ((1, 2), 3)
+    End Function
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC40001: 'Public Overrides Function M2() As (notA As Integer, notB As Integer)' cannot override 'Public Overridable Function M2() As (a As Integer, b As Integer)' because they differ by their tuple element names.
+    Public Overrides Function M2() As (notA As Integer, notB As Integer)
+                              ~~
+BC40001: 'Public Overrides Function M3() As (notA As Integer, notB As Integer)()' cannot override 'Public Overridable Function M3() As (a As Integer, b As Integer)()' because they differ by their tuple element names.
+    Public Overrides Function M3() As (notA As Integer, notB As Integer)()
+                              ~~
+BC40001: 'Public Overrides Function M4() As (notA As Integer, notB As Integer)?' cannot override 'Public Overridable Function M4() As (a As Integer, b As Integer)?' because they differ by their tuple element names.
+    Public Overrides Function M4() As (notA As Integer, notB As Integer)?
+                              ~~
+BC40001: 'Public Overrides Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)' cannot override 'Public Overridable Function M5() As (c As (a As Integer, b As Integer), d As Integer)' because they differ by their tuple element names.
+    Public Overrides Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)
+                              ~~
+</errors>)
+
+            Dim m3 = comp.GetMember(Of MethodSymbol)("Derived.M3").ReturnType
+            Assert.Equal("(notA As System.Int32, notB As System.Int32)()", m3.ToTestDisplayString())
+            Assert.Equal({"System.Collections.Generic.IList(Of (notA As System.Int32, notB As System.Int32))"},
+                         m3.Interfaces.SelectAsArray(Function(t) t.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact>
+        Public Sub OverriddenMethodWithDifferentTupleNamesInReturnUsingTypeArg()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Function M1(Of T)() As (a As T, b As T)
+        Return (Nothing, Nothing)
+    End Function
+    Public Overridable Function M2(Of T)() As (a As T, b As T)
+        Return (Nothing, Nothing)
+    End Function
+    Public Overridable Function M3(Of T)() As (a As T, b As T)()
+        Return {(Nothing, Nothing)}
+    End Function
+    Public Overridable Function M4(Of T)() As (a As T, b As T)?
+        Return (Nothing, Nothing)
+    End Function
+    Public Overridable Function M5(Of T)() As (c As (a As T, b As T), d As T)
+        Return ((Nothing, Nothing), Nothing)
+    End Function
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Function M1(Of T)() As (A As T, B As T)
+        Return (Nothing, Nothing)
+    End Function
+    Public Overrides Function M2(Of T)() As (notA As T, notB As T)
+        Return (Nothing, Nothing)
+    End Function
+    Public Overrides Function M3(Of T)() As (notA As T, notB As T)()
+        Return {(Nothing, Nothing)}
+    End Function
+    Public Overrides Function M4(Of T)() As (notA As T, notB As T)?
+        Return (Nothing, Nothing)
+    End Function
+    Public Overrides Function M5(Of T)() As (c As (notA As T, notB As T), d As T)
+        Return ((Nothing, Nothing), Nothing)
+    End Function
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC40001: 'Public Overrides Function M2(Of T)() As (notA As T, notB As T)' cannot override 'Public Overridable Function M2(Of T)() As (a As T, b As T)' because they differ by their tuple element names.
+    Public Overrides Function M2(Of T)() As (notA As T, notB As T)
+                              ~~
+BC40001: 'Public Overrides Function M3(Of T)() As (notA As T, notB As T)()' cannot override 'Public Overridable Function M3(Of T)() As (a As T, b As T)()' because they differ by their tuple element names.
+    Public Overrides Function M3(Of T)() As (notA As T, notB As T)()
+                              ~~
+BC40001: 'Public Overrides Function M4(Of T)() As (notA As T, notB As T)?' cannot override 'Public Overridable Function M4(Of T)() As (a As T, b As T)?' because they differ by their tuple element names.
+    Public Overrides Function M4(Of T)() As (notA As T, notB As T)?
+                              ~~
+BC40001: 'Public Overrides Function M5(Of T)() As (c As (notA As T, notB As T), d As T)' cannot override 'Public Overridable Function M5(Of T)() As (c As (a As T, b As T), d As T)' because they differ by their tuple element names.
+    Public Overrides Function M5(Of T)() As (c As (notA As T, notB As T), d As T)
+                              ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub OverridenMethodWithDifferentTupleNamesInParameters()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Sub M1(x As (a As Integer, b As Integer))
+    End Sub
+    Public Overridable Sub M2(x As (a As Integer, b As Integer))
+    End Sub
+    Public Overridable Sub M3(x As (a As Integer, b As Integer)())
+    End Sub
+    Public Overridable Sub M4(x As (a As Integer, b As Integer)?)
+    End Sub
+    Public Overridable Sub M5(x As (c As (a As Integer, b As Integer), d As Integer))
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Sub M1(x As (A As Integer, B As Integer))
+    End Sub
+    Public Overrides Sub M2(x As (notA As Integer, notB As Integer))
+    End Sub
+    Public Overrides Sub M3(x As (notA As Integer, notB As Integer)())
+    End Sub
+    Public Overrides Sub M4(x As (notA As Integer, notB As Integer)?)
+    End Sub
+    Public Overrides Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC40001: 'Public Overrides Sub M2(x As (notA As Integer, notB As Integer))' cannot override 'Public Overridable Sub M2(x As (a As Integer, b As Integer))' because they differ by their tuple element names.
+    Public Overrides Sub M2(x As (notA As Integer, notB As Integer))
+                         ~~
+BC40001: 'Public Overrides Sub M3(x As (notA As Integer, notB As Integer)())' cannot override 'Public Overridable Sub M3(x As (a As Integer, b As Integer)())' because they differ by their tuple element names.
+    Public Overrides Sub M3(x As (notA As Integer, notB As Integer)())
+                         ~~
+BC40001: 'Public Overrides Sub M4(x As (notA As Integer, notB As Integer)?)' cannot override 'Public Overridable Sub M4(x As (a As Integer, b As Integer)?)' because they differ by their tuple element names.
+    Public Overrides Sub M4(x As (notA As Integer, notB As Integer)?)
+                         ~~
+BC40001: 'Public Overrides Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))' cannot override 'Public Overridable Sub M5(x As (c As (a As Integer, b As Integer), d As Integer))' because they differ by their tuple element names.
+    Public Overrides Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
+                         ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub OverriddenMethodWithDifferentTupleNamesInParametersUsingTypeArg()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Sub M1(Of T)(x As (a As T, b As T))
+    End Sub
+    Public Overridable Sub M2(Of T)(x As (a As T, b As T))
+    End Sub
+    Public Overridable Sub M3(Of T)(x As (a As T, b As T)())
+    End Sub
+    Public Overridable Sub M4(Of T)(x As (a As T, b As T)?)
+    End Sub
+    Public Overridable Sub M5(Of T)(x As (c As (a As T, b As T), d As T))
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Sub M1(Of T)(x As (A As T, B As T))
+    End Sub
+    Public Overrides Sub M2(Of T)(x As (notA As T, notB As T))
+    End Sub
+    Public Overrides Sub M3(Of T)(x As (notA As T, notB As T)())
+    End Sub
+    Public Overrides Sub M4(Of T)(x As (notA As T, notB As T)?)
+    End Sub
+    Public Overrides Sub M5(Of T)(x As (c As (notA As T, notB As T), d As T))
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC40001: 'Public Overrides Sub M2(Of T)(x As (notA As T, notB As T))' cannot override 'Public Overridable Sub M2(Of T)(x As (a As T, b As T))' because they differ by their tuple element names.
+    Public Overrides Sub M2(Of T)(x As (notA As T, notB As T))
+                         ~~
+BC40001: 'Public Overrides Sub M3(Of T)(x As (notA As T, notB As T)())' cannot override 'Public Overridable Sub M3(Of T)(x As (a As T, b As T)())' because they differ by their tuple element names.
+    Public Overrides Sub M3(Of T)(x As (notA As T, notB As T)())
+                         ~~
+BC40001: 'Public Overrides Sub M4(Of T)(x As (notA As T, notB As T)?)' cannot override 'Public Overridable Sub M4(Of T)(x As (a As T, b As T)?)' because they differ by their tuple element names.
+    Public Overrides Sub M4(Of T)(x As (notA As T, notB As T)?)
+                         ~~
+BC40001: 'Public Overrides Sub M5(Of T)(x As (c As (notA As T, notB As T), d As T))' cannot override 'Public Overridable Sub M5(Of T)(x As (c As (a As T, b As T), d As T))' because they differ by their tuple element names.
+    Public Overrides Sub M5(Of T)(x As (c As (notA As T, notB As T), d As T))
+                         ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub HiddenMethodsWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Function M1() As (a As Integer, b As Integer)
+        Return (1, 2)
+    End Function
+    Public Overridable Function M2() As (a As Integer, b As Integer)
+        Return (1, 2)
+    End Function
+    Public Overridable Function M3() As (a As Integer, b As Integer)()
+        Return {(1, 2)}
+    End Function
+    Public Overridable Function M4() As (a As Integer, b As Integer)?
+        Return (1, 2)
+    End Function
+    Public Overridable Function M5() As (c As (a As Integer, b As Integer), d As Integer)
+        Return ((1, 2), 3)
+    End Function
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Function M1() As (A As Integer, B As Integer)
+        Return (1, 2)
+    End Function
+    Public Function M2() As (notA As Integer, notB As Integer)
+        Return (1, 2)
+    End Function
+    Public Function M3() As (notA As Integer, notB As Integer)()
+        Return {(1, 2)}
+    End Function
+    Public Function M4() As (notA As Integer, notB As Integer)?
+        Return (1, 2)
+    End Function
+    Public Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)
+        Return ((1, 2), 3)
+    End Function
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC40005: function 'M1' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Function M1() As (A As Integer, B As Integer)
+                    ~~
+BC40005: function 'M2' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Function M2() As (notA As Integer, notB As Integer)
+                    ~~
+BC40005: function 'M3' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Function M3() As (notA As Integer, notB As Integer)()
+                    ~~
+BC40005: function 'M4' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Function M4() As (notA As Integer, notB As Integer)?
+                    ~~
+BC40005: function 'M5' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Function M5() As (c As (notA As Integer, notB As Integer), d As Integer)
+                    ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub DuplicateMethodDetectionWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Public Sub M1(x As (A As Integer, B As Integer))
+    End Sub
+    Public Sub M1(x As (a As Integer, b As Integer))
+    End Sub
+
+    Public Sub M2(x As (noIntegerA As Integer, noIntegerB As Integer))
+    End Sub
+    Public Sub M2(x As (a As Integer, b As Integer))
+    End Sub
+
+    Public Sub M3(x As (notA As Integer, notB As Integer)())
+    End Sub
+    Public Sub M3(x As (a As Integer, b As Integer)())
+    End Sub
+
+    Public Sub M4(x As (notA As Integer, notB As Integer)?)
+    End Sub
+    Public Sub M4(x As (a As Integer, b As Integer)?)
+    End Sub
+
+    Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
+    End Sub
+    Public Sub M5(x As (c As (a As Integer, b As Integer), d As Integer))
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30269: 'Public Sub M1(x As (A As Integer, B As Integer))' has multiple definitions with identical signatures.
+    Public Sub M1(x As (A As Integer, B As Integer))
+               ~~
+BC37271: 'Public Sub M2(x As (noIntegerA As Integer, noIntegerB As Integer))' has multiple definitions with identical signatures with different tuple element names, including 'Public Sub M2(x As (a As Integer, b As Integer))'.
+    Public Sub M2(x As (noIntegerA As Integer, noIntegerB As Integer))
+               ~~
+BC37271: 'Public Sub M3(x As (notA As Integer, notB As Integer)())' has multiple definitions with identical signatures with different tuple element names, including 'Public Sub M3(x As (a As Integer, b As Integer)())'.
+    Public Sub M3(x As (notA As Integer, notB As Integer)())
+               ~~
+BC37271: 'Public Sub M4(x As (notA As Integer, notB As Integer)?)' has multiple definitions with identical signatures with different tuple element names, including 'Public Sub M4(x As (a As Integer, b As Integer)?)'.
+    Public Sub M4(x As (notA As Integer, notB As Integer)?)
+               ~~
+BC37271: 'Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))' has multiple definitions with identical signatures with different tuple element names, including 'Public Sub M5(x As (c As (a As Integer, b As Integer), d As Integer))'.
+    Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
+               ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub HiddenMethodParametersWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Sub M1(x As (a As Integer, b As Integer))
+    End Sub
+    Public Overridable Sub M2(x As (a As Integer, b As Integer))
+    End Sub
+    Public Overridable Sub M3(x As (a As Integer, b As Integer)())
+    End Sub
+    Public Overridable Sub M4(x As (a As Integer, b As Integer)?)
+    End Sub
+    Public Overridable Sub M5(x As (c As (a As Integer, b As Integer), d As Integer))
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Sub M1(x As (A As Integer, B As Integer))
+    End Sub
+    Public Sub M2(x As (notA As Integer, notB As Integer))
+    End Sub
+    Public Sub M3(x As (notA As Integer, notB As Integer)())
+    End Sub
+    Public Sub M4(x As (notA As Integer, notB As Integer)?)
+    End Sub
+    Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC40005: sub 'M1' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Sub M1(x As (A As Integer, B As Integer))
+               ~~
+BC40005: sub 'M2' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Sub M2(x As (notA As Integer, notB As Integer))
+               ~~
+BC40005: sub 'M3' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Sub M3(x As (notA As Integer, notB As Integer)())
+               ~~
+BC40005: sub 'M4' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Sub M4(x As (notA As Integer, notB As Integer)?)
+               ~~
+BC40005: sub 'M5' shadows an overridable method in the base class 'Base'. To override the base method, this method must be declared 'Overrides'.
+    Public Sub M5(x As (c As (notA As Integer, notB As Integer), d As Integer))
+               ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub ExplicitInterfaceImplementationWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Interface I0
+    Sub M1(x As (Integer, (Integer, c As Integer)))
+    Sub M2(x As (a As Integer, (b As Integer, c As Integer)))
+    Function MR1() As (Integer, (Integer, c As Integer))
+    Function MR2() As (a As Integer, (b As Integer, c As Integer))
+End Interface
+
+Public Class Derived
+    Implements I0
+
+    Public Sub M1(x As (notMissing As Integer, (notMissing As Integer, c As Integer))) Implements I0.M1
+    End Sub
+    Public Sub M2(x As (notA As Integer, (notB As Integer, c As Integer))) Implements I0.M2
+    End Sub
+    Public Function MR1() As (notMissing As Integer, (notMissing As Integer, c As Integer)) Implements I0.MR1
+        Return (1, (2, 3))
+    End Function
+    Public Function MR2() As (notA As Integer, (notB As Integer, c As Integer)) Implements I0.MR2
+        Return (1, (2, 3))
+    End Function
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30402: 'M1' cannot implement sub 'M1' on interface 'I0' because the tuple element names in 'Public Sub M1(x As (notMissing As Integer, (notMissing As Integer, c As Integer)))' do not match those in 'Sub M1(x As (Integer, (Integer, c As Integer)))'.
+    Public Sub M1(x As (notMissing As Integer, (notMissing As Integer, c As Integer))) Implements I0.M1
+                                                                                                  ~~~~~
+BC30402: 'M2' cannot implement sub 'M2' on interface 'I0' because the tuple element names in 'Public Sub M2(x As (notA As Integer, (notB As Integer, c As Integer)))' do not match those in 'Sub M2(x As (a As Integer, (b As Integer, c As Integer)))'.
+    Public Sub M2(x As (notA As Integer, (notB As Integer, c As Integer))) Implements I0.M2
+                                                                                      ~~~~~
+BC30402: 'MR1' cannot implement function 'MR1' on interface 'I0' because the tuple element names in 'Public Function MR1() As (notMissing As Integer, (notMissing As Integer, c As Integer))' do not match those in 'Function MR1() As (Integer, (Integer, c As Integer))'.
+    Public Function MR1() As (notMissing As Integer, (notMissing As Integer, c As Integer)) Implements I0.MR1
+                                                                                                       ~~~~~~
+BC30402: 'MR2' cannot implement function 'MR2' on interface 'I0' because the tuple element names in 'Public Function MR2() As (notA As Integer, (notB As Integer, c As Integer))' do not match those in 'Function MR2() As (a As Integer, (b As Integer, c As Integer))'.
+    Public Function MR2() As (notA As Integer, (notB As Integer, c As Integer)) Implements I0.MR2
+                                                                                           ~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub InterfaceImplementationOfPropertyWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Interface I0
+    Property P1 As (a As Integer, b As Integer)
+    Property P2 As (Integer, b As Integer)
+End Interface
+
+Public Class Derived
+    Implements I0
+
+    Public Property P1 As (notA As Integer, notB As Integer) Implements I0.P1
+    Public Property P2 As (notMissing As Integer, b As Integer) Implements I0.P2
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30402: 'P1' cannot implement property 'P1' on interface 'I0' because the tuple element names in 'Public Property P1 As (notA As Integer, notB As Integer)' do not match those in 'Property P1 As (a As Integer, b As Integer)'.
+    Public Property P1 As (notA As Integer, notB As Integer) Implements I0.P1
+                                                                        ~~~~~
+BC30402: 'P2' cannot implement property 'P2' on interface 'I0' because the tuple element names in 'Public Property P2 As (notMissing As Integer, b As Integer)' do not match those in 'Property P2 As (Integer, b As Integer)'.
+    Public Property P2 As (notMissing As Integer, b As Integer) Implements I0.P2
+                                                                           ~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub InterfaceImplementationOfEventWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Interface I0
+    Event E1 As Action(Of (a As Integer, b As Integer))
+    Event E2 As Action(Of (Integer, b As Integer))
+End Interface
+
+Public Class Derived
+    Implements I0
+
+    Public Event E1 As Action(Of (notA As Integer, notB As Integer)) Implements I0.E1
+    Public Event E2 As Action(Of (notMissing As Integer, notB As Integer)) Implements I0.E2
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30402: 'E1' cannot implement event 'E1' on interface 'I0' because the tuple element names in 'Public Event E1 As Action(Of (notA As Integer, notB As Integer))' do not match those in 'Event E1 As Action(Of (a As Integer, b As Integer))'.
+    Public Event E1 As Action(Of (notA As Integer, notB As Integer)) Implements I0.E1
+                                                                                ~~~~~
+BC30402: 'E2' cannot implement event 'E2' on interface 'I0' because the tuple element names in 'Public Event E2 As Action(Of (notMissing As Integer, notB As Integer))' do not match those in 'Event E2 As Action(Of (Integer, b As Integer))'.
+    Public Event E2 As Action(Of (notMissing As Integer, notB As Integer)) Implements I0.E2
+                                                                                      ~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub InterfaceHidingAnotherInterfaceWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Interface I0
+    Sub M1(x As (a As Integer, b As Integer))
+    Sub M2(x As (a As Integer, b As Integer))
+
+    Function MR1() As (a As Integer, b As Integer)
+    Function MR2() As (a As Integer, b As Integer)
+End Interface
+
+Public Interface I1
+    Inherits I0
+
+    Sub M1(x As (notA As Integer, b As Integer))
+    Shadows Sub M2(x As (notA As Integer, b As Integer))
+
+    Function MR1() As (notA As Integer, b As Integer)
+    Shadows Function MR2() As (notA As Integer, b As Integer)
+End Interface
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC40003: sub 'M1' shadows an overloadable member declared in the base interface 'I0'.  If you want to overload the base method, this method must be declared 'Overloads'.
+    Sub M1(x As (notA As Integer, b As Integer))
+        ~~
+BC40003: function 'MR1' shadows an overloadable member declared in the base interface 'I0'.  If you want to overload the base method, this method must be declared 'Overloads'.
+    Function MR1() As (notA As Integer, b As Integer)
+             ~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub DuplicateInterfaceDetectionWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Interface I0(Of T)
+End Interface
+
+Public Class C1
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
+End Class
+Public Class C2
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As Integer, b As Integer))
+End Class
+Public Class C3
+    Implements I0(Of Integer), I0(Of Integer)
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37272: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31033: Interface 'I0(Of (a As Integer, b As Integer))' can be implemented only once by this type.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As Integer, b As Integer))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31033: Interface 'I0(Of Integer)' can be implemented only once by this type.
+    Implements I0(Of Integer), I0(Of Integer)
+                               ~~~~~~~~~~~~~~
+</errors>)
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+            Dim c1 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().ElementAt(1))
+            Assert.Equal("C1", c1.Name)
+            Assert.Equal(1, c1.AllInterfaces.Count)
+            ' Note: the second set of names is the one listed in AllInterfaces
+            Assert.Equal("I0(Of (notA As System.Int32, notB As System.Int32))", c1.AllInterfaces(0).ToTestDisplayString())
+
+            Dim c2 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().ElementAt(2))
+            Assert.Equal("C2", c2.Name)
+            Assert.Equal(1, c2.AllInterfaces.Count)
+            Assert.Equal("I0(Of (a As System.Int32, b As System.Int32))", c2.AllInterfaces(0).ToTestDisplayString())
+
+            Dim c3 = model.GetDeclaredSymbol(nodes.OfType(Of TypeBlockSyntax)().ElementAt(3))
+            Assert.Equal("C3", c3.Name)
+            Assert.Equal(1, c3.AllInterfaces.Count)
+            Assert.Equal("I0(Of System.Int32)", c3.AllInterfaces(0).ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub AccessCheckLooksInsideTuples()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Public Function M() As (C2.C3, Integer)
+        Throw New System.Exception()
+    End Function
+End Class
+Public Class C2
+    Private Class C3
+    End Class
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30389: 'C2.C3' is not accessible in this context because it is 'Private'.
+    Public Function M() As (C2.C3, Integer)
+                            ~~~~~
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub AccessCheckLooksInsideTuples2()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Public Function M() As (C2, Integer)
+        Throw New System.Exception()
+    End Function
+    Private Class C2
+    End Class
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            Dim expectedErrors = <errors><![CDATA[
+BC30508: 'M' cannot expose type 'C.C2' in namespace '<Default>' through class 'C'.
+    Public Function M() As (C2, Integer)
+                           ~~~~~~~~~~~~~
+                 ]]></errors>
+            comp.AssertTheseDiagnostics(expectedErrors)
+        End Sub
+
+        <Fact>
+        Public Sub DuplicateInterfaceDetectionWithDifferentTupleNames2()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Interface I0(Of T)
+End Interface
+
+Public Class C2
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As Integer, b As Integer))
+End Class
+Public Class C3
+    Implements I0(Of Integer), I0(Of Integer)
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC31033: Interface 'I0(Of (a As Integer, b As Integer))' can be implemented only once by this type.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As Integer, b As Integer))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31033: Interface 'I0(Of Integer)' can be implemented only once by this type.
+    Implements I0(Of Integer), I0(Of Integer)
+                               ~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub ImplicitAndExplicitInterfaceImplementationWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Interface I0(Of T)
+    Function Pop() As T
+    Sub Push(x As T)
+End Interface
+
+Public Class C1
+    Implements I0(Of (a As Integer, b As Integer))
+
+    Public Function Pop() As (a As Integer, b As Integer) Implements I0(Of (a As Integer, b As Integer)).Pop
+        Throw New Exception()
+    End Function
+    Public Sub Push(x As (a As Integer, b As Integer)) Implements I0(Of (a As Integer, b As Integer)).Push
+    End Sub
+End Class
+
+
+Public Class C2
+    Inherits C1
+    Implements I0(Of (a As Integer, b As Integer))
+
+    Public Overloads Function Pop() As (notA As Integer, notB As Integer) Implements I0(Of (a As Integer, b As Integer)).Pop
+        Throw New Exception()
+    End Function
+    Public Overloads Sub Push(x As (notA As Integer, notB As Integer)) Implements I0(Of (a As Integer, b As Integer)).Push
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30402: 'Pop' cannot implement function 'Pop' on interface 'I0(Of (a As Integer, b As Integer))' because the tuple element names in 'Public Overloads Function Pop() As (notA As Integer, notB As Integer)' do not match those in 'Function Pop() As (a As Integer, b As Integer)'.
+    Public Overloads Function Pop() As (notA As Integer, notB As Integer) Implements I0(Of (a As Integer, b As Integer)).Pop
+                                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30402: 'Push' cannot implement sub 'Push' on interface 'I0(Of (a As Integer, b As Integer))' because the tuple element names in 'Public Overloads Sub Push(x As (notA As Integer, notB As Integer))' do not match those in 'Sub Push(x As (a As Integer, b As Integer))'.
+    Public Overloads Sub Push(x As (notA As Integer, notB As Integer)) Implements I0(Of (a As Integer, b As Integer)).Push
+                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub PartialMethodsWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Partial Class C1
+    Private Partial Sub M1(x As (a As Integer, b As Integer))
+    End Sub
+    Private Partial Sub M2(x As (a As Integer, b As Integer))
+    End Sub
+    Private Partial Sub M3(x As (a As Integer, b As Integer))
+    End Sub
+End Class
+
+Public Partial Class C1
+    Private Sub M1(x As (notA As Integer, notB As Integer))
+    End Sub
+    Private Sub M2(x As (Integer, Integer))
+    End Sub
+    Private Sub M3(x As (a As Integer, b As Integer))
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37271: 'Private Sub M1(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names, including 'Private Sub M1(x As (notA As Integer, notB As Integer))'.
+    Private Partial Sub M1(x As (a As Integer, b As Integer))
+                        ~~
+BC37271: 'Private Sub M2(x As (a As Integer, b As Integer))' has multiple definitions with identical signatures with different tuple element names, including 'Private Sub M2(x As (Integer, Integer))'.
+    Private Partial Sub M2(x As (a As Integer, b As Integer))
+                        ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub PartialClassWithDifferentTupleNamesInBaseInterfaces()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Interface I0(Of T)
+End Interface
+
+Public Partial Class C
+    Implements I0(Of (a As Integer, b As Integer))
+End Class
+Public Partial Class C
+    Implements I0(Of (notA As Integer, notB As Integer))
+End Class
+Public Partial Class C
+    Implements I0(Of (Integer, Integer))
+End Class
+
+Public Partial Class D
+    Implements I0(Of (a As Integer, b As Integer))
+End Class
+Public Partial Class D
+    Implements I0(Of (a As Integer, b As Integer))
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37272: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Implements I0(Of (notA As Integer, notB As Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37272: Interface 'I0(Of (Integer, Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Implements I0(Of (Integer, Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub PartialClassWithDifferentTupleNamesInBaseTypes()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Base(Of T)
+End Class
+Public Partial Class C1
+    Inherits Base(Of (a As Integer, b As Integer))
+End Class
+Public Partial Class C1
+    Inherits Base(Of (notA As Integer, notB As Integer))
+End Class
+
+Public Partial Class C2
+    Inherits Base(Of (a As Integer, b As Integer))
+End Class
+Public Partial Class C2
+    Inherits Base(Of (Integer, Integer))
+End Class
+
+Public Partial Class C3
+    Inherits Base(Of (a As Integer, b As Integer))
+End Class
+Public Partial Class C3
+    Inherits Base(Of (a As Integer, b As Integer))
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30928: Base class 'Base(Of (notA As Integer, notB As Integer))' specified for class 'C1' cannot be different from the base class 'Base(Of (a As Integer, b As Integer))' of one of its other partial types.
+    Inherits Base(Of (notA As Integer, notB As Integer))
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30928: Base class 'Base(Of (Integer, Integer))' specified for class 'C2' cannot be different from the base class 'Base(Of (a As Integer, b As Integer))' of one of its other partial types.
+    Inherits Base(Of (Integer, Integer))
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub IndirectInterfaceBasesWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Interface I0(Of T)
+End Interface
+Public Interface I1
+    Inherits I0(Of (a As Integer, b As Integer))
+End Interface
+Public Interface I2
+    Inherits I0(Of (notA As Integer, notB As Integer))
+End Interface
+Public Interface I3
+    Inherits I0(Of (a As Integer, b As Integer))
+End Interface
+
+Public Class C1
+    Implements I1, I3
+End Class
+Public Class C2
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
+End Class
+Public Class C3
+    Implements I2, I0(Of (a As Integer, b As Integer))
+End Class
+Public Class C4
+    Implements I0(Of (a As Integer, b As Integer)), I2
+End Class
+Public Class C5
+    Implements I1, I2
+End Class
+
+Public Interface I11
+    Inherits I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
+End Interface
+Public Interface I12
+    Inherits I2, I0(Of (a As Integer, b As Integer))
+End Interface
+Public Interface I13
+    Inherits I0(Of (a As Integer, b As Integer)), I2
+End Interface
+Public Interface I14
+    Inherits I1, I2
+End Interface
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37272: Interface 'I0(Of (notA As Integer, notB As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37273: Interface 'I0(Of (a As Integer, b As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (notA As Integer, notB As Integer))' (via 'I2').
+    Implements I2, I0(Of (a As Integer, b As Integer))
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37274: Interface 'I0(Of (notA As Integer, notB As Integer))' (via 'I2') can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Implements I0(Of (a As Integer, b As Integer)), I2
+                                                    ~~
+BC37275: Interface 'I0(Of (notA As Integer, notB As Integer))' (via 'I2') can be implemented only once by this type, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))' (via 'I1').
+    Implements I1, I2
+                   ~~
+BC37276: Interface 'I0(Of (notA As Integer, notB As Integer))' can be inherited only once by this interface, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Inherits I0(Of (a As Integer, b As Integer)), I0(Of (notA As Integer, notB As Integer))
+                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37277: Interface 'I0(Of (a As Integer, b As Integer))' can be inherited only once by this interface, but already appears with different tuple element names, as 'I0(Of (notA As Integer, notB As Integer))' (via 'I2').
+    Inherits I2, I0(Of (a As Integer, b As Integer))
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37278: Interface 'I0(Of (notA As Integer, notB As Integer))' (via 'I2') can be inherited only once by this interface, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))'.
+    Inherits I0(Of (a As Integer, b As Integer)), I2
+                                                  ~~
+BC37279: Interface 'I0(Of (notA As Integer, notB As Integer))' (via 'I2') can be inherited only once by this interface, but already appears with different tuple element names, as 'I0(Of (a As Integer, b As Integer))' (via 'I1').
+    Inherits I1, I2
+                 ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub InterfaceUnification()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Interface I0(Of T1)
+End Interface
+
+Public Class C1(Of T2)
+    Implements I0(Of Integer), I0(Of T2)
+End Class
+Public Class C2(Of T2)
+    Implements I0(Of (Integer, Integer)), I0(Of System.ValueTuple(Of T2, T2))
+End Class
+Public Class C3(Of T2)
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (T2, T2))
+End Class
+Public Class C4(Of T2)
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As T2, b As T2))
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC32072: Cannot implement interface 'I0(Of T2)' because its implementation could conflict with the implementation of another implemented interface 'I0(Of Integer)' for some type arguments.
+    Implements I0(Of Integer), I0(Of T2)
+                               ~~~~~~~~~
+BC32072: Cannot implement interface 'I0(Of (T2, T2))' because its implementation could conflict with the implementation of another implemented interface 'I0(Of (Integer, Integer))' for some type arguments.
+    Implements I0(Of (Integer, Integer)), I0(Of System.ValueTuple(Of T2, T2))
+                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC32072: Cannot implement interface 'I0(Of (T2, T2))' because its implementation could conflict with the implementation of another implemented interface 'I0(Of (a As Integer, b As Integer))' for some type arguments.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (T2, T2))
+                                                    ~~~~~~~~~~~~~~~
+BC32072: Cannot implement interface 'I0(Of (a As T2, b As T2))' because its implementation could conflict with the implementation of another implemented interface 'I0(Of (a As Integer, b As Integer))' for some type arguments.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (a As T2, b As T2))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub InterfaceUnification2()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Interface I0(Of T1)
+End Interface
+Public Class Derived(Of T)
+    Implements I0(Of Derived(Of (T, T))), I0(Of T)
+End Class
+     ]]></file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+</errors>)
+            ' Didn't run out of memory in trying to substitute T with Derived(Of (T, T)) in a loop
+        End Sub
+
+        <Fact>
+        Public Sub AmbiguousExtensionMethodWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Public Module M1
+    <System.Runtime.CompilerServices.Extension()>
+    Public Sub M(self As String, x As (Integer, Integer))
+        Throw New Exception()
+    End Sub
+End Module
+Public Module M2
+    <System.Runtime.CompilerServices.Extension()>
+    Public Sub M(self As String, x As (a As Integer, b As Integer))
+        Throw New Exception()
+    End Sub
+End Module
+Public Module M3
+    <System.Runtime.CompilerServices.Extension()>
+    Public Sub M(self As String, x As (c As Integer, d As Integer))
+        Throw New Exception()
+    End Sub
+End Module
+Public Class C
+    Public Sub M(s As String)
+        s.M((1, 1))
+        s.M((a:=1, b:=1))
+        s.M((c:=1, d:=1))
+    End Sub
+End Class
+     ]]></file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    Extension method 'Public Sub M(x As (Integer, Integer))' defined in 'M1': Not most specific.
+    Extension method 'Public Sub M(x As (a As Integer, b As Integer))' defined in 'M2': Not most specific.
+    Extension method 'Public Sub M(x As (c As Integer, d As Integer))' defined in 'M3': Not most specific.
+        s.M((1, 1))
+          ~
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    Extension method 'Public Sub M(x As (Integer, Integer))' defined in 'M1': Not most specific.
+    Extension method 'Public Sub M(x As (a As Integer, b As Integer))' defined in 'M2': Not most specific.
+    Extension method 'Public Sub M(x As (c As Integer, d As Integer))' defined in 'M3': Not most specific.
+        s.M((a:=1, b:=1))
+          ~
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    Extension method 'Public Sub M(x As (Integer, Integer))' defined in 'M1': Not most specific.
+    Extension method 'Public Sub M(x As (a As Integer, b As Integer))' defined in 'M2': Not most specific.
+    Extension method 'Public Sub M(x As (c As Integer, d As Integer))' defined in 'M3': Not most specific.
+        s.M((c:=1, d:=1))
+          ~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub InheritFromMetadataWithDifferentNames()
+
+            Dim il =
+"
+.assembly extern mscorlib { }
+.assembly extern System.ValueTuple
+{
+  .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
+  .ver 4:0:1:0
+}
+
+.class public auto ansi beforefieldinit Base
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig newslot virtual
+          instance class [System.ValueTuple]System.ValueTuple`2<int32,int32>
+          M() cil managed
+  {
+    .param [0]
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        = {string[2]('a' 'b')}
+    // Code size       13 (0xd)
+    .maxstack  2
+    .locals init (class [System.ValueTuple]System.ValueTuple`2<int32,int32> V_0)
+    IL_0000:  nop
+    IL_0001:  ldc.i4.1
+    IL_0002:  ldc.i4.2
+    IL_0003:  newobj     instance void class [System.ValueTuple]System.ValueTuple`2<int32,int32>::.ctor(!0,
+                                                                                                        !1)
+    IL_0008:  stloc.0
+    IL_0009:  br.s       IL_000b
+
+    IL_000b:  ldloc.0
+    IL_000c:  ret
+  } // end of method Base::M
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method Base::.ctor
+
+} // end of class Base
+
+.class public auto ansi beforefieldinit Base2
+       extends Base
+{
+  .method public hidebysig virtual instance class [System.ValueTuple]System.ValueTuple`2<int32,int32>
+          M() cil managed
+  {
+    .param [0]
+    .custom instance void [System.ValueTuple]System.Runtime.CompilerServices.TupleElementNamesAttribute::.ctor(string[])
+        = {string[2]('notA' 'notB')}
+    // Code size       13 (0xd)
+    .maxstack  2
+    .locals init (class [System.ValueTuple]System.ValueTuple`2<int32,int32> V_0)
+    IL_0000:  nop
+    IL_0001:  ldc.i4.1
+    IL_0002:  ldc.i4.2
+    IL_0003:  newobj     instance void class [System.ValueTuple]System.ValueTuple`2<int32,int32>::.ctor(!0,
+                                                                                                        !1)
+    IL_0008:  stloc.0
+    IL_0009:  br.s       IL_000b
+
+    IL_000b:  ldloc.0
+    IL_000c:  ret
+  } // end of method Base2::M
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void Base::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method Base2::.ctor
+
+} // end of class Base2
+"
+
+            Dim compMatching = CreateCompilationWithCustomILSource(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Inherits Base2
+
+    Public Overrides Function M() As (notA As Integer, notB As Integer)
+        Return (1, 2)
+    End Function
+End Class
+    </file>
+</compilation>,
+il,
+additionalReferences:=s_valueTupleRefs)
+
+            compMatching.AssertTheseDiagnostics()
+
+            Dim compDifferent1 = CreateCompilationWithCustomILSource(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Inherits Base2
+
+    Public Overrides Function M() As (a As Integer, b As Integer)
+        Return (1, 2)
+    End Function
+End Class
+    </file>
+</compilation>,
+il,
+additionalReferences:=s_valueTupleRefs)
+
+            compDifferent1.AssertTheseDiagnostics(
+<errors>
+BC40001: 'Public Overrides Function M() As (a As Integer, b As Integer)' cannot override 'Public Overrides Function M() As (notA As Integer, notB As Integer)' because they differ by their tuple element names.
+    Public Overrides Function M() As (a As Integer, b As Integer)
+                              ~
+</errors>)
+
+            Dim compDifferent2 = CreateCompilationWithCustomILSource(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Inherits Base2
+
+    Public Overrides Function M() As (Integer, Integer)
+        Return (1, 2)
+    End Function
+End Class
+    </file>
+</compilation>,
+il,
+additionalReferences:=s_valueTupleRefs)
+
+            compDifferent2.AssertTheseDiagnostics(
+<errors>
+BC40001: 'Public Overrides Function M() As (Integer, Integer)' cannot override 'Public Overrides Function M() As (notA As Integer, notB As Integer)' because they differ by their tuple element names.
+    Public Overrides Function M() As (Integer, Integer)
+                              ~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub TupleNamesInAnonymousTypes()
+
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Public Shared Sub Main()
+        Dim x1 = New With {.Tuple = (a:=1, b:=2) }
+        Dim x2 = New With {.Tuple = (c:=1, 2) }
+        x2 = x1
+        Console.Write(x1.Tuple.a)
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim model = comp.GetSemanticModel(comp.SyntaxTrees(0))
+            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
+
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().First()
+
+            Dim x1 = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
+            Assert.Equal("x1 As <anonymous type: Tuple As (a As System.Int32, b As System.Int32)>", model.GetDeclaredSymbol(x1).ToTestDisplayString())
+
+            Dim x2 = nodes.OfType(Of VariableDeclaratorSyntax)().Skip(1).First().Names(0)
+            Assert.Equal("x2 As <anonymous type: Tuple As (c As System.Int32, System.Int32)>", model.GetDeclaredSymbol(x2).ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub OverriddenPropertyWithDifferentTupleNamesInReturn()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class Base
+    Public Overridable Property P1 As (a As Integer, b As Integer)
+    Public Overridable Property P2 As (a As Integer, b As Integer)
+    Public Overridable Property P3 As (a As Integer, b As Integer)()
+    Public Overridable Property P4 As (a As Integer, b As Integer)?
+    Public Overridable Property P5 As (c As (a As Integer, b As Integer), d As Integer)
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Overrides Property P1 As (a As Integer, b As Integer)
+    Public Overrides Property P2 As (notA As Integer, notB As Integer)
+    Public Overrides Property P3 As (notA As Integer, notB As Integer)()
+    Public Overrides Property P4 As (notA As Integer, notB As Integer)?
+    Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC40001: 'Public Overrides Property P2 As (notA As Integer, notB As Integer)' cannot override 'Public Overridable Property P2 As (a As Integer, b As Integer)' because they differ by their tuple element names.
+    Public Overrides Property P2 As (notA As Integer, notB As Integer)
+                              ~~
+BC40001: 'Public Overrides Property P3 As (notA As Integer, notB As Integer)()' cannot override 'Public Overridable Property P3 As (a As Integer, b As Integer)()' because they differ by their tuple element names.
+    Public Overrides Property P3 As (notA As Integer, notB As Integer)()
+                              ~~
+BC40001: 'Public Overrides Property P4 As (notA As Integer, notB As Integer)?' cannot override 'Public Overridable Property P4 As (a As Integer, b As Integer)?' because they differ by their tuple element names.
+    Public Overrides Property P4 As (notA As Integer, notB As Integer)?
+                              ~~
+BC40001: 'Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)' cannot override 'Public Overridable Property P5 As (c As (a As Integer, b As Integer), d As Integer)' because they differ by their tuple element names.
+    Public Overrides Property P5 As (c As (notA As Integer, notB As Integer), d As Integer)
+                              ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub StructInStruct()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Structure S
+    Public Field As (S, S)
+End Structure
+     ]]></file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30294: Structure 'S' cannot contain an instance of itself: 
+    'S' contains '(S, S)' (variable 'Field').
+    '(S, S)' contains 'S' (variable 'Item1').
+    Public Field As (S, S)
+           ~~~~~
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub AssignNullWithMissingValueTuple()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class S
+    Dim t As (Integer, Integer) = Nothing
+End Class
+    </file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
+    Dim t As (Integer, Integer) = Nothing
+             ~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub MultipleImplementsWithDifferentTupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Interface I0
+    Sub M(x As (a0 As Integer, b0 As Integer))
+    Function MR() As (a0 As Integer, b0 As Integer)
+End Interface
+
+Public Interface I1
+    Sub M(x As (a1 As Integer, b1 As Integer))
+    Function MR() As (a1 As Integer, b1 As Integer)
+End Interface
+
+Public Class C1
+    Implements I0, I1
+
+    Public Sub M(x As (a2 As Integer, b2 As Integer)) Implements I0.M, I1.M
+    End Sub
+
+    Public Function MR() As (a2 As Integer, b2 As Integer) Implements I0.MR, I1.MR
+        Return (1, 2)
+    End Function
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30402: 'M' cannot implement sub 'M' on interface 'I0' because the tuple element names in 'Public Sub M(x As (a2 As Integer, b2 As Integer))' do not match those in 'Sub M(x As (a0 As Integer, b0 As Integer))'.
+    Public Sub M(x As (a2 As Integer, b2 As Integer)) Implements I0.M, I1.M
+                                                                 ~~~~
+BC30402: 'M' cannot implement sub 'M' on interface 'I1' because the tuple element names in 'Public Sub M(x As (a2 As Integer, b2 As Integer))' do not match those in 'Sub M(x As (a1 As Integer, b1 As Integer))'.
+    Public Sub M(x As (a2 As Integer, b2 As Integer)) Implements I0.M, I1.M
+                                                                       ~~~~
+BC30402: 'MR' cannot implement function 'MR' on interface 'I0' because the tuple element names in 'Public Function MR() As (a2 As Integer, b2 As Integer)' do not match those in 'Function MR() As (a0 As Integer, b0 As Integer)'.
+    Public Function MR() As (a2 As Integer, b2 As Integer) Implements I0.MR, I1.MR
+                                                                      ~~~~~
+BC30402: 'MR' cannot implement function 'MR' on interface 'I1' because the tuple element names in 'Public Function MR() As (a2 As Integer, b2 As Integer)' do not match those in 'Function MR() As (a1 As Integer, b1 As Integer)'.
+    Public Function MR() As (a2 As Integer, b2 As Integer) Implements I0.MR, I1.MR
+                                                                             ~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub MethodSignatureComparerTest()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Public Sub M1(x As (a As Integer, b As Integer))
+    End Sub
+
+    Public Sub M2(x As (a As Integer, b As Integer))
+    End Sub
+
+    Public Sub M3(x As (notA As Integer, notB As Integer))
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim m1 = comp.GetMember(Of MethodSymbol)("C.M1")
+            Dim m2 = comp.GetMember(Of MethodSymbol)("C.M2")
+            Dim m3 = comp.GetMember(Of MethodSymbol)("C.M3")
+
+            Dim comparison12 = MethodSignatureComparer.DetailedCompare(m1, m2, SymbolComparisonResults.TupleNamesMismatch)
+            Assert.Equal(0, comparison12)
+
+            Dim comparison13 = MethodSignatureComparer.DetailedCompare(m1, m3, SymbolComparisonResults.TupleNamesMismatch)
+            Assert.Equal(SymbolComparisonResults.TupleNamesMismatch, comparison13)
+
+        End Sub
+
+        <Fact>
+        Public Sub IsSameTypeTest()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Public Sub M1(x As (Integer, Integer))
+    End Sub
+
+    Public Sub M2(x As (a As Integer, b As Integer))
+    End Sub
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim m1 = comp.GetMember(Of MethodSymbol)("C.M1")
+
+            Dim tuple1 As TypeSymbol = m1.Parameters(0).Type
+            Dim underlying1 As NamedTypeSymbol = tuple1.TupleUnderlyingType
+            Assert.True(tuple1.IsSameType(tuple1, TypeCompareKind.ConsiderEverything))
+            Assert.False(tuple1.IsSameType(underlying1, TypeCompareKind.ConsiderEverything))
+            Assert.False(underlying1.IsSameType(tuple1, TypeCompareKind.ConsiderEverything))
+            Assert.True(underlying1.IsSameType(underlying1, TypeCompareKind.ConsiderEverything))
+
+            Assert.True(tuple1.IsSameType(tuple1, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            Assert.False(tuple1.IsSameType(underlying1, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            Assert.False(underlying1.IsSameType(tuple1, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            Assert.True(underlying1.IsSameType(underlying1, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+
+            Assert.True(tuple1.IsSameType(tuple1, TypeCompareKind.IgnoreTupleNames))
+            Assert.True(tuple1.IsSameType(underlying1, TypeCompareKind.IgnoreTupleNames))
+            Assert.True(underlying1.IsSameType(tuple1, TypeCompareKind.IgnoreTupleNames))
+            Assert.True(underlying1.IsSameType(underlying1, TypeCompareKind.IgnoreTupleNames))
+
+            Dim m2 = comp.GetMember(Of MethodSymbol)("C.M2")
+            Dim tuple2 As TypeSymbol = m2.Parameters(0).Type
+            Dim underlying2 As NamedTypeSymbol = tuple2.TupleUnderlyingType
+            Assert.True(tuple2.IsSameType(tuple2, TypeCompareKind.ConsiderEverything))
+            Assert.False(tuple2.IsSameType(underlying2, TypeCompareKind.ConsiderEverything))
+            Assert.False(underlying2.IsSameType(tuple2, TypeCompareKind.ConsiderEverything))
+            Assert.True(underlying2.IsSameType(underlying2, TypeCompareKind.ConsiderEverything))
+
+            Assert.True(tuple2.IsSameType(tuple2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            Assert.False(tuple2.IsSameType(underlying2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            Assert.False(underlying2.IsSameType(tuple2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            Assert.True(underlying2.IsSameType(underlying2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+
+            Assert.True(tuple2.IsSameType(tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.True(tuple2.IsSameType(underlying2, TypeCompareKind.IgnoreTupleNames))
+            Assert.True(underlying2.IsSameType(tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.True(underlying2.IsSameType(underlying2, TypeCompareKind.IgnoreTupleNames))
+
+            Assert.False(tuple1.IsSameType(tuple2, TypeCompareKind.ConsiderEverything))
+            Assert.False(tuple2.IsSameType(tuple1, TypeCompareKind.ConsiderEverything))
+
+            Assert.False(tuple1.IsSameType(tuple2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            Assert.False(tuple2.IsSameType(tuple1, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+
+            Assert.True(tuple1.IsSameType(tuple2, TypeCompareKind.IgnoreTupleNames))
+            Assert.True(tuple2.IsSameType(tuple1, TypeCompareKind.IgnoreTupleNames))
+
+        End Sub
+
+        <Fact>
+        Public Sub PropertySignatureComparer_TupleNames()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Public Property P1 As (a As Integer, b As Integer)
+
+    Public Property P2 As (a As Integer, b As Integer)
+
+    Public Property P3 As (notA As Integer, notB As Integer)
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim p1 = comp.GetMember(Of PropertySymbol)("C.P1")
+            Dim p2 = comp.GetMember(Of PropertySymbol)("C.P2")
+            Dim p3 = comp.GetMember(Of PropertySymbol)("C.P3")
+
+            Dim comparison12 = PropertySignatureComparer.DetailedCompare(p1, p2, SymbolComparisonResults.TupleNamesMismatch)
+            Assert.Equal(0, comparison12)
+
+            Dim comparison13 = PropertySignatureComparer.DetailedCompare(p1, p3, SymbolComparisonResults.TupleNamesMismatch)
+            Assert.Equal(SymbolComparisonResults.TupleNamesMismatch, comparison13)
+
+        End Sub
+
+        <Fact>
+        Public Sub PropertySignatureComparer_TypeCustomModifiers()
+
+            Dim il = <![CDATA[
+.assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly extern System.Core {}
+.assembly extern System.ValueTuple { .publickeytoken = (CC 7B 13 FF CD 2D DD 51 ) .ver 4:0:1:0 }
+.assembly '<<GeneratedFileName>>' { }
+
+.class public auto ansi beforefieldinit CL1`1<T1>
+       extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+      IL_0006:  ret
+    } // end of method CL1`1::.ctor
+
+    .property instance !T1 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)
+            Test()
+    {
+      .get instance !T1 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) CL1`1::get_Test()
+      .set instance void CL1`1::set_Test(!T1 modopt([mscorlib]System.Runtime.CompilerServices.IsConst))
+    } // end of property CL1`1::Test
+
+    .method public hidebysig newslot specialname virtual
+            instance !T1 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)
+            get_Test() cil managed
+    {
+      // Code size       2 (0x2)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  throw
+    } // end of method CL1`1::get_Test
+
+    .method public hidebysig newslot specialname virtual
+            instance void  set_Test(!T1 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) x) cil managed
+    {
+      // Code size       3 (0x3)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  throw
+      IL_0002:  ret
+    } // end of method CL1`1::set_Test
+} // end of class CL1`1
+]]>.Value
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class CL2(Of T1)
+    Public Property Test As T1
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithCustomILSource(source1, il, appendDefaultHeader:=False, additionalReferences:={ValueTupleRef, SystemRuntimeFacadeRef})
+            comp1.AssertTheseDiagnostics()
+
+            Dim property1 = comp1.GlobalNamespace.GetMember(Of PropertySymbol)("CL1.Test")
+            Assert.Equal("Property CL1(Of T1).Test As T1 modopt(System.Runtime.CompilerServices.IsConst)", property1.ToTestDisplayString())
+
+            Dim property2 = comp1.GlobalNamespace.GetMember(Of PropertySymbol)("CL2.Test")
+            Assert.Equal("Property CL2(Of T1).Test As T1", property2.ToTestDisplayString())
+
+            Assert.False(PropertySignatureComparer.RuntimePropertySignatureComparer.Equals(property1, property2))
+
+        End Sub
+
+        <Fact>
+        Public Sub EventSignatureComparerTest()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Public Event E1 As Action(Of (a As Integer, b As Integer))
+    Public Event E2 As Action(Of (a As Integer, b As Integer))
+    Public Event E3 As Action(Of (notA As Integer, notB As Integer))
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim e1 = comp.GetMember(Of EventSymbol)("C.E1")
+            Dim e2 = comp.GetMember(Of EventSymbol)("C.E2")
+            Dim e3 = comp.GetMember(Of EventSymbol)("C.E3")
+
+            Assert.True(EventSignatureComparer.ExplicitEventImplementationWithTupleNamesComparer.Equals(e1, e2))
+            Assert.False(EventSignatureComparer.ExplicitEventImplementationWithTupleNamesComparer.Equals(e1, e3))
+
+        End Sub
+
+        <Fact>
+        Public Sub OperatorOverloadingWithDifferentTupleNames()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class B1
+    Shared Operator >=(x1 As (a As B1, b As B1), x2 As B1) As Boolean
+        Return Nothing
+    End Operator
+
+    Shared Operator <=(x1 As (notA As B1, notB As B1), x2 As B1) As Boolean
+        Return Nothing
+    End Operator
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, additionalRefs:=s_valueTupleRefs)
+            compilation.AssertTheseDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub Shadowing()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C0
+    Public Function M(x As (a As Integer, (b As Integer, c As Integer))) As (a As Integer, (b As Integer, c As Integer))
+        Return (1, (2, 3))
+    End Function
+End Class
+Public Class C1
+    Inherits C0
+
+    Public Function M(x As (a As Integer, (notB As Integer, c As Integer))) As (a As Integer, (notB As Integer, c As Integer))
+        Return (1, (2, 3))
+    End Function
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC40003: function 'M' shadows an overloadable member declared in the base class 'C0'.  If you want to overload the base method, this method must be declared 'Overloads'.
+    Public Function M(x As (a As Integer, (notB As Integer, c As Integer))) As (a As Integer, (notB As Integer, c As Integer))
+                    ~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub UnifyDifferentTupleName()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Interface I0(Of T1)
+End Interface
+
+Class C(Of T2)
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As T2, notB As T2))
+
+End Class
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC32072: Cannot implement interface 'I0(Of (notA As T2, notB As T2))' because its implementation could conflict with the implementation of another implemented interface 'I0(Of (a As Integer, b As Integer))' for some type arguments.
+    Implements I0(Of (a As Integer, b As Integer)), I0(Of (notA As T2, notB As T2))
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub BC31407ERR_MultipleEventImplMismatch3()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Interface I1
+    Event evtTest1(x As (A As Integer, B As Integer))
+    Event evtTest2(x As (A As Integer, notB As Integer))
+End Interface
+Class C1
+    Implements I1
+    Event evtTest3(x As (A As Integer, stilNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+            Dim expectedErrors1 = <errors><![CDATA[
+BC30402: 'evtTest3' cannot implement event 'evtTest1' on interface 'I1' because the tuple element names in 'Public Event evtTest3 As I1.evtTest1EventHandler' do not match those in 'Event evtTest1(x As (A As Integer, B As Integer))'.
+    Event evtTest3(x As (A As Integer, stilNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+                                                                        ~~~~~~~~~~~
+BC30402: 'evtTest3' cannot implement event 'evtTest2' on interface 'I1' because the tuple element names in 'Public Event evtTest3 As I1.evtTest1EventHandler' do not match those in 'Event evtTest2(x As (A As Integer, notB As Integer))'.
+    Event evtTest3(x As (A As Integer, stilNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+                                                                                     ~~~~~~~~~~~
+BC31407: Event 'Public Event evtTest3 As I1.evtTest1EventHandler' cannot implement event 'I1.Event evtTest2(x As (A As Integer, notB As Integer))' because its delegate type does not match the delegate type of another event implemented by 'Public Event evtTest3 As I1.evtTest1EventHandler'.
+    Event evtTest3(x As (A As Integer, stilNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+                                                                                     ~~~~~~~~~~~
+                 ]]></errors>
+            CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+        End Sub
+
+        <Fact()>
+        Public Sub ImplementingEventWithDifferentTupleNames()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Interface I1
+    Event evtTest1 As Action(Of (A As Integer, B As Integer))
+    Event evtTest2 As Action(Of (A As Integer, notB As Integer))
+End Interface
+Class C1
+    Implements I1
+    Event evtTest3 As Action(Of (A As Integer, stilNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+            Dim expectedErrors1 = <errors><![CDATA[
+BC30402: 'evtTest3' cannot implement event 'evtTest1' on interface 'I1' because the tuple element names in 'Public Event evtTest3 As Action(Of (A As Integer, stilNotB As Integer))' do not match those in 'Event evtTest1 As Action(Of (A As Integer, B As Integer))'.
+    Event evtTest3 As Action(Of (A As Integer, stilNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+                                                                                ~~~~~~~~~~~
+BC30402: 'evtTest3' cannot implement event 'evtTest2' on interface 'I1' because the tuple element names in 'Public Event evtTest3 As Action(Of (A As Integer, stilNotB As Integer))' do not match those in 'Event evtTest2 As Action(Of (A As Integer, notB As Integer))'.
+    Event evtTest3 As Action(Of (A As Integer, stilNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+                                                                                             ~~~~~~~~~~~
+                 ]]></errors>
+            CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+        End Sub
+
+        <Fact>
+        Public Sub BC31407ERR_MultipleEventImplMismatch3_2()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Interface I1
+    Event evtTest1 As Action(Of (A As Integer, B As Integer))
+    Event evtTest2 As Action(Of (A As Integer, notB As Integer))
+End Interface
+Class C1
+    Implements I1
+    Event evtTest3(x As (A As Integer, stillNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+            compilation1.AssertTheseDiagnostics(
+<errors>
+BC30402: 'evtTest3' cannot implement event 'evtTest1' on interface 'I1' because the tuple element names in 'Public Event evtTest3 As Action(Of (A As Integer, B As Integer))' do not match those in 'Event evtTest1 As Action(Of (A As Integer, B As Integer))'.
+    Event evtTest3(x As (A As Integer, stillNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+                                                                         ~~~~~~~~~~~
+BC30402: 'evtTest3' cannot implement event 'evtTest2' on interface 'I1' because the tuple element names in 'Public Event evtTest3 As Action(Of (A As Integer, B As Integer))' do not match those in 'Event evtTest2 As Action(Of (A As Integer, notB As Integer))'.
+    Event evtTest3(x As (A As Integer, stillNotB As Integer)) Implements I1.evtTest1, I1.evtTest2
+                                                                                      ~~~~~~~~~~~
+</errors>)
+        End Sub
+
+        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <Fact>
+        Public Sub ValueTupleNotStruct0()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+class C
+    Shared Sub Main()
+        Dim x as (a As Integer, b As String)
+        x.Item1 = 1
+        x.b = "2"
+ 
+        ' by the language rules tuple x is definitely assigned
+        ' since all its elements are definitely assigned
+        System.Console.WriteLine(x)
+    end sub
+end class
+
+namespace System
+    public class ValueTuple(Of T1, T2)
+        public Item1 as T1
+        public Item2 as T2
+
+        public Sub New(item1 as T1 , item2 as T2 )
+            Me.Item1 = item1
+            Me.Item2 = item2
+        end sub
+    End class
+end Namespace
+
+    <%= s_tupleattributes %>
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe)
+
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
+        Dim x as (a As Integer, b As String)
+            ~
+</errors>)
+
+        End Sub
+
+        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <Fact>
+        Public Sub ValueTupleNotStruct1()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            <compilation name="Tuples">
+                <file name="a.vb">
+class C
+    Shared Sub Main()
+        Dim x = (1,2,3,4,5,6,7,8,9)
+ 
+        System.Console.WriteLine(x)
+    end sub
+end class
+
+namespace System
+    public class ValueTuple(Of T1, T2)
+        public Item1 as T1
+        public Item2 as T2
+
+        public Sub New(item1 as T1 , item2 as T2 )
+            Me.Item1 = item1
+            Me.Item2 = item2
+        end sub
+    End class
+
+    public class ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest)
+        public Item1 As T1
+        public Item2 As T2
+        public Item3 As T3
+        public Item4 As T4
+        public Item5 As T5
+        public Item6 As T6
+        public Item7 As T7
+        public Rest As TRest
+
+        public Sub New(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5, item6 As T6, item7 As T7, rest As TRest)
+            Item1 = item1
+            Item2 = item2
+            Item3 = item3
+            Item4 = item4
+            Item5 = item5
+            Item6 = item6
+            Item7 = item7
+            Rest = rest
+        end Sub
+
+    End Class
+end Namespace
+
+    <%= s_tupleattributes %>
+                </file>
+            </compilation>,
+            options:=TestOptions.DebugExe)
+
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
+        Dim x = (1,2,3,4,5,6,7,8,9)
+            ~
+BC37281: Predefined type 'ValueTuple`8' must be a structure.
+        Dim x = (1,2,3,4,5,6,7,8,9)
+            ~
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub ConversionToBase()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Public Class Base(Of T)
+End Class
+
+Public Class Derived
+    Inherits Base(Of (a As Integer, b As Integer))
+
+    Public Shared Narrowing Operator CType(ByVal arg As Derived) As Base(Of (Integer, Integer))
+        Return Nothing
+    End Operator
+
+    Public Shared Narrowing Operator CType(ByVal arg As Base(Of (Integer, Integer))) As Derived
+        Return Nothing
+    End Operator
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            compilation1.AssertTheseDiagnostics(
+<errors>
+BC33026: Conversion operators cannot convert from a type to its base type.
+    Public Shared Narrowing Operator CType(ByVal arg As Derived) As Base(Of (Integer, Integer))
+                                     ~~~~~
+BC33030: Conversion operators cannot convert from a base type.
+    Public Shared Narrowing Operator CType(ByVal arg As Base(Of (Integer, Integer))) As Derived
+                                     ~~~~~
+</errors>)
+        End Sub
+
+        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <Fact>
+        Public Sub ValueTupleNotStruct2()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+class C
+    Shared Sub Main()
+    end sub
+
+    Shared Sub Test2(arg as (a As Integer, b As Integer))
+    End Sub
+end class
+
+namespace System
+    public class ValueTuple(Of T1, T2)
+        public Item1 as T1
+        public Item2 as T2
+
+        public Sub New(item1 as T1 , item2 as T2 )
+            Me.Item1 = item1
+            Me.Item2 = item2
+        end sub
+    End class
+end Namespace
+
+    <%= s_tupleattributes %>
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe)
+
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
+</errors>)
+
+        End Sub
+
+        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <Fact>
+        Public Sub ValueTupleNotStruct2i()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+class C
+    Shared Sub Main()
+    end sub
+
+    Shared Sub Test2(arg as (a As Integer, b As Integer))
+    End Sub
+end class
+
+namespace System
+    public interface ValueTuple(Of T1, T2)
+    End Interface
+end Namespace
+
+    <%= s_tupleattributes %>
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe)
+
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
+</errors>)
+
+        End Sub
+
+
+        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <Fact>
+        Public Sub ValueTupleNotStruct3()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+class C
+    Shared Sub Main()
+        Dim x as (a As Integer, b As String)() = Nothing
+ 
+        ' by the language rules tuple x is definitely assigned
+        ' since all its elements are definitely assigned
+        System.Console.WriteLine(x)
+    end sub
+end class
+
+namespace System
+    public class ValueTuple(Of T1, T2)
+        public Item1 as T1
+        public Item2 as T2
+
+        public Sub New(item1 as T1 , item2 as T2 )
+            Me.Item1 = item1
+            Me.Item2 = item2
+        end sub
+    End class
+end Namespace
+
+    <%= s_tupleattributes %>
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe)
+
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
+        Dim x as (a As Integer, b As String)() = Nothing
+            ~
+</errors>)
+
+        End Sub
+
+        <WorkItem(11689, "https://github.com/dotnet/roslyn/issues/11689")>
+        <Fact>
+        Public Sub ValueTupleNotStruct4()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="Tuples">
+    <file name="a.vb">
+class C
+    Shared Sub Main()
+
+    end sub
+    
+    Shared Function Test2()as (a As Integer, b As Integer)
+    End Function
+end class
+
+namespace System
+    public class ValueTuple(Of T1, T2)
+        public Item1 as T1
+        public Item2 as T2
+
+        public Sub New(item1 as T1 , item2 as T2 )
+            Me.Item1 = item1
+            Me.Item2 = item2
+        end sub
+    End class
+end Namespace
+
+    <%= s_tupleattributes %>
+    </file>
+</compilation>,
+options:=TestOptions.DebugExe)
+
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC37281: Predefined type 'ValueTuple`2' must be a structure.
+    Shared Function Test2()as (a As Integer, b As Integer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub TernaryTypeInferenceWithDynamicAndTupleNames()
+            ' No dynamic in VB
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim flag As Boolean = True
+        Dim x1 = If(flag, (a:=1, b:=2), (a:=1, c:=3))
+        System.Console.Write(x1.a)
+    End Sub
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+        Dim x1 = If(flag, (a:=1, b:=2), (a:=1, c:=3))
+                                 ~~~~
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+        Dim x1 = If(flag, (a:=1, b:=2), (a:=1, c:=3))
+                                               ~~~~
+</errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim x1 = nodes.OfType(Of VariableDeclaratorSyntax)().Skip(1).First().Names(0)
+            Dim x1Symbol = model.GetDeclaredSymbol(x1)
+            Assert.Equal("x1 As (a As System.Int32, System.Int32)", x1Symbol.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub TernaryTypeInferenceWithNoNames()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim flag As Boolean = True
+        Dim x1 = If(flag, (a:=1, b:=2), (1, 3))
+        Dim x2 = If(flag, (1, 2), (a:=1, b:=3))
+    End Sub
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'a' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+        Dim x1 = If(flag, (a:=1, b:=2), (1, 3))
+                           ~~~~
+BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+        Dim x1 = If(flag, (a:=1, b:=2), (1, 3))
+                                 ~~~~
+BC41009: The tuple element name 'a' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+        Dim x2 = If(flag, (1, 2), (a:=1, b:=3))
+                                   ~~~~
+BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+        Dim x2 = If(flag, (1, 2), (a:=1, b:=3))
+                                         ~~~~
+</errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim x1 = nodes.OfType(Of VariableDeclaratorSyntax)().Skip(1).First().Names(0)
+            Dim x1Symbol = model.GetDeclaredSymbol(x1)
+            Assert.Equal("x1 As (System.Int32, System.Int32)", x1Symbol.ToTestDisplayString())
+
+            Dim x2 = nodes.OfType(Of VariableDeclaratorSyntax)().Skip(2).First().Names(0)
+            Dim x2Symbol = model.GetDeclaredSymbol(x2)
+            Assert.Equal("x2 As (System.Int32, System.Int32)", x2Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub TernaryTypeInferenceDropsCandidates()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim flag As Boolean = True
+        Dim x1 = If(flag, (a:=1, b:=CType(2, Long)), (a:=CType(1, Byte), c:=3))
+    End Sub
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, b As Long)'.
+        Dim x1 = If(flag, (a:=1, b:=CType(2, Long)), (a:=CType(1, Byte), c:=3))
+                                                                         ~~~~
+</errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim x1 = nodes.OfType(Of VariableDeclaratorSyntax)().Skip(1).First().Names(0)
+            Dim x1Symbol = model.GetDeclaredSymbol(x1)
+            Assert.Equal("x1 As (a As System.Int32, b As System.Int64)", x1Symbol.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub LambdaTypeInferenceWithTupleNames()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim x1 = M2(Function()
+            Dim flag = True
+            If flag Then
+                Return (a:=1, b:=2)
+            Else
+                If flag Then
+                    Return (a:=1, c:=3)
+                Else
+                    Return (a:=1, d:=4)
+                End If
+            End If
+        End Function)
+    End Sub
+    Function M2(Of T)(f As System.Func(Of T)) As T
+        Return f()
+    End Function
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+                Return (a:=1, b:=2)
+                              ~~~~
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+                    Return (a:=1, c:=3)
+                                  ~~~~
+BC41009: The tuple element name 'd' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+                    Return (a:=1, d:=4)
+                                  ~~~~
+</errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim x1 = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
+            Dim x1Symbol = model.GetDeclaredSymbol(x1)
+            Assert.Equal("x1 As (a As System.Int32, System.Int32)", x1Symbol.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub LambdaTypeInferenceFallsBackToObject()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim x1 = M2(Function()
+            Dim flag = True
+            Dim l1 = CType(2, Long)
+            If flag Then
+                Return (a:=1, b:=l1)
+            Else
+                If flag Then
+                    Return (a:=l1, c:=3)
+                Else
+                    Return (a:=1, d:=l1)
+                End If
+            End If
+        End Function)
+    End Sub
+    Function M2(Of T)(f As System.Func(Of T)) As T
+        Return f()
+    End Function
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim x1 = nodes.OfType(Of VariableDeclaratorSyntax)().First().Names(0)
+            Dim x1Symbol = model.GetDeclaredSymbol(x1)
+            Assert.Equal("x1 As System.Object", x1Symbol.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub IsBaseOf_WithoutCustomModifiers()
+            ' The IL is from this code, but with modifiers
+            ' public class Base<T> { }
+            ' public class Derived<T> : Base<T> { }
+            ' public class Test
+            ' {
+            '    public Base<Object> GetBaseWithModifiers() { return null; }
+            '    public Derived<Object> GetDerivedWithoutModifiers() { return null; }
+            ' }
+
+            Dim il = <![CDATA[
+.assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly extern System.Core {}
+.assembly extern System.ValueTuple { .publickeytoken = (CC 7B 13 FF CD 2D DD 51 ) .ver 4:0:1:0 }
+.assembly '<<GeneratedFileName>>' { }
+
+.class public auto ansi beforefieldinit Base`1<T>
+	extends [mscorlib]System.Object
+{
+	// Methods
+	.method public hidebysig specialname rtspecialname
+		instance void .ctor () cil managed
+	{
+		// Method begins at RVA 0x2050
+		// Code size 8 (0x8)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: nop
+		IL_0007: ret
+	} // end of method Base`1::.ctor
+
+} // end of class Base`1
+
+.class public auto ansi beforefieldinit Derived`1<T>
+	extends class Base`1<!T>
+{
+	// Methods
+	.method public hidebysig specialname rtspecialname
+		instance void .ctor () cil managed
+	{
+		// Method begins at RVA 0x2059
+		// Code size 8 (0x8)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void class Base`1<!T>::.ctor()
+		IL_0006: nop
+		IL_0007: ret
+	} // end of method Derived`1::.ctor
+
+} // end of class Derived`1
+
+.class public auto ansi beforefieldinit Test
+	extends [mscorlib]System.Object
+{
+	// Methods
+	.method public hidebysig
+		instance class Base`1<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)> GetBaseWithModifiers () cil managed
+	{
+		// Method begins at RVA 0x2064
+		// Code size 7 (0x7)
+		.maxstack 1
+		.locals init (
+			[0] class Base`1<object modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+		)
+
+		IL_0000: nop
+		IL_0001: ldnull
+		IL_0002: stloc.0
+		IL_0003: br.s IL_0005
+
+		IL_0005: ldloc.0
+		IL_0006: ret
+	} // end of method Test::GetBaseWithModifiers
+
+	.method public hidebysig
+		instance class Derived`1<object> GetDerivedWithoutModifiers () cil managed
+	{
+		// Method begins at RVA 0x2078
+		// Code size 7 (0x7)
+		.maxstack 1
+		.locals init (
+			[0] class Derived`1<object>
+		)
+
+		IL_0000: nop
+		IL_0001: ldnull
+		IL_0002: stloc.0
+		IL_0003: br.s IL_0005
+
+		IL_0005: ldloc.0
+		IL_0006: ret
+	} // end of method Test::GetDerivedWithoutModifiers
+
+	.method public hidebysig specialname rtspecialname
+		instance void .ctor () cil managed
+	{
+		// Method begins at RVA 0x2050
+		// Code size 8 (0x8)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: nop
+		IL_0007: ret
+	} // end of method Test::.ctor
+
+} // end of class Test
+]]>.Value
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithCustomILSource(source1, il, appendDefaultHeader:=False)
+            comp1.AssertTheseDiagnostics()
+
+            Dim baseWithModifiers = comp1.GlobalNamespace.GetMember(Of MethodSymbol)("Test.GetBaseWithModifiers").ReturnType
+            Assert.Equal("Base(Of System.Object modopt(System.Runtime.CompilerServices.IsLong))", baseWithModifiers.ToTestDisplayString())
+
+            Dim derivedWithoutModifiers = comp1.GlobalNamespace.GetMember(Of MethodSymbol)("Test.GetDerivedWithoutModifiers").ReturnType
+            Assert.Equal("Derived(Of System.Object)", derivedWithoutModifiers.ToTestDisplayString())
+
+            Dim diagnostics = New HashSet(Of DiagnosticInfo)()
+            Assert.True(baseWithModifiers.IsBaseTypeOf(derivedWithoutModifiers, diagnostics))
+            Assert.True(derivedWithoutModifiers.IsOrDerivedFrom(derivedWithoutModifiers, diagnostics))
+
+        End Sub
+
+        <Fact>
+        Public Sub WarnForDroppingNamesInConversion()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim x1 As (a As Integer, Integer) = (1, b:=2)
+        Dim x2 As (a As Integer, String) = (1, b:=Nothing)
+    End Sub
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+        Dim x1 As (a As Integer, Integer) = (1, b:=2)
+                                                ~~~~
+BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, String)'.
+        Dim x2 As (a As Integer, String) = (1, b:=Nothing)
+                                               ~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        Public Sub MethodTypeInferenceMergesTupleNames()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        Dim t = M2((a:=1, b:=2), (a:=1, c:=3))
+        System.Console.Write(t.a)
+        System.Console.Write(t.b)
+        System.Console.Write(t.c)
+        M2((1, 2), (c:=1, d:=3))
+        M2({(a:=1, b:=2)}, {(1, 3)})
+    End Sub
+    Function M2(Of T)(x1 As T, x2 As T) As T
+        Return x1
+    End Function
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'b' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+        Dim t = M2((a:=1, b:=2), (a:=1, c:=3))
+                          ~~~~
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, Integer)'.
+        Dim t = M2((a:=1, b:=2), (a:=1, c:=3))
+                                        ~~~~
+BC30456: 'b' is not a member of '(a As Integer, Integer)'.
+        System.Console.Write(t.b)
+                             ~~~
+BC30456: 'c' is not a member of '(a As Integer, Integer)'.
+        System.Console.Write(t.c)
+                             ~~~
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+        M2((1, 2), (c:=1, d:=3))
+                    ~~~~
+BC41009: The tuple element name 'd' is ignored because a different name is specified by the target type '(Integer, Integer)'.
+        M2((1, 2), (c:=1, d:=3))
+                          ~~~~
+</errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim invocation1 = model.GetSymbolInfo(nodes.OfType(Of InvocationExpressionSyntax)().First())
+            Assert.Equal("(a As System.Int32, System.Int32)",
+                         DirectCast(invocation1.Symbol, MethodSymbol).ReturnType.ToTestDisplayString())
+
+            Dim invocation2 = model.GetSymbolInfo(nodes.OfType(Of InvocationExpressionSyntax)().Skip(4).First())
+            Assert.Equal("(System.Int32, System.Int32)",
+                         DirectCast(invocation2.Symbol, MethodSymbol).ReturnType.ToTestDisplayString())
+
+            Dim invocation3 = model.GetSymbolInfo(nodes.OfType(Of InvocationExpressionSyntax)().Skip(5).First())
+            Assert.Equal("(a As System.Int32, b As System.Int32)()",
+                         DirectCast(invocation3.Symbol, MethodSymbol).ReturnType.ToTestDisplayString())
+
+        End Sub
+
+        <Fact>
+        Public Sub MethodTypeInferenceDropsCandidates()
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
+    <compilation name="Tuples">
+        <file name="a.vb"><![CDATA[
+Class C
+    Sub M()
+        M2((a:=1, b:=2), (a:=CType(1, Byte), c:=CType(3, Byte)))
+        M2((CType(1, Long), b:=2), (c:=1, d:=CType(3, Byte)))
+        M2((a:=CType(1, Long), b:=2), (CType(1, Byte), 3))
+    End Sub
+    Function M2(Of T)(x1 As T, x2 As T) As T
+        Return x1
+    End Function
+End Class
+        ]]></file>
+    </compilation>, references:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(a As Integer, b As Integer)'.
+        M2((a:=1, b:=2), (a:=CType(1, Byte), c:=CType(3, Byte)))
+                                             ~~~~~~~~~~~~~~~~~
+BC41009: The tuple element name 'c' is ignored because a different name is specified by the target type '(Long, b As Integer)'.
+        M2((CType(1, Long), b:=2), (c:=1, d:=CType(3, Byte)))
+                                    ~~~~
+BC41009: The tuple element name 'd' is ignored because a different name is specified by the target type '(Long, b As Integer)'.
+        M2((CType(1, Long), b:=2), (c:=1, d:=CType(3, Byte)))
+                                          ~~~~~~~~~~~~~~~~~
+</errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim invocation1 = model.GetSymbolInfo(nodes.OfType(Of InvocationExpressionSyntax)().First())
+            Assert.Equal("(a As System.Int32, b As System.Int32)",
+                         DirectCast(invocation1.Symbol, MethodSymbol).ReturnType.ToTestDisplayString())
+
+            Dim invocation2 = model.GetSymbolInfo(nodes.OfType(Of InvocationExpressionSyntax)().Skip(1).First())
+            Assert.Equal("(System.Int64, b As System.Int32)",
+                         DirectCast(invocation2.Symbol, MethodSymbol).ReturnType.ToTestDisplayString())
+
+            Dim invocation3 = model.GetSymbolInfo(nodes.OfType(Of InvocationExpressionSyntax)().Skip(2).First())
+            Assert.Equal("(a As System.Int64, b As System.Int32)",
+                         DirectCast(invocation3.Symbol, MethodSymbol).ReturnType.ToTestDisplayString())
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14267, "https://github.com/dotnet/roslyn/issues/14267")>
+        Public Sub NoSystemRuntimeFacade()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+
+    Sub Main()
+        Dim o = (1, 2)
+    End Sub
+End Module
+
+]]></file>
+</compilation>, additionalRefs:={ValueTupleRef})
+
+            Assert.Equal(TypeKind.Class, comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).TypeKind)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+        Dim o = (1, 2)
+                ~~~~~~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem(14888, "https://github.com/dotnet/roslyn/issues/14888")>
+        Public Sub Iterator_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class C
+    Shared Sub Main()
+        For Each x in Test()
+            Console.WriteLine(x)
+        Next
+    End Sub
+
+    Shared Iterator Function Test() As IEnumerable(Of (integer, integer))
+        yield (1, 2)
+    End Function
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(1, 2)")
+        End Sub
+
+        <Fact()>
+        <WorkItem(14888, "https://github.com/dotnet/roslyn/issues/14888")>
+        Public Sub Iterator_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class C
+    Iterator Function Test() As IEnumerable(Of (integer, integer))
+        yield (1, 2)
+    End Function
+End Class
+    </file>
+</compilation>, additionalRefs:={ValueTupleRef})
+
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+    Iterator Function Test() As IEnumerable(Of (integer, integer))
+                                               ~~~~~~~~~~~~~~~~~~
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+        yield (1, 2)
+              ~~~~~~
+</errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        Public Sub UserDefinedConversionsAndNameMismatch_01()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test((X1:=1, Y1:=2))
+        Dim t1 = (X1:=3, Y1:=4)
+        Test(t1)
+        Test((5, 6))
+        Dim t2 = (7, 8)
+        Test(t2)
+    End Sub
+
+    Shared Sub Test(val As AA)
+    End Sub
+End Class
+
+Public Class AA
+    Public Shared Widening Operator CType(x As (X1 As Integer, Y1 As Integer)) As AA
+        System.Console.WriteLine(x)	
+        return new AA()
+    End Operator
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+(1, 2)
+(3, 4)
+(5, 6)
+(7, 8)
+")
+        End Sub
+
+        <Fact>
+        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        Public Sub UserDefinedConversionsAndNameMismatch_02()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test((X1:=1, Y1:=2))
+        Dim t1 = (X1:=3, Y1:=4)
+        Test(t1)
+        Test((5, 6))
+        Dim t2 = (7, 8)
+        Test(t2)
+    End Sub
+
+    Shared Sub Test(val As AA?)
+    End Sub
+End Class
+
+Public Structure AA
+    Public Shared Widening Operator CType(x As (X1 As Integer, Y1 As Integer)) As AA
+        System.Console.WriteLine(x)	
+        return new AA()
+    End Operator
+End Structure
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+(1, 2)
+(3, 4)
+(5, 6)
+(7, 8)
+")
+        End Sub
+
+        <Fact>
+        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        Public Sub UserDefinedConversionsAndNameMismatch_03()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Dim t1 As (X1 as Integer, Y1 as Integer)?  = (X1:=3, Y1:=4)
+        Test(t1)
+        Dim t2 As (Integer, Integer)? = (7, 8)
+        Test(t2)
+        System.Console.WriteLine("--")	
+        t1 = Nothing
+        Test(t1)
+        t2 = Nothing
+        Test(t2)
+        System.Console.WriteLine("--")	
+    End Sub
+
+    Shared Sub Test(val As AA?)
+    End Sub
+End Class
+
+Public Structure AA
+    Public Shared Widening Operator CType(x As (X1 As Integer, Y1 As Integer)) As AA
+        System.Console.WriteLine(x)	
+        return new AA()
+    End Operator
+End Structure
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+(3, 4)
+(7, 8)
+--
+--
+")
+        End Sub
+
+        <Fact>
+        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        Public Sub UserDefinedConversionsAndNameMismatch_04()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test(new AA())
+    End Sub
+
+    Shared Sub Test(val As (X1 As Integer, Y1 As Integer))
+        System.Console.WriteLine(val)
+    End Sub
+End Class
+
+Public Class AA
+    Public Shared Widening Operator CType(x As AA) As (Integer, Integer)
+        return (1, 2)
+    End Operator
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(1, 2)")
+        End Sub
+
+        <Fact>
+        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        Public Sub UserDefinedConversionsAndNameMismatch_05()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Test(new AA())
+    End Sub
+
+    Shared Sub Test(val As (X1 As Integer, Y1 As Integer))
+        System.Console.WriteLine(val)
+    End Sub
+End Class
+
+Public Class AA
+    Public Shared Widening Operator CType(x As AA) As (X1 As Integer, Y1 As Integer)
+        return (1, 2)
+    End Operator
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(1, 2)")
+        End Sub
+
+        <Fact>
+        <WorkItem(269808, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=269808")>
+        Public Sub UserDefinedConversionsAndNameMismatch_06()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Public Class C
+    Shared Sub Main()
+        Dim t1 As BB(Of (X1 as Integer, Y1 as Integer))? = New BB(Of (X1 as Integer, Y1 as Integer))()
+        Test(t1)
+        Dim t2 As BB(Of (Integer, Integer))? = New BB(Of (Integer, Integer))()
+        Test(t2)
+        System.Console.WriteLine("--")	
+        t1 = Nothing
+        Test(t1)
+        t2 = Nothing
+        Test(t2)
+        System.Console.WriteLine("--")	
+    End Sub
+
+    Shared Sub Test(val As AA?)
+    End Sub
+End Class
+
+Public Structure AA
+    Public Shared Widening Operator CType(x As BB(Of (X1 As Integer, Y1 As Integer))) As AA
+        System.Console.WriteLine("implicit operator AA")	
+        return new AA()
+    End Operator
+End Structure
+
+Public Structure BB(Of T)
+End Structure
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+implicit operator AA
+implicit operator AA
+--
+--
+")
+        End Sub
+
+
+        <Fact>
+        Public Sub GenericConstraintAttributes()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+
+Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+Imports ClassLibrary4
+
+Public Interface ITest(Of T)
+    ReadOnly Property [Get] As T
+End Interface
+
+Public Class Test
+    Implements ITest(Of (key As Integer, val As Integer))
+
+    Public ReadOnly Property [Get] As (key As Integer, val As Integer) Implements ITest(Of (key As Integer, val As Integer)).Get
+        Get
+            Return (0, 0)
+        End Get
+    End Property
+End Class
+
+Public Class Base(Of T) : Implements ITest(Of T)
+    Public ReadOnly Property [Get] As T Implements ITest(Of T).Get
+
+    Protected Sub New(t As T)
+        [Get] = t
+    End Sub
+End Class
+
+Public Class C(Of T As ITest(Of (key As Integer, val As Integer)))
+    Public ReadOnly Property [Get] As T
+
+    Public Sub New(t As T)
+        [Get] = t
+    End Sub
+End Class
+
+Public Class C2(Of T As Base(Of (key As Integer, val As Integer)))
+    Public ReadOnly Property [Get] As T
+
+    Public Sub New(t As T)
+        [Get] = t
+    End Sub
+End Class
+
+Public NotInheritable Class Test2
+    Inherits Base(Of (key As Integer, val As Integer))
+
+    Sub New()
+        MyBase.New((-1, -2))
+    End Sub
+End Class
+
+Public Class C3(Of T As IEnumerable(Of (key As Integer, val As Integer)))
+    Public ReadOnly Property [Get] As T
+    Public Sub New(t As T)
+        [Get] = t
+    End Sub
+End Class
+
+Public Structure TestEnumerable
+    Implements IEnumerable(Of (key As Integer, val As Integer))
+    Private ReadOnly _backing As (Integer, Integer)()
+
+    Public Sub New(backing As (Integer, Integer)())
+        _backing = backing
+    End Sub
+
+    Private Class Inner
+        Implements IEnumerator(Of (key As Integer, val As Integer)), IEnumerator
+
+        Private index As Integer = -1
+        Private ReadOnly _backing As (Integer, Integer)()
+
+        Public Sub New(backing As (Integer, Integer)())
+            _backing = backing
+        End Sub
+
+        Public ReadOnly Property Current As (key As Integer, val As Integer) Implements IEnumerator(Of (key As Integer, val As Integer)).Current
+            Get
+                Return _backing(index)
+            End Get
+        End Property
+
+        Public ReadOnly Property Current1 As Object Implements IEnumerator.Current
+            Get
+                Return Current
+            End Get
+        End Property
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+
+        Public Function MoveNext() As Boolean
+            index += 1
+            Return index &lt; _backing.Length
+        End Function
+
+        Public Sub Reset()
+            Throw New NotSupportedException()
+        End Sub
+
+        Private Function IEnumerator_MoveNext() As Boolean Implements IEnumerator.MoveNext
+            Return MoveNext()
+        End Function
+
+        Private Sub IEnumerator_Reset() Implements IEnumerator.Reset
+            Throw New NotImplementedException()
+        End Sub
+    End Class
+
+    Public Function GetEnumerator() As IEnumerator(Of (key As Integer, val As Integer)) Implements IEnumerable(Of (key As Integer, val As Integer)).GetEnumerator
+        Return New Inner(_backing)
+    End Function
+
+    Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+        Return New Inner(_backing)
+    End Function
+    End Structure
+
+
+    </file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, symbolValidator:=Sub(m)
+                                                        Dim c = m.GlobalNamespace.GetTypeMember("C")
+                                                        Assert.Equal(1, c.TypeParameters.Length)
+                                                        Dim param = c.TypeParameters(0)
+                                                        Assert.Equal(1, param.ConstraintTypes.Length)
+                                                        Dim constraint = Assert.IsAssignableFrom(Of NamedTypeSymbol)(param.ConstraintTypes(0))
+                                                        Assert.True(constraint.IsGenericType)
+                                                        Assert.Equal(1, constraint.TypeArguments.Length)
+                                                        Dim typeArg As TypeSymbol = constraint.TypeArguments(0)
+                                                        Assert.True(typeArg.IsTupleType)
+                                                        Assert.Equal(2, typeArg.TupleElementTypes.Length)
+                                                        Assert.All(typeArg.TupleElementTypes,
+                                                                        Sub(t) Assert.Equal(SpecialType.System_Int32, t.SpecialType))
+                                                        Assert.False(typeArg.TupleElementNames.IsDefault)
+                                                        Assert.Equal(2, typeArg.TupleElementNames.Length)
+                                                        Assert.Equal({"key", "val"}, typeArg.TupleElementNames)
+                                                        Dim c2 = m.GlobalNamespace.GetTypeMember("C2")
+                                                        Assert.Equal(1, c2.TypeParameters.Length)
+                                                        param = c2.TypeParameters(0)
+                                                        Assert.Equal(1, param.ConstraintTypes.Length)
+                                                        constraint = Assert.IsAssignableFrom(Of NamedTypeSymbol)(param.ConstraintTypes(0))
+                                                        Assert.True(constraint.IsGenericType)
+                                                        Assert.Equal(1, constraint.TypeArguments.Length)
+                                                        typeArg = constraint.TypeArguments(0)
+                                                        Assert.True(typeArg.IsTupleType)
+                                                        Assert.Equal(2, typeArg.TupleElementTypes.Length)
+                                                        Assert.All(typeArg.TupleElementTypes,
+                                                                         Sub(t) Assert.Equal(SpecialType.System_Int32, t.SpecialType))
+                                                        Assert.False(typeArg.TupleElementNames.IsDefault)
+                                                        Assert.Equal(2, typeArg.TupleElementNames.Length)
+                                                        Assert.Equal({"key", "val"}, typeArg.TupleElementNames)
+                                                    End Sub
+            )
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Module1
+
+    Sub Main()
+        Dim c = New C(Of Test)(New Test())
+        Dim temp = c.Get.Get
+        Console.WriteLine(temp)
+        Console.WriteLine("key:  " &amp; temp.key)
+        Console.WriteLine("val:  " &amp; temp.val)
+
+        Dim c2 = New C2(Of Test2)(New Test2())
+        Dim temp2 = c2.Get.Get
+        Console.WriteLine(temp2)
+        Console.WriteLine("key:  " &amp; temp2.key)
+        Console.WriteLine("val:  " &amp; temp2.val)
+
+        Dim backing = {(1, 2), (3, 4), (5, 6)}
+        Dim c3 = New C3(Of TestEnumerable)(New TestEnumerable(backing))
+        For Each kvp In c3.Get
+            Console.WriteLine($"key:    {kvp.key}, val: {kvp.val}")
+        Next
+
+        Dim c4 = New C(Of Test2)(New Test2())
+        Dim temp4 = c4.Get.Get
+        Console.WriteLine(temp4)
+        Console.WriteLine("key:  " &amp; temp4.key)
+        Console.WriteLine("val:   " &amp; temp4.val)
+    End Sub
+End Module
+
+
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs.Concat({comp.EmitToImageReference()}).ToArray(), expectedOutput:=<![CDATA[
+(0, 0)
+key:  0
+val:  0
+(-1, -2)
+key:  -1
+val:  -2
+key:    1, val: 2
+key:    3, val: 4
+key:    5, val: 6
+(-1, -2)
+key:  -1
+val:   -2
+]]>)
+
+        End Sub
+
+        <Fact>
+        Public Sub UnusedTuple()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class C
+    Sub M()
+        ' Warnings
+        Dim x2 As Integer
+        Const x3 As Integer = 1
+        Const x4 As String = "hello"
+        Dim x5 As (Integer, Integer)
+        Dim x6 As (String, String)
+
+        ' No warnings
+        Dim y10 As Integer = 1
+        Dim y11 As String = "hello"
+        Dim y12 As (Integer, Integer) = (1, 2)
+        Dim y13 As (String, String) = ("hello", "world")
+        Dim tuple As (String, String) = ("hello", "world")
+        Dim y14 As (String, String) = tuple
+    End Sub
+End Class
+
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC42024: Unused local variable: 'x2'.
+        Dim x2 As Integer
+            ~~
+BC42099: Unused local constant: 'x3'.
+        Const x3 As Integer = 1
+              ~~
+BC42099: Unused local constant: 'x4'.
+        Const x4 As String = "hello"
+              ~~
+BC42024: Unused local variable: 'x5'.
+        Dim x5 As (Integer, Integer)
+            ~~
+BC42024: Unused local variable: 'x6'.
+        Dim x6 As (String, String)
+            ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(15198, "https://github.com/dotnet/roslyn/issues/15198")>
+        Public Sub TuplePropertyArgs001()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class C
+    Shared Sub Main()
+        dim inst = new C
+        dim f As (Integer, Integer) = (inst.P1, inst.P1)
+        System.Console.WriteLine(f)
+    End Sub
+
+    public readonly Property P1 as integer
+        Get 
+            return 42
+        End Get
+    end Property
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(42, 42)")
+        End Sub
+
+        <Fact>
+        <WorkItem(15198, "https://github.com/dotnet/roslyn/issues/15198")>
+        Public Sub TuplePropertyArgs002()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class C
+    Shared Sub Main()
+        dim inst = new C
+        dim f As IComparable(of (Integer, Integer)) = (inst.P1, inst.P1)
+        System.Console.WriteLine(f)
+    End Sub
+
+    public readonly Property P1 as integer
+        Get 
+            return 42
+        End Get
+    end Property
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(42, 42)")
+        End Sub
+
+        <Fact>
+        <WorkItem(15198, "https://github.com/dotnet/roslyn/issues/15198")>
+        Public Sub TuplePropertyArgs003()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Public Class C
+    Shared Sub Main()
+        dim inst as Object = new C
+        dim f As (Integer, Integer) = (inst.P1, inst.P1)
+        System.Console.WriteLine(f)
+    End Sub
+
+    public readonly Property P1 as integer
+        Get 
+            return 42
+        End Get
+    end Property
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="(42, 42)")
+        End Sub
+
+        <Fact>
+        <WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")>
+        Public Sub InterfaceImplAttributesAreNotSharedAcrossTypeRefs()
+            Dim src1 = <compilation>
+                           <file name="a.vb">
+                               <![CDATA[
+Public Interface I1(Of T)
+End Interface
+
+Public Interface I2 
+    Inherits I1(Of (a As Integer, b As Integer))
+End Interface
+Public Interface I3 
+    Inherits I1(Of (c As Integer, d As Integer))
+End Interface
+]]>
+                           </file>
+                       </compilation>
+
+            Dim src2 = <compilation>
+                           <file name="a.vb">
+                               <![CDATA[
+Class C1 
+    Implements I2
+    Implements I1(Of (a As Integer, b As Integer))
+End Class
+Class C2
+    Implements I3
+    Implements I1(Of (c As Integer, d As Integer))
+End Class
+]]>
+                           </file>
+                       </compilation>
+
+            Dim comp1 = CreateCompilationWithMscorlib(src1, references:=s_valueTupleRefs)
+            AssertTheseDiagnostics(comp1)
+
+            Dim comp2 = CreateCompilationWithMscorlib(src2,
+                references:={SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference()})
+            AssertTheseDiagnostics(comp2)
+
+            Dim comp3 = CreateCompilationWithMscorlib(src2,
+                references:={SystemRuntimeFacadeRef, ValueTupleRef, comp1.EmitToImageReference()})
+            AssertTheseDiagnostics(comp3)
+        End Sub
+
+        <Fact()>
+        <WorkItem(14881, "https://github.com/dotnet/roslyn/issues/14881")>
+        <WorkItem(15476, "https://github.com/dotnet/roslyn/issues/15476")>
+        Public Sub TupleElementVsLocal()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Module C
+
+    Sub Main()
+        Dim tuple As (Integer, elem2 As Integer)
+        Dim elem2 As Integer
+
+        tuple = (5, 6)
+        tuple.elem2 = 23
+        elem2 = 10
+
+        Console.WriteLine(tuple.elem2)
+        Console.WriteLine(elem2)
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.First()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "elem2").ToArray()
+
+            Assert.Equal(4, nodes.Length)
+
+            Assert.Equal("tuple.elem2 = 23", nodes(0).Parent.Parent.ToString())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).elem2 As System.Int32", model.GetSymbolInfo(nodes(0)).Symbol.ToTestDisplayString())
+
+            Assert.Equal("elem2 = 10", nodes(1).Parent.ToString())
+            Assert.Equal("elem2 As System.Int32", model.GetSymbolInfo(nodes(1)).Symbol.ToTestDisplayString())
+
+            Assert.Equal("(tuple.elem2)", nodes(2).Parent.Parent.Parent.ToString())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).elem2 As System.Int32", model.GetSymbolInfo(nodes(2)).Symbol.ToTestDisplayString())
+
+            Assert.Equal("(elem2)", nodes(3).Parent.Parent.ToString())
+            Assert.Equal("elem2 As System.Int32", model.GetSymbolInfo(nodes(3)).Symbol.ToTestDisplayString())
+
+            Dim type = tree.GetRoot().DescendantNodes().OfType(Of TupleTypeSyntax)().Single()
+
+            Dim symbolInfo = model.GetSymbolInfo(type)
+            Assert.Equal("(System.Int32, elem2 As System.Int32)", symbolInfo.Symbol.ToTestDisplayString())
+
+            Dim typeInfo = model.GetTypeInfo(type)
+            Assert.Equal("(System.Int32, elem2 As System.Int32)", typeInfo.Type.ToTestDisplayString())
+
+            Assert.Same(symbolInfo.Symbol, typeInfo.Type)
+
+            Assert.Equal(SyntaxKind.TypedTupleElement, type.Elements.First().Kind())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).Item1 As System.Int32", model.GetDeclaredSymbol(type.Elements.First()).ToTestDisplayString())
+            Assert.Equal(SyntaxKind.NamedTupleElement, type.Elements.Last().Kind())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).elem2 As System.Int32", model.GetDeclaredSymbol(type.Elements.Last()).ToTestDisplayString())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).Item1 As System.Int32", model.GetDeclaredSymbol(DirectCast(type.Elements.First(), SyntaxNode)).ToTestDisplayString())
+            Assert.Equal("(System.Int32, elem2 As System.Int32).elem2 As System.Int32", model.GetDeclaredSymbol(DirectCast(type.Elements.Last(), SyntaxNode)).ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub ImplementSameInterfaceViaBaseWithDifferentTupleNames()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Interface ITest(Of T)
+End Interface
+
+Class Base
+    Implements ITest(Of (a As Integer, b As Integer))
+End Class
+
+Class Derived
+    Inherits Base
+    Implements ITest(Of (notA As Integer, notB As Integer))
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.First()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim derived = tree.GetRoot().DescendantNodes().OfType(Of ClassStatementSyntax)().ElementAt(1)
+            Dim derivedSymbol = model.GetDeclaredSymbol(derived)
+            Assert.Equal("Derived", derivedSymbol.ToTestDisplayString())
+
+            Assert.Equal(New String() {"ITest(Of (notA As System.Int32, notB As System.Int32))"},
+                derivedSymbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub ImplementSameInterfaceViaBase()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Interface ITest(Of T)
+End Interface
+
+Class Base
+    Implements ITest(Of Integer)
+End Class
+
+Class Derived
+    Inherits Base
+    Implements ITest(Of Integer)
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.First()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim derived = tree.GetRoot().DescendantNodes().OfType(Of ClassStatementSyntax)().ElementAt(1)
+            Dim derivedSymbol = model.GetDeclaredSymbol(derived)
+            Assert.Equal("Derived", derivedSymbol.ToTestDisplayString())
+
+            Assert.Equal(New String() {"ITest(Of System.Int32)"},
+                derivedSymbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub GenericImplementSameInterfaceViaBaseWithoutTuples()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Interface ITest(Of T)
+End Interface
+
+Class Base
+    Implements ITest(Of Integer)
+End Class
+
+Class Derived(Of T)
+    Inherits Base
+    Implements ITest(Of T)
+End Class
+
+Module M
+    Sub Main()
+        Dim instance1 = New Derived(Of Integer)
+        Dim instance2 = New Derived(Of String)
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.First()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim derived = tree.GetRoot().DescendantNodes().OfType(Of ClassStatementSyntax)().ElementAt(1)
+            Dim derivedSymbol = DirectCast(model.GetDeclaredSymbol(derived), NamedTypeSymbol)
+            Assert.Equal("Derived(Of T)", derivedSymbol.ToTestDisplayString())
+
+            Assert.Equal(New String() {"ITest(Of System.Int32)", "ITest(Of T)"},
+                derivedSymbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+            Dim instance1 = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().ElementAt(0).Names(0)
+            Dim instance1Symbol = DirectCast(model.GetDeclaredSymbol(instance1), LocalSymbol).Type
+            Assert.Equal("Derived(Of Integer)", instance1Symbol.ToString())
+
+            Assert.Equal(New String() {"ITest(Of System.Int32)"},
+                instance1Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+            Dim instance2 = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().ElementAt(1).Names(0)
+            Dim instance2Symbol = DirectCast(model.GetDeclaredSymbol(instance2), LocalSymbol).Type
+            Assert.Equal("Derived(Of String)", instance2Symbol.ToString())
+
+            Assert.Equal(New String() {"ITest(Of System.Int32)", "ITest(Of System.String)"},
+                instance2Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+            Assert.Empty(derivedSymbol.AsUnboundGenericType().AllInterfaces)
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub GenericImplementSameInterfaceViaBase()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Interface ITest(Of T)
+End Interface
+
+Class Base
+    Implements ITest(Of (a As Integer, b As Integer))
+End Class
+
+Class Derived(Of T)
+    Inherits Base
+    Implements ITest(Of T)
+End Class
+
+Module M
+    Sub Main()
+        Dim instance1 = New Derived(Of (notA As Integer, notB As Integer))
+        Dim instance2 = New Derived(Of (notA As String, notB As String))
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.First()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim derived = tree.GetRoot().DescendantNodes().OfType(Of ClassStatementSyntax)().ElementAt(1)
+            Dim derivedSymbol = model.GetDeclaredSymbol(derived)
+            Assert.Equal("Derived(Of T)", derivedSymbol.ToTestDisplayString())
+
+            Assert.Equal(New String() {"ITest(Of (a As System.Int32, b As System.Int32))", "ITest(Of T)"},
+                derivedSymbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+            Dim instance1 = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().ElementAt(0).Names(0)
+            Dim instance1Symbol = DirectCast(model.GetDeclaredSymbol(instance1), LocalSymbol).Type
+            Assert.Equal("Derived(Of (notA As Integer, notB As Integer))", instance1Symbol.ToString())
+
+            Assert.Equal(New String() {"ITest(Of (notA As System.Int32, notB As System.Int32))"},
+                instance1Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+            Dim instance2 = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().ElementAt(1).Names(0)
+            Dim instance2Symbol = DirectCast(model.GetDeclaredSymbol(instance2), LocalSymbol).Type
+            Assert.Equal("Derived(Of (notA As String, notB As String))", instance2Symbol.ToString())
+
+            Assert.Equal(New String() {
+                         "ITest(Of (a As System.Int32, b As System.Int32))",
+                         "ITest(Of (notA As System.String, notB As System.String))"},
+                instance2Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub GenericExplicitIEnumerableImplementationUsedWithDifferentTypesAndTupleNames()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+
+Class Base
+    Implements IEnumerable(Of (a As Integer, b As Integer))
+
+    Function GetEnumerator1() As IEnumerator Implements IEnumerable.GetEnumerator
+        Throw New Exception()
+    End Function
+    Function GetEnumerator2() As IEnumerator(Of (a As Integer, b As Integer)) Implements IEnumerable(Of (a As Integer, b As Integer)).GetEnumerator
+        Throw New Exception()
+    End Function
+End Class
+
+Class Derived(Of T)
+    Inherits Base
+    Implements IEnumerable(Of T)
+
+    Public Dim state As T
+
+    Function GetEnumerator3() As IEnumerator Implements IEnumerable.GetEnumerator
+        Throw New Exception()
+    End Function
+    Function GetEnumerator4() As IEnumerator(Of T) Implements IEnumerable(Of T).GetEnumerator
+        Return New DerivedEnumerator With {.state = state}
+    End Function
+
+    Public Class DerivedEnumerator
+        Implements IEnumerator(Of T)
+
+        Public Dim state As T
+        Dim done As Boolean = False
+
+        Function MoveNext() As Boolean Implements IEnumerator.MoveNext
+            If done Then
+                Return False
+            Else
+                done = True
+                Return True
+            End If
+        End Function
+
+        ReadOnly Property Current As T Implements IEnumerator(Of T).Current
+            Get
+                Return state
+            End Get
+        End Property
+
+        ReadOnly Property Current2 As Object Implements IEnumerator.Current
+            Get
+                Throw New Exception()
+            End Get
+        End Property
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+
+        Public Sub Reset() Implements IEnumerator.Reset
+        End Sub
+    End Class
+End Class
+
+Module M
+    Sub Main()
+        Dim collection = New Derived(Of (notA As String, notB As String)) With {.state = (42, 43)}
+        For Each x In collection
+            Console.Write(x.notA)
+        Next
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            compilation.AssertTheseDiagnostics(<errors>
+BC32096: 'For Each' on type 'Derived(Of (notA As String, notB As String))' is ambiguous because the type implements multiple instantiations of 'System.Collections.Generic.IEnumerable(Of T)'.
+        For Each x In collection
+                      ~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub GenericExplicitIEnumerableImplementationUsedWithDifferentTupleNames()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+
+Class Base
+    Implements IEnumerable(Of (a As Integer, b As Integer))
+
+    Function GetEnumerator1() As IEnumerator Implements IEnumerable.GetEnumerator
+        Throw New Exception()
+    End Function
+    Function GetEnumerator2() As IEnumerator(Of (a As Integer, b As Integer)) Implements IEnumerable(Of (a As Integer, b As Integer)).GetEnumerator
+        Throw New Exception()
+    End Function
+End Class
+
+Class Derived(Of T)
+    Inherits Base
+    Implements IEnumerable(Of T)
+
+    Public Dim state As T
+
+    Function GetEnumerator3() As IEnumerator Implements IEnumerable.GetEnumerator
+        Throw New Exception()
+    End Function
+    Function GetEnumerator4() As IEnumerator(Of T) Implements IEnumerable(Of T).GetEnumerator
+        Return New DerivedEnumerator With {.state = state}
+    End Function
+
+    Public Class DerivedEnumerator
+        Implements IEnumerator(Of T)
+
+        Public Dim state As T
+        Dim done As Boolean = False
+
+        Function MoveNext() As Boolean Implements IEnumerator.MoveNext
+            If done Then
+                Return False
+            Else
+                done = True
+                Return True
+            End If
+        End Function
+
+        ReadOnly Property Current As T Implements IEnumerator(Of T).Current
+            Get
+                Return state
+            End Get
+        End Property
+
+        ReadOnly Property Current2 As Object Implements IEnumerator.Current
+            Get
+                Throw New Exception()
+            End Get
+        End Property
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+        End Sub
+
+        Public Sub Reset() Implements IEnumerator.Reset
+        End Sub
+    End Class
+End Class
+
+Module M
+    Sub Main()
+        Dim collection = New Derived(Of (notA As Integer, notB As Integer)) With {.state = (42, 43)}
+        For Each x In collection
+            Console.Write(x.notA)
+        Next
+    End Sub
+End Module
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            compilation.AssertTheseDiagnostics()
+            CompileAndVerify(compilation, expectedOutput:="42")
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14843, "https://github.com/dotnet/roslyn/issues/14843")>
+        Public Sub TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I1(Of T)
+End Interface
+
+Class Base(Of U As I1(Of (a As Integer, b As Integer)))
+End Class
+
+Class Derived
+    Inherits Base(Of I1(Of (notA As Integer, notB As Integer)))
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14843, "https://github.com/dotnet/roslyn/issues/14843")>
+        Public Sub TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion2()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I1(Of T)
+End Interface
+
+Interface I2(Of T)
+    Inherits I1(Of T)
+End Interface
+
+Class Base(Of U As I1(Of (a As Integer, b As Integer)))
+End Class
+
+Class Derived
+    Inherits Base(Of I2(Of (notA As Integer, notB As Integer)))
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub CanReImplementInterfaceWithDifferentTupleNames()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface ITest(Of T)
+    Function M() As T
+End Interface
+
+Class Base
+    Implements ITest(Of (a As Integer, b As Integer))
+
+    Function M() As (a As Integer, b As Integer) Implements ITest(Of (a As Integer, b As Integer)).M
+        Return (1, 2)
+    End Function
+End Class
+
+Class Derived
+    Inherits Base
+    Implements ITest(Of (notA As Integer, notB As Integer))
+
+    Overloads Function M() As (notA As Integer, notB As Integer) Implements ITest(Of (notA As Integer, notB As Integer)).M
+        Return (3, 4)
+    End Function
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics()
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface ITest(Of T)
+    Function M() As T
+End Interface
+
+Class Base
+    Implements ITest(Of (a As Integer, b As Integer))
+
+    Function M() As (a As Integer, b As Integer) Implements ITest(Of (a As Integer, b As Integer)).M
+        Return (1, 2)
+    End Function
+End Class
+
+Class Derived1
+    Inherits Base
+    Implements ITest(Of (notA As Integer, notB As Integer))
+End Class
+Class Derived2
+    Inherits Base
+    Implements ITest(Of (a As Integer, b As Integer))
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            compilation.AssertTheseDiagnostics(<errors>
+BC30149: Class 'Derived1' must implement 'Function M() As (notA As Integer, notB As Integer)' for interface 'ITest(Of (notA As Integer, notB As Integer))'.
+    Implements ITest(Of (notA As Integer, notB As Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+        End Sub
+
+        <Fact()>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Public Sub ReImplementationAndInference()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface ITest(Of T)
+    Function M() As T
+End Interface
+
+Class Base
+    Implements ITest(Of (a As Integer, b As Integer))
+
+    Function M() As (a As Integer, b As Integer) Implements ITest(Of (a As Integer, b As Integer)).M
+        Return (1, 2)
+    End Function
+End Class
+
+Class Derived
+    Inherits Base
+    Implements ITest(Of (notA As Integer, notB As Integer))
+
+    Overloads Function M() As (notA As Integer, notB As Integer) Implements ITest(Of (notA As Integer, notB As Integer)).M
+        Return (3, 4)
+    End Function
+End Class
+
+Class C
+    Shared Sub Main()
+        Dim b As Base = New Derived()
+        Dim x = Test(b) ' tuple names from Base, implementation from Derived
+        System.Console.WriteLine(x.a)
+    End Sub
+
+    Shared Function Test(Of T)(t1 As ITest(Of T)) As T
+        Return t1.M()
+    End Function
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            comp.AssertTheseDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="3")
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
+            Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(1).Names(0)
+            Assert.Equal("x", x.Identifier.ToString())
+            Dim xSymbol = DirectCast(model.GetDeclaredSymbol(x), LocalSymbol).Type
+            Assert.Equal("(a As System.Int32, b As System.Int32)", xSymbol.ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        <WorkItem(14091, "https://github.com/dotnet/roslyn/issues/14091")>
+        Public Sub TupleTypeWithTooFewElements()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C
+    Shared Sub M(x As Integer, y As (), z As (a As Integer))
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(<errors>
+BC30182: Type expected.
+    Shared Sub M(x As Integer, y As (), z As (a As Integer))
+                                     ~
+BC37259: Tuple must contain at least two elements.
+    Shared Sub M(x As Integer, y As (), z As (a As Integer))
+                                     ~
+BC37259: Tuple must contain at least two elements.
+    Shared Sub M(x As Integer, y As (), z As (a As Integer))
+                                                          ~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
+
+            Dim y = nodes.OfType(Of TupleTypeSyntax)().ElementAt(0)
+            Assert.Equal("()", y.ToString())
+            Dim yType = model.GetTypeInfo(y)
+            Assert.Equal("(?, ?)", yType.Type.ToTestDisplayString())
+
+            Dim z = nodes.OfType(Of TupleTypeSyntax)().ElementAt(1)
+            Assert.Equal("(a As Integer)", z.ToString())
+            Dim zType = model.GetTypeInfo(z)
+            Assert.Equal("(a As System.Int32, ?)", zType.Type.ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        <WorkItem(14091, "https://github.com/dotnet/roslyn/issues/14091")>
+        Public Sub TupleExpressionWithTooFewElements()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C
+    Dim x = (Alice:=1)
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(<errors>
+BC37259: Tuple must contain at least two elements.
+    Dim x = (Alice:=1)
+                     ~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
+            Dim tuple = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(0)
+            Assert.Equal("(Alice:=1)", tuple.ToString())
+            Dim tupleType = model.GetTypeInfo(tuple)
+            Assert.Equal("(Alice As System.Int32, ?)", tupleType.Type.ToTestDisplayString())
         End Sub
 
     End Class

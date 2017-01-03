@@ -129,6 +129,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' list. This is not quite the same as "all interfaces of which this type is a proper
         ''' subtype" because it does not take into account variance: AllInterfaces for
         ''' IEnumerable(Of String) will not include IEnumerable(Of Object).
+        '''
+        ''' Note: When interfaces specified on the same inheritance level differ by tuple names only,
+        ''' only the last one will be listed here.
         ''' </summary>
         Public ReadOnly Property AllInterfaces As ImmutableArray(Of NamedTypeSymbol)
             Get
@@ -164,10 +167,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' long dependency cycles removed. Consequently, it is possible (and we do) use the
         ''' simplest version of Tarjan's topological sorting algorithm.
         Protected Overridable Function MakeAllInterfaces() As ImmutableArray(Of NamedTypeSymbol)
-            'TODO: Might want to use different implementation for substituted type (see C# code)
-
             Dim result = ArrayBuilder(Of NamedTypeSymbol).GetInstance()
-            Dim visited = New HashSet(Of NamedTypeSymbol)()
+            Dim visited = New HashSet(Of NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
 
             Dim baseType = Me
 
@@ -406,6 +407,12 @@ Done:
         End Property
 
         Public Overridable ReadOnly Property TupleUnderlyingType() As NamedTypeSymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Public Overridable ReadOnly Property TupleElements As ImmutableArray(Of FieldSymbol)
             Get
                 Return Nothing
             End Get

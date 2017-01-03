@@ -57,8 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var documentErrorsMap = new Dictionary<DocumentId, HashSet<DiagnosticData>>();
 
             var errors = new ExternalError[1];
-            uint fetched;
-            while (pErrors.Next(1, errors, out fetched) == VSConstants.S_OK && fetched == 1)
+            while (pErrors.Next(1, errors, out var fetched) == VSConstants.S_OK && fetched == 1)
             {
                 var error = errors[0];
 
@@ -257,8 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 if (prefix.Equals("CS", StringComparison.OrdinalIgnoreCase) || prefix.Equals("BC", StringComparison.OrdinalIgnoreCase))
                 {
                     var suffix = errorId.Substring(2);
-                    int id;
-                    return int.TryParse(suffix, out id);
+                    return int.TryParse(suffix, out var id);
                 }
             }
 

@@ -46,10 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             var textFormatMap = _classificationFormatMapService.GetClassificationFormatMap("text");
             var tooltipFormatMap = _classificationFormatMapService.GetClassificationFormatMap("tooltip");
-            var immediateFormatMap = _classificationFormatMapService.GetClassificationFormatMap("immediate");
 
             UpdateForegroundColors(textFormatMap, tooltipFormatMap);
-            UpdateForegroundColors(textFormatMap, immediateFormatMap);
         }
 
         private void UpdateForegroundColors(

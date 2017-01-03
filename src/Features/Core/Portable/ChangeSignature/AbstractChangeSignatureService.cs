@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// </summary>
         public abstract SyntaxNode FindNodeToUpdate(Document document, SyntaxNode node);
 
-        public abstract Task<IEnumerable<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
+        public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, Document document, CancellationToken cancellationToken);
 
         public abstract SyntaxNode ChangeSignature(
@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document);
 
-        public async Task<IEnumerable<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var context = await GetContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return context.CanChangeSignature
-                ? SpecializedCollections.SingletonEnumerable(new ChangeSignatureCodeAction(this, context))
-                : SpecializedCollections.EmptyEnumerable<ChangeSignatureCodeAction>();
+                ? ImmutableArray.Create(new ChangeSignatureCodeAction(this, context))
+                : ImmutableArray<ChangeSignatureCodeAction>.Empty;
         }
 
         internal ChangeSignatureResult ChangeSignature(Document document, int position, Action<string, NotificationSeverity> errorHandler, CancellationToken cancellationToken)
@@ -157,8 +157,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         internal ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
-            Solution updatedSolution;
-            var succeeded = TryCreateUpdatedSolution(context, options, cancellationToken, out updatedSolution);
+            var succeeded = TryCreateUpdatedSolution(context, options, cancellationToken, out var updatedSolution);
             return new ChangeSignatureResult(succeeded, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges);
         }
 
@@ -172,22 +171,26 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return changeSignatureOptionsService.GetChangeSignatureOptions(context.Symbol, context.ParameterConfiguration, notificationService);
         }
 
-        private static async Task<IEnumerable<ReferencedSymbol>> FindChangeSignatureReferencesAsync(
+        private static async Task<ImmutableArray<ReferencedSymbol>> FindChangeSignatureReferencesAsync(
             SymbolAndProjectId symbolAndProjectId,
             Solution solution,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.FindReference_ChangeSignature, cancellationToken))
             {
+                var streamingProgress = new StreamingProgressCollector(
+                    StreamingFindReferencesProgress.Instance);
+
                 IImmutableSet<Document> documents = null;
                 var engine = new FindReferencesSearchEngine(
                     solution,
                     documents,
                     ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
-                    StreamingFindReferencesProgress.Instance,
+                    streamingProgress,
                     cancellationToken);
 
-                return await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);
+                await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);
+                return streamingProgress.GetReferencedSymbols();
             }
         }
 
@@ -271,9 +274,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     foreach (var def in symbolWithSyntacticParameters.Locations)
                     {
-                        DocumentId documentId;
-                        SyntaxNode nodeToUpdate;
-                        if (!TryGetNodeWithEditableSignatureOrAttributes(def, updatedSolution, out nodeToUpdate, out documentId))
+                        if (!TryGetNodeWithEditableSignatureOrAttributes(def, updatedSolution, out var nodeToUpdate, out var documentId))
                         {
                             continue;
                         }
@@ -297,9 +298,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         continue;
                     }
 
-                    DocumentId documentId2;
-                    SyntaxNode nodeToUpdate2;
-                    if (!TryGetNodeWithEditableSignatureOrAttributes(location.Location, updatedSolution, out nodeToUpdate2, out documentId2))
+                    if (!TryGetNodeWithEditableSignatureOrAttributes(location.Location, updatedSolution, out var nodeToUpdate2, out var documentId2))
                     {
                         continue;
                     }
@@ -364,9 +363,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         private void AddUpdatableNodeToDictionaries(Dictionary<DocumentId, List<SyntaxNode>> nodesToUpdate, DocumentId documentId, SyntaxNode nodeToUpdate, Dictionary<SyntaxNode, ISymbol> definitionToUse, ISymbol symbolWithSemanticParameters)
         {
             nodesToUpdate[documentId].Add(nodeToUpdate);
-
-            ISymbol sym;
-            if (definitionToUse.TryGetValue(nodeToUpdate, out sym) && sym != symbolWithSemanticParameters)
+            if (definitionToUse.TryGetValue(nodeToUpdate, out var sym) && sym != symbolWithSemanticParameters)
             {
                 Debug.Assert(false, "Change Signature: Attempted to modify node twice with different semantic parameters.");
             }

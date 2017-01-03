@@ -17,7 +17,9 @@
                 <StackPanel>
                     <CheckBox x:Uid="Show_completion_list_after_a_character_is_typed"
                               x:Name="Show_completion_list_after_a_character_is_typed"
-                              Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_completion_list_after_a_character_is_typed}" />
+                              Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_completion_list_after_a_character_is_typed}" 
+                              Checked="Show_completion_list_after_a_character_is_typed_Checked" 
+                              Unchecked="Show_completion_list_after_a_character_is_typed_Unchecked"/>
                     <StackPanel Margin="15, 0, 0, 0">
                         <CheckBox x:Uid="Show_completion_list_after_a_character_is_deleted"
                                   x:Name="Show_completion_list_after_a_character_is_deleted"

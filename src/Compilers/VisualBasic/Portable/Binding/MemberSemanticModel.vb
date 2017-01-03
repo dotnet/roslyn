@@ -1564,7 +1564,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(func, guard:=True))
                 Debug.Assert(binders.IsDefault OrElse (binders.Length = 1 AndAlso binders(0) IsNot Nothing))
 #End If
-                If Not binders.IsEmpty Then
+                If Not binders.IsDefaultOrEmpty Then
                     binder = binders(0)
                 End If
             End If
@@ -1583,7 +1583,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not binders.IsDefault OrElse Not ShouldHaveFound(operatorSyntax, guard:=True))
                 Debug.Assert(binders.IsDefault OrElse (binders.Length = 1 AndAlso binders(0) IsNot Nothing))
 #End If
-                If Not binders.IsEmpty Then
+                If Not binders.IsDefaultOrEmpty Then
                     Return binders(0)
                 End If
             End If

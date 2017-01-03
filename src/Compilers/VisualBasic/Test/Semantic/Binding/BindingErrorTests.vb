@@ -22051,7 +22051,7 @@ End Class
     {TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1})
             compilation1.AssertTheseDiagnostics(
 <errors>
-BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
     Dim _myclass As MyClass1 = Nothing
                     ~~~~~~~~
 </errors>)
@@ -22074,10 +22074,10 @@ End Class
     {TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1})
             compilation1.AssertTheseDiagnostics(
 <errors>
-BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
         Dim _myclass = MyClass1.Class1Foo
                        ~~~~~~~~
-BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
         Dim _myclass = MyClass1.Class1Foo
                        ~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -22100,7 +22100,7 @@ End Class
     {TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1})
             compilation1.AssertTheseDiagnostics(
 <errors>
-BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
         Dim _myclass = directcast(nothing, MyClass1)
                                            ~~~~~~~~
 </errors>)
@@ -25966,6 +25966,119 @@ BC36716: Visual Basic 12.0 does not support implementing read-only or write-only
 BC36716: Visual Basic 12.0 does not support implementing read-only or write-only property with read-write property.
     Public Property Test2 As String Implements IReadOnly.Test2
                                                ~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(13617, "https://github.com/dotnet/roslyn/issues/13617")>
+        Public Sub MissingTypeArgumentInGenericExtensionMethod()
+            Dim source =
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Module FooExtensions
+    <Extension()>
+    Public Function ExtensionMethod0(ByVal obj As Object)
+        Return GetType(Object)
+    End Function
+    <Extension()>
+    Public Function ExtensionMethod1(Of T)(ByVal obj As Object)
+        Return GetType(T)
+    End Function
+    <Extension()>
+    Public Function ExtensionMethod2(Of T1, T2)(ByVal obj As Object)
+        Return GetType(T1)
+    End Function
+End Module
+
+Module Module1
+    Sub Main()
+        Dim omittedArg0 As Type = "string literal".ExtensionMethod0(Of )()
+        Dim omittedArg1 As Type = "string literal".ExtensionMethod1(Of )()
+        Dim omittedArg2 As Type = "string literal".ExtensionMethod2(Of )()
+        
+        Dim omittedArgFunc0 As Func(Of Object) = "string literal".ExtensionMethod0(Of )
+        Dim omittedArgFunc1 As Func(Of Object) = "string literal".ExtensionMethod1(Of )
+        Dim omittedArgFunc2 As Func(Of Object) = "string literal".ExtensionMethod2(Of )
+
+        Dim moreArgs0 As Type = "string literal".ExtensionMethod0(Of Integer)()
+        Dim moreArgs1 As Type = "string literal".ExtensionMethod1(Of Integer, Boolean)()
+        Dim moreArgs2 As Type = "string literal".ExtensionMethod2(Of Integer, Boolean, String)()
+
+        Dim lessArgs1 As Type = "string literal".ExtensionMethod1()
+        Dim lessArgs2 As Type = "string literal".ExtensionMethod2(Of Integer)()
+
+        Dim nonExistingMethod0 As Type = "string literal".ExtensionMethodNotFound0()
+        Dim nonExistingMethod1 As Type = "string literal".ExtensionMethodNotFound1(Of Integer)()
+        Dim nonExistingMethod2 As Type = "string literal".ExtensionMethodNotFound2(Of Integer, String)()
+
+        Dim exactArgs0 As Type = "string literal".ExtensionMethod0()
+        Dim exactArgs1 As Type = "string literal".ExtensionMethod1(Of Integer)()
+        Dim exactArgs2 As Type = "string literal".ExtensionMethod2(Of Integer, Boolean)()
+    End Sub
+End Module
+        ]]></file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef})
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC36907: Extension method 'Public Function ExtensionMethod0() As Object' defined in 'FooExtensions' is not generic (or has no free type parameters) and so cannot have type arguments.
+        Dim omittedArg0 As Type = "string literal".ExtensionMethod0(Of )()
+                                                                   ~~~~~
+BC30182: Type expected.
+        Dim omittedArg0 As Type = "string literal".ExtensionMethod0(Of )()
+                                                                       ~
+BC30182: Type expected.
+        Dim omittedArg1 As Type = "string literal".ExtensionMethod1(Of )()
+                                                                       ~
+BC36590: Too few type arguments to extension method 'Public Function ExtensionMethod2(Of T1, T2)() As Object' defined in 'FooExtensions'.
+        Dim omittedArg2 As Type = "string literal".ExtensionMethod2(Of )()
+                                                                   ~~~~~
+BC30182: Type expected.
+        Dim omittedArg2 As Type = "string literal".ExtensionMethod2(Of )()
+                                                                       ~
+BC36907: Extension method 'Public Function ExtensionMethod0() As Object' defined in 'FooExtensions' is not generic (or has no free type parameters) and so cannot have type arguments.
+        Dim omittedArgFunc0 As Func(Of Object) = "string literal".ExtensionMethod0(Of )
+                                                                                  ~~~~~
+BC30182: Type expected.
+        Dim omittedArgFunc0 As Func(Of Object) = "string literal".ExtensionMethod0(Of )
+                                                                                      ~
+BC30182: Type expected.
+        Dim omittedArgFunc1 As Func(Of Object) = "string literal".ExtensionMethod1(Of )
+                                                                                      ~
+BC36590: Too few type arguments to extension method 'Public Function ExtensionMethod2(Of T1, T2)() As Object' defined in 'FooExtensions'.
+        Dim omittedArgFunc2 As Func(Of Object) = "string literal".ExtensionMethod2(Of )
+                                                                                  ~~~~~
+BC30182: Type expected.
+        Dim omittedArgFunc2 As Func(Of Object) = "string literal".ExtensionMethod2(Of )
+                                                                                      ~
+BC36907: Extension method 'Public Function ExtensionMethod0() As Object' defined in 'FooExtensions' is not generic (or has no free type parameters) and so cannot have type arguments.
+        Dim moreArgs0 As Type = "string literal".ExtensionMethod0(Of Integer)()
+                                                                 ~~~~~~~~~~~~
+BC36591: Too many type arguments to extension method 'Public Function ExtensionMethod1(Of T)() As Object' defined in 'FooExtensions'.
+        Dim moreArgs1 As Type = "string literal".ExtensionMethod1(Of Integer, Boolean)()
+                                                                 ~~~~~~~~~~~~~~~~~~~~~
+BC36591: Too many type arguments to extension method 'Public Function ExtensionMethod2(Of T1, T2)() As Object' defined in 'FooExtensions'.
+        Dim moreArgs2 As Type = "string literal".ExtensionMethod2(Of Integer, Boolean, String)()
+                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36589: Type parameter 'T' for extension method 'Public Function ExtensionMethod1(Of T)() As Object' defined in 'FooExtensions' cannot be inferred.
+        Dim lessArgs1 As Type = "string literal".ExtensionMethod1()
+                                                 ~~~~~~~~~~~~~~~~
+BC36590: Too few type arguments to extension method 'Public Function ExtensionMethod2(Of T1, T2)() As Object' defined in 'FooExtensions'.
+        Dim lessArgs2 As Type = "string literal".ExtensionMethod2(Of Integer)()
+                                                                 ~~~~~~~~~~~~
+BC30456: 'ExtensionMethodNotFound0' is not a member of 'String'.
+        Dim nonExistingMethod0 As Type = "string literal".ExtensionMethodNotFound0()
+                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30456: 'ExtensionMethodNotFound1' is not a member of 'String'.
+        Dim nonExistingMethod1 As Type = "string literal".ExtensionMethodNotFound1(Of Integer)()
+                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30456: 'ExtensionMethodNotFound2' is not a member of 'String'.
+        Dim nonExistingMethod2 As Type = "string literal".ExtensionMethodNotFound2(Of Integer, String)()
+                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
 

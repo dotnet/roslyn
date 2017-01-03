@@ -1063,7 +1063,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Case SymbolKind.Method
                                 Return GetParameterSymbol(DirectCast(symbol, MethodSymbol).Parameters, parameter)
                             Case SymbolKind.Event
-                                Return GetParameterSymbol(DirectCast(symbol, EventSymbol).DelegateParameters, parameter)
+                                Dim eventSymbol As EventSymbol = DirectCast(symbol, EventSymbol)
+                                Dim type = TryCast(eventSymbol.Type, NamedTypeSymbol)
+
+                                If type?.AssociatedSymbol Is eventSymbol Then
+                                    Return GetParameterSymbol(type.DelegateInvokeMethod.Parameters, parameter)
+                                End If
+
+                                Return Nothing
+
                             Case SymbolKind.Property
                                 Return GetParameterSymbol(DirectCast(symbol, PropertySymbol).Parameters, parameter)
                             Case SymbolKind.NamedType

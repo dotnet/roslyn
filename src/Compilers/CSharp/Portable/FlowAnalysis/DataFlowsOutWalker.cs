@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundKind.DeclarationPattern:
                         {
-                            return ((BoundDeclarationPattern)node).LocalSymbol;
+                            return ((BoundDeclarationPattern)node).Variable as LocalSymbol;
                         }
 
                     case BoundKind.FieldAccess:

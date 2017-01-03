@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -1656,8 +1656,8 @@ class Program
             // ensure that the extraction doesn't result in trivia moving up a line:
             //        // a        //b
             //        NewMethod();
-            await TestExtractMethodAsync(@"
-class C
+            await TestExtractMethodAsync(
+@"class C
 {
     void M()
     {
@@ -1665,9 +1665,8 @@ class C
         // b
         [|System.Console.WriteLine();|]
     }
-}
-", @"
-class C
+}", 
+@"class C
 {
     void M()
     {
@@ -1680,8 +1679,7 @@ class C
     {
         System.Console.WriteLine();
     }
-}
-");
+}");
         }
 
         [WorkItem(632351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632351")]

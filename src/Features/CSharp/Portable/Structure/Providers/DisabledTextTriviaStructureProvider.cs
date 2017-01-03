@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             }
 
             var nestedIfDirectiveTrivia = 0;
-            for (int i = indexInParent; i < parentTriviaList.Count; i++)
+            for (var i = indexInParent; i < parentTriviaList.Count; i++)
             {
                 if (parentTriviaList[i].IsKind(SyntaxKind.IfDirectiveTrivia))
                 {
@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             spans.Add(new BlockSpan(
                 isCollapsible: true,
                 textSpan: span,
+                type: BlockTypes.PreprocessorRegion,
                 bannerText: CSharpStructureHelpers.Ellipsis,
                 autoCollapse: true));
         }

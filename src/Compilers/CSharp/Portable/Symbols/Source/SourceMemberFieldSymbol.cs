@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceMemberFieldSymbol(
             SourceMemberContainerTypeSymbol containingType,
             DeclarationModifiers modifiers,
-            string name, 
+            string name,
             SyntaxReference syntax, 
             Location location)
             : base(containingType, name, syntax, location)
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _hasInitializer; }
         }
 
-        public VariableDeclaratorSyntax VariableDeclaratorNode
+        protected VariableDeclaratorSyntax VariableDeclaratorNode
         {
             get
             {

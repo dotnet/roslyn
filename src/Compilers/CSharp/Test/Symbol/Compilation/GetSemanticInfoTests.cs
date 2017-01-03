@@ -5780,5 +5780,28 @@ class Test
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef });
             var diag = comp.GetDiagnostics();
         }
+
+        [Fact]
+        public void QueryClauseInBadStatement_Catch()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void F(object[] c)
+    {
+        catch (Exception) when (from o in c where true)
+        {
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tokens = tree.GetCompilationUnitRoot().DescendantTokens();
+            var expr = tokens.Single(t => t.Kind() == SyntaxKind.TrueKeyword).Parent;
+            Assert.Null(model.GetSymbolInfo(expr).Symbol);
+            Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType);
+        }
     }
 }

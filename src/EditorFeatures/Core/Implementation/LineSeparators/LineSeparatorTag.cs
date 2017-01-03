@@ -34,12 +34,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         {
             Initialize(view);
 
-            var border = new Border();
-            border.BorderBrush = _graphicsTagBrush;
-            border.BorderThickness = new Thickness(0, 0, 0, bottom: 1);
-            border.Height = 1;
-            border.Width = view.ViewportWidth;
-
+            var border = new Border()
+            {
+                BorderBrush = _graphicsTagBrush,
+                BorderThickness = new Thickness(0, 0, 0, bottom: 1),
+                Height = 1,
+                Width = view.ViewportWidth
+            };
             EventHandler viewportWidthChangedHandler = (s, e) =>
             {
                 border.Width = view.ViewportWidth;

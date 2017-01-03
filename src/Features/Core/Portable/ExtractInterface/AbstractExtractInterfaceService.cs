@@ -126,17 +126,14 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         public ExtractInterfaceResult ExtractInterfaceFromAnalyzedType(ExtractInterfaceTypeAnalysisResult refactoringResult, ExtractInterfaceOptionsResult extractInterfaceOptions, CancellationToken cancellationToken)
         {
             var solution = refactoringResult.DocumentToExtractFrom.Project.Solution;
-            List<DocumentId> documentIds;
-            SyntaxAnnotation typeNodeSyntaxAnnotation;
-
             var containingNamespaceDisplay = GetContainingNamespaceDisplay(refactoringResult.TypeToExtractFrom, refactoringResult.DocumentToExtractFrom.Project.CompilationOptions);
 
             var symbolToDeclarationAnnotationMap = CreateSymbolToDeclarationAnnotationMap(
                 extractInterfaceOptions.IncludedMembers,
                 ref solution,
-                out documentIds,
+                out var documentIds,
                 refactoringResult.TypeNode,
-                out typeNodeSyntaxAnnotation,
+                out var typeNodeSyntaxAnnotation,
                 cancellationToken);
 
             var extractedInterfaceSymbol = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
@@ -199,9 +196,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             {
                 var location = includedMember.Locations.Single();
                 var tree = location.SourceTree;
-
-                SyntaxNode root;
-                if (!currentRoots.TryGetValue(tree, out root))
+                if (!currentRoots.TryGetValue(tree, out var root))
                 {
                     root = tree.GetRoot(cancellationToken);
                     documentIds.Add(solution.GetDocument(tree).Id);

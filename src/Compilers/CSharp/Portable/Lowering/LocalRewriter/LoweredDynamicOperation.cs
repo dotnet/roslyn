@@ -19,13 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly SyntheticBoundNodeFactory _factory;
         private readonly TypeSymbol _resultType;
+        private readonly ImmutableArray<LocalSymbol> _temps;
         public readonly BoundExpression SiteInitialization;
         public readonly BoundExpression SiteInvocation;
 
-        public LoweredDynamicOperation(SyntheticBoundNodeFactory factory, BoundExpression siteInitialization, BoundExpression siteInvocation, TypeSymbol resultType)
+        public LoweredDynamicOperation(SyntheticBoundNodeFactory factory, BoundExpression siteInitialization, BoundExpression siteInvocation, TypeSymbol resultType, ImmutableArray<LocalSymbol> temps)
         {
             _factory = factory;
             _resultType = resultType;
+            _temps = temps;
             this.SiteInitialization = siteInitialization;
             this.SiteInvocation = siteInvocation;
         }
@@ -48,19 +50,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(children.Length > 0);
             var bad = new BoundBadExpression(children[0].Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, children, resultType);
-            return new LoweredDynamicOperation(null, null, bad, resultType);
+            return new LoweredDynamicOperation(null, null, bad, resultType, default(ImmutableArray<LocalSymbol>));
         }
 
         public BoundExpression ToExpression()
         {
             if (_factory == null)
             {
-                Debug.Assert(SiteInitialization == null && SiteInvocation is BoundBadExpression);
+                Debug.Assert(SiteInitialization == null && SiteInvocation is BoundBadExpression && _temps.IsDefaultOrEmpty);
                 return SiteInvocation;
             }
 
-            // TODO (tomat): we might be able to using SiteInvocation.Type instead of resultType once we stop using GetLoweredType
-            return _factory.Sequence(new[] { SiteInitialization }, SiteInvocation, _resultType);
+            // TODO (tomat): we might be able to use SiteInvocation.Type instead of resultType once we stop using GetLoweredType
+            if (_temps.IsDefaultOrEmpty)
+            {
+                return _factory.Sequence(new[] { SiteInitialization }, SiteInvocation, _resultType);
+            }
+            else
+            {
+                return new BoundSequence(_factory.Syntax, _temps, ImmutableArray.Create(SiteInitialization), SiteInvocation, _resultType) { WasCompilerGenerated = true };
+            }
         }
     }
 }

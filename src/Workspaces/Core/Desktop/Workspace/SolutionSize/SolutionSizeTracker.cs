@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis.SolutionSize
                         return;
                     }
 
-                    long size;
-                    if (_map.TryGetValue(document.Id, out size))
+                    if (_map.TryGetValue(document.Id, out var size))
                     {
                         if (size == length)
                         {
@@ -105,8 +104,7 @@ namespace Microsoft.CodeAnalysis.SolutionSize
 
             public void RemoveDocument(DocumentId documentId)
             {
-                long size;
-                if (_map.TryRemove(documentId, out size))
+                if (_map.TryRemove(documentId, out var size))
                 {
                     Interlocked.Add(ref _size, -size);
                 }

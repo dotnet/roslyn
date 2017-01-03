@@ -41,12 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         CatchVariable,
 
         /// <summary>
-        /// User defined local variable declared by <see cref="VariableDeclarationSyntax"/> in <see cref="ForStatementSyntax"/>.
-        /// </summary>
-        ForInitializerVariable,
-
-        /// <summary>
-        /// User defined local variable declared by <see cref="ForEachStatementSyntax"/> or <see cref="ForEachComponentStatementSyntax"/>.
+        /// User defined local variable declared by <see cref="ForEachStatementSyntax"/> or <see cref="ForEachVariableStatementSyntax"/>.
         /// </summary>
         ForEachIterationVariable,
 

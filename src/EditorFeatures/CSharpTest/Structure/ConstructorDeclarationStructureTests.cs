@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
             const string code = @"
 class C
 {
-    {|hint:$$public C(){|collapse:
+    {|hint:$$public C(){|textspan:
     {
     }|}|}
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -34,13 +34,13 @@ class C
             const string code = @"
 class C
 {
-    {|hint:$$public C(){|collapse:
+    {|hint:$$public C(){|textspan:
     {
     }                 |}|}
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -49,13 +49,13 @@ class C
             const string code = @"
 class C
 {
-    {|hint:$$public C(){|collapse:
+    {|hint:$$public C(){|textspan:
     {
     }|}|} // .ctor
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -64,13 +64,13 @@ class C
             const string code = @"
 class C
 {
-    {|hint:$$public C(){|collapse:
+    {|hint:$$public C(){|textspan:
     {
     }|}|} /* .ctor */
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -79,13 +79,13 @@ class C
             const string code = @"
 class C
 {
-    {|hint:$$public C() // .ctor{|collapse:
+    {|hint:$$public C() // .ctor{|textspan:
     {
     }|}|} // .ctor
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -94,13 +94,13 @@ class C
             const string code = @"
 class C
 {
-    {|hint:$$public C() /* .ctor */{|collapse:
+    {|hint:$$public C() /* .ctor */{|textspan:
     {
     }|}|} // .ctor
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -110,13 +110,13 @@ class C
 class C
 {
     {|hint:$$public C()
-    // .ctor{|collapse:
+    // .ctor{|textspan:
     {
     }|}|} // .ctor
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -126,13 +126,13 @@ class C
 class C
 {
     {|hint:$$public C()
-    /* .ctor */{|collapse:
+    /* .ctor */{|textspan:
     {
     }|}|} // .ctor
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -143,14 +143,14 @@ class C
 {
     {|span1:// Foo
     // Bar|}
-    {|hint2:$$public C(){|collapse2:
+    {|hint2:$$public C(){|textspan2:
     {
     }|}|} // .ctor
 }";
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]

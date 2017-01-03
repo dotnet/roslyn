@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            AttributeSyntax attribute;
-            if (!TryGetAttributeExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), trigger.Kind, cancellationToken, out attribute))
+            if (!TryGetAttributeExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), trigger.Kind, cancellationToken, out var attribute))
             {
                 return;
             }
@@ -85,11 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             }
 
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
-            var accessibleConstructors = attributeType
-                .InstanceConstructors
-                .Where(c => c.IsAccessibleWithin(within))
-                .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
-                .Sort(symbolDisplayService, semanticModel, attribute.SpanStart);
+            var accessibleConstructors = attributeType.InstanceConstructors
+                                                      .WhereAsArray(c => c.IsAccessibleWithin(within))
+                                                      .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
+                                                      .Sort(symbolDisplayService, semanticModel, attribute.SpanStart);
 
             if (!accessibleConstructors.Any())
             {
@@ -110,8 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
         protected override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
-            AttributeSyntax expression;
-            if (TryGetAttributeExpression(root, position, syntaxFacts, SignatureHelpTriggerKind.Other, cancellationToken, out expression) &&
+            if (TryGetAttributeExpression(root, position, syntaxFacts, SignatureHelpTriggerKind.Other, cancellationToken, out var expression) &&
                 currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
             {
                 return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position);

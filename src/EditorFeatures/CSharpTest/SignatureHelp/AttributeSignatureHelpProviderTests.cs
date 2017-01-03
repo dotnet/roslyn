@@ -195,7 +195,7 @@ class C
 
 class C
 {
-    [[|Obsolete(    $$|])]
+    [[|Obsolete($$|])]
     void Foo()
     {
     }

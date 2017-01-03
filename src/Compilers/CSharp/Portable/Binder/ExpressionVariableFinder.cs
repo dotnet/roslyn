@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract class ExpressionVariableFinder<TFieldOrLocalSymbol> : CSharpSyntaxWalker where TFieldOrLocalSymbol : Symbol
     {
-        private ArrayBuilder<TFieldOrLocalSymbol> _localsBuilder;
+        private ArrayBuilder<TFieldOrLocalSymbol> _variablesBuilder;
         private SyntaxNode _nodeToBind;
 
         protected void FindExpressionVariables(
@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            ArrayBuilder<TFieldOrLocalSymbol> save = _localsBuilder;
-            _localsBuilder = builder;
+            ArrayBuilder<TFieldOrLocalSymbol> save = _variablesBuilder;
+            _variablesBuilder = builder;
 
 #if DEBUG
             // These are all of the kinds of nodes we should need to handle in this class.
@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ReturnStatement:
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.ExpressionStatement:
-                case SyntaxKind.WhileStatement:
-                case SyntaxKind.DoStatement:
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.SwitchStatement:
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitNodeToBind(node);
 
-            _localsBuilder = save;
+            _variablesBuilder = save;
         }
 
         public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
@@ -84,15 +82,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             SeparatedSyntaxList<ExpressionSyntax> nodes)
         {
             Debug.Assert(nodes.Count > 0);
-            ArrayBuilder<TFieldOrLocalSymbol> save = _localsBuilder;
-            _localsBuilder = builder;
+            ArrayBuilder<TFieldOrLocalSymbol> save = _variablesBuilder;
+            _variablesBuilder = builder;
 
             foreach (var n in nodes)
             {
                 VisitNodeToBind(n);
             }
 
-            _localsBuilder = save;
+            _variablesBuilder = save;
         }
 
         public override void VisitEqualsValueClause(EqualsValueClauseSyntax node)
@@ -109,18 +107,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var label in node.Labels)
             {
-                var match = label as CasePatternSwitchLabelSyntax;
-                if (match != null)
+                switch (label.Kind())
                 {
-                    var previousNodeToBind = _nodeToBind;
-                    _nodeToBind = match;
-                    Visit(match.Pattern);
-                    if (match.WhenClause != null)
-                    {
-                        VisitNodeToBind(match.WhenClause.Condition);
-                    }
+                    case SyntaxKind.CasePatternSwitchLabel:
+                        {
+                            var switchLabel = (CasePatternSwitchLabelSyntax)label;
+                            var previousNodeToBind = _nodeToBind;
+                            _nodeToBind = switchLabel;
+                            Visit(switchLabel.Pattern);
+                            if (switchLabel.WhenClause != null)
+                            {
+                                VisitNodeToBind(switchLabel.WhenClause.Condition);
+                            }
 
-                    _nodeToBind = previousNodeToBind;
+                            _nodeToBind = previousNodeToBind;
+                            break;
+                        }
+                    case SyntaxKind.CaseSwitchLabel:
+                        {
+                            var switchlabel = (CaseSwitchLabelSyntax)label;
+                            VisitNodeToBind(switchlabel.Value);
+                            break;
+                        }
                 }
             }
         }
@@ -156,16 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitNodeToBind(node.Expression);
         }
 
-        public override void VisitWhileStatement(WhileStatementSyntax node)
-        {
-            VisitNodeToBind(node.Condition);
-        }
-
-        public override void VisitDoStatement(DoStatementSyntax node)
-        {
-            VisitNodeToBind(node.Condition);
-        }
-
         public override void VisitLockStatement(LockStatementSyntax node)
         {
             VisitNodeToBind(node.Expression);
@@ -183,7 +181,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
         {
-            _localsBuilder.Add(MakePatternVariable(node, _nodeToBind));
+            var variable = MakePatternVariable(node, _nodeToBind);
+            if ((object)variable != null)
+            {
+                _variablesBuilder.Add(variable);
+            }
+
             base.VisitDeclarationPattern(node);
         }
 
@@ -195,16 +198,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitQueryExpression(QueryExpressionSyntax node)
         {
-            // Variables declared in [in] expressions of top level from clause and 
-            // join clauses are in scope 
+            // Variables declared in [in] expressions of top level from clause and
+            // join clauses are in scope
             VisitNodeToBind(node.FromClause.Expression);
             Visit(node.Body);
         }
 
         public override void VisitQueryBody(QueryBodySyntax node)
         {
-            // Variables declared in [in] expressions of top level from clause and 
-            // join clauses are in scope 
+            // Variables declared in [in] expressions of top level from clause and
+            // join clauses are in scope
             foreach (var clause in node.Clauses)
             {
                 if (clause.Kind() == SyntaxKind.JoinClause)
@@ -244,16 +247,106 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)
         {
-            var argumentSyntax = (ArgumentSyntax)node?.Parent;
-            var argumentListSyntax = (BaseArgumentListSyntax)argumentSyntax?.Parent;
-            var variable = MakeOutVariable(node, argumentListSyntax, _nodeToBind);
+            var argumentSyntax = (ArgumentSyntax)node.Parent;
+            var argumentListSyntax = argumentSyntax.Parent as BaseArgumentListSyntax;
+            var variable = MakeDeclarationExpressionVariable(node, argumentListSyntax, _nodeToBind);
             if ((object)variable != null)
             {
-                _localsBuilder.Add(variable);
+                _variablesBuilder.Add(variable);
             }
         }
 
-        protected abstract TFieldOrLocalSymbol MakeOutVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntax, SyntaxNode nodeToBind);
+        public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
+        {
+            if (node.IsDeconstruction())
+            {
+                CollectVariablesFromDeconstruction(node.Left, node);
+            }
+            else
+            {
+                Visit(node.Left);
+            }
+
+            Visit(node.Right);
+        }
+
+        private void CollectVariablesFromDeconstruction(
+            ExpressionSyntax possibleTupleDeclaration,
+            AssignmentExpressionSyntax deconstruction)
+        {
+            switch (possibleTupleDeclaration.Kind())
+            {
+                case SyntaxKind.TupleExpression:
+                    {
+                        var tuple = (TupleExpressionSyntax)possibleTupleDeclaration;
+                        foreach (var arg in tuple.Arguments)
+                        {
+                            CollectVariablesFromDeconstruction(arg.Expression, deconstruction);
+                        }
+                        break;
+                    }
+                case SyntaxKind.DeclarationExpression:
+                    {
+                        var declarationExpression = (DeclarationExpressionSyntax)possibleTupleDeclaration;
+                        CollectVariablesFromDeconstruction(declarationExpression.Designation, declarationExpression.Type, deconstruction);
+                        break;
+                    }
+                default:
+                    {
+                        Visit(possibleTupleDeclaration);
+                        break;
+                    }
+            }
+        }
+
+        private void CollectVariablesFromDeconstruction(
+            VariableDesignationSyntax designation,
+            TypeSyntax closestTypeSyntax,
+            AssignmentExpressionSyntax deconstruction)
+        {
+            switch (designation.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    {
+                        var single = (SingleVariableDesignationSyntax)designation;
+                        var variable = MakeDeconstructionVariable(closestTypeSyntax, single, deconstruction);
+                        if ((object)variable != null)
+                        {
+                            _variablesBuilder.Add(variable);
+                        }
+                        break;
+                    }
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    {
+                        var tuple = (ParenthesizedVariableDesignationSyntax)designation;
+                        foreach (var d in tuple.Variables)
+                        {
+                            CollectVariablesFromDeconstruction(d, closestTypeSyntax, deconstruction);
+                        }
+                        break;
+                    }
+                case SyntaxKind.DiscardDesignation:
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(designation.Kind());
+            }
+        }
+
+        /// <summary>
+        /// Make a variable for a declaration expression other than a deconstruction left-hand-side. The only
+        /// other legal place for a declaration expression today is an out variable declaration; this method
+        /// handles that and the error cases as well.
+        /// </summary>
+        protected abstract TFieldOrLocalSymbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntax, SyntaxNode nodeToBind);
+
+        /// <summary>
+        /// Make a variable for a declaration expression appearing as one of the declared variables of the left-hand-side
+        /// of a deconstruction assignment.
+        /// </summary>
+        protected abstract TFieldOrLocalSymbol MakeDeconstructionVariable(
+                                                    TypeSyntax closestTypeSyntax,
+                                                    SingleVariableDesignationSyntax designation,
+                                                    AssignmentExpressionSyntax deconstruction);
     }
 
     internal class ExpressionVariableFinder : ExpressionVariableFinder<LocalSymbol>
@@ -307,22 +400,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalSymbol MakePatternVariable(DeclarationPatternSyntax node, SyntaxNode nodeToBind)
         {
+            var designation = node.Designation as SingleVariableDesignationSyntax;
+            if (designation == null)
+            {
+                Debug.Assert(node.Designation.Kind() == SyntaxKind.DiscardDesignation);
+                return null;
+            }
+
+            NamedTypeSymbol container = _scopeBinder.ContainingType;
+            if ((object)container != null && container.IsScriptClass &&
+                (object)_scopeBinder.LookupDeclaredField(designation) != null)
+            {
+                // This is a field declaration
+                return null;
+            }
+
             return SourceLocalSymbol.MakeLocalSymbolWithEnclosingContext(
                             _scopeBinder.ContainingMemberOrLambda,
                             scopeBinder: _scopeBinder,
                             nodeBinder: _enclosingBinder,
                             typeSyntax: node.Type,
-                            identifierToken: node.Identifier,
+                            identifierToken: designation.Identifier,
                             kind: LocalDeclarationKind.PatternVariable,
                             nodeToBind: nodeToBind,
                             forbiddenZone: null);
         }
-        protected override LocalSymbol MakeOutVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntax, SyntaxNode nodeToBind)
+        protected override LocalSymbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntax, SyntaxNode nodeToBind)
         {
             NamedTypeSymbol container = _scopeBinder.ContainingType;
+            var designation = node.Designation as SingleVariableDesignationSyntax;
+            if (designation == null)
+            {
+                return null;
+            }
 
-            if ((object)container != null && container.IsScriptClass && 
-                (object)_scopeBinder.LookupDeclaredField(node.VariableDesignation()) != null)
+            if ((object)container != null && container.IsScriptClass &&
+                (object)_scopeBinder.LookupDeclaredField(designation) != null)
             {
                 // This is a field declaration
                 return null;
@@ -332,11 +445,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                             containingSymbol: _scopeBinder.ContainingMemberOrLambda,
                             scopeBinder: _scopeBinder,
                             nodeBinder: _enclosingBinder,
-                            typeSyntax: node.Type(),
-                            identifierToken: node.Identifier(),
+                            typeSyntax: node.Type,
+                            identifierToken: designation.Identifier,
                             kind: LocalDeclarationKind.RegularVariable,
                             nodeToBind: nodeToBind,
                             forbiddenZone: argumentListSyntax);
+        }
+
+        protected override LocalSymbol MakeDeconstructionVariable(
+                                            TypeSyntax closestTypeSyntax,
+                                            SingleVariableDesignationSyntax designation,
+                                            AssignmentExpressionSyntax deconstruction)
+        {
+            NamedTypeSymbol container = _scopeBinder.ContainingType;
+
+            if ((object)container != null && container.IsScriptClass &&
+                (object)_scopeBinder.LookupDeclaredField(designation) != null)
+            {
+                // This is a field declaration
+                return null;
+            }
+
+            return SourceLocalSymbol.MakeDeconstructionLocal(
+                                      containingSymbol: _scopeBinder.ContainingMemberOrLambda,
+                                      scopeBinder: _scopeBinder,
+                                      nodeBinder: _enclosingBinder,
+                                      closestTypeSyntax: closestTypeSyntax,
+                                      identifierToken: designation.Identifier,
+                                      kind: LocalDeclarationKind.RegularVariable,
+                                      deconstruction: deconstruction);
         }
 
         #region pool
@@ -382,13 +519,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override Symbol MakePatternVariable(DeclarationPatternSyntax node, SyntaxNode nodeToBind)
         {
-            throw ExceptionUtilities.Unreachable;
+            var designation = node.Designation as SingleVariableDesignationSyntax;
+            if (designation == null)
+            {
+                return null;
+            }
+
+            return GlobalExpressionVariable.Create(
+                _containingType, _modifiers, node.Type,
+                designation.Identifier.ValueText, designation, designation.GetLocation(),
+                _containingFieldOpt, nodeToBind);
         }
 
-        protected override Symbol MakeOutVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntax, SyntaxNode nodeToBind)
+        protected override Symbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, BaseArgumentListSyntax argumentListSyntax, SyntaxNode nodeToBind)
         {
-            return SourceMemberFieldSymbolFromDesignation.Create(_containingType, node.VariableDesignation(), node.Type(),
-                _modifiers, _containingFieldOpt, nodeToBind);
+            var designation = (SingleVariableDesignationSyntax)node.Designation;
+            return GlobalExpressionVariable.Create(
+                _containingType, _modifiers, node.Type,
+                designation.Identifier.ValueText, designation, designation.Identifier.GetLocation(),
+                _containingFieldOpt, nodeToBind);
+        }
+
+        protected override Symbol MakeDeconstructionVariable(
+                                        TypeSyntax closestTypeSyntax,
+                                        SingleVariableDesignationSyntax designation,
+                                        AssignmentExpressionSyntax deconstruction)
+        {
+            return GlobalExpressionVariable.Create(
+                      containingType: _containingType,
+                      modifiers: DeclarationModifiers.Private,
+                      typeSyntax: closestTypeSyntax,
+                      name: designation.Identifier.ValueText,
+                      syntax: designation,
+                      location: designation.Location,
+                      containingFieldOpt: null,
+                      nodeToBind: deconstruction);
         }
 
         #region pool

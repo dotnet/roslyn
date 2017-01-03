@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
         public static int Main(string[] args, string[] extraArgs)
             => DesktopBuildClient.Run(args, extraArgs, RequestLanguage.VisualBasicCompile, Vbc.Run, new DesktopAnalyzerAssemblyLoader());
 
-        public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
-            => Vbc.Run(args, new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir), textWriter, analyzerLoader);
+        public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
+            => Vbc.Run(args, new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir), textWriter, analyzerLoader);
     }
 }

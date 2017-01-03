@@ -165,6 +165,12 @@ namespace Microsoft.CodeAnalysis
         public bool DisplayHelp { get; internal set; }
 
         /// <summary>
+        /// If true, append the compiler version during
+        /// <see cref="CommonCompiler.Run"/>
+        /// </summary>
+        public bool DisplayVersion { get; internal set; }
+
+        /// <summary>
         /// The path to a Win32 resource.
         /// </summary>
         public string Win32ResourceFile { get; internal set; }

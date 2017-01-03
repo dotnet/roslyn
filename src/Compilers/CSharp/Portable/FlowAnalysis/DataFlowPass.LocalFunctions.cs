@@ -16,7 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private class LocalFuncUsages
         {
             public BitVector ReadVars = BitVector.Empty;
-            public BitVector WrittenVars = BitVector.Empty;
+            public LocalState WrittenVars;
+
+            public LocalFuncUsages(LocalState unreachableState)
+            {
+                // If we have yet to analyze the local function
+                // definition, assume it definitely assigns everything
+                WrittenVars = unreachableState;
+            }
 
             public bool LocalFuncVisited { get; set; } = false;
         }
@@ -32,45 +39,65 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _usedLocalFunctions.Add(localFunc);
 
+            var usages = GetOrCreateLocalFuncUsages(localFunc);
+
             // First process the reads
-            ReplayVarUsage(localFunc,
-                           syntax,
-                           isWrite: false);
+            ReplayReads(ref usages.ReadVars, syntax);
 
             // Now the writes
             if (writes)
             {
-                ReplayVarUsage(localFunc,
-                               syntax,
-                               isWrite: true);
-            }
-        }
-
-        private void ReplayVarUsage(LocalFunctionSymbol localFunc,
-                                    SyntaxNode syntax,
-                                    bool isWrite)
-        {
-            LocalFuncUsages usages = GetOrCreateLocalFuncUsages(localFunc);
-            var state = isWrite ? usages.WrittenVars : usages.ReadVars;
-
-            // Start at slot 1 (slot 0 just indicates reachability)
-            for (int slot = 1; slot < state.Capacity; slot++)
-            {
-                if (state[slot])
-                {
-                    if (isWrite)
-                    {
-                        SetSlotAssigned(slot);
-                    }
-                    else
-                    {
-                        var symbol = variableBySlot[slot].Symbol;
-                        CheckAssigned(symbol, syntax, slot);
-                    }
-                }
+                UnionWith(ref this.State, ref usages.WrittenVars);
             }
 
             usages.LocalFuncVisited = true;
+        }
+
+        private void ReplayReads(ref BitVector reads, SyntaxNode syntax)
+        {
+            // Start at slot 1 (slot 0 just indicates reachability)
+            for (int slot = 1; slot < reads.Capacity; slot++)
+            {
+                if (reads[slot])
+                {
+                    var symbol = variableBySlot[slot].Symbol;
+                    CheckIfAssignedDuringLocalFunctionReplay(symbol, syntax, slot);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Check that the given variable is definitely assigned when replaying local function
+        /// reads. If not, produce an error.
+        /// </summary>
+        /// <remarks>
+        /// Specifying the slot manually may be necessary if the symbol is a field,
+        /// in which case <see cref="VariableSlot(Symbol, int)"/> will not know
+        /// which containing slot to look for.
+        /// </remarks>
+        private void CheckIfAssignedDuringLocalFunctionReplay(Symbol symbol, SyntaxNode node, int slot)
+        {
+            Debug.Assert(!IsConditionalState);
+            if ((object)symbol != null)
+            {
+                NoteRead(symbol);
+
+                if (this.State.Reachable)
+                {
+                    if (slot >= this.State.Assigned.Capacity)
+                    {
+                        Normalize(ref this.State);
+                    }
+
+                    if (slot > 0 && !this.State.IsAssigned(slot))
+                    {
+                        // Local functions can "call forward" to after a variable has
+                        // been declared but before it has been assigned, so we can never
+                        // consider the declaration location when reporting errors.
+                        ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration: false);
+                    }
+                }
+            }
         }
 
         private int RootSlot(int slot)
@@ -92,7 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
         {
             var oldMethodOrLambda = this.currentMethodOrLambda;
-            this.currentMethodOrLambda = localFunc.Symbol;
+            var localFuncSymbol = localFunc.Symbol;
+            this.currentMethodOrLambda = localFuncSymbol;
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 
@@ -101,17 +129,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var savedState = this.State;
             this.State = this.ReachableState();
 
-            var usages = GetOrCreateLocalFuncUsages(localFunc.Symbol);
+            var usages = GetOrCreateLocalFuncUsages(localFuncSymbol);
             var oldReads = usages.ReadVars;
             usages.ReadVars = BitVector.Empty;
 
-            if (!localFunc.WasCompilerGenerated) EnterParameters(localFunc.Symbol.Parameters);
+            if (!localFunc.WasCompilerGenerated) EnterParameters(localFuncSymbol.Parameters);
 
             var oldPending2 = SavePending();
 
             // If this is an iterator, there's an implicit branch before the first statement
             // of the function where the enumerable is returned.
-            if (localFunc.Symbol.IsIterator)
+            if (localFuncSymbol.IsIterator)
             {
                 PendingBranches.Add(new PendingBranch(null, this.State));
             }
@@ -123,19 +151,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Location location = null;
 
-            if (!localFunc.Symbol.Locations.IsDefaultOrEmpty)
+            if (!localFuncSymbol.Locations.IsDefaultOrEmpty)
             {
-                location = localFunc.Symbol.Locations[0];
+                location = localFuncSymbol.Locations[0];
             }
 
-            LeaveParameters(localFunc.Symbol.Parameters, localFunc.Syntax, location);
+            LeaveParameters(localFuncSymbol.Parameters, localFunc.Syntax, location);
 
             LocalState stateAtReturn = this.State;
             foreach (PendingBranch pending in pendingReturns)
             {
                 this.State = pending.State;
                 BoundNode branch = pending.Branch;
-                LeaveParameters(localFunc.Symbol.Parameters, branch?.Syntax,
+                LeaveParameters(localFuncSymbol.Parameters, branch?.Syntax,
                                 branch?.WasCompilerGenerated == true
                                     ? location : null);
                 IntersectWith(ref stateAtReturn, ref this.State);
@@ -143,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Check for changes to the read and write sets
             if (RecordChangedVars(ref usages.WrittenVars,
-                                  ref stateAtReturn.Assigned,
+                                  ref stateAtReturn,
                                   ref oldReads,
                                   ref usages.ReadVars) &&
                 usages.LocalFuncVisited)
@@ -165,15 +193,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(localFunc != null);
 
             var usages = GetOrCreateLocalFuncUsages(localFunc);
-            usages.ReadVars[slot] = true;
+
+            // If this slot is a struct with individually assignable
+            // fields we need to record each field assignment separately,
+            // since some fields may be assigned when this read is replayed
+            VariableIdentifier id = variableBySlot[slot];
+            var type = VariableType(id.Symbol);
+
+            Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
+            
+            if (EmptyStructTypeCache.IsTrackableStructType(type))
+            {
+                foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(type))
+                {
+                    int fieldSlot = GetOrCreateSlot(field, slot);
+                    if (fieldSlot > 0 && !State.IsAssigned(fieldSlot))
+                    {
+                        RecordReadInLocalFunction(fieldSlot);
+                    }
+                }
+            }
+            else
+            {
+                usages.ReadVars[slot] = true;
+            }
         }
 
-        private bool RecordChangedVars(ref BitVector oldWrites,
-                                       ref BitVector newWrites,
+        private bool RecordChangedVars(ref LocalState oldWrites,
+                                       ref LocalState newWrites,
                                        ref BitVector oldReads,
                                        ref BitVector newReads)
         {
-            bool anyChanged = RecordCapturedChanges(ref oldWrites, ref newWrites);
+            bool anyChanged = IntersectWith(ref oldWrites, ref newWrites);
+
             anyChanged |= RecordCapturedChanges(ref oldReads, ref newReads);
 
             return anyChanged;
@@ -229,8 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalFuncUsages usages;
             if (!_localFuncVarUsages.TryGetValue(localFunc, out usages))
             {
-                usages = new LocalFuncUsages();
-                _localFuncVarUsages[localFunc] = usages;
+                usages = _localFuncVarUsages[localFunc] = new LocalFuncUsages(UnreachableState());
             }
             return usages;
         }

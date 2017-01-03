@@ -15,20 +15,6 @@ namespace Microsoft.CodeAnalysis.ErrorLogger
             Logger.GetLogger()?.Log(FunctionId.Extension_Exception, LogMessage.Create(source.GetType().Name + " : " + ToLogFormat(exception)));
         }
 
-        public bool TryLogException(object source, Exception exception)
-        {
-            var logger = Logger.GetLogger();
-            var name = source.GetType().Name;
-
-            if (logger != null)
-            {
-                logger.Log(FunctionId.Extension_Exception, LogMessage.Create(name + " : " + ToLogFormat(exception)));
-                return true;
-            }
-
-            return false;
-        }
-
         private static string ToLogFormat(Exception exception)
         {
             return exception.Message + Environment.NewLine + exception.StackTrace;

@@ -598,7 +598,7 @@
     <value>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</value>
   </data>
   <data name="WRN_NewNotRequired" xml:space="preserve">
-    <value>The member '{0}' does not hide an inherited member. The new keyword is not required.</value>
+    <value>The member '{0}' does not hide an accessible member. The new keyword is not required.</value>
   </data>
   <data name="WRN_NewNotRequired_Title" xml:space="preserve">
     <value>Member does not hide an inherited member; new keyword is not required</value>
@@ -655,7 +655,7 @@
     <value>Since '{0}' returns void, a return keyword must not be followed by an object expression</value>
   </data>
   <data name="ERR_LocalDuplicate" xml:space="preserve">
-    <value>A local variable named '{0}' is already defined in this scope</value>
+    <value>A local variable or function named '{0}' is already defined in this scope</value>
   </data>
   <data name="ERR_AssgLvalueExpected" xml:space="preserve">
     <value>The left-hand side of an assignment must be a variable, property or indexer</value>
@@ -1186,7 +1186,7 @@
     <value>The type arguments for method '{0}' cannot be inferred from the usage. Try specifying the type arguments explicitly.</value>
   </data>
   <data name="ERR_LocalSameNameAsTypeParam" xml:space="preserve">
-    <value>'{0}': a parameter or local variable cannot have the same name as a method type parameter</value>
+    <value>'{0}': a parameter, local variable, or local function cannot have the same name as a method type parameter</value>
   </data>
   <data name="ERR_AsWithTypeVar" xml:space="preserve">
     <value>The type parameter '{0}' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint</value>
@@ -4063,7 +4063,7 @@ To embed interop type information for both assemblies, use /link for references 
 To remove the warning, you can use /reference instead (set the Embed Interop Types property to False). In this case, a primary interop assembly (PIA) provides interop type information.</value>
   </data>
   <data name="ERR_GenericsUsedAcrossAssemblies" xml:space="preserve">
-    <value>Type '{0}' from assembly '{1}' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.</value>
+    <value>Type '{0}' from assembly '{1}' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.</value>
   </data>
   <data name="ERR_NoCanonicalView" xml:space="preserve">
     <value>Cannot find the interop type that matches the embedded interop type '{0}'. Are you missing an assembly reference?</value>
@@ -4191,9 +4191,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRefLocalsReturns" xml:space="preserve">
     <value>byref locals and returns</value>
   </data>
-  <data name="IDS_ThrowExpression" xml:space="preserve">
-    <value>&lt;throw&gt;</value>
-  </data>
   <data name="CompilationC" xml:space="preserve">
     <value>Compilation (C#): </value>
   </data>
@@ -4229,9 +4226,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WrongNumberOfTypeArguments" xml:space="preserve">
     <value>Wrong number of type arguments</value>
-  </data>
-  <data name="TheStreamCannotBeReadFrom" xml:space="preserve">
-    <value>The stream cannot be read from.</value>
   </data>
   <data name="NameConflictForName" xml:space="preserve">
     <value>Name conflict for name {0}</value>
@@ -4414,7 +4408,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                                generation but may be used by analyzers for producing
                                errors or warnings.
  /embed                        Embed all source files in the PDB.
- /embed:&lt;file list&gt;            Embed specfic files the PDB
+ /embed:&lt;file list&gt;            Embed specific files in the PDB
 
                         - RESOURCES -
  /win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -4474,7 +4468,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /help                         Display this usage message (Short form: /?)
  /nologo                       Suppress compiler copyright message
  /noconfig                     Do not auto include CSC.RSP file
- /parallel[+|-]                Concurrent build. 
+ /parallel[+|-]                Concurrent build.
+ /version                      Display the compiler version number and exit.
 
                         - ADVANCED -
  /baseaddress:&lt;address&gt;        Base address for the library to be built
@@ -4873,7 +4868,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>tuples</value>
   </data>
   <data name="ERR_MissingDeconstruct" xml:space="preserve">
-    <value>No Deconstruct instance or extension method was found for type '{0}', with {1} out parameters.</value>
+    <value>No Deconstruct instance or extension method was found for type '{0}', with {1} out parameters and a void return type.</value>
   </data>
   <data name="ERR_DeconstructRequiresExpression" xml:space="preserve">
     <value>Deconstruct assignment requires an expression with a type on the right-hand-side.</value>
@@ -4911,6 +4906,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable" xml:space="preserve">
     <value>Cannot infer the type of implicitly-typed deconstruction variable '{0}'.</value>
   </data>
+  <data name="ERR_DiscardTypeInferenceFailed" xml:space="preserve">
+    <value>Cannot infer the type of implicitly-typed discard.</value>
+  </data>
   <data name="ERR_DeconstructWrongCardinality" xml:space="preserve">
     <value>Cannot deconstruct a tuple of '{0}' elements into '{1}' variables.</value>
   </data>
@@ -4929,13 +4927,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
     <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
   </data>
+  <data name="ERR_PredefinedValueTupleTypeMustBeStruct" xml:space="preserve">
+    <value>Predefined type '{0}' must be a struct.</value>
+  </data>
+  <data name="ERR_NewWithTupleTypeSyntax" xml:space="preserve">
+    <value>'new' cannot be used with tuple type. Use a tuple literal expression instead.</value>
+  </data>
   <data name="ERR_DeconstructionVarFormDisallowsSpecificType" xml:space="preserve">
     <value>Deconstruction 'var (...)' form disallows a specific type for 'var'.</value>
   </data>
   <data name="ERR_TupleElementNamesAttributeMissing" xml:space="preserve">
     <value>Cannot define a class or member that utilizes tuples because the compiler required type '{0}' cannot be found. Are you missing a reference?</value>
   </data>
-  <data name="ERR_ExplicitTupleElementNames" xml:space="preserve">
+  <data name="ERR_ExplicitTupleElementNamesAttribute" xml:space="preserve">
     <value>Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.</value>
   </data>
   <data name="ERR_ExpressionTreeContainsOutVariable" xml:space="preserve">
@@ -4965,10 +4969,28 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionVariableInConstructorOrFieldInitializer" xml:space="preserve">
     <value>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</value>
   </data>
+  <data name="ERR_ExpressionVariableInQueryClause" xml:space="preserve">
+    <value>Out variable and pattern variable declarations are not allowed within a query clause.</value>
+  </data>
   <data name="ERR_SemiOrLBraceOrArrowExpected" xml:space="preserve">
     <value>{ or ; or =&gt; expected</value>
   </data>
   <data name="ERR_ThrowMisplaced" xml:space="preserve">
     <value>A throw expression is not allowed in this context.</value>
+  </data>
+  <data name="ERR_MixedDeconstructionUnsupported" xml:space="preserve">
+    <value>A deconstruction cannot mix declarations and expressions on the left-hand-side.</value>
+  </data>
+  <data name="ERR_DeclarationExpressionNotPermitted" xml:space="preserve">
+    <value>A declaration is not allowed in this context.</value>
+  </data>
+  <data name="ERR_MustDeclareForeachIteration" xml:space="preserve">
+    <value>A foreach loop must declare its iteration variables.</value>
+  </data>
+  <data name="ERR_TupleElementNamesInDeconstruction" xml:space="preserve">
+    <value>Tuple element names are not permitted on the left of a deconstruction.</value>
+  </data>
+  <data name="ERR_PossibleBadNegCast" xml:space="preserve">
+    <value>To cast a negative value, you must enclose the value in parentheses.</value>
   </data>
 </root>

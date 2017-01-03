@@ -201,47 +201,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!stream.CanRead)
             {
-                throw new InvalidOperationException(CSharpResources.TheStreamCannotBeReadFrom);
+                throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom);
             }
 
-            using (var reader = new ObjectReader(stream, defaultData: GetDefaultObjectReaderData(), binder: s_defaultBinder))
+
+            using (var reader = StreamObjectReader.TryGetReader(stream, knownObjects: GetDeserializationObjectData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
             {
+                if (reader == null)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.Stream_contains_invalid_data, nameof(stream));
+                }
+
                 var root = (Syntax.InternalSyntax.CSharpSyntaxNode)reader.ReadValue();
                 return root.CreateRed();
             }
         }
 
-        private static ObjectWriterData s_defaultObjectWriterData;
-        internal override ObjectWriterData GetDefaultObjectWriterData()
+        internal override ObjectData GetSerializationObjectData()
         {
-            if (s_defaultObjectWriterData == null)
-            {
-                var data = new ObjectWriterData(GetSerializationData());
-                Interlocked.CompareExchange(ref s_defaultObjectWriterData, data, null);
-            }
-
-            return s_defaultObjectWriterData;
+            return GetDeserializationObjectData();
         }
 
-        private static ObjectReaderData s_defaultObjectReaderData;
-        private static ObjectReaderData GetDefaultObjectReaderData()
+        private static ObjectData s_serializationObjectData;
+
+        private static ObjectData GetDeserializationObjectData()
         {
-            if (s_defaultObjectReaderData == null)
+            if (s_serializationObjectData == null)
             {
-                var data = new ObjectReaderData(GetSerializationData());
-                Interlocked.CompareExchange(ref s_defaultObjectReaderData, data, null);
-            }
-
-            return s_defaultObjectReaderData;
-        }
-
-        private static IEnumerable<object> s_serializationData;
-
-        private static IEnumerable<object> GetSerializationData()
-        {
-            if (s_serializationData == null)
-            {
-                var data =
+                var data = new ObjectData(
                     // known assemblies names and types (not in generated list)
                     new object[] {
                         typeof(object).GetTypeInfo().Assembly.FullName, // mscorlib
@@ -287,12 +274,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             "offset",
                             "width",
                         })
-                    .ToImmutableArray();
+                    .ToImmutableArray());
 
-                System.Threading.Interlocked.CompareExchange(ref s_serializationData, data, null);
+                System.Threading.Interlocked.CompareExchange(ref s_serializationObjectData, data, null);
             }
 
-            return s_serializationData;
+            return s_serializationObjectData;
         }
 #endregion
 

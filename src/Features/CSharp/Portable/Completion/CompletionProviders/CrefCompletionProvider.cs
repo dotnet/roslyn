@@ -150,7 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 && token.Parent.IsKind(SyntaxKind.QualifiedCref);
         }
 
-        private static IEnumerable<ISymbol> GetSymbols(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static ImmutableArray<ISymbol> GetSymbols(
+            SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (IsCrefStartContext(token))
             {
@@ -165,15 +166,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return GetQualifiedSymbols((QualifiedCrefSyntax)token.Parent, token, semanticModel, cancellationToken);
             }
 
-            return SpecializedCollections.EmptyEnumerable<ISymbol>();
+            return ImmutableArray<ISymbol>.Empty;
         }
 
-        private static IEnumerable<ISymbol> GetUnqualifiedSymbols(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static ImmutableArray<ISymbol> GetUnqualifiedSymbols(
+            SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            foreach (var symbol in semanticModel.LookupSymbols(token.SpanStart))
-            {
-                yield return symbol;
-            }
+            var result = ArrayBuilder<ISymbol>.GetInstance();
+            result.AddRange(semanticModel.LookupSymbols(token.SpanStart));
 
             // LookupSymbols doesn't return indexers or operators because they can't be referred to by name.
             // So, try to find the innermost type declaration and return its operators and indexers
@@ -190,34 +190,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             if ((member.IsIndexer() || member.IsUserDefinedOperator()) &&
                                 member.IsAccessibleWithin(type))
                             {
-                                yield return member;
+                                result.Add(member);
                             }
                         }
                     }
                 }
             }
+
+            return result.ToImmutableAndFree();
         }
 
-        private static IEnumerable<ISymbol> GetQualifiedSymbols(QualifiedCrefSyntax parent, SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static ImmutableArray<ISymbol> GetQualifiedSymbols(
+            QualifiedCrefSyntax parent, SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var leftType = semanticModel.GetTypeInfo(parent.Container, cancellationToken).Type;
             var leftSymbol = semanticModel.GetSymbolInfo(parent.Container, cancellationToken).Symbol;
 
             var container = (leftSymbol ?? leftType) as INamespaceOrTypeSymbol;
 
-            foreach (var symbol in semanticModel.LookupSymbols(token.SpanStart, container))
-            {
-                yield return symbol;
-            }
+            var result = ArrayBuilder<ISymbol>.GetInstance();
+            result.AddRange(semanticModel.LookupSymbols(token.SpanStart, container));
 
             var namedTypeContainer = container as INamedTypeSymbol;
             if (namedTypeContainer != null)
             {
-                foreach (var instanceConstructor in namedTypeContainer.InstanceConstructors)
-                {
-                    yield return instanceConstructor;
-                }
+                result.AddRange(namedTypeContainer.InstanceConstructors);
             }
+
+            return result.ToImmutableAndFree();
         }
 
         private static TextSpan GetCompletionItemSpan(SourceText text, int position)
@@ -312,10 +312,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 rules: GetRules(insertionText));
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-        }
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         private static readonly CharacterSetModificationRule s_WithoutOpenBrace = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '{');
         private static readonly CharacterSetModificationRule s_WithoutOpenParen = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '(');
@@ -349,8 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
-            string insertionText;
-            if (!selectedItem.Properties.TryGetValue(InsertionTextProperty, out insertionText))
+            if (!selectedItem.Properties.TryGetValue(InsertionTextProperty, out var insertionText))
             {
                 insertionText = selectedItem.DisplayText;
             }

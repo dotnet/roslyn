@@ -250,6 +250,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 publicSign:=other.PublicSign)
         End Sub
 
+        Public Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
         Friend Overrides Function GetImports() As ImmutableArray(Of String)
             ' TODO: implement (only called from VBI) https://github.com/dotnet/roslyn/issues/5854
             Dim importNames = ArrayBuilder(Of String).GetInstance(GlobalImports.Length)
@@ -362,7 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Compilation level parse options.  Used when compiling synthetic embedded code such as My template
         ''' </summary>
         ''' <returns>The Parse Options Setting.</returns>
-        Friend ReadOnly Property ParseOptions As VisualBasicParseOptions
+        Public ReadOnly Property ParseOptions As VisualBasicParseOptions
             Get
                 Return _parseOptions
             End Get

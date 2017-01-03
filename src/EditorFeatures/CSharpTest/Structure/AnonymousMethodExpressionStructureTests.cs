@@ -21,14 +21,14 @@ class C
 {
     void Main()
     {
-        $${|hint:delegate {|collapse:{
+        $${|hint:delegate {|textspan:{
             x();
         };|}|}
     }
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -54,14 +54,14 @@ class C
 {
     void Main()
     {
-        someMethod(42, ""test"", false, {|hint:$$delegate(int x, int y, int z) {|collapse:{
+        someMethod(42, ""test"", false, {|hint:$$delegate(int x, int y, int z) {|textspan:{
             return x + y + z;
         }|}|}, ""other arguments"");
     }
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -72,14 +72,14 @@ class C
 {
     void Main()
     {
-        someMethod(42, ""test"", false, {|hint:$$delegate(int x, int y, int z) {|collapse:{
+        someMethod(42, ""test"", false, {|hint:$$delegate(int x, int y, int z) {|textspan:{
             return x + y + z;
         }|}|});
     }
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
     }
 }

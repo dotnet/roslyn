@@ -533,6 +533,7 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 (GetType(VisualBasicCompilationOptions)),
                 "GlobalImports",
+                "Language",
                 "RootNamespace",
                 "OptionStrict",
                 "OptionInfer",

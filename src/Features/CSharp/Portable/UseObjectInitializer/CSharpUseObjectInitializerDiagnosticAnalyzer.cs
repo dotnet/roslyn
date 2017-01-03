@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -20,6 +19,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             VariableDeclaratorSyntax>
     {
         protected override bool FadeOutOperatorToken => true;
+
+        protected override bool AreObjectInitializersSupported(SyntaxNodeAnalysisContext context)
+        {
+            // object initializers are only available in C# 3.0 and above.  Don't offer this refactoring
+            // in projects targeting a lesser version.
+            return ((CSharpParseOptions)context.Node.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp3;
+        }
 
         protected override SyntaxKind GetObjectCreationSyntaxKind() => SyntaxKind.ObjectCreationExpression;
 

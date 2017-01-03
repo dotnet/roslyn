@@ -18,12 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
         public SmartIndent(ITextView textView)
         {
-            if (textView == null)
-            {
-                throw new ArgumentNullException(nameof(textView));
-            }
-
-            _textView = textView;
+            _textView = textView ?? throw new ArgumentNullException(nameof(textView));
         }
 
         public int? GetDesiredIndentation(ITextSnapshotLine line)

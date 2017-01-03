@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(IErrorTag))]
     internal partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {

@@ -65,11 +65,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             End If
 
             Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
-            Dim accessibleConstructors = attributeType _
-                .InstanceConstructors _
-                .Where(Function(c) c.IsAccessibleWithin(within)) _
-                .FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation) _
-                .Sort(symbolDisplayService, semanticModel, attribute.SpanStart)
+            Dim accessibleConstructors = attributeType.InstanceConstructors.
+                                                       WhereAsArray(Function(c) c.IsAccessibleWithin(within)).
+                                                       FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
+                                                       Sort(symbolDisplayService, semanticModel, attribute.SpanStart)
 
             If Not accessibleConstructors.Any() Then
                 Return

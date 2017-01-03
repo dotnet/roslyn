@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// has entered in the inline rename session.  These are the locations are all relative
         /// to the solution when the inline rename session began.
         /// </summary>
-        IList<InlineRenameLocation> Locations { get; }
+        ImmutableArray<InlineRenameLocation> Locations { get; }
 
         /// <summary>
         /// Returns the set of replacements and their possible resolutions if the user enters the

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// workspace.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public sealed class DocumentId : IEquatable<DocumentId>
+    public sealed class DocumentId : IEquatable<DocumentId>, IObjectWritable
     {
         public ProjectId ProjectId { get; }
         public Guid Id { get; }
@@ -95,6 +96,24 @@ namespace Microsoft.CodeAnalysis
         public static bool operator !=(DocumentId left, DocumentId right)
         {
             return !(left == right);
+        }
+
+        void IObjectWritable.WriteTo(ObjectWriter writer)
+        {
+            ProjectId.WriteTo(writer);
+
+            writer.WriteValue(Id.ToByteArray());
+            writer.WriteString(DebugName);
+        }
+
+        internal static DocumentId ReadFrom(ObjectReader reader)
+        {
+            var projectId = ProjectId.ReadFrom(reader);
+
+            var guid = new Guid((byte[])reader.ReadValue());
+            var debugName = reader.ReadString();
+
+            return CreateFromSerialized(projectId, guid, debugName);
         }
     }
 }

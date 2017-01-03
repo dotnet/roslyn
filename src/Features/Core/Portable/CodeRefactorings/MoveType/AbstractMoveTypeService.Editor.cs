@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// <summary>
             /// operations performed by CodeAction.
             /// </summary>
-            internal abstract Task<IEnumerable<CodeActionOperation>> GetOperationsAsync();
+            internal abstract Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync();
         }
     }
 }

@@ -162,14 +162,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool SupportsParameterizedEvents
-        {
-            get
-            {
-                return true;
-            }
-        }
-
         public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel)
         {
             Contract.Requires(oldNode.Kind() == newNode.Kind());
@@ -185,8 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            SemanticModel csharpModel;
-            bool success = model.TryGetSpeculativeSemanticModelForMethodBody(oldMethod.Body.OpenBraceToken.Span.End, newMethod, out csharpModel);
+            bool success = model.TryGetSpeculativeSemanticModelForMethodBody(oldMethod.Body.OpenBraceToken.Span.End, newMethod, out var csharpModel);
             speculativeModel = csharpModel;
             return success;
         }

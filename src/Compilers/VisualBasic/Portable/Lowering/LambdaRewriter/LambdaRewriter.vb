@@ -933,7 +933,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitConversion(conversion As BoundConversion) As BoundNode
-            Debug.Assert(conversion.RelaxationLambdaOpt Is Nothing AndAlso conversion.RelaxationReceiverPlaceholderOpt Is Nothing)
+            Debug.Assert(conversion.ExtendedInfoOpt Is Nothing)
 
             Dim lambda As BoundLambda = TryCast(conversion.Operand, BoundLambda)
             If lambda Is Nothing Then
@@ -947,9 +947,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            conversion.Checked,
                                            conversion.ExplicitCastInCode,
                                            conversion.ConstantValueOpt,
-                                           conversion.ConstructorOpt,
-                                           conversion.RelaxationLambdaOpt,
-                                           conversion.RelaxationReceiverPlaceholderOpt,
+                                           conversion.ExtendedInfoOpt,
                                            conversion.Type)
             End If
             Return result

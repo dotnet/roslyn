@@ -73,11 +73,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 semanticModel.LookupSymbols(raiseEventStatement.SpanStart, containingType, raiseEventStatement.Name.Identifier.ValueText))
 
             Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
-            Dim allowedEvents = events _
-                .Where(Function(s) s.Kind = SymbolKind.Event AndAlso s.ContainingType Is containingType) _
-                .Cast(Of IEventSymbol)() _
-                .FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation) _
-                .Sort(symbolDisplayService, semanticModel, raiseEventStatement.SpanStart)
+            Dim allowedEvents = events.WhereAsArray(Function(s) s.Kind = SymbolKind.Event AndAlso s.ContainingType Is containingType).
+                                       OfType(Of IEventSymbol)().
+                                       ToImmutableArrayOrEmpty().
+                                       FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
+                                       Sort(symbolDisplayService, semanticModel, raiseEventStatement.SpanStart)
 
             Dim anonymousTypeDisplayService = document.Project.LanguageServices.GetService(Of IAnonymousTypeDisplayService)()
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(raiseEventStatement.ArgumentList, raiseEventStatement.Name.SpanStart)

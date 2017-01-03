@@ -4045,8 +4045,8 @@ class M {
             Assert.Equal("B=System.Console", semanticInfoExpression.Alias.ToTestDisplayString());
         }
 
-        // Bind an attribute. No such API, so use a bit of a workaround.
-        private AttributeSyntax BindAttributeSyntax(string source)
+        // Parse an attribute. No such API, so use a bit of a workaround.
+        private AttributeSyntax ParseAttributeSyntax(string source)
         {
             return SyntaxFactory.ParseCompilationUnit(source + " class X {}").Members.First().AsTypeDeclarationSyntax().AttributeLists.First().Attributes.First();
         }
@@ -4112,7 +4112,7 @@ class C {
             var model = compilation.GetSemanticModel(tree);
 
             var position = tree.GetText().ToString().IndexOf("class C {", StringComparison.Ordinal);
-            var attr1 = BindAttributeSyntax("[Obsolete]");
+            var attr1 = ParseAttributeSyntax("[Obsolete]");
 
             var symbolInfo = model.GetSpeculativeSymbolInfo(position, attr1);
             Assert.NotNull(symbolInfo.Symbol);
@@ -4120,7 +4120,7 @@ class C {
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString());
 
-            var attr2 = BindAttributeSyntax("[ObsoleteAttribute(4)]");
+            var attr2 = ParseAttributeSyntax("[ObsoleteAttribute(4)]");
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position, attr2);
             Assert.Null(symbolInfo.Symbol);
@@ -4130,7 +4130,7 @@ class C {
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.CandidateSymbols[1].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message, System.Boolean error)", symbolInfo.CandidateSymbols[2].ToTestDisplayString());
 
-            var attr3 = BindAttributeSyntax(@"[O(""hello"")]");
+            var attr3 = ParseAttributeSyntax(@"[O(""hello"")]");
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position, attr3);
             Assert.NotNull(symbolInfo.Symbol);
@@ -4138,14 +4138,14 @@ class C {
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
 
-            var attr4 = BindAttributeSyntax("[P]");
+            var attr4 = ParseAttributeSyntax("[P]");
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position, attr4);
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
 
-            var attr5 = BindAttributeSyntax("[D]");
+            var attr5 = ParseAttributeSyntax("[D]");
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position, attr5);
             Assert.NotNull(symbolInfo.Symbol);
@@ -4153,7 +4153,7 @@ class C {
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("C.DAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString());
 
-            var attr6 = BindAttributeSyntax(@"[O(""hello"")]");
+            var attr6 = ParseAttributeSyntax(@"[O(""hello"")]");
             var position2 = tree.GetText().ToString().IndexOf("C foo<O>", StringComparison.Ordinal);
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position2, attr6);
@@ -4162,7 +4162,7 @@ class C {
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
 
-            var attr7 = BindAttributeSyntax(@"[O(""hello"")]");
+            var attr7 = ParseAttributeSyntax(@"[O(""hello"")]");
             var position3 = tree.GetText().ToString().IndexOf("Serializable", StringComparison.Ordinal);
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position3, attr7);
@@ -4191,7 +4191,7 @@ class C {
 
             var position = tree.GetText().ToString().IndexOf("class C {", StringComparison.Ordinal);
 
-            var attr1 = BindAttributeSyntax("[Obsolete]");
+            var attr1 = ParseAttributeSyntax("[Obsolete]");
 
             SemanticModel speculativeModel;
             var success = parentModel.TryGetSpeculativeSemanticModel(position, attr1, out speculativeModel);
@@ -4204,7 +4204,7 @@ class C {
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString());
 
-            var attr2 = BindAttributeSyntax("[ObsoleteAttribute(4)]");
+            var attr2 = ParseAttributeSyntax("[ObsoleteAttribute(4)]");
             success = parentModel.TryGetSpeculativeSemanticModel(position, attr2, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
@@ -4221,7 +4221,7 @@ class C {
             Assert.True(constantInfo.HasValue, "must be constant");
             Assert.Equal(4, constantInfo.Value);
 
-            var attr3 = BindAttributeSyntax(@"[O(""hello"")]");
+            var attr3 = ParseAttributeSyntax(@"[O(""hello"")]");
 
             success = parentModel.TryGetSpeculativeSemanticModel(position, attr3, out speculativeModel);
             Assert.True(success);
@@ -4242,7 +4242,7 @@ class C {
             Assert.NotNull(aliasSymbol.Target);
             Assert.Equal("ObsoleteAttribute", aliasSymbol.Target.Name);
 
-            var attr4 = BindAttributeSyntax("[P]");
+            var attr4 = ParseAttributeSyntax("[P]");
 
             success = parentModel.TryGetSpeculativeSemanticModel(position, attr4, out speculativeModel);
             Assert.True(success);
@@ -4253,7 +4253,7 @@ class C {
             Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
 
-            var attr5 = BindAttributeSyntax("[D]");
+            var attr5 = ParseAttributeSyntax("[D]");
 
             success = parentModel.TryGetSpeculativeSemanticModel(position, attr5, out speculativeModel);
             Assert.True(success);
@@ -4265,7 +4265,7 @@ class C {
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("C.DAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString());
 
-            var attr6 = BindAttributeSyntax(@"[O(""hello"")]");
+            var attr6 = ParseAttributeSyntax(@"[O(""hello"")]");
             var position2 = tree.GetText().ToString().IndexOf("C foo<O>", StringComparison.Ordinal);
 
             success = parentModel.TryGetSpeculativeSemanticModel(position, attr6, out speculativeModel);
@@ -4288,7 +4288,7 @@ class C {
             Assert.NotNull(aliasSymbol.Target);
             Assert.Equal("ObsoleteAttribute", aliasSymbol.Target.Name);
 
-            var attr7 = BindAttributeSyntax(@"[O(""hello"")]");
+            var attr7 = ParseAttributeSyntax(@"[O(""hello"")]");
             var position3 = tree.GetText().ToString().IndexOf("Serializable", StringComparison.Ordinal);
 
             success = parentModel.TryGetSpeculativeSemanticModel(position3, attr7, out speculativeModel);

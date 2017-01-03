@@ -228,9 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     var oldSnapshot = buffer.CurrentSnapshot;
                     var oldText = oldSnapshot.AsText();
                     var changes = newText.GetTextChanges(oldText);
-
-                    Workspace workspace = null;
-                    if (Workspace.TryGetWorkspace(oldText.Container, out workspace))
+                    if (Workspace.TryGetWorkspace(oldText.Container, out var workspace))
                     {
                         var undoService = workspace.Services.GetService<ISourceTextUndoService>();
                         undoService.BeginUndoTransaction(oldSnapshot);
@@ -264,8 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return (uint)VSConstants.VSITEMID.Nil;
                 }
 
-                uint itemId;
-                return Project.Hierarchy.ParseCanonicalName(_itemMoniker, out itemId) == VSConstants.S_OK
+                return Project.Hierarchy.ParseCanonicalName(_itemMoniker, out var itemId) == VSConstants.S_OK
                     ? itemId
                     : (uint)VSConstants.VSITEMID.Nil;
             }

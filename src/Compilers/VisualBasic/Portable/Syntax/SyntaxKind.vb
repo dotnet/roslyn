@@ -3185,9 +3185,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         TupleType = 789
 
         ''' <summary>
-        ''' Represents an element of a tuple type.
+        ''' Represents an element of a tuple type supplying only the type
         ''' </summary>
-        TupleElement = 790
+        TypedTupleElement = 790
+
+        ''' <summary>
+        ''' Represents an element of a tuple type supplying element name and optionally a type.
+        ''' </summary>
+        NamedTupleElement = 791
     End Enum
 
 End Namespace

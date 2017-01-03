@@ -192,10 +192,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
                     if (removed &&
                         Path.GetExtension(fileFullPath).Equals(".ruleset", StringComparison.OrdinalIgnoreCase))
                     {
-                        EnvDTE.Project project;
                         IVsHierarchy hierarchy = rgpProjects[i] as IVsHierarchy;
                         if (hierarchy != null &&
-                            hierarchy.TryGetProject(out project))
+                            hierarchy.TryGetProject(out var project))
                         {
                             UpdateCodeAnalysisRuleSetPropertiesInProject(project, fileFullPath, string.Empty);
                         }

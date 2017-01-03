@@ -41,11 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
         private bool IsTriggerToken(SyntaxToken token)
         {
-            return !token.IsKind(SyntaxKind.None) &&
-                token.ValueText.Length == 1 &&
-                IsTriggerCharacter(token.ValueText[0]) &&
-                token.Parent is ArgumentListSyntax &&
-                token.Parent.Parent is ConstructorInitializerSyntax;
+            return SignatureHelpUtilities.IsTriggerParenOrComma<ConstructorInitializerSyntax>(token, IsTriggerCharacter);
         }
 
         private static bool IsArgumentListToken(ConstructorInitializerSyntax expression, SyntaxToken token)
@@ -64,8 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            ConstructorInitializerSyntax constructorInitializer;
-            if (!TryGetConstructorInitializer(root, position, document.GetLanguageService<ISyntaxFactsService>(), trigger.Kind, cancellationToken, out constructorInitializer))
+            if (!TryGetConstructorInitializer(root, position, document.GetLanguageService<ISyntaxFactsService>(), trigger.Kind, cancellationToken, out var constructorInitializer))
             {
                 return;
             }
@@ -93,8 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
             var accessibleConstructors = type.InstanceConstructors
-                                             .Where(c => c.IsAccessibleWithin(within))
-                                             .Where(c => c.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
+                                             .WhereAsArray(c => c.IsAccessibleWithin(within))
+                                             .WhereAsArray(c => c.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
                                              .Sort(symbolDisplayService, semanticModel, constructorInitializer.SpanStart);
 
             if (!accessibleConstructors.Any())
@@ -115,8 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
         protected override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
-            ConstructorInitializerSyntax expression;
-            if (TryGetConstructorInitializer(root, position, syntaxFacts, SignatureHelpTriggerKind.Other, cancellationToken, out expression) &&
+            if (TryGetConstructorInitializer(root, position, syntaxFacts, SignatureHelpTriggerKind.Other, cancellationToken, out var expression) &&
                 currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
             {
                 return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position);

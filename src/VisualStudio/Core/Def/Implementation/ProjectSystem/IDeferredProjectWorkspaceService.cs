@@ -14,8 +14,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal interface IDeferredProjectWorkspaceService : IWorkspaceService
     {
-        bool IsDeferredProjectLoadEnabled { get; }
-
         /// <summary>
         /// Returns a mapping of project file path to information about that project.
         /// </summary>

@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly CompletionItemFilter MethodFilter = new CompletionItemFilter(FeaturesResources.Methods, CompletionTags.Method, 'm');
         public static readonly CompletionItemFilter ExtensionMethodFilter = new CompletionItemFilter(FeaturesResources.Extension_methods, CompletionTags.ExtensionMethod, 'x');
         public static readonly CompletionItemFilter LocalAndParameterFilter = new CompletionItemFilter(FeaturesResources.Locals_and_parameters, ImmutableArray.Create(CompletionTags.Local, CompletionTags.Parameter), 'l');
+        public static readonly CompletionItemFilter KeywordFilter = new CompletionItemFilter(FeaturesResources.Keywords, ImmutableArray.Create(CompletionTags.Keyword), 'k');
+        public static readonly CompletionItemFilter SnippetFilter = new CompletionItemFilter(FeaturesResources.Snippets, ImmutableArray.Create(CompletionTags.Snippet), 't');
 
         public static readonly ImmutableArray<CompletionItemFilter> NamespaceFilters = ImmutableArray.Create(NamespaceFilter);
         public static readonly ImmutableArray<CompletionItemFilter> ClassFilters = ImmutableArray.Create(ClassFilter);
@@ -62,6 +64,8 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly ImmutableArray<CompletionItemFilter> MethodFilters = ImmutableArray.Create(MethodFilter);
         public static readonly ImmutableArray<CompletionItemFilter> ExtensionMethodFilters = ImmutableArray.Create(ExtensionMethodFilter);
         public static readonly ImmutableArray<CompletionItemFilter> LocalAndParameterFilters = ImmutableArray.Create(LocalAndParameterFilter);
+        public static readonly ImmutableArray<CompletionItemFilter> KeywordFilters = ImmutableArray.Create(KeywordFilter);
+        public static readonly ImmutableArray<CompletionItemFilter> SnippetFilters = ImmutableArray.Create(SnippetFilter);
 
         public static ImmutableArray<CompletionItemFilter> AllFilters { get; } =
             ImmutableArray.Create(
@@ -78,6 +82,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 StructureFilter,
                 EnumFilter,
                 DelegateFilter,
-                NamespaceFilter);
+                NamespaceFilter,
+                KeywordFilter,
+                SnippetFilter);
     }
 }

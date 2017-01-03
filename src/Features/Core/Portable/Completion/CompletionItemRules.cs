@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Completion
             int matchPriority,
             CompletionItemSelectionBehavior selectionBehavior)
         {
-            FilterCharacterRules = filterCharacterRules.IsDefault ? ImmutableArray<CharacterSetModificationRule>.Empty : filterCharacterRules;
-            CommitCharacterRules = commitCharacterRules.IsDefault ? ImmutableArray<CharacterSetModificationRule>.Empty : commitCharacterRules;
+            FilterCharacterRules = filterCharacterRules.NullToEmpty();
+            CommitCharacterRules = commitCharacterRules.NullToEmpty();
             EnterKeyRule = enterKeyRule;
             FormatOnCommit = formatOnCommit;
             MatchPriority = matchPriority;

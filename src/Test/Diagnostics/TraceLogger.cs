@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         {
         }
 
-        public TraceLogger(IOptionService optionService)
+        public TraceLogger(IGlobalOptionService optionService)
             : this(Logger.GetLoggingChecker(optionService))
         {
         }

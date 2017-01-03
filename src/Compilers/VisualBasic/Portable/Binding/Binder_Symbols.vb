@@ -379,9 +379,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' When we bind generic type reference, we pass through here with symbols for 
                             ' the generic type definition, each type argument and for the final constructed 
                             ' symbol. To avoid reporting duplicate diagnostics in this scenario, report use
-                            ' site errors only on a definition.                            ' 
+                            ' site errors only on a definition.
                             If Not reportedAnError AndAlso Not suppressUseSiteError AndAlso
-                               Not typeSymbol.IsArrayType() AndAlso typeSymbol.IsDefinition Then
+                               Not typeSymbol.IsArrayType() AndAlso Not typeSymbol.IsTupleType AndAlso typeSymbol.IsDefinition Then
                                 ReportUseSiteError(diagBag, typeSyntax, typeSymbol)
                             End If
 
@@ -700,24 +700,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' set of names already used
                 Dim uniqueFieldNames = New HashSet(Of String)(IdentifierComparison.Comparer)
+                Dim hasExplicitNames = False
 
                 For i As Integer = 0 To numElements - 1
                     Dim argumentSyntax = syntax.Elements(i)
 
-                    Dim argumentType As TypeSymbol = binder.BindTypeSyntax(argumentSyntax.Type, diagnostics, suppressUseSiteError, inGetTypeContext, resolvingBaseType)
+                    Dim argumentType As TypeSymbol = Nothing
+                    Dim name As String = Nothing
+                    Dim nameSyntax As SyntaxToken = Nothing
+
+                    If argumentSyntax.Kind = SyntaxKind.TypedTupleElement Then
+                        Dim typedElement = DirectCast(argumentSyntax, TypedTupleElementSyntax)
+                        argumentType = binder.BindTypeSyntax(typedElement.Type, diagnostics, suppressUseSiteError, inGetTypeContext, resolvingBaseType)
+
+                    Else
+                        Dim namedElement = DirectCast(argumentSyntax, NamedTupleElementSyntax)
+                        nameSyntax = namedElement.Identifier
+                        name = nameSyntax.GetIdentifierText()
+
+                        argumentType = binder.DecodeIdentifierType(nameSyntax, namedElement.AsClause, getRequireTypeDiagnosticInfoFunc:=Nothing, diagBag:=diagnostics)
+                    End If
+
                     types.Add(argumentType)
 
                     If argumentType.IsRestrictedType() Then
                         Binder.ReportDiagnostic(diagnostics, argumentSyntax, ERRID.ERR_RestrictedType1, argumentType)
                     End If
 
-                    Dim name As String = Nothing
-                    Dim nameSyntax As IdentifierNameSyntax = argumentSyntax.IdentifierName
 
-                    If nameSyntax IsNot Nothing Then
-                        name = nameSyntax.Identifier.ValueText
-
+                    If nameSyntax.Kind() = SyntaxKind.IdentifierToken Then
                         ' validate name if we have one
+                        hasExplicitNames = True
                         Binder.CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames)
                         locations.Add(nameSyntax.GetLocation)
                     Else
@@ -727,13 +740,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Binder.CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
                 Next
 
+                If hasExplicitNames Then
+                    ' If the tuple type with names is bound then we must have the TupleElementNamesAttribute to emit
+                    ' it is typically there though, if we have ValueTuple at all
+                    ' and we need System.String as well
+
+                    ' Report diagnostics if System.String doesn't exist
+                    binder.GetSpecialType(SpecialType.System_String, syntax, diagnostics)
+
+                    If Not binder.Compilation.HasTupleNamesAttributes Then
+                        Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleElementNamesAttributeMissing, AttributeDescription.TupleElementNamesAttribute.FullName)
+                    End If
+                End If
+
                 Dim typesArray As ImmutableArray(Of TypeSymbol) = types.ToImmutableAndFree()
                 Dim locationsArray As ImmutableArray(Of Location) = locations.ToImmutableAndFree()
 
                 If typesArray.Length < 2 Then
-                    elementNames?.Free()
-                    diagnostics.Add(ERRID.ERR_TupleTooFewElements, syntax.GetLocation)
-                    Return ErrorTypeSymbol.UnknownResultType
+                    Throw ExceptionUtilities.UnexpectedValue(typesArray.Length)
                 End If
 
                 Return TupleTypeSymbol.Create(syntax.GetLocation,

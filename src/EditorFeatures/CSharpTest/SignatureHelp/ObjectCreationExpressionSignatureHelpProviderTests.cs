@@ -568,5 +568,85 @@ class C
 
             await TestAsync(markup);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss1()
+        {
+            var markup = @"
+class C
+{
+    public C(object o) { }
+    public C M()
+    {
+        return [|new C(($$)
+    |]}
+
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("C(object o)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss2()
+        {
+            var markup = @"
+class C
+{
+    public C(object o) { }
+    public C M()
+    {
+        return [|new C((1,$$)
+    |]}
+
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("C(object o)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss3()
+        {
+            var markup = @"
+class C
+{
+    public C(object o) { }
+    public C M()
+    {
+        return [|new C((1, ($$)
+    |]}
+
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("C(object o)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss4()
+        {
+            var markup = @"
+class C
+{
+    public C(object o) { }
+    public C M()
+    {
+        return [|new C((1, (2,$$)
+    |]}
+
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("C(object o)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
     }
 }

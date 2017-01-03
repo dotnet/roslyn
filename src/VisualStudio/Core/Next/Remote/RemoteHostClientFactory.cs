@@ -3,9 +3,8 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -15,19 +14,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     [ExportWorkspaceService(typeof(IRemoteHostClientFactory)), Shared]
     internal class RemoteHostClientFactory : IRemoteHostClientFactory
     {
-        public Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
+        public async Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
             try
             {
                 // this is the point where we can create different kind of remote host client in future (cloud or etc)
-                return ServiceHubRemoteHostClient.CreateAsync(workspace, cancellationToken);
+                return await ServiceHubRemoteHostClient.CreateAsync(workspace, cancellationToken).ConfigureAwait(false);
             }
             catch
             {
                 // currently there is so many moving parts that cause, in some branch/drop,
                 // service hub not to work. in such places (ex, Jenkins), rather than crashing VS
                 // right away, let VS run without service hub enabled.
-                return SpecializedTasks.Default<RemoteHostClient>();
+                return null;
             }
         }
     }

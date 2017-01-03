@@ -102,8 +102,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim opKind As BinaryOperatorKind = operand.OperatorKind And BinaryOperatorKind.OpMask
 
             ' See comment in DiagnosticsPass.VisitUserDefinedShortCircuitingOperator
-            Debug.Assert(operand.Call.Method.ReturnType.IsSameTypeIgnoringCustomModifiers(operand.Call.Method.Parameters(0).Type) AndAlso
-                         operand.Call.Method.ReturnType.IsSameTypeIgnoringCustomModifiers(operand.Call.Method.Parameters(1).Type))
+            Debug.Assert(operand.Call.Method.ReturnType.IsSameTypeIgnoringAll(operand.Call.Method.Parameters(0).Type) AndAlso
+                         operand.Call.Method.ReturnType.IsSameTypeIgnoringAll(operand.Call.Method.Parameters(1).Type))
 
             opKind = If(opKind = BinaryOperatorKind.And, BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse)
 
@@ -687,7 +687,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim methodReturnType As TypeSymbol = [call].Method.ReturnType
             Debug.Assert(resultType.GetNullableUnderlyingTypeOrSelf().
-                         IsSameTypeIgnoringCustomModifiers(methodReturnType.GetNullableUnderlyingTypeOrSelf))
+                         IsSameTypeIgnoringAll(methodReturnType.GetNullableUnderlyingTypeOrSelf))
 
             [call] = [call].Update([call].Method,
                                    [call].MethodGroupOpt,

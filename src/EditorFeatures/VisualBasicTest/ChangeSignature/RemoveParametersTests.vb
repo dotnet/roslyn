@@ -4,6 +4,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ChangeSignature
 
@@ -114,7 +115,7 @@ End Module
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New ChangeSignatureCommandHandler()
+                Dim handler = New VisualBasicChangeSignatureCommandHandler(TestWaitIndicator.Default)
                 Dim delegatedToNext = False
                 Dim nextHandler =
                     Function()

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantOverrideNonEvent = 72,
         ERR_AddRemoveMustHaveBody = 73,
         ERR_AbstractEventInitializer = 74,
-        //ERR_PossibleBadNegCast = 75,      Not used in Roslyn. Occurs so infrequently, not worth reimplementing.
+        ERR_PossibleBadNegCast = 75,
         ERR_ReservedEnumerator = 76,
         ERR_AsMustHaveReferenceType = 77,
         WRN_LowercaseEllSuffix = 78,
@@ -1379,14 +1379,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConversionNotTupleCompatible = 8135,
         ERR_DeconstructionVarFormDisallowsSpecificType = 8136,
         ERR_TupleElementNamesAttributeMissing = 8137,
-        ERR_ExplicitTupleElementNames = 8138,
+        ERR_ExplicitTupleElementNamesAttribute = 8138,
         ERR_CantChangeTupleNamesOnOverride = 8139,
         ERR_DuplicateInterfaceWithTupleNamesInBaseList = 8140,
         ERR_ImplBadTupleNames = 8141,
         ERR_PartialMethodInconsistentTupleNames = 8142,
         ERR_ExpressionTreeContainsTupleLiteral = 8143,
         ERR_ExpressionTreeContainsTupleConversion = 8144,
-
         #endregion tuple diagnostics introduced in C# 7
 
         #region diagnostics for ref locals and ref returns introduced in C# 7
@@ -1426,17 +1425,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturningCallAndAwait = 8178,
         #endregion diagnostics for ref locals and ref returns introduced in C# 7
 
+        #region stragglers for C# 7
         ERR_PredefinedValueTupleTypeNotFound = 8179,
         ERR_SemiOrLBraceOrArrowExpected = 8180,
+        ERR_NewWithTupleTypeSyntax = 8181,
+        ERR_PredefinedValueTupleTypeMustBeStruct = 8182,
+        ERR_DiscardTypeInferenceFailed = 8183,
+        ERR_MixedDeconstructionUnsupported = 8184,
+        ERR_DeclarationExpressionNotPermitted = 8185,
+        ERR_MustDeclareForeachIteration = 8186,
+        ERR_TupleElementNamesInDeconstruction = 8187,
+        #endregion stragglers for C# 7
 
-        // Available  = 8181-8195
+        // Available  = 8188-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
         ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
         ERR_ExpressionTreeContainsOutVariable = 8198,
+        #endregion diagnostics for out var
+
+        #region more stragglers for C# 7
         ERR_VarInvocationLvalueReserved = 8199,
         ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
-        #endregion diagnostics for out var
+        ERR_ExpressionVariableInQueryClause = 8201,
+        #endregion more stragglers for C# 7
     }
 }

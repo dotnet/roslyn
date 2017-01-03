@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// An identifier that can be used to refer to the same Solution across versions. 
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public sealed class SolutionId : IEquatable<SolutionId>
+    public sealed class SolutionId : IEquatable<SolutionId>, IObjectWritable
     {
         /// <summary>
         /// The unique id of the solution.
@@ -78,6 +79,20 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             return this.Id.GetHashCode();
+        }
+
+        void IObjectWritable.WriteTo(ObjectWriter writer)
+        {
+            writer.WriteValue(Id.ToByteArray());
+            writer.WriteString(DebugName);
+        }
+
+        internal static SolutionId ReadFrom(ObjectReader reader)
+        {
+            var guid = new Guid((byte[])reader.ReadValue());
+            var debugName = reader.ReadString();
+
+            return CreateFromSerialized(guid, debugName);
         }
     }
 }

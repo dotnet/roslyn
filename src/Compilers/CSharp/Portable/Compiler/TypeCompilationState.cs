@@ -118,6 +118,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ArrayBuilder<MethodWithBody> SynthesizedMethods
         {
             get { return _synthesizedMethods; }
+            set
+            {
+                Debug.Assert(_synthesizedMethods == null);
+                _synthesizedMethods = value;
+            }
         }
 
         /// <summary> 

@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         {|FixAllInDocument:var|} v = a;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
         {
             v();
         }
+
         var x = a;
         if (x != null)
         {
@@ -34,10 +36,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
+
     void Foo()
     {
         a?.Invoke();
@@ -53,6 +55,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a;
@@ -60,6 +63,7 @@ class C
         {
             v();
         }
+
         var x = a;
         if (x != null)
         {
@@ -67,10 +71,10 @@ class C
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
+
     void Foo()
     {
         a?.Invoke();
@@ -86,6 +90,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a;
@@ -93,6 +98,7 @@ class C
         {
             {|FixAllInDocument:v|}();
         }
+
         var x = a;
         if (x != null)
         {
@@ -100,10 +106,10 @@ class C
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
+
     void Foo()
     {
         a?.Invoke();
@@ -119,6 +125,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a;
@@ -126,6 +133,7 @@ class C
         {
             v();
         }
+
         {|FixAllInDocument:var|} x = a;
         if (x != null)
         {
@@ -133,10 +141,10 @@ class C
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
+
     void Foo()
     {
         a?.Invoke();
@@ -152,6 +160,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a;
@@ -159,6 +168,7 @@ class C
         {
             v();
         }
+
         var x = a;
         {|FixAllInDocument:if|} (x != null)
         {
@@ -166,10 +176,10 @@ class C
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
+
     void Foo()
     {
         a?.Invoke();
@@ -185,6 +195,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a;
@@ -192,6 +203,7 @@ class C
         {
             v();
         }
+
         var x = a;
         if (x != null)
         {
@@ -199,10 +211,10 @@ class C
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
+
     void Foo()
     {
         a?.Invoke();

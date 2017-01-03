@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 _targetSymbol = targetSymbol;
                 _diagnostic = diagnostic;
             }
-
+            
             protected override async Task<Document> GetChangedSuppressionDocumentAsync(CancellationToken cancellationToken)
             {
                 var suppressionsDoc = await GetOrCreateSuppressionsDocumentAsync(cancellationToken).ConfigureAwait(false);

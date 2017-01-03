@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Classification
             return allClassifications;
         }
 
-        internal static async Task<List<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
+        internal static async Task<ImmutableArray<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 cancellationToken).ConfigureAwait(false);
         }
  
-        internal static async Task<List<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
+        internal static async Task<ImmutableArray<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
             SemanticModel semanticModel, TextSpan textSpan, Workspace workspace,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -75,10 +76,10 @@ namespace Microsoft.CodeAnalysis.Classification
             return ConvertClassificationsToParts(sourceText, textSpan.Start, classifiedSpans);
         }
  
-        internal static List<SymbolDisplayPart> ConvertClassificationsToParts(
+        internal static ImmutableArray<SymbolDisplayPart> ConvertClassificationsToParts(
             SourceText sourceText, int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans)
         {
-            var parts = new List<SymbolDisplayPart>();
+            var parts = ArrayBuilder<SymbolDisplayPart>.GetInstance();
  
             foreach (var span in classifiedSpans)
             {
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 }
             }
  
-            return parts;
+            return parts.ToImmutableAndFree();
         }
 
         private static IEnumerable<SymbolDisplayPart> Space(int count = 1)

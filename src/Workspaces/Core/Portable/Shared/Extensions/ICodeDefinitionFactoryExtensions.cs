@@ -132,8 +132,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // For non-out parameters, create a field and assign the parameter to it. 
                     // TODO: I'm not sure that's what we really want for ref parameters. 
-                    string fieldName;
-                    if (TryGetValue(parameterToNewFieldMap, parameterName, out fieldName))
+                    if (TryGetValue(parameterToNewFieldMap, parameterName, out var fieldName))
                     {
                         yield return CodeGenerationSymbolFactory.CreateFieldSymbol(
                             attributes: null,
@@ -157,8 +156,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static bool TryGetValue(IDictionary<string, ISymbol> dictionary, string key, out string value)
         {
             value = null;
-            ISymbol symbol;
-            if (dictionary != null && dictionary.TryGetValue(key, out symbol))
+            if (dictionary != null && dictionary.TryGetValue(key, out var symbol))
             {
                 value = symbol.Name;
                 return true;
@@ -193,13 +191,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // For non-out parameters, create a field and assign the parameter to it. 
                     // TODO: I'm not sure that's what we really want for ref parameters. 
-                    string fieldName;
-                    if (TryGetValue(parameterToExistingFieldMap, parameterName, out fieldName) ||
+                    if (TryGetValue(parameterToExistingFieldMap, parameterName, out var fieldName) ||
                         TryGetValue(parameterToNewFieldMap, parameterName, out fieldName))
                     {
+                        var fieldAccess = factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(fieldName))
+                                                 .WithAdditionalAnnotations(Simplifier.Annotation);
                         var assignExpression = factory.AssignmentStatement(
-                            factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(fieldName)),
-                            factory.IdentifierName(parameterName));
+                            fieldAccess, factory.IdentifierName(parameterName));
                         var statement = factory.ExpressionStatement(assignExpression);
                         yield return statement;
                     }

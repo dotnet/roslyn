@@ -78,6 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnostics = DiagnosticBag.GetInstance();
 
+            ScopeBinder = binder;
+
+            binder = binder.WithUnsafeRegionIfNecessary(syntax.Modifiers);
+
             if (_syntax.TypeParameterList != null)
             {
                 binder = new WithMethodTypeParametersBinder(this, binder);
@@ -97,6 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _refKind = (syntax.ReturnType.Kind() == SyntaxKind.RefType) ? RefKind.Ref : RefKind.None;
             _diagnostics = diagnostics.ToReadOnlyAndFree();
         }
+
+        /// <summary>
+        /// Binder that owns the scope for the local function symbol, namely the scope where the
+        /// local function is declared.
+        /// </summary>
+        internal Binder ScopeBinder { get; }
 
         internal void GrabDiagnostics(DiagnosticBag addTo)
         {
@@ -147,7 +157,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnostics = DiagnosticBag.GetInstance();
             SyntaxToken arglistToken;
-            var parameters = ParameterHelpers.MakeParameters(_binder, this, _syntax.ParameterList, true, out arglistToken, diagnostics, true);
+            var parameters = ParameterHelpers.MakeParameters(
+                _binder,
+                this,
+                _syntax.ParameterList,
+                allowRefOrOut: true,
+                arglistToken: out arglistToken,
+                diagnostics: diagnostics,
+                beStrict: true);
+
             var isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             if (IsAsync && diagnostics.IsEmptyWithoutResolution)
             {
@@ -258,6 +276,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
         internal override MethodImplAttributes ImplementationAttributes => default(MethodImplAttributes);
 
         internal override ObsoleteAttributeData ObsoleteAttributeData => null;
@@ -289,6 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsExtern => (_declarationModifiers & DeclarationModifiers.Extern) != 0;
 
         public bool IsUnsafe => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
+
+        internal bool IsExpressionBodied => _syntax.Body == null && _syntax.ExpressionBody != null;
 
         public override DllImportData GetDllImportData() => null;
 
@@ -326,15 +348,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = identifier.GetLocation();
                 var name = identifier.ValueText;
 
-                // TODO: Add diagnostic checks for nested local functions (and containing method)
-                if (name == this.Name)
+                foreach (var @param in result)
                 {
-                    diagnostics.Add(ErrorCode.ERR_TypeVariableSameAsParent, location, name);
-                }
-
-                for (int i = 0; i < result.Count; i++)
-                {
-                    if (name == result[i].Name)
+                    if (name == @param.Name)
                     {
                         diagnostics.Add(ErrorCode.ERR_DuplicateTypeParameter, location, name);
                         break;

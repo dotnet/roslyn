@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -29,45 +30,45 @@ namespace Microsoft.CodeAnalysis
         // the version of the workspace this solution is from
         private readonly int _workspaceVersion;
 
+        private readonly SolutionInfo _solutionInfo;
         private readonly SolutionServices _solutionServices;
-        private readonly SolutionId _id;
-        private readonly string _filePath;
         private readonly IReadOnlyList<ProjectId> _projectIds;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
         private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _linkedFilesMap;
-        private readonly VersionStamp _version;
         private readonly Lazy<VersionStamp> _lazyLatestProjectVersion;
         private readonly ProjectDependencyGraph _dependencyGraph;
 
         // Values for all these are created on demand.
         private ImmutableDictionary<ProjectId, CompilationTracker> _projectIdToTrackerMap;
 
+        // Checksums for this solution state
+        private readonly ValueSource<SolutionStateChecksums> _lazyChecksums;
+
         private SolutionState(
             BranchId branchId,
             int workspaceVersion,
             SolutionServices solutionServices,
-            SolutionId id,
-            string filePath,
+            SolutionInfo solutionInfo,
             IEnumerable<ProjectId> projectIds,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> linkedFilesMap,
             ProjectDependencyGraph dependencyGraph,
-            VersionStamp version,
             Lazy<VersionStamp> lazyLatestProjectVersion)
         {
             _branchId = branchId;
             _workspaceVersion = workspaceVersion;
-            _id = id;
-            _filePath = filePath;
             _solutionServices = solutionServices;
+            _solutionInfo = solutionInfo;
             _projectIds = projectIds.ToImmutableReadOnlyListOrEmpty();
             _projectIdToProjectStateMap = idToProjectStateMap;
             _projectIdToTrackerMap = projectIdToTrackerMap;
             _linkedFilesMap = linkedFilesMap;
             _dependencyGraph = dependencyGraph;
-            _version = version;
             _lazyLatestProjectVersion = lazyLatestProjectVersion;
+
+            // when solution state is changed, we re-calcuate its checksum
+            _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
 
             CheckInvariants();
         }
@@ -79,9 +80,7 @@ namespace Microsoft.CodeAnalysis
                 workspace.PrimaryBranchId,
                 workspaceVersion: 0,
                 solutionServices: new SolutionServices(workspace),
-                id: info.Id,
-                filePath: info.FilePath,
-                version: info.Version,
+                solutionInfo: info,
                 projectIds: null,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
@@ -89,6 +88,7 @@ namespace Microsoft.CodeAnalysis
                 dependencyGraph: ProjectDependencyGraph.Empty,
                 lazyLatestProjectVersion: null)
         {
+            // this is for the very first solution state ever created
             _lazyLatestProjectVersion = new Lazy<VersionStamp>(() => ComputeLatestProjectVersion());
         }
 
@@ -115,6 +115,8 @@ namespace Microsoft.CodeAnalysis
 
             return latestVersion;
         }
+
+        public SolutionInfo SolutionInfo => _solutionInfo;
 
         public ImmutableDictionary<ProjectId, ProjectState> ProjectStates => _projectIdToProjectStateMap;
 
@@ -143,17 +145,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The Id of the solution. Multiple solution instances may share the same Id.
         /// </summary>
-        public SolutionId Id => _id;
+        public SolutionId Id => _solutionInfo.Id;
 
         /// <summary>
         /// The path to the solution file or null if there is no solution file.
         /// </summary>
-        public string FilePath => _filePath;
+        public string FilePath => _solutionInfo.FilePath;
 
         /// <summary>
         /// The solution version. This equates to the solution file's version.
         /// </summary>
-        public VersionStamp Version => _version;
+        public VersionStamp Version => _solutionInfo.Version;
 
         /// <summary>
         /// A list of all the ids for all the projects contained by the solution.
@@ -170,48 +172,47 @@ namespace Microsoft.CodeAnalysis
         }
 
         private SolutionState Branch(
+            SolutionInfo solutionInfo = null,
             IEnumerable<ProjectId> projectIds = null,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap = null,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> linkedFilesMap = null,
             ProjectDependencyGraph dependencyGraph = null,
-            VersionStamp? version = default(VersionStamp?),
             Lazy<VersionStamp> lazyLatestProjectVersion = null)
         {
             var branchId = GetBranchId();
 
+            solutionInfo = solutionInfo ?? _solutionInfo;
             projectIds = projectIds ?? _projectIds;
             idToProjectStateMap = idToProjectStateMap ?? _projectIdToProjectStateMap;
             projectIdToTrackerMap = projectIdToTrackerMap ?? _projectIdToTrackerMap;
             linkedFilesMap = linkedFilesMap ?? _linkedFilesMap;
             dependencyGraph = dependencyGraph ?? _dependencyGraph;
-            version = version.HasValue ? version.Value : _version;
             lazyLatestProjectVersion = lazyLatestProjectVersion ?? _lazyLatestProjectVersion;
 
             if (branchId == _branchId &&
+                solutionInfo == _solutionInfo &&
                 projectIds == _projectIds &&
                 idToProjectStateMap == _projectIdToProjectStateMap &&
                 projectIdToTrackerMap == _projectIdToTrackerMap &&
                 linkedFilesMap == _linkedFilesMap &&
                 dependencyGraph == _dependencyGraph &&
-                version == _version &&
                 lazyLatestProjectVersion == _lazyLatestProjectVersion)
             {
                 return this;
             }
 
+
             return new SolutionState(
                 branchId,
                 _workspaceVersion,
                 _solutionServices,
-                _id,
-                _filePath,
+                solutionInfo,
                 projectIds,
                 idToProjectStateMap,
                 projectIdToTrackerMap,
                 linkedFilesMap,
                 dependencyGraph,
-                version.Value,
                 lazyLatestProjectVersion);
         }
 
@@ -231,14 +232,12 @@ namespace Microsoft.CodeAnalysis
                 branchId,
                 workspaceVersion,
                 services,
-                _id,
-                _filePath,
+                _solutionInfo,
                 _projectIds,
                 _projectIdToProjectStateMap,
                 _projectIdToTrackerMap,
                 _linkedFilesMap,
                 _dependencyGraph,
-                _version,
                 _lazyLatestProjectVersion);
         }
 
@@ -316,8 +315,7 @@ namespace Microsoft.CodeAnalysis
                     if (document != null)
                     {
                         // does this document really have the syntax tree?
-                        SyntaxTree documentTree;
-                        if (document.TryGetSyntaxTree(out documentTree) && documentTree == syntaxTree)
+                        if (document.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
                         {
                             return document;
                         }
@@ -354,8 +352,7 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState GetProjectState(ProjectId projectId)
         {
-            ProjectState state;
-            _projectIdToProjectStateMap.TryGetValue(projectId, out state);
+            _projectIdToProjectStateMap.TryGetValue(projectId, out var state);
             return state;
         }
 
@@ -372,8 +369,7 @@ namespace Microsoft.CodeAnalysis
             // TODO: Remove this loop when we add source assembly symbols to s_assemblyOrModuleSymbolToProjectMap
             foreach (var state in _projectIdToProjectStateMap.Values)
             {
-                Compilation compilation;
-                if (this.TryGetCompilation(state.Id, out compilation))
+                if (this.TryGetCompilation(state.Id, out var compilation))
                 {
                     // if the symbol is the compilation's assembly symbol, we are done
                     if (compilation.Assembly == assemblySymbol)
@@ -383,8 +379,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            ProjectId id;
-            s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblySymbol, out id);
+            s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblySymbol, out var id);
             return id == null ? null : this.GetProjectState(id);
         }
 
@@ -401,8 +396,7 @@ namespace Microsoft.CodeAnalysis
 
         private CompilationTracker GetCompilationTracker(ProjectId projectId)
         {
-            CompilationTracker tracker;
-            if (!_projectIdToTrackerMap.TryGetValue(projectId, out tracker))
+            if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
             {
                 tracker = ImmutableInterlocked.GetOrAdd(ref _projectIdToTrackerMap, projectId, s_createCompilationTrackerFunction, this);
             }
@@ -412,6 +406,10 @@ namespace Microsoft.CodeAnalysis
 
         private SolutionState AddProject(ProjectId projectId, ProjectState projectState)
         {
+            // changed project list so, increment version.
+            var newSolutionInfo = _solutionInfo.WithVersion(this.Version.GetNewerVersion())
+                                               .WithProjects(_solutionInfo.Projects.Concat(projectState.ProjectInfo));
+
             var newProjectIds = _projectIds.ToImmutableArray().Add(projectId);
             var newStateMap = _projectIdToProjectStateMap.Add(projectId, projectState);
             var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
@@ -419,12 +417,12 @@ namespace Microsoft.CodeAnalysis
             var newLinkedFilesMap = CreateLinkedFilesMapWithAddedProject(newStateMap[projectId]);
 
             return this.Branch(
+                solutionInfo: newSolutionInfo,
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap,
                 linkedFilesMap: newLinkedFilesMap,
                 dependencyGraph: newDependencyGraph,
-                version: this.Version.GetNewerVersion(),  // changed project list so, increment version.
                 lazyLatestProjectVersion: new Lazy<VersionStamp>(() => projectState.Version)); // this is the newest!
         }
 
@@ -483,8 +481,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                ImmutableArray<DocumentId> documentIdsWithPath;
-                builder[filePath] = builder.TryGetValue(filePath, out documentIdsWithPath)
+                builder[filePath] = builder.TryGetValue(filePath, out var documentIdsWithPath)
                     ? documentIdsWithPath.Add(documentId)
                     : ImmutableArray.Create(documentId);
             }
@@ -504,6 +501,10 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
+            // changed project list so, increment version.
+            var newSolutionInfo = _solutionInfo.WithVersion(this.Version.GetNewerVersion())
+                                               .WithProjects(_solutionInfo.Projects.Where(s => s.Id != projectId));
+
             var newProjectIds = _projectIds.ToImmutableArray().Remove(projectId);
             var newStateMap = _projectIdToProjectStateMap.Remove(projectId);
             var newDependencyGraph = CreateDependencyGraph(newProjectIds, newStateMap);
@@ -511,12 +512,12 @@ namespace Microsoft.CodeAnalysis
             var newLinkedFilesMap = CreateLinkedFilesMapWithRemovedProject(_projectIdToProjectStateMap[projectId]);
 
             return this.Branch(
+                solutionInfo: newSolutionInfo,
                 projectIds: newProjectIds,
                 idToProjectStateMap: newStateMap,
                 projectIdToTrackerMap: newTrackerMap.Remove(projectId),
                 linkedFilesMap: newLinkedFilesMap,
-                dependencyGraph: newDependencyGraph,
-                version: this.Version.GetNewerVersion()); // changed project list, so increment version
+                dependencyGraph: newDependencyGraph);
         }
 
         private ImmutableDictionary<string, ImmutableArray<DocumentId>> CreateLinkedFilesMapWithRemovedProject(ProjectState projectState)
@@ -539,8 +540,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                ImmutableArray<DocumentId> documentIdsWithPath;
-                if (!builder.TryGetValue(filePath, out documentIdsWithPath) || !documentIdsWithPath.Contains(documentId))
+                if (!builder.TryGetValue(filePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentId))
                 {
                     throw new ArgumentException("The given documentId was not found in the linkedFilesMap.");
                 }
@@ -1130,9 +1130,7 @@ namespace Microsoft.CodeAnalysis
             CheckContainsDocument(documentId);
 
             var oldDocument = this.GetDocumentState(documentId);
-
-            SourceText oldText;
-            if (oldDocument.TryGetText(out oldText) && text == oldText)
+            if (oldDocument.TryGetText(out var oldText) && text == oldText)
             {
                 return this;
             }
@@ -1177,9 +1175,7 @@ namespace Microsoft.CodeAnalysis
             CheckContainsAdditionalDocument(documentId);
 
             var oldDocument = this.GetAdditionalDocumentState(documentId);
-
-            SourceText oldText;
-            if (oldDocument.TryGetText(out oldText) && text == oldText)
+            if (oldDocument.TryGetText(out var oldText) && text == oldText)
             {
                 return this;
             }
@@ -1269,11 +1265,8 @@ namespace Microsoft.CodeAnalysis
             CheckContainsDocument(documentId);
 
             var oldDocument = this.GetDocumentState(documentId);
-
-            SyntaxTree oldTree;
-            SyntaxNode oldRoot;
-            if (oldDocument.TryGetSyntaxTree(out oldTree) &&
-                oldTree.TryGetRoot(out oldRoot) &&
+            if (oldDocument.TryGetSyntaxTree(out var oldTree) &&
+                oldTree.TryGetRoot(out var oldRoot) &&
                 oldRoot == root)
             {
                 return this;
@@ -1425,11 +1418,9 @@ namespace Microsoft.CodeAnalysis
             var newStateMap = _projectIdToProjectStateMap.SetItem(projectId, newProjectState);
             var newDependencyGraph = withProjectReferenceChange ? CreateDependencyGraph(_projectIds, newStateMap) : _dependencyGraph;
             var newTrackerMap = CreateCompilationTrackerMap(projectId, newDependencyGraph);
-
             // If we have a tracker for this project, then fork it as well (along with the
             // translation action and store it in the tracker map.
-            CompilationTracker tracker;
-            if (newTrackerMap.TryGetValue(projectId, out tracker))
+            if (newTrackerMap.TryGetValue(projectId, out var tracker))
             {
                 newTrackerMap = newTrackerMap.Remove(projectId);
 
@@ -1461,8 +1452,7 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray.Create<DocumentId>();
             }
 
-            ImmutableArray<DocumentId> documentIds;
-            return _linkedFilesMap.TryGetValue(filePath, out documentIds)
+            return _linkedFilesMap.TryGetValue(filePath, out var documentIds)
                 ? documentIds
                 : ImmutableArray.Create<DocumentId>();
         }
@@ -1613,8 +1603,7 @@ namespace Microsoft.CodeAnalysis
                 var doc = solution.GetDocumentState(documentId);
                 if (doc != null)
                 {
-                    SourceText existingText;
-                    if (!doc.TryGetText(out existingText) || existingText != text)
+                    if (!doc.TryGetText(out var existingText) || existingText != text)
                     {
                         solution = solution.WithDocumentText(documentId, text, mode);
                     }
@@ -1627,11 +1616,9 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetCompilation(ProjectId projectId, out Compilation compilation)
         {
             CheckContainsProject(projectId);
-
-            CompilationTracker tracker;
             compilation = null;
 
-            return this.TryGetCompilationTracker(projectId, out tracker)
+            return this.TryGetCompilationTracker(projectId, out var tracker)
                 && tracker.TryGetCompilation(out compilation);
         }
 
@@ -1681,10 +1668,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             Contract.ThrowIfNull(projectId);
-
             // remember which project is associated with this assembly
-            ProjectId tmp;
-            if (!s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblyOrModuleSymbol, out tmp))
+            if (!s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblyOrModuleSymbol, out var tmp))
             {
                 // use GetValue to avoid race condition exceptions from Add.
                 // the first one to set the value wins.
@@ -1727,8 +1712,7 @@ namespace Microsoft.CodeAnalysis
         {
             // Try to get the compilation state for this project.  If it doesn't exist, don't do any
             // more work.  
-            CompilationTracker state;
-            if (!_projectIdToTrackerMap.TryGetValue(projectReference.ProjectId, out state))
+            if (!_projectIdToTrackerMap.TryGetValue(projectReference.ProjectId, out var state))
             {
                 return null;
             }
@@ -1755,7 +1739,8 @@ namespace Microsoft.CodeAnalysis
             return compilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
         }
 
-        public async Task<IEnumerable<DocumentState>> GetDocumentsWithNameAsync(ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<DocumentState>> GetDocumentsWithNameAsync(
+            ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
             // this will be used to find documents that contain declaration information in IDE cache such as DeclarationSyntaxTreeInfo for "NavigateTo"
             var trees = GetCompilationTracker(id).GetSyntaxTreesWithNameFromDeclarationOnlyCompilation(predicate, filter, cancellationToken);
@@ -1769,15 +1754,16 @@ namespace Microsoft.CodeAnalysis
             if (compilation == null)
             {
                 // some projects don't support compilations (e.g., TypeScript) so there's nothing to check
-                return SpecializedCollections.EmptyEnumerable<DocumentState>();
+                return ImmutableArray<DocumentState>.Empty;
             }
 
             return ConvertTreesToDocuments(
                 id, compilation.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree)));
         }
 
-        private IEnumerable<DocumentState> ConvertTreesToDocuments(ProjectId id, IEnumerable<SyntaxTree> trees)
+        private ImmutableArray<DocumentState> ConvertTreesToDocuments(ProjectId id, IEnumerable<SyntaxTree> trees)
         {
+            var result = ArrayBuilder<DocumentState>.GetInstance();
             foreach (var tree in trees)
             {
                 var document = GetDocumentState(tree, id);
@@ -1787,8 +1773,10 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                yield return document;
+                result.Add(document);
             }
+
+            return result.ToImmutableAndFree();
         }
 
         /// <summary>

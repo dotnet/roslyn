@@ -4,9 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -19,10 +21,49 @@ namespace Microsoft.CodeAnalysis.Scripting
     {
         public static ScriptOptions Default { get; } = new ScriptOptions(
             filePath: "",
-            references: ImmutableArray<MetadataReference>.Empty,
+            references: GetDefaultMetadataReferences(),
             namespaces: ImmutableArray<string>.Empty,
             metadataResolver: RuntimeMetadataReferenceResolver.Default,
             sourceResolver: SourceFileResolver.Default);
+
+        private static ImmutableArray<MetadataReference> GetDefaultMetadataReferences()
+        {
+            if (GacFileResolver.IsAvailable)
+            {
+                return ImmutableArray<MetadataReference>.Empty;
+            }
+
+            // Provide similar surface to mscorlib (netstandard 2.0).
+            // These references are resolved lazily. Keep in sync with list in core csi.rsp.
+            var files = new[]
+            {
+                "System.Collections",
+                "System.Collections.Concurrent",
+                "System.Console",
+                "System.Diagnostics.Debug",
+                "System.Diagnostics.Process",
+                "System.Diagnostics.StackTrace",
+                "System.Globalization",
+                "System.IO",
+                "System.IO.FileSystem",
+                "System.IO.FileSystem.Primitives",
+                "System.Reflection",
+                "System.Reflection.Extensions",
+                "System.Reflection.Primitives",
+                "System.Runtime",
+                "System.Runtime.InteropServices",
+                "System.Text.Encoding",
+                "System.Text.Encoding.CodePages",
+                "System.Text.Encoding.Extensions",
+                "System.Text.RegularExpressions",
+                "System.Threading",
+                "System.Threading.Tasks",
+                "System.Threading.Tasks.Parallel",
+                "System.Threading.Thread",
+            };
+
+            return ImmutableArray.CreateRange(files.Select(CreateUnresolvedReference));
+        }
 
         /// <summary>
         /// An array of <see cref="MetadataReference"/>s to be added to the script.

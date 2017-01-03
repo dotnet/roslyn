@@ -912,37 +912,40 @@ public class [|C|]
 #Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
+
 Imports System
 Imports System.Reflection
 Imports System.Runtime.CompilerServices
 
-<DefaultMember(""Item"")>
-<Obsolete>
+<DefaultMember(""Item"")> <Obsolete>
 Public Class [|C|]
-    <Obsolete>
-    <ThreadStatic>
+    <Obsolete> <ThreadStatic>
     Public field1 As Integer
+
     <Obsolete>
     Public Sub New()
-    <Obsolete>
-    Default Public Property Item(x As Integer) As Integer
+
     <Obsolete>
     Public Property prop1 As Integer
     <Obsolete>
     Public Property prop2 As Integer
     <Obsolete>
+    Default Public Property Item(x As Integer) As Integer
+
+    <Obsolete>
     Public Event event1 As Action
     <Obsolete>
     Public Event event2 As Action
+
     <Obsolete>
     Public Sub method1()
     Public Sub method2(<CallerMemberName> Optional name As String = """")
     <Obsolete>
     Protected Overrides Sub Finalize()
+
     <Obsolete>
     Public Shared Operator +(c1 As C, c2 As C) As C
-End Class
-";
+End Class";
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, expectedVB);
         }
 
@@ -1020,9 +1023,9 @@ Public Class [|C|]
 
     Public Sub New()
 
-    Default Public Property Item(x As Integer) As Integer
     Public Property prop1 As Integer
     Public Property prop2 As Integer
+    Default Public Property Item(x As Integer) As Integer
 
     Public Event event1 As Action
     Public Event event2 As Action
@@ -1323,5 +1326,39 @@ Public Class [|Program|]
     Public Shared Operator +(p1 As Program, p2 As Program) As Program
 End Class");
         }
-    }
+
+        [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestComImport1()
+        {
+            var metadataSource = @"
+using System.Runtime.InteropServices;
+
+[ComImport]
+[Guid(""666A175D-2448-447A-B786-CCC82CBEF156"")]
+public interface IComImport
+{
+    void MOverload();
+    void X();
+    void MOverload(int i);
+    int Prop { get; }
+}";
+            var symbolName = "IComImport";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+using System.Runtime.InteropServices;
+
+[Guid(""666A175D-2448-447A-B786-CCC82CBEF156"")]
+public interface [|IComImport|]
+{{
+    void MOverload();
+    void X();
+    void MOverload(int i);
+    int Prop {{ get; }}
+}}");
+        }
+        }
 }

@@ -2,16 +2,20 @@
 
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class TypeSyntaxExtensions
     {
+        public static bool IsVoid(this TypeSyntax typeSyntax)
+        {
+            return typeSyntax.IsKind(SyntaxKind.PredefinedType) &&
+                ((PredefinedTypeSyntax)typeSyntax).Keyword.IsKind(SyntaxKind.VoidKeyword);
+        }
+
         public static bool IsPartial(this TypeSyntax typeSyntax)
         {
             return typeSyntax is IdentifierNameSyntax &&

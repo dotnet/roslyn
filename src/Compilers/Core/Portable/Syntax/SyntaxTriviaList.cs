@@ -3,11 +3,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Diagnostics;
+using System.Linq;
+using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -236,6 +237,26 @@ namespace Microsoft.CodeAnalysis
             return InsertRange(index, new[] { trivia });
         }
 
+        private static readonly ObjectPool<SyntaxTriviaListBuilder> s_builderPool =
+            new ObjectPool<SyntaxTriviaListBuilder>(() => SyntaxTriviaListBuilder.Create());
+
+        private static SyntaxTriviaListBuilder GetBuilder()
+            => s_builderPool.Allocate();
+
+        private static void ClearAndFreeBuilder(SyntaxTriviaListBuilder builder)
+        {
+            // It's possible someone might create a list with a huge amount of trivia
+            // in it.  We don't want to hold onto such items forever.  So only cache
+            // reasonably sized lists.  In IDE testing, around 99% of all trivia lists
+            // were 16 or less elements.
+            const int MaxBuilderCount = 16;
+            if (builder.Count <= MaxBuilderCount)
+            {
+                builder.Clear();
+                s_builderPool.Free(builder);
+            }
+        }
+
         /// <summary>
         /// Creates a new <see cref="SyntaxTriviaList"/> with the specified trivia inserted at the index.
         /// </summary>
@@ -243,26 +264,45 @@ namespace Microsoft.CodeAnalysis
         /// <param name="trivia">The trivia to insert.</param>
         public SyntaxTriviaList InsertRange(int index, IEnumerable<SyntaxTrivia> trivia)
         {
-            if (index < 0 || index > this.Count)
+            var thisCount = this.Count;
+            if (index < 0 || index > thisCount)
             {
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            var items = trivia.ToList();
-            if (items.Count == 0)
+            if (trivia == null)
+            {
+                throw new ArgumentNullException(nameof(trivia));
+            }
+
+            // Just return ourselves if we're not being asked to add anything.
+            var triviaCollection = trivia as ICollection<SyntaxTrivia>;
+            if (triviaCollection != null && triviaCollection.Count == 0)
             {
                 return this;
             }
 
-            var list = this.ToList();
-            list.InsertRange(index, items);
-
-            if (list.Count == 0)
+            var builder = GetBuilder();
+            try
             {
-                return this;
-            }
+                for (int i = 0; i < index; i++)
+                {
+                    builder.Add(this[i]);
+                }
 
-            return new SyntaxTriviaList(default(SyntaxToken), list[0].UnderlyingNode.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
+                builder.AddRange(trivia);
+
+                for (int i = index; i < thisCount; i++)
+                {
+                    builder.Add(this[i]);
+                }
+
+                return builder.Count == thisCount ? this : builder.ToList();
+            }
+            finally
+            {
+                ClearAndFreeBuilder(builder);
+            }
         }
 
         /// <summary>

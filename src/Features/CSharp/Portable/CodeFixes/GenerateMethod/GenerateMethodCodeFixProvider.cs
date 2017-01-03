@@ -83,7 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
             return node;
         }
 
-        protected override Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+            Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IGenerateParameterizedMemberService>();
             return service.GenerateMethodAsync(document, node, cancellationToken);

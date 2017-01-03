@@ -115,8 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return Array.Empty<object>();
             }
 
-            uint selectedObjectCount = 0;
-            if (selectionContainer.CountObjects((uint)Constants.GETOBJS_SELECTED, out selectedObjectCount) < 0 || selectedObjectCount == 0)
+            if (selectionContainer.CountObjects((uint)Constants.GETOBJS_SELECTED, out var selectedObjectCount) < 0 || selectedObjectCount == 0)
             {
                 return Array.Empty<object>();
             }

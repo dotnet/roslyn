@@ -78,14 +78,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(Not Left.IsLateBound)
                 End Select
 
-                Debug.Assert(Left.Type.IsSameTypeIgnoringCustomModifiers(Right.Type))
+                Debug.Assert(Left.Type.IsSameTypeIgnoringAll(Right.Type))
             End If
 
             Right.AssertRValue()
             Debug.Assert(Left.IsPropertyOrXmlPropertyAccess() OrElse
                          Left.IsLateBound OrElse
                          IsByRefPropertyGet(Left) OrElse
-                         Left.Type.IsSameTypeIgnoringCustomModifiers(Type) OrElse
+                         Left.Type.IsSameTypeIgnoringAll(Type) OrElse
                          (Type.IsVoidType() AndAlso Syntax.Kind = SyntaxKind.MidAssignmentStatement) OrElse
                          (Left.Kind = BoundKind.FieldAccess AndAlso
                                 DirectCast(Left, BoundFieldAccess).FieldSymbol.AssociatedSymbol.Kind = SymbolKind.Property AndAlso

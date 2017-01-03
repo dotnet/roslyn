@@ -70,6 +70,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; declarations.
+        /// </summary>
+        internal static string _0_declarations {
+            get {
+                return ResourceManager.GetString("_0_declarations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; does not support the &apos;{1}&apos; operation. However, it may contain nested &apos;{2}&apos;s (see &apos;{2}.{3}&apos;) that support this operation..
         /// </summary>
         internal static string _0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation {
@@ -80,11 +89,29 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; implementations.
+        /// </summary>
+        internal static string _0_implementations {
+            get {
+                return ResourceManager.GetString("_0_implementations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} - (Line {1}).
         /// </summary>
         internal static string _0_Line_1 {
             get {
                 return ResourceManager.GetString("_0_Line_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; references.
+        /// </summary>
+        internal static string _0_references {
+            get {
+                return ResourceManager.GetString("_0_references", resourceCulture);
             }
         }
         
@@ -1224,15 +1251,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to project .
-        /// </summary>
-        internal static string project {
-            get {
-                return ResourceManager.GetString("project", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Punctuation.
         /// </summary>
         internal static string Punctuation {
@@ -1581,15 +1599,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string This_session_has_already_been_dismissed {
             get {
                 return ResourceManager.GetString("This_session_has_already_been_dismissed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to type .
-        /// </summary>
-        internal static string type {
-            get {
-                return ResourceManager.GetString("type", resourceCulture);
             }
         }
         

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 {
@@ -35,11 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
         private bool IsTriggerToken(SyntaxToken token)
         {
-            return !token.IsKind(SyntaxKind.None) &&
-                token.ValueText.Length == 1 &&
-                IsTriggerCharacter(token.ValueText[0]) &&
-                token.Parent is ArgumentListSyntax &&
-                token.Parent.Parent is ObjectCreationExpressionSyntax;
+            return SignatureHelpUtilities.IsTriggerParenOrComma<ObjectCreationExpressionSyntax>(token, IsTriggerCharacter);
         }
 
         private static bool IsArgumentListToken(ObjectCreationExpressionSyntax expression, SyntaxToken token)
@@ -57,8 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             var cancellationToken = context.CancellationToken;
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            ObjectCreationExpressionSyntax objectCreationExpression;
-            if (!TryGetObjectCreationExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), trigger.Kind, cancellationToken, out objectCreationExpression))
+            if (!TryGetObjectCreationExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), trigger.Kind, cancellationToken, out var objectCreationExpression))
             {
                 return;
             }
@@ -97,14 +93,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
         protected override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
-            ObjectCreationExpressionSyntax expression;
             if (TryGetObjectCreationExpression(
                     root,
                     position,
                     syntaxFacts,
                     SignatureHelpTriggerKind.Other,
                     cancellationToken,
-                    out expression) &&
+                    out var expression) &&
                 currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
             {
                 return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position);

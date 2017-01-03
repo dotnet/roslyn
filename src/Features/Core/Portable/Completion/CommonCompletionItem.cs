@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<string> tags = default(ImmutableArray<string>),
             CompletionItemRules rules = null)
         {
-            tags = tags.IsDefault ? ImmutableArray<string>.Empty : tags;
+            tags = tags.NullToEmpty();
 
             if (glyph != null)
             {
@@ -60,8 +60,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public static CompletionDescription GetDescription(CompletionItem item)
         {
-            string encodedDescription;
-            if (item.Properties.TryGetValue("Description", out encodedDescription))
+            if (item.Properties.TryGetValue("Description", out var encodedDescription))
             {
                 return DecodeDescription(encodedDescription);
             }

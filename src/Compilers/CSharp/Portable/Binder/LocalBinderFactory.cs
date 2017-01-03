@@ -223,21 +223,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var oldMethod = _containingMemberOrLambda;
                 _containingMemberOrLambda = match;
-                Binder addToMap;
-                if (match.IsGenericMethod)
-                {
-                    addToMap = new WithMethodTypeParametersBinder(match, _enclosing);
-                }
-                else
-                {
-                    addToMap = _enclosing;
-                }
-
-                AddToMap(node, addToMap);
 
                 if (body != null)
                 {
-                    Visit(body, new InMethodBinder(match, addToMap));
+                    Binder binder = match.IsGenericMethod
+                        ? new WithMethodTypeParametersBinder(match, _enclosing)
+                        : _enclosing;
+
+                    binder = binder.WithUnsafeRegionIfNecessary(node.Modifiers);
+
+                    Visit(body, new InMethodBinder(match, binder));
                 }
 
                 _containingMemberOrLambda = oldMethod;
@@ -390,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForStatement(ForStatementSyntax node)
         {
             Debug.Assert((object)_containingMemberOrLambda == _enclosing.ContainingMemberOrLambda);
-            var binder = new ForLoopBinder(_enclosing, node);
+            Binder binder = new ForLoopBinder(_enclosing, node);
             AddToMap(node, binder);
 
             var declaration = node.Declaration;
@@ -409,14 +404,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 } 
             }
 
-            if (node.Condition != null)
+            ExpressionSyntax condition = node.Condition;
+            if (condition != null)
             {
-                Visit(node.Condition, binder);
+                binder = new ExpressionVariableBinder(condition, binder);
+                AddToMap(condition, binder);
+                Visit(condition, binder);
             }
 
-            foreach (var incrementor in node.Incrementors)
+            SeparatedSyntaxList<ExpressionSyntax> incrementors = node.Incrementors;
+            if (incrementors.Count > 0)
             {
-                Visit(incrementor, binder);
+                var incrementorsBinder = new ExpressionListVariableBinder(incrementors, binder);
+                AddToMap(incrementors.First(), incrementorsBinder);
+                foreach (var incrementor in incrementors)
+                {
+                    Visit(incrementor, incrementorsBinder);
+                }
             }
 
             VisitPossibleEmbeddedStatement(node.Statement, binder);
@@ -441,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitCommonForEachStatement(node);
         }
 
-        public override void VisitForEachComponentStatement(ForEachComponentStatementSyntax node)
+        public override void VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
         {
             VisitCommonForEachStatement(node);
         }
@@ -518,14 +522,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var label in node.Labels)
             {
-                var match = label as CasePatternSwitchLabelSyntax;
-                if (match != null)
+                switch (label.Kind())
                 {
-                    Visit(match.Pattern, patternBinder);
-                    if (match.WhenClause != null)
-                    {
-                        Visit(match.WhenClause.Condition, patternBinder);
-                    }
+                    case SyntaxKind.CasePatternSwitchLabel:
+                        {
+                            var switchLabel = (CasePatternSwitchLabelSyntax)label;
+                            Visit(switchLabel.Pattern, patternBinder);
+                            if (switchLabel.WhenClause != null)
+                            {
+                                Visit(switchLabel.WhenClause.Condition, patternBinder);
+                            }
+                            break;
+                        }
+                    case SyntaxKind.CaseSwitchLabel:
+                        {
+                            var switchLabel = (CaseSwitchLabelSyntax)label;
+                            Visit(switchLabel.Value, patternBinder);
+                            break;
+                        }
                 }
             }
 
@@ -652,11 +666,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.Initializer?.Value);
         }
 
-        public override void VisitDeconstructionDeclarationStatement(DeconstructionDeclarationStatementSyntax node)
-        {
-            Visit(node.Assignment.Value, _enclosing);
-        }
-
         public override void VisitReturnStatement(ReturnStatementSyntax node)
         {
             if (node.Expression != null)
@@ -736,15 +745,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (statement.Kind())
             {
                 case SyntaxKind.LocalDeclarationStatement:
-                case SyntaxKind.DeconstructionDeclarationStatement:
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalFunctionStatement:
                 // It is an error to have a declaration or a label in an embedded statement,
                 // but we still want to bind it.  
 
                 case SyntaxKind.ExpressionStatement:
-                case SyntaxKind.WhileStatement:
-                case SyntaxKind.DoStatement:
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:

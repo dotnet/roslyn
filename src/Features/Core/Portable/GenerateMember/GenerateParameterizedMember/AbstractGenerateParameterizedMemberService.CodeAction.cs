@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         _document.Project.Solution,
                         _state.TypeToGenerateIn,
                         method,
-                        new CodeGenerationOptions(afterThisLocation: _state.Location),
+                        new CodeGenerationOptions(afterThisLocation: _state.Location, parseOptions: syntaxTree.Options),
                         cancellationToken)
                         .ConfigureAwait(false);
 

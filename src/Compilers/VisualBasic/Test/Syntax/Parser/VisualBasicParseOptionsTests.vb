@@ -258,6 +258,7 @@ Public Class VisualBasicParseOptionsTests
         ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
                 (GetType(VisualBasicParseOptions)),
                 "Features",
+                "Language",
                 "LanguageVersion",
                 "PreprocessorSymbolNames",
                 "PreprocessorSymbols",

@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenStatement = MakeSwitchStatement(syntax, rewrittenExpression, rewrittenSections, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, node.BreakLabel, node);
 
-            // Create the sequence point if generating debug info and
-            // node is not compiler generated
+            // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
             if (this.Instrument && !node.WasCompilerGenerated)
             {
                 rewrittenStatement = _instrumenter.InstrumentSwitchStatement(node, rewrittenStatement);

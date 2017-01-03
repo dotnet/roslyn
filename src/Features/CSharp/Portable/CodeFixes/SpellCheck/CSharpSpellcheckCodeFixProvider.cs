@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport;
+using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.SpellCheck;
@@ -21,6 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Spellcheck
             AddImportDiagnosticIds.FixableDiagnosticIds.Concat(
             GenerateMethodDiagnosticIds.FixableDiagnosticIds).Concat(
                 ImmutableArray.Create(CS0426));
+
+        protected override bool DescendIntoChildren(SyntaxNode arg)
+        {
+            // Don't dive into type argument lists.  We don't want to report spell checking
+            // fixes for type args when we're called on an outer generic type.
+            return !(arg is TypeArgumentListSyntax);
+        }
 
         protected override bool IsGeneric(SimpleNameSyntax nameNode)
         {

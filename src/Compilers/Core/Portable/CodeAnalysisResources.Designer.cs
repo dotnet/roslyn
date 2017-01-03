@@ -126,6 +126,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} must either be &apos;default&apos; or have the same length as {1}..
+        /// </summary>
+        internal static string AnonymousTypeArgumentCountMismatch2 {
+            get {
+                return ResourceManager.GetString("AnonymousTypeArgumentCountMismatch2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} and {1} must have the same length..
+        /// </summary>
+        internal static string AnonymousTypeMemberAndNamesCountMismatch2 {
+            get {
+                return ResourceManager.GetString("AnonymousTypeMemberAndNamesCountMismatch2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument cannot be empty..
         /// </summary>
         internal static string ArgumentCannotBeEmpty {
@@ -146,9 +164,9 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Arrays with more than one dimension cannot be serialized..
         /// </summary>
-        internal static string ArraysWithMoreThanOneDimensionCannotBeSerialized {
+        internal static string Arrays_with_more_than_one_dimension_cannot_be_serialized {
             get {
-                return ResourceManager.GetString("ArraysWithMoreThanOneDimensionCannotBeSerialized", resourceCulture);
+                return ResourceManager.GetString("Arrays_with_more_than_one_dimension_cannot_be_serialized", resourceCulture);
             }
         }
         
@@ -194,6 +212,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string AsyncAnalyzerActionCannotBeRegistered {
             get {
                 return ResourceManager.GetString("AsyncAnalyzerActionCannotBeRegistered", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;..
+        /// </summary>
+        internal static string Cannot_deserialize_type_0 {
+            get {
+                return ResourceManager.GetString("Cannot_deserialize_type_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot serialize type &apos;{0}&apos;..
+        /// </summary>
+        internal static string Cannot_serialize_type_0 {
+            get {
+                return ResourceManager.GetString("Cannot_serialize_type_0", resourceCulture);
             }
         }
         
@@ -379,6 +415,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deserialization reader for &apos;{0}&apos; read incorrect number of values..
+        /// </summary>
+        internal static string Deserialization_reader_for_0_read_incorrect_number_of_values {
+            get {
+                return ResourceManager.GetString("Deserialization_reader_for_0_read_incorrect_number_of_values", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space..
         /// </summary>
         internal static string DiagnosticIdCantBeNullOrWhitespace {
@@ -547,6 +592,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string InconsistentLanguageVersions {
             get {
                 return ResourceManager.GetString("InconsistentLanguageVersions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inconsistent syntax tree features.
+        /// </summary>
+        internal static string InconsistentSyntaxTreeFeature {
+            get {
+                return ResourceManager.GetString("InconsistentSyntaxTreeFeature", resourceCulture);
             }
         }
         
@@ -794,6 +848,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to MetadataReference &apos;{0}&apos; not found to remove..
+        /// </summary>
+        internal static string MetadataRefNotFoundToRemove1 {
+            get {
+                return ResourceManager.GetString("MetadataRefNotFoundToRemove1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to method.
         /// </summary>
         internal static string Method {
@@ -893,38 +956,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;, no binder supplied..
-        /// </summary>
-        internal static string NoBinderException {
-            get {
-                return ResourceManager.GetString("NoBinderException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A node or token is out of sequence..
         /// </summary>
         internal static string NodeOrTokenOutOfSequence {
             get {
                 return ResourceManager.GetString("NodeOrTokenOutOfSequence", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;, it has no deserialization reader..
-        /// </summary>
-        internal static string NoReaderException {
-            get {
-                return ResourceManager.GetString("NoReaderException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{0}&apos; cannot be written, it does not implement IObjectWritable.
-        /// </summary>
-        internal static string NotWritableException {
-            get {
-                return ResourceManager.GetString("NotWritableException", resourceCulture);
             }
         }
         
@@ -1015,6 +1051,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Property {
             get {
                 return ResourceManager.GetString("Property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference of type &apos;{0}&apos; is not valid for this compilation..
+        /// </summary>
+        internal static string ReferenceOfTypeIsInvalid1 {
+            get {
+                return ResourceManager.GetString("ReferenceOfTypeIsInvalid1", resourceCulture);
             }
         }
         
@@ -1181,6 +1226,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Stream contains invalid data.
+        /// </summary>
+        internal static string Stream_contains_invalid_data {
+            get {
+                return ResourceManager.GetString("Stream_contains_invalid_data", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Stream is too long..
         /// </summary>
         internal static string StreamIsTooLong {
@@ -1244,6 +1298,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; is not understood by the serialization binder..
+        /// </summary>
+        internal static string The_type_0_is_not_understood_by_the_serialization_binder {
+            get {
+                return ResourceManager.GetString("The_type_0_is_not_understood_by_the_serialization_binder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The stream cannot be read from..
+        /// </summary>
+        internal static string TheStreamCannotBeReadFrom {
+            get {
+                return ResourceManager.GetString("TheStreamCannotBeReadFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The stream cannot be written to..
         /// </summary>
         internal static string TheStreamCannotBeWrittenTo {
@@ -1253,11 +1325,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to If tuple element locations are specified, the number of locations must match the cardinality of the tuple..
+        /// </summary>
+        internal static string TupleElementLocationCountMismatch {
+            get {
+                return ResourceManager.GetString("TupleElementLocationCountMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to If tuple element names are specified, the number of element names must match the cardinality of the tuple..
         /// </summary>
         internal static string TupleElementNameCountMismatch {
             get {
                 return ResourceManager.GetString("TupleElementNameCountMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tuple element name cannot be an empty string..
+        /// </summary>
+        internal static string TupleElementNameEmpty {
+            get {
+                return ResourceManager.GetString("TupleElementNameEmpty", resourceCulture);
             }
         }
         
@@ -1363,9 +1453,9 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Value too large to be represented as a 30 bit unsigned integer..
         /// </summary>
-        internal static string ValueTooLargeToBeRepresented {
+        internal static string Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer {
             get {
-                return ResourceManager.GetString("ValueTooLargeToBeRepresented", resourceCulture);
+                return ResourceManager.GetString("Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer", resourceCulture);
             }
         }
         

@@ -628,7 +628,7 @@ End Module
 
             CompileAndVerify(source, expectedOutput:="12345").VerifyIL("Module1.VB$StateMachine_1_Foo.MoveNext", <![CDATA[
 {
-  // Code size      161 (0xa1)
+  // Code size      152 (0x98)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1,
@@ -637,84 +637,85 @@ End Module
   IL_0001:  ldfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
-  IL_0008:  switch    (
-        IL_001b,
-        IL_0024,
-        IL_0024)
-  IL_0019:  ldc.i4.0
-  IL_001a:  ret
-  IL_001b:  ldarg.0
-  IL_001c:  ldc.i4.m1
-  IL_001d:  dup
-  IL_001e:  stloc.1
-  IL_001f:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
-  IL_0024:  nop
+  IL_0008:  brfalse.s  IL_0012
+  IL_000a:  ldloc.1
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  ldc.i4.1
+  IL_000e:  ble.un.s   IL_001b
+  IL_0010:  ldc.i4.0
+  IL_0011:  ret
+  IL_0012:  ldarg.0
+  IL_0013:  ldc.i4.m1
+  IL_0014:  dup
+  IL_0015:  stloc.1
+  IL_0016:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
+  IL_001b:  nop
   .try
   {
-    IL_0025:  ldloc.1
-    IL_0026:  ldc.i4.1
-    IL_0027:  beq.s      IL_006d
-    IL_0029:  ldloc.1
-    IL_002a:  ldc.i4.2
-    IL_002b:  bne.un.s   IL_003a
-    IL_002d:  ldarg.0
-    IL_002e:  ldc.i4.m1
-    IL_002f:  dup
-    IL_0030:  stloc.1
-    IL_0031:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
-    IL_0036:  ldc.i4.1
-    IL_0037:  stloc.0
-    IL_0038:  leave.s    IL_009f
-    IL_003a:  ldarg.0
-    IL_003b:  ldarg.0
-    IL_003c:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$Local_x As System.Collections.Generic.IEnumerable(Of Integer)"
-    IL_0041:  callvirt   "Function System.Collections.Generic.IEnumerable(Of Integer).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Integer)"
-    IL_0046:  stfld      "Module1.VB$StateMachine_1_Foo.$S0 As System.Collections.Generic.IEnumerator(Of Integer)"
-    IL_004b:  br.s       IL_0076
-    IL_004d:  ldarg.0
-    IL_004e:  ldfld      "Module1.VB$StateMachine_1_Foo.$S0 As System.Collections.Generic.IEnumerator(Of Integer)"
-    IL_0053:  callvirt   "Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer"
-    IL_0058:  stloc.2
-    IL_0059:  ldarg.0
-    IL_005a:  ldloc.2
-    IL_005b:  stfld      "Module1.VB$StateMachine_1_Foo.$Current As Integer"
-    IL_0060:  ldarg.0
-    IL_0061:  ldc.i4.1
-    IL_0062:  dup
-    IL_0063:  stloc.1
-    IL_0064:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
-    IL_0069:  ldc.i4.1
-    IL_006a:  stloc.0
-    IL_006b:  leave.s    IL_009f
+    IL_001c:  ldloc.1
+    IL_001d:  ldc.i4.1
+    IL_001e:  beq.s      IL_0064
+    IL_0020:  ldloc.1
+    IL_0021:  ldc.i4.2
+    IL_0022:  bne.un.s   IL_0031
+    IL_0024:  ldarg.0
+    IL_0025:  ldc.i4.m1
+    IL_0026:  dup
+    IL_0027:  stloc.1
+    IL_0028:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
+    IL_002d:  ldc.i4.1
+    IL_002e:  stloc.0
+    IL_002f:  leave.s    IL_0096
+    IL_0031:  ldarg.0
+    IL_0032:  ldarg.0
+    IL_0033:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$Local_x As System.Collections.Generic.IEnumerable(Of Integer)"
+    IL_0038:  callvirt   "Function System.Collections.Generic.IEnumerable(Of Integer).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_003d:  stfld      "Module1.VB$StateMachine_1_Foo.$S0 As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_0042:  br.s       IL_006d
+    IL_0044:  ldarg.0
+    IL_0045:  ldfld      "Module1.VB$StateMachine_1_Foo.$S0 As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_004a:  callvirt   "Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer"
+    IL_004f:  stloc.2
+    IL_0050:  ldarg.0
+    IL_0051:  ldloc.2
+    IL_0052:  stfld      "Module1.VB$StateMachine_1_Foo.$Current As Integer"
+    IL_0057:  ldarg.0
+    IL_0058:  ldc.i4.1
+    IL_0059:  dup
+    IL_005a:  stloc.1
+    IL_005b:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
+    IL_0060:  ldc.i4.1
+    IL_0061:  stloc.0
+    IL_0062:  leave.s    IL_0096
+    IL_0064:  ldarg.0
+    IL_0065:  ldc.i4.m1
+    IL_0066:  dup
+    IL_0067:  stloc.1
+    IL_0068:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
     IL_006d:  ldarg.0
-    IL_006e:  ldc.i4.m1
-    IL_006f:  dup
-    IL_0070:  stloc.1
-    IL_0071:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
-    IL_0076:  ldarg.0
-    IL_0077:  ldfld      "Module1.VB$StateMachine_1_Foo.$S0 As System.Collections.Generic.IEnumerator(Of Integer)"
-    IL_007c:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
-    IL_0081:  brtrue.s   IL_004d
-    IL_0083:  leave.s    IL_009d
+    IL_006e:  ldfld      "Module1.VB$StateMachine_1_Foo.$S0 As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_0073:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
+    IL_0078:  brtrue.s   IL_0044
+    IL_007a:  leave.s    IL_0094
   }
   finally
   {
-    IL_0085:  ldloc.1
-    IL_0086:  ldc.i4.0
-    IL_0087:  bge.s      IL_009c
-    IL_0089:  ldarg.0
-    IL_008a:  ldfld      "Module1.VB$StateMachine_1_Foo.$S0 As System.Collections.Generic.IEnumerator(Of Integer)"
-    IL_008f:  brfalse.s  IL_009c
-    IL_0091:  ldarg.0
-    IL_0092:  ldfld      "Module1.VB$StateMachine_1_Foo.$S0 As System.Collections.Generic.IEnumerator(Of Integer)"
-    IL_0097:  callvirt   "Sub System.IDisposable.Dispose()"
-    IL_009c:  endfinally
+    IL_007c:  ldloc.1
+    IL_007d:  ldc.i4.0
+    IL_007e:  bge.s      IL_0093
+    IL_0080:  ldarg.0
+    IL_0081:  ldfld      "Module1.VB$StateMachine_1_Foo.$S0 As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_0086:  brfalse.s  IL_0093
+    IL_0088:  ldarg.0
+    IL_0089:  ldfld      "Module1.VB$StateMachine_1_Foo.$S0 As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_008e:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_0093:  endfinally
   }
-  IL_009d:  ldc.i4.0
-  IL_009e:  ret
-  IL_009f:  ldloc.0
-  IL_00a0:  ret
-
+  IL_0094:  ldc.i4.0
+  IL_0095:  ret
+  IL_0096:  ldloc.0
+  IL_0097:  ret
 }
 ]]>).VerifyIL("Module1.VB$StateMachine_1_Foo.IEnumerable.GetEnumerator", <![CDATA[
 {
@@ -858,7 +859,7 @@ End Module
 
             CompileAndVerify(source, expectedOutput:="233").VerifyIL("Module1.VB$StateMachine_1_Foo.MoveNext", <![CDATA[
 {
-  // Code size      168 (0xa8)
+  // Code size      159 (0x9f)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1,
@@ -867,88 +868,90 @@ End Module
   IL_0001:  ldfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
-  IL_0008:  switch    (
-        IL_001b,
-        IL_002b,
-        IL_002b)
-  IL_0019:  ldc.i4.0
-  IL_001a:  ret
+  IL_0008:  brfalse.s  IL_0012
+  IL_000a:  ldloc.1
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  ldc.i4.1
+  IL_000e:  ble.un.s   IL_0022
+  IL_0010:  ldc.i4.0
+  IL_0011:  ret
+  IL_0012:  ldarg.0
+  IL_0013:  ldc.i4.m1
+  IL_0014:  dup
+  IL_0015:  stloc.1
+  IL_0016:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
   IL_001b:  ldarg.0
-  IL_001c:  ldc.i4.m1
-  IL_001d:  dup
-  IL_001e:  stloc.1
-  IL_001f:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
-  IL_0024:  ldarg.0
-  IL_0025:  ldc.i4.1
-  IL_0026:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
-  IL_002b:  nop
+  IL_001c:  ldc.i4.1
+  IL_001d:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
+  IL_0022:  nop
   .try
   {
-    IL_002c:  ldloc.1
-    IL_002d:  ldc.i4.1
-    IL_002e:  beq.s      IL_0068
-    IL_0030:  ldloc.1
-    IL_0031:  ldc.i4.2
-    IL_0032:  bne.un.s   IL_0041
-    IL_0034:  ldarg.0
-    IL_0035:  ldc.i4.m1
-    IL_0036:  dup
-    IL_0037:  stloc.1
-    IL_0038:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
-    IL_003d:  ldc.i4.1
-    IL_003e:  stloc.0
-    IL_003f:  leave.s    IL_00a6
-    IL_0041:  ldarg.0
-    IL_0042:  ldarg.0
-    IL_0043:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
-    IL_0048:  ldc.i4.1
-    IL_0049:  add.ovf
-    IL_004a:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
-    IL_004f:  ldarg.0
-    IL_0050:  ldarg.0
-    IL_0051:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
-    IL_0056:  stfld      "Module1.VB$StateMachine_1_Foo.$Current As Integer"
-    IL_005b:  ldarg.0
-    IL_005c:  ldc.i4.1
-    IL_005d:  dup
-    IL_005e:  stloc.1
-    IL_005f:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
-    IL_0064:  ldc.i4.1
-    IL_0065:  stloc.0
-    IL_0066:  leave.s    IL_00a6
-    IL_0068:  ldarg.0
-    IL_0069:  ldc.i4.m1
-    IL_006a:  dup
-    IL_006b:  stloc.1
-    IL_006c:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
-    IL_0071:  leave.s    IL_00a4
+    IL_0023:  ldloc.1
+    IL_0024:  ldc.i4.1
+    IL_0025:  beq.s      IL_005f
+    IL_0027:  ldloc.1
+    IL_0028:  ldc.i4.2
+    IL_0029:  bne.un.s   IL_0038
+    IL_002b:  ldarg.0
+    IL_002c:  ldc.i4.m1
+    IL_002d:  dup
+    IL_002e:  stloc.1
+    IL_002f:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
+    IL_0034:  ldc.i4.1
+    IL_0035:  stloc.0
+    IL_0036:  leave.s    IL_009d
+    IL_0038:  ldarg.0
+    IL_0039:  ldarg.0
+    IL_003a:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
+    IL_003f:  ldc.i4.1
+    IL_0040:  add.ovf
+    IL_0041:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
+    IL_0046:  ldarg.0
+    IL_0047:  ldarg.0
+    IL_0048:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
+    IL_004d:  stfld      "Module1.VB$StateMachine_1_Foo.$Current As Integer"
+    IL_0052:  ldarg.0
+    IL_0053:  ldc.i4.1
+    IL_0054:  dup
+    IL_0055:  stloc.1
+    IL_0056:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
+    IL_005b:  ldc.i4.1
+    IL_005c:  stloc.0
+    IL_005d:  leave.s    IL_009d
+    IL_005f:  ldarg.0
+    IL_0060:  ldc.i4.m1
+    IL_0061:  dup
+    IL_0062:  stloc.1
+    IL_0063:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
+    IL_0068:  leave.s    IL_009b
   }
   finally
   {
-    IL_0073:  ldloc.1
-    IL_0074:  ldc.i4.0
-    IL_0075:  bge.s      IL_00a3
-    IL_0077:  ldarg.0
-    IL_0078:  ldarg.0
-    IL_0079:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
-    IL_007e:  ldc.i4.1
-    IL_007f:  add.ovf
-    IL_0080:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
-    IL_0085:  ldarg.0
-    IL_0086:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
-    IL_008b:  stloc.2
-    IL_008c:  ldarg.0
-    IL_008d:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
-    IL_0092:  call       "Sub System.Console.Write(Integer)"
-    IL_0097:  ldloca.s   V_2
-    IL_0099:  call       "Function Integer.ToString() As String"
-    IL_009e:  call       "Sub System.Console.Write(String)"
-    IL_00a3:  endfinally
+    IL_006a:  ldloc.1
+    IL_006b:  ldc.i4.0
+    IL_006c:  bge.s      IL_009a
+    IL_006e:  ldarg.0
+    IL_006f:  ldarg.0
+    IL_0070:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
+    IL_0075:  ldc.i4.1
+    IL_0076:  add.ovf
+    IL_0077:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
+    IL_007c:  ldarg.0
+    IL_007d:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
+    IL_0082:  stloc.2
+    IL_0083:  ldarg.0
+    IL_0084:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
+    IL_0089:  call       "Sub System.Console.Write(Integer)"
+    IL_008e:  ldloca.s   V_2
+    IL_0090:  call       "Function Integer.ToString() As String"
+    IL_0095:  call       "Sub System.Console.Write(String)"
+    IL_009a:  endfinally
   }
-  IL_00a4:  ldc.i4.0
-  IL_00a5:  ret
-  IL_00a6:  ldloc.0
-  IL_00a7:  ret
+  IL_009b:  ldc.i4.0
+  IL_009c:  ret
+  IL_009d:  ldloc.0
+  IL_009e:  ret
 }
 ]]>).VerifyIL("Module1.VB$StateMachine_1_Foo.IEnumerable.GetEnumerator", <![CDATA[
 {

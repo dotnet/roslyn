@@ -65,9 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 
         private EnvDTE.CodeElement CreateCodeOptionsStatement(SyntaxNode node, SyntaxNode parentNode)
         {
-            string name;
-            int ordinal;
-            CodeModelService.GetOptionNameAndOrdinal(parentNode, node, out name, out ordinal);
+            CodeModelService.GetOptionNameAndOrdinal(parentNode, node, out var name, out var ordinal);
 
             return CodeOptionsStatement.Create(this.State, this.FileCodeModel, name, ordinal);
         }
@@ -81,9 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 
         private EnvDTE.CodeElement CreateCodeAttribute(SyntaxNode node, SyntaxNode parentNode, AbstractCodeElement parentElement)
         {
-            string name;
-            int ordinal;
-            CodeModelService.GetAttributeNameAndOrdinal(parentNode, node, out name, out ordinal);
+            CodeModelService.GetAttributeNameAndOrdinal(parentNode, node, out var name, out var ordinal);
 
             return (EnvDTE.CodeElement)CodeAttribute.Create(this.State, this.FileCodeModel, parentElement, name, ordinal);
         }
@@ -174,9 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             // Option statements
             foreach (var child in CodeModelService.GetOptionNodes(node))
             {
-                string childName;
-                int ordinal;
-                CodeModelService.GetOptionNameAndOrdinal(node, child, out childName, out ordinal);
+                CodeModelService.GetOptionNameAndOrdinal(node, child, out var childName, out var ordinal);
                 if (childName == name)
                 {
                     element = CodeOptionsStatement.Create(State, FileCodeModel, childName, ordinal);
@@ -198,9 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             // Attributes
             foreach (var child in CodeModelService.GetAttributeNodes(node))
             {
-                string childName;
-                int ordinal;
-                CodeModelService.GetAttributeNameAndOrdinal(node, child, out childName, out ordinal);
+                CodeModelService.GetAttributeNameAndOrdinal(node, child, out var childName, out var ordinal);
                 if (childName == name)
                 {
                     element = (EnvDTE.CodeElement)CodeAttribute.Create(State, FileCodeModel, parentElement, childName, ordinal);

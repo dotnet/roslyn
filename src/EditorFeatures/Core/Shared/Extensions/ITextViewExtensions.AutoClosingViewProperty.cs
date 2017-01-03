@@ -59,8 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             public static void RemoveValue(TTextView textView, object key)
             {
-                AutoClosingViewProperty<TProperty, TTextView> properties;
-                if (textView.Properties.TryGetProperty(typeof(AutoClosingViewProperty<TProperty, TTextView>), out properties))
+                if (textView.Properties.TryGetProperty(typeof(AutoClosingViewProperty<TProperty, TTextView>), out AutoClosingViewProperty<TProperty, TTextView> properties))
                 {
                     properties.Remove(key);
                 }

@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -12,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             ParenthesizedLambdaExpressionSyntax lambdaExpression,
             ArrayBuilder<BlockSpan> spans,
+            OptionSet options,
             CancellationToken cancellationToken)
         {
             // fault tolerance
@@ -34,12 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
-            spans.Add(CSharpStructureHelpers.CreateBlockSpan(
+            spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 lambdaExpression,
                 lambdaExpression.ArrowToken,
                 lastToken,
                 autoCollapse: false,
-                type: BlockTypes.AnonymousMethod,
+                type: BlockTypes.Expression,
                 isCollapsible: true));
         }
     }

@@ -88,5 +88,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
+        ''' <summary>
+        ''' Returns a constructed method symbol if 'method' is generic, otherwise just returns 'method'
+        ''' </summary>
+        <Extension()>
+        Friend Function ConstructIfGeneric(method As MethodSymbol, typeArguments As ImmutableArray(Of TypeSymbol)) As MethodSymbol
+            Debug.Assert(method.IsGenericMethod() = (typeArguments.Length > 0))
+            Return If(method.IsGenericMethod(), method.Construct(typeArguments), method)
+        End Function
+
     End Module
 End Namespace

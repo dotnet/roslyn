@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -23,10 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
-            if (deferredProjectWorkspaceService?.IsDeferredProjectLoadEnabled == true)
+            if (IsDeferredSolutionLoadEnabled())
             {
-                LoadSolutionFromMSBuildAsync(deferredProjectWorkspaceService, _solutionParsingCancellationTokenSource.Token).FireAndForget();
+                LoadSolutionFromMSBuildAsync(_solutionParsingCancellationTokenSource.Token).FireAndForget();
             }
 
             return VSConstants.S_OK;
@@ -82,8 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
-            if (deferredProjectWorkspaceService?.IsDeferredProjectLoadEnabled == true)
+            if (IsDeferredSolutionLoadEnabled())
             {
                 // Copy to avoid modifying the collection while enumerating
                 var loadedProjects = ImmutableProjects.ToList();
@@ -98,8 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 Contract.ThrowIfFalse(_projectMap.Count == 0);
             }
 
-            NotifyWorkspaceHosts_Foreground(host => host.OnSolutionRemoved());
-            NotifyWorkspaceHosts_Foreground(host => host.ClearSolution());
+            NotifyWorkspaceHosts(host => host.OnSolutionRemoved());
+            NotifyWorkspaceHosts(host => host.ClearSolution());
 
             lock (_gate)
             {

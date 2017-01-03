@@ -106,7 +106,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             return true;
         }
 
-        private static async Task ClassifySpansAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag,
+        private static async Task ClassifySpansAsync(
+            TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag,
             IEditorClassificationService classificationService, ClassificationTypeMap typeMap)
         {
             try

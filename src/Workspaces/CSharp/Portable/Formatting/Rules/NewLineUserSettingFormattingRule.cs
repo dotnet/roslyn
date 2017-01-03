@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                    (parent != null &&
                    (parent.Kind() == SyntaxKind.IfStatement || parent.Kind() == SyntaxKind.ElseClause ||
                     parent.Kind() == SyntaxKind.WhileStatement || parent.Kind() == SyntaxKind.DoStatement ||
-                    parent.Kind() == SyntaxKind.ForEachStatement || parent.Kind() == SyntaxKind.ForEachComponentStatement ||
+                    parent.Kind() == SyntaxKind.ForEachStatement || parent.Kind() == SyntaxKind.ForEachVariableStatement ||
                     parent.Kind() == SyntaxKind.UsingStatement ||
                     parent.Kind() == SyntaxKind.ForStatement || parent.Kind() == SyntaxKind.TryStatement ||
                     parent.Kind() == SyntaxKind.CatchClause || parent.Kind() == SyntaxKind.FinallyClause ||

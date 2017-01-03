@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (syntaxTree.IsGenericTypeArgumentContext(position, leftToken, cancellationToken, semanticModel))
             {
                 // Walk out until we find the start of the partial written generic
-                SyntaxToken nameToken;
-                while (syntaxTree.IsInPartiallyWrittenGeneric(testPosition, cancellationToken, out nameToken))
+                while (syntaxTree.IsInPartiallyWrittenGeneric(testPosition, cancellationToken, out var nameToken))
                 {
                     testPosition = nameToken.SpanStart;
                 }
@@ -80,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if ((!leftToken.GetPreviousTokenIfTouchingWord(position).IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) &&
                 syntaxTree.IsMemberDeclarationContext(testPosition, contextOpt: null, validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken)) ||
+                syntaxTree.IsStatementContext(testPosition, leftToken, cancellationToken) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(testPosition, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 syntaxTree.IsGlobalStatementContext(testPosition, cancellationToken) ||
                 syntaxTree.IsDelegateReturnTypeContext(testPosition, syntaxTree.FindTokenOnLeftOfPosition(testPosition, cancellationToken), cancellationToken))

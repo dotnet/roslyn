@@ -352,5 +352,203 @@ public class Class1
     }
 }", compareTokens: false, fixAllActionEquivalenceKey: AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        public async Task TestRemoveAwaitFromCaller1()
+        {
+            await TestAsync(
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    async Task [|FooAsync|]()
+    {
+    }
+
+    async void BarAsync()
+    {
+        await FooAsync();
+    }
+}",
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    void Foo()
+    {
+    }
+
+    async void BarAsync()
+    {
+        Foo();
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        public async Task TestRemoveAwaitFromCaller2()
+        {
+            await TestAsync(
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    async Task [|FooAsync|]()
+    {
+    }
+
+    async void BarAsync()
+    {
+        await FooAsync().ConfigureAwait(false);
+    }
+}",
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    void Foo()
+    {
+    }
+
+    async void BarAsync()
+    {
+        Foo();
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        public async Task TestRemoveAwaitFromCaller3()
+        {
+            await TestAsync(
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    async Task [|FooAsync|]()
+    {
+    }
+
+    async void BarAsync()
+    {
+        await this.FooAsync();
+    }
+}",
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    void Foo()
+    {
+    }
+
+    async void BarAsync()
+    {
+        this.Foo();
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        public async Task TestRemoveAwaitFromCaller4()
+        {
+            await TestAsync(
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    async Task [|FooAsync|]()
+    {
+    }
+
+    async void BarAsync()
+    {
+        await this.FooAsync().ConfigureAwait(false);
+    }
+}",
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    void Foo()
+    {
+    }
+
+    async void BarAsync()
+    {
+        this.Foo();
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        public async Task TestRemoveAwaitFromCallerNested1()
+        {
+            await TestAsync(
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    async Task<int> [|FooAsync|](int i)
+    {
+    }
+
+    async void BarAsync()
+    {
+        await this.FooAsync(await this.FooAsync(0));
+    }
+}",
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    int Foo(int i)
+    {
+    }
+
+    async void BarAsync()
+    {
+        this.Foo(this.Foo(0));
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+        [WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")]
+        public async Task TestRemoveAwaitFromCallerNested()
+        {
+            await TestAsync(
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    async Task<int> [|FooAsync|](int i)
+    {
+    }
+
+    async void BarAsync()
+    {
+        await this.FooAsync(await this.FooAsync(0).ConfigureAwait(false)).ConfigureAwait(false);
+    }
+}",
+@"using System.Threading.Tasks;
+
+public class Class1
+{
+    int Foo(int i)
+    {
+    }
+
+    async void BarAsync()
+    {
+        this.Foo(this.Foo(0));
+    }
+}", compareTokens: false);
+        }
     }
 }

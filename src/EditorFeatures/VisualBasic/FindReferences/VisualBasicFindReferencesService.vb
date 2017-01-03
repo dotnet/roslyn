@@ -1,8 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
+Imports Microsoft.CodeAnalysis.Editor.FindReferences
 Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.FindReferences
@@ -12,21 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.FindReferences
 
         <ImportingConstructor>
         Protected Sub New(<ImportMany> referencedSymbolsPresenters As IEnumerable(Of IDefinitionsAndReferencesPresenter),
-                          <ImportMany> navigableItemsPresenters As IEnumerable(Of INavigableItemsPresenter),
-                          <ImportMany> externalReferencesProviders As IEnumerable(Of IFindReferencesResultProvider))
-            MyBase.New(referencedSymbolsPresenters, navigableItemsPresenters, externalReferencesProviders)
-        End Sub
-    End Class
-
-    <ExportLanguageService(GetType(IStreamingFindReferencesService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicStreamingFindReferencesService
-        Inherits AbstractFindReferencesService
-
-        <ImportingConstructor>
-        Protected Sub New(<ImportMany> referencedSymbolsPresenters As IEnumerable(Of IDefinitionsAndReferencesPresenter),
-                          <ImportMany> navigableItemsPresenters As IEnumerable(Of INavigableItemsPresenter),
-                          <ImportMany> externalReferencesProviders As IEnumerable(Of IFindReferencesResultProvider))
-            MyBase.New(referencedSymbolsPresenters, navigableItemsPresenters, externalReferencesProviders)
+                          <ImportMany> navigableItemsPresenters As IEnumerable(Of INavigableItemsPresenter))
+            MyBase.New(referencedSymbolsPresenters, navigableItemsPresenters)
         End Sub
     End Class
 End Namespace

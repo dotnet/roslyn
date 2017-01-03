@@ -70,6 +70,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             var sourceFiles = _compiler.Arguments.SourceFiles;
 
+            if (_compiler.Arguments.DisplayVersion)
+            {
+                _compiler.PrintVersion(_console.Out);
+                return 0;
+            }
+
             if (sourceFiles.IsEmpty && _compiler.Arguments.DisplayLogo)
             {
                 _compiler.PrintLogo(_console.Out);
@@ -149,10 +155,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
         {
             return new RuntimeMetadataReferenceResolver(
-                new RelativePathResolver(arguments.ReferencePaths, arguments.BaseDirectory),
-                null,
-                GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
-                (path, properties) =>
+                pathResolver: new RelativePathResolver(arguments.ReferencePaths, arguments.BaseDirectory),
+                packageResolver: null,
+                gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
+                useCoreResolver: !GacFileResolver.IsAvailable,
+                fileReferenceProvider: (path, properties) =>
                 {
                     loggerOpt?.AddRead(path);
                     return MetadataReference.CreateFromFile(path, properties);

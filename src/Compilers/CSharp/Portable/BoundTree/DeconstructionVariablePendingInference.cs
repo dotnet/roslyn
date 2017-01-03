@@ -29,11 +29,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         ReportInferenceFailure(diagnostics);
                     }
+                    else
+                    {
+                        Binder.CheckRestrictedTypeInAsync(local.ContainingSymbol, type, diagnostics, this.Syntax);
+                    }
+
                     local.SetType(type);
-                    return new BoundLocal(this.Syntax, local, constantValueOpt: null, type: type, hasErrors: this.HasErrors || inferenceFailed);
+                    return new BoundLocal(this.Syntax, local, isDeclaration: true, constantValueOpt: null, type: type, hasErrors: this.HasErrors || inferenceFailed);
 
                 case SymbolKind.Field:
-                    var field = (SourceMemberFieldSymbolFromDesignation)this.VariableSymbol;
+                    var field = (GlobalExpressionVariable)this.VariableSymbol;
                     var inferenceDiagnostics = DiagnosticBag.GetInstance();
                     if (inferenceFailed)
                     {

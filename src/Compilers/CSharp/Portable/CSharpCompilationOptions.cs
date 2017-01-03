@@ -162,6 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        public override string Language => LanguageNames.CSharp;
+
         internal CSharpCompilationOptions WithTopLevelBinderFlags(BinderFlags flags)
         {
             return (flags == TopLevelBinderFlags) ? this : new CSharpCompilationOptions(this) { TopLevelBinderFlags = flags };

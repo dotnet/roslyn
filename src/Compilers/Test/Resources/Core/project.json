@@ -1,7 +1,8 @@
 {
   "supports": { },
   "dependencies": {
-    "System.Xml.ReaderWriter": "4.0.11"
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+    "System.Xml.ReaderWriter": "4.3.0"
   },
   "frameworks": {
     "netstandard1.3": {}

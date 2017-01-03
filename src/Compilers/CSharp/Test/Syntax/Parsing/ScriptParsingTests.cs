@@ -6,11 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ScriptParsingTests : ParsingTests
     {
+        public ScriptParsingTests(ITestOutputHelper output) : base(output) { }
+
         #region Helpers
 
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)

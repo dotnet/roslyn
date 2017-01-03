@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis;
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
     /// <summary>
-    /// Project context to initialize properties and items of a Workspace project created with <see cref="IWorkspaceProjectContextFactory.CreateProjectContext"/>. 
+    /// Project context to initialize properties and items of a Workspace project created with <see cref="IWorkspaceProjectContextFactory.CreateProjectContext(string, string, string, Guid, object, string)"/>. 
     /// </summary>
     internal interface IWorkspaceProjectContext : IDisposable
     {

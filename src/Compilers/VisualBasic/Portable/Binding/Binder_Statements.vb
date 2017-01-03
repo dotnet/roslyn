@@ -62,16 +62,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.MultiLineIfBlock
                     Return BindMultiLineIfBlock(DirectCast(node, MultiLineIfBlockSyntax), diagnostics)
 
+                Case SyntaxKind.ElseIfStatement
+                    ' ElseIf without a preceding If.
+                    Debug.Assert(node.ContainsDiagnostics)
+                    Dim condition = BindBooleanExpression(DirectCast(node, ElseIfStatementSyntax).Condition, diagnostics)
+                    Return New BoundBadStatement(node, ImmutableArray.Create(Of BoundNode)(condition), hasErrors:=True)
+
                 Case SyntaxKind.SelectBlock
                     Return BindSelectBlock(DirectCast(node, SelectBlockSyntax), diagnostics)
 
-                Case SyntaxKind.CaseStatement,
-                     SyntaxKind.SelectStatement
-                    ' Valid select/case statement within select case statement is handled in BindSelectBlock.
-                    ' We should reach here only for invalid case statements which are not inside any SelectBlock.
+                Case SyntaxKind.CaseStatement
+                    ' Valid Case statement within Select Case statement is handled in BindSelectBlock.
+                    ' We should reach here only for invalid Case statements which are not inside any SelectBlock.
                     ' Parser must have already reported error ERRID.ERR_CaseNoSelect or ERRID.ERR_SubRequiresSingleStatement.
                     Debug.Assert(node.ContainsDiagnostics)
-                    Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
+                    Dim caseStatement = DirectCast(node, CaseStatementSyntax)
+                    Dim statement = BindCaseStatement(caseStatement, selectExpressionOpt:=Nothing, convertCaseElements:=False, diagnostics:=diagnostics)
+                    Return New BoundBadStatement(node, ImmutableArray.Create(Of BoundNode)(statement), hasErrors:=True)
 
                 Case SyntaxKind.LocalDeclarationStatement
                     Return BindLocalDeclaration(DirectCast(node, LocalDeclarationStatementSyntax), diagnostics)
@@ -219,14 +226,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' a loop statement is legal as long as it is part of a do loop block
                     If Not SyntaxFacts.IsDoLoopBlock(node.Parent.Kind) Then
                         Debug.Assert(node.ContainsDiagnostics)
-                        Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
+                        Dim whileOrUntilClause = DirectCast(node, LoopStatementSyntax).WhileOrUntilClause
+                        Dim childNodes = If(whileOrUntilClause Is Nothing,
+                            ImmutableArray(Of BoundNode).Empty,
+                            ImmutableArray.Create(Of BoundNode)(BindBooleanExpression(whileOrUntilClause.Condition, diagnostics)))
+                        Return New BoundBadStatement(node, childNodes, hasErrors:=True)
                     End If
 
                 Case SyntaxKind.CatchStatement
                     ' a catch statement is legal as long as it is part of a catch block
                     If Not node.Parent.Kind = SyntaxKind.CatchBlock Then
                         Debug.Assert(node.ContainsDiagnostics)
-                        Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
+                        Dim whenClause = DirectCast(node, CatchStatementSyntax).WhenClause
+                        Dim childNodes = If(whenClause Is Nothing,
+                            ImmutableArray(Of BoundNode).Empty,
+                            ImmutableArray.Create(Of BoundNode)(BindBooleanExpression(whenClause.Filter, diagnostics)))
+                        Return New BoundBadStatement(node, childNodes, hasErrors:=True)
                     End If
 
                 Case SyntaxKind.ResumeStatement, SyntaxKind.ResumeNextStatement, SyntaxKind.ResumeLabelStatement
@@ -1149,7 +1164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                diagnostics,
                                                                                asNewVariablePlaceholder)
 
-                                Debug.Assert(valueExpression.Type.IsSameTypeIgnoringCustomModifiers(declType))
+                                Debug.Assert(valueExpression.Type.IsSameTypeIgnoringAll(declType))
                             End If
 
                         Case SyntaxKind.AnonymousObjectCreationExpression
@@ -1165,7 +1180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ReportDiagnostic(diagnostics, asNew.NewExpression.NewKeyword, ERRID.ERR_AsNewArray)
                         valueExpression = BadExpression(asNew, valueExpression, type)
                     ElseIf valueExpression IsNot Nothing AndAlso Not valueExpression.HasErrors AndAlso
-                           Not type.IsSameTypeIgnoringCustomModifiers(valueExpression.Type) Then
+                           Not type.IsSameTypeIgnoringAll(valueExpression.Type) Then
                         ' An error must have been reported elsewhere.    
                         valueExpression = BadExpression(asNew, valueExpression, valueExpression.Type)
                     End If
@@ -2290,15 +2305,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim tokenType As NamedTypeSymbol = Me.Compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
 
                             If node.Kind = SyntaxKind.AddHandlerStatement Then
-                                If Not method.Parameters(0).Type.IsSameTypeIgnoringCustomModifiers(targetType) OrElse
-                                   Not method.ReturnType.IsSameTypeIgnoringCustomModifiers(tokenType) Then
+                                If Not method.Parameters(0).Type.IsSameTypeIgnoringAll(targetType) OrElse
+                                   Not method.ReturnType.IsSameTypeIgnoringAll(tokenType) Then
                                     badShape = True
                                 End If
-                            ElseIf Not method.Parameters(0).Type.IsSameTypeIgnoringCustomModifiers(tokenType) OrElse Not method.IsSub Then
+                            ElseIf Not method.Parameters(0).Type.IsSameTypeIgnoringAll(tokenType) OrElse Not method.IsSub Then
                                 badShape = True
                             End If
 
-                        ElseIf Not method.Parameters(0).Type.IsSameTypeIgnoringCustomModifiers(targetType) Then
+                        ElseIf Not method.Parameters(0).Type.IsSameTypeIgnoringAll(targetType) Then
                             badShape = True
                         End If
 
@@ -3218,9 +3233,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim bestCandidate As OverloadResolution.Candidate = userDefinedOperator.BestResult.Value.Candidate
 
-            If Not bestCandidate.Parameters(0).Type.IsSameTypeIgnoringCustomModifiers(left.Type) OrElse
-               Not bestCandidate.Parameters(1).Type.IsSameTypeIgnoringCustomModifiers(left.Type) OrElse
-               (Not isRelational AndAlso Not bestCandidate.ReturnType.IsSameTypeIgnoringCustomModifiers(left.Type)) Then
+            If Not bestCandidate.Parameters(0).Type.IsSameTypeIgnoringAll(left.Type) OrElse
+               Not bestCandidate.Parameters(1).Type.IsSameTypeIgnoringAll(left.Type) OrElse
+               (Not isRelational AndAlso Not bestCandidate.ReturnType.IsSameTypeIgnoringAll(left.Type)) Then
 
                 If isRelational Then
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_UnacceptableForLoopRelOperator2, bestCandidate.UnderlyingSymbol,

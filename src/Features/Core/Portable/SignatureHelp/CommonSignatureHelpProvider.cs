@@ -181,6 +181,63 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 properties: parameter.Properties);
         }
 
+#if REMOVE
+        public async Task<SignatureHelpItems> GetItemsAsync(
+            Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        {
+            var itemsForCurrentDocument = await GetItemsWorkerAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+            if (itemsForCurrentDocument == null)
+            {
+                return itemsForCurrentDocument;
+            }
+
+            var relatedDocuments = document.GetLinkedDocumentIds();
+            if (!relatedDocuments.Any())
+            {
+                return itemsForCurrentDocument;
+            }
+
+            var relatedDocumentsAndItems = await GetItemsForRelatedDocuments(document, relatedDocuments, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+            var candidateLinkedProjectsAndSymbolSets = await ExtractSymbolsFromRelatedItems(position, relatedDocumentsAndItems, cancellationToken).ConfigureAwait(false);
+
+            var totalProjects = candidateLinkedProjectsAndSymbolSets.Select(c => c.Item1).Concat(document.Project.Id);
+
+            var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
+            var compilation = semanticModel.Compilation;
+            var finalItems = new List<SignatureHelpItem>();
+            foreach (var item in itemsForCurrentDocument.Items)
+            {
+                var symbolKey = (item as SymbolKeySignatureHelpItem)?.SymbolKey;
+                if (symbolKey == null)
+                {
+                    finalItems.Add(item);
+                    continue;
+                }
+
+                var expectedSymbol = symbolKey.Value.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken).Symbol;
+                if (expectedSymbol == null)
+                {
+                    finalItems.Add(item);
+                    continue;
+                }
+
+                var invalidProjectsForCurrentSymbol = candidateLinkedProjectsAndSymbolSets.Where(c => !c.Item2.Contains(expectedSymbol, LinkedFilesSymbolEquivalenceComparer.Instance))
+                                                                        .Select(c => c.Item1)
+                                                                        .ToList();
+
+                var platformData = new SupportedPlatformData(invalidProjectsForCurrentSymbol, totalProjects, document.Project.Solution.Workspace);
+                finalItems.Add(UpdateItem(item, platformData, expectedSymbol));
+            }
+
+            return new SignatureHelpItems(
+                finalItems, itemsForCurrentDocument.ApplicableSpan,
+                itemsForCurrentDocument.ArgumentIndex,
+                itemsForCurrentDocument.ArgumentCount,
+                itemsForCurrentDocument.ArgumentName,
+                itemsForCurrentDocument.SelectedItemIndex);
+        }
+#endif
+
         private async Task<List<Tuple<ProjectId, ISet<ISymbol>>>> ExtractSymbolsFromRelatedItems(int position, List<Tuple<Document, IEnumerable<SignatureHelpItem>>> relatedDocuments, CancellationToken cancellationToken)
         {
             var resultSets = new List<Tuple<ProjectId, ISet<ISymbol>>>();

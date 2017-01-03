@@ -27,6 +27,12 @@ namespace Microsoft.CodeAnalysis
     internal enum SynthesizedLocalKind
     {
         /// <summary>
+        /// Temp created for caching "this".
+        /// Technically it is long-lived, but will happen only in optimized code.
+        /// </summary>
+        FrameCache = -5,
+
+        /// <summary>
         /// Temp created for pattern matching by type.
         /// </summary>
         PatternMatchingTemp = -4,

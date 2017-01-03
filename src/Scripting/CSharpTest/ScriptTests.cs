@@ -10,6 +10,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using System.IO;
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -92,8 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         [Fact]
         public async Task TestRunVoidScript()
         {
-            var state = await CSharpScript.RunAsync("System.Console.WriteLine(0);");
-            Assert.Null(state.ReturnValue);
+            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
+            {
+                var state = await CSharpScript.RunAsync("System.Console.WriteLine(0);");
+                Assert.Null(state.ReturnValue);
+            }
         }
 
         [WorkItem(5279, "https://github.com/dotnet/roslyn/issues/5279")]
@@ -332,9 +336,12 @@ const int z = 3;
         [Fact]
         public async Task NoReturn()
         {
-            var script = CSharpScript.Create<object>("System.Console.WriteLine();");
-            var result = await script.EvaluateAsync();
-            Assert.Null(result);
+            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
+            {
+                var script = CSharpScript.Create<object>("System.Console.WriteLine();");
+                var result = await script.EvaluateAsync();
+                Assert.Null(result);
+            }
         }
 
         [Fact]
@@ -378,8 +385,12 @@ if (condition)
     return 1;
 }
 System.Console.WriteLine();");
-            result = await script.EvaluateAsync();
-            Assert.Equal(1, result);
+
+            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
+            {
+                result = await script.EvaluateAsync();
+                Assert.Equal(1, result);
+            }
         }
 
         [Fact]
@@ -402,8 +413,12 @@ if (condition)
     return 1;
 }
 System.Console.WriteLine()");
-            result = await script.EvaluateAsync();
-            Assert.Equal(0, result);
+
+            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
+            {
+                result = await script.EvaluateAsync();
+                Assert.Equal(0, result);
+            }
         }
 
         [Fact]
@@ -514,24 +529,27 @@ if (false)
         [Fact]
         public async Task ReturnInLoadedFileTrailingVoidExpression()
         {
-            var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", @"
+            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
+            {
+                var resolver = TestSourceReferenceResolver.Create(
+                    KeyValuePair.Create("a.csx", @"
 if (false)
 {
     return 1;
 }
 System.Console.WriteLine(42)"));
-            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+                var options = ScriptOptions.Default.WithSourceResolver(resolver);
 
-            var script = CSharpScript.Create("#load \"a.csx\"", options);
-            var result = await script.EvaluateAsync();
-            Assert.Null(result);
+                var script = CSharpScript.Create("#load \"a.csx\"", options);
+                var result = await script.EvaluateAsync();
+                Assert.Null(result);
 
-            script = CSharpScript.Create(@"
+                script = CSharpScript.Create(@"
 #load ""a.csx""
 2", options);
-            result = await script.EvaluateAsync();
-            Assert.Equal(2, result);
+                result = await script.EvaluateAsync();
+                Assert.Equal(2, result);
+            }
         }
 
         [Fact]
@@ -676,7 +694,10 @@ i", options);
             var resolver = new StreamOffsetResolver();
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
             var script = CSharpScript.Create(@"#load ""a.csx""", options);
-            await script.EvaluateAsync();
+            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
+            {
+                await script.EvaluateAsync();
+            }
         }
 
         private class StreamOffsetResolver : SourceReferenceResolver

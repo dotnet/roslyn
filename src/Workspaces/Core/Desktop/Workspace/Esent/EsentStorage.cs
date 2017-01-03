@@ -144,8 +144,7 @@ namespace Microsoft.CodeAnalysis.Esent
 
         private OpenSession GetOpenSession()
         {
-            OpenSession session;
-            if (_sessionCache.TryPop(out session))
+            if (_sessionCache.TryPop(out var session))
             {
                 return session;
             }
@@ -223,9 +222,7 @@ namespace Microsoft.CodeAnalysis.Esent
 
         private void TryInitializeGlobalParameters()
         {
-            int instances;
-            JET_INSTANCE_INFO[] infos;
-            Api.JetGetInstanceInfo(out instances, out infos);
+            Api.JetGetInstanceInfo(out var instances, out var infos);
 
             // already initialized nothing we can do.
             if (instances != 0)

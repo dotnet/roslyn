@@ -65,12 +65,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             FixAllContext.DiagnosticProvider fixAllDiagnosticProvider)
         {
             Contract.ThrowIfNull(project);
-
-            if (codeFixProvider == null)
-            {
-                throw new ArgumentNullException(nameof(codeFixProvider));
-            }
-
             if (diagnosticIds == null)
             {
                 throw new ArgumentNullException(nameof(diagnosticIds));
@@ -81,19 +75,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 throw new ArgumentException(WorkspacesResources.Supplied_diagnostic_cannot_be_null, nameof(diagnosticIds));
             }
 
-            if (fixAllDiagnosticProvider == null)
-            {
-                throw new ArgumentNullException(nameof(fixAllDiagnosticProvider));
-            }
-
             this.FixAllProvider = fixAllProvider;
             this.Document = document;
             this.Project = project;
-            this.CodeFixProvider = codeFixProvider;
+            this.CodeFixProvider = codeFixProvider ?? throw new ArgumentNullException(nameof(codeFixProvider));
             this.Scope = scope;
             this.CodeActionEquivalenceKey = codeActionEquivalenceKey;
             this.DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
-            this.DiagnosticProvider = fixAllDiagnosticProvider;
+            this.DiagnosticProvider = fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider));
         }
 
         internal bool IsFixMultiple => this.DiagnosticProvider.IsFixMultiple;

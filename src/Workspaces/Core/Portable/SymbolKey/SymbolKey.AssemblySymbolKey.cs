@@ -16,15 +16,6 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteString(symbol.Identity.Name);
             }
 
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                var value = reader.ReadString();
-
-                // Hash all assembly keys to the same bucket.  That way we're a uniform 
-                // hash regardless if clients care about assembly IDs or not.
-                return 1;
-            }
-
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var assemblyName = reader.ReadString();

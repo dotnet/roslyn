@@ -33,12 +33,12 @@ class Foo
             const string code = @"
 class Foo
 {
-    {|hint:{|collapse:[Blah]
+    {|hint:{|textspan:[Blah]
     |}public static bool operator $$==(Foo a, Foo b);|}
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -47,14 +47,14 @@ class Foo
             const string code = @"
 class Foo
 {
-    {|hint:{|collapse:// Summary:
+    {|hint:{|textspan:// Summary:
     //     This is a summary.
     [Blah]
     |}bool operator $$==(Foo a, Foo b);|}
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -63,14 +63,14 @@ class Foo
             const string code = @"
 class Foo
 {
-    {|hint:{|collapse:// Summary:
+    {|hint:{|textspan:// Summary:
     //     This is a summary.
     [Blah]
     |}public static bool operator $$==(Foo a, Foo b);|}
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

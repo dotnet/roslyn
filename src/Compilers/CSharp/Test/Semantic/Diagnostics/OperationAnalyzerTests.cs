@@ -4,10 +4,10 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

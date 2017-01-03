@@ -44,9 +44,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Compares anonymous types ignoring custom modifiers
+        ''' Compares anonymous types
         ''' </summary>
-        Public Shared Function EqualsIgnoringCustomModifiers(left As TypeSymbol, right As TypeSymbol) As Boolean
+        Public Shared Function IsSameType(left As TypeSymbol, right As TypeSymbol, compareKind As TypeCompareKind) As Boolean
+
             If left.TypeKind <> right.TypeKind Then
                 Return False
             End If
@@ -61,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim count As Integer = leftDescr.Fields.Length
             Debug.Assert(count = rightDescr.Fields.Length)
             For i = 0 To count - 1
-                If Not leftDescr.Fields(i).Type.IsSameTypeIgnoringCustomModifiers(rightDescr.Fields(i).Type) Then
+                If Not leftDescr.Fields(i).Type.IsSameType(rightDescr.Fields(i).Type, compareKind) Then
                     Return False
                 End If
             Next

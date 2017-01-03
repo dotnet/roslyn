@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis
         /// A sequence with information about namespaces immediately contained within this namespace.
         /// For each pair:
         ///   Key - contains simple name of a child namespace.
-        ///   Value – contains a sequence similar to the one passed to this function, but
+        ///   Value - contains a sequence similar to the one passed to this function, but
         ///           calculated for the child namespace. 
         /// </param>
         /// <remarks></remarks>

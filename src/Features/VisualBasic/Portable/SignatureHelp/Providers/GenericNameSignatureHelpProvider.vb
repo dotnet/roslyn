@@ -90,11 +90,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             End If
 
             Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
-            Dim accessibleSymbols = symbols _
-                .Where(Function(s) s.GetArity() > 0) _
-                .Where(Function(s) TypeOf s Is INamedTypeSymbol OrElse TypeOf s Is IMethodSymbol) _
-                .FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation) _
-                .Sort(symbolDisplayService, semanticModel, genericName.SpanStart)
+            Dim accessibleSymbols = symbols.WhereAsArray(Function(s) s.GetArity() > 0).
+                                            WhereAsArray(Function(s) TypeOf s Is INamedTypeSymbol OrElse TypeOf s Is IMethodSymbol).
+                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
+                                            Sort(symbolDisplayService, semanticModel, genericName.SpanStart)
 
             If accessibleSymbols.Count = 0 Then
                 Return

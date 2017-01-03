@@ -263,7 +263,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implementingMember, implementedMember))
             {
                 diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, memberLocation, implementingMember, implementedMember);
-                return null;
             }
 
             // In constructed types, it is possible that two method signatures could differ by only ref/out
