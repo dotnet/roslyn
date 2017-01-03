@@ -1,7 +1,6 @@
-<Project
-  xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
-  DefaultTargets="BuildAndTest"
-  ToolsVersion="12.0">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="BuildAndTest" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <Import Project="$(MSBuildThisFileDirectory)build\Targets\Dependencies.props" />
 
@@ -40,43 +39,44 @@
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
              Properties="$(MSBuildCommonProperties)"
-             Targets="Build"/>
+             Targets="Build" />
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
              Properties="$(MSBuildCommonProperties)"
-             Targets="Build"/>
+             Targets="Build" />
   </Target>
 
   <Target Name="Clean">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
              Properties="$(MSBuildCommonProperties)"
-             Targets="Clean"/>
+             Targets="Clean" />
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
              Properties="$(MSBuildCommonProperties)"
-             Targets="Clean"/>
+             Targets="Clean" />
   </Target>
 
   <Target Name="Rebuild">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
              Properties="$(MSBuildCommonProperties)"
-             Targets="Rebuild"/>
+             Targets="Rebuild" />
     <MSBuild BuildInParallel="true"
              Condition="'$(ManualTest)' == ''"
              Projects="$(SamplesSolution)"
              Properties="$(MSBuildCommonProperties)"
-             Targets="Rebuild"/>
+             Targets="Rebuild" />
   </Target>
 
   <Target Name="Test">
     <ItemGroup>
-      <AssembliesToCopyLocal Include="$(NuGetPackageRoot)\xunit\$(xunitVersion)\*.dll
-        ;$(NuGetPackageRoot)\xunit.assert\$(xunitassertVersion)\lib\portable-net45+netcore45+wp8+wpa81\*.dll" />
+      <AssembliesToCopyLocal Include="$(NuGetPackageRoot)\xunit\$(xunitVersion)\*.dll;
+                                      $(NuGetPackageRoot)\xunit.assert\$(xunitassertVersion)\lib\portable-net45+netcore45+wp8+wpa81\*.dll" />
     </ItemGroup>
+
     <!-- Copy xunit stuff to output directory -->
     <Copy SourceFiles="@(AssembliesToCopyLocal)"
           DestinationFolder="$(OutputDirectory)"
@@ -88,10 +88,10 @@
     <ItemGroup>
 
       <!-- MakeConst unit tests tracked by https://github.com/dotnet/roslyn/issues/5918 -->
-      <TestAssemblies Condition="'$(Test64)' != 'true'" 
+      <TestAssemblies Condition="'$(Test64)' != 'true'"
                       Include="$(OutputDirectory)\UnitTests*\**\$(IncludePattern);" />
 
-      <TestAssemblies Condition="'$(Test64)' == 'true'" 
+      <TestAssemblies Condition="'$(Test64)' == 'true'"
                       Include="$(OutputDirectory)\UnitTests*\**\$(IncludePattern);"
                       Exclude="$(OutputDirectory)\UnitTests*\**\Roslyn.Interactive*" />
 
@@ -104,14 +104,13 @@
       <RunTestsExe>Binaries\$(Configuration)\Exes\RunTests\RunTests.exe</RunTestsExe>
       <RunTestsArgs>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')</RunTestsArgs>
     </PropertyGroup>
-    
+
     <Exec Condition="'$(TestVsi)' != 'true'" Command="&quot;$(CoreRunExe)&quot; $(CoreRunArgs)" />
 
     <Exec Command="&quot;$(RunTestsExe)&quot; $(RunTestsArgs)" />
 
   </Target>
 
-  <Target Name="BuildAndTest"
-          DependsOnTargets="Build;Test" />
+  <Target Name="BuildAndTest" DependsOnTargets="Build;Test" />
 
 </Project>
