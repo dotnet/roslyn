@@ -86,24 +86,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind and return a single type parameter constraint clause.
         /// </summary>
-        private TypeParameterConstraintClause BindTypeParameterConstraints(string name, SeparatedSyntaxList<TypeParameterConstraintSyntax> constraintsSyntax, DiagnosticBag diagnostics)
+        private TypeParameterConstraintClause BindTypeParameterConstraints(
+            string name, SeparatedSyntaxList<TypeParameterConstraintSyntax> constraintsSyntax, DiagnosticBag diagnostics)
         {
             var constraints = TypeParameterConstraintKind.None;
             var constraintTypes = ArrayBuilder<TypeSymbol>.GetInstance();
+            var isStruct = false;
 
-            foreach (var syntax in constraintsSyntax)
+            for (int i = 0, n = constraintsSyntax.Count; i < n; i++)
             {
+                var syntax = constraintsSyntax[i];
                 switch (syntax.Kind())
                 {
                     case SyntaxKind.ClassConstraint:
+                        if (i != 0)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
+                        }
+
                         constraints |= TypeParameterConstraintKind.ReferenceType;
-                        break;
+                        continue;
                     case SyntaxKind.StructConstraint:
+                        if (i != 0)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
+                        }
+
+                        isStruct = true;
                         constraints |= TypeParameterConstraintKind.ValueType;
-                        break;
+                        continue;
                     case SyntaxKind.ConstructorConstraint:
+                        if (isStruct)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NewBoundWithVal, syntax.GetFirstToken().GetLocation());
+                        }
+
+                        if (i != n - 1)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NewBoundMustBeLast, syntax.GetFirstToken().GetLocation());
+                        }
+
                         constraints |= TypeParameterConstraintKind.Constructor;
-                        break;
+                        continue;
                     case SyntaxKind.TypeConstraint:
                         {
                             var typeSyntax = (TypeConstraintSyntax)syntax;
@@ -148,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             constraintTypes.Add(type);
                         }
-                        break;
+                        continue;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
                 }

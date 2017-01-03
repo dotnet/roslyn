@@ -1903,8 +1903,6 @@ tryAgain:
             var bounds = _pool.AllocateSeparated<TypeParameterConstraintSyntax>();
             try
             {
-                bool isStruct = false;
-
                 // first bound
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || this.IsPossibleTypeParameterConstraintClauseStart())
                 {
@@ -1912,7 +1910,7 @@ tryAgain:
                 }
                 else
                 {
-                    bounds.Add(this.ParseTypeParameterConstraint(true, ref isStruct));
+                    bounds.Add(this.ParseTypeParameterConstraint());
 
                     // remaining bounds
                     while (true)
@@ -1933,7 +1931,7 @@ tryAgain:
                             }
                             else
                             {
-                                bounds.Add(this.ParseTypeParameterConstraint(false, ref isStruct));
+                                bounds.Add(this.ParseTypeParameterConstraint());
                             }
                         }
                         else if (this.SkipBadTypeParameterConstraintTokens(bounds, SyntaxKind.CommaToken) == PostSkipAction.Abort)
@@ -1966,36 +1964,20 @@ tryAgain:
             }
         }
 
-        private TypeParameterConstraintSyntax ParseTypeParameterConstraint(bool isFirst, ref bool isStruct)
+        private TypeParameterConstraintSyntax ParseTypeParameterConstraint()
         {
+            var syntaxKind = this.CurrentToken.Kind;
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.NewKeyword:
                     var newToken = this.EatToken();
-                    if (isStruct)
-                    {
-                        newToken = this.AddError(newToken, ErrorCode.ERR_NewBoundWithVal);
-                    }
-
                     var open = this.EatToken(SyntaxKind.OpenParenToken);
                     var close = this.EatToken(SyntaxKind.CloseParenToken);
-                    if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                    {
-                        newToken = this.AddError(newToken, ErrorCode.ERR_NewBoundMustBeLast);
-                    }
-
                     return _syntaxFactory.ConstructorConstraint(newToken, open, close);
                 case SyntaxKind.StructKeyword:
-                    isStruct = true;
-                    goto case SyntaxKind.ClassKeyword;
+                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint, this.EatToken());
                 case SyntaxKind.ClassKeyword:
-                    var token = this.EatToken();
-                    if (!isFirst)
-                    {
-                        token = this.AddError(token, ErrorCode.ERR_RefValBoundMustBeFirst);
-                    }
-
-                    return _syntaxFactory.ClassOrStructConstraint(isStruct ? SyntaxKind.StructConstraint : SyntaxKind.ClassConstraint, token);
+                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, this.EatToken());
                 default:
                     var type = this.ParseDeclarationType(isConstraint: true);
                     return _syntaxFactory.TypeConstraint(type);
