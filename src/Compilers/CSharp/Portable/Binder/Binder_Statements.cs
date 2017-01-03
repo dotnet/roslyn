@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = BindTryStatement((TryStatementSyntax)node, diagnostics);
                     break;
                 case SyntaxKind.EmptyStatement:
-                    result = BindEmpty((EmptyStatementSyntax)node, diagnostics);
+                    result = BindEmpty((EmptyStatementSyntax)node);
                     break;
                 case SyntaxKind.ThrowStatement:
                     result = BindThrow((ThrowStatementSyntax)node, diagnostics);
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundThrowStatement(node, boundExpr, hasErrors);
         }
 
-        private static BoundStatement BindEmpty(EmptyStatementSyntax node, DiagnosticBag diagnostics)
+        private static BoundStatement BindEmpty(EmptyStatementSyntax node)
         {
             return new BoundNoOpStatement(node, NoOpStatementFlavor.Default);
         }
