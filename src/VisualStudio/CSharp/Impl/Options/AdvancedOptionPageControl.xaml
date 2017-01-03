@@ -10,7 +10,7 @@
     mc:Ignorable="d" d:DesignHeight="500" d:DesignWidth="500">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel>
+        <StackPanel Margin="0,0,3,0">
             <GroupBox x:Uid="UsingDirectivesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Using_Directives}">
                 <StackPanel>
