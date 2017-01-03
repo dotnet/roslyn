@@ -1569,7 +1569,7 @@ tryAgain:
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
             var name = this.ParseIdentifierToken();
-            var typeParameters = this.ParseTypeParameterList(allowVariance: classOrStructOrInterface.Kind == SyntaxKind.InterfaceKeyword);
+            var typeParameters = this.ParseTypeParameterList();
 
             _termState = saveTerm;
             var baseList = this.ParseBaseList();
@@ -4789,7 +4789,7 @@ tryAgain:
 
             try
             {
-                var typeParameterListOpt = this.ParseTypeParameterList(allowVariance: false);
+                var typeParameterListOpt = this.ParseTypeParameterList();
                 var paramList = ParseParenthesizedParameterList();
 
                 if (!paramList.IsMissing &&
@@ -4881,7 +4881,7 @@ tryAgain:
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfMethodSignature;
             var name = this.ParseIdentifierToken();
-            var typeParameters = this.ParseTypeParameterList(allowVariance: true);
+            var typeParameters = this.ParseTypeParameterList();
             var parameterList = this.ParseParenthesizedParameterList();
             var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
             try
@@ -4914,7 +4914,7 @@ tryAgain:
             var name = this.ParseIdentifierToken();
 
             // check to see if the user tried to create a generic enum.
-            var typeParameters = this.ParseTypeParameterList(allowVariance: true);
+            var typeParameters = this.ParseTypeParameterList();
 
             if (typeParameters != null)
             {
@@ -5207,7 +5207,7 @@ tryAgain:
             return false;
         }
 
-        private TypeParameterListSyntax ParseTypeParameterList(bool allowVariance)
+        private TypeParameterListSyntax ParseTypeParameterList()
         {
             if (this.CurrentToken.Kind != SyntaxKind.LessThanToken)
             {
@@ -5223,7 +5223,7 @@ tryAgain:
                 open = CheckFeatureAvailability(open, MessageID.IDS_FeatureGenerics);
 
                 // first parameter
-                parameters.Add(this.ParseTypeParameter(allowVariance));
+                parameters.Add(this.ParseTypeParameter());
 
                 // remaining parameter & commas
                 while (true)
@@ -5235,7 +5235,7 @@ tryAgain:
                     else if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
                         parameters.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                        parameters.Add(this.ParseTypeParameter(allowVariance));
+                        parameters.Add(this.ParseTypeParameter());
                     }
                     else if (this.SkipBadTypeParameterListTokens(parameters, SyntaxKind.CommaToken) == PostSkipAction.Abort)
                     {
@@ -5263,7 +5263,7 @@ tryAgain:
                 expected);
         }
 
-        private TypeParameterSyntax ParseTypeParameter(bool allowVariance)
+        private TypeParameterSyntax ParseTypeParameter()
         {
             if (this.IsPossibleTypeParameterConstraintClauseStart())
             {
@@ -5285,18 +5285,10 @@ tryAgain:
                 }
 
                 SyntaxToken varianceToken = null;
-                if (this.CurrentToken.Kind == SyntaxKind.InKeyword || this.CurrentToken.Kind == SyntaxKind.OutKeyword)
+                if (this.CurrentToken.Kind == SyntaxKind.InKeyword ||
+                    this.CurrentToken.Kind == SyntaxKind.OutKeyword)
                 {
-                    // Again, we always recognize the variance syntax, but give an error if
-                    // it is not appropriate. 
-
-                    varianceToken = this.EatToken();
-                    varianceToken = CheckFeatureAvailability(varianceToken, MessageID.IDS_FeatureTypeVariance);
-
-                    if (!allowVariance)
-                    {
-                        varianceToken = this.AddError(varianceToken, ErrorCode.ERR_IllegalVarianceSyntax);
-                    }
+                    varianceToken = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureTypeVariance);
                 }
 
                 return _syntaxFactory.TypeParameter(attrs, varianceToken, this.ParseIdentifierToken());
@@ -5680,7 +5672,7 @@ tryAgain:
                         beforeIdentifierPoint = GetResetPoint();
                         beforeIdentifierPointSet = true;
                         identifierOrThisOpt = this.EatToken();
-                        typeParameterListOpt = this.ParseTypeParameterList(allowVariance: false);
+                        typeParameterListOpt = this.ParseTypeParameterList();
                         break;
                     }
 
@@ -5714,7 +5706,7 @@ tryAgain:
                         }
 
                         identifierOrThisOpt = this.ParseIdentifierToken();
-                        typeParameterListOpt = this.ParseTypeParameterList(allowVariance: false);
+                        typeParameterListOpt = this.ParseTypeParameterList();
                         break;
                     }
                     else
@@ -8618,7 +8610,7 @@ tryAgain:
                 _pool.Free(badBuilder);
             }
 
-            TypeParameterListSyntax typeParameterListOpt = this.ParseTypeParameterList(allowVariance: false);
+            TypeParameterListSyntax typeParameterListOpt = this.ParseTypeParameterList();
             // "await f<T>()" still makes sense, so don't force accept a local function if there's a type parameter list.
             ParameterListSyntax paramList = this.ParseParenthesizedParameterList();
             // "await x()" is ambiguous (see note at start of this method), but we assume "await x(await y)" is meant to be a function if it's in a non-async context.

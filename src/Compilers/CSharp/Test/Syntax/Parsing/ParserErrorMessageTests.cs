@@ -4340,26 +4340,57 @@ class A<out T>
     delegate void D<in U>();
     class B<out U> { }
 }";
-
-            ParseAndValidate(test,
-                // (3,12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
-                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(3, 12),
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
                 // (4,12): error CS7002: Unexpected use of a generic name
+                //     object this<out U>[int i] { get; set; }
                 Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "this").WithLocation(4, 12),
-                // (4,17): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
-                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(4, 17),
                 // (6,10): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                // struct S<out T>
                 Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(6, 10),
-                // (8,12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
-                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(8, 12),
                 // (11,9): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                // class A<out T>
                 Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(11, 9),
-                // (13, 12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                // (3,12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //     void M<in U>();
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(3, 12),
+                // (13,12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //     void M<out U>();
                 Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(13, 12),
-                // (15, 14): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
-                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(15, 14),
+                // (8,12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //     void M<out U>();
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(8, 12),
+                // (8,10): error CS0501: 'S<T>.M<U>()' must declare a body because it is not marked abstract, extern, or partial
+                //     void M<out U>();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("S<T>.M<U>()").WithLocation(8, 10),
+                // (13,10): error CS0501: 'A<T>.M<U>()' must declare a body because it is not marked abstract, extern, or partial
+                //     void M<out U>();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("A<T>.M<U>()").WithLocation(13, 10),
                 // (17,13): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
-                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(17, 13));
+                //     class B<out U> { }
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(17, 13),
+                // (15,14): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //     struct S<out U> { }
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(15, 14));
+        }
+
+        [Fact]
+        public void CS1960ERR_IllegalVarianceSyntax_LocalFunction()
+        {
+            var test =
+@"class C
+{
+    void M()
+    {
+        void Local<in T>() { }
+    }
+}";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (5,20): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //         void Local<in T>() { }
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(5, 20),
+                // (5,14): warning CS0168: The variable 'Local' is declared but never used
+                //         void Local<in T>() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(5, 14));
         }
 
         [Fact]
