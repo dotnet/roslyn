@@ -4374,6 +4374,26 @@ class A<out T>
         }
 
         [Fact]
+        public void CS1960ERR_IllegalVarianceSyntax_LocalFunction()
+        {
+            var test =
+@"class C
+{
+    void M()
+    {
+        void Local<in T>() { }
+    }
+}";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (5,20): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //         void Local<in T>() { }
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(5, 20),
+                // (5,14): warning CS0168: The variable 'Local' is declared but never used
+                //         void Local<in T>() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(5, 14));
+        }
+
+        [Fact]
         public void CS7000ERR_UnexpectedAliasedName()
         {
             var test = @"using System;
