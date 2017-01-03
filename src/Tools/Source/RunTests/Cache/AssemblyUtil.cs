@@ -36,7 +36,6 @@ namespace RunTests.Cache
                 // This light up probing is done by the scripting layer. 
                 case "System.Runtime.Loader":
                     return true;
-
                 case "Microsoft.VisualStudio.GraphModel":
                     // This dependency needs to be better rationalized in our model. 
                     // https://github.com/dotnet/roslyn/issues/16201
@@ -45,6 +44,11 @@ namespace RunTests.Cache
                     // The MS.VS.CA.Sdk.UI dependency needs to properly list this as a reference and it 
                     // needs to be included in our model. 
                     // https://github.com/dotnet/roslyn/issues/16202
+                    return true;
+                case "Microsoft.VisualStudio.Repository":
+                    // This is not represented in our compile graph nor is it properly a part of our 
+                    // build output in Dev15 builds.
+                    // https://github.com/dotnet/roslyn/issues/16206
                     return true;
                 default:
                     return false;
