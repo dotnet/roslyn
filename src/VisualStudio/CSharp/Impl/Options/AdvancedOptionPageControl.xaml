@@ -12,7 +12,8 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="0,0,3,0">
             <GroupBox x:Uid="UsingDirectivesGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Using_Directives}">
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Using_Directives}"
+                      Margin="0,0,3,0">
                 <StackPanel>
                     <CheckBox x:Name="PlaceSystemNamespaceFirst"
                               x:Uid="SortUsings_PlaceSystemFirst"
@@ -26,7 +27,7 @@
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="HighlightingGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Highlighting}">
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Highlighting}" Margin="0,0,3,0">
                 <StackPanel>
                     <CheckBox x:Name="EnableHighlightReferences"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableHighlightReferences}" />
@@ -35,7 +36,7 @@
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="OutliningGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Outlining}">
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Outlining}" Margin="0,0,3,0">
                 <StackPanel>
                     <CheckBox x:Name="EnterOutliningMode"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_EnterOutliningMode}" />
@@ -52,7 +53,7 @@
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="BlockStructureGuidesGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Block_Structure_Guides}">
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Block_Structure_Guides}" Margin="0,0,3,0">
                 <StackPanel>
                     <CheckBox x:Name="Show_guides_for_declaration_level_constructs"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_declaration_level_constructs}" />
@@ -61,7 +62,7 @@
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="EditorHelpGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}" Margin="0,0,3,0">
                 <StackPanel>
                     <CheckBox x:Name="GenerateXmlDocCommentsForTripleSlash"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleSlash}" />
@@ -76,7 +77,7 @@
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="ExtractMethodGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_ExtractMethod}">
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_ExtractMethod}" Margin="0,0,3,0">
                 <StackPanel>
                     <CheckBox x:Name="DontPutOutOrRefOnStruct"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_DontPutOutOrRefOnStruct}" />
@@ -87,7 +88,7 @@
             </GroupBox>
 
             <GroupBox x:Uid="Implement_Interface_or_Abstract_Class_GroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Implement_Interface_or_Abstract_Class}">
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Implement_Interface_or_Abstract_Class}" Margin="0,0,3,0">
 
                 <StackPanel Margin="0, -5, 0, 5">
                     <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_When_inserting_properties_events_and_methods_place_them}"/>
