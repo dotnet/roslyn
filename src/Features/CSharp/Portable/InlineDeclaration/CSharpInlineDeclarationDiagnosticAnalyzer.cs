@@ -42,9 +42,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         public bool OpenFileOnly(Workspace workspace) => false;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode, SyntaxKind.Argument);
+        {
+            context.RegisterCompilationStartAction(compilationContext =>
+            {
+                var compilation = compilationContext.Compilation;
+                var expressionTypeOpt = compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+                compilationContext.RegisterSyntaxNodeAction(
+                    syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionTypeOpt), SyntaxKind.Argument);
+            });
+        }
 
-        private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context)
+        private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol expressionTypeOpt)
         {
             var argumentNode = (ArgumentSyntax)context.Node;
             var csOptions = (CSharpParseOptions)context.Node.SyntaxTree.Options;
@@ -167,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return;
             }
 
-            if (IsInExpressionTree(semanticModel, argumentExpression, cancellationToken))
+            if (IsInExpressionTree(semanticModel, argumentExpression, expressionTypeOpt, cancellationToken))
             {
                 // out-vars are not allowed inside expression-trees.  So don't offer to
                 // fix if we're inside one.
@@ -227,17 +235,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         private bool IsInExpressionTree(
-            SemanticModel semanticModel, SyntaxNode argumentExpression, CancellationToken cancellationToken)
+            SemanticModel semanticModel, SyntaxNode argumentExpression,
+            INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
         {
-            var expressionType = semanticModel.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
-            if (expressionType != null)
+            if (expressionTypeOpt != null)
             {
                 for (var current = argumentExpression; current != null; current = current.Parent)
                 {
                     if (current.IsAnyLambda())
                     {
                         var typeInfo = semanticModel.GetTypeInfo(current, cancellationToken);
-                        if (expressionType.Equals(typeInfo.ConvertedType?.OriginalDefinition))
+                        if (expressionTypeOpt.Equals(typeInfo.ConvertedType?.OriginalDefinition))
                         {
                             return true;
                         }
