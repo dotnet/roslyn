@@ -10,11 +10,13 @@ using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public readonly ImmutableArray<byte> MetadataDelta;
         public readonly ImmutableArray<byte> ILDelta;
-        public readonly Stream PdbDelta;
+        public readonly ImmutableArray<byte> PdbDelta;
         public readonly CompilationTestData TestData;
         public readonly EmitDifferenceResult EmitResult;
         public readonly ImmutableArray<MethodDefinitionHandle> UpdatedMethods;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public CompilationDifference(
             ImmutableArray<byte> metadata,
             ImmutableArray<byte> il,
-            Stream pdbStream,
+            ImmutableArray<byte> pdbStream,
             CompilationTestData testData,
             EmitDifferenceResult result,
             ImmutableArray<MethodDefinitionHandle> methodHandles)
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Dictionary<int, string> sequencePointMarkers = null;
             if (!methodToken.IsNil)
             {
-                string actualPdb = PdbToXmlConverter.DeltaPdbToXml(PdbDelta, new[] { MetadataTokens.GetToken(methodToken) });
+                string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(PdbDelta), new[] { MetadataTokens.GetToken(methodToken) });
                 sequencePointMarkers = PdbValidation.GetMarkers(actualPdb);
             }
 
@@ -110,21 +112,42 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void VerifyPdb(
             IEnumerable<int> methodTokens,
             string expectedPdb,
+            DebugInformationFormat format = DebugInformationFormat.Pdb,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            string actualPdb = PdbToXmlConverter.DeltaPdbToXml(PdbDelta, methodTokens);
-            AssertXml.Equal(XElement.Parse(expectedPdb), XElement.Parse(actualPdb), expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: false);
+            VerifyPdb(methodTokens, XElement.Parse(expectedPdb), format, expectedValueSourceLine, expectedValueSourcePath, expectedIsXmlLiteral: false);
         }
 
         public void VerifyPdb(
             IEnumerable<int> methodTokens,
             XElement expectedPdb,
+            DebugInformationFormat format = DebugInformationFormat.Pdb,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            string actualPdb = PdbToXmlConverter.DeltaPdbToXml(PdbDelta, methodTokens);
-            AssertXml.Equal(expectedPdb, XElement.Parse(actualPdb), expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: true);
+            VerifyPdb(methodTokens, expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath, expectedIsXmlLiteral: true);
+        }
+
+        private void VerifyPdb(
+            IEnumerable<int> methodTokens,
+            XElement expectedPdb,
+            DebugInformationFormat format,
+            int expectedValueSourceLine,
+            string expectedValueSourcePath,
+            bool expectedIsXmlLiteral)
+        {
+            Assert.NotEqual(DebugInformationFormat.Embedded, format);
+
+            var actualXml = XElement.Parse(PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(PdbDelta), methodTokens));
+
+            PdbValidation.AdjustToPdbFormat(
+                actualPdb: actualXml,
+                actualIsPortable: NextGeneration.InitialBaseline.HasPortablePdb,
+                expectedPdb: expectedPdb,
+                expectedIsPortable: format != DebugInformationFormat.Pdb);
+
+            AssertXml.Equal(expectedPdb, actualXml, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
         }
 
         internal string GetMethodIL(string qualifiedMethodName)

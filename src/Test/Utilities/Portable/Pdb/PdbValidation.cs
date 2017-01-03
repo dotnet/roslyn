@@ -110,35 +110,56 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (format == 0 || format == DebugInformationFormat.Pdb)
             {
-                XElement actualNativePdb = XElement.Parse(GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: false));
+                var actualNativePdb = XElement.Parse(GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: false));
                 AssertXml.Equal(expectedPdb, actualNativePdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
             }
 
             if (format == 0 || format == DebugInformationFormat.PortablePdb)
             {
-                XElement actualPortablePdb = XElement.Parse(GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: true));
+                var actualPortablePdb = XElement.Parse(GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: true));
 
-                // SymWriter doesn't create empty scopes. When the C# compiler uses forwarding CDI instead of a NamespaceScope
-                // the scope is actually not empty - it logically contains the imports. Portable PDB does not used forwarding and thus
-                // creates the scope. When generating PDB XML for testing the Portable DiaSymReader returns empty namespaces.
-                RemoveEmptyScopes(actualPortablePdb);
-
-                // sharing the same expected output with native PDB
-                if (format == 0)
-                {
-                    RemoveNonPortablePdb(expectedPdb);
-
-                    // TODO: remove
-                    RemoveEmptySequencePoints(expectedPdb);
-
-                    // remove scopes that only contained non-portable elements (namespace scopes)
-                    RemoveEmptyScopes(expectedPdb);
-                    RemoveMethodsWithNoSequencePoints(expectedPdb);
-                    RemoveEmptyMethods(expectedPdb);
-                }
+                // If format is not specified, we share expected output between portable and non-portable.
+                // The output is then non-portable since it contains more information (such as cdi).
+                AdjustToPdbFormat(
+                    actualPdb: actualPortablePdb, 
+                    actualIsPortable: true, 
+                    expectedPdb: expectedPdb, 
+                    expectedIsPortable: format == DebugInformationFormat.PortablePdb);
 
                 AssertXml.Equal(expectedPdb, actualPortablePdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
             }
+        }
+
+        internal static void AdjustToPdbFormat(
+            XElement actualPdb,
+            bool actualIsPortable,
+            XElement expectedPdb,
+            bool expectedIsPortable)
+        {
+            if (actualIsPortable == expectedIsPortable)
+            {
+                return;
+            }
+
+            // The test doesn't specify portable as expected PDB unless it's testing portable only in which case actual is also portable.
+            Assert.False(expectedIsPortable);
+            Assert.True(actualIsPortable);
+
+            // SymWriter doesn't create empty scopes. When the C# compiler uses forwarding CDI instead of a NamespaceScope
+            // the scope is actually not empty - it logically contains the imports. Portable PDB does not used forwarding and thus
+            // creates the scope. When generating PDB XML for testing the Portable DiaSymReader returns empty namespaces.
+            RemoveEmptyScopes(actualPdb);
+
+            // if the actual format is portable and the expected is not, remove native-only artifacts:
+            RemoveNonPortablePdb(expectedPdb);
+
+            // TODO: remove
+            RemoveEmptySequencePoints(expectedPdb);
+
+            // remove scopes that only contained non-portable elements (namespace scopes)
+            RemoveEmptyScopes(expectedPdb);
+            RemoveMethodsWithNoSequencePoints(expectedPdb);
+            RemoveEmptyMethods(expectedPdb);
         }
 
         private static void RemoveMethodsWithNoSequencePoints(XElement pdb)
