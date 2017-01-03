@@ -137,21 +137,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     @interface.CheckAllConstraints(conversions, location, diagnostics);
                 }
 
+                bool reportedError = false;
                 if (interfaces.Count > 1)
                 {
+                    // Check no duplicate interfaces with different tuple names on this inheritance level
                     var seenInterfaces = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(EqualsIgnoringComparer.InstanceIgnoringTupleNames);
                     foreach (var @interface in interfaces)
                     {
                         NamedTypeSymbol other;
                         if (seenInterfaces.TryGetValue(@interface, out other))
                         {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, other, this);
+                            diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNames, location, @interface, other, this);
+                            reportedError = true;
                         }
                         else
                         {
                             seenInterfaces.Add(@interface, @interface);
                         }
                     }
+                }
+
+                if (!reportedError)
+                {
+                    // Check no duplicate interfaces with different tuple names with base
+                    ConstraintsHelper.CheckTupleNamesConstraintsCore(this, location, diagnostics);
                 }
             }
         }

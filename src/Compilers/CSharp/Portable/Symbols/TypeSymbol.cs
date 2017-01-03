@@ -369,6 +369,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// TypeSymbol.Interfaces as the source of edge data, which has had cycles and infinitely
         /// long dependency cycles removed. Consequently, it is possible (and we do) use the
         /// simplest version of Tarjan's topological sorting algorithm.
+        ///
+        /// If an interface is implemented twice with different tuple names,
+        /// the interface is only returned once (with one of the sets of tuple names).
         protected virtual ImmutableArray<NamedTypeSymbol> MakeAllInterfaces()
         {
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();

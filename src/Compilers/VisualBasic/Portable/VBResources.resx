@@ -773,6 +773,9 @@
   <data name="ERR_DuplicateProcDef1" xml:space="preserve">
     <value>'{0}' has multiple definitions with identical signatures.</value>
   </data>
+  <data name="ERR_DuplicateInterfaceWithTupleNamesInBaseList3" xml:space="preserve">
+    <value>'{0}' is already listed in the interface list on the base of type '{2}' with different tuple element names, as '{1}'.</value>
+  </data>
   <data name="ERR_DuplicateProcDefWithDifferentTupleNames2" xml:space="preserve">
     <value>'{0}' has multiple definitions with identical signatures with different tuple element names, including '{1}'.</value>
   </data>

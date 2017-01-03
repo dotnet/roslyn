@@ -184,19 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     retType = GetReturnType(sourceModule, errorLocation, diagBag)
 
                     If Not errorLocation.IsKind(SyntaxKind.None) Then
-                        Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
-                        Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-
-                        retType.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder)
-
-                        If useSiteDiagnosticsBuilder IsNot Nothing Then
-                            diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
-                        End If
-
-                        For Each diag In diagnosticsBuilder
-                            diagBag.Add(diag.DiagnosticInfo, errorLocation.GetLocation())
-                        Next
-                        diagnosticsBuilder.Free()
+                        retType.CheckAllConstraints(errorLocation.GetLocation(), diagBag)
                     End If
 
                     sourceModule.AtomicStoreReferenceAndDiagnostics(

@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NamedTypeSymbol constructedType = nullableT.Construct(typeArgument);
                         if (ShouldCheckConstraints)
                         {
-                            constructedType.CheckConstraints(this.Compilation, this.Conversions, syntax.Location, diagnostics);
+                            constructedType.CheckConstraints(this.Compilation, this.Conversions, syntax.Location, diagnostics, TupleNamesCheckKind.Shallow);
                         }
                         return constructedType;
                     }
@@ -666,6 +666,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         symbols.Add(bindingResult);
                         bindingResult = null;
+                    }
+
+                    if (bindingResult?.Kind == SymbolKind.NamedType)
+                    {
+                        // Check that a type such as `Containing<(int c, int d)>.Contained` doesn't break tuple name constraints.
+                        ConstraintsHelper.CheckTupleNamesConstraints((NamedTypeSymbol)bindingResult, node.Location, diagnostics, TupleNamesCheckKind.DeepExceptTopLevel);
                     }
                 }
             }
@@ -1076,7 +1082,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ShouldCheckConstraints)
             {
-                type.CheckConstraints(this.Conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
+                // Note: The tuple name check can be shallow on the top-level, since the type arguments should have already been checked
+                type.CheckConstraints(this.Conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics, TupleNamesCheckKind.DeepExceptTopLevel);
             }
 
             type = (NamedTypeSymbol)TupleTypeSymbol.TransformToTupleIfCompatible(type);

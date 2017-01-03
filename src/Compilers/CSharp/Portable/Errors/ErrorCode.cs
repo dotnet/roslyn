@@ -1381,7 +1381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TupleElementNamesAttributeMissing = 8137,
         ERR_ExplicitTupleElementNamesAttribute = 8138,
         ERR_CantChangeTupleNamesOnOverride = 8139,
-        ERR_DuplicateInterfaceWithTupleNamesInBaseList = 8140,
+        ERR_DuplicateInterfaceWithTupleNames = 8140,
         ERR_ImplBadTupleNames = 8141,
         ERR_PartialMethodInconsistentTupleNames = 8142,
         ERR_ExpressionTreeContainsTupleLiteral = 8143,
@@ -1435,9 +1435,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DeclarationExpressionNotPermitted = 8185,
         ERR_MustDeclareForeachIteration = 8186,
         ERR_TupleElementNamesInDeconstruction = 8187,
+        ERR_DuplicateInterfaceWithTupleNamesInBaseList = 8188,
         #endregion stragglers for C# 7
 
-        // Available  = 8188-8195
+        // Available  = 8189-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,

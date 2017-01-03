@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Interface IA(Of T As C) : End Interface
             ' Interface IB(Of T As C) : Inherits IA(Of T) : End Interface
             If checkConstraints AndAlso ShouldCheckConstraints Then
-                constructedType.CheckConstraints(syntaxArguments, diagnostics)
+                constructedType.CheckConstraints(syntaxArguments, syntaxWhole, diagnostics, TupleNamesCheckKind.DeepExceptTopLevel)
             End If
 
             constructedType = DirectCast(TupleTypeSymbol.TransformToTupleIfCompatible(constructedType), NamedTypeSymbol)
@@ -1094,6 +1094,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If lookupResult.HasSingleSymbol AndAlso lookupResult.SingleSymbol.Kind = SymbolKind.NamedType Then
                         Dim namedType = DirectCast(lookupResult.SingleSymbol, NamedTypeSymbol)
+
+                        ConstraintsHelper.CheckTupleNamesConstraints(namedType, dottedNameSyntax.GetLocation(), diagBag, TupleNamesCheckKind.DeepExceptTopLevel)
 
                         ' If left name bound to an unbound generic type
                         ' and right name bound to a generic type, we must

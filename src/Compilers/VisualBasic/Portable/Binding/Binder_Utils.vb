@@ -267,18 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Validate the type argument meets the Structure constraint on the Nullable type.
             If ShouldCheckConstraints Then
-                Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
-                Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-                constructedType.CheckConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder)
-
-                If useSiteDiagnosticsBuilder IsNot Nothing Then
-                    diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
-                End If
-
-                For Each pair In diagnosticsBuilder
-                    diagBag.Add(pair.DiagnosticInfo, syntaxTypeArgument.GetLocation())
-                Next
-                diagnosticsBuilder.Free()
+                constructedType.CheckConstraints(syntaxTypeArgument.GetLocation(), diagBag, TupleNamesCheckKind.Shallow)
             End If
 
             Return constructedType

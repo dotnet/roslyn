@@ -18171,365 +18171,6 @@ End Module
         End Sub
 
         <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
-        Public Sub ImplementSameInterfaceViaBaseWithDifferentTupleNames()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb"><![CDATA[
-Imports System
-
-Interface ITest(Of T)
-End Interface
-
-Class Base
-    Implements ITest(Of (a As Integer, b As Integer))
-End Class
-
-Class Derived
-    Inherits Base
-    Implements ITest(Of (notA As Integer, notB As Integer))
-End Class
-]]></file>
-</compilation>, additionalRefs:=s_valueTupleRefs)
-
-            compilation.AssertTheseDiagnostics()
-
-            Dim tree = compilation.SyntaxTrees.First()
-            Dim model = compilation.GetSemanticModel(tree)
-            Dim derived = tree.GetRoot().DescendantNodes().OfType(Of ClassStatementSyntax)().ElementAt(1)
-            Dim derivedSymbol = model.GetDeclaredSymbol(derived)
-            Assert.Equal("Derived", derivedSymbol.ToTestDisplayString())
-
-            Assert.Equal(New String() {"ITest(Of (notA As System.Int32, notB As System.Int32))"},
-                derivedSymbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
-
-        End Sub
-
-        <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
-        Public Sub ImplementSameInterfaceViaBase()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb"><![CDATA[
-Imports System
-
-Interface ITest(Of T)
-End Interface
-
-Class Base
-    Implements ITest(Of Integer)
-End Class
-
-Class Derived
-    Inherits Base
-    Implements ITest(Of Integer)
-End Class
-]]></file>
-</compilation>, additionalRefs:=s_valueTupleRefs)
-
-            compilation.AssertTheseDiagnostics()
-
-            Dim tree = compilation.SyntaxTrees.First()
-            Dim model = compilation.GetSemanticModel(tree)
-            Dim derived = tree.GetRoot().DescendantNodes().OfType(Of ClassStatementSyntax)().ElementAt(1)
-            Dim derivedSymbol = model.GetDeclaredSymbol(derived)
-            Assert.Equal("Derived", derivedSymbol.ToTestDisplayString())
-
-            Assert.Equal(New String() {"ITest(Of System.Int32)"},
-                derivedSymbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
-
-        End Sub
-
-        <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
-        Public Sub GenericImplementSameInterfaceViaBaseWithoutTuples()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb"><![CDATA[
-Imports System
-
-Interface ITest(Of T)
-End Interface
-
-Class Base
-    Implements ITest(Of Integer)
-End Class
-
-Class Derived(Of T)
-    Inherits Base
-    Implements ITest(Of T)
-End Class
-
-Module M
-    Sub Main()
-        Dim instance1 = New Derived(Of Integer)
-        Dim instance2 = New Derived(Of String)
-    End Sub
-End Module
-]]></file>
-</compilation>, additionalRefs:=s_valueTupleRefs)
-
-            compilation.AssertTheseDiagnostics()
-
-            Dim tree = compilation.SyntaxTrees.First()
-            Dim model = compilation.GetSemanticModel(tree)
-            Dim derived = tree.GetRoot().DescendantNodes().OfType(Of ClassStatementSyntax)().ElementAt(1)
-            Dim derivedSymbol = DirectCast(model.GetDeclaredSymbol(derived), NamedTypeSymbol)
-            Assert.Equal("Derived(Of T)", derivedSymbol.ToTestDisplayString())
-
-            Assert.Equal(New String() {"ITest(Of System.Int32)", "ITest(Of T)"},
-                derivedSymbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
-
-            Dim instance1 = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().ElementAt(0).Names(0)
-            Dim instance1Symbol = DirectCast(model.GetDeclaredSymbol(instance1), LocalSymbol).Type
-            Assert.Equal("Derived(Of Integer)", instance1Symbol.ToString())
-
-            Assert.Equal(New String() {"ITest(Of System.Int32)"},
-                instance1Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
-
-            Dim instance2 = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().ElementAt(1).Names(0)
-            Dim instance2Symbol = DirectCast(model.GetDeclaredSymbol(instance2), LocalSymbol).Type
-            Assert.Equal("Derived(Of String)", instance2Symbol.ToString())
-
-            Assert.Equal(New String() {"ITest(Of System.Int32)", "ITest(Of System.String)"},
-                instance2Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
-
-            Assert.Empty(derivedSymbol.AsUnboundGenericType().AllInterfaces)
-
-        End Sub
-
-        <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
-        Public Sub GenericImplementSameInterfaceViaBase()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb"><![CDATA[
-Imports System
-
-Interface ITest(Of T)
-End Interface
-
-Class Base
-    Implements ITest(Of (a As Integer, b As Integer))
-End Class
-
-Class Derived(Of T)
-    Inherits Base
-    Implements ITest(Of T)
-End Class
-
-Module M
-    Sub Main()
-        Dim instance1 = New Derived(Of (notA As Integer, notB As Integer))
-        Dim instance2 = New Derived(Of (notA As String, notB As String))
-    End Sub
-End Module
-]]></file>
-</compilation>, additionalRefs:=s_valueTupleRefs)
-
-            compilation.AssertTheseDiagnostics()
-
-            Dim tree = compilation.SyntaxTrees.First()
-            Dim model = compilation.GetSemanticModel(tree)
-            Dim derived = tree.GetRoot().DescendantNodes().OfType(Of ClassStatementSyntax)().ElementAt(1)
-            Dim derivedSymbol = model.GetDeclaredSymbol(derived)
-            Assert.Equal("Derived(Of T)", derivedSymbol.ToTestDisplayString())
-
-            Assert.Equal(New String() {"ITest(Of (a As System.Int32, b As System.Int32))", "ITest(Of T)"},
-                derivedSymbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
-
-            Dim instance1 = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().ElementAt(0).Names(0)
-            Dim instance1Symbol = DirectCast(model.GetDeclaredSymbol(instance1), LocalSymbol).Type
-            Assert.Equal("Derived(Of (notA As Integer, notB As Integer))", instance1Symbol.ToString())
-
-            Assert.Equal(New String() {"ITest(Of (notA As System.Int32, notB As System.Int32))"},
-                instance1Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
-
-            Dim instance2 = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().ElementAt(1).Names(0)
-            Dim instance2Symbol = DirectCast(model.GetDeclaredSymbol(instance2), LocalSymbol).Type
-            Assert.Equal("Derived(Of (notA As String, notB As String))", instance2Symbol.ToString())
-
-            Assert.Equal(New String() {
-                         "ITest(Of (a As System.Int32, b As System.Int32))",
-                         "ITest(Of (notA As System.String, notB As System.String))"},
-                instance2Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
-
-        End Sub
-
-        <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
-        Public Sub GenericExplicitIEnumerableImplementationUsedWithDifferentTypesAndTupleNames()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb"><![CDATA[
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
-
-Class Base
-    Implements IEnumerable(Of (a As Integer, b As Integer))
-
-    Function GetEnumerator1() As IEnumerator Implements IEnumerable.GetEnumerator
-        Throw New Exception()
-    End Function
-    Function GetEnumerator2() As IEnumerator(Of (a As Integer, b As Integer)) Implements IEnumerable(Of (a As Integer, b As Integer)).GetEnumerator
-        Throw New Exception()
-    End Function
-End Class
-
-Class Derived(Of T)
-    Inherits Base
-    Implements IEnumerable(Of T)
-
-    Public Dim state As T
-
-    Function GetEnumerator3() As IEnumerator Implements IEnumerable.GetEnumerator
-        Throw New Exception()
-    End Function
-    Function GetEnumerator4() As IEnumerator(Of T) Implements IEnumerable(Of T).GetEnumerator
-        Return New DerivedEnumerator With {.state = state}
-    End Function
-
-    Public Class DerivedEnumerator
-        Implements IEnumerator(Of T)
-
-        Public Dim state As T
-        Dim done As Boolean = False
-
-        Function MoveNext() As Boolean Implements IEnumerator.MoveNext
-            If done Then
-                Return False
-            Else
-                done = True
-                Return True
-            End If
-        End Function
-
-        ReadOnly Property Current As T Implements IEnumerator(Of T).Current
-            Get
-                Return state
-            End Get
-        End Property
-
-        ReadOnly Property Current2 As Object Implements IEnumerator.Current
-            Get
-                Throw New Exception()
-            End Get
-        End Property
-
-        Public Sub Dispose() Implements IDisposable.Dispose
-        End Sub
-
-        Public Sub Reset() Implements IEnumerator.Reset
-        End Sub
-    End Class
-End Class
-
-Module M
-    Sub Main()
-        Dim collection = New Derived(Of (notA As String, notB As String)) With {.state = (42, 43)}
-        For Each x In collection
-            Console.Write(x.notA)
-        Next
-    End Sub
-End Module
-]]></file>
-</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
-
-            compilation.AssertTheseDiagnostics(<errors>
-BC32096: 'For Each' on type 'Derived(Of (notA As String, notB As String))' is ambiguous because the type implements multiple instantiations of 'System.Collections.Generic.IEnumerable(Of T)'.
-        For Each x In collection
-                      ~~~~~~~~~~
-</errors>)
-
-        End Sub
-
-        <Fact()>
-        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
-        Public Sub GenericExplicitIEnumerableImplementationUsedWithDifferentTupleNames()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation>
-    <file name="a.vb"><![CDATA[
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
-
-Class Base
-    Implements IEnumerable(Of (a As Integer, b As Integer))
-
-    Function GetEnumerator1() As IEnumerator Implements IEnumerable.GetEnumerator
-        Throw New Exception()
-    End Function
-    Function GetEnumerator2() As IEnumerator(Of (a As Integer, b As Integer)) Implements IEnumerable(Of (a As Integer, b As Integer)).GetEnumerator
-        Throw New Exception()
-    End Function
-End Class
-
-Class Derived(Of T)
-    Inherits Base
-    Implements IEnumerable(Of T)
-
-    Public Dim state As T
-
-    Function GetEnumerator3() As IEnumerator Implements IEnumerable.GetEnumerator
-        Throw New Exception()
-    End Function
-    Function GetEnumerator4() As IEnumerator(Of T) Implements IEnumerable(Of T).GetEnumerator
-        Return New DerivedEnumerator With {.state = state}
-    End Function
-
-    Public Class DerivedEnumerator
-        Implements IEnumerator(Of T)
-
-        Public Dim state As T
-        Dim done As Boolean = False
-
-        Function MoveNext() As Boolean Implements IEnumerator.MoveNext
-            If done Then
-                Return False
-            Else
-                done = True
-                Return True
-            End If
-        End Function
-
-        ReadOnly Property Current As T Implements IEnumerator(Of T).Current
-            Get
-                Return state
-            End Get
-        End Property
-
-        ReadOnly Property Current2 As Object Implements IEnumerator.Current
-            Get
-                Throw New Exception()
-            End Get
-        End Property
-
-        Public Sub Dispose() Implements IDisposable.Dispose
-        End Sub
-
-        Public Sub Reset() Implements IEnumerator.Reset
-        End Sub
-    End Class
-End Class
-
-Module M
-    Sub Main()
-        Dim collection = New Derived(Of (notA As Integer, notB As Integer)) With {.state = (42, 43)}
-        For Each x In collection
-            Console.Write(x.notA)
-        Next
-    End Sub
-End Module
-]]></file>
-</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
-
-            compilation.AssertTheseDiagnostics()
-            CompileAndVerify(compilation, expectedOutput:="42")
-
-        End Sub
-
-        <Fact()>
         <WorkItem(14843, "https://github.com/dotnet/roslyn/issues/14843")>
         Public Sub TupleNameDifferencesIgnoredInConstraintWhenNotIdentityConversion()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -18577,127 +18218,700 @@ End Class
 
         End Sub
 
-        <Fact()>
+        <Fact>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
-        Public Sub CanReImplementInterfaceWithDifferentTupleNames()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+        Sub CannotChangeTupleNamesFromBase()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
-Interface ITest(Of T)
-    Function M() As T
+Interface I(Of T)
 End Interface
-
 Class Base
-    Implements ITest(Of (a As Integer, b As Integer))
-
-    Function M() As (a As Integer, b As Integer) Implements ITest(Of (a As Integer, b As Integer)).M
-        Return (1, 2)
-    End Function
+    Implements I(Of (a As Integer, b As Integer))
 End Class
-
-Class Derived
+Class Error1
     Inherits Base
-    Implements ITest(Of (notA As Integer, notB As Integer))
-
-    Overloads Function M() As (notA As Integer, notB As Integer) Implements ITest(Of (notA As Integer, notB As Integer)).M
-        Return (3, 4)
-    End Function
+    Implements I(Of (notA1 As Integer, notB1 As Integer))
+End Class
+Class Error2
+    Implements I(Of (a As Integer, b As Integer))
+    Implements I(Of (notA2 As Integer, notB2 As Integer))
+End Class
+Class Error3
+    Inherits Base
+    Implements I(Of (notA3 As Integer, notB3 As Integer))
+    Implements I(Of (stillNotA3 As Integer, stillNotB3 As Integer))
+End Class
+Class Error4
+    Inherits Base
+    Implements I(Of (Integer, Integer))
+    Implements I(Of (Integer, Integer))
 End Class
 ]]></file>
 </compilation>, additionalRefs:=s_valueTupleRefs)
 
-            compilation.AssertTheseDiagnostics()
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37282: 'I(Of (notA1 As Integer, notB1 As Integer))' is already listed in the interface list on the base of type 'Error1' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Inherits Base
+    ~~~~~~~~~~~~~
+BC37272: Interface 'I(Of (notA2 As Integer, notB2 As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Implements I(Of (notA2 As Integer, notB2 As Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37272: Interface 'I(Of (stillNotA3 As Integer, stillNotB3 As Integer))' can be implemented only once by this type, but already appears with different tuple element names, as 'I(Of (notA3 As Integer, notB3 As Integer))'.
+    Implements I(Of (stillNotA3 As Integer, stillNotB3 As Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (Integer, Integer))' is already listed in the interface list on the base of type 'Error4' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Inherits Base
+    ~~~~~~~~~~~~~
+BC31033: Interface 'I(Of (Integer, Integer))' can be implemented only once by this type.
+    Implements I(Of (Integer, Integer))
+               ~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+
+            Dim error1Symbol = comp.GetTypeByMetadataName("Error1")
+            Assert.Equal({"I(Of (notA1 As System.Int32, notB1 As System.Int32))"},
+                         error1Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+            Dim error2Symbol = comp.GetTypeByMetadataName("Error2")
+            Assert.Equal({"I(Of (notA2 As System.Int32, notB2 As System.Int32))"},
+                         error2Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+            Dim error3Symbol = comp.GetTypeByMetadataName("Error3")
+            Assert.Equal({"I(Of (stillNotA3 As System.Int32, stillNotB3 As System.Int32))"},
+                         error3Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+            Dim error4Symbol = comp.GetTypeByMetadataName("Error4")
+            Assert.Equal({"I(Of (System.Int32, System.Int32))"},
+                         error4Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
 
         End Sub
 
-        <Fact()>
+        <Fact>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
-        Public Sub ExplicitBaseImplementationNotConsideredImplementationForInterfaceWithDifferentTupleNames()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+        Sub ChangeTupleNamesFromBaseViaGeneric()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
-Interface ITest(Of T)
-    Function M() As T
+Interface I(Of T)
 End Interface
-
 Class Base
-    Implements ITest(Of (a As Integer, b As Integer))
-
-    Function M() As (a As Integer, b As Integer) Implements ITest(Of (a As Integer, b As Integer)).M
-        Return (1, 2)
+    Implements I(Of (a As Integer, b As Integer))
+End Class
+Class Generic(Of U)
+    Inherits Base
+    Implements I(Of U)
+End Class
+Class Error1
+    Inherits Generic(Of (notA As Integer, notB As Integer))
+End Class
+Class Error2(Of E2 As Generic(Of (notA As Integer, notB As Integer)))
+End Class
+Class C
+    Shared Function MError3() As Generic(Of (notA As Integer, notB As Integer))
+        Return Nothing
     End Function
-End Class
-
-Class Derived1
-    Inherits Base
-    Implements ITest(Of (notA As Integer, notB As Integer))
-End Class
-Class Derived2
-    Inherits Base
-    Implements ITest(Of (a As Integer, b As Integer))
+    Shared Sub M()
+        Dim error4 As Generic(Of (notA As Integer, notB As Integer)) = Nothing
+        Dim error5 = New Generic(Of (notA As Integer, notB As Integer))()
+        M6((notA:=1, notB:=2))
+    End Sub
+    Shared Function M6(Of T)(x As T) As Generic(Of T)
+        Return Nothing
+    End Function
 End Class
 ]]></file>
 </compilation>, additionalRefs:=s_valueTupleRefs)
 
-            compilation.AssertTheseDiagnostics(<errors>
-BC30149: Class 'Derived1' must implement 'Function M() As (notA As Integer, notB As Integer)' for interface 'ITest(Of (notA As Integer, notB As Integer))'.
-    Implements ITest(Of (notA As Integer, notB As Integer))
-               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+Class Error1
+      ~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+Class Error2(Of E2 As Generic(Of (notA As Integer, notB As Integer)))
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Shared Function MError3() As Generic(Of (notA As Integer, notB As Integer))
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error4 As Generic(Of (notA As Integer, notB As Integer)) = Nothing
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error5 = New Generic(Of (notA As Integer, notB As Integer))()
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M6((notA:=1, notB:=2))
+        ~~
+</errors>)
+
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes()
+
+            Dim error1Symbol = comp.GetTypeByMetadataName("Error1")
+            Assert.Equal({"I(Of (notA As System.Int32, notB As System.Int32))"},
+                         error1Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+            Dim error5 = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(1).Names(0)
+            Dim error5Symbol = DirectCast(model.GetDeclaredSymbol(error5), LocalSymbol)
+            Assert.Equal("error5 As Generic(Of (notA As System.Int32, notB As System.Int32))", error5Symbol.ToTestDisplayString())
+            Assert.Equal({"I(Of (notA As System.Int32, notB As System.Int32))"},
+                         error5Symbol.Type.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub ChangeTupleNamesFromBaseViaGenericInArray()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Class Base
+    Implements I(Of (a As Integer, b As Integer))
+End Class
+Class Generic(Of U)
+    Inherits Base
+    Implements I(Of U)
+End Class
+Class C
+    Shared Function MError3() As Generic(Of (notA As Integer, notB As Integer))()
+        Return Nothing
+    End Function
+    Shared Sub M()
+        Dim error4 As Generic(Of (notA As Integer, notB As Integer))() = Nothing
+        Dim error5() = {New Generic(Of (notA As Integer, notB As Integer))()}
+        M6((notA:=1, notB:=2))
+        M7(Nothing, (notA:=1, notB:=2))
+    End Sub
+    Shared Function M6(Of T)(x As T) As Generic(Of T)()
+        Return Nothing
+    End Function
+    Shared Sub M7(Of T)(g As Generic(Of T)(), x As T)
+        System.Console.Write($"Generic {x}. ")
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Shared Function MError3() As Generic(Of (notA As Integer, notB As Integer))()
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error4 As Generic(Of (notA As Integer, notB As Integer))() = Nothing
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error5() = {New Generic(Of (notA As Integer, notB As Integer))()}
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M6((notA:=1, notB:=2))
+        ~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M7(Nothing, (notA:=1, notB:=2))
+        ~~
 </errors>)
 
         End Sub
 
-        <Fact()>
+        <Fact>
         <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
-        Public Sub ReImplementationAndInference()
+        Sub ChangeTupleNamesFromBaseViaGenericInList()
+
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
-Interface ITest(Of T)
-    Function M() As T
+Interface I(Of T)
 End Interface
-
+Class List(Of T)
+End Class
 Class Base
-    Implements ITest(Of (a As Integer, b As Integer))
-
-    Function M() As (a As Integer, b As Integer) Implements ITest(Of (a As Integer, b As Integer)).M
-        Return (1, 2)
-    End Function
+    Implements I(Of (a As Integer, b As Integer))
 End Class
-
-Class Derived
+Class Generic(Of U)
     Inherits Base
-    Implements ITest(Of (notA As Integer, notB As Integer))
-
-    Overloads Function M() As (notA As Integer, notB As Integer) Implements ITest(Of (notA As Integer, notB As Integer)).M
-        Return (3, 4)
-    End Function
+    Implements I(Of U)
 End Class
+Class Error1
+    Inherits List(Of Generic(Of (notA As Integer, notB As Integer)))
+End Class
+Class Error2(Of E2 As List(Of Generic(Of (notA As Integer, notB As Integer))))
+End Class
+Class C
+    Shared Function MError3() As List(Of Generic(Of (notA As Integer, notB As Integer)))
+        Return Nothing
+    End Function
+    Shared Sub M()
+        Dim error4 As List(Of Generic(Of (notA As Integer, notB As Integer))) = Nothing
+        Dim error5 = New List(Of Generic(Of (notA As Integer, notB As Integer)))()
+        M6((notA:=1, notB:=2))
+        M7(Nothing, (notA:=1, notB:=2))
+    End Sub
+    Shared Function M6(Of T)(x As T) As List(Of Generic(Of T))
+        Return Nothing
+    End Function
+    Shared Sub M7(Of T)(g As List(Of Generic(Of T)), x As T)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
 
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+Class Error1
+      ~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+Class Error2(Of E2 As List(Of Generic(Of (notA As Integer, notB As Integer))))
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Shared Function MError3() As List(Of Generic(Of (notA As Integer, notB As Integer)))
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error4 As List(Of Generic(Of (notA As Integer, notB As Integer))) = Nothing
+                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error5 = New List(Of Generic(Of (notA As Integer, notB As Integer)))()
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M6((notA:=1, notB:=2))
+        ~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M7(Nothing, (notA:=1, notB:=2))
+        ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub ChangeTupleNamesFromBaseViaGenericInTuple()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Class Base
+    Implements I(Of (a As Integer, b As Integer))
+End Class
+Class Generic(Of U)
+    Inherits Base
+    Implements I(Of U)
+End Class
+Class C
+    Shared Function MError3() As (Generic(Of (notA As Integer, notB As Integer)), Integer)
+        Return Nothing
+    End Function
+    Shared Sub M()
+        Dim error4 As (Generic(Of (notA As Integer, notB As Integer)), Integer) = (Nothing, 2)
+        Dim error5 = (New Generic(Of (notA As Integer, notB As Integer)), 2)
+        M6((notA:=1, notB:=2))
+        M7(Nothing, (notA:=1, notB:=2))
+    End Sub
+    Shared Function M6(Of T)(x As T) As (Generic(Of T), Integer)
+        Return Nothing
+    End Function
+    Shared Sub M7(Of T)(g As (Generic(Of T), Integer), x As T)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Shared Function MError3() As (Generic(Of (notA As Integer, notB As Integer)), Integer)
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error4 As (Generic(Of (notA As Integer, notB As Integer)), Integer) = (Nothing, 2)
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error5 = (New Generic(Of (notA As Integer, notB As Integer)), 2)
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M6((notA:=1, notB:=2))
+        ~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M7(Nothing, (notA:=1, notB:=2))
+        ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub DifferentTupleNamesInParametersAffectOverloadResolution2()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Class List(Of T)
+End Class
+Class Base
+    Implements I(Of (a As Integer, b As Integer))
+End Class
+Class Generic(Of U)
+    Inherits Base
+    Implements I(Of U)
+    ' This type will break the tuple names constraint when instantiated with proper U
+End Class
+Class Generic2(Of V)
+    Inherits List(Of Generic(Of V))
+End Class
 Class C
     Shared Sub Main()
-        Dim b As Base = New Derived()
-        Dim x = Test(b) ' tuple names from Base, implementation from Derived
-        System.Console.WriteLine(x.a)
+        M7(Nothing, (notA:=1, notB:=2)) ' Generic candidate is eliminated during overload resolution
+        M7(Nothing, (a:=10, b:=20))
     End Sub
-
-    Shared Function Test(Of T)(t1 As ITest(Of T)) As T
-        Return t1.M()
-    End Function
+    Shared Sub M7(Of T)(g As List(Of Generic(Of T)), x As T)
+        System.Console.Write($"Generic {x}. ")
+    End Sub
+    Shared Sub M7(o1 As Object, o2 As Object)
+        System.Console.Write($"Object {o2}. ")
+    End Sub
 End Class
 ]]></file>
 </compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
 
             comp.AssertTheseDiagnostics()
-            CompileAndVerify(comp, expectedOutput:="3")
+            CompileAndVerify(comp, expectedOutput:="Object (1, 2). Generic (10, 20).")
 
-            Dim tree = comp.SyntaxTrees.Single()
-            Dim model = comp.GetSemanticModel(tree)
-            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
-            Dim x = nodes.OfType(Of VariableDeclaratorSyntax)().ElementAt(1).Names(0)
-            Assert.Equal("x", x.Identifier.ToString())
-            Dim xSymbol = DirectCast(model.GetDeclaredSymbol(x), LocalSymbol).Type
-            Assert.Equal("(a As System.Int32, b As System.Int32)", xSymbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub DifferentTupleNamesInParametersAffectOverloadResolution()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Class Base
+    Implements I(Of (a As Integer, b As Integer))
+End Class
+Class Generic(Of U)
+    Inherits Base
+    Implements I(Of U)
+End Class
+Class C
+    Shared Sub Main()
+        M7(Nothing, (notA:=1, notB:=2)) ' Generic candidate is eliminated during overload resolution
+        M7(Nothing, (a:=10, b:=20))
+    End Sub
+    Shared Sub M7(Of T)(g As Generic(Of T), x As T)
+        System.Console.Write($"Generic {x}. ")
+    End Sub
+    Shared Sub M7(o1 As Object, o2 As Object)
+        System.Console.Write($"Object {o2}. ")
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            comp.AssertTheseDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="Object (1, 2). Generic (10, 20).")
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub DifferentTupleNamesInReturnTypeAffectOverloadResolution()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Class Base
+    Implements I(Of (a As Integer, b As Integer))
+End Class
+Class Generic(Of U)
+    Inherits Base
+    Implements I(Of U)
+End Class
+Class C
+    Shared Sub Main()
+        M6((notA:=1, notB:=2)) ' Generic candidate is eliminated during overload resolution
+        M6((a:=1, b:=2))
+    End Sub
+    Shared Function M6(Of T)(x As T) As Generic(Of T)
+        System.Console.Write($"Generic {x}.")
+        Return Nothing
+    End Function
+    Shared Sub M6(o As Object)
+        System.Console.Write($"Object {o}. ")
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+
+            ' Note this is different than C#, which only checks constraints on parameters when considering candidates,
+            ' but then checks the return type during final validation
+            ' In VB, each candidate method (with substitutions) gets a full constraint check.
+            comp.AssertTheseDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="Object (1, 2). Generic (1, 2).")
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub ChangeIndirectTupleNamesFromBaseViaGeneric()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Interface I2(Of T)
+    Inherits I(Of T)
+End Interface
+Class Base
+    Implements I2(Of (a As Integer, b As Integer))
+End Class
+Class Generic1(Of U)
+    Inherits Base
+    Implements I(Of U)
+End Class
+Class Error1
+    Inherits Generic1(Of (notA As Integer, notB As Integer))
+End Class
+
+Class Base2
+    Implements I(Of (a As Integer, b As Integer))
+End Class
+Class Generic2(Of U)
+    Inherits Base2
+    Implements I2(Of U)
+End Class
+Class Error2
+    Inherits Generic2(Of (notA As Integer, notB As Integer))
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic1(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+Class Error1
+      ~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic2(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+Class Error2
+      ~~~~~~
+</errors>)
+
+            Dim error1Symbol = comp.GetTypeByMetadataName("Error1")
+            Assert.Equal({"I2(Of (a As System.Int32, b As System.Int32))", "I(Of (notA As System.Int32, notB As System.Int32))"},
+                         error1Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+            Dim error2Symbol = comp.GetTypeByMetadataName("Error2")
+            Assert.Equal({"I2(Of (notA As System.Int32, notB As System.Int32))", "I(Of (notA As System.Int32, notB As System.Int32))"},
+                         error2Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub ChangeIndirectTupleNamesFromBaseViaGeneric2()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Interface I2(Of T)
+    Inherits I(Of T)
+End Interface
+Class Base
+    Implements I2(Of (a As Integer, b As Integer))
+End Class
+Class Generic1(Of U)
+    Inherits Base
+    Implements I(Of U)
+End Class
+Class Generic2(Of U)
+    Inherits Generic1(Of U)
+End Class
+Class Error1
+    Inherits Generic1(Of (notA As Integer, notB As Integer))
+End Class
+
+Class C
+    Shared Function MError3() As Generic2(Of (notA As Integer, notB As Integer))()
+        Return Nothing
+    End Function
+    Shared Sub M()
+        Dim error4 As Generic2(Of (notA As Integer, notB As Integer)) = Nothing
+        Dim error5 = New Generic2(Of (notA As Integer, notB As Integer))
+        M6((notA:=1, notB:=2))
+        M7(Nothing, (notA:=1, notB:=2))
+    End Sub
+    Shared Function M6(Of T)(x As T) As Generic2(Of T)
+        Return Nothing
+    End Function
+    Shared Sub M7(Of T)(g As Generic2(Of T), x As T)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic1(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+Class Error1
+      ~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic1(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Shared Function MError3() As Generic2(Of (notA As Integer, notB As Integer))()
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic1(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error4 As Generic2(Of (notA As Integer, notB As Integer)) = Nothing
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic1(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error5 = New Generic2(Of (notA As Integer, notB As Integer))
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic1(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M6((notA:=1, notB:=2))
+        ~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Generic1(Of (notA As Integer, notB As Integer))' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M7(Nothing, (notA:=1, notB:=2))
+        ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub ChangeIndirectTupleNamesFromBaseViaContainingType()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Class Base
+    Implements I(Of (a As Integer, b As Integer))
+End Class
+
+Class Containing(Of T)
+    Public Class Contained
+        Inherits Base
+        Implements I(Of T)
+    End Class
+End Class
+Class Error1
+    Inherits Containing(Of (notA1 As Integer, notB1 As Integer)).Contained
+End Class
+Class Error2(Of E2 As Containing(Of (notA2 As Integer, notB2 As Integer)).Contained)
+End Class
+
+Class C
+    Shared Function MError3() As Containing(Of (notA As Integer, notB As Integer)).Contained()
+        Return Nothing
+    End Function
+    Shared Sub M()
+        Dim error4 As Containing(Of (notA As Integer, notB As Integer)).Contained = Nothing
+        Dim error5 = New Containing(Of (notA As Integer, notB As Integer)).Contained()
+        M6((notA:=1, notB:=2))
+        M7(Nothing, (notA:=1, notB:=2))
+    End Sub
+    Shared Function M6(Of T)(x As T) As Containing(Of T).Contained
+        Return Nothing
+    End Function
+    Shared Sub M7(Of T)(g As Containing(Of T).Contained, x As T)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37282: 'I(Of (notA1 As Integer, notB1 As Integer))' is already listed in the interface list on the base of type 'Containing(Of (notA1 As Integer, notB1 As Integer)).Contained' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Inherits Containing(Of (notA1 As Integer, notB1 As Integer)).Contained
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA2 As Integer, notB2 As Integer))' is already listed in the interface list on the base of type 'Containing(Of (notA2 As Integer, notB2 As Integer)).Contained' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+Class Error2(Of E2 As Containing(Of (notA2 As Integer, notB2 As Integer)).Contained)
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Containing(Of (notA As Integer, notB As Integer)).Contained' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+    Shared Function MError3() As Containing(Of (notA As Integer, notB As Integer)).Contained()
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Containing(Of (notA As Integer, notB As Integer)).Contained' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error4 As Containing(Of (notA As Integer, notB As Integer)).Contained = Nothing
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Containing(Of (notA As Integer, notB As Integer)).Contained' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        Dim error5 = New Containing(Of (notA As Integer, notB As Integer)).Contained()
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Containing(Of (notA As Integer, notB As Integer)).Contained' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M6((notA:=1, notB:=2))
+        ~~
+BC37282: 'I(Of (notA As Integer, notB As Integer))' is already listed in the interface list on the base of type 'Containing(Of (notA As Integer, notB As Integer)).Contained' with different tuple element names, as 'I(Of (a As Integer, b As Integer))'.
+        M7(Nothing, (notA:=1, notB:=2))
+        ~~
+</errors>)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub ReImplementIntegerInterface()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Class Base
+    Implements I(Of Integer)
+End Class
+Class Generic(Of U)
+    Inherits Base
+    Implements I(Of U)
+End Class
+Class C
+    Inherits Generic(Of Integer)
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim error2Symbol = comp.GetTypeByMetadataName("C")
+            Assert.Equal({"I(Of System.Int32)"}, error2Symbol.AllInterfaces.Select(Function(i) i.ToTestDisplayString()))
+
+        End Sub
+
+        <Fact>
+        <WorkItem(14841, "https://github.com/dotnet/roslyn/issues/14841")>
+        Sub CircularTupleNamesCheck()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I(Of T)
+End Interface
+Class Base(Of T)
+    Implements I(Of (a As Integer, b As Integer))
+End Class
+Class Derived(Of U)
+    Inherits Base(Of Derived(Of U))
+    Implements I(Of U)
+End Class
+Class CircularTupleNamesCheck
+    Inherits Derived(Of (a As Integer, b As Integer))
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
         End Sub
 
         <Fact()>

@@ -1475,8 +1475,11 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_DuplicateInterfaceInBaseList" xml:space="preserve">
     <value>'{0}' is already listed in interface list</value>
   </data>
+  <data name="ERR_DuplicateInterfaceWithTupleNames" xml:space="preserve">
+    <value>'{0}' is already implemented by type '{2}' with different tuple element names, as '{1}'.</value>
+  </data>
   <data name="ERR_DuplicateInterfaceWithTupleNamesInBaseList" xml:space="preserve">
-    <value>'{0}' is already listed in the interface list on type '{2}' with different tuple element names, as '{1}'.</value>
+    <value>'{0}' is already implemented by the base of type '{2}' with different tuple element names, as '{1}'.</value>
   </data>
   <data name="ERR_CycleInInterfaceInheritance" xml:space="preserve">
     <value>Inherited interface '{1}' causes a cycle in the interface hierarchy of '{0}'</value>
