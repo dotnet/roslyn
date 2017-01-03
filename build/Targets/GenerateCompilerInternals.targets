@@ -74,11 +74,11 @@
 
   <Target Name="GenerateSyntaxModelGetText"
           Inputs="@(SyntaxGetTextDefinition);$(VBSyntaxGeneratorToolPath)"
-          Outputs="@(SyntaxGetTextDefinition -&gt; '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')"
+          Outputs="@(SyntaxGetTextDefinition -> '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')"
           Condition="'$(BuildingProject)' == 'true' AND '$(Language)' == 'VB'">
     <PropertyGroup>
       <SyntaxGenerator>"$(CoreRunExe)" "$(VBSyntaxGeneratorToolPath)"</SyntaxGenerator>
-      <GeneratedSyntaxModelGetText>@(SyntaxGetTextDefinition -&gt; '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModelGetText>
+      <GeneratedSyntaxModelGetText>@(SyntaxGetTextDefinition -> '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModelGetText>
     </PropertyGroup>
 
     <Exec Command="$(SyntaxGenerator) &quot;@(SyntaxGetTextDefinition)&quot; &quot;$(GeneratedSyntaxModelGetText)&quot; /gettext"
@@ -90,7 +90,7 @@
 
   <Target Name="CleanSyntaxModelGetText" Condition="'$(Language)' == 'VB'">
     <PropertyGroup>
-      <GeneratedSyntaxModelGetText>@(SyntaxGetTextDefinition -&gt; '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModelGetText>
+      <GeneratedSyntaxModelGetText>@(SyntaxGetTextDefinition -> '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModelGetText>
     </PropertyGroup>
 
     <Delete Files="$(GeneratedSyntaxModelGetText)" />
@@ -98,12 +98,12 @@
 
   <Target Name="GenerateSyntaxModelTests"
           Inputs="@(SyntaxTestDefinition);$(VBSyntaxGeneratorToolPath);$(CSharpSyntaxGeneratorToolPath)"
-          Outputs="@(SyntaxTestDefinition -&gt; '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')"
+          Outputs="@(SyntaxTestDefinition -> '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')"
           Condition="'@(SyntaxTestDefinition)' != '' AND '$(BuildingProject)' == 'true' AND ('$(Language)' == 'VB' OR '$(Language)' == 'C#')">
     <PropertyGroup>
       <SyntaxGenerator Condition="'$(Language)' == 'VB'">"$(CoreRunExe)" "$(VBSyntaxGeneratorToolPath)"</SyntaxGenerator>
       <SyntaxGenerator Condition="'$(Language)' == 'C#'">"$(CoreRunExe)" "$(CSharpSyntaxGeneratorToolPath)"</SyntaxGenerator>
-      <GeneratedSyntaxModelTests>@(SyntaxTestDefinition -&gt; '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModelTests>
+      <GeneratedSyntaxModelTests>@(SyntaxTestDefinition -> '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModelTests>
     </PropertyGroup>
 
     <Exec Command="$(SyntaxGenerator) &quot;@(SyntaxTestDefinition)&quot; &quot;$(GeneratedSyntaxModelTests)&quot; /test"
@@ -115,7 +115,7 @@
 
   <Target Name="CleanSyntaxModelTests" Condition="'$(Language)' == 'VB' OR '$(Language)' == 'C#'">
     <PropertyGroup>
-      <GeneratedSyntaxModelTests>@(SyntaxTestDefinition -&gt; '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModelTests>
+      <GeneratedSyntaxModelTests>@(SyntaxTestDefinition -> '$(IntermediateOutputPath)\%(FileName)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedSyntaxModelTests>
     </PropertyGroup>
 
     <Delete Files="$(GeneratedSyntaxModelTests)" />
@@ -123,11 +123,11 @@
 
   <Target Name="GenerateBoundTree"
           Inputs="@(BoundTreeDefinition);$(BoundTreeGeneratorToolPath)"
-          Outputs="@(BoundTreeDefinition -&gt; '$(IntermediateOutputPath)%(Filename)%(Extension).Generated$(DefaultLanguageSourceExtension)')"
+          Outputs="@(BoundTreeDefinition -> '$(IntermediateOutputPath)%(Filename)%(Extension).Generated$(DefaultLanguageSourceExtension)')"
           Condition="'@(BoundTreeDefinition)' != '' AND '$(BuildingProject)' == 'true' AND ('$(Language)' == 'VB' OR '$(Language)' == 'C#')">
     <PropertyGroup>
       <BoundTreeGenerator>"$(CoreRunExe)" "$(BoundTreeGeneratorToolPath)"</BoundTreeGenerator>
-      <GeneratedBoundTree>@(BoundTreeDefinition -&gt; '$(IntermediateOutputPath)%(Filename)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedBoundTree>
+      <GeneratedBoundTree>@(BoundTreeDefinition -> '$(IntermediateOutputPath)%(Filename)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedBoundTree>
     </PropertyGroup>
 
     <Exec Command="$(BoundTreeGenerator) $(Language) &quot;@(BoundTreeDefinition)&quot; &quot;$(GeneratedBoundTree)&quot;"
@@ -138,7 +138,7 @@
 
   <Target Name="CleanBoundTree" Condition="'$(Language)' == 'VB' OR '$(Language)' == 'C#'">
     <PropertyGroup>
-      <GeneratedBoundTree>@(BoundTreeDefinition -&gt; '$(IntermediateOutputPath)%(Filename)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedBoundTree>
+      <GeneratedBoundTree>@(BoundTreeDefinition -> '$(IntermediateOutputPath)%(Filename)%(Extension).Generated$(DefaultLanguageSourceExtension)')</GeneratedBoundTree>
     </PropertyGroup>
 
     <Delete Files="$(GeneratedBoundTree)" />
@@ -152,12 +152,12 @@
 
   <Target Name="GenerateErrorFacts"
           Inputs="@(ErrorCode);$(CSharpErrorFactsGeneratorToolPath);$(VBErrorFactsGeneratorToolPath)"
-          Outputs="@(ErrorCode -&gt; '$(IntermediateOutputPath)ErrorFacts.Generated$(DefaultLanguageSourceExtension)')"
+          Outputs="@(ErrorCode -> '$(IntermediateOutputPath)ErrorFacts.Generated$(DefaultLanguageSourceExtension)')"
           Condition="'@(ErrorCode)' != '' AND '$(BuildingProject)' == 'true' AND ('$(Language)' == 'VB' OR '$(Language)' == 'C#')">
     <PropertyGroup>
       <ErrorFactsGenerator Condition="'$(Language)' == 'VB'">"$(CoreRunExe)" "$(VBErrorFactsGeneratorToolPath)"</ErrorFactsGenerator>
       <ErrorFactsGenerator Condition="'$(Language)' == 'C#'">"$(CoreRunExe)" "$(CSharpErrorFactsGeneratorToolPath)"</ErrorFactsGenerator>
-      <GeneratedErrorFacts>@(ErrorCode -&gt; '$(IntermediateOutputPath)ErrorFacts.Generated$(DefaultLanguageSourceExtension)')</GeneratedErrorFacts>
+      <GeneratedErrorFacts>@(ErrorCode -> '$(IntermediateOutputPath)ErrorFacts.Generated$(DefaultLanguageSourceExtension)')</GeneratedErrorFacts>
     </PropertyGroup>
 
     <Exec Command="$(ErrorFactsGenerator) &quot;@(ErrorCode)&quot; &quot;$(GeneratedErrorFacts)&quot;"
@@ -168,7 +168,7 @@
 
   <Target Name="CleanErrorFacts" Condition="'$(Language)' == 'VB' OR '$(Language)' == 'C#'">
     <PropertyGroup>
-      <GeneratedErrorFacts>@(ErrorCode -&gt; '$(IntermediateOutputPath)ErrorFacts.Generated$(DefaultLanguageSourceExtension)')</GeneratedErrorFacts>
+      <GeneratedErrorFacts>@(ErrorCode -> '$(IntermediateOutputPath)ErrorFacts.Generated$(DefaultLanguageSourceExtension)')</GeneratedErrorFacts>
     </PropertyGroup>
 
     <Delete Files="$(GeneratedErrorFacts)" />
