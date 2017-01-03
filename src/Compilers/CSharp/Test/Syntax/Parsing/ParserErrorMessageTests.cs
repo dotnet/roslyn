@@ -6,11 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ParserErrorMessageTests : ParsingTests
     {
+        public ParserErrorMessageTests(ITestOutputHelper output) : base(output) { }
+
         #region "Targeted Error Tests - please arrange tests in the order of error code"
 
         [WorkItem(536666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536666")]
@@ -2064,9 +2067,9 @@ namespace x
                 // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //             e = new ();     // CS1031, too few tuple elements
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
-                // (9,21): error CS8124: Tuple must contain at least two elements.
+                // (9,22): error CS8124: Tuple must contain at least two elements.
                 //             e = new ();     // CS1031, too few tuple elements
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 22),
                 // (9,23): error CS1526: A new expression requires (), [], or {} after type
                 //             e = new ();     // CS1031, too few tuple elements
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
@@ -2112,12 +2115,12 @@ namespace x
                 // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
-                // (9,21): error CS8124: Tuple must contain at least two elements.
-                //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),
                 // (9,21): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(9, 21),
+                // (9,22): error CS8124: Tuple must contain at least two elements.
+                //             e = new ();     // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 22),
                 // (9,23): error CS1526: A new expression requires (), [], or {} after type
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
@@ -2191,9 +2194,9 @@ class A
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-                // (4,41): error CS8124: Tuple must contain at least two elements.
+                // (4,42): error CS8124: Tuple must contain at least two elements.
                 //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(4, 41),
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 42),
                 // (4,43): error CS1001: Identifier expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 43),
@@ -2249,12 +2252,12 @@ class A
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-                // (4,41): error CS8124: Tuple must contain at least two elements.
-                //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(4, 41),
                 // (4,41): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(4, 41),
+                // (4,42): error CS8124: Tuple must contain at least two elements.
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 42),
                 // (4,43): error CS1001: Identifier expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 43),
@@ -3595,9 +3598,9 @@ public class MainClass
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
-                // (3,41): error CS8124: Tuple must contain at least two elements.
+                // (3,47): error CS8124: Tuple must contain at least two elements.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(foo f)").WithLocation(3, 41),
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),
                 // (3,49): error CS1001: Identifier expected
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 49),
@@ -3649,12 +3652,12 @@ public class MainClass
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
-                // (3,41): error CS8124: Tuple must contain at least two elements.
-                //     public static int implicit operator (foo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(foo f)").WithLocation(3, 41),
                 // (3,41): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7").WithLocation(3, 41),
+                // (3,47): error CS8124: Tuple must contain at least two elements.
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),
                 // (3,49): error CS1001: Identifier expected
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 49),

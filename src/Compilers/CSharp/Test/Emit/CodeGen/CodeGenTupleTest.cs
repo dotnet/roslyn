@@ -20951,5 +20951,65 @@ class C
             var xSymbol = (model.GetDeclaredSymbol(x) as LocalSymbol)?.Type;
             Assert.Equal("(System.Int32 a, System.Int32 b)", xSymbol.ToTestDisplayString());
         }
+
+        [Fact]
+        [WorkItem(14091, "https://github.com/dotnet/roslyn/issues/14091")]
+        public void TupleTypeWithTooFewElements()
+        {
+            var source = @"
+class C
+{
+    void M(int x, () y, (int a) z) { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (4,20): error CS8124: Tuple must contain at least two elements.
+                //     void M(int x, () y, (int a) z) { }
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 20),
+                // (4,31): error CS8124: Tuple must contain at least two elements.
+                //     void M(int x, () y, (int a) z) { }
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 31)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var y = tree.GetRoot().DescendantNodes().OfType<TupleTypeSyntax>().ElementAt(0);
+            Assert.Equal("()", y.ToString());
+            var yType = model.GetTypeInfo(y);
+            Assert.Equal("(?, ?)", yType.Type.ToTestDisplayString());
+
+            var z = tree.GetRoot().DescendantNodes().OfType<TupleTypeSyntax>().ElementAt(1);
+            Assert.Equal("(int a)", z.ToString());
+            var zType = model.GetTypeInfo(z);
+            Assert.Equal("(System.Int32 a, ?)", zType.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(14091, "https://github.com/dotnet/roslyn/issues/14091")]
+        public void TupleExpressionWithTooFewElements()
+        {
+            var source = @"
+class C
+{
+    object x = (Alice: 1);
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (4,25): error CS8124: Tuple must contain at least two elements.
+                //     object x = (Alice: 1);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 25)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
+            Assert.Equal("(Alice: 1)", tuple.ToString());
+            var tupleType = model.GetTypeInfo(tuple);
+            Assert.Equal("(System.Int32 Alice, ?)", tupleType.Type.ToTestDisplayString());
+        }
     }
 }

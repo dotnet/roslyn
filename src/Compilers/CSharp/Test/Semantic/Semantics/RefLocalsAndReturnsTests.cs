@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -997,6 +998,108 @@ class C
             CompileAndVerify(text,
                 expectedOutput: "frog",
                 additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefQueryClause()
+        {
+            // a "ref" may not precede the expression of a query clause...
+            // simply because the grammar doesn't permit it. Here we check
+            // that the situation is diagnosed, either syntactically or semantically.
+            // The precise diagnostics are not important for the purposes of this test.
+            var text = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        var a = new[] { 1, 2, 3, 4 };
+        bool b = true;
+        int i = 0;
+        { var za = from x in a select ref x; } // error 1
+        { var zc = from x in a from y in ref a select x; } // error2
+        { var zd = from x in a from int y in ref a select x; } // error 3
+        { var ze = from x in a from y in ref a where true select x; } // error 4
+        { var zf = from x in a from int y in ref a where true select x; } // error 5
+        { var zg = from x in a let y = ref a select x; } // error 6
+        { var zh = from x in a where ref b select x; } // error 7
+        { var zi = from x in a join y in ref a on x equals y select x; } // error 8 (not lambda case)
+        { var zj = from x in a join y in a on ref i equals y select x; } // error 9
+        { var zk = from x in a join y in a on x equals ref i select x; } // error 10
+        { var zl = from x in a orderby ref i select x; } // error 11
+        { var zm = from x in a orderby x, ref i select x; } // error 12
+        { var zn = from x in a group ref i by x; } // error 13
+        { var zo = from x in a group x by ref i; } // error 14
+    }
+    public static T M<T>(T x, out T z) => z = x;
+
+    public C Select(RefFunc<C, C> c1) => this;
+    public C SelectMany(RefFunc<C, C> c1, RefFunc<C, C, C> c2) => this;
+    public C Cast<T>() => this;
+}
+public delegate ref TR RefFunc<T1, TR>(T1 t1);
+public delegate ref TR RefFunc<T1, T2, TR>(T1 t1, T2 t2);
+";
+            CreateCompilationWithMscorlibAndSystemCore(text)
+                .GetDiagnostics()
+                // It turns out each of them is diagnosed with ErrorCode.ERR_InvalidExprTerm in the midst
+                // of a flurry of other syntax errors.
+                .Where(d => d.Code == (int)ErrorCode.ERR_InvalidExprTerm)
+                .Verify(
+                // (9,39): error CS1525: Invalid expression term 'ref'
+                //         { var za = from x in a select ref x; } // error 1
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(9, 39),
+                // (10,42): error CS1525: Invalid expression term 'ref'
+                //         { var zc = from x in a from y in ref a select x; } // error2
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(10, 42),
+                // (11,46): error CS1525: Invalid expression term 'ref'
+                //         { var zd = from x in a from int y in ref a select x; } // error 3
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(11, 46),
+                // (12,42): error CS1525: Invalid expression term 'ref'
+                //         { var ze = from x in a from y in ref a where true select x; } // error 4
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(12, 42),
+                // (13,46): error CS1525: Invalid expression term 'ref'
+                //         { var zf = from x in a from int y in ref a where true select x; } // error 5
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(13, 46),
+                // (14,40): error CS1525: Invalid expression term 'ref'
+                //         { var zg = from x in a let y = ref a select x; } // error 6
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(14, 40),
+                // (15,38): error CS1525: Invalid expression term 'ref'
+                //         { var zh = from x in a where ref b select x; } // error 7
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(15, 38),
+                // (16,42): error CS1525: Invalid expression term 'ref'
+                //         { var zi = from x in a join y in ref a on x equals y select x; } // error 8 (not lambda case)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(16, 42),
+                // (16,42): error CS1525: Invalid expression term 'ref'
+                //         { var zi = from x in a join y in ref a on x equals y select x; } // error 8 (not lambda case)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(16, 42),
+                // (16,42): error CS1525: Invalid expression term 'ref'
+                //         { var zi = from x in a join y in ref a on x equals y select x; } // error 8 (not lambda case)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(16, 42),
+                // (17,47): error CS1525: Invalid expression term 'ref'
+                //         { var zj = from x in a join y in a on ref i equals y select x; } // error 9
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(17, 47),
+                // (17,47): error CS1525: Invalid expression term 'ref'
+                //         { var zj = from x in a join y in a on ref i equals y select x; } // error 9
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(17, 47),
+                // (18,56): error CS1525: Invalid expression term 'ref'
+                //         { var zk = from x in a join y in a on x equals ref i select x; } // error 10
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(18, 56),
+                // (19,40): error CS1525: Invalid expression term 'ref'
+                //         { var zl = from x in a orderby ref i select x; } // error 11
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(19, 40),
+                // (20,43): error CS1525: Invalid expression term 'ref'
+                //         { var zm = from x in a orderby x, ref i select x; } // error 12
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(20, 43),
+                // (21,38): error CS1525: Invalid expression term 'ref'
+                //         { var zn = from x in a group ref i by x; } // error 13
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(21, 38),
+                // (21,38): error CS1525: Invalid expression term 'ref'
+                //         { var zn = from x in a group ref i by x; } // error 13
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(21, 38),
+                // (22,43): error CS1525: Invalid expression term 'ref'
+                //         { var zo = from x in a group x by ref i; } // error 14
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(22, 43)
+                );
         }
     }
 }

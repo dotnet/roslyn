@@ -837,20 +837,57 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput:
-@"1
-3
-5
-2
-4
-6
-7
-8
-10
-9
-11
-12
-");
+            compilation.VerifyDiagnostics(
+                // (14,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   from x2 in new[] { 2 is var y2 && Print(y2) ? 1 : 0}
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(14, 47),
+                // (16,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                        on 4 is var y4 && Print(y4) ? 1 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(16, 36),
+                // (17,43): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           equals 5 is var y5 && Print(y5) ? 1 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(17, 43),
+                // (18,34): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   where 6 is var y6 && Print(y6)
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(18, 34),
+                // (19,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   orderby 7 is var y7 && Print(y7), 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(19, 36),
+                // (20,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           8 is var y8 && Print(y8) 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(20, 36),
+                // (22,32): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   by 10 is var y10 && Print(y10)
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(22, 32),
+                // (21,34): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   group 9 is var y9 && Print(y9) 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(21, 34),
+                // (24,39): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   let x11 = 11 is var y11 && Print(y11)
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y11").WithLocation(24, 39),
+                // (25,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   select 12 is var y12 && Print(y12);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y12").WithLocation(25, 36)
+                );
+
+            // Because expression variables are not permitted in query clauses (https://github.com/dotnet/roslyn/issues/15910)
+            // this program cannot be run. However, once we allow that (https://github.com/dotnet/roslyn/issues/15619)
+            // the program wil be capable of being run. In that case the following (commented code) would test for the expected output.
+
+//            CompileAndVerify(compilation, expectedOutput:
+//@"1
+//3
+//5
+//2
+//4
+//6
+//7
+//8
+//10
+//9
+//11
+//12
+//");
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);

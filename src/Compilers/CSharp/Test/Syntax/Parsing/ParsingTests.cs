@@ -1,18 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Xunit;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public abstract class ParsingTests : CSharpTestBase
     {
         private IEnumerator<SyntaxNodeOrToken> _treeEnumerator;
+        private readonly ITestOutputHelper _output;
+
+        public ParsingTests(ITestOutputHelper output)
+        {
+            this._output = output;
+        }
 
         public static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
         {
@@ -144,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(_treeEnumerator.MoveNext());
         }
 
-        private static IEnumerable<SyntaxNodeOrToken> EnumerateNodes(CSharpSyntaxNode node)
+        private IEnumerable<SyntaxNodeOrToken> EnumerateNodes(CSharpSyntaxNode node)
         {
             Print(node);
             yield return node;
@@ -182,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Conditional("PARSING_TESTS_DUMP")]
-        private static void Print(SyntaxNodeOrToken node)
+        private void Print(SyntaxNodeOrToken node)
         {
             switch (node.Kind())
             {
@@ -192,30 +199,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         goto default;
                     }
-                    Debug.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), node.ToString());
+                    _output.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), node.ToString());
                     break;
                 default:
-                    Debug.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
+                    _output.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
                     break;
             }
         }
 
         [Conditional("PARSING_TESTS_DUMP")]
-        private static void Open()
+        private void Open()
         {
-            Debug.WriteLine("{");
+            _output.WriteLine("{");
         }
 
         [Conditional("PARSING_TESTS_DUMP")]
-        private static void Close()
+        private void Close()
         {
-            Debug.WriteLine("}");
+            _output.WriteLine("}");
         }
 
         [Conditional("PARSING_TESTS_DUMP")]
-        private static void Done()
+        private void Done()
         {
-            Debug.WriteLine("EOF();");
+            _output.WriteLine("EOF();");
         }
     }
 }

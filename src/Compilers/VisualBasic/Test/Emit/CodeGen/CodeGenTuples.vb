@@ -18700,6 +18700,73 @@ End Class
             Assert.Equal("(a As System.Int32, b As System.Int32)", xSymbol.ToTestDisplayString())
         End Sub
 
+        <Fact()>
+        <WorkItem(14091, "https://github.com/dotnet/roslyn/issues/14091")>
+        Public Sub TupleTypeWithTooFewElements()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C
+    Shared Sub M(x As Integer, y As (), z As (a As Integer))
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(<errors>
+BC30182: Type expected.
+    Shared Sub M(x As Integer, y As (), z As (a As Integer))
+                                     ~
+BC37259: Tuple must contain at least two elements.
+    Shared Sub M(x As Integer, y As (), z As (a As Integer))
+                                     ~
+BC37259: Tuple must contain at least two elements.
+    Shared Sub M(x As Integer, y As (), z As (a As Integer))
+                                                          ~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
+
+            Dim y = nodes.OfType(Of TupleTypeSyntax)().ElementAt(0)
+            Assert.Equal("()", y.ToString())
+            Dim yType = model.GetTypeInfo(y)
+            Assert.Equal("(?, ?)", yType.Type.ToTestDisplayString())
+
+            Dim z = nodes.OfType(Of TupleTypeSyntax)().ElementAt(1)
+            Assert.Equal("(a As Integer)", z.ToString())
+            Dim zType = model.GetTypeInfo(z)
+            Assert.Equal("(a As System.Int32, ?)", zType.Type.ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        <WorkItem(14091, "https://github.com/dotnet/roslyn/issues/14091")>
+        Public Sub TupleExpressionWithTooFewElements()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C
+    Dim x = (Alice:=1)
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(<errors>
+BC37259: Tuple must contain at least two elements.
+    Dim x = (Alice:=1)
+                     ~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = comp.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes()
+            Dim tuple = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(0)
+            Assert.Equal("(Alice:=1)", tuple.ToString())
+            Dim tupleType = model.GetTypeInfo(tuple)
+            Assert.Equal("(Alice As System.Int32, ?)", tupleType.Type.ToTestDisplayString())
+        End Sub
+
     End Class
 
 End Namespace
