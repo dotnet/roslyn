@@ -130,14 +130,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     case SyntaxKind.TypeConstraint:
                         {
-                            var typeSyntax = (TypeConstraintSyntax)syntax;
-                            var type = this.BindType(typeSyntax.Type, diagnostics);
+                            var typeConstraintSyntax = (TypeConstraintSyntax)syntax;
+                            var typeSyntax = typeConstraintSyntax.Type;
+                            if (typeSyntax.Kind() != SyntaxKind.PredefinedType && !SyntaxFacts.IsName(typeSyntax.Kind()))
+                            {
+                                diagnostics.Add(ErrorCode.ERR_BadConstraintType, typeSyntax.GetLocation());
+                            }
+
+                            var type = this.BindType(typeSyntax, diagnostics);
 
                             // Only valid constraint types are included in ConstraintTypes
                             // since, in general, it may be difficult to support all invalid types.
                             // In the future, we may want to include some invalid types
                             // though so the public binding API has the most information.
-                            if (!IsValidConstraintType(typeSyntax, type, diagnostics))
+                            if (!IsValidConstraintType(typeConstraintSyntax, type, diagnostics))
                             {
                                 continue;
                             }

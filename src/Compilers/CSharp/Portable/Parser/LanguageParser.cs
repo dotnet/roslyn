@@ -1826,7 +1826,7 @@ tryAgain:
                 }
                 else
                 {
-                    TypeSyntax firstType = this.ParseDeclarationType(isConstraint: false);
+                    TypeSyntax firstType = this.ParseDeclarationType();
 
                     list.Add(_syntaxFactory.SimpleBaseType(firstType));
 
@@ -1847,7 +1847,7 @@ tryAgain:
                             }
                             else
                             {
-                                list.Add(_syntaxFactory.SimpleBaseType(this.ParseDeclarationType(isConstraint: false)));
+                                list.Add(_syntaxFactory.SimpleBaseType(this.ParseDeclarationType()));
                             }
 
                             continue;
@@ -1981,7 +1981,7 @@ tryAgain:
                     var classToken = this.EatToken();
                     return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken);
                 default:
-                    var type = this.ParseDeclarationType(isConstraint: true);
+                    var type = this.ParseType();
                     return _syntaxFactory.TypeConstraint(type);
             }
         }
@@ -1996,19 +1996,12 @@ tryAgain:
                 expected);
         }
 
-        private TypeSyntax ParseDeclarationType(bool isConstraint)
+        private TypeSyntax ParseDeclarationType()
         {
             var type = this.ParseType();
             if (type.Kind != SyntaxKind.PredefinedType && !SyntaxFacts.IsName(type.Kind))
             {
-                if (isConstraint)
-                {
-                    type = this.AddError(type, ErrorCode.ERR_BadConstraintType);
-                }
-                else
-                {
-                    type = this.AddError(type, ErrorCode.ERR_BadBaseType);
-                }
+                type = this.AddError(type, ErrorCode.ERR_BadBaseType);
             }
 
             return type;
