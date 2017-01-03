@@ -1975,9 +1975,11 @@ tryAgain:
                     var close = this.EatToken(SyntaxKind.CloseParenToken);
                     return _syntaxFactory.ConstructorConstraint(newToken, open, close);
                 case SyntaxKind.StructKeyword:
-                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint, this.EatToken());
+                    var structToken = this.EatToken();
+                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint, structToken);
                 case SyntaxKind.ClassKeyword:
-                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, this.EatToken());
+                    var classToken = this.EatToken();
+                    return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken);
                 default:
                     var type = this.ParseDeclarationType(isConstraint: true);
                     return _syntaxFactory.TypeConstraint(type);
