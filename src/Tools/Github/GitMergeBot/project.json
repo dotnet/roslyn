@@ -1,7 +1,6 @@
 {
   "dependencies": {
     "LibGit2Sharp": "0.22.0",
-    "LibGit2Sharp.NativeBinaries": "1.0.160",
     "Mono.Options": "4.4.0",
     "Newtonsoft.Json": "9.0.1",
     "Octokit": "0.23.0",
