@@ -56,7 +56,6 @@
       {CandidateAssemblyFiles};
       $(ReferencePath);
       {TargetFrameworkDirectory};
-      {Registry:$(FrameworkRegistryBase),$(TargetFrameworkVersion),$(AssemblyFoldersSuffix)$(AssemblyFoldersExConditions)};
       {AssemblyFolders};
       {RawFileName};
     </AssemblySearchPaths>
