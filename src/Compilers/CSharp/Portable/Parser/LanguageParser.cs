@@ -3606,6 +3606,9 @@ parse_member_name:;
                     accessorKind = SyntaxKind.UnknownAccessorDeclaration;
                 }
 
+                // Only convert the identifier to a keyword if it's a valid one.  Otherwise any
+                // other contextual keyword (like 'partial') will be converted into a keyword
+                // and will be invalid.
                 if (accessorKind == SyntaxKind.UnknownAccessorDeclaration)
                 {
                     accessorName = this.AddError(accessorName,
@@ -3689,9 +3692,6 @@ parse_member_name:;
 
         private SyntaxKind GetAccessorKind(SyntaxToken accessorName)
         {
-            // Only convert the identifier to a keyword if it's a valid one.  Otherwise any
-            // other contextual keyword (like 'partial') will be converted into a keyword
-            // and will be invalid.
             switch (accessorName.ContextualKind)
             {
                 case SyntaxKind.GetKeyword: return SyntaxKind.GetAccessorDeclaration;
