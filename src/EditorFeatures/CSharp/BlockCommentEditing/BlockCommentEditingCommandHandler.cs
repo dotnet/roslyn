@@ -188,17 +188,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
                 // /*  |EOF
                 if (caretPosition == snapshot.Length)
                 {
-                    if (span.Length < 4) // "/**/".Length
+                    if (span.Length < "/**/".Length)
                     {
                         return true;
                     }
 
+                    // If the block comment is not closed, SyntaxTrivia contains diagnostics
+                    // So when the SyntaxTrivia is clean, the block comment should be closed
                     if (!trivia.ContainsDiagnostics)
                     {
                         return false;
                     }
 
-                    var textBeforeCaret = snapshot.GetText((int)caretPosition - 2, 2);
+                    var textBeforeCaret = snapshot.GetText(caretPosition.Position - 2, 2);
                     return textBeforeCaret != "*/";
                 }
             }
