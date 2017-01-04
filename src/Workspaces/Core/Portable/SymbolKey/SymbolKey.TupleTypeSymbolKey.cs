@@ -13,37 +13,43 @@ namespace Microsoft.CodeAnalysis
             public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
             {
                 Debug.Assert(symbol.IsTupleType);
-                visitor.WriteSymbolKey(symbol.TupleUnderlyingType);
 
-                var friendlyNames = ArrayBuilder<String>.GetInstance();
+                var elementTypes = ArrayBuilder<ISymbol>.GetInstance();
+                var friendlyNames = ArrayBuilder<string>.GetInstance();
                 var locations = ArrayBuilder<Location>.GetInstance();
 
                 foreach (var element in symbol.TupleElements)
                 {
+                    elementTypes.Add(element.Type);
                     friendlyNames.Add(element.IsImplicitlyDeclared ? null : element.Name);
                     locations.Add(element.Locations.FirstOrDefault());
                 }
 
+                visitor.WriteSymbolKeyArray(elementTypes.ToImmutableAndFree());
                 visitor.WriteStringArray(friendlyNames.ToImmutableAndFree());
                 visitor.WriteLocationArray(locations.ToImmutableAndFree());
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                var underlyingTypeResolution = reader.ReadSymbolKey();
+                var elementTypes = reader.ReadSymbolKeyArray().SelectAsArray(r => r.GetAnySymbol() as ITypeSymbol);
                 var elementNames = reader.ReadStringArray();
                 var elementLocations = reader.ReadLocationArray();
 
-                try
+                if (!elementTypes.Any(t => t == null))
                 {
-                    var result = GetAllSymbols<INamedTypeSymbol>(underlyingTypeResolution).Select(
-                        t => reader.Compilation.CreateTupleTypeSymbol(t, elementNames, elementLocations));
-                    return CreateSymbolInfo(result);
+                    try
+                    {
+                        var result = reader.Compilation.CreateTupleTypeSymbol(
+                            elementTypes, elementNames, elementLocations);
+                        return new SymbolKeyResolution(result);
+                    }
+                    catch (ArgumentException)
+                    {
+                    }
                 }
-                catch (ArgumentException)
-                {
-                    return new SymbolKeyResolution(reader.Compilation.ObjectType);
-                }
+
+                return new SymbolKeyResolution(reader.Compilation.ObjectType);
             }
         }
     }
