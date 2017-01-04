@@ -748,12 +748,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             builder.Add(BindDeclarationVariables(declType, n, diagnostics));
                         }
                         var subExpressions = builder.ToImmutableAndFree();
+
+                        // We will not check constraints at this point as this code path
+                        // is failure-only and the caller is expected to produce a diagnostic.
                         var tupleType = TupleTypeSymbol.Create(
                             null,
                             subExpressions.SelectAsArray(e => e.Type),
                             default(ImmutableArray<Location>),
                             default(ImmutableArray<string>),
-                            Compilation);
+                            Compilation,
+                            shouldCheckConstraints: false);
                         return new BoundTupleLiteral(node, default(ImmutableArray<string>), subExpressions, tupleType);
                     }
                 default:
@@ -814,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression boundArgument = BindValue(argumentSyntax.Expression, diagnostics, BindValueKind.RValue);
                 boundArguments.Add(boundArgument);
 
-                var elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, ref hasErrors);
+                var elementType = boundArgument.Type;
                 elementTypes.Add(elementType);
 
                 if ((object)elementType == null)
@@ -835,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasNaturalType)
             {
-                tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNamesArray, this.Compilation, node, diagnostics);
+                tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNamesArray, this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true);
             }
             else
             {
@@ -843,36 +847,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundTupleLiteral(node, elementNamesArray, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors);
-        }
-
-        /// <summary>
-        /// Returns the type to be used as a field type; generates errors in case the type is not
-        /// supported for tuple type fields.
-        /// </summary>
-        private TypeSymbol GetTupleFieldType(BoundExpression expression, CSharpSyntaxNode errorSyntax, DiagnosticBag diagnostics, ref bool hasError)
-        {
-            TypeSymbol expressionType = expression.Type;
-
-            if (!expression.HasAnyErrors)
-            {
-                if (expression.HasExpressionType())
-                {
-                    if (expressionType.SpecialType == SpecialType.System_Void)
-                    {
-                        expressionType = CreateErrorType(SyntaxFacts.GetText(SyntaxKind.VoidKeyword));
-
-                        hasError = true;
-                        Error(diagnostics, ErrorCode.ERR_FieldCantHaveVoidType, errorSyntax);
-                    }
-                    else if (expressionType.IsRestrictedType())
-                    {
-                        hasError = true;
-                        Error(diagnostics, ErrorCode.ERR_FieldCantBeRefAny, errorSyntax, expressionType);
-                    }
-                }
-            }
-
-            return expressionType;
         }
 
         private BoundExpression BindRefValue(RefValueExpressionSyntax node, DiagnosticBag diagnostics)
