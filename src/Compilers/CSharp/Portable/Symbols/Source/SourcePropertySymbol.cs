@@ -122,15 +122,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var accessor in syntax.AccessorList.Accessors)
                 {
-                    if (accessor.Kind() == SyntaxKind.GetAccessorDeclaration &&
-                        (getSyntax == null || getSyntax.Keyword.Span.IsEmpty))
+                    if (accessor.Kind() == SyntaxKind.GetAccessorDeclaration)
                     {
-                        getSyntax = accessor;
+                        if (getSyntax == null)
+                        {
+                            getSyntax = accessor;
+                        }
+                        else
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
+                        }
                     }
-                    else if (accessor.Kind() == SyntaxKind.SetAccessorDeclaration &&
-                        (setSyntax == null || setSyntax.Keyword.Span.IsEmpty))
+                    else if (accessor.Kind() == SyntaxKind.SetAccessorDeclaration)
                     {
-                        setSyntax = accessor;
+                        if (setSyntax == null)
+                        {
+                            setSyntax = accessor;
+                        }
+                        else
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
+                        }
                     }
                     else
                     {

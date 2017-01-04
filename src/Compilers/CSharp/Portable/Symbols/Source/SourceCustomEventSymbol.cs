@@ -75,15 +75,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (accessor.Kind())
                 {
                     case SyntaxKind.AddAccessorDeclaration:
-                        if (addSyntax == null || addSyntax.Keyword.Span.IsEmpty)
+                        if (addSyntax == null)
                         {
                             addSyntax = accessor;
                         }
+                        else
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
+                        }
                         break;
                     case SyntaxKind.RemoveAccessorDeclaration:
-                        if (removeSyntax == null || removeSyntax.Keyword.Span.IsEmpty)
+                        if (removeSyntax == null)
                         {
                             removeSyntax = accessor;
+                        }
+                        else
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
                         }
                         break;
                 }
