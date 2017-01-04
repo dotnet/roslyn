@@ -219,15 +219,14 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public string AssemblyName { get; }
 
-        internal static void CheckAssemblyName(string assemblyName)
+        internal void CheckAssemblyName(DiagnosticBag diagnostics)
         {
             // We could only allow name == null if OutputKind is Module. 
-            // However we couldn't check such condition here since one wouldn't be able to call WithName(...).WithOptions(...).
-            // It does no harm that we allow name == null for assemblies as well, so we don't enforce it.
+            // However, it does no harm that we allow name == null for assemblies as well, so we don't enforce it.
 
-            if (assemblyName != null)
+            if (this.AssemblyName != null)
             {
-                MetadataHelpers.ValidateAssemblyOrModuleName(assemblyName, "assemblyName");
+                MetadataHelpers.CheckAssemblyOrModuleName(this.AssemblyName, MessageProvider, MessageProvider.ERR_BadAssemblyName, diagnostics);
             }
         }
 

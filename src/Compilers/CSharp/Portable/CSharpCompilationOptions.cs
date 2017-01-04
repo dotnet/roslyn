@@ -559,11 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ModuleName != null)
             {
-                Exception e = MetadataHelpers.CheckAssemblyOrModuleName(ModuleName, nameof(ModuleName));
-                if (e != null)
-                {
-                    builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOption, e.Message));
-                }
+                MetadataHelpers.CheckAssemblyOrModuleName(ModuleName, MessageProvider.Instance, (int)ErrorCode.ERR_BadModuleName, builder);
             }
 
             if (!OutputKind.IsValid())

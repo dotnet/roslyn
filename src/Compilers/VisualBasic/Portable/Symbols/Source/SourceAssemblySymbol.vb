@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        netModules As ImmutableArray(Of PEModule))
 
             Debug.Assert(compilation IsNot Nothing)
-            Debug.Assert(Not String.IsNullOrWhiteSpace(assemblySimpleName))
+            Debug.Assert(assemblySimpleName IsNot Nothing)
             Debug.Assert(Not String.IsNullOrWhiteSpace(moduleName))
             Debug.Assert(Not netModules.IsDefault)
 

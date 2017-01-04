@@ -1224,7 +1224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_WinRtEventPassedByRef = 7084,
         ERR_ByRefReturnUnsupported = 7085,
         ERR_NetModuleNameMismatch = 7086,
-        ERR_BadCompilationOption = 7087,
+        ERR_BadModuleName = 7087,
         ERR_BadCompilationOptionValue = 7088,
         ERR_BadAppConfigPath = 7089,
         WRN_AssemblyAttributeFromModuleIsOverridden = 7090,
@@ -1451,6 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
         ERR_ExpressionVariableInQueryClause = 8201,
         ERR_PublicSignNetModule = 8202,
+        ERR_BadAssemblyName = 8203,
         #endregion more stragglers for C# 7
     }
 }

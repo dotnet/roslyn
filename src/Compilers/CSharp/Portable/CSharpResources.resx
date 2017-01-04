@@ -4077,8 +4077,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NetModuleNameMismatch" xml:space="preserve">
     <value>Module name '{0}' stored in '{1}' must match its filename.</value>
   </data>
-  <data name="ERR_BadCompilationOption" xml:space="preserve">
-    <value>{0}</value>
+  <data name="ERR_BadModuleName" xml:space="preserve">
+    <value>Invalid module name: {0}</value>
   </data>
   <data name="ERR_BadCompilationOptionValue" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}'.</value>
@@ -4998,5 +4998,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExpressionTreeContainsThrowExpression" xml:space="preserve">
     <value>An expression tree may not contain a throw-expression.</value>
+  </data>
+  <data name="ERR_BadAssemblyName" xml:space="preserve">
+    <value>Invalid assembly name: {0}</value>
   </data>
 </root>

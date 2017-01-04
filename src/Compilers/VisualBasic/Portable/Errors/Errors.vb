@@ -1627,7 +1627,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_PartialMethodParamArrayMismatch2 = 37204
 
         ERR_NetModuleNameMismatch = 37205
-        ERR_BadCompilationOption = 37206
+        ERR_BadModuleName = 37206
         ERR_CmdOptionConflictsSource = 37207
         ' unused 37208   
         ERR_InvalidSignaturePublicKey = 37209
@@ -1722,6 +1722,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_NewWithTupleTypeSyntax = 37280
         ERR_PredefinedValueTupleTypeMustBeStruct = 37281
         ERR_PublicSignNetModule = 37282
+        ERR_BadAssemblyName = 37283
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

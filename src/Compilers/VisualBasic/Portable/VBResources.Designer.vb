@@ -748,6 +748,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Invalid assembly name: {0}.
+        '''</summary>
+        Friend ReadOnly Property ERR_BadAssemblyName() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadAssemblyName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Async methods cannot have ByRef parameters..
         '''</summary>
         Friend ReadOnly Property ERR_BadAsyncByRefParam() As String
@@ -969,15 +978,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_BadCodepage() As String
             Get
                 Return ResourceManager.GetString("ERR_BadCodepage", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to {0}.
-        '''</summary>
-        Friend ReadOnly Property ERR_BadCompilationOption() As String
-            Get
-                Return ResourceManager.GetString("ERR_BadCompilationOption", resourceCulture)
             End Get
         End Property
         
@@ -1329,6 +1329,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_BadModuleFlags1() As String
             Get
                 Return ResourceManager.GetString("ERR_BadModuleFlags1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Invalid module name: {0}.
+        '''</summary>
+        Friend ReadOnly Property ERR_BadModuleName() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadModuleName", resourceCulture)
             End Get
         End Property
         
