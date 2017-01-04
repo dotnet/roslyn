@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private const string SpaceEqualsString = " =";
         private const string ColonString = ":";
 
-        private static CompletionItemRules _spaceItemFilterRule = CompletionItemRules.Default.WithFilterCharacterRule(
+        private static readonly CompletionItemRules _spaceItemFilterRule = CompletionItemRules.Default.WithFilterCharacterRule(
             CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' '));
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
