@@ -94,6 +94,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
                         }
                         break;
+                    case SyntaxKind.GetAccessorDeclaration:
+                    case SyntaxKind.SetAccessorDeclaration:
+                        diagnostics.Add(ErrorCode.ERR_AddOrRemoveExpected, accessor.Keyword.GetLocation());
+                        break;
+
+                        // Don't need to handle UnknownAccessorDeclaration.  An error will have 
+                        // already been produced for it in the parser.
                 }
             }
 

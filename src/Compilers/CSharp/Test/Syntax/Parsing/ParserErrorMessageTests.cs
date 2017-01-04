@@ -2605,15 +2605,12 @@ return 1;
 ";
 
             ParseAndValidate(test,
-    // (7,9): error CS1055: An add or remove accessor expected
-    //         return value; 
-    Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "return"),
-    // (7,16): error CS1055: An add or remove accessor expected
-    //         return value; 
-    Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "value"),
-    // (7,21): error CS0073: An add or remove accessor must have a body
-    //         return value; 
-    Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"));
+                // (7,9): error CS1055: An add or remove accessor expected
+                //         return value; 
+                Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "return"),
+                // (7,16): error CS1055: An add or remove accessor expected
+                //         return value; 
+                Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "value"));
         }
 
         [WorkItem(536956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536956")]

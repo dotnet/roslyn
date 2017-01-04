@@ -3572,7 +3572,7 @@ parse_member_name:;
 
         private AccessorDeclarationSyntax ParseAccessorDeclaration(bool isEvent)
         {
-            if (this.IsIncrementalAndFactoryContextMatches && CanReuseAccessorDeclaration(isEvent))
+            if (this.IsIncrementalAndFactoryContextMatches && CanReuseAccessorDeclaration())
             {
                 return (AccessorDeclarationSyntax)this.EatNode();
             }
@@ -3598,7 +3598,7 @@ parse_member_name:;
                 if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
                 {
                     accessorName = this.EatToken();
-                    accessorKind = GetAccessorKind(accessorName, isEvent);
+                    accessorKind = GetAccessorKind(accessorName);
                 }
                 else
                 {
@@ -3634,7 +3634,8 @@ parse_member_name:;
                 {
                     semicolon = EatAccessorSemicolon();
 
-                    if (isEvent)
+                    if (accessorKind == SyntaxKind.AddAccessorDeclaration ||
+                        accessorKind == SyntaxKind.RemoveAccessorDeclaration)
                     {
                         semicolon = this.AddError(semicolon, ErrorCode.ERR_AddRemoveMustHaveBody);
                     }
@@ -3688,38 +3689,31 @@ parse_member_name:;
                                 : ErrorCode.ERR_SemiOrLBraceExpected);
         }
 
-        private SyntaxKind GetAccessorKind(SyntaxToken accessorName, bool isEvent)
+        private SyntaxKind GetAccessorKind(SyntaxToken accessorName)
         {
             // Only convert the identifier to a keyword if it's a valid one.  Otherwise any
             // other contextual keyword (like 'partial') will be converted into a keyword
             // and will be invalid.
             switch (accessorName.ContextualKind)
             {
-                case SyntaxKind.GetKeyword:
-                    return isEvent ? SyntaxKind.UnknownAccessorDeclaration :  SyntaxKind.GetAccessorDeclaration;
-                case SyntaxKind.SetKeyword:
-                    return isEvent ? SyntaxKind.UnknownAccessorDeclaration : SyntaxKind.SetAccessorDeclaration;
-                case SyntaxKind.AddKeyword:
-                    return isEvent ? SyntaxKind.AddAccessorDeclaration : SyntaxKind.UnknownAccessorDeclaration;
-                case SyntaxKind.RemoveKeyword:
-                    return isEvent ? SyntaxKind.RemoveAccessorDeclaration : SyntaxKind.UnknownAccessorDeclaration;
+                case SyntaxKind.GetKeyword: return SyntaxKind.GetAccessorDeclaration;
+                case SyntaxKind.SetKeyword: return SyntaxKind.SetAccessorDeclaration;
+                case SyntaxKind.AddKeyword: return SyntaxKind.AddAccessorDeclaration;
+                case SyntaxKind.RemoveKeyword: return SyntaxKind.RemoveAccessorDeclaration;
             }
 
             return SyntaxKind.UnknownAccessorDeclaration;
         }
 
-        private bool CanReuseAccessorDeclaration(bool isEvent)
+        private bool CanReuseAccessorDeclaration()
         {
-            var parent = GetOldParent(this.CurrentNode);
             switch (this.CurrentNodeKind)
             {
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
-                    return isEvent && parent?.Kind() == SyntaxKind.EventDeclaration;
-
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
-                    return !isEvent && parent?.Kind() == SyntaxKind.PropertyDeclaration;
+                    return true;
             }
 
             return false;

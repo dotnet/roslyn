@@ -115,15 +115,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasExpressionBody = arrowExpression != null;
             bool hasInitializer = !isIndexer && propertySyntax.Initializer != null;
 
-            bool notRegularProperty = (!IsAbstract && !IsExtern && !isIndexer && hasAccessorList);
+            bool notRegularProperty = !IsAbstract && !IsExtern && !isIndexer && hasAccessorList;
             AccessorDeclarationSyntax getSyntax = null;
             AccessorDeclarationSyntax setSyntax = null;
             if (hasAccessorList)
             {
                 foreach (var accessor in syntax.AccessorList.Accessors)
                 {
-                    if (accessor.Kind() == SyntaxKind.GetAccessorDeclaration)
+                    switch (accessor.Kind())
                     {
+                    case SyntaxKind.GetAccessorDeclaration:
                         if (getSyntax == null)
                         {
                             getSyntax = accessor;
@@ -132,9 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
                         }
-                    }
-                    else if (accessor.Kind() == SyntaxKind.SetAccessorDeclaration)
-                    {
+                        break;
+                    case SyntaxKind.SetAccessorDeclaration:
                         if (setSyntax == null)
                         {
                             setSyntax = accessor;
@@ -143,9 +143,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
                         }
-                    }
-                    else
-                    {
+                        break;
+                    case SyntaxKind.AddAccessorDeclaration:
+                    case SyntaxKind.RemoveAccessorDeclaration:
+                        diagnostics.Add(ErrorCode.ERR_GetOrSetExpected, accessor.Keyword.GetLocation());
+                        continue;
+                    default:
                         continue;
                     }
 
