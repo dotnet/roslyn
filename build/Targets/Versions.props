@@ -33,13 +33,14 @@
     <Error Condition="$(BuildNumber.Split('.').Length) != 2">BuildNumber should have two parts (in the form of 'x.y')</Error>
 
     <!-- Split the build parts out from the BuildNumber which is given to us by MicroBuild in the format of yyyymmdd.nn
-         where BuildNumberFiveDigitDateStamp is ymmdd (such as 60615) and BuildNumberBuildOfTheDay is nn (which represents the nth build
+         where BuildNumberFiveDigitDateStamp is mmmdd (such as 60615) and BuildNumberBuildOfTheDay is nn (which represents the nth build
          started that day). So the first build of the day, 20160615.1, will produce something similar to BuildNumberFiveDigitDateStamp: 60615,
-         BuildNumberBuildOfTheDayPadded: 01;and the 12th build of the day, 20160615.12, will produce BuildNumberFiveDigitDateStamp: 60615, BuildNumberBuildOfTheDay: 12 -->
-    <!-- Additionally, in order ensure the value fits in the 16-bit PE header fields, we will only take the last five digits of the BuildNumber, so
-         in the case of 20160615, we will set BuildNumberFiveDigitDateStamp to 60615. This will begin failing in the 2017 as the BuildVersion only allows
-         each part to be in the range of 0 through 65535. Issue #12038 tracks the fix that needs to happen. -->
-    <BuildNumberFiveDigitDateStamp>$(BuildNumber.Split('.')[0].Substring(3).Trim())</BuildNumberFiveDigitDateStamp>
+         BuildNumberBuildOfTheDayPadded: 01;and the 12th build of the day, 20160615.12, will produce BuildNumberFiveDigitDateStamp: 60615, BuildNumberBuildOfTheDay: 12
+
+         Additionally, in order ensure the value fits in the 16-bit PE header fields, we will only take the last five digits of the BuildNumber, so
+         in the case of 20160615, we will set BuildNumberFiveDigitDateStamp to 60615. Unfortunately for releases in 2017 we can't go any higher, so
+         well continue the month counting instead: the build after 61231 is 61301. -->
+    <BuildNumberFiveDigitDateStamp>$([MSBuild]::Subtract($(BuildNumber.Split('.')[0].Substring(3).Trim()), 8800))</BuildNumberFiveDigitDateStamp>
     <BuildNumberBuildOfTheDayPadded>$(BuildNumber.Split('.')[1].PadLeft(2,'0'))</BuildNumberBuildOfTheDayPadded>
 
     <!-- NuGet version -->

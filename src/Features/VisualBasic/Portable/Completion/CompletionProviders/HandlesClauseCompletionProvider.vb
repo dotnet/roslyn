@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
 
-            Return SymbolCompletionItem.Create(
+            Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayAndInsertionText.Item1,
                 insertionText:=displayAndInsertionText.Item2,
                 symbol:=symbol,

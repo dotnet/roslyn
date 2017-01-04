@@ -290,7 +290,7 @@ class Variable
 }]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=False)
             End Using
         End Function
 
@@ -307,7 +307,7 @@ class Variable
 }]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=False)
             End Using
         End Function
 
@@ -2833,7 +2833,7 @@ class C
             End Using
         End Function
 
-        ' <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function Filters_EmptyList4() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -2886,6 +2886,29 @@ class C
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
+            End Using
+        End Function
+		
+		<WorkItem(14704, "https://github.com/dotnet/roslyn/issues/14704")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function BackspaceTriggerSubstringMatching() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        if (Environment$$
+    }
+}
+                              </Document>)
+
+                Dim key = New OptionKey(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp)
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(key, True)
+
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem(displayText:="Environment", isHardSelected:=True)
             End Using
         End Function
     End Class

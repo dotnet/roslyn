@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     semanticModel, namePosition, s_signatureDisplayFormat);
                 var insertionText = displayText;
 
-                var item = SymbolCompletionItem.Create(
+                var item = SymbolCompletionItem.CreateWithSymbolId(
                     displayText,
                     insertionText: insertionText,
                     symbol: member,

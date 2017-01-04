@@ -16,7 +16,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <PropertyGroup></PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -25,6 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyScheduler.cs" />
+    <Compile Include="Cache\AssemblyUtil.cs" />
     <Compile Include="Cache\ContentUtil.cs" />
     <Compile Include="Cache\CachingTestExecutor.cs" />
     <Compile Include="Cache\ContentFile.cs" />
@@ -46,7 +46,7 @@
     <Compile Include="ConsoleUtil.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program..Json.cs" />
+    <Compile Include="Program.Json.cs" />
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
