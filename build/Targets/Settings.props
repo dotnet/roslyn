@@ -51,6 +51,17 @@
     <!-- To copy .dll.config and .exe.config files of the referenced projects to the output dir
          (see https://github.com/Microsoft/msbuild/issues/1307) -->
     <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.dll.config;.exe.config</AllowedReferenceRelatedFileExtensions>
+
+    <AssemblySearchPaths>
+      {CandidateAssemblyFiles};
+      $(ReferencePath);
+      {HintPathFromItem};
+      {TargetFrameworkDirectory};
+      {Registry:$(FrameworkRegistryBase),$(TargetFrameworkVersion),$(AssemblyFoldersSuffix)$(AssemblyFoldersExConditions)};
+      {AssemblyFolders};
+      {RawFileName};
+      $(OutDir)
+    </AssemblySearchPaths>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
