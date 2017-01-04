@@ -3552,23 +3552,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode ElementBindingExpression(SyntaxNode argumentList)
             => SyntaxFactory.ElementBindingExpression((BracketedArgumentListSyntax)argumentList);
 
-        // parenthesize the left hand size of a member access, invocation or element access expression
+        /// <summary>
+        /// Parenthesize the left hand size of a member access, invocation or element access expression
+        /// </summary>
         private ExpressionSyntax ParenthesizeLeft(ExpressionSyntax expression)
         {
-            if (expression is TypeSyntax
-                || expression.IsKind(SyntaxKind.ThisExpression)
-                || expression.IsKind(SyntaxKind.BaseExpression)
-                || expression.IsKind(SyntaxKind.ParenthesizedExpression)
-                || expression.IsKind(SyntaxKind.SimpleMemberAccessExpression)
-                || expression.IsKind(SyntaxKind.InvocationExpression)
-                || expression.IsKind(SyntaxKind.ElementAccessExpression))
+            if (expression is TypeSyntax ||
+                expression.IsKind(SyntaxKind.ThisExpression) ||
+                expression.IsKind(SyntaxKind.BaseExpression) ||
+                expression.IsKind(SyntaxKind.ParenthesizedExpression) ||
+                expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) ||
+                expression.IsKind(SyntaxKind.InvocationExpression) ||
+                expression.IsKind(SyntaxKind.ElementAccessExpression) ||
+                expression.IsKind(SyntaxKind.MemberBindingExpression))
             {
                 return expression;
             }
-            else
-            {
-                return this.Parenthesize(expression);
-            }
+
+            return this.Parenthesize(expression);
         }
 
         private SeparatedSyntaxList<ExpressionSyntax> AsExpressionList(IEnumerable<SyntaxNode> expressions)
