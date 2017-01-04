@@ -1,15 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Symbols;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -21,6 +11,16 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -849,13 +849,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap
-        {
-            get
-            {
-                return GetBoundReferenceManager().ReferenceDirectiveMap;
-            }
-        }
+        internal override IDictionary<(string path, string content), MetadataReference> ReferenceDirectiveMap
+            => GetBoundReferenceManager().ReferenceDirectiveMap;
 
         // for testing purposes
         internal IEnumerable<string> ExternAliases
@@ -916,7 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MetadataReference GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
         {
             MetadataReference reference;
-            return ReferenceDirectiveMap.TryGetValue(ValueTuple.Create(directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
+            return ReferenceDirectiveMap.TryGetValue((directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
         }
 
         /// <summary>
@@ -1507,7 +1502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     viableEntryPoints.Sort(LexicalOrderSymbolComparer.Instance);
                     var info = new CSDiagnosticInfo(
                          ErrorCode.ERR_MultipleEntryPoints,
-                         args: SpecializedCollections.EmptyArray<object>(),
+                         args: Array.Empty<object>(),
                          symbols: viableEntryPoints.OfType<Symbol>().AsImmutable(),
                          additionalLocations: viableEntryPoints.Select(m => m.Locations.First()).OfType<Location>().AsImmutable());
 
@@ -1527,6 +1522,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
             }
         }
+
+        internal override bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code)
+            => code == (int)ErrorCode.ERR_NoTypeDef;
 
         internal class EntryPoint
         {
@@ -2703,64 +2701,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreatePointerTypeSymbol(elementType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("elementType"));
         }
 
-        protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(ImmutableArray<ITypeSymbol> elementTypes, ImmutableArray<string> elementNames)
+        protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
+            ImmutableArray<ITypeSymbol> elementTypes,
+            ImmutableArray<string> elementNames,
+            ImmutableArray<Location> elementLocations)
         {
-            if (elementTypes.IsDefault)
-            {
-                throw new ArgumentNullException(nameof(elementTypes));
-            }
-
-            if (elementTypes.Length <= 1)
-            {
-                throw new ArgumentException(CodeAnalysisResources.TuplesNeedAtLeastTwoElements, nameof(elementNames));
-            }
-
-            elementNames = CheckTupleElementNames(elementTypes.Length, elementNames);
-
             var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(elementTypes.Length);
             for (int i = 0; i < elementTypes.Length; i++)
             {
-                if (elementTypes[i] == null)
-                {
-                    throw new ArgumentNullException($"{nameof(elementTypes)}[{i}]");
-                }
-
                 typesBuilder.Add(elementTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(elementTypes)}[{i}]"));
             }
 
             return TupleTypeSymbol.Create(null, // no location for the type declaration
-                                          typesBuilder.ToImmutableAndFree(), default(ImmutableArray<Location>), elementNames, this);
+                typesBuilder.ToImmutableAndFree(), elementLocations, elementNames, this);
         }
 
-        /// <summary>
-        /// Check that if any names are provided, and their number matches the expected cardinality.
-        /// Returns a normalized version of the element names (empty array if all the names are null).
-        /// </summary>
-        private static ImmutableArray<string> CheckTupleElementNames(int cardinality, ImmutableArray<string> elementNames)
+        protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
+            INamedTypeSymbol underlyingType, 
+            ImmutableArray<string> elementNames,
+            ImmutableArray<Location> elementLocations)
         {
-            if (!elementNames.IsDefault)
-            {
-                if (elementNames.Length != cardinality)
-                {
-                    throw new ArgumentException(CodeAnalysisResources.TupleElementNameCountMismatch, nameof(elementNames));
-                }
-
-                if (elementNames.All(n => n == null))
-                {
-                    return default(ImmutableArray<string>);
-                }
-            }
-
-            return elementNames;
-        }
-
-        protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(INamedTypeSymbol underlyingType, ImmutableArray<string> elementNames)
-        {
-            if ((object)underlyingType == null)
-            {
-                throw new ArgumentNullException(nameof(underlyingType));
-            }
-
             var csharpUnderlyingTuple = underlyingType.EnsureCSharpSymbolOrNull<INamedTypeSymbol, NamedTypeSymbol>(nameof(underlyingType));
 
             int cardinality;
@@ -2770,20 +2730,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             elementNames = CheckTupleElementNames(cardinality, elementNames);
+            CheckTupleElementLocations(cardinality, elementLocations);
 
-            return TupleTypeSymbol.Create(csharpUnderlyingTuple, elementNames);
+            return TupleTypeSymbol.Create(
+                csharpUnderlyingTuple, elementNames, elementLocations: elementLocations);
         }
 
         protected override INamedTypeSymbol CommonCreateAnonymousTypeSymbol(
-            ImmutableArray<ITypeSymbol> memberTypes, ImmutableArray<string> memberNames)
+            ImmutableArray<ITypeSymbol> memberTypes, 
+            ImmutableArray<string> memberNames,
+            ImmutableArray<Location> memberLocations,
+            ImmutableArray<bool> memberIsReadOnly)
         {
             for (int i = 0, n = memberTypes.Length; i < n; i++)
             {
                 memberTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(memberTypes)}[{i}]");
             }
 
-            var fields = memberTypes.ZipAsArray(memberNames, (type, name) => new AnonymousTypeField(name, Location.None, (TypeSymbol)type));
-            var descriptor = new AnonymousTypeDescriptor(fields, Location.None);
+            if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Any(v => !v))
+            {
+                throw new ArgumentException($"Non-ReadOnly members are not supported in C# anonymous types.");
+            }
+
+            var fields = ArrayBuilder<AnonymousTypeField>.GetInstance();
+
+            for (int i = 0, n = memberTypes.Length; i < n; i++)
+            {
+                var type = memberTypes[i];
+                var name = memberNames[i];
+                var location = memberLocations.IsDefault ? Location.None : memberLocations[i];
+                fields.Add(new AnonymousTypeField(name, location, (TypeSymbol)type));
+            }
+
+            var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
 
             return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor);
         }

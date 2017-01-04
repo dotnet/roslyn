@@ -254,6 +254,11 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IMethodBody methodBody)
         {
+            foreach (var scope in methodBody.LocalScopes)
+            {
+                this.Visit(scope.Constants);
+            }
+
             this.Visit(methodBody.LocalVariables);
             //this.Visit(methodBody.Operations);    //in Roslyn we don't break out each instruction as it's own operation.
             this.Visit(methodBody.ExceptionRegions);

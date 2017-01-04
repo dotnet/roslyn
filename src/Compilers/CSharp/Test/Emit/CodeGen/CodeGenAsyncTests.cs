@@ -3245,9 +3245,9 @@ class C
     async ValueTask f() { await (Task)null; }
     async ValueTask<int> g() { await (Task)null; return 1; }
 }
-[AsyncBuilder(typeof(ValueTaskMethodBuilder))]
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder))]
 struct ValueTask { }
-[AsyncBuilder(typeof(ValueTaskMethodBuilder<>))]
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder<>))]
 struct ValueTask<T> { }
 class ValueTaskMethodBuilder
 {
@@ -3271,7 +3271,7 @@ class ValueTaskMethodBuilder<T>
     public void SetStateMachine(IAsyncStateMachine stateMachine) { }
     public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
 }
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
             v.VerifyIL("C.g",
@@ -3328,12 +3328,12 @@ class N
     class BN { }
     class BG<U> { }
 
-    [AsyncBuilder(typeof(N.BG<int>))] class T_NIT<V> { }
-    [AsyncBuilder(typeof(N.BG<int>))] class T_NIN { }
-    [AsyncBuilder(typeof(N.BG<>))] class T_NOT<V> { }
-    [AsyncBuilder(typeof(N.BG<>))] class T_NON { }
-    [AsyncBuilder(typeof(N.BN))] class T_NNT<V> { }
-    [AsyncBuilder(typeof(N.BN))] class T_NNN { }
+    [AsyncMethodBuilder(typeof(N.BG<int>))] class T_NIT<V> { }
+    [AsyncMethodBuilder(typeof(N.BG<int>))] class T_NIN { }
+    [AsyncMethodBuilder(typeof(N.BG<>))] class T_NOT<V> { }
+    [AsyncMethodBuilder(typeof(N.BG<>))] class T_NON { }
+    [AsyncMethodBuilder(typeof(N.BN))] class T_NNT<V> { }
+    [AsyncMethodBuilder(typeof(N.BN))] class T_NNN { }
 
     async T_NIT<int> f1() => await Task.FromResult(1); 
     async T_NIN f2() => await Task.FromResult(1);      
@@ -3348,14 +3348,14 @@ class G<T>
     class BN { }
     class BG<U> { }
 
-    [AsyncBuilder(typeof(G<int>.BG<int>))] class T_IIT<V> { }
-    [AsyncBuilder(typeof(G<int>.BG<int>))] class T_IIN { }
-    [AsyncBuilder(typeof(G<int>.BN))] class T_INT<V> { }
-    [AsyncBuilder(typeof(G<int>.BN))] class T_INN { }
-    [AsyncBuilder(typeof(G<>.BG<>))] class T_OOT<V> { }
-    [AsyncBuilder(typeof(G<>.BG<>))] class T_OON { }
-    [AsyncBuilder(typeof(G<>.BN))] class T_ONT<V> { }
-    [AsyncBuilder(typeof(G<>.BN))] class T_ONN { }
+    [AsyncMethodBuilder(typeof(G<int>.BG<int>))] class T_IIT<V> { }
+    [AsyncMethodBuilder(typeof(G<int>.BG<int>))] class T_IIN { }
+    [AsyncMethodBuilder(typeof(G<int>.BN))] class T_INT<V> { }
+    [AsyncMethodBuilder(typeof(G<int>.BN))] class T_INN { }
+    [AsyncMethodBuilder(typeof(G<>.BG<>))] class T_OOT<V> { }
+    [AsyncMethodBuilder(typeof(G<>.BG<>))] class T_OON { }
+    [AsyncMethodBuilder(typeof(G<>.BN))] class T_ONT<V> { }
+    [AsyncMethodBuilder(typeof(G<>.BN))] class T_ONN { }
 
     async T_IIT<int> g1() => await Task.FromResult(1); 
     async T_IIN g2() => await Task.FromResult(1);      
@@ -3369,7 +3369,7 @@ class G<T>
 
 class Program { static void Main() { } }
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
@@ -3432,14 +3432,14 @@ namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-[AsyncBuilder(typeof(void))] class T { }
+[AsyncMethodBuilder(typeof(void))] class T { }
 
 class Program {
     static void Main() { }
     async T f() => await Task.Delay(1);
 }
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
@@ -3458,21 +3458,21 @@ namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-[AsyncBuilder(""hello"")] class T { }
+[AsyncMethodBuilder(""hello"")] class T { }
 
 class Program {
     static void Main() { }
     async T f() => await Task.Delay(1);
 }
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
                 // (5,15): error CS1503: Argument 1: cannot convert from 'string' to 'System.Type'
-                // [AsyncBuilder("hello")] class T { }
-                Diagnostic(ErrorCode.ERR_BadArgType, @"""hello""").WithArguments("1", "string", "System.Type").WithLocation(5, 15),
+                // [AsyncMethodBuilder("hello")] class T { }
+                Diagnostic(ErrorCode.ERR_BadArgType, @"""hello""").WithArguments("1", "string", "System.Type").WithLocation(5, 21),
                 // (9,13): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async T f() => await Task.Delay(1);
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f").WithLocation(9, 13)
@@ -3486,21 +3486,21 @@ namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-[AsyncBuilder(typeof(Nonexistent))] class T { }
+[AsyncMethodBuilder(typeof(Nonexistent))] class T { }
 
 class Program {
     static void Main() { }
     async T f() => await Task.Delay(1);
 }
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
                 // (5,22): error CS0246: The type or namespace name 'Nonexistent' could not be found (are you missing a using directive or an assembly reference?)
-                // [AsyncBuilder(typeof(Nonexistent))] class T { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonexistent").WithArguments("Nonexistent").WithLocation(5, 22)
+                // [AsyncMethodBuilder(typeof(Nonexistent))] class T { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonexistent").WithArguments("Nonexistent").WithLocation(5, 28)
                 );
         }
 
@@ -3510,14 +3510,14 @@ namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-[AsyncBuilder(null)] class T { }
+[AsyncMethodBuilder(null)] class T { }
 
 class Program {
     static void Main() { }
     async T f() => await Task.Delay(1);
 }
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
@@ -3540,9 +3540,9 @@ namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System
             var libT = @"
 using System.Runtime.CompilerServices;
 
-[AsyncBuilder(typeof(B))] public class T { }
+[AsyncMethodBuilder(typeof(B))] public class T { }
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             var cT = CreateCompilationWithMscorlib45(libT, references: new[] { rB });
             var rT = cT.EmitToImageReference();
@@ -3585,15 +3585,15 @@ class Program {{
     async T8 f8() => await Task.Delay(8);
 }}
 
-[AsyncBuilder(typeof(B0))] public class T0 {{ }}
-[AsyncBuilder(typeof(B1))] public class T1 {{ }}
-[AsyncBuilder(typeof(B2))] public class T2 {{ }}
-[AsyncBuilder(typeof(B3))] public class T3 {{ }}
-[AsyncBuilder(typeof(B4))] public class T4 {{ }}
-[AsyncBuilder(typeof(B5))] public class T5 {{ }}
-[AsyncBuilder(typeof(B6))] public class T6 {{ }}
-[AsyncBuilder(typeof(B7))] public class T7 {{ }}
-[AsyncBuilder(typeof(B8))] public class T8 {{ }}
+[AsyncMethodBuilder(typeof(B0))] public class T0 {{ }}
+[AsyncMethodBuilder(typeof(B1))] public class T1 {{ }}
+[AsyncMethodBuilder(typeof(B2))] public class T2 {{ }}
+[AsyncMethodBuilder(typeof(B3))] public class T3 {{ }}
+[AsyncMethodBuilder(typeof(B4))] public class T4 {{ }}
+[AsyncMethodBuilder(typeof(B5))] public class T5 {{ }}
+[AsyncMethodBuilder(typeof(B6))] public class T6 {{ }}
+[AsyncMethodBuilder(typeof(B7))] public class T7 {{ }}
+[AsyncMethodBuilder(typeof(B8))] public class T8 {{ }}
 
 {AsyncBuilderCode("B0", "T0").Replace("public static B0 Create()", "public static B0 Create()")}
 {AsyncBuilderCode("B1", "T1").Replace("public static B1 Create()", "private static B1 Create()")}
@@ -3605,7 +3605,7 @@ class Program {{
 {AsyncBuilderCode("B7", "T7").Replace("public static B7 Create()", "public static B7 Create(params object[] arg)")}
 {AsyncBuilderCode("B8", "T8").Replace("public static B8 Create()", "public B8 Create()")}
 
-namespace System.Runtime.CompilerServices {{ class AsyncBuilderAttribute : System.Attribute {{ public AsyncBuilderAttribute(System.Type t) {{ }} }} }}
+namespace System.Runtime.CompilerServices {{ class AsyncMethodBuilderAttribute : System.Attribute {{ public AsyncMethodBuilderAttribute(System.Type t) {{ }} }} }}
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
@@ -3650,13 +3650,13 @@ class Program {{
     async I1<int> f1() {{  await Task.Delay(1); return 1; }}
 }}
 
-[AsyncBuilder(typeof(B0))] public interface I0 {{ }}
-[AsyncBuilder(typeof(B1<>))] public interface I1<T> {{ }}
+[AsyncMethodBuilder(typeof(B0))] public interface I0 {{ }}
+[AsyncMethodBuilder(typeof(B1<>))] public interface I1<T> {{ }}
 
 {AsyncBuilderCode("B0", "I0", genericTypeParameter: null)}
 {AsyncBuilderCode("B1", "I1", genericTypeParameter: "T")}
 
-namespace System.Runtime.CompilerServices {{ class AsyncBuilderAttribute : System.Attribute {{ public AsyncBuilderAttribute(System.Type t) {{ }} }} }}
+namespace System.Runtime.CompilerServices {{ class AsyncMethodBuilderAttribute : System.Attribute {{ public AsyncMethodBuilderAttribute(System.Type t) {{ }} }} }}
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
@@ -3672,10 +3672,10 @@ namespace System.Runtime.CompilerServices {{ class AsyncBuilderAttribute : Syste
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-[AsyncBuilder(typeof(B1))] public class T1 {{ }}
-[AsyncBuilder(typeof(B2))] public class T2 {{ }}
-[AsyncBuilder(typeof(B3))] internal class T3 {{ }}
-[AsyncBuilder(typeof(B4))] internal class T4 {{ }}
+[AsyncMethodBuilder(typeof(B1))] public class T1 {{ }}
+[AsyncMethodBuilder(typeof(B2))] public class T2 {{ }}
+[AsyncMethodBuilder(typeof(B3))] internal class T3 {{ }}
+[AsyncMethodBuilder(typeof(B4))] internal class T4 {{ }}
 
 {AsyncBuilderCode("B1", "T1").Replace("public class B1", "public class B1")}
 {AsyncBuilderCode("B2", "T2").Replace("public class B2", "internal class B2")}
@@ -3690,7 +3690,7 @@ class Program {{
     async T4 f4() => await Task.Delay(4);
 }}
 
-namespace System.Runtime.CompilerServices {{ class AsyncBuilderAttribute : System.Attribute {{ public AsyncBuilderAttribute(System.Type t) {{ }} }} }}
+namespace System.Runtime.CompilerServices {{ class AsyncMethodBuilderAttribute : System.Attribute {{ public AsyncMethodBuilderAttribute(System.Type t) {{ }} }} }}
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
@@ -3725,7 +3725,7 @@ class C
     static void g(Func<Task> lambda) { }
     static void k<T>(Func<T> lambda) { }
 }
-[AsyncBuilder(typeof(MyTaskBuilder))]
+[AsyncMethodBuilder(typeof(MyTaskBuilder))]
 class MyTask { }
 class MyTaskBuilder
 {
@@ -3738,7 +3738,7 @@ class MyTaskBuilder
     public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
     public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
 }
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
             v.VerifyIL("C.Main", @"
@@ -3792,11 +3792,11 @@ class C
     async ValueTask1 g() { await Task.Delay(0); }
     async ValueTask2 h() { await Task.Delay(0); }
 }
-[AsyncBuilder(typeof(ValueTaskMethodBuilder0))]
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder0))]
 struct ValueTask0 { }
-[AsyncBuilder(typeof(ValueTaskMethodBuilder1))]
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder1))]
 struct ValueTask1 { }
-[AsyncBuilder(typeof(ValueTaskMethodBuilder2))]
+[AsyncMethodBuilder(typeof(ValueTaskMethodBuilder2))]
 struct ValueTask2 { }
 class ValueTaskMethodBuilder0
 {
@@ -3815,7 +3815,7 @@ class ValueTaskMethodBuilder2
     public ValueTask2 Task => default(ValueTask2);
     public void SetException(System.Exception ex) { } public void SetResult() { }
 }
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
@@ -3842,9 +3842,9 @@ class C {
     async Mismatch1<int> f() { await (Task)null; return 1; }
     async Mismatch2 g() { await (Task)null; return 1; }
 }
-[AsyncBuilder(typeof(Mismatch1MethodBuilder))]
+[AsyncMethodBuilder(typeof(Mismatch1MethodBuilder))]
 struct Mismatch1<T> { }
-[AsyncBuilder(typeof(Mismatch2MethodBuilder<>))]
+[AsyncMethodBuilder(typeof(Mismatch2MethodBuilder<>))]
 struct Mismatch2 { }
 class Mismatch1MethodBuilder
 {
@@ -3854,7 +3854,7 @@ class Mismatch2MethodBuilder<T>
 {
     public static Mismatch2MethodBuilder<T> Create() => null;
 }
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyEmitDiagnostics(
@@ -3881,7 +3881,7 @@ class C
     async MyTask f() { await (Task)null; }
 }
 
-[AsyncBuilder(typeof(MyTaskBuilder))]
+[AsyncMethodBuilder(typeof(MyTaskBuilder))]
 class MyTask { }
 
 interface I { }
@@ -3898,7 +3898,7 @@ class MyTaskBuilder
     public MyTask Task => null;
 }
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
             var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
@@ -3918,7 +3918,7 @@ class C
     async MyTask f() { await (Task)null; }
 }
 
-[AsyncBuilder(typeof(MyTaskBuilder))]
+[AsyncMethodBuilder(typeof(MyTaskBuilder))]
 class MyTask { }
 
 class MyTaskBuilder
@@ -3933,7 +3933,7 @@ class MyTaskBuilder
     public MyTask Task => null;
 }
 
-namespace System.Runtime.CompilerServices { class AsyncBuilderAttribute : System.Attribute { public AsyncBuilderAttribute(System.Type t) { } } }
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
             var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe);

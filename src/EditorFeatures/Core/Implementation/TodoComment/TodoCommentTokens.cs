@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                     continue;
                 }
 
-                int priority;
-                if (!int.TryParse(pair[1], NumberStyles.None, CultureInfo.InvariantCulture, out priority))
+                if (!int.TryParse(pair[1], NumberStyles.None, CultureInfo.InvariantCulture, out var priority))
                 {
                     continue;
                 }
@@ -73,10 +72,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         private TokenInfo _lastTokenInfo;
 
-        public async Task<ImmutableArray<TodoCommentDescriptor>> GetTokensAsync(Document document, CancellationToken cancellationToken)
+        public ImmutableArray<TodoCommentDescriptor> GetTokens(Document document, CancellationToken cancellationToken)
         {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var optionText = documentOptions.GetOption(TodoCommentOptions.TokenList);
+            var optionText = document.Project.Solution.Options.GetOption(TodoCommentOptions.TokenList);
 
             var lastInfo = _lastTokenInfo;
             if (lastInfo != null && lastInfo.OptionText == optionText)

@@ -80,15 +80,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; naming violation - {1}.
-        /// </summary>
-        internal static string _0_naming_violation_1 {
-            get {
-                return ResourceManager.GetString("_0_naming_violation_1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Accessing captured variable &apos;{0}&apos; that hasn&apos;t been accessed before in {1} will prevent the debug session from continuing..
         /// </summary>
         internal static string Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing {
@@ -135,6 +126,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add document &apos;{0}&apos;.
+        /// </summary>
+        internal static string Add_document_0 {
+            get {
+                return ResourceManager.GetString("Add_document_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add missing cases.
         /// </summary>
         internal static string Add_missing_cases {
@@ -176,15 +176,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Add_project_reference_to_0 {
             get {
                 return ResourceManager.GetString("Add_project_reference_to_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add qualification..
-        /// </summary>
-        internal static string Add_qualification {
-            get {
-                return ResourceManager.GetString("Add_qualification", resourceCulture);
             }
         }
         
@@ -344,6 +335,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Adding_an_imported_method_will_prevent_the_debug_session_from_continuing {
             get {
                 return ResourceManager.GetString("Adding_an_imported_method_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All lowercase.
+        /// </summary>
+        internal static string All_lowercase {
+            get {
+                return ResourceManager.GetString("All_lowercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All uppercase.
+        /// </summary>
+        internal static string All_uppercase {
+            get {
+                return ResourceManager.GetString("All_uppercase", resourceCulture);
             }
         }
         
@@ -642,6 +651,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Classes {
             get {
                 return ResourceManager.GetString("Classes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Collection initialization can be simplified.
+        /// </summary>
+        internal static string Collection_initialization_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Collection_initialization_can_be_simplified", resourceCulture);
             }
         }
         
@@ -1027,6 +1045,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to First word capitalized.
+        /// </summary>
+        internal static string First_word_capitalized {
+            get {
+                return ResourceManager.GetString("First_word_capitalized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fix all occurrences.
         /// </summary>
         internal static string Fix_all_occurrences {
@@ -1050,6 +1077,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string from_0 {
             get {
                 return ResourceManager.GetString("from_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fully qualify &apos;{0}&apos;.
+        /// </summary>
+        internal static string Fully_qualify_0 {
+            get {
+                return ResourceManager.GetString("Fully_qualify_0", resourceCulture);
             }
         }
         
@@ -1252,20 +1288,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate type.
+        ///   Looks up a localized string similar to Generate type &apos;{0}&apos;.
         /// </summary>
-        internal static string Generate_type {
+        internal static string Generate_type_0 {
             get {
-                return ResourceManager.GetString("Generate_type", resourceCulture);
+                return ResourceManager.GetString("Generate_type_0", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate variable.
+        ///   Looks up a localized string similar to Generate variable &apos;{0}&apos;.
         /// </summary>
-        internal static string Generate_variable {
+        internal static string Generate_variable_0 {
             get {
-                return ResourceManager.GetString("Generate_variable", resourceCulture);
+                return ResourceManager.GetString("Generate_variable_0", resourceCulture);
             }
         }
         
@@ -1410,6 +1446,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string in_Suppression_File {
             get {
                 return ResourceManager.GetString("in_Suppression_File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inline variable declaration.
+        /// </summary>
+        internal static string Inline_variable_declaration {
+            get {
+                return ResourceManager.GetString("Inline_variable_declaration", resourceCulture);
             }
         }
         
@@ -1576,6 +1621,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Keywords.
+        /// </summary>
+        internal static string Keywords {
+            get {
+                return ResourceManager.GetString("Keywords", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to label.
         /// </summary>
         internal static string label {
@@ -1698,24 +1752,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Methods {
             get {
                 return ResourceManager.GetString("Methods", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing prefix: &apos;{0}&apos;.
-        /// </summary>
-        internal static string Missing_prefix_colon_0 {
-            get {
-                return ResourceManager.GetString("Missing_prefix_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing suffix: &apos;{0}&apos;.
-        /// </summary>
-        internal static string Missing_suffix_colon_0 {
-            get {
-                return ResourceManager.GetString("Missing_suffix_colon_0", resourceCulture);
             }
         }
         
@@ -1904,6 +1940,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Naming rule violation: {0}.
+        /// </summary>
+        internal static string Naming_rule_violation_0 {
+            get {
+                return ResourceManager.GetString("Naming_rule_violation_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Naming Styles.
         /// </summary>
         internal static string Naming_Styles {
@@ -1945,6 +1990,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Note_colon_Tab_twice_to_insert_the_0_snippet {
             get {
                 return ResourceManager.GetString("Note_colon_Tab_twice_to_insert_the_0_snippet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Null check can be simplified.
+        /// </summary>
+        internal static string Null_check_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Null_check_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Object initialization can be simplified.
+        /// </summary>
+        internal static string Object_initialization_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Object_initialization_can_be_simplified", resourceCulture);
             }
         }
         
@@ -2023,6 +2086,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pascal Case.
+        /// </summary>
+        internal static string Pascal_Case {
+            get {
+                return ResourceManager.GetString("Pascal_Case", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;Pending&gt;.
         /// </summary>
         internal static string Pending {
@@ -2041,11 +2113,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer explicitly provided tuple element name.
+        /// </summary>
+        internal static string Prefer_explicitly_provided_tuple_element_name {
+            get {
+                return ResourceManager.GetString("Prefer_explicitly_provided_tuple_element_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Project.
         /// </summary>
         internal static string Project {
             get {
                 return ResourceManager.GetString("Project", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to project .
+        /// </summary>
+        internal static string project_space {
+            get {
+                return ResourceManager.GetString("project_space", resourceCulture);
             }
         }
         
@@ -2113,11 +2203,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove document &apos;{0}&apos;.
+        /// </summary>
+        internal static string Remove_document_0 {
+            get {
+                return ResourceManager.GetString("Remove_document_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove qualification.
         /// </summary>
         internal static string Remove_qualification {
             get {
                 return ResourceManager.GetString("Remove_qualification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove reference to &apos;{0}&apos;..
+        /// </summary>
+        internal static string Remove_reference_to_0 {
+            get {
+                return ResourceManager.GetString("Remove_reference_to_0", resourceCulture);
             }
         }
         
@@ -2314,6 +2422,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Simplify collection initialization.
+        /// </summary>
+        internal static string Simplify_collection_initialization {
+            get {
+                return ResourceManager.GetString("Simplify_collection_initialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Simplify Member Access.
         /// </summary>
         internal static string Simplify_Member_Access {
@@ -2328,6 +2445,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Simplify_Names {
             get {
                 return ResourceManager.GetString("Simplify_Names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Simplify object initialization.
+        /// </summary>
+        internal static string Simplify_object_initialization {
+            get {
+                return ResourceManager.GetString("Simplify_object_initialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snippets.
+        /// </summary>
+        internal static string Snippets {
+            get {
+                return ResourceManager.GetString("Snippets", resourceCulture);
             }
         }
         
@@ -2355,6 +2490,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Specified_file_not_found_colon_0 {
             get {
                 return ResourceManager.GetString("Specified_file_not_found_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Spell check &apos;{0}&apos;.
+        /// </summary>
+        internal static string Spell_check_0 {
+            get {
+                return ResourceManager.GetString("Spell_check_0", resourceCulture);
             }
         }
         
@@ -2413,24 +2557,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The first word, &apos;{0}&apos;, must begin with a lower case character.
-        /// </summary>
-        internal static string The_first_word_0_must_begin_with_a_lower_case_character {
-            get {
-                return ResourceManager.GetString("The_first_word_0_must_begin_with_a_lower_case_character", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The first word, &apos;{0}&apos;, must begin with an upper case character.
-        /// </summary>
-        internal static string The_first_word_0_must_begin_with_an_upper_case_character {
-            get {
-                return ResourceManager.GetString("The_first_word_0_must_begin_with_an_upper_case_character", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The member is defined in metadata..
         /// </summary>
         internal static string The_member_is_defined_in_metadata {
@@ -2463,51 +2589,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string The_symbol_does_not_have_an_icon {
             get {
                 return ResourceManager.GetString("The_symbol_does_not_have_an_icon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These non-leading words must begin with a lowercase letter: {0}.
-        /// </summary>
-        internal static string These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0 {
-            get {
-                return ResourceManager.GetString("These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These non-leading words must begin with an upper case letter: {0}.
-        /// </summary>
-        internal static string These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0 {
-            get {
-                return ResourceManager.GetString("These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These words cannot contain lower case characters: {0}.
-        /// </summary>
-        internal static string These_words_cannot_contain_lower_case_characters_colon_0 {
-            get {
-                return ResourceManager.GetString("These_words_cannot_contain_lower_case_characters_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These words cannot contain upper case characters: {0}.
-        /// </summary>
-        internal static string These_words_cannot_contain_upper_case_characters_colon_0 {
-            get {
-                return ResourceManager.GetString("These_words_cannot_contain_upper_case_characters_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These words must begin with upper case characters: {0}.
-        /// </summary>
-        internal static string These_words_must_begin_with_upper_case_characters_colon_0 {
-            get {
-                return ResourceManager.GetString("These_words_must_begin_with_upper_case_characters_colon_0", resourceCulture);
             }
         }
         
@@ -2601,6 +2682,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Type_Sharphelp_for_more_information {
             get {
                 return ResourceManager.GetString("Type_Sharphelp_for_more_information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type .
+        /// </summary>
+        internal static string type_space {
+            get {
+                return ResourceManager.GetString("type_space", resourceCulture);
             }
         }
         
@@ -2858,6 +2948,132 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use block body for accessors.
+        /// </summary>
+        internal static string Use_block_body_for_accessors {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_accessors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for constructors.
+        /// </summary>
+        internal static string Use_block_body_for_constructors {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_constructors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for indexers.
+        /// </summary>
+        internal static string Use_block_body_for_indexers {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_indexers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for methods.
+        /// </summary>
+        internal static string Use_block_body_for_methods {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for operators.
+        /// </summary>
+        internal static string Use_block_body_for_operators {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use block body for properties.
+        /// </summary>
+        internal static string Use_block_body_for_properties {
+            get {
+                return ResourceManager.GetString("Use_block_body_for_properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use coalesce expression.
+        /// </summary>
+        internal static string Use_coalesce_expression {
+            get {
+                return ResourceManager.GetString("Use_coalesce_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use explicitly provided tuple name.
+        /// </summary>
+        internal static string Use_explicitly_provided_tuple_name {
+            get {
+                return ResourceManager.GetString("Use_explicitly_provided_tuple_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for accessors.
+        /// </summary>
+        internal static string Use_expression_body_for_accessors {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_accessors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for constructors.
+        /// </summary>
+        internal static string Use_expression_body_for_constructors {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_constructors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for indexers.
+        /// </summary>
+        internal static string Use_expression_body_for_indexers {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_indexers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for methods.
+        /// </summary>
+        internal static string Use_expression_body_for_methods {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for operators.
+        /// </summary>
+        internal static string Use_expression_body_for_operators {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use expression body for properties.
+        /// </summary>
+        internal static string Use_expression_body_for_properties {
+            get {
+                return ResourceManager.GetString("Use_expression_body_for_properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use framework type.
         /// </summary>
         internal static string Use_framework_type {
@@ -2886,11 +3102,47 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use null propagation.
+        /// </summary>
+        internal static string Use_null_propagation {
+            get {
+                return ResourceManager.GetString("Use_null_propagation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use pattern matching.
+        /// </summary>
+        internal static string Use_pattern_matching {
+            get {
+                return ResourceManager.GetString("Use_pattern_matching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;throw&apos; expression.
+        /// </summary>
+        internal static string Use_throw_expression {
+            get {
+                return ResourceManager.GetString("Use_throw_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User Diagnostic Analyzer Failure..
         /// </summary>
         internal static string User_Diagnostic_Analyzer_Failure {
             get {
                 return ResourceManager.GetString("User_Diagnostic_Analyzer_Failure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable declaration can be inlined.
+        /// </summary>
+        internal static string Variable_declaration_can_be_inlined {
+            get {
+                return ResourceManager.GetString("Variable_declaration_can_be_inlined", resourceCulture);
             }
         }
         

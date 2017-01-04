@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             var finalItems = new List<SignatureHelpItem>();
             foreach (var item in itemsForCurrentDocument.Items)
             {
-                var symbolKey = ((SymbolKeySignatureHelpItem)item).SymbolKey;
+                var symbolKey = (item as SymbolKeySignatureHelpItem)?.SymbolKey;
                 if (symbolKey == null)
                 {
                     finalItems.Add(item);
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             foreach (var related in relatedDocuments)
             {
                 // If we don't have symbol keys, give up.
-                if (related.Item2.Any(s => ((SymbolKeySignatureHelpItem)s).SymbolKey == null))
+                if (related.Item2.Any(s => (s as SymbolKeySignatureHelpItem)?.SymbolKey == null))
                 {
                     continue;
                 }

@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             CancellationToken cancellationToken)
         {
             var accessibleConstructors = normalType.InstanceConstructors
-                                                   .Where(c => c.IsAccessibleWithin(within))
-                                                   .Where(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
+                                                   .WhereAsArray(c => c.IsAccessibleWithin(within))
+                                                   .WhereAsArray(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
                                                    .Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart);
 
-            return accessibleConstructors.Select(c =>
-                ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList();
+            return accessibleConstructors.SelectAsArray(c =>
+                ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken));
         }
 
         private SignatureHelpItem ConvertNormalTypeConstructor(

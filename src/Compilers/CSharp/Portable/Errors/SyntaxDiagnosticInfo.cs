@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal SyntaxDiagnosticInfo(int offset, int width, ErrorCode code)
-            : this(offset, width, code, SpecializedCollections.EmptyObjects)
+            : this(offset, width, code, Array.Empty<object>())
         {
         }
 

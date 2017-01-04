@@ -6,6 +6,9 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -45,19 +48,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
         }
 
-        public static bool ShouldRunForFullProject(this DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, Project project)
+        public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, Workspace workspace)
         {
             var builtInAnalyzer = analyzer as IBuiltInAnalyzer;
             if (builtInAnalyzer != null)
             {
-                return !builtInAnalyzer.OpenFileOnly(project.Solution.Workspace);
+                return builtInAnalyzer.OpenFileOnly(workspace);
             }
 
-            if (analyzer.IsWorkspaceDiagnosticAnalyzer())
-            {
-                return true;
-            }
+            return false;
+        }
 
+        public static bool HasNonHiddenDescriptor(this DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, Project project)
+        {
             // most of analyzers, number of descriptor is quite small, so this should be cheap.
             return service.GetDiagnosticDescriptors(analyzer).Any(d => d.GetEffectiveSeverity(project.CompilationOptions) != ReportDiagnostic.Hidden);
         }
@@ -117,9 +120,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return typeInfo.Assembly.GetName().Name;
         }
 
-        public static OptionSet GetOptionSet(this AnalyzerOptions analyzerOptions)
+        public static async Task<OptionSet> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            return (analyzerOptions as WorkspaceAnalyzerOptions)?.Workspace.Options;
+            var workspace = (analyzerOptions as WorkspaceAnalyzerOptions)?.Workspace;
+            if (workspace == null)
+            {
+                return null;
+            }
+
+            var documentId = workspace.CurrentSolution.GetDocumentId(syntaxTree);
+            if (documentId == null)
+            {
+                return workspace.Options;
+            }
+
+            var document = workspace.CurrentSolution.GetDocument(documentId);
+            if (document == null)
+            {
+                return workspace.Options;
+            }
+
+            var documentOptionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return documentOptionSet ?? workspace.Options;
         }
 
         internal static void OnAnalyzerException_NoTelemetryLogging(
@@ -178,12 +200,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static VersionStamp GetAnalyzerVersion(string path)
         {
-            if (path == null || !PortableShim.File.Exists(path))
+            if (path == null || !File.Exists(path))
             {
                 return VersionStamp.Default;
             }
 
-            return VersionStamp.Create(PortableShim.File.GetLastWriteTimeUtc(path));
+            return VersionStamp.Create(File.GetLastWriteTimeUtc(path));
         }
 
         public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(string fullPath, AnalyzerLoadFailureEventArgs e)
@@ -194,8 +216,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(
             Workspace workspace, ProjectId projectId, string language, string fullPath, AnalyzerLoadFailureEventArgs e)
         {
-            string id, message, messageFormat, description;
-            if (!TryGetErrorMessage(language, fullPath, e, out id, out message, out messageFormat, out description))
+            if (!TryGetErrorMessage(language, fullPath, e, out var id, out var message, out var messageFormat, out var description))
             {
                 return null;
             }

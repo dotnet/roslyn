@@ -407,5 +407,27 @@ class Base
             var comp = CompileAndVerify(source, expectedOutput: "0,1,2,3", options: TestOptions.DebugExe);
             comp.Compilation.VerifyDiagnostics();
         }
-   }
+
+        [Fact]
+        [WorkItem(261047, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=261047&_a=edit")]
+        public void MissingExpression()
+        {
+            var text =
+@"using System.Collections.Generic;
+
+class Test
+{
+    IEnumerable<int> I()
+    {
+        yield return;
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (7,15): error CS1627: Expression expected after yield return
+                //         yield return;
+                Diagnostic(ErrorCode.ERR_EmptyYield, "return").WithLocation(7, 15)
+                );
+        }
+    }
 }

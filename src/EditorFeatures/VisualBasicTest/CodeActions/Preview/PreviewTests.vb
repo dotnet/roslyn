@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             previews = editHandler.GetPreviews(workspace, action.GetPreviewOperationsAsync(CancellationToken.None).Result, CancellationToken.None)
         End Sub
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/14421")>
         Public Async Function TestPickTheRightPreview_NoPreference() As Task
             Using workspace = Await CreateWorkspaceFromFileAsync("Class D : End Class", Nothing, Nothing)
                 Dim document As Document = Nothing

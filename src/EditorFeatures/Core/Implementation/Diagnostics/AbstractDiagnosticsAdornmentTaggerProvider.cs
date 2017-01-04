@@ -43,11 +43,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         }
 
         protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
+            => AdjustSnapshotSpan(span, minimumLength, int.MaxValue);
+
+        protected SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength, int maximumLength)
         {
             var snapshot = span.Snapshot;
 
             // new length
-            var length = Math.Max(span.Length, minimumLength);
+            var length = Math.Min(Math.Max(span.Length, minimumLength), maximumLength);
 
             // make sure start + length is smaller than snapshot.Length and start is >= 0
             var start = Math.Max(0, Math.Min(span.Start, snapshot.Length - length));

@@ -47,10 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             _workspaceCacheService = workspace.Services.GetService<IWorkspaceCacheService>() as WorkspaceCacheService;
 
             var shell = (IVsShell)serviceProvider.GetService(typeof(SVsShell));
-
             // Note: We never unhook this event sink. It lives for the lifetime of the host.
-            uint cookie;
-            ErrorHandler.ThrowOnFailure(shell.AdviseBroadcastMessages(this, out cookie));
+            ErrorHandler.ThrowOnFailure(shell.AdviseBroadcastMessages(this, out var cookie));
         }
 
         /// <summary>

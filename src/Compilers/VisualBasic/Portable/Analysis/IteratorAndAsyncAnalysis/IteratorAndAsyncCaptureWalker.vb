@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Sub EnterParameter(parameter As ParameterSymbol)
             ' parameters are NOT initially assigned here - if that is a problem, then
             ' the parameters must be captured.
-            MakeSlot(parameter)
+            GetOrCreateSlot(parameter)
 
             ' Instead of analyzing which parameters are actually being referenced
             ' we add all of them; this might need to be revised later
@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As BoundNode = Nothing
 
             For Each local In node.Locals
-                SetSlotState(MakeSlot(local), True)
+                SetSlotState(GetOrCreateSlot(local), True)
             Next
             result = MyBase.VisitSequence(node)
             For Each local In node.Locals

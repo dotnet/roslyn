@@ -52,9 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CompilationWithAnalyzers analyzerDriverOpt, Document document, StateSet stateSet, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 // get log title and functionId
-                string title;
-                FunctionId functionId;
-                GetLogFunctionIdAndTitle(kind, out functionId, out title);
+                GetLogFunctionIdAndTitle(kind, out var functionId, out var title);
 
                 using (Logger.LogBlock(functionId, GetDocumentLogMessage, title, document, stateSet.Analyzer, cancellationToken))
                 {
@@ -183,8 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     //       this can happen since caller could have created the driver with different set of analyzers that are different
                     //       than what we used to create the cache.
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    ImmutableArray<DiagnosticAnalyzer> analyzersToRun;
-                    if (TryReduceAnalyzersToRun(analyzerDriverOpt, version, existing, out analyzersToRun))
+                    if (TryReduceAnalyzersToRun(analyzerDriverOpt, version, existing, out var analyzersToRun))
                     {
                         // it looks like we can reduce the set. create new CompilationWithAnalyzer.
                         var analyzerDriverWithReducedSet = await _owner._compilationManager.CreateAnalyzerDriverAsync(
@@ -242,8 +239,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
                 foreach (var analyzer in existingAnalyzers)
                 {
-                    DiagnosticAnalysisResult analysisResult;
-                    if (existing.TryGetValue(analyzer, out analysisResult) &&
+                    if (existing.TryGetValue(analyzer, out var analysisResult) &&
                         analysisResult.Version == version)
                     {
                         // we already have up to date result.

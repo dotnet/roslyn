@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CompilationErrorTelemetry;
 using Roslyn.Utilities;
+using System.Security.Cryptography;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
@@ -191,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             {
             }
 
-            private static string GetHashedString(string unhashedString, SHA256CryptoServiceProvider hashProvider)
+            private static string GetHashedString(string unhashedString, SHA256 hashProvider)
             {
                 // The point of hashing here is to obscure customer data.  
                 // So, if we get any empty values (noone knows why this happens for certain... has only been observed in dumps)
@@ -237,9 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 lock (_lockObject)
                 {
                     List<CompilationErrorDetails> ret = null;
-
-                    HashSet<CompilationErrorDetails> cachedErrorsForDocument;
-                    if (!_errorCache.TryGetValue(documentId, out cachedErrorsForDocument))
+                    if (!_errorCache.TryGetValue(documentId, out var cachedErrorsForDocument))
                     {
                         cachedErrorsForDocument = new HashSet<CompilationErrorDetails>();
                         _errorCache[documentId] = cachedErrorsForDocument;
@@ -308,8 +307,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
                 lock (_lockObject)
                 {
-                    string ret;
-                    if (_projectGuids.TryGetValue(projectPath, out ret))
+                    if (_projectGuids.TryGetValue(projectPath, out var ret))
                     {
                         return ret;
                     }

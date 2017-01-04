@@ -415,6 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             char character;
             char surrogateCharacter = SlidingTextWindow.InvalidCharacter;
             bool isEscaped = false;
+            int startingPosition = TextWindow.Position;
 
             // Start scanning the token
             character = TextWindow.PeekChar();
@@ -877,10 +878,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (_badTokenCount++ > 200)
                     {
                         // If we get too many characters that we cannot make sense of, absorb the rest of the input.
-                        int position = TextWindow.Position - 1;
                         int end = TextWindow.Text.Length;
-                        int width = end - position;
-                        info.Text = TextWindow.Text.ToString(new TextSpan(position, width));
+                        int width = end - startingPosition;
+                        info.Text = TextWindow.Text.ToString(new TextSpan(startingPosition, width));
                         TextWindow.Reset(end);
                     }
                     else
@@ -3150,7 +3150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (error != null)
             {
-                this.AddError(error.Value, errorArgs ?? SpecializedCollections.EmptyArray<object>());
+                this.AddError(error.Value, errorArgs ?? Array.Empty<object>());
             }
         }
 

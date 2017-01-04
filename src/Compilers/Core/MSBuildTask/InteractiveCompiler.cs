@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections;
 using System.Linq;
-using Roslyn.Utilities;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -206,16 +204,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected override string GenerateFullPathToTool()
         {
-            string pathToTool = ToolLocationHelper.GetPathToBuildToolsFile(ToolName, ToolLocationHelper.CurrentToolsVersion);
+            var pathToTool = Utilities.GenerateFullPathToTool(ToolName);
 
-            if (pathToTool == null)
+            if (null == pathToTool)
             {
-                pathToTool = ToolLocationHelper.GetPathToDotNetFrameworkFile(ToolName, TargetDotNetFrameworkVersion.VersionLatest);
-
-                if (pathToTool == null)
-                {
-                    Log.LogErrorWithCodeFromResources("General_FrameworksFileNotFound", ToolName, ToolLocationHelper.GetDotNetFrameworkVersionFolderPrefix(TargetDotNetFrameworkVersion.VersionLatest));
-                }
+                Log.LogErrorWithCodeFromResources("General_ToolFileNotFound", ToolName);
             }
 
             return pathToTool;
@@ -281,8 +274,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private string[] GetArguments(string commandLineCommands, string responseFileCommands)
         {
-            var commandLineArguments = CommandLineParser.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
-            var responseFileArguments = CommandLineParser.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
+            var commandLineArguments = CommandLineUtilities.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
+            var responseFileArguments = CommandLineUtilities.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
             return commandLineArguments.Concat(responseFileArguments).ToArray();
         }
     }

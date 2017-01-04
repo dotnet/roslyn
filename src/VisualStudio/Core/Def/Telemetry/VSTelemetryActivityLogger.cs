@@ -55,8 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
         {
-            TelemetryActivity activity;
-            if (!_pendingActivities.TryRemove(uniquePairId, out activity))
+            if (!_pendingActivities.TryRemove(uniquePairId, out var activity))
             {
                 Contract.Requires(false, "when can this happen?");
                 return;

@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -12,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Spellc
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
             Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New VisualBasicSpellCheckCodeFixProvider())
+        End Function
+
+        Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)
+            Return FlattenActions(actions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -462,8 +467,16 @@ End Class</File>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestObjectConstruction() As Task
             Await TestAsync(
-NewLines("Class AwesomeClass \n Sub M() \n Dim foo = New [|AwesomeClas()|] \n End Sub \n End Class"),
-NewLines("Class AwesomeClass \n Sub M() \n Dim foo = New AwesomeClass() \n End Sub \n End Class"),
+"Class AwesomeClass
+    Sub M()
+        Dim foo = New [|AwesomeClas()|]
+    End Sub
+End Class",
+"Class AwesomeClass
+    Sub M()
+        Dim foo = New AwesomeClass()
+    End Sub
+End Class",
 index:=0)
         End Function
 
@@ -471,7 +484,7 @@ index:=0)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Async Function TestTestMissingName() As Task
             Await TestMissingAsync(
-NewLines("<Assembly: Microsoft.CodeAnalysis.[||]>"))
+"<Assembly: Microsoft.CodeAnalysis.[||]>")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -503,8 +516,18 @@ compareTokens:=False)
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
             Public Async Function TestIncompleteStatement() As Task
                 Await TestAsync(
-NewLines("Class AwesomeClass \n Inherits System.Attribute \n End Class \n Module Program \n <[|AwesomeClas|]> \n End Module"),
-NewLines("Class AwesomeClass \n Inherits System.Attribute \n End Class \n Module Program \n <AwesomeClass> \n End Module"),
+"Class AwesomeClass
+    Inherits System.Attribute
+End Class
+Module Program
+    <[|AwesomeClas|]>
+End Module",
+"Class AwesomeClass
+    Inherits System.Attribute
+End Class
+Module Program
+    <AwesomeClass>
+End Module",
 index:=0)
             End Function
         End Class

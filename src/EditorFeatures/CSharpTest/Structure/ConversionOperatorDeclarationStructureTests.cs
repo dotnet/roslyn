@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
             const string code = @"
 class C
 {
-    {|hint:$$public static explicit operator C(byte i){|collapse:
+    {|hint:$$public static explicit operator C(byte i){|textspan:
     {
     }|}|}
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact,
@@ -37,14 +37,14 @@ class C
 {
     {|span1:// Foo
     // Bar|}
-    {|hint2:$$public static explicit operator C(byte i){|collapse2:
+    {|hint2:$$public static explicit operator C(byte i){|textspan2:
     {
     }|}|}
 }";
 
             await VerifyBlockSpansAsync(code,
                 Region("span1", "// Foo ...", autoCollapse: true),
-                Region("collapse2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

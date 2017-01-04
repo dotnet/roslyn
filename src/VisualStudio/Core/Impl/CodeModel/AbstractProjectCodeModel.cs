@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public bool TryGetCachedFileCodeModel(string fileName, out ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> fileCodeModelHandle)
         {
-            var handle = GetCodeModelCache().GetComHandleForFileCodeModel(fileName);
+            var handle = GetCodeModelCache()?.GetComHandleForFileCodeModel(fileName);
 
             fileCodeModelHandle = handle != null
                 ? handle.Value

@@ -15,11 +15,6 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteInteger(symbol.Ordinal);
             }
 
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                return reader.ReadInteger();
-            }
-
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var ordinal = reader.ReadInteger();

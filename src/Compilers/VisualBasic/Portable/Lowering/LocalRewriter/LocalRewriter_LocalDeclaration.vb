@@ -9,16 +9,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitLocalDeclaration(node As BoundLocalDeclaration) As BoundNode
 
-            ' Note: A variable declaration with "AsNew" and just one variable gets bound to a BoundLocalDeclaration instead of a 
-            ' BoundAsNewLocalDeclaration to simplify things. 
-            '
-            ' We need to fill the replacement map in case the initializer is a object member initializer and does not need a 
-            ' temporary.
-            Dim placeholder As BoundWithLValueExpressionPlaceholder = Nothing
+            Dim localSymbol = node.LocalSymbol
+            Dim staticLocalBackingFields As KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField) = Nothing
+            Dim initializerOpt As BoundExpression = node.InitializerOpt
+            Dim hasInitializer As Boolean = (initializerOpt IsNot Nothing)
 
-            If node.InitializerOpt IsNot Nothing Then
-                If node.InitializerOpt.Kind = BoundKind.ObjectCreationExpression OrElse node.InitializerOpt.Kind = BoundKind.NewT Then
-                    Dim objectCreationExpression = DirectCast(node.InitializerOpt, BoundObjectCreationExpressionBase)
+            ' only if we have initializer we will produce something
+            Dim result As BoundStatement = Nothing
+
+            If localSymbol.IsStatic Then
+                staticLocalBackingFields = CreateBackingFieldsForStaticLocal(localSymbol, hasInitializer)
+            End If
+
+            If hasInitializer Then
+                ' Note: A variable declaration with "AsNew" and just one variable gets bound to a BoundLocalDeclaration instead of a 
+                ' BoundAsNewLocalDeclaration to simplify things. 
+                '
+                ' We need to fill the replacement map in case the initializer is a object member initializer and does not need a 
+                ' temporary.
+                Dim placeholder As BoundWithLValueExpressionPlaceholder = Nothing
+
+                If initializerOpt.Kind = BoundKind.ObjectCreationExpression OrElse initializerOpt.Kind = BoundKind.NewT Then
+                    Dim objectCreationExpression = DirectCast(initializerOpt, BoundObjectCreationExpressionBase)
 
                     If objectCreationExpression.InitializerOpt IsNot Nothing AndAlso
                         objectCreationExpression.InitializerOpt.Kind = BoundKind.ObjectInitializerExpression Then
@@ -29,34 +41,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Debug.Assert(objectInitializer.PlaceholderOpt IsNot Nothing)
 
                             placeholder = objectInitializer.PlaceholderOpt
-                            AddPlaceholderReplacement(placeholder, New BoundLocal(node.Syntax, node.LocalSymbol, node.LocalSymbol.Type))
+                            AddPlaceholderReplacement(placeholder, VisitExpressionNode(New BoundLocal(node.Syntax, localSymbol, localSymbol.Type)))
                         End If
                     End If
                 End If
-            End If
 
-            Dim localSymbol = node.LocalSymbol
-            Dim staticLocalBackingFields As KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField) = Nothing
-            Dim initializerOpt As BoundExpression = node.InitializerOpt
-            Dim hasInitializer As Boolean = (initializerOpt IsNot Nothing)
-
-            If localSymbol.IsStatic Then
-                staticLocalBackingFields = CreateBackingFieldsForStaticLocal(localSymbol, hasInitializer)
-            End If
-
-            ' only if we have initializer we will produce something
-            Dim result As BoundStatement = Nothing
-
-            If hasInitializer Then
                 ' Create an initializer for the local if the local is not a constant. 
                 If Not localSymbol.IsConst Then
                     Dim rewrittenInitializer As BoundExpression = VisitAndGenerateObjectCloneIfNeeded(initializerOpt)
                     result = RewriteLocalDeclarationAsInitializer(node, rewrittenInitializer, staticLocalBackingFields, placeholder Is Nothing)
                 End If
-            End If
 
-            If placeholder IsNot Nothing Then
-                RemovePlaceholderReplacement(placeholder)
+                If placeholder IsNot Nothing Then
+                    RemovePlaceholderReplacement(placeholder)
+                End If
             End If
 
             Return result

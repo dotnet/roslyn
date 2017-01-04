@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                 foreach (var provider in optionProviders)
                 {
-                    options.AddRange(provider.Value.GetOptions());
+                    options.AddRange(provider.Value.Options);
                 }
 
                 return options;
@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.Options
             foreach (var serializer in _optionSerializers)
             {
                 // We have a deserializer, so deserialize and use that value.
-                object deserializedValue;
-                if (serializer.Value.TryFetch(optionKey, out deserializedValue))
+                if (serializer.Value.TryFetch(optionKey, out var deserializedValue))
                 {
                     return deserializedValue;
                 }
@@ -76,9 +75,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
             lock (_gate)
             {
-                object value;
-
-                if (_currentValues.TryGetValue(optionKey, out value))
+                if (_currentValues.TryGetValue(optionKey, out var value))
                 {
                     return value;
                 }
@@ -143,6 +140,15 @@ namespace Microsoft.CodeAnalysis.Options
         {
             lock (_gate)
             {
+                if (_currentValues.TryGetValue(optionKey, out var oldValue))
+                {
+                    if (object.Equals(oldValue, newValue))
+                    {
+                        // Value is still the same, no reason to raise events
+                        return;
+                    }
+                }
+
                 _currentValues = _currentValues.SetItem(optionKey, newValue);
             }
 

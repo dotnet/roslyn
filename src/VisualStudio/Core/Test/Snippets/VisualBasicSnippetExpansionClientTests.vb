@@ -370,7 +370,16 @@ End Class</Test>
             End Using
         End Function
 
-        Private Async Function TestSnippetAddImportsAsync(originalCode As String, namespacesToAdd As String(), placeSystemNamespaceFirst As Boolean, expectedUpdatedCode As String) As Tasks.Task
+        Private Async Function TestSnippetAddImportsAsync(
+                markupCode As String,
+                namespacesToAdd As String(),
+                placeSystemNamespaceFirst As Boolean,
+                expectedUpdatedCode As String) As Tasks.Task
+
+            Dim originalCode As String = Nothing
+            Dim position As Integer?
+            MarkupTestFile.GetPosition(markupCode, originalCode, position)
+
             Dim workspaceXml = <Workspace>
                                    <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
                                        <CompilationOptions/>
@@ -398,6 +407,7 @@ End Class</Test>
 
                 Dim updatedDocument = expansionClient.AddImports(
                     workspace.CurrentSolution.Projects.Single().Documents.Single(),
+                    If(position, 0),
                     snippetNode,
                     placeSystemNamespaceFirst, CancellationToken.None)
 

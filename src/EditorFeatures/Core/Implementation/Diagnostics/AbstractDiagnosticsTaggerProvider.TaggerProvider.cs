@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // This can happen for buffers used in the preview workspace where some feature
                 // is generating code that it doesn't want errors shown for.
                 var buffer = spanToTag.SnapshotSpan.Snapshot.TextBuffer;
-                NormalizedSnapshotSpanCollection suppressedDiagnosticsSpans = null;
+                var suppressedDiagnosticsSpans = default(NormalizedSnapshotSpanCollection);
                 buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
                 // Producing tags is simple.  We just grab the diagnostics we were already told about,

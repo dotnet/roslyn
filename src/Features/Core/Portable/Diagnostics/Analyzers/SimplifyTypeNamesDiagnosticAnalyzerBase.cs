@@ -3,10 +3,9 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -72,7 +71,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             }
         }
 
-        public bool OpenFileOnly(Workspace workspace) => true;
+        public bool OpenFileOnly(Workspace workspace)
+        {
+            var preferTypeKeywordInDeclarationOption = workspace.Options.GetOption(
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
+            var preferTypeKeywordInMemberAccessOption = workspace.Options.GetOption(
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
+
+            return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
+                     preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
+        }
 
         protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
 
@@ -84,11 +92,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
         {
             diagnostic = default(Diagnostic);
 
-            var optionSet = analyzerOptions.GetOptionSet();
-            string diagnosticId;
-
-            TextSpan issueSpan;
-            if (!CanSimplifyTypeNameExpressionCore(model, node, optionSet, out issueSpan, out diagnosticId, cancellationToken))
+            var syntaxTree = node.SyntaxTree;
+            var optionSet = analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return false;
+            }
+            
+            if (!CanSimplifyTypeNameExpressionCore(model, node, optionSet, out var issueSpan, out string diagnosticId, cancellationToken))
             {
                 return false;
             }
@@ -170,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                 return null;
             }
 
-            var applicableOption = QualifyMemberAccessDiagnosticAnalyzerBase<TLanguageKindEnum>.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
+            var applicableOption = AbstractQualifyMemberAccessDiagnosticAnalyzer<TLanguageKindEnum>.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
             var optionValue = optionSet.GetOption(applicableOption, GetLanguageName());
             var severity = optionValue.Notification.Value;
 

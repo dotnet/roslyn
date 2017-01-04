@@ -110,6 +110,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return this.LocalSymbol; }
         }
+
+        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors)
+            : this(syntax, localSymbol, false, constantValueOpt, type, hasErrors)
+        {
+        }
+
+        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type)
+            : this(syntax, localSymbol, false, constantValueOpt, type)
+        {
+        }
+
+        public BoundLocal Update(LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type)
+        {
+            return this.Update(localSymbol, this.IsDeclaration, constantValueOpt, type);
+        }
     }
 
     internal partial class BoundFieldAccess

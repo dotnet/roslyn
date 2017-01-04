@@ -156,6 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitNumeric: 
                 case ConversionKind.ImplicitReference: 
                 case ConversionKind.ImplicitEnumeration:
+                case ConversionKind.ImplicitThrow:
                 case ConversionKind.AnonymousFunction: 
                 case ConversionKind.Boxing: 
                 case ConversionKind.NullLiteral: 
@@ -195,6 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitNumeric => new Conversion(ConversionKind.ImplicitNumeric);
         internal static Conversion ImplicitReference => new Conversion(ConversionKind.ImplicitReference);
         internal static Conversion ImplicitEnumeration => new Conversion(ConversionKind.ImplicitEnumeration);
+        internal static Conversion ImplicitThrow => new Conversion(ConversionKind.ImplicitThrow);
         internal static Conversion AnonymousFunction => new Conversion(ConversionKind.AnonymousFunction);
         internal static Conversion Boxing => new Conversion(ConversionKind.Boxing);
         internal static Conversion NullLiteral => new Conversion(ConversionKind.NullLiteral);
@@ -438,6 +440,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.ImplicitEnumeration || Kind == ConversionKind.ExplicitEnumeration;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit throw conversion.
+        /// </summary>
+        public bool IsThrow
+        {
+            get
+            {
+                return Kind == ConversionKind.ImplicitThrow;
             }
         }
 

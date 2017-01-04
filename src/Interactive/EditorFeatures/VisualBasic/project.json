@@ -1,5 +1,9 @@
 {
-  "dependencies": { },
+  "dependencies": {
+    "Microsoft.VisualStudio.InteractiveWindow": "2.0.0-beta5-60820-04",
+    "Microsoft.VisualStudio.Text.UI": "14.3.25407",
+    "Microsoft.VisualStudio.Text.UI.Wpf": "14.3.25407"
+  },
   "frameworks": {
     "net46": { }
   },

@@ -274,20 +274,39 @@ else
         public async Task TestMissingOnNonEmptySpan()
         {
             await TestMissingAsync(
-@"class C { void F() { [|if (a) { a(); } else { b(); }|] } }");
+@"class C
+{
+    void F()
+    {
+        [|if (a)
+        {
+            a();
+        }
+        else
+        {
+            b();
+        }|]
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestOverlapsHiddenPosition1()
         {
             await TestMissingAsync(
-@"
-class C 
+@"class C
 {
     void F()
     {
 #line hidden
-        [||]if (a) { a(); } else { b(); }
+        [||]if (a)
+        {
+            a();
+        }
+        else
+        {
+            b();
+        }
 #line default
     }
 }");
@@ -297,8 +316,7 @@ class C
         public async Task TestOverlapsHiddenPosition2()
         {
             await TestMissingAsync(
-@"
-class C 
+@"class C
 {
     void F()
     {
@@ -309,7 +327,7 @@ class C
 #line default
         }
         else
-        { 
+        {
             b();
         }
     }
@@ -320,8 +338,7 @@ class C
         public async Task TestOverlapsHiddenPosition3()
         {
             await TestMissingAsync(
-@"
-class C 
+@"class C
 {
     void F()
     {
@@ -330,7 +347,7 @@ class C
             a();
         }
         else
-        { 
+        {
 #line hidden
             b();
 #line default
@@ -343,8 +360,7 @@ class C
         public async Task TestOverlapsHiddenPosition4()
         {
             await TestMissingAsync(
-@"
-class C 
+@"class C
 {
     void F()
     {
@@ -354,7 +370,7 @@ class C
             a();
         }
         else
-        { 
+        {
             b();
 #line default
         }
@@ -366,8 +382,7 @@ class C
         public async Task TestOverlapsHiddenPosition5()
         {
             await TestMissingAsync(
-@"
-class C 
+@"class C
 {
     void F()
     {
@@ -377,7 +392,7 @@ class C
 #line hidden
         }
         else
-        { 
+        {
 #line default
             b();
         }

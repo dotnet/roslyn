@@ -167,14 +167,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Function MakeParameterSymbol(ordinal As Integer, name As String, sourceParameter As ParameterSymbol) As ParameterSymbol
-            Return New SynthesizedParameterSymbolWithCustomModifiers(
+            Return SynthesizedParameterSymbol.Create(
                 Me,
                 sourceParameter.Type,
                 ordinal,
                 sourceParameter.IsByRef,
                 name,
                 sourceParameter.CustomModifiers,
-                sourceParameter.CountOfCustomModifiersPrecedingByRef)
+                sourceParameter.RefCustomModifiers)
         End Function
 
         Public Overrides ReadOnly Property MethodKind As MethodKind
@@ -296,6 +296,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Property
 
         Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
                 Return ImmutableArray(Of CustomModifier).Empty
             End Get
@@ -577,6 +583,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Throw ExceptionUtilities.UnexpectedValue(body.Kind)
             End Select
         End Function
+
+        Friend Overrides Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedReturnTypeAttributes(attributes)
+
+            Dim returnType = Me.ReturnType
+            If returnType.ContainsTupleNames() AndAlso DeclaringCompilation.HasTupleNamesAttributes() Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(returnType))
+            End If
+        End Sub
 
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
             Return localPosition

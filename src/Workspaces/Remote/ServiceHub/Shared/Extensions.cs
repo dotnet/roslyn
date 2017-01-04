@@ -6,8 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using StreamJsonRpc;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -17,10 +18,10 @@ namespace Microsoft.CodeAnalysis.Remote
             this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
             Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            try
+            using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+            using (var stream = new ServerDirectStream())
             {
-                using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
-                using (var stream = new ServerDirectStream())
+                try
                 {
                     // send request by adding direct stream name to end of arguments
                     var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
@@ -37,14 +38,17 @@ namespace Microsoft.CodeAnalysis.Remote
                     // wait task to finish
                     await task.ConfigureAwait(false);
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                // if cancelled due to us, throw cancellation exception.
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // if canclled due to invocation is failed, rethrow merged cancellation
-                throw;
+                catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
+                {
+                    // important to use cancelationToken here rather than mergedCancellationToken.
+                    // there is a slight delay when merged cancellation token will be notified once cancellation token
+                    // is raised, it can cause one to be in cancelled mode and the other is not. here, one we
+                    // actually care is the cancellation token given in, not the merged cancellation token.
+                    // but we need merged one to cancel operation if InvokeAsync has failed. if it failed without
+                    // cancellation token is raised, then we do want to have watson report
+                    cancellationToken.ThrowIfCancellationRequested();
+                    throw;
+                }
             }
         }
 
@@ -52,10 +56,10 @@ namespace Microsoft.CodeAnalysis.Remote
             this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
             Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            try
+            using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+            using (var stream = new ServerDirectStream())
             {
-                using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
-                using (var stream = new ServerDirectStream())
+                try
                 {
                     // send request to asset source
                     var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
@@ -74,14 +78,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     return result;
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                // if cancelled due to us, throw cancellation exception.
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // if canclled due to invocation is failed, rethrow merged cancellation
-                throw;
+                catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
+                {
+                    // important to use cancelationToken here rather than mergedCancellationToken.
+                    // there is a slight delay when merged cancellation token will be notified once cancellation token
+                    // is raised, it can cause one to be in cancelled mode and the other is not. here, one we
+                    // actually care is the cancellation token given in, not the merged cancellation token.
+                    cancellationToken.ThrowIfCancellationRequested();
+                    throw;
+                }
             }
         }
 
@@ -89,10 +94,10 @@ namespace Microsoft.CodeAnalysis.Remote
             this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
             Action<Stream, CancellationToken> actionWithDirectStream, CancellationToken cancellationToken)
         {
-            try
+            using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+            using (var stream = new ServerDirectStream())
             {
-                using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
-                using (var stream = new ServerDirectStream())
+                try
                 {
                     // send request by adding direct stream name to end of arguments
                     var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
@@ -109,14 +114,15 @@ namespace Microsoft.CodeAnalysis.Remote
                     // wait task to finish
                     await task.ConfigureAwait(false);
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                // if cancelled due to us, throw cancellation exception.
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // if canclled due to invocation is failed, rethrow merged cancellation
-                throw;
+                catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
+                {
+                    // important to use cancelationToken here rather than mergedCancellationToken.
+                    // there is a slight delay when merged cancellation token will be notified once cancellation token
+                    // is raised, it can cause one to be in cancelled mode and the other is not. here, one we
+                    // actually care is the cancellation token given in, not the merged cancellation token.
+                    cancellationToken.ThrowIfCancellationRequested();
+                    throw;
+                }
             }
         }
 
@@ -124,10 +130,10 @@ namespace Microsoft.CodeAnalysis.Remote
             this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
             Func<Stream, CancellationToken, T> funcWithDirectStream, CancellationToken cancellationToken)
         {
-            try
+            using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+            using (var stream = new ServerDirectStream())
             {
-                using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
-                using (var stream = new ServerDirectStream())
+                try
                 {
                     // send request to asset source
                     var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
@@ -146,15 +152,32 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     return result;
                 }
+                catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
+                {
+                    // important to use cancelationToken here rather than mergedCancellationToken.
+                    // there is a slight delay when merged cancellation token will be notified once cancellation token
+                    // is raised, it can cause one to be in cancelled mode and the other is not. here, one we
+                    // actually care is the cancellation token given in, not the merged cancellation token.
+                    cancellationToken.ThrowIfCancellationRequested();
+                    throw;
+                }
             }
-            catch (OperationCanceledException)
-            {
-                // if cancelled due to us, throw cancellation exception.
-                cancellationToken.ThrowIfCancellationRequested();
+        }
 
-                // if canclled due to invocation is failed, rethrow merged cancellation
-                throw;
+        private static bool ReportUnlessCanceled(Exception ex, CancellationToken token)
+        {
+            // check whether we are in cancellation mode
+            if (token.IsCancellationRequested)
+            {
+                // we are under cancellation, we don't care what the exception is.
+                // due to the way we do cancellation (forcefully closing connection in the middle of reading/writing)
+                // various exceptions can be thrown. for example, if we close our own named pipe stream in the middle of
+                // object reader/writer using it, we could get invalid operation exception or invalid cast exception.
+                return true;
             }
+
+            // unexpected exception case. crash VS
+            return FatalError.Report(ex);
         }
 
         private static void RaiseCancellationIfInvokeFailed(Task task, CancellationTokenSource mergedCancellation, CancellationToken cancellationToken)

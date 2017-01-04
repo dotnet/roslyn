@@ -34,7 +34,6 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";
-            public const string CodeActionsAddUsing = "CodeActions.AddUsing";
             public const string CodeActionsChangeToAsync = "CodeActions.ChangeToAsync";
             public const string CodeActionsChangeToIEnumerable = "CodeActions.ChangeToIEnumerable";
             public const string CodeActionsChangeToYield = "CodeActions.ChangeToYield";
@@ -58,7 +57,9 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsFullyQualify = "CodeActions.FullyQualify";
             public const string CodeActionsImplementAbstractClass = "CodeActions.ImplementAbstractClass";
             public const string CodeActionsImplementInterface = "CodeActions.ImplementInterface";
+            public const string CodeActionsInlineDeclaration = "CodeActions.InlineDeclaration";
             public const string CodeActionsInlineTemporary = "CodeActions.InlineTemporary";
+            public const string CodeActionsInlineTypeCheck = "CodeActions.InlineTypeCheck";
             public const string CodeActionsInsertBraces = "CodeActions.InsertBraces";
             public const string CodeActionsInsertMissingCast = "CodeActions.InsertMissingCast";
             public const string CodeActionsInsertMissingTokens = "CodeActions.InsertMissingTokens";
@@ -82,9 +83,16 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
+            public const string CodeActionsUseCoalesceExpression = "CodeActions.UseCoalesceExpression";
+            public const string CodeActionsUseCollectionInitializer = "CodeActions.UseCollectionInitializer";
+            public const string CodeActionsUseExpressionBody = "CodeActions.UseExpressionBody";
             public const string CodeActionsUseImplicitType = "CodeActions.UseImplicitType";
             public const string CodeActionsUseExplicitType = "CodeActions.UseExplicitType";
+            public const string CodeActionsUseExplicitTupleName = "CodeActions.UseExplicitTupleName";
             public const string CodeActionsUseFrameworkType = "CodeActions.UseFrameworkType";
+            public const string CodeActionsUseNullPropagation = "CodeActions.UseNullPropagation";
+            public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
+            public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
             public const string CodeGeneration = nameof(CodeGeneration);
             public const string CodeGenerationSortDeclarations = "CodeGeneration.SortDeclarations";
             public const string CodeLens = nameof(CodeLens);
@@ -137,6 +145,7 @@ namespace Roslyn.Test.Utilities
             public const string ReferenceHighlighting = nameof(ReferenceHighlighting);
             public const string Rename = nameof(Rename);
             public const string RenameTracking = nameof(RenameTracking);
+            public const string RemoteHost = nameof(RemoteHost);
             public const string RQName = nameof(RQName);
             public const string SignatureHelp = nameof(SignatureHelp);
             public const string Simplification = nameof(Simplification);
@@ -144,6 +153,7 @@ namespace Roslyn.Test.Utilities
             public const string SmartTokenFormatting = nameof(SmartTokenFormatting);
             public const string Snippets = nameof(Snippets);
             public const string SplitStringLiteral = nameof(SplitStringLiteral);
+            public const string SuggestionTags = nameof(SuggestionTags);
             public const string TextStructureNavigator = nameof(TextStructureNavigator);
             public const string TodoComments = nameof(TodoComments);
             public const string TypeInferenceService = nameof(TypeInferenceService);

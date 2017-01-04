@@ -1,19 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindReferences
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    internal struct TaggedTextAndHighlightSpan
+    internal struct ClassifiedSpansAndHighlightSpan
     {
-        public readonly ImmutableArray<TaggedText> TaggedText;
+        public readonly ImmutableArray<ClassifiedSpan> ClassifiedSpans;
         public readonly TextSpan HighlightSpan;
 
-        public TaggedTextAndHighlightSpan(ImmutableArray<TaggedText> taggedText, TextSpan highlightSpan)
+        public ClassifiedSpansAndHighlightSpan(
+            ImmutableArray<ClassifiedSpan> classifiedSpans,
+            TextSpan highlightSpan)
         {
-            TaggedText = taggedText;
+            ClassifiedSpans = classifiedSpans;
             HighlightSpan = highlightSpan;
         }
     }

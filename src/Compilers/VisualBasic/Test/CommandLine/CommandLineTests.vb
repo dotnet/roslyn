@@ -560,6 +560,35 @@ a.vb
             CleanupAllGeneratedFiles(tmpFileName)
         End Sub
 
+        <WorkItem(217718, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=217718")>
+        <Fact>
+        Public Sub BadWin32Resource()
+            Dim source = Temp.CreateFile(prefix:="", extension:=".vb").WriteAllText("
+Module Test 
+    Sub Main() 
+    End Sub 
+End Module").Path
+            Dim badres = Temp.CreateFile().WriteAllBytes(New Byte() {0, 0}).Path
+
+            Dim baseDir = Path.GetDirectoryName(source)
+            Dim fileName = Path.GetFileName(source)
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = New MockVisualBasicCompiler(Nothing, baseDir,
+            {
+                "/nologo",
+                "/preferreduilang:en",
+                "/win32resource:" + badres,
+                source
+            }).Run(outWriter)
+
+            Assert.Equal(1, exitCode)
+            Assert.Equal("vbc : error BC30136: Error creating Win32 resources: Unrecognized resource file format.", outWriter.ToString().Trim())
+
+            CleanupAllGeneratedFiles(source)
+            CleanupAllGeneratedFiles(badres)
+        End Sub
+
         <Fact>
         Public Sub Win32ResourceOptions_Valid()
             CheckWin32ResourceOptions({"/win32resource:a"}, "a", Nothing, Nothing, False)
@@ -953,6 +982,17 @@ a.vb
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(True, parsedArgs.DisplayHelp)
             Assert.Equal(False, parsedArgs.SourceFiles.Any())
+            parsedArgs = InteractiveParse({"/version"}, _baseDirectory)
+            Assert.Equal(False, parsedArgs.Errors.Any())
+            Assert.True(parsedArgs.DisplayVersion)
+            Assert.Equal(False, parsedArgs.SourceFiles.Any())
+            parsedArgs = InteractiveParse({"/version", "c"}, _baseDirectory)
+            Assert.Equal(False, parsedArgs.Errors.Any())
+            Assert.True(parsedArgs.DisplayVersion)
+            Assert.Equal(True, parsedArgs.SourceFiles.Any())
+            parsedArgs = InteractiveParse({"/version:something"}, _baseDirectory)
+            Assert.Equal(True, parsedArgs.Errors.Any())
+            Assert.False(parsedArgs.DisplayVersion)
             parsedArgs = InteractiveParse({"/?"}, _baseDirectory)
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(True, parsedArgs.DisplayHelp)
@@ -7914,6 +7954,72 @@ End Class
                 New String() {"a,s.dll", "b,s.dll"},
                 args.MetadataReferences.Select(Function(x) x.Reference))
         End Sub
+
+        <WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")>
+        <Fact()>
+        Public Sub Version()
+            Dim folderName = Temp.CreateDirectory().ToString()
+            Dim expected As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
+
+            Dim argss = {
+                "/version",
+                "a.cs /version /preferreduilang:en",
+                "/version /nologo",
+                "/version /help"}
+
+            For Each args In argss
+                Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, args, startFolder:=folderName)
+                Assert.Equal(expected, output.Trim())
+            Next
+        End Sub
+
+        <WorkItem(13681, "https://github.com/dotnet/roslyn/issues/13681")>
+        <Theory()>
+        <InlineData("/t:exe", "/out:foo.dll", "foo.dll", "foo.dll.exe")>                                'Output with known but different extension
+        <InlineData("/t:exe", "/out:foo.dLL", "foo.dLL", "foo.dLL.exe")>                                'Output with known but different extension (different casing)
+        <InlineData("/t:library", "/out:foo.exe", "foo.exe", "foo.exe.dll")>                            'Output with known but different extension
+        <InlineData("/t:library", "/out:foo.eXe", "foo.eXe", "foo.eXe.dll")>                            'Output with known but different extension (different casing)
+        <InlineData("/t:module", "/out:foo.dll", "foo.dll", "foo.dll.netmodule")>                       'Output with known but different extension
+        <InlineData("/t:winmdobj", "/out:foo.netmodule", "foo.netmodule", "foo.netmodule.winmdobj")>    'Output with known but different extension
+        <InlineData("/t:exe", "/out:foo.netmodule", "foo.netmodule", "foo.netmodule.exe")>              'Output with known but different extension
+        <InlineData("/t:library", "/out:foo.txt", "foo.txt.dll", "foo.dll")>                            'Output with unknown extension (.txt)
+        <InlineData("/t:exe", "/out:foo.md", "foo.md.exe", "foo.exe")>                                  'Output with unknown extension (.md)
+        <InlineData("/t:exe", "/out:foo", "foo.exe", "foo")>                                            'Output without extension
+        <InlineData("/t:library", "/out:foo", "foo.dll", "foo")>                                        'Output without extension
+        <InlineData("/t:module", "/out:foo", "foo.netmodule", "foo")>                                   'Output without extension
+        <InlineData("/t:winmdobj", "/out:foo", "foo.winmdobj", "foo")>                                  'Output without extension
+        <InlineData("/t:exe", "/out:foo.exe", "foo.exe", "foo.exe.exe")>                                'Output with correct extension (.exe)
+        <InlineData("/t:library", "/out:foo.dll", "foo.dll", "foo.dll.dll")>                            'Output with correct extension (.dll)
+        <InlineData("/t:module", "/out:foo.netmodule", "foo.netmodule", "foo.netmodule.netmodule")>     'Output with correct extension (.netmodule)
+        <InlineData("/t:module", "/out:foo.NetModule", "foo.NetModule", "foo.NetModule.netmodule")>     'Output with correct extension (.netmodule) (different casing)
+        <InlineData("/t:winmdobj", "/out:foo.winmdobj", "foo.winmdobj", "foo.winmdobj.winmdobj")>       'Output with correct extension (.winmdobj)
+        Public Sub OutputingFilesWithDifferentExtensions(targetArg As String, outArg As String, expectedFile As String, unexpectedFile As String)
+            Dim source =
+                <compilation>
+                    <file name="a.vb">
+                        <![CDATA[
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module
+]]>
+                    </file>
+                </compilation>
+
+            Dim fileName = "a.vb"
+            Dim dir = Temp.CreateDirectory()
+            Dim sourceFile = dir.CreateFile(fileName)
+            sourceFile.WriteAllText(source.Value)
+
+            Dim output As New StringWriter()
+
+            Assert.Equal(0, New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, targetArg, outArg}).Run(output, Nothing))
+            Assert.True(File.Exists(Path.Combine(dir.Path, expectedFile)), "Expected to find: " & expectedFile)
+            Assert.False(File.Exists(Path.Combine(dir.Path, unexpectedFile)), "Didn't expect to find: " & unexpectedFile)
+
+            CleanupAllGeneratedFiles(sourceFile.Path)
+        End Sub
+
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

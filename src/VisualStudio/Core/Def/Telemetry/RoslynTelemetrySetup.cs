@@ -11,26 +11,18 @@ using Microsoft.VisualStudio.LanguageServices.Setup;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
-    [Export(typeof(IRoslynTelemetrySetup))]
-    internal class RoslynTelemetrySetup : IRoslynTelemetrySetup
+    internal static class RoslynTelemetrySetup
     {
-        public void Initialize(IServiceProvider serviceProvider)
+        public static void Initialize(IServiceProvider serviceProvider)
         {
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
-            var workspace = componentModel.GetService<VisualStudioWorkspace>();
-
-            // initialize host context on UI thread.
-            var projectTypeLookup = workspace.Services.GetService<IProjectTypeLookupService>();
-
-            // set initial logger
-            var optionService = workspace.Services.GetService<IOptionService>();
-            var loggingChecker = Logger.GetLoggingChecker(optionService);
+            var optionService = componentModel.GetService<IGlobalOptionService>();
 
             var telemetryService = serviceProvider.GetService(typeof(SVsTelemetryService)) as IVsTelemetryService;
             Logger.SetLogger(
                 AggregateLogger.Create(
                     CodeMarkerLogger.Instance,
-                    new EtwLogger(loggingChecker),
+                    new EtwLogger(optionService),
                     new VSTelemetryLogger(telemetryService),
                     new VSTelemetryActivityLogger(telemetryService),
                     Logger.GetLogger()));

@@ -30,12 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
     /// persist them to the SUO file to persist this data across sessions.
     /// </summary>
     internal abstract partial class AbstractStructureTaggerProvider<TRegionTag> : 
-        AsynchronousTaggerProvider<TRegionTag>,
-        IEqualityComparer<TRegionTag>
+        AsynchronousTaggerProvider<TRegionTag>
         where TRegionTag : class, ITag
     {
-        public const string OutliningRegionTextViewRole = nameof(OutliningRegionTextViewRole);
-
         private static IComparer<BlockSpan> s_blockSpanComparer =
             Comparer<BlockSpan>.Create((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
 
@@ -56,12 +53,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             ProjectionBufferFactoryService = projectionBufferFactoryService;
         }
 
-        protected sealed override IEqualityComparer<TRegionTag> TagComparer => this;
-
-        public abstract bool Equals(TRegionTag x, TRegionTag y);
-
-        public abstract int GetHashCode(TRegionTag obj);
-
         protected sealed override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             // We listen to the following events:
@@ -78,7 +69,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle),
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer, TaggerDelay.OnIdle),
-                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.OnIdle));
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.OnIdle),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForCodeLevelConstructs, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, TaggerDelay.NearImmediate));
         }
 
         /// <summary>
@@ -94,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 {
                     var blockStructure = await outliningService.GetBlockStructureAsync(
                         documentSnapshotSpan.Document, context.CancellationToken).ConfigureAwait(false);
+
                     ProcessSpans(
                         context, documentSnapshotSpan.SnapshotSpan, outliningService,
                         blockStructure.Spans);
@@ -123,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                     // and make a blocking call against the async service.
 
                     var blockStructure = outliningService.GetBlockStructure(document, cancellationToken);
+
                     ProcessSpans(
                         context, documentSnapshotSpan.SnapshotSpan, outliningService,
                         blockStructure.Spans);
@@ -157,6 +157,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             BlockStructureService outliningService,
             ImmutableArray<BlockSpan> spans)
         {
+            try
+            {
+                ProcessSpansWorker(context, snapshotSpan, outliningService, spans);
+            }
+            catch (TypeLoadException)
+            {
+                // We're targetting a version of the BlockTagging infrastructure in 
+                // VS that may not match the version that the user is currently
+                // developing against.  Be resilient to this until everything moves
+                // forward to the right VS version.
+            }
+        }
+
+        private void ProcessSpansWorker(
+            TaggerContext<TRegionTag> context,
+            SnapshotSpan snapshotSpan,
+            BlockStructureService outliningService,
+            ImmutableArray<BlockSpan> spans)
+        {
             if (spans != null)
             {
                 var snapshot = snapshotSpan.Snapshot;
@@ -178,16 +197,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                     var parentTag = tagSpanStack.Count > 0 ? tagSpanStack.Peek() : null;
                     var tag = CreateTag(parentTag?.Tag, snapshot, region);
 
-                    var tagSpan = new TagSpan<TRegionTag>(spanToCollapse, tag);
+                    if (tag != null)
+                    {
+                        var tagSpan = new TagSpan<TRegionTag>(spanToCollapse, tag);
 
-                    context.AddTag(tagSpan);
-                    tagSpanStack.Push(tagSpan);
+                        context.AddTag(tagSpan);
+                        tagSpanStack.Push(tagSpan);
+                    }
                 }
             }
         }
 
-        protected abstract TRegionTag CreateTag(
-            TRegionTag parentTag, ITextSnapshot snapshot, BlockSpan region);
+        protected abstract TRegionTag CreateTag(TRegionTag parentTag, ITextSnapshot snapshot, BlockSpan region);
 
         private static bool s_exceptionReported = false;
 
@@ -196,10 +217,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             ImmutableArray<BlockSpan> regions, ITextSnapshot snapshot)
         {
             // Remove any spans that aren't multiline.
-            var multiLineRegions = ImmutableArray.CreateBuilder<BlockSpan>();
+            var multiLineRegions = ArrayBuilder<BlockSpan>.GetInstance();
             foreach (var region in regions)
             {
-                if (region != null && region.TextSpan.Length > 0)
+                if (region.TextSpan.Length > 0)
                 {
                     // Check if any clients produced an invalid OutliningSpan.  If so, filter them
                     // out and report a non-fatal watson so we can attempt to determine the source
@@ -237,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             // Note we pass a IComparer instead of a Comparison to work around this
             // issue in ImmutableArray.Builder: https://github.com/dotnet/corefx/issues/11173
             multiLineRegions.Sort(s_blockSpanComparer);
-            return multiLineRegions.ToImmutable();
+            return multiLineRegions.ToImmutableAndFree();
         }
     }
 }

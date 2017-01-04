@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private CompletionDescription(ImmutableArray<TaggedText> taggedParts)
         {
-            this.TaggedParts = taggedParts.IsDefault ? ImmutableArray<TaggedText>.Empty : taggedParts;
+            this.TaggedParts = taggedParts.NullToEmpty();
         }
 
         /// <summary>

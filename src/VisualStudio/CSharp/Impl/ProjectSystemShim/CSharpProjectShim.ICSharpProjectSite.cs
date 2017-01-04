@@ -64,24 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             //    ? SourceCodeKind.Script
             //    : SourceCodeKind.Regular;
             var sourceCodeKind = SourceCodeKind.Regular;
-
-            IVsHierarchy foundHierarchy;
-            uint itemId;
-            if (ErrorHandler.Succeeded(_projectRoot.GetHierarchyAndItemID(filename, out foundHierarchy, out itemId)))
-            {
-                Debug.Assert(foundHierarchy == this.Hierarchy);
-            }
-            else
-            {
-                // Unfortunately, the project system does pass us some files which aren't part of
-                // the project as far as the hierarchy and itemid are concerned.  We'll just used
-                // VSITEMID.Nil for them.
-
-                foundHierarchy = null;
-                itemId = (uint)VSConstants.VSITEMID.Nil;
-            }
-
-            AddFile(filename, sourceCodeKind, itemId);
+            AddFile(filename, sourceCodeKind);
         }
 
         public void OnSourceFileRemoved(string filename)

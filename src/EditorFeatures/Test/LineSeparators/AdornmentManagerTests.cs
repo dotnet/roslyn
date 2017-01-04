@@ -99,7 +99,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LineSeparators
                 var newLine = new Mock<ITextViewLine>();
                 newLine.SetupGet(line => line.ExtentIncludingLineBreak).Returns(_subjectBuffer.CurrentSnapshot.Lines.First().Extent);
                 var viewState = new ViewState(_textView.Object);
-                _textView.Raise(tv => tv.LayoutChanged += null, new TextViewLayoutChangedEventArgs(viewState, viewState, new[] { newLine.Object }, SpecializedCollections.EmptyArray<ITextViewLine>()));
+                _textView.Raise(tv => tv.LayoutChanged += null,
+                    new TextViewLayoutChangedEventArgs(viewState,
+                                                       viewState,
+                                                       new[] { newLine.Object },
+                                                       Array.Empty<ITextViewLine>()));
                 _adornmentLayer.Verify(al => al.AddAdornment(AdornmentPositioningBehavior.TextRelative, MySnapshotSpan, It.IsAny<object>(), null, It.IsAny<AdornmentRemovedCallback>()));
             }
 

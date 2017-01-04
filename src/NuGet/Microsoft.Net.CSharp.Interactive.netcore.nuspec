@@ -20,10 +20,13 @@
         <dependency id="Microsoft.CodeAnalysis.Compilers" version="$version$" />
         <dependency id="Microsoft.CodeAnalysis.Scripting" version="$version$" />
         <dependency id="NETStandard.Library" version="1.6.0" />
+        <dependency id="Microsoft.CSharp" version="$MicrosoftCSharpVersion$" />
+        <dependency id="System.Dynamic.Runtime" version="$SystemDynamicRuntimeVersion$" />
+        <dependency id="System.ValueTuple" version="$SystemValueTupleVersion$" />
       </group>
     </dependencies>
   </metadata>
   <files>
-    <file src="csicore/csi.exe" target="runtimes/any/native" />
+    <file src="Exes/CsiCore/csi.exe" target="runtimes/any/native" />
   </files>
 </package>

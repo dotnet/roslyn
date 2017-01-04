@@ -165,6 +165,12 @@ namespace Microsoft.CodeAnalysis
         public bool DisplayHelp { get; internal set; }
 
         /// <summary>
+        /// If true, append the compiler version during
+        /// <see cref="CommonCompiler.Run"/>
+        /// </summary>
+        public bool DisplayVersion { get; internal set; }
+
+        /// <summary>
         /// The path to a Win32 resource.
         /// </summary>
         public string Win32ResourceFile { get; internal set; }
@@ -436,7 +442,7 @@ namespace Microsoft.CodeAnalysis
 
         private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)
         {
-            string resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: PortableShim.File.Exists);
+            string resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: File.Exists);
             if (resolvedPath != null)
             {
                 resolvedPath = FileUtilities.TryNormalizeAbsolutePath(resolvedPath);

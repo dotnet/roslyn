@@ -76,6 +76,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
+        Public Function Contains(rootDeclaration As DeclarationTableEntry) As Boolean
+            Return rootDeclaration IsNot Nothing AndAlso
+                 (_allOlderRootDeclarations.Contains(rootDeclaration) OrElse _latestLazyRootDeclaration Is rootDeclaration)
+        End Function
+
         Public Function RemoveRootDeclaration(lazyRootDeclaration As DeclarationTableEntry) As DeclarationTable
             ' We can only reuse the cache if we're removing the decl that was just added.
             If _latestLazyRootDeclaration Is lazyRootDeclaration Then

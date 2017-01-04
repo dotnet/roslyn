@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis
         where TypeSymbol : class
     {
         internal bool IsByRef;
-        internal ushort CountOfCustomModifiersPrecedingByRef;
         internal TypeSymbol Type;
         internal ParameterHandle Handle; // may be nil
+        internal ImmutableArray<ModifierInfo<TypeSymbol>> RefCustomModifiers;
         internal ImmutableArray<ModifierInfo<TypeSymbol>> CustomModifiers;
     }
 
@@ -1101,36 +1101,15 @@ namespace Microsoft.CodeAnalysis
             if (typeCode == SignatureTypeCode.ByReference)
             {
                 info.IsByRef = true;
-
-                // The spec says that custom modifiers must precede SignatureTypeCode.ByReference, but the managed C++
-                // compiler emits them in the reverse order.  In order to avoid breaking interop scenarios, we need to
-                // support decoding (and later emitting) such signatures.
-                var additionalModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
-
-                if (!info.CustomModifiers.IsDefault)
-                {
-                    info.CountOfCustomModifiersPrecedingByRef = (ushort)info.CustomModifiers.Length;
-                    if (info.CountOfCustomModifiersPrecedingByRef != info.CustomModifiers.Length)
-                    {
-                        throw new UnsupportedSignatureContent();
-                    }
-
-                    if (!additionalModifiers.IsDefaultOrEmpty)
-                    {
-                        info.CustomModifiers = info.CustomModifiers.Concat(additionalModifiers);
-                    }
-                }
-                else
-                {
-                    info.CustomModifiers = additionalModifiers;
-                }
+                info.RefCustomModifiers = info.CustomModifiers; 
+                info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
             }
 
             info.Type = DecodeTypeOrThrow(ref signatureReader, typeCode, out refersToNoPiaLocalType);
         }
 
         // MetaImport::DecodeMethodSignature
-        internal ParamInfo<TypeSymbol>[] GetSignatureForMethod(MethodDefinitionHandle methodDef, out SignatureHeader signatureHeader, out BadImageFormatException metadataException, bool allowByRefReturn, bool setParamHandles = true)
+        internal ParamInfo<TypeSymbol>[] GetSignatureForMethod(MethodDefinitionHandle methodDef, out SignatureHeader signatureHeader, out BadImageFormatException metadataException, bool setParamHandles = true)
         {
             ParamInfo<TypeSymbol>[] paramInfo = null;
             signatureHeader = default(SignatureHeader);
@@ -1141,7 +1120,7 @@ namespace Microsoft.CodeAnalysis
                 BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
 
                 int typeParameterCount; //CONSIDER: expose to caller?
-                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, signatureHeader, out typeParameterCount, allowByRefReturn);
+                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, signatureHeader, out typeParameterCount);
 
                 if (setParamHandles)
                 {
@@ -1188,7 +1167,7 @@ namespace Microsoft.CodeAnalysis
             GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out parameterCount, out typeParameterCount);
         }
 
-        internal ParamInfo<TypeSymbol>[] GetSignatureForProperty(PropertyDefinitionHandle handle, out SignatureHeader signatureHeader, out BadImageFormatException BadImageFormatException, bool allowByRefReturn)
+        internal ParamInfo<TypeSymbol>[] GetSignatureForProperty(PropertyDefinitionHandle handle, out SignatureHeader signatureHeader, out BadImageFormatException BadImageFormatException)
         {
             ParamInfo<TypeSymbol>[] paramInfo = null;
             signatureHeader = default(SignatureHeader);
@@ -1199,7 +1178,7 @@ namespace Microsoft.CodeAnalysis
                 BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
 
                 int typeParameterCount; //CONSIDER: expose to caller?
-                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, signatureHeader, out typeParameterCount, allowByRefReturn);
+                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, signatureHeader, out typeParameterCount);
                 BadImageFormatException = null;
             }
             catch (BadImageFormatException mrEx)
@@ -1454,7 +1433,7 @@ namespace Microsoft.CodeAnalysis
             }
             else if (count == 0)
             {
-                values = SpecializedCollections.EmptyArray<TypedConstant>();
+                values = Array.Empty<TypedConstant>();
             }
             else
             {
@@ -1612,8 +1591,8 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                positionalArgs = SpecializedCollections.EmptyArray<TypedConstant>();
-                namedArgs = SpecializedCollections.EmptyArray<KeyValuePair<String, TypedConstant>>();
+                positionalArgs = Array.Empty<TypedConstant>();
+                namedArgs = Array.Empty<KeyValuePair<String, TypedConstant>>();
 
                 // We could call decoder.GetSignature and use that to decode the arguments. However, materializing the
                 // constructor signature is more work. We try to decode the arguments directly from the metadata bytes.
@@ -1677,8 +1656,8 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
             {
-                positionalArgs = SpecializedCollections.EmptyArray<TypedConstant>();
-                namedArgs = SpecializedCollections.EmptyArray<KeyValuePair<String, TypedConstant>>();
+                positionalArgs = Array.Empty<TypedConstant>();
+                namedArgs = Array.Empty<KeyValuePair<String, TypedConstant>>();
             }
 
             return false;
@@ -1784,7 +1763,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        protected ParamInfo<TypeSymbol>[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int typeParameterCount, bool allowByRefReturn)
+        protected ParamInfo<TypeSymbol>[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int typeParameterCount)
         {
             int paramCount;
             GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out paramCount, out typeParameterCount);
@@ -1816,13 +1795,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     paramInfo[paramIndex].Type = GetUnsupportedMetadataTypeSymbol(e as BadImageFormatException);
                 }
-            }
-
-            if (paramInfo[0].IsByRef && !allowByRefReturn)
-            {
-                paramInfo[0].IsByRef = false; // Info reflected in the error type.
-                paramInfo[0].Type = GetByRefReturnTypeSymbol(paramInfo[0].Type, paramInfo[0].CountOfCustomModifiersPrecedingByRef);
-                paramInfo[0].CountOfCustomModifiersPrecedingByRef = 0;
             }
 
             return paramInfo;

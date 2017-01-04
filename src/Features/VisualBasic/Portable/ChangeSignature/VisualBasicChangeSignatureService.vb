@@ -486,13 +486,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return separators
         End Function
 
-        Public Overrides Async Function DetermineCascadedSymbolsFromDelegateInvoke(symbol As IMethodSymbol, document As Document, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
+        Public Overrides Async Function DetermineCascadedSymbolsFromDelegateInvoke(
+                methodAndProjectId As SymbolAndProjectId(Of IMethodSymbol),
+                document As Document,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndProjectId))
+
+            Dim symbol = methodAndProjectId.Symbol
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             Dim nodes = root.DescendantNodes()
 
-            Dim results = New List(Of ISymbol)
+            Dim results = ArrayBuilder(Of ISymbol).GetInstance()
 
             For Each n In nodes
                 If n.IsKind(SyntaxKind.AddressOfExpression) Then
@@ -532,7 +537,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 End If
             Next
 
-            Return results
+            Return results.ToImmutableAndFree().
+                           SelectAsArray(Function(s) SymbolAndProjectId.Create(s, document.Project.Id))
         End Function
 
         Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of IFormattingRule)

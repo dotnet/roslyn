@@ -858,8 +858,8 @@ Do you want to continue?</value>
   <data name="Method_referenced_implicitly" xml:space="preserve">
     <value>Method referenced implicitly</value>
   </data>
-  <data name="Generate_type" xml:space="preserve">
-    <value>Generate type</value>
+  <data name="Generate_type_0" xml:space="preserve">
+    <value>Generate type '{0}'</value>
   </data>
   <data name="Generate_0_1" xml:space="preserve">
     <value>Generate {0} '{1}'</value>
@@ -891,42 +891,12 @@ Do you want to continue?</value>
   <data name="Add_this_or_Me_qualification" xml:space="preserve">
     <value>Add 'this' or 'Me' qualification.</value>
   </data>
-  <data name="Add_qualification" xml:space="preserve">
-    <value>Add qualification.</value>
-  </data>
   <data name="Fix_Name_Violation_colon_0" xml:space="preserve">
     <value>Fix Name Violation: {0}</value>
   </data>
-  <data name="_0_naming_violation_1" xml:space="preserve">
-    <value>'{0}' naming violation - {1}</value>
+  <data name="Naming_rule_violation_0" xml:space="preserve">
+    <value>Naming rule violation: {0}</value>
     <comment>{0} is the rule title, {1} is the way in which the rule was violated</comment>
-  </data>
-  <data name="The_first_word_0_must_begin_with_a_lower_case_character" xml:space="preserve">
-    <value>The first word, '{0}', must begin with a lower case character</value>
-  </data>
-  <data name="The_first_word_0_must_begin_with_an_upper_case_character" xml:space="preserve">
-    <value>The first word, '{0}', must begin with an upper case character</value>
-  </data>
-  <data name="Missing_prefix_colon_0" xml:space="preserve">
-    <value>Missing prefix: '{0}'</value>
-  </data>
-  <data name="Missing_suffix_colon_0" xml:space="preserve">
-    <value>Missing suffix: '{0}'</value>
-  </data>
-  <data name="These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0" xml:space="preserve">
-    <value>These non-leading words must begin with a lowercase letter: {0}</value>
-  </data>
-  <data name="These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0" xml:space="preserve">
-    <value>These non-leading words must begin with an upper case letter: {0}</value>
-  </data>
-  <data name="These_words_cannot_contain_lower_case_characters_colon_0" xml:space="preserve">
-    <value>These words cannot contain lower case characters: {0}</value>
-  </data>
-  <data name="These_words_cannot_contain_upper_case_characters_colon_0" xml:space="preserve">
-    <value>These words cannot contain upper case characters: {0}</value>
-  </data>
-  <data name="These_words_must_begin_with_upper_case_characters_colon_0" xml:space="preserve">
-    <value>These words must begin with upper case characters: {0}</value>
   </data>
   <data name="Naming_Styles" xml:space="preserve">
     <value>Naming Styles</value>
@@ -956,8 +926,8 @@ This version used in: {2}</value>
   <data name="Install_version_0" xml:space="preserve">
     <value>Install version '{0}'</value>
   </data>
-  <data name="Generate_variable" xml:space="preserve">
-    <value>Generate variable</value>
+  <data name="Generate_variable_0" xml:space="preserve">
+    <value>Generate variable '{0}'</value>
   </data>
   <data name="Classes" xml:space="preserve">
     <value>Classes</value>
@@ -1069,5 +1039,119 @@ This version used in: {2}</value>
   </data>
   <data name="Mutiple_Types" xml:space="preserve">
     <value>&lt;Multiple Types&gt;</value>
+  </data>
+  <data name="Object_initialization_can_be_simplified" xml:space="preserve">
+    <value>Object initialization can be simplified</value>
+  </data>
+  <data name="Use_throw_expression" xml:space="preserve">
+    <value>Use 'throw' expression</value>
+  </data>
+  <data name="project_space" xml:space="preserve">
+    <value>project </value>
+  </data>
+  <data name="type_space" xml:space="preserve">
+    <value>type </value>
+  </data>
+  <data name="Inline_variable_declaration" xml:space="preserve">
+    <value>Inline variable declaration</value>
+  </data>
+  <data name="Use_pattern_matching" xml:space="preserve">
+    <value>Use pattern matching</value>
+  </data>
+  <data name="Use_expression_body_for_methods" xml:space="preserve">
+    <value>Use expression body for methods</value>
+  </data>
+  <data name="Use_block_body_for_methods" xml:space="preserve">
+    <value>Use block body for methods</value>
+  </data>
+  <data name="Use_block_body_for_accessors" xml:space="preserve">
+    <value>Use block body for accessors</value>
+  </data>
+  <data name="Use_block_body_for_constructors" xml:space="preserve">
+    <value>Use block body for constructors</value>
+  </data>
+  <data name="Use_block_body_for_indexers" xml:space="preserve">
+    <value>Use block body for indexers</value>
+  </data>
+  <data name="Use_block_body_for_operators" xml:space="preserve">
+    <value>Use block body for operators</value>
+  </data>
+  <data name="Use_block_body_for_properties" xml:space="preserve">
+    <value>Use block body for properties</value>
+  </data>
+  <data name="Use_expression_body_for_accessors" xml:space="preserve">
+    <value>Use expression body for accessors</value>
+  </data>
+  <data name="Use_expression_body_for_constructors" xml:space="preserve">
+    <value>Use expression body for constructors</value>
+  </data>
+  <data name="Use_expression_body_for_indexers" xml:space="preserve">
+    <value>Use expression body for indexers</value>
+  </data>
+  <data name="Use_expression_body_for_operators" xml:space="preserve">
+    <value>Use expression body for operators</value>
+  </data>
+  <data name="Use_expression_body_for_properties" xml:space="preserve">
+    <value>Use expression body for properties</value>
+  </data>
+  <data name="Spell_check_0" xml:space="preserve">
+    <value>Spell check '{0}'</value>
+  </data>
+  <data name="Fully_qualify_0" xml:space="preserve">
+    <value>Fully qualify '{0}'</value>
+  </data>
+  <data name="Remove_reference_to_0" xml:space="preserve">
+    <value>Remove reference to '{0}'.</value>
+  </data>
+  <data name="Keywords" xml:space="preserve">
+    <value>Keywords</value>
+  </data>
+  <data name="Snippets" xml:space="preserve">
+    <value>Snippets</value>
+  </data>
+  <data name="All_lowercase" xml:space="preserve">
+    <value>All lowercase</value>
+  </data>
+  <data name="All_uppercase" xml:space="preserve">
+    <value>All uppercase</value>
+  </data>
+  <data name="First_word_capitalized" xml:space="preserve">
+    <value>First word capitalized</value>
+  </data>
+  <data name="Pascal_Case" xml:space="preserve">
+    <value>Pascal Case</value>
+  </data>
+  <data name="Collection_initialization_can_be_simplified" xml:space="preserve">
+    <value>Collection initialization can be simplified</value>
+  </data>
+  <data name="Use_coalesce_expression" xml:space="preserve">
+    <value>Use coalesce expression</value>
+  </data>
+  <data name="Use_null_propagation" xml:space="preserve">
+    <value>Use null propagation</value>
+  </data>
+  <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
+    <value>Variable declaration can be inlined</value>
+  </data>
+  <data name="Null_check_can_be_simplified" xml:space="preserve">
+    <value>Null check can be simplified</value>
+  </data>
+  <data name="Simplify_collection_initialization" xml:space="preserve">
+    <value>Simplify collection initialization</value>
+  </data>
+  <data name="Simplify_object_initialization" xml:space="preserve">
+    <value>Simplify object initialization</value>
+  </data>
+  <data name="Prefer_explicitly_provided_tuple_element_name" xml:space="preserve">
+    <value>Prefer explicitly provided tuple element name</value>
+  </data>
+  <data name="Use_explicitly_provided_tuple_name" xml:space="preserve">
+    <value>Use explicitly provided tuple name</value>
+  </data>
+  <data name="Remove_document_0" xml:space="preserve">
+    <value>Remove document '{0}'</value>
+  </data>
+  <data name="Add_document_0" xml:space="preserve">
+    <value>Add document '{0}'</value>
   </data>
 </root>

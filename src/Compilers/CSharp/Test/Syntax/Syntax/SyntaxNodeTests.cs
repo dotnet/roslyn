@@ -2708,11 +2708,6 @@ class C
             // Invalid arguments - Validate Exceptions     
             Assert.Throws<System.ArgumentNullException>(delegate
             {
-                var treeFromSource_invalid2 = SyntaxFactory.ParseSyntaxTree("", path: null);
-            });
-
-            Assert.Throws<System.ArgumentNullException>(delegate
-            {
                 SourceText st = null;
                 var treeFromSource_invalid2 = SyntaxFactory.ParseSyntaxTree(st);
             });

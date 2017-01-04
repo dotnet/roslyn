@@ -251,5 +251,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
             return stylePreferences;
         }
+
+        public static bool IsPredefinedType(TypeSyntax type)
+        {
+            var predefinedType = type as PredefinedTypeSyntax;
+
+            return predefinedType != null
+                ? SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind())
+                : false;
+        }
     }
 }

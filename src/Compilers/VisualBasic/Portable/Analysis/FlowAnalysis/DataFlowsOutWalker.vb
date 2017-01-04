@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' that flows in is assigned at the beginning of the loop.  If it isn't, then it must 
             ' be in a loop and flow out of the region in that loop (and into the region inside the loop).
             For Each variable As Symbol In _dataFlowsIn
-                Dim slot As Integer = Me.MakeSlot(variable)
+                Dim slot As Integer = Me.GetOrCreateSlot(variable)
                 If Not Me.State.IsAssigned(slot) AndAlso variable.Kind <> SymbolKind.RangeVariable AndAlso
                         (variable.Kind <> SymbolKind.Local OrElse Not DirectCast(variable, LocalSymbol).IsStatic) Then
                     _dataFlowsOut.Add(variable)

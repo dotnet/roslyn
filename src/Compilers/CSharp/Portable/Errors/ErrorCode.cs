@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantOverrideNonEvent = 72,
         ERR_AddRemoveMustHaveBody = 73,
         ERR_AbstractEventInitializer = 74,
-        //ERR_PossibleBadNegCast = 75,      Not used in Roslyn. Occurs so infrequently, not worth reimplementing.
+        ERR_PossibleBadNegCast = 75,
         ERR_ReservedEnumerator = 76,
         ERR_AsMustHaveReferenceType = 77,
         WRN_LowercaseEllSuffix = 78,
@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantHaveWin32ResAndIcon = 1565,
         ERR_CantReadResource = 1566,
         //ERR_AutoResGen = 1567,
-        //ERR_DocFileGen = 1569,
+        ERR_DocFileGen = 1569,
         WRN_XMLParseError = 1570,
         WRN_DuplicateParamTag = 1571,
         WRN_UnmatchedParamTag = 1572,
@@ -1134,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoSuchMemberOrExtensionNeedUsing = 4036,
         #endregion diagnostics introduced in C# 5
 
-        // available 4037-4999
+        // unused 4037-4999
 
         #region diagnostics introduced in C# 6
         // WRN_UnknownOption = 5000,   //unused in Roslyn
@@ -1242,7 +1242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MutuallyExclusiveOptions = 7102,
         #endregion diagnostics introduced in C# 6
 
-        // huge gap here; available 7103-8000
+        // huge gap here; unused 7103-8000
 
         #region more diagnostics introduced in Roslyn (C# 6)
         WRN_UnimplementedCommandLineSwitch = 8001,
@@ -1354,9 +1354,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Available = 8112, 8113, 8114, 8115
 
         #region diagnostics for pattern-matching introduced in C# 7
+        ERR_ThrowMisplaced = 8115,
         ERR_PatternNullableType = 8116,
         ERR_BadIsPatternExpression = 8117,
-        ERR_PatternValueExpected = 8119,
+        ERR_SwitchExpressionValueExpected = 8119,
         ERR_PatternIsSubsumed = 8120,
         ERR_PatternWrongType = 8121,
         ERR_ExpressionTreeContainsIsMatch = 8122,
@@ -1365,12 +1366,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region tuple diagnostics introduced in C# 7
         WRN_TupleLiteralNameMismatch = 8123,
         ERR_TupleTooFewElements = 8124,
-        ERR_TupleReservedMemberName = 8125,
-        ERR_TupleReservedMemberNameAnyPosition = 8126,
-        ERR_TupleDuplicateMemberName = 8127,
+        ERR_TupleReservedElementName = 8125,
+        ERR_TupleReservedElementNameAnyPosition = 8126,
+        ERR_TupleDuplicateElementName = 8127,
         ERR_PredefinedTypeMemberNotFoundInAssembly = 8128,
         ERR_MissingDeconstruct = 8129,
-        ERR_DeconstructCouldNotInferMergedType = 8130,
+        ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable = 8130,
         ERR_DeconstructRequiresExpression = 8131,
         ERR_DeconstructWrongCardinality = 8132,
         ERR_CannotDeconstructDynamic = 8133,
@@ -1378,14 +1379,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConversionNotTupleCompatible = 8135,
         ERR_DeconstructionVarFormDisallowsSpecificType = 8136,
         ERR_TupleElementNamesAttributeMissing = 8137,
-        ERR_ExplicitTupleElementNames = 8138,
+        ERR_ExplicitTupleElementNamesAttribute = 8138,
         ERR_CantChangeTupleNamesOnOverride = 8139,
         ERR_DuplicateInterfaceWithTupleNamesInBaseList = 8140,
         ERR_ImplBadTupleNames = 8141,
         ERR_PartialMethodInconsistentTupleNames = 8142,
         ERR_ExpressionTreeContainsTupleLiteral = 8143,
         ERR_ExpressionTreeContainsTupleConversion = 8144,
-
         #endregion tuple diagnostics introduced in C# 7
 
         #region diagnostics for ref locals and ref returns introduced in C# 7
@@ -1425,15 +1425,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturningCallAndAwait = 8178,
         #endregion diagnostics for ref locals and ref returns introduced in C# 7
 
+        #region stragglers for C# 7
         ERR_PredefinedValueTupleTypeNotFound = 8179,
-        // Available  = 8180-8195
+        ERR_SemiOrLBraceOrArrowExpected = 8180,
+        ERR_NewWithTupleTypeSyntax = 8181,
+        ERR_PredefinedValueTupleTypeMustBeStruct = 8182,
+        ERR_DiscardTypeInferenceFailed = 8183,
+        ERR_MixedDeconstructionUnsupported = 8184,
+        ERR_DeclarationExpressionNotPermitted = 8185,
+        ERR_MustDeclareForeachIteration = 8186,
+        ERR_TupleElementNamesInDeconstruction = 8187,
+        #endregion stragglers for C# 7
+
+        // Available  = 8188-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
         ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8197,
         ERR_ExpressionTreeContainsOutVariable = 8198,
+        #endregion diagnostics for out var
+
+        #region more stragglers for C# 7
         ERR_VarInvocationLvalueReserved = 8199,
         ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
-        #endregion diagnostics for out var
+        ERR_ExpressionVariableInQueryClause = 8201,
+        #endregion more stragglers for C# 7
     }
 }

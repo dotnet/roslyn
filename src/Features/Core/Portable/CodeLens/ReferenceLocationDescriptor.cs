@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.CodeAnalysis.CodeLens
 {
     /// <summary>
@@ -11,7 +13,9 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
         public int ColumnNumber { get; }
 
-        public DocumentId DocumentId { get; }
+        public Guid ProjectGuid { get; }
+
+        public Guid DocumentGuid { get; }
 
         /// <summary>
         /// Language of the reference location
@@ -63,16 +67,16 @@ namespace Microsoft.CodeAnalysis.CodeLens
         /// </summary>
         public string AfterReferenceText2 { get; }
 
-        public ReferenceLocationDescriptor(string longDescription, string language, Glyph? glyph, Location location, DocumentId documentId, string referenceLineText, int referenceStart, int referenceLength, string beforeReferenceText1, string beforeReferenceText2, string afterReferenceText1, string afterReferenceText2)
+        public ReferenceLocationDescriptor(string longDescription, string language, Glyph? glyph, int lineNumber, int columnNumber, Guid projectGuid, Guid documentGuid, string referenceLineText, int referenceStart, int referenceLength, string beforeReferenceText1, string beforeReferenceText2, string afterReferenceText1, string afterReferenceText2)
         {
             LongDescription = longDescription;
             Language = language;
             Glyph = glyph;
-            var sourceText = location.GetLineSpan().StartLinePosition;
-            LineNumber = sourceText.Line;
-            ColumnNumber = sourceText.Character;
+            LineNumber = lineNumber;
+            ColumnNumber = columnNumber;
             // We want to keep track of the location's document if it comes from a file in your solution.
-            DocumentId = documentId;
+            ProjectGuid = projectGuid;
+            DocumentGuid = documentGuid;
             ReferenceLineText = referenceLineText;
             ReferenceStart = referenceStart;
             ReferenceLength = referenceLength;

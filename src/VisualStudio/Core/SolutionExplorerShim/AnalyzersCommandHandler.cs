@@ -109,8 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
 
                 var buildManager = (IVsSolutionBuildManager)_serviceProvider.GetService(typeof(SVsSolutionBuildManager));
-                uint cookie;
-                buildManager.AdviseUpdateSolutionEvents(this, out cookie);
+                buildManager.AdviseUpdateSolutionEvents(this, out var cookie);
             }
         }
 
@@ -218,10 +217,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _projectAddMenuItem.Visible = selectedProjectSupportsAnalyzers;
             _projectContextAddMenuItem.Visible = selectedProjectSupportsAnalyzers && _tracker.SelectedItemId == VSConstants.VSITEMID_ROOT;
             _referencesContextAddMenuItem.Visible = selectedProjectSupportsAnalyzers;
-
-            string itemName;
             _setActiveRuleSetMenuItem.Visible = selectedProjectSupportsAnalyzers &&
-                                                _tracker.SelectedHierarchy.TryGetItemName(_tracker.SelectedItemId, out itemName) &&
+                                                _tracker.SelectedHierarchy.TryGetItemName(_tracker.SelectedItemId, out var itemName) &&
                                                 Path.GetExtension(itemName).Equals(".ruleset", StringComparison.OrdinalIgnoreCase);
         }
 
@@ -269,8 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                     foreach (var diagnosticItem in group)
                     {
-                        ReportDiagnostic ruleSetSeverity;
-                        if (specificOptions.TryGetValue(diagnosticItem.Descriptor.Id, out ruleSetSeverity))
+                        if (specificOptions.TryGetValue(diagnosticItem.Descriptor.Id, out var ruleSetSeverity))
                         {
                             selectedItemSeverities.Add(ruleSetSeverity);
                         }
@@ -332,10 +328,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private bool SelectedProjectSupportsAnalyzers()
         {
-            EnvDTE.Project project;
             return _tracker != null &&
                    _tracker.SelectedHierarchy != null &&
-                   _tracker.SelectedHierarchy.TryGetProject(out project) &&
+                   _tracker.SelectedHierarchy.TryGetProject(out var project) &&
                    project.Object is VSProject3;
         }
 
@@ -436,8 +431,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 try
                 {
-                    EnvDTE.Project envDteProject;
-                    project.Hierarchy.TryGetProject(out envDteProject);
+                    project.Hierarchy.TryGetProject(out var envDteProject);
 
                     if (SdkUiUtilities.IsBuiltInRuleSet(pathToRuleSet, _serviceProvider))
                     {
@@ -491,10 +485,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void SetActiveRuleSetHandler(object sender, EventArgs e)
         {
-            EnvDTE.Project project;
-            string ruleSetFileFullPath;
-            if (_tracker.SelectedHierarchy.TryGetProject(out project) &&
-                _tracker.SelectedHierarchy.TryGetCanonicalName(_tracker.SelectedItemId, out ruleSetFileFullPath))
+            if (_tracker.SelectedHierarchy.TryGetProject(out var project) &&
+                _tracker.SelectedHierarchy.TryGetCanonicalName(_tracker.SelectedItemId, out var ruleSetFileFullPath))
             {
                 string projectDirectoryFullPath = Path.GetDirectoryName(project.FullName);
                 string ruleSetFileRelativePath = FilePathUtilities.GetRelativePath(projectDirectoryFullPath, ruleSetFileFullPath);

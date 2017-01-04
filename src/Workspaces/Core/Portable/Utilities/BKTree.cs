@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Utilities;
+using System;
 
 namespace Roslyn.Utilities
 {
@@ -23,7 +24,7 @@ namespace Roslyn.Utilities
     internal partial class BKTree
     {
         public static readonly BKTree Empty = new BKTree(
-            SpecializedCollections.EmptyArray<char>(),
+            Array.Empty<char>(),
             ImmutableArray<Node>.Empty,
             ImmutableArray<Edge>.Empty);
 

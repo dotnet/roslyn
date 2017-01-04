@@ -295,6 +295,9 @@ namespace Roslyn.Test.PdbUtilities
                         case CustomDebugInfoKind.EditAndContinueLambdaMap:
                             WriteEditAndContinueLambdaMap(record);
                             break;
+                        case CustomDebugInfoKind.TupleElementNames:
+                            WriteTupleElementNamesCustomDebugInfo(record);
+                            break;
                         default:
                             WriteUnknownCustomDebugInfo(record);
                             break;
@@ -470,11 +473,48 @@ namespace Roslyn.Test.PdbUtilities
                 _writer.WriteAttributeString("flagCount", CultureInvariantToString(flagCount));
                 _writer.WriteAttributeString("flags", pooled.ToStringAndFree());
                 _writer.WriteAttributeString("slotId", CultureInvariantToString(dynamicLocal.SlotId));
-                _writer.WriteAttributeString("localName", dynamicLocal.Name);
+                _writer.WriteAttributeString("localName", dynamicLocal.LocalName);
                 _writer.WriteEndElement(); //bucket
             }
 
             _writer.WriteEndElement(); //dynamicLocals
+        }
+
+        private void WriteTupleElementNamesCustomDebugInfo(CustomDebugInfoRecord record)
+        {
+            Debug.Assert(record.Kind == CustomDebugInfoKind.TupleElementNames);
+
+            _writer.WriteStartElement("tupleElementNames");
+
+            var tuples = CustomDebugInfoReader.DecodeTupleElementNamesRecord(record.Data);
+
+            foreach (var tuple in tuples)
+            {
+                _writer.WriteStartElement("local");
+                _writer.WriteAttributeString("elementNames", JoinNames(tuple.ElementNames));
+                _writer.WriteAttributeString("slotIndex", CultureInvariantToString(tuple.SlotIndex));
+                _writer.WriteAttributeString("localName", tuple.LocalName);
+                _writer.WriteAttributeString("scopeStart", AsILOffset(tuple.ScopeStart));
+                _writer.WriteAttributeString("scopeEnd", AsILOffset(tuple.ScopeEnd));
+                _writer.WriteEndElement();
+            }
+
+            _writer.WriteEndElement();
+        }
+
+        private static string JoinNames(ImmutableArray<string> names)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+            foreach (var name in names)
+            {
+                builder.Append('|');
+                if (name != null)
+                {
+                    builder.Append(name);
+                }
+            }
+            return pooledBuilder.ToStringAndFree();
         }
 
         private unsafe void WriteEditAndContinueLocalSlotMap(CustomDebugInfoRecord record)
@@ -1046,12 +1086,12 @@ namespace Roslyn.Test.PdbUtilities
             fixed (byte* sigPtr = signature.ToArray())
             {
                 var sigReader = new BlobReader(sigPtr, signature.Length);
-                var decoder = new SignatureDecoder<string>(ConstantSignatureVisualizer.Instance, _metadataReader);
+                var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, _metadataReader, genericContext: null);
                 return decoder.DecodeType(ref sigReader, allowTypeSpecifications: true);
             }
         }
 
-        private sealed class ConstantSignatureVisualizer : ISignatureTypeProvider<string>
+        private sealed class ConstantSignatureVisualizer : ISignatureTypeProvider<string, object>
         {
             public static readonly ConstantSignatureVisualizer Instance = new ConstantSignatureVisualizer();
 
@@ -1071,23 +1111,23 @@ namespace Roslyn.Test.PdbUtilities
                 return "method-ptr";
             }
 
-            public string GetGenericInstance(string genericType, ImmutableArray<string> typeArguments)
+            public string GetGenericInstantiation(string genericType, ImmutableArray<string> typeArguments)
             {
                 // using {} since the result is embedded in XML
                 return genericType + "{" + string.Join(", ", typeArguments) + "}";
             }
 
-            public string GetGenericMethodParameter(int index)
+            public string GetGenericMethodParameter(object genericContext, int index)
             {
                 return "!!" + index;
             }
 
-            public string GetGenericTypeParameter(int index)
+            public string GetGenericTypeParameter(object genericContext, int index)
             {
                 return "!" + index;
             }
 
-            public string GetModifiedType(MetadataReader reader, bool isRequired, string modifier, string unmodifiedType)
+            public string GetModifiedType(string modifier, string unmodifiedType, bool isRequired)
             {
                 return (isRequired ? "modreq" : "modopt") + "(" + modifier + ") " + unmodifiedType;
             }
@@ -1126,10 +1166,10 @@ namespace Roslyn.Test.PdbUtilities
                 return typeRef.Namespace.IsNil ? name : reader.GetString(typeRef.Namespace) + "." + name;
             }
 
-            public string GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle, byte rawTypeKind)
+            public string GetTypeFromSpecification(MetadataReader reader, object genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
             {
                 var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(handle).Signature);
-                return new SignatureDecoder<string>(Instance, reader).DecodeType(ref sigReader);
+                return new SignatureDecoder<string, object>(Instance, reader, genericContext).DecodeType(ref sigReader);
             }
         }
 

@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 compilation.Assembly,
                 compilation.GetSpecialType(SpecialType.System_Byte));
 
-            var bytes = CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, customModifiersCount: 0, refKind: RefKind.None).ToBytes();
+            var bytes = compilation.GetCustomTypeInfoPayload(local.Type, customModifiersCount: 0, refKind: RefKind.None);
             hasCustomTypeInfoPayload = bytes != null;
             if (!hasCustomTypeInfoPayload)
             {

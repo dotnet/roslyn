@@ -1513,10 +1513,20 @@ End Module
     ]]></file>
 </compilation>)
 
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeInferenceFailureAmbiguous2, "fooModules").WithArguments("Public Sub fooModules(Of T)(ParamArray z As T())"))
+            Dim expected =
+<expected>
+BC30311: Value of type 'String()' cannot be converted to 'String'.
+        fooModules({"1"}, {1})
+                   ~~~~~
+BC30311: Value of type 'Integer()' cannot be converted to 'String'.
+        fooModules({"1"}, {1})
+                          ~~~
+</expected>
+
+            AssertTheseDiagnostics(compilation, expected)
 
             compilation = compilation.WithOptions(_strictOn)
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeInferenceFailureAmbiguous2, "fooModules").WithArguments("Public Sub fooModules(Of T)(ParamArray z As T())"))
+            AssertTheseDiagnostics(compilation, expected)
         End Sub
 
         <WorkItem(544352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544352")>

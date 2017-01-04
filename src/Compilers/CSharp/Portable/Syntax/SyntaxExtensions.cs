@@ -28,13 +28,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arrowExpr = (ArrowExpressionClauseSyntax)node;
                     break;
                 case SyntaxKind.MethodDeclaration:
-                    arrowExpr = ((MethodDeclarationSyntax)node).ExpressionBody;
-                    break;
                 case SyntaxKind.OperatorDeclaration:
-                    arrowExpr = ((OperatorDeclarationSyntax)node).ExpressionBody;
-                    break;
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    arrowExpr = ((ConversionOperatorDeclarationSyntax)node).ExpressionBody;
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                    arrowExpr = ((BaseMethodDeclarationSyntax)node).ExpressionBody;
+                    break;
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.UnknownAccessorDeclaration:
+                    arrowExpr = ((AccessorDeclarationSyntax)node).ExpressionBody;
                     break;
                 case SyntaxKind.PropertyDeclaration:
                     arrowExpr = ((PropertyDeclarationSyntax)node).ExpressionBody;
@@ -42,9 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IndexerDeclaration:
                     arrowExpr = ((IndexerDeclarationSyntax)node).ExpressionBody;
                     break;
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                    return null;
                 default:
                     // Don't throw, just use for the assert in case this is used in the semantic model
                     ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -66,22 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Return the type syntax of an out declaration argument expression.
-        /// </summary>
-        internal static TypeSyntax Type(this DeclarationExpressionSyntax self)
-        {
-            var component = (TypedVariableComponentSyntax)self.VariableComponent;
-            return component.Type;
-        }
-
-        /// <summary>
         /// Return the identifier of an out declaration argument expression.
         /// </summary>
         internal static SyntaxToken Identifier(this DeclarationExpressionSyntax self)
         {
-            var component = (TypedVariableComponentSyntax)self.VariableComponent;
-            var designation = (SingleVariableDesignationSyntax)component.Designation;
-            return designation.Identifier;
+            return ((SingleVariableDesignationSyntax)self.Designation).Identifier;
         }
 
         /// <summary>
@@ -205,12 +196,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsInTypeOnlyContext(typeNode) && IsInContextWhichNeedsDynamicAttribute(typeNode);
         }
 
-        internal static bool IsTypeInContextWhichNeedsTupleNamesAttribute(this TupleTypeSyntax syntax)
-        {
-            Debug.Assert(syntax != null);
-            return SyntaxFacts.IsInTypeOnlyContext(syntax) && IsInContextWhichNeedsTupleNamesAttribute(syntax);
-        }
-
         internal static SyntaxNode SkipParens(this SyntaxNode expression)
         {
             while (expression != null && expression.Kind() == SyntaxKind.ParenthesizedExpression)
@@ -219,6 +204,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return expression;
+        }
+
+        /// <summary>
+        /// Returns true if the expression on the left-hand-side of an assignment causes the assignment to be a deconstruction.
+        /// </summary>
+        internal static bool IsDeconstructionLeft(this ExpressionSyntax node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.TupleExpression:
+                    return true;
+                case SyntaxKind.DeclarationExpression:
+                    return ((DeclarationExpressionSyntax)node).Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation;
+                default:
+                    return false;
+            }
+        }
+
+        internal static bool IsDeconstruction(this AssignmentExpressionSyntax self)
+        {
+            return self.Left.IsDeconstructionLeft();
         }
 
         private static bool IsInContextWhichNeedsDynamicAttribute(CSharpSyntaxNode node)
@@ -251,45 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return node.Parent != null && IsInContextWhichNeedsDynamicAttribute(node.Parent);
             }
-        }
-
-        private static bool IsInContextWhichNeedsTupleNamesAttribute(CSharpSyntaxNode node)
-        {
-            Debug.Assert(node != null);
-
-            var current = node;
-            do
-            {
-                switch (current.Kind())
-                {
-                    case SyntaxKind.Parameter:
-                    case SyntaxKind.FieldDeclaration:
-                    case SyntaxKind.MethodDeclaration:
-                    case SyntaxKind.IndexerDeclaration:
-                    case SyntaxKind.OperatorDeclaration:
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                    case SyntaxKind.PropertyDeclaration:
-                    case SyntaxKind.DelegateDeclaration:
-                    case SyntaxKind.EventDeclaration:
-                    case SyntaxKind.EventFieldDeclaration:
-                    case SyntaxKind.BaseList:
-                    case SyntaxKind.SimpleBaseType:
-                    case SyntaxKind.TypeParameterConstraintClause:
-                        return true;
-
-                    case SyntaxKind.Block:
-                    case SyntaxKind.VariableDeclarator:
-                    case SyntaxKind.Attribute:
-                    case SyntaxKind.EqualsValueClause:
-                        return false;
-
-                    default:
-                        break;
-                }
-                current = current.Parent;
-            } while (current != null);
-
-            return false;
         }
 
         public static IndexerDeclarationSyntax Update(
@@ -362,6 +329,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                 block,
                 default(ArrowExpressionClauseSyntax),
                 semicolonToken);
+        }
+
+        /// <summary>
+        /// If this declaration or identifier is part of a deconstruction, find the deconstruction.
+        /// If found, returns either an assignment expression or a foreach variable statement.
+        /// Returns null otherwise.
+        /// </summary>
+        internal static CSharpSyntaxNode GetContainingDeconstruction(this ExpressionSyntax expr)
+        {
+            var kind = expr.Kind();
+            if (kind != SyntaxKind.TupleExpression && kind != SyntaxKind.DeclarationExpression && kind != SyntaxKind.IdentifierName)
+            {
+                return null;
+            }
+
+            while (true)
+            {
+                Debug.Assert(expr.Kind() == SyntaxKind.TupleExpression || expr.Kind() == SyntaxKind.DeclarationExpression || expr.Kind() == SyntaxKind.IdentifierName);
+                var parent = expr.Parent;
+                if (parent == null) { return null; }
+
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.Argument:
+                        if (parent.Parent?.Kind() == SyntaxKind.TupleExpression)
+                        {
+                            expr = (TupleExpressionSyntax)parent.Parent;
+                            continue;
+                        }
+                        return null;
+                    case SyntaxKind.SimpleAssignmentExpression:
+                        if ((object)((AssignmentExpressionSyntax)parent).Left == expr)
+                        {
+                            return parent;
+                        }
+                        return null;
+                    case SyntaxKind.ForEachVariableStatement:
+                        if ((object)((ForEachVariableStatementSyntax)parent).Variable == expr)
+                        {
+                            return parent;
+                        }
+                        return null;
+                    default:
+                        return null;
+                }
+            }
+        }
+
+        internal static bool IsOutVarDeclaration(this DeclarationExpressionSyntax p)
+        {
+            return p.Designation.Kind() == SyntaxKind.SingleVariableDesignation
+                && p.Parent?.Kind() == SyntaxKind.Argument
+                && ((ArgumentSyntax)p.Parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword;
         }
     }
 }

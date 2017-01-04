@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.RuntimeMetadataVersion = runtimeMetadataVersion;
             this.TolerateErrors = tolerateErrors;
             this.IncludePrivateMembers = includePrivateMembers;
-            this.InstrumentationKinds = instrumentationKinds.IsDefault ? ImmutableArray<InstrumentationKind>.Empty : instrumentationKinds;
+            this.InstrumentationKinds = instrumentationKinds.NullToEmpty();
         }
 
         private EmitOptions(EmitOptions other) : this(

@@ -46,9 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             public override SyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
             {
                 var result = (NamespaceDeclarationSyntax)base.VisitNamespaceDeclaration(node);
-
-                IList<INamespaceSymbol> namespaces;
-                if (!_namespacesToImport.TryGetValue(node, out namespaces))
+                if (!_namespacesToImport.TryGetValue(node, out var namespaces))
                 {
                     return result;
                 }
@@ -65,9 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
             {
                 var result = (CompilationUnitSyntax)base.VisitCompilationUnit(node);
-
-                IList<INamespaceSymbol> namespaces;
-                if (!_namespacesToImport.TryGetValue(node, out namespaces))
+                if (!_namespacesToImport.TryGetValue(node, out var namespaces))
                 {
                     return result;
                 }

@@ -514,5 +514,71 @@ class Derived : BaseClass
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             await TestAsync(markup, expectedOrderedItems);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss1()
+        {
+            var markup = @"
+class D { public D(object o) {} }
+class C : D
+{
+    public C() [|: base(($$)
+    |]{}
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss2()
+        {
+            var markup = @"
+class D { public D(object o) {} }
+class C : D
+{
+    public C() [|: base((1,$$) |]{}
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss3()
+        {
+            var markup = @"
+class D { public D(object o) {} }
+class C : D
+{
+    public C() [|: base((1, ($$)
+    |]{}
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TypingTupleDoesNotDismiss4()
+        {
+            var markup = @"
+class D { public D(object o) {} }
+class C : D
+{
+    public C() [|: base((1, (2,$$) |]{}
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("D(object o)", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+        }
     }
 }

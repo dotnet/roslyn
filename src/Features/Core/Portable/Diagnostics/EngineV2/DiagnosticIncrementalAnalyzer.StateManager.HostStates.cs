@@ -124,8 +124,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             return _compilerStateSet;
                         }
 
-                        StateSet set;
-                        if (_map.TryGetValue(analyzer, out set))
+                        if (_map.TryGetValue(analyzer, out var set))
                         {
                             return set;
                         }

@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDelegateWithConditionalAccess
 {
-    public class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         [||]var v = a;
@@ -36,10 +37,66 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
+
+    void Foo()
+    {
+        a?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestOnIf()
+        {
+            await TestAsync(
+@"class C
+{
+    System.Action a;
+
+    void Foo()
+    {
+        var v = a;
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"class C
+{
+    System.Action a;
+
+    void Foo()
+    {
+        a?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestOnInvoke()
+        {
+            await TestAsync(
+@"class C
+{
+    System.Action a;
+
+    void Foo()
+    {
+        var v = a;
+        if (v != null)
+        {
+            [||]v();
+        }
+    }
+}",
+@"class C
+{
+    System.Action a;
+
     void Foo()
     {
         a?.Invoke();
@@ -55,6 +112,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         [||]var v = a;
@@ -73,6 +131,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         [||]var v = a;
@@ -82,10 +141,10 @@ class C
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
+
     void Foo()
     {
         a?.Invoke();
@@ -100,6 +159,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         [||]var v = a;
@@ -107,10 +167,10 @@ class C
             v();
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
+
     void Foo()
     {
         a?.Invoke();
@@ -125,6 +185,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         bool b = true;
@@ -135,10 +196,10 @@ class C
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
+
     void Foo()
     {
         bool b = true;
@@ -154,6 +215,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         [||]var v = a;
@@ -161,7 +223,9 @@ class C
         {
             v();
         }
-        else {}
+        else
+        {
+        }
     }
 }");
         }
@@ -173,6 +237,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         [||]var v = a, x = a;
@@ -195,6 +260,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a, x = a;
@@ -207,6 +273,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a, x = a;
@@ -226,6 +293,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         [||]var v = a;
@@ -251,6 +319,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a;
@@ -265,11 +334,11 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a;
         v?.Invoke();
-
         v = null;
     }
 }");
@@ -279,12 +348,12 @@ class C
         public async Task TestSimpleForm1()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
     public event EventHandler E;
+
     void M()
     {
         [||]if (this.E != null)
@@ -293,12 +362,43 @@ class C
         }
     }
 }",
-@"
-using System;
+@"using System;
 
 class C
 {
     public event EventHandler E;
+
+    void M()
+    {
+        this.E?.Invoke(this, EventArgs.Empty);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestSimpleForm2()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public event EventHandler E;
+
+    void M()
+    {
+        if (this.E != null)
+        {
+            [||]this.E(this, EventArgs.Empty);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    public event EventHandler E;
+
     void M()
     {
         this.E?.Invoke(this, EventArgs.Empty);
@@ -310,12 +410,12 @@ class C
         public async Task TestInElseClause1()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
     public event EventHandler E;
+
     void M()
     {
         if (true != true)
@@ -327,12 +427,12 @@ class C
         }
     }
 }",
-@"
-using System;
+@"using System;
 
 class C
 {
     public event EventHandler E;
+
     void M()
     {
         if (true != true)
@@ -350,12 +450,12 @@ class C
         public async Task TestInElseClause2()
         {
             await TestAsync(
-@"
-using System;
+@"using System;
 
 class C
 {
     public event EventHandler E;
+
     void M()
     {
         if (true != true)
@@ -365,18 +465,19 @@ class C
             this.E(this, EventArgs.Empty);
     }
 }",
-@"
-using System;
+@"using System;
 
 class C
 {
     public event EventHandler E;
+
     void M()
     {
         if (true != true)
         {
         }
-        else this.E?.Invoke(this, EventArgs.Empty);
+        else
+            this.E?.Invoke(this, EventArgs.Empty);
     }
 }");
         }
@@ -446,6 +547,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a;
@@ -455,10 +557,10 @@ class C
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
+
     void Foo()
     {
         a?.Invoke();
@@ -476,6 +578,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a;
@@ -485,10 +588,10 @@ class C
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
+
     void Foo()
     {
         a?.Invoke();
@@ -503,6 +606,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         [||]var v = a;
@@ -518,6 +622,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a;
@@ -533,6 +638,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         [||]a?.Invoke();
@@ -547,6 +653,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a;
@@ -565,6 +672,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a;
@@ -587,6 +695,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         [||]var v = a;
@@ -610,6 +719,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a;
@@ -623,6 +733,7 @@ class C
 @"class C
 {
     System.Action a;
+
     void Foo()
     {
         var v = a;
@@ -639,6 +750,7 @@ class C
 @"class C
 {
     System.Func<int> a;
+
     int Foo()
     {
         var v = a;

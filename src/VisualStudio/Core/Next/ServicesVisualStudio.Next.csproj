@@ -1,27 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{FE0D4BDD-1C30-488E-A870-854F5B8C5014}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices.Next</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Dependencies\Immutable\Immutable.csproj">
-      <Project>{DCDA908D-EF5E-494B-ADDC-C26F5FD610CA}</Project>
-      <Name>Immutable</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj">
       <Project>{3cdeeab7-2256-418a-beb2-620b5cb16302}</Project>
@@ -52,12 +49,8 @@
       <Name>ServicesVisualStudio</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -74,11 +67,8 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticArguments.cs">
-      <Link>Diagnostics\DiagnosticArguments.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Diagnostics\DiagnosticResultSerializer.cs">
-      <Link>Diagnostics\DiagnosticResultSerializer.cs</Link>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\CodeLens\CodeLensArguments.cs">
+      <Link>CodeLens\CodeLensArguments.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ClientDirectStream.cs">
       <Link>Shared\ClientDirectStream.cs</Link>
@@ -86,26 +76,29 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\Extensions.cs">
       <Link>Shared\Extensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.cs">
+      <Link>Shared\RoslynJsonConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.SolutionIdConverters.cs">
+      <Link>Shared\RoslynJsonConverter.SolutionIdConverters.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ServerDirectStream.cs">
       <Link>Shared\ServerDirectStream.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\WellKnownServiceHubServices.cs">
-      <Link>Shared\WellKnownServiceHubServices.cs</Link>
-    </Compile>
-    <Compile Include="Diagnostics\OutOfProcDiagnosticAnalyzerExecutor.cs" />
-    <Compile Include="Extensions\RemoteHostClientExtensions.cs" />
+    <Compile Include="CodeLens\RemoteCodeLensReferencesService.cs" />
     <Compile Include="FindReferences\FindReferencesTableControlEventProcessorProvider.cs" />
     <Compile Include="FindReferences\ISupportsNavigation.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.DisposableToolTip.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.DocumentLocationEntry.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.Entry.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.LazyToolTip.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.RoslynDefinitionBucket.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.SimpleMessageEntry.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.DisposableToolTip.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.DocumentLocationEntry.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.Entry.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.LazyToolTip.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.RoslynDefinitionBucket.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.SimpleMessageEntry.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.TableDataSourceFindUsagesContext.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.TableEntriesSnapshot.cs" />
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
+    <Compile Include="ProjectSystem\DeferredProjectWorkspaceService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
     <Compile Include="Remote\JsonRpcSession.cs" />
     <Compile Include="Remote\RemoteHostClientFactory.cs" />
@@ -124,10 +117,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.BuildManager" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities.Next" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
-  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <ItemGroup />
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

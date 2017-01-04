@@ -299,7 +299,7 @@ namespace Roslyn.Utilities
             {
                 if (this.Length == 0)
                 {
-                    return SpecializedCollections.EmptyBytes;
+                    return Array.Empty<byte>();
                 }
 
                 var array = new byte[this.Length];

@@ -302,8 +302,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitPseudoVariableValue((BoundPseudoVariable)expression, used);
                     break;
 
-                case BoundKind.Void:
-                    Debug.Assert(!used);
+                case BoundKind.ThrowExpression:
+                    EmitThrowExpression((BoundThrowExpression)expression, used);
                     break;
 
                 default:
@@ -313,6 +313,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // node should have been lowered:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
             }
+        }
+
+        private void EmitThrowExpression(BoundThrowExpression node, bool used)
+        {
+            this.EmitThrow(node.Expression);
+
+            // to satisfy invariants, we push a default value to pretend to adjust the stack height
+            EmitDefaultValue(node.Type, used, node.Syntax);
         }
 
         private void EmitComplexConditionalReceiver(BoundComplexConditionalReceiver expression, bool used)
@@ -343,12 +351,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var receiver = expression.Receiver;
 
-            if (receiver.IsDefaultValue())
-            {
-                EmitDefaultValue(expression.Type, used, expression.Syntax);
-                return;
-            }
-
             var receiverType = receiver.Type;
             LocalDefinition receiverTemp = null;
             Debug.Assert(!receiverType.IsValueType ||
@@ -372,15 +374,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             object doneLabel = new object();
             LocalDefinition cloneTemp = null;
 
+            var unconstrainedReceiver = !receiverType.IsReferenceType && !receiverType.IsValueType;
+
             // we need a copy if we deal with nonlocal value (to capture the value)
             // or if we have a ref-constrained T (to do box just once) 
             // or if we deal with stack local (reads are destructive)
+            // or if we have default(T) (to do box just once)
             var nullCheckOnCopy = LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                    (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ||
-                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
-
-            var unconstrainedReceiver = !receiverType.IsReferenceType && !receiverType.IsValueType;
-
+                                   (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol)) ||
+                                   (receiver.IsDefaultValue() && unconstrainedReceiver);
 
             // ===== RECEIVER
             if (nullCheckOnCopy)
@@ -859,17 +862,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var field = fieldAccess.FieldSymbol;
 
-            //TODO: For static field access this may require ..ctor to run. Is this a side-effect?
-            // Accessing unused instance field on a struct is a noop. Just emit the receiver.
-            if (!used && !field.IsVolatile && !field.IsStatic && fieldAccess.ReceiverOpt.Type.IsVerifierValue())
+            if (!used)
             {
-                EmitExpression(fieldAccess.ReceiverOpt, used: false);
-                return;
+                // fetching unused captured frame is a no-op (like reading "this")
+                if (field.IsCapturedFrame)
+                {
+                    return;
+                }
+
+                // Accessing a volatile field is sideeffecting because it establishes an acquire fence.
+                // Otherwise, accessing an unused instance field on a struct is a noop. Just emit an unused receiver.
+                if (!field.IsVolatile && !field.IsStatic && fieldAccess.ReceiverOpt.Type.IsVerifierValue())
+                {
+                    EmitExpression(fieldAccess.ReceiverOpt, used: false);
+                    return;
+                }
             }
 
             Debug.Assert(!field.IsConst || field.ContainingType.SpecialType == SpecialType.System_Decimal,
                 "rewriter should lower constant fields into constant expressions");
 
+            // static field access is sideeffecting since it gurantees that ..ctor has run.
+            // we emit static accesses even if unused.
             if (field.IsStatic)
             {
                 if (field.IsVolatile)
@@ -1240,8 +1254,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return true;
 
                 case BoundKind.ObjectCreationExpression:
-                    //NOTE: there are cases involving ProxyAttribute
-                    //where newobj may produce null
+                    // NOTE: there are cases involving ProxyAttribute
+                    // where newobj may produce null
                     return true;
 
                 case BoundKind.Conversion:
@@ -1250,8 +1264,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     switch (conversion.ConversionKind)
                     {
                         case ConversionKind.Boxing:
-                            //NOTE: boxing can produce null for Nullable, but any call through that
-                            //will result in null reference exceptions anyways.
+                            // NOTE: boxing can produce null for Nullable, but any call through that
+                            // will result in null reference exceptions anyways.
                             return true;
 
                         case ConversionKind.MethodGroup:
@@ -1265,9 +1279,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ThisReference:
-                    //NOTE: these actually can be null if called from a different language
-                    //if that has already happen, we will just propagate the behavior.
+                    // NOTE: these actually can be null if called from a different language
+                    // however, we assume it is responsibility of the caller to nullcheck "this"
+                    // if we already have access to "this", we must be in a member and should 
+                    // not redo the check
                     return true;
+
+                case BoundKind.FieldAccess:
+                    // same reason as for "ThisReference"
+                    return ((BoundFieldAccess)receiver).FieldSymbol.IsCapturedFrame;
+
+                case BoundKind.Local:
+                    // same reason as for "ThisReference"
+                    return ((BoundLocal)receiver).LocalSymbol.SynthesizedKind == SynthesizedLocalKind.FrameCache;
 
                 case BoundKind.DelegateCreationExpression:
                     return true;
@@ -1282,9 +1306,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.TypeOfOperator:
                     return true;
-
-                case BoundKind.FieldAccess:
-                    return ((BoundFieldAccess)receiver).FieldSymbol.IsCapturedFrame;
 
                 case BoundKind.ConditionalReceiver:
                     return true;

@@ -34,13 +34,22 @@ namespace RunTests
             }
         }
 
-        internal static void Finish(string logDir)
+        internal static void Clear()
         {
-            var logFilePath = Path.Combine(logDir, "runtests.log");
             lock (s_lines)
             {
-                File.WriteAllLines(logFilePath, s_lines.ToArray());
                 s_lines.Clear();
+            }
+        }
+
+        internal static void WriteTo(TextWriter textWriter)
+        {
+            lock (s_lines)
+            {
+                foreach (var line in s_lines)
+                {
+                    textWriter.WriteLine(line);
+                }
             }
         }
     }

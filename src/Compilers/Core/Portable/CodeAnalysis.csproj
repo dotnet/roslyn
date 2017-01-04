@@ -1,42 +1,25 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <RestorePackages>true</RestorePackages>
     <ServiceablePackage>true</ServiceablePackage>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
+    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutDir>..\..\..\..\Binaries\Release\amd64</OutDir>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Optimize>true</Optimize>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
   <ItemGroup>
     <Content Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.Native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -46,6 +29,21 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>
+    <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerExecutionContext.cs" />
+    <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
+    <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
+    <Compile Include="Serialization\FixedObjectBinder.cs" />
+    <Compile Include="Serialization\IObjectReadable.cs" />
+    <Compile Include="Serialization\IObjectWritable.cs" />
+    <Compile Include="Serialization\ObjectBinder.cs" />
+    <Compile Include="Serialization\ObjectData.cs" />
+    <Compile Include="Serialization\ObjectReader.cs" />
+    <Compile Include="Serialization\ObjectWriter.cs" />
+    <Compile Include="Serialization\RecordingObjectBinder.cs" />
+    <Compile Include="Serialization\StreamObjectReader.cs" />
+    <Compile Include="Serialization\StreamObjectWriter.cs" />
+    <Compile Include="Serialization\TypeKey.cs" />
+    <Compile Include="Symbols\IDiscardSymbol.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />
     <Compile Include="Syntax\SyntaxList.SeparatedWithManyWeakChildren.cs" />
@@ -59,14 +57,10 @@
     <Compile Include="InternalUtilities\EncodingExtensions.cs" />
     <Compile Include="InternalUtilities\BlobBuildingStream.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="InternalUtilities\IncrementalHash.cs" />
     <Compile Include="PEWriter\DebugSourceInfo.cs" />
     <Compile Include="PEWriter\ExportedType.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Shared\CoreClrShim.cs">
-      <Link>CoreClrShim.cs</Link>
-    </Compile>
     <Compile Include="..\..\Shared\DesktopShim.cs">
       <Link>DesktopShim.cs</Link>
     </Compile>
@@ -149,7 +143,7 @@
     <Compile Include="Text\SourceTextComparer.cs" />
     <Compile Include="Text\SourceTextWriter.cs" />
     <Compile Include="Text\StringTextWriter.cs" />
-    <Compile Include="UnicodeCharacterUtilities.cs" />
+    <Compile Include="InternalUtilities\UnicodeCharacterUtilities.cs" />
     <Compile Include="CodeAnalysisResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -240,7 +234,6 @@
     <Compile Include="DiagnosticAnalyzer\AnalyzerTelemetry.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerActionCounts.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerExecutor.cs" />
-    <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerAndOptions.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerManager.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilationCompletedEvent.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilationEvent.cs" />
@@ -406,7 +399,6 @@
     <Compile Include="InternalUtilities\EnumUtilties.cs" />
     <Compile Include="InternalUtilities\ExceptionUtilities.cs" />
     <Compile Include="InternalUtilities\FileNameUtilities.cs" />
-    <Compile Include="InternalUtilities\HashAlgorithms.cs" />
     <Compile Include="InternalUtilities\Hash.cs" />
     <Compile Include="InternalUtilities\ImmutableArrayExtensions.cs" />
     <Compile Include="InternalUtilities\ImmutableListExtensions.cs" />
@@ -419,7 +411,6 @@
     <Compile Include="InternalUtilities\ReadOnlyUnmanagedMemoryStream.cs" />
     <Compile Include="InternalUtilities\ReferenceEqualityComparer.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.cs" />
-    <Compile Include="InternalUtilities\SpecializedCollections.Empty.Array.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.Empty.Collection.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.Empty.cs" />
     <Compile Include="InternalUtilities\SpecializedCollections.Empty.Dictionary.cs" />
@@ -442,9 +433,6 @@
     <Compile Include="InternalUtilities\ThreadSafeFlagOperations.cs" />
     <Compile Include="InternalUtilities\ThreeState.cs" />
     <Compile Include="InternalUtilities\UICultureUtilities.cs" />
-    <Compile Include="InternalUtilities\ValueTuple.cs" />
-    <Compile Include="InternalUtilities\ValueTuple`2.cs" />
-    <Compile Include="InternalUtilities\ValueTuple`3.cs" />
     <Compile Include="InternalUtilities\WeakList.cs" />
     <Compile Include="InternalUtilities\WeakReferenceExtensions.cs" />
     <Compile Include="InternalUtilities\XmlUtilities.cs" />
@@ -497,7 +485,6 @@
     <Compile Include="PEWriter\TypeNameSerializer.cs" />
     <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
     <Compile Include="PEWriter\MetadataWriter.cs" />
-    <Compile Include="PortableShim.cs" />
     <Compile Include="RuleSet\InvalidRuleSetException.cs" />
     <Compile Include="RuleSet\RuleSet.cs" />
     <Compile Include="RuleSet\RuleSetInclude.cs" />
@@ -556,18 +543,6 @@
     <Compile Include="ReferenceManager\UnifiedAssembly.cs" />
     <Compile Include="ResourceDescription.cs" />
     <Compile Include="ResourceException.cs" />
-    <Compile Include="Serialization\ConcurrentRecordingObjectBinder.cs" />
-    <Compile Include="Serialization\FixedObjectBinder.cs" />
-    <Compile Include="Serialization\IObjectReadable.cs" />
-    <Compile Include="Serialization\IObjectWritable.cs" />
-    <Compile Include="Serialization\ObjectBinder.cs" />
-    <Compile Include="Serialization\ObjectReader.cs" />
-    <Compile Include="Serialization\ObjectReaderData.cs" />
-    <Compile Include="Serialization\ObjectReaderWriterBase.cs" />
-    <Compile Include="Serialization\ObjectWriter.cs" />
-    <Compile Include="Serialization\ObjectWriterData.cs" />
-    <Compile Include="Serialization\RecordingObjectBinder.cs" />
-    <Compile Include="Serialization\SimpleRecordingObjectBinder.cs" />
     <Compile Include="SignatureComparer.cs" />
     <Compile Include="SourceCodeKind.cs" />
     <Compile Include="SpecialMember.cs" />
@@ -632,6 +607,7 @@
     <Compile Include="Symbols\Attributes\WellKnownAttributeData.cs" />
     <Compile Include="Symbols\CommonAttributeDataExtensions.cs" />
     <Compile Include="Symbols\CustomModifier.cs" />
+    <Compile Include="Symbols\CustomModifiersTuple.cs" />
     <Compile Include="Symbols\IAliasSymbol.cs" />
     <Compile Include="Symbols\IArrayTypeSymbol.cs" />
     <Compile Include="Symbols\IAssemblySymbol.cs" />
@@ -793,6 +769,7 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities.CoreClr" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.FX45" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
@@ -821,5 +798,5 @@
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
-  <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

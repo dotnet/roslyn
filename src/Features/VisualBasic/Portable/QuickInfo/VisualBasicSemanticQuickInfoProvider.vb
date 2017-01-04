@@ -110,8 +110,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                         Return Nothing
                     End If
 
-                    Return symbol.TypeSwitch(Function(local As ILocalSymbol) local.Type,
-                                             Function(field As IFieldSymbol) field.Type)
+                    If TypeOf symbol Is ILocalSymbol Then
+                        Return DirectCast(symbol, ILocalSymbol).Type
+                    ElseIf TypeOf symbol Is IFieldSymbol Then
+                        Return DirectCast(symbol, IFieldSymbol).Type
+                    Else
+                        Return Nothing
+                    End If
                 End Function).WhereNotNull().Distinct().ToList()
 
             If types.Count = 0 Then

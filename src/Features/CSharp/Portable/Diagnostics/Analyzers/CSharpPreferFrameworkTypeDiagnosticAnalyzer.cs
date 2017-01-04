@@ -23,5 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         protected override bool IsInMemberAccessOrCrefReferenceContext(ExpressionSyntax node) =>
             node.IsInMemberAccessContext() || node.InsideCrefReference();
+
+        protected override string GetLanguageName() => LanguageNames.CSharp;
     }
 }

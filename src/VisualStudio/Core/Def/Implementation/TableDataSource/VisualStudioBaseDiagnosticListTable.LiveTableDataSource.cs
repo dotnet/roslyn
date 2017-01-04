@@ -366,8 +366,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 private ErrorRank GetErrorRank(DiagnosticData item)
                 {
-                    string value;
-                    if (!item.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out value))
+                    if (!item.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out var value))
                     {
                         return ErrorRank.Other;
                     }

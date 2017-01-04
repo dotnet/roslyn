@@ -10,8 +10,6 @@ using System.Text;
 using System.IO.Compression;
 using Roslyn.Test.Utilities;
 using System.Linq;
-using System.Collections.Immutable;
-using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -60,8 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<EndOfStreamException>(() => EmbeddedText.FromStream("path", new TruncatingStream(1000)));
 
             // Should be Assert.Throws<IOException>, but impeded by https://github.com/dotnet/roslyn/issues/12926
-            var ex = Assert.Throws<TargetInvocationException>(() => EmbeddedText.FromStream("path", new ReadFailsStream()));
-            Assert.IsType<IOException>(ex.InnerException);
+            Assert.Throws<IOException>(() => EmbeddedText.FromStream("path", new ReadFailsStream()));
         }
 
         private const string SmallSource = @"class P {}";
@@ -196,6 +193,36 @@ class Program
         }
 
         [Fact]
+        public void FromTextReader_Small()
+        {
+            var expected = SourceText.From(SmallSource, Encoding.UTF8, SourceHashAlgorithm.Sha1);
+            var expectedEmbeded = EmbeddedText.FromSource("pathToSmall", expected);
+
+            var actual = SourceText.From(new StringReader(SmallSource), SmallSource.Length, Encoding.UTF8, SourceHashAlgorithm.Sha1);
+            var actualEmbeded = EmbeddedText.FromSource(expectedEmbeded.FilePath, actual);
+
+            Assert.Equal(expectedEmbeded.FilePath, actualEmbeded.FilePath);
+            Assert.Equal(expectedEmbeded.ChecksumAlgorithm, actualEmbeded.ChecksumAlgorithm);
+            AssertEx.Equal(expectedEmbeded.Checksum, actualEmbeded.Checksum);
+            AssertEx.Equal(expectedEmbeded.Blob, actualEmbeded.Blob);
+        }
+
+        [Fact]
+        public void FromTextReader_Large()
+        {
+            var expected = SourceText.From(LargeSource, Encoding.UTF8, SourceHashAlgorithm.Sha1);
+            var expectedEmbeded = EmbeddedText.FromSource("pathToSmall", expected);
+
+            var actual = SourceText.From(new StringReader(LargeSource), LargeSource.Length, Encoding.UTF8, SourceHashAlgorithm.Sha1);
+            var actualEmbeded = EmbeddedText.FromSource(expectedEmbeded.FilePath, actual);
+
+            Assert.Equal(expectedEmbeded.FilePath, actualEmbeded.FilePath);
+            Assert.Equal(expectedEmbeded.ChecksumAlgorithm, actualEmbeded.ChecksumAlgorithm);
+            AssertEx.Equal(expectedEmbeded.Checksum, actualEmbeded.Checksum);
+            AssertEx.Equal(expectedEmbeded.Blob, actualEmbeded.Blob);
+        }
+
+        [Fact]
         public void FromSource_Precomputed()
         {
             byte[] bytes = Encoding.ASCII.GetBytes(LargeSource);
@@ -215,6 +242,17 @@ class Program
                 AssertEx.Equal(BitConverter.GetBytes(bytes.Length), text.Blob.Take(4));
                 AssertEx.Equal(bytes, Decompress(text.Blob.Skip(4)));
             }
+        }
+
+        [Fact]
+        public void FromBytes_EncodingFallbackCase()
+        {
+            var source = EncodedStringText.Create(new MemoryStream(new byte[] { 0xA9, 0x0D, 0x0A }), canBeEmbedded: true);
+            var text = EmbeddedText.FromSource("pathToLarge", source);
+
+            Assert.Equal("pathToLarge", text.FilePath);
+            Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
+            AssertEx.Equal(source.GetChecksum(), text.Checksum);
         }
 
         private byte[] Decompress(IEnumerable<byte> bytes)

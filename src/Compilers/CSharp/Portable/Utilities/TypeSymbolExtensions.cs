@@ -64,9 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 if (namedType.HasTypeArgumentsCustomModifiers)
                                 {
-                                    foreach (var modifiers in namedType.TypeArgumentsCustomModifiers)
+                                    for (int i = 0; i < namedType.Arity; i++)
                                     {
-                                        count += modifiers.Length;
+                                        count += namedType.GetTypeArgumentCustomModifiers(i).Length;
                                     }
                                 }
 

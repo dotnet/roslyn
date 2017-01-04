@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var linkedDocumentIds = document.GetLinkedDocumentIds();
 
             var modelAndSymbols = await this.BindTokenAsync(document, token, cancellationToken).ConfigureAwait(false);
-            if ((modelAndSymbols.Item2 == null || modelAndSymbols.Item2.Count == 0) && !linkedDocumentIds.Any())
+            if (modelAndSymbols.Item2.Length == 0 && !linkedDocumentIds.Any())
             {
                 return null;
             }
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var candidateProjects = new List<ProjectId>() { document.Project.Id };
             var invalidProjects = new List<ProjectId>();
 
-            var candidateResults = new List<Tuple<DocumentId, SemanticModel, IList<ISymbol>>>();
+            var candidateResults = new List<Tuple<DocumentId, SemanticModel, ImmutableArray<ISymbol>>>();
             candidateResults.Add(Tuple.Create(document.Id, modelAndSymbols.Item1, modelAndSymbols.Item2));
 
             foreach (var link in linkedDocumentIds)
@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
 
             // Take the first result with no errors.
-            var bestBinding = candidateResults.FirstOrDefault(c => c.Item3.Count > 0 && !ErrorVisitor.ContainsError(c.Item3.FirstOrDefault()));
+            var bestBinding = candidateResults.FirstOrDefault(
+                c => c.Item3.Length > 0 && !ErrorVisitor.ContainsError(c.Item3.FirstOrDefault()));
 
             // Every file binds with errors. Take the first candidate, which is from the current file.
             if (bestBinding == null)
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return default(ImmutableArray<TaggedText>);
         }
 
-        private async Task<ValueTuple<SemanticModel, IList<ISymbol>>> BindTokenAsync(
+        private async Task<ValueTuple<SemanticModel, ImmutableArray<ISymbol>>> BindTokenAsync(
             Document document,
             SyntaxToken token,
             CancellationToken cancellationToken)
@@ -250,7 +251,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
-            var symbols = semanticModel.GetSymbols(token, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType: true, cancellationToken: cancellationToken);
+            var symbols = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken)
+                                       .GetSymbols(includeType: true);
 
             var bindableParent = document.GetLanguageService<ISyntaxFactsService>().GetBindableParent(token);
             var overloads = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
@@ -258,16 +260,17 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             symbols = symbols.Where(IsOk)
                              .Where(s => IsAccessible(s, enclosingType))
                              .Concat(overloads)
-                             .Distinct(SymbolEquivalenceComparer.Instance);
+                             .Distinct(SymbolEquivalenceComparer.Instance)
+                             .ToImmutableArray();
 
             if (symbols.Any())
             {
                 var typeParameter = symbols.First() as ITypeParameterSymbol;
-                return new ValueTuple<SemanticModel, IList<ISymbol>>(
+                return ValueTuple.Create(
                     semanticModel,
                     typeParameter != null && typeParameter.TypeParameterKind == TypeParameterKind.Cref
-                        ? SpecializedCollections.EmptyList<ISymbol>()
-                        : symbols.ToList());
+                        ? ImmutableArray<ISymbol>.Empty
+                        : symbols);
             }
 
             // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
@@ -278,11 +281,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 var typeInfo = semanticModel.GetTypeInfo(token.Parent, cancellationToken);
                 if (IsOk(typeInfo.Type))
                 {
-                    return new ValueTuple<SemanticModel, IList<ISymbol>>(semanticModel, new List<ISymbol>(1) { typeInfo.Type });
+                    return ValueTuple.Create(semanticModel,
+                        ImmutableArray.Create<ISymbol>(typeInfo.Type));
                 }
             }
 
-            return ValueTuple.Create(semanticModel, SpecializedCollections.EmptyList<ISymbol>());
+            return ValueTuple.Create(semanticModel, ImmutableArray<ISymbol>.Empty);
         }
 
         private static bool IsOk(ISymbol symbol)

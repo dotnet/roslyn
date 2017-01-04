@@ -32,9 +32,9 @@ public struct A
     // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
     //     A a = new A();   // CS8036
     Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
-    // (4,7): warning CS0414: The field 'A.a' is assigned but its value is never used
+    // (4,7): warning CS0169: The field 'A.a' is never used
     //     A a = new A();   // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("A.a").WithLocation(4, 7)
+    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("A.a").WithLocation(4, 7)
     );
         }
 

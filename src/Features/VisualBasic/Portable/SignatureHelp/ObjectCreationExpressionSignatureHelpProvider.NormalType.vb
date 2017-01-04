@@ -19,7 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                                    normalType As INamedTypeSymbol,
                                                    within As ISymbol,
                                                    cancellationToken As CancellationToken) As IList(Of SignatureHelpItem)
-            Dim accessibleConstructors = normalType.InstanceConstructors.Where(Function(c) c.IsAccessibleWithin(within)).
+            Dim accessibleConstructors = normalType.InstanceConstructors.
+                                                    WhereAsArray(Function(c) c.IsAccessibleWithin(within)).
                                                     FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
                                                     Sort(symbolDisplayService, semanticModel, objectCreationExpression.SpanStart)
 

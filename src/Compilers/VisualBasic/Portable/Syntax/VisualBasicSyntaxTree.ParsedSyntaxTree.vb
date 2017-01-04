@@ -40,14 +40,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Debug.Assert(syntaxRoot IsNot Nothing)
                 Debug.Assert(options IsNot Nothing)
-                Debug.Assert(path IsNot Nothing)
                 Debug.Assert(textOpt Is Nothing OrElse textOpt.Encoding Is encodingOpt AndAlso textOpt.ChecksumAlgorithm = checksumAlgorithm)
 
                 _lazyText = textOpt
                 _encodingOpt = If(encodingOpt, textOpt?.Encoding)
                 _checksumAlgorithm = checksumAlgorithm
                 _options = options
-                _path = path
+                _path = If(path, String.Empty)
                 _root = If(cloneRoot, Me.CloneNodeAsRoot(syntaxRoot), syntaxRoot)
                 _hasCompilationUnitRoot = (syntaxRoot.Kind = SyntaxKind.CompilationUnit)
                 _isMyTemplate = isMyTemplate

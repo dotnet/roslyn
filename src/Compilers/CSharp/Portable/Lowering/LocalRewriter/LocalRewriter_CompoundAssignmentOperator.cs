@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (CanChangeValueBetweenReads(arguments[i]))
                 {
                     BoundAssignmentOperator assignmentToTemp;
-                    var temp = _factory.StoreToTemp(VisitExpression(arguments[i]), out assignmentToTemp, refKind: indexerAccess.ArgumentRefKindsOpt.RefKinds(i));
+                    var temp = _factory.StoreToTemp(VisitExpression(arguments[i]), out assignmentToTemp, indexerAccess.ArgumentRefKindsOpt.RefKinds(i) != RefKind.None ? RefKind.Ref : RefKind.None);
                     stores.Add(assignmentToTemp);
                     temps.Add(temp.LocalSymbol);
                     loweredArguments[i] = temp;

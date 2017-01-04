@@ -2,9 +2,7 @@
 
 using System;
 using System.Text;
-
 using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {

@@ -2,12 +2,8 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Text.RegularExpressions
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -308,7 +304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If intrinsicOperatorType = SpecialType.None Then
                 ' Must be a bitwise operation with enum type.
                 Debug.Assert(leftType.GetNullableUnderlyingTypeOrSelf().IsEnumType() AndAlso
-                             leftType.GetNullableUnderlyingTypeOrSelf().IsSameTypeIgnoringCustomModifiers(rightType.GetNullableUnderlyingTypeOrSelf()))
+                             leftType.GetNullableUnderlyingTypeOrSelf().IsSameTypeIgnoringAll(rightType.GetNullableUnderlyingTypeOrSelf()))
 
                 If (operatorKind And BinaryOperatorKind.Lifted) = 0 OrElse leftType.IsNullableType() Then
                     operandType = leftType
@@ -656,8 +652,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 bitwiseKind = bitwiseKind Or BinaryOperatorKind.Lifted
             End If
 
-            If Not operatorType.IsSameTypeIgnoringCustomModifiers(bitwiseCandidate.Parameters(0).Type) OrElse
-               Not operatorType.IsSameTypeIgnoringCustomModifiers(bitwiseCandidate.Parameters(1).Type) Then
+            If Not operatorType.IsSameTypeIgnoringAll(bitwiseCandidate.Parameters(0).Type) OrElse
+               Not operatorType.IsSameTypeIgnoringAll(bitwiseCandidate.Parameters(1).Type) Then
                 ReportDiagnostic(diagnostics, node, ERRID.ERR_UnacceptableLogicalOperator3,
                                  bitwiseCandidate.UnderlyingSymbol,
                                  bitwiseCandidate.UnderlyingSymbol.ContainingType,
@@ -708,7 +704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim checkCandidate As OverloadResolution.Candidate = leftCheckOperator.BestResult.Value.Candidate
             Debug.Assert(checkCandidate.ReturnType.IsBooleanType() OrElse checkCandidate.ReturnType.IsNullableOfBoolean())
 
-            If Not operatorType.IsSameTypeIgnoringCustomModifiers(checkCandidate.Parameters(0).Type) Then
+            If Not operatorType.IsSameTypeIgnoringAll(checkCandidate.Parameters(0).Type) Then
                 ReportDiagnostic(diagnostics, node, ERRID.ERR_BinaryOperands3,
                                  SyntaxFacts.GetText(If(opKind = BinaryOperatorKind.AndAlso, SyntaxKind.AndAlsoKeyword, SyntaxKind.OrElseKeyword)),
                                  left.Type, right.Type)

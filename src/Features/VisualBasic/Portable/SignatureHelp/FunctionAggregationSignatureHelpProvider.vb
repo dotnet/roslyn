@@ -57,7 +57,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim methods = semanticModel.LookupSymbols(
                 functionAggregation.SpanStart,
                 name:=functionAggregation.FunctionName.ValueText,
-                includeReducedExtensionMethods:=True).OfType(Of IMethodSymbol).Where(Function(m) m.IsAggregateFunction()).ToList()
+                includeReducedExtensionMethods:=True).OfType(Of IMethodSymbol).
+                                                      Where(Function(m) m.IsAggregateFunction()).
+                                                      ToImmutableArrayOrEmpty()
 
             Dim within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken)
             If within Is Nothing Then
@@ -65,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
-            Dim accessibleMethods = methods.Where(Function(m) m.IsAccessibleWithin(within)).
+            Dim accessibleMethods = methods.WhereAsArray(Function(m) m.IsAccessibleWithin(within)).
                                             FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
                                             Sort(symbolDisplayService, semanticModel, functionAggregation.SpanStart)
 

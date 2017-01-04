@@ -5619,16 +5619,6 @@ BC30456: 'GetWordsAsync' is not a member of 'Line'.
 BC30451: 'WordsKey' is not declared. It may be inaccessible due to its protection level.
                         If imax <= WordsKey Then Return
                                    ~~~~~~~~
-BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
-    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-                        Await Task.WhenAll(WordTasks.ToArray())
-                                   ~~~~~~~
-BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
-    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-                Await Task.WhenAll(SentenceTasks.ToArray())
-                           ~~~~~~~
 ]]></expected>)
         End Sub
 
@@ -5742,22 +5732,47 @@ BC30456: 'GetDeliveryWindowVendor9Async' is not a member of 'DeliveryWindowDepar
 BC30451: 'Vendor9Key' is not declared. It may be inaccessible due to its protection level.
                                                                                           If MaxDepth <= Vendor9Key Then
                                                                                                          ~~~~~~~~~~
-BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
-    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-                                                                                          Await Task.WhenAll(Vendor9Tasks.ToArray())
-                                                                                                     ~~~~~~~
-BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
-    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-                                             Await Task.WhenAll(DepartmentTasks.ToArray())
-                                                        ~~~~~~~
-BC30518: Overload resolution failed because no accessible 'WhenAll' can be called with these arguments:
-    'Public Shared Overloads Function WhenAll(Of TResult)(tasks As IEnumerable(Of Task(Of TResult))) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-    'Public Shared Overloads Function WhenAll(Of TResult)(ParamArray tasks As Task(Of TResult)()) As Task(Of TResult())': Type parameter 'TResult' cannot be inferred.
-        Await Task.WhenAll(VendorTasks.ToArray())
-                   ~~~~~~~
 ]]></expected>)
+        End Sub
+
+        <WorkItem(9341, "https://github.com/dotnet/roslyn/issues/9341")>
+        <Fact()>
+        Public Sub FailureDueToAnErrorInALambda_04()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Test
+    Sub Main()
+        Invoke(
+            Sub()
+                M1("error here")
+            End Sub)
+    End Sub
+
+    Sub M1()
+    End Sub
+
+    Public Sub Invoke(callback As Action)
+    End Sub
+
+    Function Invoke(Of TResult)(callback As Func(Of TResult)) As TResult
+        Return Nothing
+    End Function
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30057: Too many arguments to 'Public Sub M1()'.
+                M1("error here")
+                   ~~~~~~~~~~~~
+</expected>)
         End Sub
 
     End Class

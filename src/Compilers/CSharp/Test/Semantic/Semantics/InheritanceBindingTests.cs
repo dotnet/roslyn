@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -3746,70 +3747,70 @@ class Derived : Base
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (5,20): warning CS0109: The member 'C.field' does not hide an inherited member. The new keyword is not required.
+                // (5,20): warning CS0109: The member 'C.field' does not hide an accessible member. The new keyword is not required.
                 //     public new int field;
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "field").WithArguments("C.field"),
-                // (6,20): warning CS0109: The member 'C.Property' does not hide an inherited member. The new keyword is not required.
+                // (6,20): warning CS0109: The member 'C.Property' does not hide an accessible member. The new keyword is not required.
                 //     public new int Property { get { return 0; } }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Property").WithArguments("C.Property"),
-                // (12,31): warning CS0109: The member 'C.Event' does not hide an inherited member. The new keyword is not required.
+                // (12,31): warning CS0109: The member 'C.Event' does not hide an accessible member. The new keyword is not required.
                 //     public new event Delegate Event;
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Event").WithArguments("C.Event"),
-                // (7,26): warning CS0109: The member 'C.Interface' does not hide an inherited member. The new keyword is not required.
+                // (7,26): warning CS0109: The member 'C.Interface' does not hide an accessible member. The new keyword is not required.
                 //     public new interface Interface { }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Interface").WithArguments("C.Interface"),
-                // (8,22): warning CS0109: The member 'C.Class' does not hide an inherited member. The new keyword is not required.
+                // (8,22): warning CS0109: The member 'C.Class' does not hide an accessible member. The new keyword is not required.
                 //     public new class Class { }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Class").WithArguments("C.Class"),
-                // (9,23): warning CS0109: The member 'C.Struct' does not hide an inherited member. The new keyword is not required.
+                // (9,23): warning CS0109: The member 'C.Struct' does not hide an accessible member. The new keyword is not required.
                 //     public new struct Struct { }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Struct").WithArguments("C.Struct"),
-                // (10,21): warning CS0109: The member 'C.Enum' does not hide an inherited member. The new keyword is not required.
+                // (10,21): warning CS0109: The member 'C.Enum' does not hide an accessible member. The new keyword is not required.
                 //     public new enum Enum { Element }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Enum").WithArguments("C.Enum"),
-                // (11,30): warning CS0109: The member 'C.Delegate' does not hide an inherited member. The new keyword is not required.
+                // (11,30): warning CS0109: The member 'C.Delegate' does not hide an accessible member. The new keyword is not required.
                 //     public new delegate void Delegate();
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Delegate").WithArguments("C.Delegate"),
-                // (13,20): warning CS0109: The member 'C.this[int]' does not hide an inherited member. The new keyword is not required.
+                // (13,20): warning CS0109: The member 'C.this[int]' does not hide an accessible member. The new keyword is not required.
                 //     public new int this[int x] { get { return 0; } }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "this").WithArguments("C.this[int]"),
-                // (19,20): warning CS0109: The member 'S.field' does not hide an inherited member. The new keyword is not required.
+                // (19,20): warning CS0109: The member 'S.field' does not hide an accessible member. The new keyword is not required.
                 //     public new int field;
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "field").WithArguments("S.field"),
-                // (20,20): warning CS0109: The member 'S.Property' does not hide an inherited member. The new keyword is not required.
+                // (20,20): warning CS0109: The member 'S.Property' does not hide an accessible member. The new keyword is not required.
                 //     public new int Property { get { return 0; } }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Property").WithArguments("S.Property"),
-                // (26,31): warning CS0109: The member 'S.Event' does not hide an inherited member. The new keyword is not required.
+                // (26,31): warning CS0109: The member 'S.Event' does not hide an accessible member. The new keyword is not required.
                 //     public new event Delegate Event;
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Event").WithArguments("S.Event"),
-                // (21,26): warning CS0109: The member 'S.Interface' does not hide an inherited member. The new keyword is not required.
+                // (21,26): warning CS0109: The member 'S.Interface' does not hide an accessible member. The new keyword is not required.
                 //     public new interface Interface { }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Interface").WithArguments("S.Interface"),
-                // (22,22): warning CS0109: The member 'S.Class' does not hide an inherited member. The new keyword is not required.
+                // (22,22): warning CS0109: The member 'S.Class' does not hide an accessible member. The new keyword is not required.
                 //     public new class Class { }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Class").WithArguments("S.Class"),
-                // (23,23): warning CS0109: The member 'S.Struct' does not hide an inherited member. The new keyword is not required.
+                // (23,23): warning CS0109: The member 'S.Struct' does not hide an accessible member. The new keyword is not required.
                 //     public new struct Struct { }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Struct").WithArguments("S.Struct"),
-                // (24,21): warning CS0109: The member 'S.Enum' does not hide an inherited member. The new keyword is not required.
+                // (24,21): warning CS0109: The member 'S.Enum' does not hide an accessible member. The new keyword is not required.
                 //     public new enum Enum { Element }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Enum").WithArguments("S.Enum"),
-                // (25,30): warning CS0109: The member 'S.Delegate' does not hide an inherited member. The new keyword is not required.
+                // (25,30): warning CS0109: The member 'S.Delegate' does not hide an accessible member. The new keyword is not required.
                 //     public new delegate void Delegate();
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Delegate").WithArguments("S.Delegate"),
-                // (27,20): warning CS0109: The member 'S.this[int]' does not hide an inherited member. The new keyword is not required.
+                // (27,20): warning CS0109: The member 'S.this[int]' does not hide an accessible member. The new keyword is not required.
                 //     public new int this[int x] { get { return 0; } }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "this").WithArguments("S.this[int]"),
-                // (39,21): warning CS0109: The member 'D.Method()' does not hide an inherited member. The new keyword is not required.
+                // (39,21): warning CS0109: The member 'D.Method()' does not hide an accessible member. The new keyword is not required.
                 //     public new void Method() { }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Method").WithArguments("D.Method()"),
-                // (40,20): warning CS0109: The member 'D.Property' does not hide an inherited member. The new keyword is not required.
+                // (40,20): warning CS0109: The member 'D.Property' does not hide an accessible member. The new keyword is not required.
                 //     public new int Property { get { return 0; } }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Property").WithArguments("D.Property"),
-                // (52,21): warning CS0109: The member 'Derived.Method()' does not hide an inherited member. The new keyword is not required.
+                // (52,21): warning CS0109: The member 'Derived.Method()' does not hide an accessible member. The new keyword is not required.
                 //     public new void Method() { } 
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Method").WithArguments("Derived.Method()"),
-                // (53,20): warning CS0109: The member 'Derived.Property' does not hide an inherited member. The new keyword is not required.
+                // (53,20): warning CS0109: The member 'Derived.Property' does not hide an accessible member. The new keyword is not required.
                 //     public new int Property { get { return 0; } }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Property").WithArguments("Derived.Property"),
 
@@ -4451,7 +4452,7 @@ public class Derived : Base
     internal override void Method() { }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 28 }, //can't see internal method in other compilation
             });
         }
@@ -4472,7 +4473,7 @@ public class Derived : Base
     internal override long Property { get; set; }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 28 }, //can't see internal method in other compilation
             });
         }
@@ -4493,7 +4494,7 @@ public class Derived : Base
     internal override long this[int x] { get { return 0; } set { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 28 }, //can't see internal method in other compilation
             });
         }
@@ -4514,7 +4515,7 @@ public class Derived : Base
     internal override event System.Action Event { add { } remove { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 4, Column = 43 }, //can't see internal method in other compilation
             });
         }
@@ -4861,7 +4862,7 @@ public class Derived2 : Base
     protected internal override void Method13() { }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 38 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 26 },
@@ -4928,7 +4929,7 @@ public class Derived2 : Base
     protected internal override long Property13 { get; set; }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 38 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 26 },
@@ -4995,7 +4996,7 @@ public class Derived2 : Base
     protected internal override long this[string w, string x, int y, string z] { get { return 0; } set { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 38 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 26 },
@@ -5062,7 +5063,7 @@ public class Derived2 : Base
     protected internal override event System.Action Event13 { add { } remove { } }
 }
 ";
-            CompileAndVerifyDiagnostics(text1, text2, SpecializedCollections.EmptyArray<ErrorDescription>(), new ErrorDescription[] {
+            CompileAndVerifyDiagnostics(text1, text2, Array.Empty<ErrorDescription>(), new ErrorDescription[] {
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 5, Column = 44 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 6, Column = 53 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 7, Column = 41 },
@@ -5697,7 +5698,7 @@ class NS4
 }";
 
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (12,19): warning CS0109: The member 'NS1.Base2.Method' does not hide an inherited member. The new keyword is not required.
+                // (12,19): warning CS0109: The member 'NS1.Base2.Method' does not hide an accessible member. The new keyword is not required.
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Method").WithArguments("NS1.Base2.Method"),
                 // (35,30): error CS0505: 'NS2.Derived.Method<U>(System.Collections.Generic.List<int>)': cannot override because 'NS2.Base2.Method' is not a function
                 Diagnostic(ErrorCode.ERR_CantOverrideNonFunction, "Method").WithArguments("NS2.Derived.Method<U>(System.Collections.Generic.List<int>)", "NS2.Base2.Method"),
@@ -5705,7 +5706,7 @@ class NS4
                 Diagnostic(ErrorCode.ERR_CantOverrideNonProperty, "Property").WithArguments("NS2.Derived.Property", "NS2.Base2.Property"),
                 // (48,22): warning CS0108: 'NS3.Base2.Method<T>' hides inherited member 'NS3.Base<System.Collections.Generic.List<int>>.Method<U>(System.Collections.Generic.List<int>)'. Use the new keyword if hiding was intended.
                 Diagnostic(ErrorCode.WRN_NewRequired, "Method").WithArguments("NS3.Base2.Method<T>", "NS3.Base<System.Collections.Generic.List<int>>.Method<U>(System.Collections.Generic.List<int>)"),
-                // (49,26): warning CS0109: The member 'NS3.Base2.Property<T>' does not hide an inherited member. The new keyword is not required.
+                // (49,26): warning CS0109: The member 'NS3.Base2.Property<T>' does not hide an accessible member. The new keyword is not required.
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Property").WithArguments("NS3.Base2.Property<T>"),
                 // (53,30): error CS0505: 'NS3.Derived.Method<U>(System.Collections.Generic.List<int>)': cannot override because 'NS3.Base2.Method<T>' is not a function
                 Diagnostic(ErrorCode.ERR_CantOverrideNonFunction, "Method").WithArguments("NS3.Derived.Method<U>(System.Collections.Generic.List<int>)", "NS3.Base2.Method<T>"));
@@ -5787,7 +5788,7 @@ partial class NS1
                 // (13,22): warning CS0108: 'NS1.Base2.Method<T>' hides inherited member 'NS1.Base<System.Collections.Generic.List<int>>.Method<U>(System.Collections.Generic.List<int>)'. Use the new keyword if hiding was intended.
                 //         public class Method<T> { }
                 Diagnostic(ErrorCode.WRN_NewRequired, "Method").WithArguments("NS1.Base2.Method<T>", "NS1.Base<System.Collections.Generic.List<int>>.Method<U>(System.Collections.Generic.List<int>)"),
-                // (14,26): warning CS0109: The member 'NS1.Base2.Property<T>' does not hide an inherited member. The new keyword is not required.
+                // (14,26): warning CS0109: The member 'NS1.Base2.Property<T>' does not hide an accessible member. The new keyword is not required.
                 //         public new class Property<T> { }
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Property").WithArguments("NS1.Base2.Property<T>")
                 );
@@ -5820,13 +5821,13 @@ partial class Derived
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (4,31): warning CS0109: The member 'Base.Method()' does not hide an inherited member. The new keyword is not required.
+                // (4,31): warning CS0109: The member 'Base.Method()' does not hide an accessible member. The new keyword is not required.
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Method").WithArguments("Base.Method()"),
                 // (14,30): error CS0102: The type 'Derived' already contains a definition for 'Property'
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Property").WithArguments("Derived", "Property"),
                 // (9,25): warning CS0114: 'Derived.Method()' hides inherited member 'Base.Method()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "Method").WithArguments("Derived.Method()", "Base.Method()"),
-                // (15,32): warning CS0109: The member 'Derived.Method<T>()' does not hide an inherited member. The new keyword is not required.
+                // (15,32): warning CS0109: The member 'Derived.Method<T>()' does not hide an accessible member. The new keyword is not required.
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "Method").WithArguments("Derived.Method<T>()"));
         }
 
@@ -5861,10 +5862,10 @@ class Derived : Base
 }";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (12,20): warning CS0109: The member 'Derived.MethOd' does not hide an inherited member. The new keyword is not required.
+                // (12,20): warning CS0109: The member 'Derived.MethOd' does not hide an accessible member. The new keyword is not required.
                 //     public new int MethOd = 2, Method = 3, METhod = 4;
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "MethOd").WithArguments("Derived.MethOd"),
-                // (12,44): warning CS0109: The member 'Derived.METhod' does not hide an inherited member. The new keyword is not required.
+                // (12,44): warning CS0109: The member 'Derived.METhod' does not hide an accessible member. The new keyword is not required.
                 //     public new int MethOd = 2, Method = 3, METhod = 4;
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "METhod").WithArguments("Derived.METhod"),
                 // (19,22): warning CS0108: 'Derived.Base2.Type' hides inherited member 'Base.Type'. Use the new keyword if hiding was intended.

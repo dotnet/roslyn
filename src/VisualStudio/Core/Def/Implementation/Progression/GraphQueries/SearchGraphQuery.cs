@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.GraphModel;
@@ -44,11 +46,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 {
                     var results = await FindNavigableSourceSymbolsAsync(project, cancellationToken).ConfigureAwait(false);
 
-                    foreach (var result in results)
+                    foreach (var symbol in results)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-
-                        var symbol = result.Item1;
 
                         if (symbol is INamedTypeSymbol)
                         {
@@ -105,10 +105,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return memberNode;
         }
 
-        internal async Task<IEnumerable<ValueTuple<ISymbol, IEnumerable<PatternMatch>>>> FindNavigableSourceSymbolsAsync(
+        internal async Task<ImmutableArray<ISymbol>> FindNavigableSourceSymbolsAsync(
             Project project, CancellationToken cancellationToken)
         {
-            var results = new List<ValueTuple<ISymbol, IEnumerable<PatternMatch>>>();
+            var results = ArrayBuilder<ISymbol>.GetInstance();
 
             // The compiler API only supports a predicate which is given a symbol's name.  Because
             // we only have the name, and nothing else, we need to check it against the last segment
@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             // we'll check if the full name matches the full pattern.
             var patternMatcher = new PatternMatcher(_searchPattern);
             var symbols = await SymbolFinder.FindSourceDeclarationsAsync(
-                project, k => patternMatcher.GetMatchesForLastSegmentOfPattern(k) != null, SymbolFilter.TypeAndMember, cancellationToken).ConfigureAwait(false);
+                project, k => !patternMatcher.GetMatchesForLastSegmentOfPattern(k).IsDefaultOrEmpty, SymbolFilter.TypeAndMember, cancellationToken).ConfigureAwait(false);
 
             symbols = symbols.Where(s =>
                 !s.IsConstructor()
@@ -134,15 +134,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 // isn't a dotted pattern.  Getting the container could cause lots of string 
                 // allocations that we don't if we're never going to check it.
                 var matches = !patternMatcher.IsDottedPattern
-                    ? patternMatcher.GetMatches(GetSearchName(symbol))
+                    ? new PatternMatches(patternMatcher.GetMatches(GetSearchName(symbol)))
                     : patternMatcher.GetMatches(GetSearchName(symbol), GetContainer(symbol));
 
-                if (matches == null)
+                if (matches.IsEmpty)
                 {
                     continue;
                 }
 
-                results.Add(ValueTuple.Create(symbol, matches));
+                results.Add(symbol);
 
                 // also report matching constructors (using same match result as type)
                 var namedType = symbol as INamedTypeSymbol;
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         // only constructors that were explicitly declared
                         if (!constructor.IsImplicitlyDeclared)
                         {
-                            results.Add(ValueTuple.Create((ISymbol)constructor, matches));
+                            results.Add(constructor);
                         }
                     }
                 }
@@ -162,11 +162,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 var method = symbol as IMethodSymbol;
                 if (method != null && method.PartialImplementationPart != null)
                 {
-                    results.Add(ValueTuple.Create((ISymbol)method, matches));
+                    results.Add(method);
                 }
             }
 
-            return results;
+            return results.ToImmutableAndFree();
         }
 
         public static readonly SymbolDisplayFormat DottedNameFormat =

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase;
@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.HideBase
 {
     public static Application Current { get; }
 }
+
 class App : Application
 {
     [|public static App Current|] { get; set; }
@@ -33,6 +34,7 @@ class App : Application
 {
     public static Application Current { get; }
 }
+
 class App : Application
 {
     public static new App Current { get; set; }
@@ -49,6 +51,7 @@ class App : Application
     {
     }
 }
+
 class App : Application
 {
     [|public static void Method()
@@ -61,6 +64,7 @@ class App : Application
     {
     }
 }
+
 class App : Application
 {
     public static new void Method()
@@ -77,6 +81,7 @@ class App : Application
 {
     public string Test;
 }
+
 class App : Application
 {
     [|public int Test;|]
@@ -85,6 +90,7 @@ class App : Application
 {
     public string Test;
 }
+
 class App : Application
 {
     public new int Test;

@@ -32,7 +32,7 @@ enum $$E
         public async Task WithAttributes()
         {
             const string code = @"
-{|hint:{|collapse:[Bar]
+{|hint:{|textspan:[Bar]
 |}enum $$E|}
 {
     A,
@@ -40,14 +40,14 @@ enum $$E
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAndAttributes()
         {
             const string code = @"
-{|hint:{|collapse:// Summary:
+{|hint:{|textspan:// Summary:
 //     This is a summary.
 [Bar]
 |}enum $$E|}
@@ -57,14 +57,14 @@ enum $$E
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAttributesAndModifiers()
         {
             const string code = @"
-{|hint:{|collapse:// Summary:
+{|hint:{|textspan:// Summary:
 //     This is a summary.
 [Bar]
 |}public enum $$E|}
@@ -74,7 +74,7 @@ enum $$E
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

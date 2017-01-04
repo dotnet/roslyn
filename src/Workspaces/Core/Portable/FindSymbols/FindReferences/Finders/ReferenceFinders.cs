@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal static class ReferenceFinders
     {
-        public static readonly IReferenceFinder Constructor = new ConstructorSymbolReferenceFinder();
+        public static readonly IReferenceFinder Constructor = ConstructorSymbolReferenceFinder.Instance;
         public static readonly IReferenceFinder ConstructorInitializer = new ConstructorInitializerSymbolReferenceFinder();
         public static readonly IReferenceFinder Destructor = new DestructorSymbolReferenceFinder();
         public static readonly IReferenceFinder ExplicitInterfaceMethod = new ExplicitInterfaceMethodReferenceFinder();

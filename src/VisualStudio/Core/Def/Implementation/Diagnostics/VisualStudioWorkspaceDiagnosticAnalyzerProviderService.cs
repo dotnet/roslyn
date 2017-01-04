@@ -43,6 +43,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             // Get the analyzer assets for installed VSIX extensions through the VSIX extension manager.
             var extensionManager = workspace.GetVsService(assembly.GetType("Microsoft.VisualStudio.ExtensionManager.SVsExtensionManager"));
+            if (extensionManager == null)
+            {
+                // extension manager can't be null. if it is null, then VS is seriously broken.
+                // fail fast right away
+                FailFast.OnFatalException(new Exception("extension manager can't be null"));
+            }
 
             _hostDiagnosticAnalyzerInfo = GetHostAnalyzerPackagesWithName(extensionManager, assembly.GetType("Microsoft.VisualStudio.ExtensionManager.IExtensionContent"));
         }

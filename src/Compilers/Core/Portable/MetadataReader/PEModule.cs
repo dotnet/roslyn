@@ -10,8 +10,8 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -83,7 +83,10 @@ namespace Microsoft.CodeAnalysis
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeObsoleteDataExtractor = CrackObsoleteAttributeData;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeDeprecatedDataExtractor = CrackDeprecatedAttributeData;
 
-        internal PEModule(ModuleMetadata owner, PEReader peReader, IntPtr metadataOpt, int metadataSizeOpt, bool includeEmbeddedInteropTypes = false)
+        // 'ignoreAssemblyRefs' is used by the EE only, when debugging
+        // .NET Native, where the corlib may have assembly references
+        // (see https://github.com/dotnet/roslyn/issues/13275).
+        internal PEModule(ModuleMetadata owner, PEReader peReader, IntPtr metadataOpt, int metadataSizeOpt, bool includeEmbeddedInteropTypes, bool ignoreAssemblyRefs)
         {
             // shall not throw
 
@@ -98,6 +101,11 @@ namespace Microsoft.CodeAnalysis
             _lazyNamespaceNameCollection = new Lazy<IdentifierCollection>(ComputeNamespaceNameCollection);
             _hashesOpt = (peReader != null) ? new PEHashProvider(peReader) : null;
             _lazyContainsNoPiaLocalTypes = includeEmbeddedInteropTypes ? ThreeState.False : ThreeState.Unknown;
+
+            if (ignoreAssemblyRefs)
+            {
+                _lazyAssemblyReferences = ImmutableArray<AssemblyIdentity>.Empty;
+            }
         }
 
         private sealed class PEHashProvider : CryptographicHashProvider
@@ -2348,30 +2356,6 @@ namespace Microsoft.CodeAnalysis
             GenericParameter row = MetadataReader.GetGenericParameter(handle);
             name = MetadataReader.GetString(row.Name);
             flags = row.Attributes;
-        }
-
-        /// <summary>
-        /// Returns an array of tokens for type constraints. Null reference if none.
-        /// </summary>
-        /// <param name="genericParam"></param>
-        /// <returns>
-        /// An array of tokens for type constraints. Null reference if none.
-        /// </returns>
-        internal EntityHandle[] GetGenericParamConstraintsOrThrow(GenericParameterHandle genericParam)
-        {
-            var constraints = MetadataReader.GetGenericParameter(genericParam).GetConstraints();
-            if (constraints.Count != 0)
-            {
-                var constraintTypes = new EntityHandle[constraints.Count];
-                for (int i = 0; i < constraintTypes.Length; i++)
-                {
-                    constraintTypes[i] = MetadataReader.GetGenericParameterConstraint(constraints[i]).Type;
-                }
-
-                return constraintTypes;
-            }
-
-            return null;
         }
 
         #endregion

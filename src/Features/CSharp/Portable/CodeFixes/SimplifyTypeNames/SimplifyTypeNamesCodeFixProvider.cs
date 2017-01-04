@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            string diagnosticId;
-            var node = GetNodeToSimplify(root, model, span, documentOptions, out diagnosticId, cancellationToken);
+            var node = GetNodeToSimplify(root, model, span, documentOptions, out var diagnosticId, cancellationToken);
             if (node == null)
             {
                 return;
@@ -109,9 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
         private static bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, TextSpan span, out string diagnosticId, CancellationToken cancellationToken)
         {
             diagnosticId = null;
-            TextSpan issueSpan;
             if (!CSharpSimplifyTypeNamesDiagnosticAnalyzer.IsCandidate(node) ||
-                !CSharpSimplifyTypeNamesDiagnosticAnalyzer.CanSimplifyTypeNameExpression(model, node, optionSet, out issueSpan, out diagnosticId, cancellationToken))
+                !CSharpSimplifyTypeNamesDiagnosticAnalyzer.CanSimplifyTypeNameExpression(model, node, optionSet, out var issueSpan, out diagnosticId, cancellationToken))
             {
                 return false;
             }

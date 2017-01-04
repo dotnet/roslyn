@@ -12,11 +12,6 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                return instance.GetHashCode();
-            }
-
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 return new SymbolKeyResolution(reader.Compilation.DynamicType);

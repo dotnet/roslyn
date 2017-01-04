@@ -64,14 +64,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ImmutableArray<TypeSymbol> oldTypeArguments = previous.TypeArgumentsNoUseSiteDiagnostics;
             bool changed = !ReferenceEquals(oldConstructedFrom, newConstructedFrom);
-
-            ImmutableArray<ImmutableArray<CustomModifier>> modifiers = previous.HasTypeArgumentsCustomModifiers ? previous.TypeArgumentsCustomModifiers : default(ImmutableArray<ImmutableArray<CustomModifier>>);
-
+            bool hasModifiers = previous.HasTypeArgumentsCustomModifiers;
             var newTypeArguments = ArrayBuilder<TypeWithModifiers>.GetInstance(oldTypeArguments.Length);
 
             for (int i = 0; i < oldTypeArguments.Length; i++)
             {
-                var oldArgument = modifiers.IsDefault ? new TypeWithModifiers(oldTypeArguments[i]) : new TypeWithModifiers(oldTypeArguments[i], modifiers[i]);
+                var oldArgument = hasModifiers ? new TypeWithModifiers(oldTypeArguments[i], previous.GetTypeArgumentCustomModifiers(i)) : new TypeWithModifiers(oldTypeArguments[i]);
                 var newArgument = oldArgument.SubstituteTypeWithTupleUnification(this);
 
                 if (!changed && oldArgument != newArgument)
@@ -151,26 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static bool IsPossiblyByRefTypeParameter(TypeSymbol type)
-        {
-            if (type.IsTypeParameter())
-            {
-                return true;
-            }
-
-            if (type.IsErrorType())
-            {
-                var byRefReturnType = type as ByRefReturnErrorTypeSymbol;
-
-                return ((object)byRefReturnType != null) && byRefReturnType.ReferencedType.IsTypeParameter();
-            }
-
-            return false;
-        }
-
         internal ImmutableArray<CustomModifier> SubstituteCustomModifiers(TypeSymbol type, ImmutableArray<CustomModifier> customModifiers)
         {
-            if (IsPossiblyByRefTypeParameter(type))
+            if (type.IsTypeParameter())
             {
                 return new TypeWithModifiers(type, customModifiers).SubstituteType(this).CustomModifiers;
             }
@@ -341,7 +322,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Substitute types, and return the results without duplicates, preserving the original order.
         /// </summary>
-        internal void SubstituteTypesDistinctWithoutModifiers(ImmutableArray<TypeSymbol> original, ArrayBuilder<TypeSymbol> result)
+        internal void SubstituteTypesDistinctWithoutModifiers(
+            ImmutableArray<TypeSymbol> original, 
+            ArrayBuilder<TypeSymbol> result, 
+            HashSet<TypeParameterSymbol> ignoreTypesDependentOnTypeParametersOpt)
         {
             if (original.Length == 0)
             {
@@ -349,17 +333,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (original.Length == 1)
             {
-                result.Add(SubstituteType(original[0]).Type);
+                var type = original[0];
+                if (ignoreTypesDependentOnTypeParametersOpt == null || !type.ContainsTypeParameters(ignoreTypesDependentOnTypeParametersOpt))
+                {
+                    result.Add(SubstituteType(type).Type);
+                }
             }
             else
             {
                 var set = new HashSet<TypeSymbol>();
                 foreach (var type in original)
                 {
-                    var substituted = SubstituteType(type).Type;
-                    if (set.Add(substituted))
+                    if (ignoreTypesDependentOnTypeParametersOpt == null || !type.ContainsTypeParameters(ignoreTypesDependentOnTypeParametersOpt))
                     {
-                        result.Add(substituted);
+                        var substituted = SubstituteType(type).Type;
+                        if (set.Add(substituted))
+                        {
+                            result.Add(substituted);
+                        }
                     }
                 }
             }

@@ -23,15 +23,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         public static bool HasOneBitSet(IComparable value)
         {
-            return value.TypeSwitch(
-                (long v) => HasOneBitSet((long)v),
-                (ulong v) => HasOneBitSet(unchecked((long)v)),
-                (int v) => HasOneBitSet((long)v),
-                (uint v) => HasOneBitSet((long)v),
-                (short v) => HasOneBitSet((long)v),
-                (ushort v) => HasOneBitSet((long)v),
-                (sbyte v) => HasOneBitSet((long)v),
-                (byte v) => HasOneBitSet((long)v));
+            switch (value)
+            {
+                case long v: return HasOneBitSet((long)v);
+                case ulong v: return HasOneBitSet(unchecked((long)v));
+                case int v: return HasOneBitSet((long)v);
+                case uint v: return HasOneBitSet((long)v);
+                case short v: return HasOneBitSet((long)v);
+                case ushort v: return HasOneBitSet((long)v);
+                case sbyte v: return HasOneBitSet((long)v);
+                case byte v: return HasOneBitSet((long)v);
+                default: return false;
+            }
         }
 
         public static bool HasOneBitSet(long v)

@@ -4,7 +4,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Execution
+namespace Microsoft.CodeAnalysis.Serialization
 {
     internal partial class Serializer
     {

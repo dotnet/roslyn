@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         }
 
         private static ImmutableArray<Assembly> s_defaultAssemblies;
-        private static ImmutableArray<Assembly> DefaultAssemblies
+        public static ImmutableArray<Assembly> DefaultAssemblies
         {
             get
             {

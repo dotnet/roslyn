@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SyntaxReference _syntaxRef;
         private readonly Location _location;
         private readonly DeclarationModifiers _modifiers;
-        private readonly ImmutableArray<CustomModifier> _typeCustomModifiers;
+        private readonly CustomModifiersTuple _customModifiers;
         private readonly SourcePropertyAccessorSymbol _getMethod;
         private readonly SourcePropertyAccessorSymbol _setMethod;
         private readonly SynthesizedBackingFieldSymbol _backingField;
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    if (accessor.Body != null)
+                    if (accessor.Body != null || accessor.ExpressionBody != null)
                     {
                         notRegularProperty = false;
                     }
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             PropertySymbol explicitlyImplementedProperty = null;
-            _typeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+            _customModifiers = CustomModifiersTuple.Empty;
 
             // The runtime will not treat the accessors of this property as overrides or implementations
             // of those of another property unless both the signatures and the custom modifiers match.
@@ -236,7 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)overriddenOrImplementedProperty != null)
                 {
-                    _typeCustomModifiers = overriddenOrImplementedProperty.TypeCustomModifiers;
+                    _customModifiers = CustomModifiersTuple.Create(overriddenOrImplementedProperty.TypeCustomModifiers,
+                                                                   _refKind != RefKind.None ? overriddenOrImplementedProperty.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty);
 
                     TypeSymbol overriddenPropertyType = overriddenOrImplementedProperty.Type;
 
@@ -245,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // we want to retain the original (incorrect) type to avoid hiding the type given in source.
                     if (_lazyType.Equals(overriddenPropertyType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
                     {
-                        _lazyType = CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType, _lazyType, RefKind.None, this.ContainingAssembly);
+                        _lazyType = CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType, _lazyType, this.ContainingAssembly);
                     }
 
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);
@@ -608,7 +609,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> TypeCustomModifiers
         {
-            get { return _typeCustomModifiers; }
+            get { return _customModifiers.TypeCustomModifiers; }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return _customModifiers.RefCustomModifiers; }
         }
 
         public override Accessibility DeclaredAccessibility
@@ -1047,15 +1053,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (Type.ContainsDynamic())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, TypeCustomModifiers.Length));
+                    DeclaringCompilation.SynthesizeDynamicAttribute(Type, TypeCustomModifiers.Length + RefCustomModifiers.Length, _refKind));
             }
 
-            if (Type.ContainsTuple())
+            if (Type.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttributeOpt(Type));
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
             }
         }
+
+        internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
+            GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
 
         internal override bool HasSpecialName
         {
@@ -1146,6 +1155,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<CommonPropertyWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
+            {
+                arguments.GetOrCreateData<CommonPropertyWellKnownAttributeData>().HasExcludeFromCodeCoverageAttribute = true;
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
             {
                 // DynamicAttribute should not be set explicitly.
@@ -1153,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNames, arguments.AttributeSyntaxOpt.Location);
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
         }
 

@@ -228,17 +228,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if this local variable is declared in for-initializer
-        /// </summary>
-        public bool IsFor
-        {
-            get
-            {
-                return this.DeclarationKind == LocalDeclarationKind.ForInitializerVariable;
-            }
-        }
-
-        /// <summary>
         /// Returns true if this local variable is declared as iteration variable
         /// </summary>
         public bool IsForEach

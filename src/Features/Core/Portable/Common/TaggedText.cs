@@ -32,18 +32,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="text">The actual text to be displayed.</param>
         public TaggedText(string tag, string text)
         {
-            if (tag == null)
-            {
-                throw new ArgumentNullException(nameof(tag));
-            }
-
-            if (text == null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            Tag = tag;
-            Text = text;
+            Tag = tag ?? throw new ArgumentNullException(nameof(tag));
+            Text = text ?? throw new ArgumentNullException(nameof(text));
         }
 
         public override string ToString()

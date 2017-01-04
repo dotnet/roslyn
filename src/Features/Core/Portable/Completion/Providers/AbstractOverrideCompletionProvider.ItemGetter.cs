@@ -79,15 +79,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 var semanticModel = await _document.GetSemanticModelForNodeAsync(startToken.Parent, _cancellationToken).ConfigureAwait(false);
-
-                ITypeSymbol returnType;
-                DeclarationModifiers modifiers;
-                Accessibility seenAccessibility;
-                SyntaxToken tokenAfterReturnType;
-                ISet<ISymbol> overridableMembers;
-                if (!_provider.TryDetermineReturnType(startToken, semanticModel, _cancellationToken, out returnType, out tokenAfterReturnType) ||
-                    !_provider.TryDetermineModifiers(tokenAfterReturnType, _text, _startLineNumber, out seenAccessibility, out modifiers) ||
-                    !TryDetermineOverridableMembers(semanticModel, startToken, seenAccessibility, out overridableMembers))
+                if (!_provider.TryDetermineReturnType(startToken, semanticModel, _cancellationToken, out var returnType, out var tokenAfterReturnType) ||
+                    !_provider.TryDetermineModifiers(tokenAfterReturnType, _text, _startLineNumber, out var seenAccessibility, out var modifiers) ||
+                    !TryDetermineOverridableMembers(semanticModel, startToken, seenAccessibility, out var overridableMembers))
                 {
                     return null;
                 }

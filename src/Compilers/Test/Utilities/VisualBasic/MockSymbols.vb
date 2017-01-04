@@ -365,6 +365,10 @@ Friend Class MockNamedTypeSymbol
     Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
         Throw New InvalidOperationException()
     End Sub
+
+    Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+        Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+    End Function
 End Class
 
 Friend Class MockMethodSymbol
@@ -581,7 +585,13 @@ Friend Class MockMethodSymbol
 
     Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
         Get
-            Return ImmutableArray.Create(Of CustomModifier)()
+            Return ImmutableArray(Of CustomModifier).Empty
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+        Get
+            Return ImmutableArray(Of CustomModifier).Empty
         End Get
     End Property
 

@@ -301,7 +301,7 @@ class Hello
         public void MutexStopsServerStarting()
         {
             var pipeName = Guid.NewGuid().ToString("N");
-            var mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
+            var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
 
             bool holdsMutex;
             using (var mutex = new Mutex(initiallyOwned: true,
@@ -326,7 +326,7 @@ class Hello
         public void MutexAcquiredWhenRunningServer()
         {
             var pipeName = Guid.NewGuid().ToString("N");
-            var mutexName = DesktopBuildClient.GetServerMutexName(pipeName);
+            var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
             var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
             host
                 .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))

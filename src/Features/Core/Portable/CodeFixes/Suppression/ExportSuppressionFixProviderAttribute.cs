@@ -27,23 +27,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             params string[] languages)
             : base(typeof(ISuppressionFixProvider))
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (languages == null)
-            {
-                throw new ArgumentNullException(nameof(languages));
-            }
-
             if (languages.Length == 0)
             {
                 throw new ArgumentException("languages");
             }
 
-            this.Name = name;
-            this.Languages = languages;
+            this.Name = name ?? throw new ArgumentNullException(nameof(name));
+            this.Languages = languages ?? throw new ArgumentNullException(nameof(languages));
         }
     }
 }

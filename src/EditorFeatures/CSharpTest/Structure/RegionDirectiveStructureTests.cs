@@ -30,7 +30,7 @@ $$#region Foo";
 #endregion|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "Foo", autoCollapse: true, isDefaultCollapsed: true));
+                Region("span", "Foo", autoCollapse: false, isDefaultCollapsed: true));
         }
 
         [WorkItem(539361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539361")]
@@ -66,7 +66,7 @@ namespace BasicGenerateFromUsage
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "TaoRegion", autoCollapse: true, isDefaultCollapsed: true));
+                Region("span", "TaoRegion", autoCollapse: false, isDefaultCollapsed: true));
         }
 
         [WorkItem(953668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953668")]
@@ -84,7 +84,7 @@ class C
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "Region", autoCollapse: true, isDefaultCollapsed: true));
+                Region("span", "Region", autoCollapse: false, isDefaultCollapsed: true));
         }
 
         [WorkItem(4105, "https://github.com/dotnet/roslyn/issues/4105")]
@@ -102,7 +102,7 @@ class C
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("span", "Region", autoCollapse: true, isDefaultCollapsed: true));
+                Region("span", "Region", autoCollapse: false, isDefaultCollapsed: true));
         }
     }
 }

@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private ParameterSymbol MakeParameterSymbol(int ordinal, string name, ParameterSymbol sourceParameter)
         {
-            return new SynthesizedParameterSymbol(this, sourceParameter.Type, ordinal, sourceParameter.RefKind, name, sourceParameter.CustomModifiers, sourceParameter.CountOfCustomModifiersPrecedingByRef);
+            return SynthesizedParameterSymbol.Create(this, sourceParameter.Type, ordinal, sourceParameter.RefKind, name, sourceParameter.CustomModifiers, sourceParameter.RefCustomModifiers);
         }
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
@@ -308,6 +308,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
@@ -640,7 +645,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 case BoundKind.ExpressionStatement:
                 case BoundKind.LocalDeclaration:
                 case BoundKind.MultipleLocalDeclarations:
-                case BoundKind.LocalDeconstructionDeclaration:
                     return compilation.GetSpecialType(SpecialType.System_Void);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(bodyOpt.Kind);
@@ -651,13 +655,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             base.AddSynthesizedReturnTypeAttributes(ref attributes);
 
-            if (this.ReturnType.ContainsDynamic())
+            var compilation = this.DeclaringCompilation;
+            var returnType = this.ReturnType;
+
+            if (returnType.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
             {
-                var compilation = this.DeclaringCompilation;
-                if ((object)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor) != null)
-                {
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length));
-                }
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType, ReturnTypeCustomModifiers.Length + RefCustomModifiers.Length, RefKind));
+            }
+
+            if (returnType.ContainsTupleNames() && compilation.HasTupleNamesAttributes)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(returnType));
             }
         }
 

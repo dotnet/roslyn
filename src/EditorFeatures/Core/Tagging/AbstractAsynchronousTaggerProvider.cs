@@ -119,8 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         private TagSource GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            TagSource tagSource;
-            if (!this.TryRetrieveTagSource(textViewOpt, subjectBuffer, out tagSource))
+            if (!this.TryRetrieveTagSource(textViewOpt, subjectBuffer, out var tagSource))
             {
                 tagSource = this.CreateTagSource(textViewOpt, subjectBuffer);
                 if (tagSource == null)

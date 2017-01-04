@@ -304,16 +304,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static TypeDeclarationSyntax EnsureOpenAndCloseBraceTokens(
             this TypeDeclarationSyntax typeDeclaration)
         {
-            SyntaxToken openBrace, closeBrace;
-            EnsureAndGetBraceTokens(typeDeclaration, typeDeclaration.Members.Count > 0, out openBrace, out closeBrace);
+            EnsureAndGetBraceTokens(typeDeclaration, typeDeclaration.Members.Count > 0, out var openBrace, out var closeBrace);
             return typeDeclaration.WithOpenBraceToken(openBrace).WithCloseBraceToken(closeBrace);
         }
 
         public static EnumDeclarationSyntax EnsureOpenAndCloseBraceTokens(
             this EnumDeclarationSyntax typeDeclaration)
         {
-            SyntaxToken openBrace, closeBrace;
-            EnsureAndGetBraceTokens(typeDeclaration, typeDeclaration.Members.Count > 0, out openBrace, out closeBrace);
+            EnsureAndGetBraceTokens(typeDeclaration, typeDeclaration.Members.Count > 0, out var openBrace, out var closeBrace);
             return typeDeclaration.WithOpenBraceToken(openBrace).WithCloseBraceToken(closeBrace);
         }
     }

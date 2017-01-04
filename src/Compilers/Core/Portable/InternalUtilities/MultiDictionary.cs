@@ -186,8 +186,7 @@ namespace Roslyn.Utilities
         {
             get
             {
-                ValueSet set;
-                return _dictionary.TryGetValue(k, out set) ? set : default(ValueSet);
+                return _dictionary.TryGetValue(k, out var set) ? set : default(ValueSet);
             }
         }
 
@@ -208,8 +207,7 @@ namespace Roslyn.Utilities
 
         public void Add(K k, V v)
         {
-            ValueSet set;
-            _dictionary[k] = _dictionary.TryGetValue(k, out set) ? set.Add(v) : new ValueSet(v);
+            _dictionary[k] = _dictionary.TryGetValue(k, out var set) ? set.Add(v) : new ValueSet(v);
         }
 
         IEnumerator IEnumerable.GetEnumerator()

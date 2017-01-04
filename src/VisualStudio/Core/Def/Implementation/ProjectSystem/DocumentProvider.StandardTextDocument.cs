@@ -45,11 +45,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public event EventHandler<bool> Opened;
             public event EventHandler<bool> Closing;
 
+            /// <summary>
+            /// Creates a <see cref="StandardTextDocument"/>.
+            /// <para>Note: getFolderNames maps from a VSITEMID to the folders this document should be contained in.</para>
+            /// </summary>
             public StandardTextDocument(
                 DocumentProvider documentProvider,
                 IVisualStudioHostProject project,
                 DocumentKey documentKey,
-                IReadOnlyList<string> folderNames,
+                Func<uint, IReadOnlyList<string>> getFolderNames,
                 SourceCodeKind sourceCodeKind,
                 ITextUndoHistoryRegistry textUndoHistoryRegistry,
                 IVsFileChangeEx fileChangeService,
@@ -63,13 +67,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 this.Project = project;
                 this.Id = id ?? DocumentId.CreateNewId(project.Id, documentKey.Moniker);
-                this.Folders = folderNames;
+                _itemMoniker = documentKey.Moniker;
+
+                var itemid = this.GetItemId();
+                this.Folders = itemid == (uint)VSConstants.VSITEMID.Nil
+                    ? SpecializedCollections.EmptyReadOnlyList<string>()
+                    : getFolderNames(itemid);
 
                 _documentProvider = documentProvider;
 
                 this.Key = documentKey;
                 this.SourceCodeKind = sourceCodeKind;
-                _itemMoniker = documentKey.Moniker;
                 _textUndoHistoryRegistry = textUndoHistoryRegistry;
                 _fileChangeTracker = new FileChangeTracker(fileChangeService, this.FilePath);
                 _fileChangeTracker.UpdatedOnDisk += OnUpdatedOnDisk;
@@ -220,9 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     var oldSnapshot = buffer.CurrentSnapshot;
                     var oldText = oldSnapshot.AsText();
                     var changes = newText.GetTextChanges(oldText);
-
-                    Workspace workspace = null;
-                    if (Workspace.TryGetWorkspace(oldText.Container, out workspace))
+                    if (Workspace.TryGetWorkspace(oldText.Container, out var workspace))
                     {
                         var undoService = workspace.Services.GetService<ISourceTextUndoService>();
                         undoService.BeginUndoTransaction(oldSnapshot);
@@ -251,13 +257,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 AssertIsForeground();
 
-                if (_itemMoniker == null)
+                if (_itemMoniker == null || Project.Hierarchy == null)
                 {
                     return (uint)VSConstants.VSITEMID.Nil;
                 }
 
-                uint itemId;
-                return Project.Hierarchy.ParseCanonicalName(_itemMoniker, out itemId) == VSConstants.S_OK
+                return Project.Hierarchy.ParseCanonicalName(_itemMoniker, out var itemId) == VSConstants.S_OK
                     ? itemId
                     : (uint)VSConstants.VSITEMID.Nil;
             }

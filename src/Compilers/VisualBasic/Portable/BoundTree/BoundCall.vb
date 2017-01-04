@@ -77,9 +77,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If isLifted.GetValueOrDefault AndAlso Not Method.ReturnType.IsNullableType() Then
                 Debug.Assert(OverloadResolution.CanLiftType(Method.ReturnType) AndAlso
                              Type.IsNullableType() AndAlso
-                             Type.GetNullableUnderlyingType().IsSameTypeIgnoringCustomModifiers(Method.ReturnType))
+                             Type.GetNullableUnderlyingType().IsSameTypeIgnoringAll(Method.ReturnType))
             Else
-                Debug.Assert(Type.IsSameTypeIgnoringCustomModifiers(Method.ReturnType))
+                Debug.Assert(Type.IsSameTypeIgnoringAll(Method.ReturnType))
             End If
         End Sub
 
@@ -93,24 +93,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If isLateBound Then
                 Debug.Assert(type.IsObjectType)
             ElseIf Not isOperator Then
-                Debug.Assert(type.IsSameTypeIgnoringCustomModifiers(signatureType))
+                Debug.Assert(type.IsSameTypeIgnoringAll(signatureType))
             ElseIf Not isLifted.HasValue Then
-                If type.IsSameTypeIgnoringCustomModifiers(signatureType) Then
+                If type.IsSameTypeIgnoringAll(signatureType) Then
                     isLifted = False
                 ElseIf OverloadResolution.CanLiftType(signatureType) AndAlso
                        type.IsNullableType() AndAlso
-                       type.GetNullableUnderlyingType().IsSameTypeIgnoringCustomModifiers(signatureType) Then
+                       type.GetNullableUnderlyingType().IsSameTypeIgnoringAll(signatureType) Then
                     isLifted = True
                 Else
                     isLifted = False
-                    Debug.Assert(type.IsSameTypeIgnoringCustomModifiers(signatureType))
+                    Debug.Assert(type.IsSameTypeIgnoringAll(signatureType))
                 End If
             ElseIf isLifted.GetValueOrDefault Then
                 Debug.Assert(OverloadResolution.CanLiftType(signatureType) AndAlso
                              type.IsNullableType() AndAlso
-                             type.GetNullableUnderlyingType().IsSameTypeIgnoringCustomModifiers(signatureType))
+                             type.GetNullableUnderlyingType().IsSameTypeIgnoringAll(signatureType))
             Else
-                Debug.Assert(type.IsSameTypeIgnoringCustomModifiers(signatureType))
+                Debug.Assert(type.IsSameTypeIgnoringAll(signatureType))
             End If
         End Sub
 #End If

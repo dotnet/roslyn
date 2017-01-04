@@ -6,14 +6,6 @@ namespace Roslyn.Utilities
 {
     internal static partial class SpecializedCollections
     {
-        public static readonly byte[] EmptyBytes = EmptyArray<byte>();
-        public static readonly object[] EmptyObjects = EmptyArray<object>();
-
-        public static T[] EmptyArray<T>()
-        {
-            return Empty.Array<T>.Instance;
-        }
-
         public static IEnumerator<T> EmptyEnumerator<T>()
         {
             return Empty.Enumerator<T>.Instance;

@@ -71,6 +71,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add &apos;this.&apos;.
+        /// </summary>
+        internal static string Add_this {
+            get {
+                return ResourceManager.GetString("Add_this", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to anonymous method.
         /// </summary>
         internal static string anonymous_method {
@@ -94,6 +103,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Autoselect_disabled_due_to_namespace_declaration {
             get {
                 return ResourceManager.GetString("Autoselect_disabled_due_to_namespace_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to possible deconstruction declaration..
+        /// </summary>
+        internal static string Autoselect_disabled_due_to_possible_deconstruction_declaration {
+            get {
+                return ResourceManager.GetString("Autoselect_disabled_due_to_possible_deconstruction_declaration", resourceCulture);
             }
         }
         
@@ -261,6 +279,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to deconstruction.
+        /// </summary>
+        internal static string deconstruction {
+            get {
+                return ResourceManager.GetString("deconstruction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delegate invocation can be simplified..
         /// </summary>
         internal static string Delegate_invocation_can_be_simplified {
@@ -275,6 +302,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string deprecated {
             get {
                 return ResourceManager.GetString("deprecated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;designation name&gt;.
+        /// </summary>
+        internal static string designation_name {
+            get {
+                return ResourceManager.GetString("designation_name", resourceCulture);
             }
         }
         
@@ -504,6 +540,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to is pattern.
+        /// </summary>
+        internal static string is_pattern {
+            get {
+                return ResourceManager.GetString("is_pattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to join clause.
         /// </summary>
         internal static string join_clause {
@@ -536,6 +581,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string let_clause {
             get {
                 return ResourceManager.GetString("let_clause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to local function.
+        /// </summary>
+        internal static string local_function {
+            get {
+                return ResourceManager.GetString("local_function", resourceCulture);
             }
         }
         
@@ -666,6 +720,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to out variable.
+        /// </summary>
+        internal static string out_var {
+            get {
+                return ResourceManager.GetString("out_var", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Properties.
         /// </summary>
         internal static string Properties {
@@ -707,6 +770,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string range_variable {
             get {
                 return ResourceManager.GetString("range_variable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ref local or expression.
+        /// </summary>
+        internal static string ref_local_or_expression {
+            get {
+                return ResourceManager.GetString("ref_local_or_expression", resourceCulture);
             }
         }
         
@@ -956,6 +1028,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to tuple.
+        /// </summary>
+        internal static string tuple {
+            get {
+                return ResourceManager.GetString("tuple", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to unchecked statement.
         /// </summary>
         internal static string unchecked_statement {
@@ -1033,6 +1114,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string using_statement {
             get {
                 return ResourceManager.GetString("using_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to C# 7 enhanced switch statement.
+        /// </summary>
+        internal static string v7_switch {
+            get {
+                return ResourceManager.GetString("v7_switch", resourceCulture);
             }
         }
         

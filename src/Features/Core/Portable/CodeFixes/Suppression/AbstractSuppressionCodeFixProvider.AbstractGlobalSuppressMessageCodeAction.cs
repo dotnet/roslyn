@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
-using static Roslyn.Utilities.PortableShim;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     new ApplyChangesOperation(changedSuppressionDocument.Project.Solution),
                     new OpenDocumentOperation(changedSuppressionDocument.Id, activateIfAlreadyOpen: true),
-                    new NavigationOperation(changedSuppressionDocument.Id, position: 0)
+                    new DocumentNavigationOperation(changedSuppressionDocument.Id, position: 0)
                 };
             }
 

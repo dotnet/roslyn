@@ -6,11 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class ParserErrorMessageTests : CSharpTestBase
+    public class ParserErrorMessageTests : ParsingTests
     {
+        public ParserErrorMessageTests(ITestOutputHelper output) : base(output) { }
+
         #region "Targeted Error Tests - please arrange tests in the order of error code"
 
         [WorkItem(536666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536666")]
@@ -254,12 +257,13 @@ class MyClass
 }
 ";
             ParseAndValidate(test,
-    // (7,22): error CS1001: Identifier expected
-    //         foreach (int in myarray)   // CS0230
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "in"),
-    // (7,22): error CS0230: Type and identifier are both required in a foreach statement
-    //         foreach (int in myarray)   // CS0230
-    Diagnostic(ErrorCode.ERR_BadForeachDecl, "in"));
+                // (7,18): error CS1525: Invalid expression term 'int'
+                //         foreach (int in myarray)   // CS0230
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 18),
+                // (7,22): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (int in myarray)   // CS0230
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(7, 22)
+                );
         }
 
         [Fact]
@@ -277,12 +281,10 @@ public class Test
 }
 ";
             ParseAndValidate(test,
-    // (7,20): error CS1001: Identifier expected
-    //         foreach (x in myarray) { }// Invalid
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "in"),
-    // (7,20): error CS0230: Type and identifier are both required in a foreach statement
-    //         foreach (x in myarray) { }// Invalid
-    Diagnostic(ErrorCode.ERR_BadForeachDecl, "in"));
+                // (7,20): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (x in myarray) { }// Invalid
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in")
+                );
         }
 
         [Fact]
@@ -302,12 +304,13 @@ public struct st { }
 ";
 
             ParseAndValidate(test,
-    // (7,23): error CS1001: Identifier expected
-    //         foreach (st[] in myarray) { }
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "in"),
-    // (7,23): error CS0230: Type and identifier are both required in a foreach statement
-    //         foreach (st[] in myarray) { }
-    Diagnostic(ErrorCode.ERR_BadForeachDecl, "in"));
+                // (7,21): error CS0443: Syntax error; value expected
+                //         foreach (st[] in myarray) { }
+                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(7, 21),
+                // (7,23): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (st[] in myarray) { }
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(7, 23)
+                );
         }
 
         [Fact]
@@ -1314,15 +1317,10 @@ namespace x
 ";
 
             ParseAndValidate(test,
-    // (8,15): error CS1003: Syntax error, ']' expected
-    //             a[);
-    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")"),
-    // (8,15): error CS1002: ; expected
-    //             a[);
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-    // (8,15): error CS1513: } expected
-    //             a[);
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
+                // (8,15): error CS1003: Syntax error, ']' expected
+                //             a[);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(8, 15)
+                );
         }
 
         [Fact]
@@ -2048,30 +2046,33 @@ namespace x
 ";
             // TODO: this appears to be a severe regression from Dev10, which neatly reported 3 errors.
             ParseAndValidate(text, TestOptions.Regular,
-    // (7,21): error CS1031: Type expected
-    //             e = new base;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_TypeExpected, "base").WithLocation(7, 21),
-    // (7,21): error CS1526: A new expression requires (), [], or {} after type
-    //             e = new base;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_BadNewExpr, "base").WithLocation(7, 21),
-    // (7,21): error CS1002: ; expected
-    //             e = new base;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "base").WithLocation(7, 21),
-    // (8,21): error CS1031: Type expected
-    //             e = new this;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_TypeExpected, "this").WithLocation(8, 21),
-    // (8,21): error CS1526: A new expression requires (), [], or {} after type
-    //             e = new this;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
-    // (8,21): error CS1002: ; expected
-    //             e = new this;   // CS1031, not a type
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
-    // (9,21): error CS8096: Tuple type must have at least two elements.
-    //             e = new ();     // CS1031, too few tuple elements
-    Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),
-    // (9,23): error CS1526: A new expression requires (), [], or {} after type
-    //             e = new ();     // CS1031, too few tuple elements
-    Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
+                // (7,21): error CS1031: Type expected
+                //             e = new base;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_TypeExpected, "base").WithLocation(7, 21),
+                // (7,21): error CS1526: A new expression requires (), [], or {} after type
+                //             e = new base;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_BadNewExpr, "base").WithLocation(7, 21),
+                // (7,21): error CS1002: ; expected
+                //             e = new base;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "base").WithLocation(7, 21),
+                // (8,21): error CS1031: Type expected
+                //             e = new this;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_TypeExpected, "this").WithLocation(8, 21),
+                // (8,21): error CS1526: A new expression requires (), [], or {} after type
+                //             e = new this;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
+                // (8,21): error CS1002: ; expected
+                //             e = new this;   // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
+                // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //             e = new ();     // CS1031, too few tuple elements
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
+                // (9,22): error CS8124: Tuple must contain at least two elements.
+                //             e = new ();     // CS1031, too few tuple elements
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 22),
+                // (9,23): error CS1526: A new expression requires (), [], or {} after type
+                //             e = new ();     // CS1031, too few tuple elements
+                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
              );
         }
 
@@ -2111,12 +2112,15 @@ namespace x
                 // (8,21): error CS1002: ; expected
                 //             e = new this;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
-                // (9,21): error CS8124: Tuple must contain at least two elements.
+                // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
                 // (9,21): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(9, 21),
+                // (9,22): error CS8124: Tuple must contain at least two elements.
+                //             e = new ();     // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 22),
                 // (9,23): error CS1526: A new expression requires (), [], or {} after type
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
@@ -2175,46 +2179,46 @@ class A
     }
 }";
             ParseAndValidate(test, TestOptions.Regular,
-    // (4,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(4, 19),
-    // (4,23): error CS1003: Syntax error, 'operator' expected
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(4, 23),
-    // (4,23): error CS1019: Overloadable unary operator expected
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(4, 23),
-    // (4,32): error CS1003: Syntax error, '(' expected
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(4, 32),
-    // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-    // (4,41): error CS8096: Tuple must contain at least two elements.
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(4, 41),
-    // (4,43): error CS1001: Identifier expected
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 43),
-    // (4,43): error CS1003: Syntax error, ',' expected
-    //     public static int explicit operator ()
-    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "{").WithLocation(4, 43),
-    // (6,18): error CS1026: ) expected
-    //         return 0;
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 18),
-    // (6,18): error CS1002: ; expected
-    //         return 0;
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 18),
-    // (8,30): error CS1037: Overloadable operator expected
-    //     public static A operator ()
-    Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
-    // (8,31): error CS1003: Syntax error, '(' expected
-    //     public static A operator ()
-    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(8, 31),
-    // (12,1): error CS1022: Type or namespace definition, or end-of-file expected
-    // }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1)
-);
+                // (4,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(4, 19),
+                // (4,23): error CS1003: Syntax error, 'operator' expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(4, 23),
+                // (4,23): error CS1019: Overloadable unary operator expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(4, 23),
+                // (4,32): error CS1003: Syntax error, '(' expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(4, 32),
+                // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
+                // (4,42): error CS8124: Tuple must contain at least two elements.
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 42),
+                // (4,43): error CS1001: Identifier expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 43),
+                // (4,43): error CS1003: Syntax error, ',' expected
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "{").WithLocation(4, 43),
+                // (6,18): error CS1026: ) expected
+                //         return 0;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 18),
+                // (6,18): error CS1002: ; expected
+                //         return 0;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 18),
+                // (8,30): error CS1037: Overloadable operator expected
+                //     public static A operator ()
+                Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
+                // (8,31): error CS1003: Syntax error, '(' expected
+                //     public static A operator ()
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(8, 31),
+                // (12,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1)
+                );
         }
 
         [Fact]
@@ -2248,12 +2252,12 @@ class A
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-                // (4,41): error CS8124: Tuple must contain at least two elements.
-                //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(4, 41),
                 // (4,41): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(4, 41),
+                // (4,42): error CS8124: Tuple must contain at least two elements.
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 42),
                 // (4,43): error CS1001: Identifier expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 43),
@@ -2416,7 +2420,7 @@ Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
 
         // TODO: extra error CS1014
         [Fact]
-        public void CS1043ERR_SemiOrLBraceExpected()
+        public void CS7887ERR_SemiOrLBraceOrArrowExpected()
         {
             var test = @"
 using System;
@@ -2434,9 +2438,9 @@ return 1;
 ";
 
             ParseAndValidate(test,
-    // (7,13): error CS1043: { or ; expected
+    // (7,13): error CS7887: { or ; or => expected
     //         get return 1;
-    Diagnostic(ErrorCode.ERR_SemiOrLBraceExpected, "return"),
+    Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "return"),
     // (8,2): error CS1513: } expected
     Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
         }
@@ -2913,15 +2917,16 @@ class C
 ";
 
             ParseAndValidate(test,
-    // (6,18): error CS1031: Type expected
-    //         foreach (1)
-    Diagnostic(ErrorCode.ERR_TypeExpected, "1"),
-    // (6,18): error CS1001: Identifier expected
-    //         foreach (1)
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "1"),
-    // (6,18): error CS1515: 'in' expected
-    //         foreach (1)
-    Diagnostic(ErrorCode.ERR_InExpected, "1"));
+                // (6,19): error CS1515: 'in' expected
+                //         foreach (1)
+                Diagnostic(ErrorCode.ERR_InExpected, ")").WithLocation(6, 19),
+                // (6,19): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (1)
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, ")").WithLocation(6, 19),
+                // (6,19): error CS1525: Invalid expression term ')'
+                //         foreach (1)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 19)
+                );
         }
 
         [WorkItem(906503, "DevDiv/Personal")]
@@ -3356,15 +3361,18 @@ public class mine {
 ";
             // Extra errors
             ParseAndValidate(test,
-    // (12,17): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-    //         try {B b(3);
-    Diagnostic(ErrorCode.ERR_BadVarDecl, "(3)"),
-    // (12,17): error CS1003: Syntax error, '[' expected
-    //         try {B b(3);
-    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "("),
-    // (12,20): error CS1003: Syntax error, ']' expected
-    //         try {B b(3);
-    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";"));
+                // (12,18): error CS1026: ) expected
+                //         try {B b(3);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "3").WithLocation(12, 18),
+                // (12,18): error CS1002: ; expected
+                //         try {B b(3);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "3").WithLocation(12, 18),
+                // (12,19): error CS1002: ; expected
+                //         try {B b(3);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(12, 19),
+                // (12,19): error CS1513: } expected
+                //         try {B b(3);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(12, 19));
         }
 
         [Fact]
@@ -3378,18 +3386,16 @@ class C
 ";
             // Extra errors
             ParseAndValidate(test,
-    // (4,26): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-    //     event System.Action E();
-    Diagnostic(ErrorCode.ERR_BadVarDecl, "()"),
-    // (4,26): error CS1003: Syntax error, '[' expected
-    //     event System.Action E();
-    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "("),
-    // (4,27): error CS1525: Invalid expression term ')'
-    //     event System.Action E();
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
-    // (4,28): error CS1003: Syntax error, ']' expected
-    //     event System.Action E();
-    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";"));
+                // (4,26): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                //     event System.Action E();
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "(").WithLocation(4, 26),
+                // (4,26): error CS1003: Syntax error, '[' expected
+                //     event System.Action E();
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(4, 26),
+                // (4,27): error CS1003: Syntax error, ']' expected
+                //     event System.Action E();
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(4, 27)
+                );
         }
 
         [Fact]
@@ -3452,6 +3458,7 @@ class MyClass {
         }
 
         // TODO: extra error CS1001
+
         [Fact]
         public void CS1536ERR_NoVoidParameter()
         {
@@ -3469,6 +3476,23 @@ class Test
     // (4,25): error CS1001: Identifier expected
     //     public void foo(void){}
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
+        }
+
+        [Fact]
+        public void CS1536ERR_NoVoidParameter_02()
+        {
+            var test = @"
+class Test
+{
+    object o = (ref void x) => {};
+}
+";
+
+            ParseAndValidate(test,
+                // (4,21): error CS1536: Invalid parameter type 'void'
+                //     object o = (ref void x) => {};
+                Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(4, 21)
+                );
         }
 
         [Fact]
@@ -3559,40 +3583,40 @@ public class MainClass
 ";
 
             ParseAndValidate(test, TestOptions.Regular,
-    // (3,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(3, 19),
-    // (3,23): error CS1003: Syntax error, 'operator' expected
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(3, 23),
-    // (3,23): error CS1019: Overloadable unary operator expected
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(3, 23),
-    // (3,32): error CS1003: Syntax error, '(' expected
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(3, 32),
-    // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
-    // (3,41): error CS8096: Tuple must contain at least two elements.
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(foo f)").WithLocation(3, 41),
-    // (3,49): error CS1001: Identifier expected
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 49),
-    // (3,49): error CS1003: Syntax error, ',' expected
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(3, 49),
-    // (3,61): error CS1026: ) expected
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(3, 61),
-    // (3,61): error CS1002: ; expected
-    //     public static int implicit operator (foo f) { return 6; }    // Error
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(3, 61),
-    // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-    // }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
-);
+                // (3,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(3, 19),
+                // (3,23): error CS1003: Syntax error, 'operator' expected
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(3, 23),
+                // (3,23): error CS1019: Overloadable unary operator expected
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(3, 23),
+                // (3,32): error CS1003: Syntax error, '(' expected
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(3, 32),
+                // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
+                // (3,47): error CS8124: Tuple must contain at least two elements.
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),
+                // (3,49): error CS1001: Identifier expected
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 49),
+                // (3,49): error CS1003: Syntax error, ',' expected
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(3, 49),
+                // (3,61): error CS1026: ) expected
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(3, 61),
+                // (3,61): error CS1002: ; expected
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(3, 61),
+                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
+                );
         }
 
         [Fact, WorkItem(535933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535933")] // ?
@@ -3628,12 +3652,12 @@ public class MainClass
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
-                // (3,41): error CS8124: Tuple must contain at least two elements.
-                //     public static int implicit operator (foo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(foo f)").WithLocation(3, 41),
                 // (3,41): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7").WithLocation(3, 41),
+                // (3,47): error CS8124: Tuple must contain at least two elements.
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),
                 // (3,49): error CS1001: Identifier expected
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 49),
@@ -3649,7 +3673,7 @@ public class MainClass
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
-    );
+                );
         }
 
         [Fact(), WorkItem(526995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/526995")]
@@ -4457,6 +4481,51 @@ public class C
                 );
         }
 
+        [Fact]
+        public void MissingCommaInAttribute()
+        {
+            var text =
+@"[One Two] // error: missing comma
+class TestClass { }";
+            var tree = UsingTree(text);
+            tree.GetDiagnostics().Verify(
+                // (1,6): error CS1003: Syntax error, ',' expected
+                // [One Two] // error: missing comma
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Two").WithArguments(",", "").WithLocation(1, 6)
+                );
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "One");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken, ""); // missing
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Two");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "TestClass");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+
         #endregion
 
         #region "Targeted Warning Tests - please arrange tests in the order of error code"
@@ -5109,56 +5178,20 @@ class Program
 
             SyntaxFactory.ParseSyntaxTree(source).GetDiagnostics().Verify(
                 // (7,14): error CS1514: { expected
+                //     delegate int F1(); 
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "int").WithLocation(7, 14),
                 // (7,14): error CS1002: ; expected
+                //     delegate int F1(); 
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(7, 14),
-                // (7,20): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "()").WithLocation(7, 20),
-                // (7,20): error CS1003: Syntax error, '[' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(7, 20),
-                // (7,21): error CS1525: Invalid expression term ')'
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 21),
-                // (7,22): error CS1003: Syntax error, ']' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(7, 22),
                 // (8,14): error CS1514: { expected
+                //     delegate int F2();
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "int").WithLocation(8, 14),
                 // (8,14): error CS1002: ; expected
+                //     delegate int F2();
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(8, 14),
-                // (8,20): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "()").WithLocation(8, 20),
-                // (8,20): error CS1003: Syntax error, '[' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(8, 20),
-                // (8,21): error CS1525: Invalid expression term ')'
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 21),
-                // (8,22): error CS1003: Syntax error, ']' expected
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(8, 22),
                 // (9,2): error CS1513: } expected
+                // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 2));
-        }
-
-        #endregion
-
-        #region "Helpers"
-
-        public static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
-        {
-            var parsedTree = ParseWithRoundTripCheck(text);
-            var actualErrors = parsedTree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-        }
-
-        public static void ParseAndValidate(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
-        {
-            var parsedTree = ParseWithRoundTripCheck(text, options: options);
-            var actualErrors = parsedTree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-        }
-
-        public static void ParseAndValidateFirst(string text, DiagnosticDescription expectedFirstError)
-        {
-            var parsedTree = ParseWithRoundTripCheck(text);
-            var actualErrors = parsedTree.GetDiagnostics();
-            actualErrors.Take(1).Verify(expectedFirstError);
         }
 
         #endregion

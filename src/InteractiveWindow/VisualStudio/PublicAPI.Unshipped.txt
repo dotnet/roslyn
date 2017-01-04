@@ -1,2 +1,0 @@
-*REMOVED*Microsoft.VisualStudio.InteractiveWindow.Shell.InteractiveWindowPackage
-*REMOVED*Microsoft.VisualStudio.InteractiveWindow.Shell.InteractiveWindowPackage.InteractiveWindowPackage() -> void

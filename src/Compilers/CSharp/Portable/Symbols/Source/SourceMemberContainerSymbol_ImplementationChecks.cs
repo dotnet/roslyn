@@ -694,7 +694,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             diagnostics.Add(code, overridingMemberLocation, overridingMember, leastOverriddenMember);
                         }
-                        else if (overridingMemberIsProperty)
+
+                        if (overridingMemberIsProperty)
                         {
                             PropertySymbol overridingProperty = (PropertySymbol)overridingMember;
                             PropertySymbol overriddenProperty = (PropertySymbol)overriddenMember;

@@ -137,11 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                     }
 
                     var node = nodesToVisit.Pop();
-
-                    var type = node.TypeSwitch(
-                        (BaseTypeDeclarationSyntax t) => semanticModel.GetDeclaredSymbol(t, cancellationToken),
-                        (EnumDeclarationSyntax e) => semanticModel.GetDeclaredSymbol(e, cancellationToken),
-                        (DelegateDeclarationSyntax d) => semanticModel.GetDeclaredSymbol(d, cancellationToken));
+                    var type = GetType(semanticModel, node, cancellationToken);
 
                     if (type != null)
                     {
@@ -166,6 +162,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 
                 return types;
             }
+        }
+
+        private static ISymbol GetType(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            switch (node)
+            {
+                case BaseTypeDeclarationSyntax t: return semanticModel.GetDeclaredSymbol(t, cancellationToken);
+                case DelegateDeclarationSyntax d: return semanticModel.GetDeclaredSymbol(d, cancellationToken);
+            }
+
+            return null;
         }
 
         private static readonly SymbolDisplayFormat s_typeFormat =

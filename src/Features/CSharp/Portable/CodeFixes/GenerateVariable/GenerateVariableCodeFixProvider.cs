@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateVariable
             return base.GetTargetNode(node);
         }
 
-        protected override Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+            Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IGenerateVariableService>();
             return service.GenerateVariableAsync(document, node, cancellationToken);

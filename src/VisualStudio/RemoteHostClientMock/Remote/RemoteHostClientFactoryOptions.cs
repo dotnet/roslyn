@@ -6,9 +6,10 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.Remote
 {
     internal static class RemoteHostClientFactoryOptions
     {
-        public const string OptionName = "FeatureManager/Features";
+        internal const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
 
         [ExportOption]
-        public static readonly Option<bool> RemoteHost_InProc = new Option<bool>(OptionName, nameof(RemoteHost_InProc), defaultValue: false);
+        public static readonly Option<bool> RemoteHost_InProc = new Option<bool>("InternalFeatureOnOffOptions", nameof(RemoteHost_InProc), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(RemoteHost_InProc)));
     }
 }

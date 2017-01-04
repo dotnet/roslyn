@@ -106,8 +106,7 @@ namespace Roslyn.Utilities
         /// <returns>true if the value was removed successfully; otherwise false.</returns>
         public bool Remove(T value)
         {
-            byte b;
-            return _dictionary.TryRemove(value, out b);
+            return _dictionary.TryRemove(value, out var b);
         }
 
         /// <summary>

@@ -15,5 +15,6 @@
         DynamicLocals = 5,
         EditAndContinueLocalSlotMap = 6,
         EditAndContinueLambdaMap = 7,
+        TupleElementNames = 8,
     }
 }

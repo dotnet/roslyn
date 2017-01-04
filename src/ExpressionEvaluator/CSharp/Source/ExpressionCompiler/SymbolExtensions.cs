@@ -2,9 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.ExpressionEvaluator;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -20,19 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal static ReadOnlyCollection<byte> GetCustomTypeInfoPayload(this MethodSymbol method)
         {
-            return CSharpCompilation.DynamicTransformsEncoder.Encode(method.ReturnType, method.ReturnTypeCustomModifiers.Length, RefKind.None).ToBytes();
+            return method.DeclaringCompilation.GetCustomTypeInfoPayload(method.ReturnType, method.ReturnTypeCustomModifiers.Length + method.RefCustomModifiers.Length, RefKind.None);
         }
-
-        internal static ReadOnlyCollection<byte> ToBytes(this ImmutableArray<bool> dynamicFlags)
-        {
-            Debug.Assert(!dynamicFlags.IsDefaultOrEmpty);
-
-            var builder = ArrayBuilder<bool>.GetInstance(dynamicFlags.Length);
-            builder.AddRange(dynamicFlags);
-            var bytes = DynamicFlagsCustomTypeInfo.ToBytes(builder);
-            builder.Free();
-            return CustomTypeInfo.Encode(bytes, null);
-        }
-
     }
 }

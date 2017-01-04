@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// </summary>
         public abstract SyntaxNode FindNodeToUpdate(Document document, SyntaxNode node);
 
-        public abstract Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsFromDelegateInvoke(IMethodSymbol symbol, Document document, CancellationToken cancellationToken);
+        public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, Document document, CancellationToken cancellationToken);
 
         public abstract SyntaxNode ChangeSignature(
             Document document,
@@ -47,13 +48,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document);
 
-        public async Task<IEnumerable<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var context = await GetContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return context.CanChangeSignature
-                ? SpecializedCollections.SingletonEnumerable(new ChangeSignatureCodeAction(this, context))
-                : SpecializedCollections.EmptyEnumerable<ChangeSignatureCodeAction>();
+                ? ImmutableArray.Create(new ChangeSignatureCodeAction(this, context))
+                : ImmutableArray<ChangeSignatureCodeAction>.Empty;
         }
 
         internal ChangeSignatureResult ChangeSignature(Document document, int position, Action<string, NotificationSeverity> errorHandler, CancellationToken cancellationToken)
@@ -139,7 +140,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.InsufficientParameters);
             }
 
-            return new ChangeSignatureAnalyzedContext(document.Project.Solution, symbol, parameterConfiguration);
+            return new ChangeSignatureAnalyzedContext(
+                document.Project, symbol, parameterConfiguration);
         }
 
         private ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
@@ -155,12 +157,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         internal ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
-            Solution updatedSolution;
-            var succeeded = TryCreateUpdatedSolution(context, options, cancellationToken, out updatedSolution);
+            var succeeded = TryCreateUpdatedSolution(context, options, cancellationToken, out var updatedSolution);
             return new ChangeSignatureResult(succeeded, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges);
         }
 
-        internal ChangeSignatureOptionsResult GetChangeSignatureOptions(ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
+        internal ChangeSignatureOptionsResult GetChangeSignatureOptions(
+            ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
         {
             var notificationService = context.Solution.Workspace.Services.GetService<INotificationService>();
             var changeSignatureOptionsService = context.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
@@ -169,26 +171,31 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return changeSignatureOptionsService.GetChangeSignatureOptions(context.Symbol, context.ParameterConfiguration, notificationService);
         }
 
-        private static Task<IEnumerable<ReferencedSymbol>> FindChangeSignatureReferencesAsync(
-            ISymbol symbol,
+        private static async Task<ImmutableArray<ReferencedSymbol>> FindChangeSignatureReferencesAsync(
+            SymbolAndProjectId symbolAndProjectId,
             Solution solution,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.FindReference_ChangeSignature, cancellationToken))
             {
+                var streamingProgress = new StreamingProgressCollector(
+                    StreamingFindReferencesProgress.Instance);
+
                 IImmutableSet<Document> documents = null;
                 var engine = new FindReferencesSearchEngine(
                     solution,
                     documents,
                     ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
-                    FindReferencesProgress.Instance,
+                    streamingProgress,
                     cancellationToken);
 
-                return engine.FindReferencesAsync(symbol);
+                await engine.FindReferencesAsync(symbolAndProjectId).ConfigureAwait(false);
+                return streamingProgress.GetReferencedSymbols();
             }
         }
 
-        private bool TryCreateUpdatedSolution(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken, out Solution updatedSolution)
+        private bool TryCreateUpdatedSolution(
+            ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken, out Solution updatedSolution)
         {
             updatedSolution = context.Solution;
             var declaredSymbol = context.Symbol;
@@ -198,7 +205,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             bool hasLocationsInMetadata = false;
 
-            var symbols = FindChangeSignatureReferencesAsync(declaredSymbol, context.Solution, cancellationToken).WaitAndGetResult(cancellationToken);
+            var symbols = FindChangeSignatureReferencesAsync(
+                SymbolAndProjectId.Create(declaredSymbol, context.Project.Id),
+                context.Solution, cancellationToken).WaitAndGetResult(cancellationToken);
 
             foreach (var symbol in symbols)
             {
@@ -265,9 +274,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     foreach (var def in symbolWithSyntacticParameters.Locations)
                     {
-                        DocumentId documentId;
-                        SyntaxNode nodeToUpdate;
-                        if (!TryGetNodeWithEditableSignatureOrAttributes(def, updatedSolution, out nodeToUpdate, out documentId))
+                        if (!TryGetNodeWithEditableSignatureOrAttributes(def, updatedSolution, out var nodeToUpdate, out var documentId))
                         {
                             continue;
                         }
@@ -291,9 +298,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         continue;
                     }
 
-                    DocumentId documentId2;
-                    SyntaxNode nodeToUpdate2;
-                    if (!TryGetNodeWithEditableSignatureOrAttributes(location.Location, updatedSolution, out nodeToUpdate2, out documentId2))
+                    if (!TryGetNodeWithEditableSignatureOrAttributes(location.Location, updatedSolution, out var nodeToUpdate2, out var documentId2))
                     {
                         continue;
                     }
@@ -358,9 +363,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         private void AddUpdatableNodeToDictionaries(Dictionary<DocumentId, List<SyntaxNode>> nodesToUpdate, DocumentId documentId, SyntaxNode nodeToUpdate, Dictionary<SyntaxNode, ISymbol> definitionToUse, ISymbol symbolWithSemanticParameters)
         {
             nodesToUpdate[documentId].Add(nodeToUpdate);
-
-            ISymbol sym;
-            if (definitionToUse.TryGetValue(nodeToUpdate, out sym) && sym != symbolWithSemanticParameters)
+            if (definitionToUse.TryGetValue(nodeToUpdate, out var sym) && sym != symbolWithSemanticParameters)
             {
                 Debug.Assert(false, "Change Signature: Attempted to modify node twice with different semantic parameters.");
             }

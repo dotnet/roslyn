@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ISolutionExtensions
     {
-        public static async Task<IEnumerable<INamespaceSymbol>> GetGlobalNamespacesAsync(
+        public static async Task<ImmutableArray<INamespaceSymbol>> GetGlobalNamespacesAsync(
             this Solution solution,
             CancellationToken cancellationToken)
         {
-            var results = new List<INamespaceSymbol>();
+            var results = ArrayBuilder<INamespaceSymbol>.GetInstance();
 
             foreach (var projectId in solution.ProjectIds)
             {
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 results.Add(compilation.Assembly.GlobalNamespace);
             }
 
-            return results;
+            return results.ToImmutableAndFree();
         }
 
         public static IEnumerable<DocumentId> GetChangedDocuments(this Solution newSolution, Solution oldSolution)

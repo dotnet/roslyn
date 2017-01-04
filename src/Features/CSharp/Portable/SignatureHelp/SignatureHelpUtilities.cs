@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
@@ -82,6 +83,48 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         internal static TextSpan GetSignatureHelpSpan(AttributeArgumentListSyntax argumentList)
         {
             return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getAttributeArgumentListCloseToken);
+        }
+
+        internal static bool IsTriggerParenOrComma<TSyntaxNode>(SyntaxToken token, Func<char, bool> isTriggerCharacter) where TSyntaxNode : SyntaxNode
+        {
+            // Don't dismiss if the user types ( to start a parenthesized expression or tuple
+            // Note that the tuple initially parses as a parenthesized expression 
+            if (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
+            {
+                var parenthesizedExpr = ((ParenthesizedExpressionSyntax)token.Parent).WalkUpParentheses();
+                if (parenthesizedExpr.Parent is ArgumentSyntax)
+                {
+                    var parent = parenthesizedExpr.Parent;
+                    var grandParent = parent.Parent;
+                    if (grandParent is ArgumentListSyntax && grandParent.Parent is TSyntaxNode)
+                    {
+                        // Argument to TSyntaxNode's argument list
+                        return true;
+                    }
+                    else
+                    {
+                        // Argument to a tuple in TSyntaxNode's argument list
+                        return grandParent is TupleExpressionSyntax && parenthesizedExpr.GetAncestor<TSyntaxNode>() != null;
+                    }
+                }
+                else
+                {
+                    // Not an argument
+                    return false;
+                }
+            }
+
+            // Don't dismiss if the user types ',' to add a member to a tuple
+            if (token.IsKind(SyntaxKind.CommaToken) && token.Parent is TupleExpressionSyntax && token.GetAncestor<TSyntaxNode>() != null)
+            {
+                return true;
+            }
+
+            return !token.IsKind(SyntaxKind.None) &&
+                token.ValueText.Length == 1 &&
+                isTriggerCharacter(token.ValueText[0]) &&
+                token.Parent is ArgumentListSyntax &&
+                token.Parent.Parent is TSyntaxNode;
         }
     }
 }

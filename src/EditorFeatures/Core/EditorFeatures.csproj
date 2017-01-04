@@ -1,28 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
-  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
-      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
-      <Name>VisualStudioEditor</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
@@ -40,17 +36,9 @@
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
       <Name>TextEditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
-      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
-      <Name>InteractiveWindow</Name>
-    </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -93,13 +81,15 @@
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
+    <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
     <!-- Eventually a bunch of these unit tests should move into Roslyn.Services.Implementation.UnitTests
          and this should be removed. -->
     <InternalsVisibleToTest Include="RoslynETAHost" />
@@ -112,6 +102,15 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FindUsages\AbstractFindUsagesService.cs" />
+    <Compile Include="FindUsages\FindUsagesHelpers.cs" />
+    <Compile Include="FindUsages\FindUsagesContext.cs" />
+    <Compile Include="FindUsages\IFindUsagesContext.cs" />
+    <Compile Include="FindUsages\IFindUsagesService.cs" />
+    <Compile Include="FindUsages\SimpleFindUsagesContext.cs" />
+    <Compile Include="Implementation\Structure\BlockTagState.cs" />
+    <Compile Include="Tags\ExportImageMonikerServiceAttribute.cs" />
+    <Compile Include="Implementation\NavigateTo\AbstractNavigateToItemDisplay.cs" />
     <Compile Include="CommandArgs.cs" />
     <Compile Include="CommandHandlers\AbstractCompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\AbstractIntelliSenseCommandHandler.cs" />
@@ -202,13 +201,12 @@
     <Compile Include="Extensibility\Commands\ExportInteractiveCommandAttribute.cs" />
     <Compile Include="Extensibility\Commands\ICommandHandler.cs" />
     <Compile Include="Extensibility\Commands\PredefinedCommandHandlerNames.cs" />
-    <Compile Include="Extensibility\Completion\PresentationItemEventArgs.cs" />
+    <Compile Include="Extensibility\Completion\CompletionItemEventArgs.cs" />
     <Compile Include="Extensibility\Completion\CompletionItemFilterStateChangedEventArgs.cs" />
     <Compile Include="Extensibility\Completion\ExportCompletionProviderAttribute.cs" />
     <Compile Include="Extensibility\Completion\IAsyncCompletionService.cs" />
     <Compile Include="Extensibility\Completion\ICompletionPresenterSession.cs" />
     <Compile Include="Extensibility\Completion\ICustomCommitCompletionProvider.cs" />
-    <Compile Include="Extensibility\Completion\PresentationItem.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionPresenterNames.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionProviderNames.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionRulesFactoryNames.cs" />
@@ -225,9 +223,6 @@
     <Compile Include="Extensibility\NavigationBar\NavigationBarActionlessItem.cs" />
     <Compile Include="Extensibility\NavigationBar\NavigationBarPresentedItem.cs" />
     <Compile Include="Extensibility\NavigationBar\NavigationBarSymbolItem.cs" />
-    <Compile Include="Extensibility\Navigation\INavigableItem.cs" />
-    <Compile Include="Extensibility\Navigation\NavigableItemFactory.cs" />
-    <Compile Include="Extensibility\Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />
     <Compile Include="Extensibility\NavigationBar\INavigationBarController.cs" />
     <Compile Include="Extensibility\NavigationBar\INavigationBarControllerFactoryService.cs" />
     <Compile Include="Extensibility\NavigationBar\INavigationBarItemService.cs" />
@@ -237,7 +232,6 @@
     <Compile Include="Extensibility\NavigationBar\NavigationBarItemSelectedEventArgs.cs" />
     <Compile Include="Extensibility\NavigationBar\NavigationBarProjectItem.cs" />
     <Compile Include="Extensibility\NavigationBar\NavigationBarSelectedItems.cs" />
-    <Compile Include="Extensibility\Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
     <Compile Include="Extensibility\Peek\IPeekableItemFactory.cs" />
     <Compile Include="Extensibility\QuickInfo\IQuickInfoPresenterSession.cs" />
     <Compile Include="Extensibility\QuickInfo\PredefinedQuickInfoPresenterNames.cs" />
@@ -259,12 +253,8 @@
     <Compile Include="Implementation\Diagnostics\DiagnosticsSuggestionTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\SuggestionAdornmentManagerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\SuggestionTag.cs" />
-    <Compile Include="Implementation\FindReferences\AbstractFindReferencesService.ProgressAdapter.cs" />
-    <Compile Include="Implementation\FindReferences\FindReferencesContext.cs" />
-    <Compile Include="Implementation\FindReferences\IFindReferencesNavigableItemResultProvider.cs" />
-    <Compile Include="Implementation\GoToDefinition\INavigableDefinitionProvider.cs" />
-    <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
-    <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
+    <Compile Include="FindUsages\AbstractFindUsagesService.ProgressAdapter.cs" />
+    <Compile Include="GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ClassificationTags.cs" />
@@ -272,22 +262,21 @@
     <Compile Include="Implementation\Intellisense\Completion\Presentation\IVisualStudioCompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\Roslyn14CompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSet.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\SimplePresentationItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSetFactory.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSetFactory.cs" />
     <Compile Include="Implementation\Intellisense\QuickInfo\Presentation\ElisionBufferContent.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
     <Compile Include="Implementation\LineSeparators\LineSeparatorAdornmentManagerProvider.cs" />
-    <Compile Include="Implementation\NavigateTo\NavigateToSearchResultProvider.cs" />
-    <Compile Include="Implementation\NavigateTo\INavigateToSearchResultProvider.cs" />
+    <Compile Include="Implementation\NavigateTo\Dev14NavigateToHostVersionService.cs" />
+    <Compile Include="Implementation\NavigateTo\INavigateToHostVersionService.cs" />
     <Compile Include="Implementation\Structure\InvalidOutliningRegionException.cs" />
     <Compile Include="Implementation\Structure\AbstractStructureTaggerProvider.cs" />
     <Compile Include="Implementation\Preview\DifferenceViewerPreview.cs" />
     <Compile Include="Implementation\Preview\PreviewReferenceHighlightingTaggerProvider.cs" />
+    <Compile Include="Implementation\Suggestions\FixAllSuggestedAction.FixAllCodeAction.cs" />
     <Compile Include="Implementation\Suggestions\FixMultipleOccurrencesService.cs" />
-    <Compile Include="Implementation\Suggestions\FixMultipleSuggestedAction.cs" />
-    <Compile Include="Implementation\GoToImplementation\GoToImplementationCommandHandler.cs" />
+    <Compile Include="GoToImplementation\GoToImplementationCommandHandler.cs" />
     <Compile Include="Implementation\TodoComment\ITodoListProvider.cs" />
     <Compile Include="Implementation\TodoComment\TodoItem.cs" />
     <Compile Include="Implementation\TodoComment\TodoItemsUpdatedArgs.cs" />
@@ -384,9 +373,9 @@
     <Compile Include="Implementation\EndConstructGeneration\IEndConstructGenerationService.cs" />
     <Compile Include="Implementation\ExtractInterface\AbstractExtractInterfaceCommandHandler.cs" />
     <Compile Include="Implementation\ExtractMethod\AbstractExtractMethodCommandHandler.cs" />
-    <Compile Include="Implementation\FindReferences\AbstractFindReferencesService.cs" />
-    <Compile Include="Implementation\FindReferences\FindReferencesCommandHandler.cs" />
-    <Compile Include="Implementation\FindReferences\IFindReferencesService.cs" />
+    <Compile Include="FindReferences\AbstractFindReferencesService.cs" />
+    <Compile Include="FindReferences\FindReferencesCommandHandler.cs" />
+    <Compile Include="FindReferences\IFindReferencesService.cs" />
     <Compile Include="Implementation\ForegroundNotification\ForegroundNotificationService.cs" />
     <Compile Include="Implementation\Formatting\FormatCommandHandler.cs" />
     <Compile Include="Implementation\Formatting\FormatCommandHandler.ReturnKey.cs" />
@@ -397,10 +386,10 @@
     <Compile Include="Implementation\Formatting\Indentation\AbstractSmartTokenFormatterCommandHandler.cs" />
     <Compile Include="Implementation\Formatting\Indentation\ISmartTokenFormatter.cs" />
     <Compile Include="Implementation\Formatting\Indentation\WhitespaceExtensions.cs" />
-    <Compile Include="Implementation\GoToDefinition\AbstractGoToDefinitionService.cs" />
-    <Compile Include="Implementation\GoToDefinition\GoToDefinitionCommandHandler.cs" />
-    <Compile Include="Implementation\GoToDefinition\GoToDefinitionHelpers.cs" />
-    <Compile Include="Implementation\GoToDefinition\IGoToDefinitionService.cs" />
+    <Compile Include="GoToDefinition\AbstractGoToDefinitionService.cs" />
+    <Compile Include="GoToDefinition\GoToDefinitionCommandHandler.cs" />
+    <Compile Include="GoToDefinition\GoToDefinitionHelpers.cs" />
+    <Compile Include="GoToDefinition\IGoToDefinitionService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\CurrentWorkingDirectoryDiscoveryService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\FileSystemCompletionHelper.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\ICurrentWorkingDirectoryDiscoveryService.cs" />
@@ -482,7 +471,6 @@
     <Compile Include="Implementation\Intellisense\Completion\Controller_TabKey.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_ToggleCompletionMode.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_TypeChar.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\DescriptionModifyingPresentationItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Model.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenter.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenterSession.cs" />
@@ -535,17 +523,13 @@
     <Compile Include="Implementation\MetadataAsSource\MetadataAsSourceGeneratedFileInfo.cs" />
     <Compile Include="Implementation\MetadataAsSource\MetadataAsSourceWorkspace.cs" />
     <Compile Include="Implementation\MetadataAsSource\SymbolMappingServiceFactory.cs" />
-    <Compile Include="Implementation\NavigateTo\AbstractNavigateToSearchService.cs" />
-    <Compile Include="Implementation\NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
     <Compile Include="Implementation\NavigateTo\DefaultNavigateToPreviewService.cs" />
     <Compile Include="Implementation\NavigateTo\DefaultNavigateToPreviewServiceFactory.cs" />
     <Compile Include="Implementation\NavigateTo\INavigateToPreviewService.cs" />
-    <Compile Include="Implementation\NavigateTo\INavigateToSearchResult.cs" />
-    <Compile Include="Implementation\NavigateTo\INavigateToSearchService.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToIconFactory.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.cs" />
-    <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.ItemDisplayFactory.cs" />
-    <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.NavigateToItemDisplay.cs" />
+    <Compile Include="Implementation\NavigateTo\Dev14NavigateToHostVersionService.ItemDisplayFactory.cs" />
+    <Compile Include="Implementation\NavigateTo\Dev14NavigateToHostVersionService.NavigateToItemDisplay.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.Searcher.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToItemProviderFactory.cs" />
     <Compile Include="Implementation\NavigationBar\NavigationBarController.cs" />
@@ -557,7 +541,7 @@
     <Compile Include="Implementation\Organizing\OrganizeDocumentCommandHandler.cs" />
     <Compile Include="Implementation\Structure\OutliningCommandHandler.cs" />
     <Compile Include="Implementation\Structure\VisualStudio14StructureTaggerProvider.cs" />
-    <Compile Include="Implementation\Structure\AbstractStructureTaggerProvider.RegionTag.cs" />
+    <Compile Include="Implementation\Structure\RoslynOutliningRegionTag.cs" />
     <Compile Include="Implementation\Peek\DefinitionPeekableItem.cs" />
     <Compile Include="Implementation\Peek\ExternalFilePeekableItem.cs" />
     <Compile Include="Implementation\Peek\PeekableItem.cs" />
@@ -606,13 +590,11 @@
     <Compile Include="Implementation\Suggestions\FixAllSuggestedAction.cs" />
     <Compile Include="Implementation\Suggestions\CodeFixSuggestedAction.cs" />
     <Compile Include="Implementation\Suggestions\CodeRefactoringSuggestedAction.cs" />
-    <Compile Include="Implementation\Suggestions\PreviewChangesCodeAction.cs" />
-    <Compile Include="Implementation\Suggestions\PreviewChangesSuggestedAction.cs" />
+    <Compile Include="Implementation\Suggestions\PreviewChanges\PreviewChangesCodeAction.cs" />
+    <Compile Include="Implementation\Suggestions\PreviewChanges\PreviewChangesSuggestedAction.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedAction.CaretPositionRestorer.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedAction.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedActionsSourceProvider.cs" />
-    <Compile Include="Implementation\Suggestions\SuggestedActionWithFlavors.cs" />
-    <Compile Include="Implementation\Suggestions\SuppressionSuggestedAction.cs" />
     <Compile Include="Implementation\TextBufferAssociatedViewService.cs" />
     <Compile Include="Implementation\TextDiffing\EditorTextDifferencingService.cs" />
     <Compile Include="Implementation\TextStructureNavigation\AbstractTextStructureNavigatorProvider.cs" />
@@ -628,16 +610,16 @@
     <Compile Include="Implementation\Workspaces\EditorErrorReportingServiceFactory.cs" />
     <Compile Include="Implementation\Workspaces\ProjectCacheServiceFactory.cs" />
     <Compile Include="Implementation\Workspaces\EditorTextFactoryService.cs" />
-    <Compile Include="Implementation\Workspaces\ProjectCacheService.cs" />
-    <Compile Include="Implementation\Workspaces\ProjectCacheService.SimpleMRUCache.cs" />
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
-    <Compile Include="Shared\IImageMonikerService.cs" />
-    <Compile Include="Shared\DefaultImageMonikerService.cs" />
+    <Compile Include="Tags\IImageMonikerService.cs" />
+    <Compile Include="Tags\DefaultImageMonikerService.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.EditorFormatMapChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.ViewSpanChangedEventSource.cs" />
     <Compile Include="Shared\Utilities\SynchronizationContextTaskScheduler.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActionWithNestedFlavors.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActionWithNestedActions.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.Tagger.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource_ReferenceCounting.cs" />
@@ -687,7 +669,7 @@
     <Compile Include="Shared\Extensions\SnapshotPointExtensions.cs" />
     <Compile Include="Shared\Extensions\SnapshotSpanExtensions.cs" />
     <Compile Include="Shared\Extensions\SpanExtensions.cs" />
-    <Compile Include="Shared\Extensions\TaggedTextExtensions.cs" />
+    <Compile Include="Shared\Extensions\ClassificationExtensions.cs" />
     <Compile Include="Shared\Extensions\TextChangeExtensions.cs" />
     <Compile Include="Shared\Extensions\WorkspaceExtensions.cs" />
     <Compile Include="Shared\Options\ComponentOnOffOptions.cs" />
@@ -783,6 +765,8 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  <ItemGroup>
+    <Folder Include="Extensibility\Navigation\" />
+  </ItemGroup>
+  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -7,6 +7,7 @@ using System.Windows.Shapes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
@@ -20,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         public SuggestionTagFormat()
         {
+            this.BackgroundColor = Color.FromArgb(200, 0xA5, 0xA5, 0xA5);
             this.ForegroundColor = Color.FromArgb(200, 0xA5, 0xA5, 0xA5);
-            this.BackgroundCustomizable = false;
             this.DisplayName = EditorFeaturesResources.Suggestion_ellipses;
         }
     }
@@ -29,9 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     /// <summary>
     /// Tag that specifies line separator.
     /// </summary>
-    internal class SuggestionTag : GraphicsTag
+    internal class SuggestionTag : GraphicsTag, IOverviewMarkTag
     {
         private Pen _graphicsTagPen;
+
+        public string MarkKindName => SuggestionTagFormat.ResourceName;
 
         public SuggestionTag(IEditorFormatMap editorFormatMap) 
             : base(editorFormatMap)
@@ -71,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             // We clip off a bit off the start of the line to prevent a half-square being
             // drawn.
             var clipRectangle = geometry.Bounds;
-            clipRectangle.Offset(1, 0);
+            clipRectangle.Offset(2, 0);
 
             var line = new Line
             {

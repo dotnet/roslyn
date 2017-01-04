@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             string defaultNamespace;
             ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopes;
-            ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocals;
+            ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap;
+            ImmutableDictionary<int, ImmutableArray<string>> tupleLocalMap;
             ImmutableArray<ImmutableArray<ImportRecord>> importGroups;
             ImmutableArray<ExternAliasRecord> externAliases;
             ImmutableArray<string> localVariableNames;
@@ -25,14 +26,27 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var methodHandle = (MethodDefinitionHandle)MetadataTokens.EntityHandle(methodToken);
 
-            ReadLocalScopeInformation(reader, methodHandle, ilOffset, symbolProvider, isVisualBasicMethod, out importGroups, out externAliases, out localVariableNames, out dynamicLocals, out localConstants, out reuseSpan);
+            ReadLocalScopeInformation(
+                reader,
+                methodHandle,
+                ilOffset,
+                symbolProvider,
+                isVisualBasicMethod,
+                out importGroups,
+                out externAliases,
+                out localVariableNames,
+                out dynamicLocalMap,
+                out tupleLocalMap,
+                out localConstants,
+                out reuseSpan);
             ReadMethodCustomDebugInformation(reader, methodHandle, out hoistedLocalScopes, out defaultNamespace);
 
             return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
                 hoistedLocalScopes,
                 importGroups,
                 externAliases,
-                dynamicLocals,
+                dynamicLocalMap,
+                tupleLocalMap,
                 defaultNamespace,
                 localVariableNames,
                 localConstants,
@@ -48,7 +62,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out ImmutableArray<ImmutableArray<ImportRecord>> importGroups,
             out ImmutableArray<ExternAliasRecord> externAliases,
             out ImmutableArray<string> localVariableNames,
-            out ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocals,
+            out ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
+            out ImmutableDictionary<int, ImmutableArray<string>> tupleLocalMap,
             out ImmutableArray<TLocalSymbol> localConstants,
             out ILSpan reuseSpan)
         {
@@ -56,6 +71,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var localConstantsBuilder = ArrayBuilder<TLocalSymbol>.GetInstance();
 
             ImmutableDictionary<int, ImmutableArray<bool>>.Builder lazyDynamicLocalsBuilder = null;
+            ImmutableDictionary<int, ImmutableArray<string>>.Builder lazyTupleLocalsBuilder = null;
 
             var innerMostImportScope = default(ImportScopeHandle);
             uint reuseSpanStart = 0;
@@ -105,6 +121,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                                 lazyDynamicLocalsBuilder = lazyDynamicLocalsBuilder ?? ImmutableDictionary.CreateBuilder<int, ImmutableArray<bool>>();
                                 lazyDynamicLocalsBuilder[variable.Index] = dynamicFlags;
                             }
+
+                            var tupleElementNames = ReadTupleCustomDebugInformation(reader, variableHandle);
+                            if (!tupleElementNames.IsDefault)
+                            {
+                                lazyTupleLocalsBuilder = lazyTupleLocalsBuilder ?? ImmutableDictionary.CreateBuilder<int, ImmutableArray<string>>();
+                                lazyTupleLocalsBuilder[variable.Index] = tupleElementNames;
+                            }
                         }
 
                         // constants (from all contained scopes):
@@ -117,8 +140,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             var sigReader = reader.GetBlobReader(constant.Signature);
                             symbolProvider.DecodeLocalConstant(ref sigReader, out typeSymbol, out value);
 
+                            var name = reader.GetString(constant.Name);
                             var dynamicFlags = ReadDynamicCustomDebugInformation(reader, constantHandle);
-                            localConstantsBuilder.Add(symbolProvider.GetLocalConstant(reader.GetString(constant.Name), typeSymbol, value, dynamicFlags));
+                            var tupleElementNames = ReadTupleCustomDebugInformation(reader, constantHandle);
+                            localConstantsBuilder.Add(symbolProvider.GetLocalConstant(name, typeSymbol, value, dynamicFlags, tupleElementNames));
                         }
                     }
                     catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
@@ -131,23 +156,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 localVariableNames = localVariableNamesBuilder.ToImmutableAndFree();
                 localConstants = localConstantsBuilder.ToImmutableAndFree();
-                dynamicLocals = lazyDynamicLocalsBuilder?.ToImmutable();
+                dynamicLocalMap = lazyDynamicLocalsBuilder?.ToImmutable();
+                tupleLocalMap = lazyTupleLocalsBuilder?.ToImmutable();
                 reuseSpan = new ILSpan(reuseSpanStart, reuseSpanEnd);
             }
 
             var importGroupsBuilder = ArrayBuilder<ImmutableArray<ImportRecord>>.GetInstance();
             var externAliasesBuilder = ArrayBuilder<ExternAliasRecord>.GetInstance();
 
-            try
+            if (!innerMostImportScope.IsNil)
             {
-                if (!innerMostImportScope.IsNil)
-                {
-                    PopulateImports(reader, innerMostImportScope, symbolProvider, isVisualBasicMethod, importGroupsBuilder, externAliasesBuilder);
-                }
-            }
-            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
-            {
-                // ignore invalid imports
+                PopulateImports(reader, innerMostImportScope, symbolProvider, isVisualBasicMethod, importGroupsBuilder, externAliasesBuilder);
             }
 
             importGroups = importGroupsBuilder.ToImmutableAndFree();
@@ -160,7 +179,25 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
         }
 
-        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
+        /// <summary>
+        /// Read UTF8 string with null terminator.
+        /// </summary>
+        private static string ReadUtf8String(ref BlobReader reader)
+        {
+            var builder = ArrayBuilder<byte>.GetInstance();
+            while (true)
+            {
+                var b = reader.ReadByte();
+                if (b == 0)
+                {
+                    break;
+                }
+                builder.Add(b);
+            }
+            var bytes = builder.ToArrayAndFree();
+            return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+        }
+
         private static void PopulateImports(
             MetadataReader reader,
             ImportScopeHandle handle,
@@ -175,70 +212,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 var importScope = reader.GetImportScope(handle);
 
-                foreach (ImportDefinition import in importScope.GetImports())
+                try
                 {
-                    switch (import.Kind)
-                    {
-                        case ImportDefinitionKind.ImportNamespace:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Namespace,
-                                targetString: ReadUtf8String(reader, import.TargetNamespace)));
-                            break;
-
-                        case ImportDefinitionKind.ImportAssemblyNamespace:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Namespace,
-                                targetString: ReadUtf8String(reader, import.TargetNamespace),
-                                targetAssembly: symbolProvider.GetReferencedAssembly(import.TargetAssembly)));
-                            break;
-
-                        case ImportDefinitionKind.ImportType:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Type,
-                                targetType: symbolProvider.GetType(import.TargetType)));
-                            break;
-
-                        case ImportDefinitionKind.ImportXmlNamespace:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.XmlNamespace,
-                                alias: ReadUtf8String(reader, import.Alias),
-                                targetString: ReadUtf8String(reader, import.TargetNamespace)));
-                            break;
-
-                        case ImportDefinitionKind.ImportAssemblyReferenceAlias:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Assembly,
-                                alias: ReadUtf8String(reader, import.Alias)));
-                            break;
-
-                        case ImportDefinitionKind.AliasAssemblyReference:
-                            externAliasesBuilder.Add(new ExternAliasRecord(
-                                alias: ReadUtf8String(reader, import.Alias),
-                                targetAssembly: symbolProvider.GetReferencedAssembly(import.TargetAssembly)));
-                            break;
-
-                        case ImportDefinitionKind.AliasNamespace:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Namespace,
-                                alias: ReadUtf8String(reader, import.Alias),
-                                targetString: ReadUtf8String(reader, import.TargetNamespace)));
-                            break;
-
-                        case ImportDefinitionKind.AliasAssemblyNamespace:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Namespace,
-                                alias: ReadUtf8String(reader, import.Alias),
-                                targetString: ReadUtf8String(reader, import.TargetNamespace),
-                                targetAssembly: symbolProvider.GetReferencedAssembly(import.TargetAssembly)));
-                            break;
-
-                        case ImportDefinitionKind.AliasType:
-                            importGroupBuilder.Add(new ImportRecord(
-                                ImportTargetKind.Type,
-                                alias: ReadUtf8String(reader, import.Alias),
-                                targetType: symbolProvider.GetType(import.TargetType)));
-                            break;
-                    }
+                    PopulateImports(reader, importScope, symbolProvider, importGroupBuilder, externAliasesBuilder);
+                }
+                catch (BadImageFormatException)
+                {
+                    // ignore invalid imports
                 }
 
                 // VB always expects two import groups (even if they are empty).
@@ -256,71 +236,146 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>
+        private static void PopulateImports(
+            MetadataReader reader,
+            ImportScope importScope,
+            EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
+            ArrayBuilder<ImportRecord> importGroupBuilder,
+            ArrayBuilder<ExternAliasRecord> externAliasesBuilder)
+        {
+            foreach (ImportDefinition import in importScope.GetImports())
+            {
+                switch (import.Kind)
+                {
+                    case ImportDefinitionKind.ImportNamespace:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.Namespace,
+                            targetString: ReadUtf8String(reader, import.TargetNamespace)));
+                        break;
+
+                    case ImportDefinitionKind.ImportAssemblyNamespace:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.Namespace,
+                            targetString: ReadUtf8String(reader, import.TargetNamespace),
+                        targetAssembly: symbolProvider.GetReferencedAssembly(import.TargetAssembly)));
+                        break;
+
+                    case ImportDefinitionKind.ImportType:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.Type,
+                            targetType: symbolProvider.GetType(import.TargetType)));
+                        break;
+
+                    case ImportDefinitionKind.ImportXmlNamespace:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.XmlNamespace,
+                            alias: ReadUtf8String(reader, import.Alias),
+                            targetString: ReadUtf8String(reader, import.TargetNamespace)));
+                        break;
+
+                    case ImportDefinitionKind.ImportAssemblyReferenceAlias:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.Assembly,
+                            alias: ReadUtf8String(reader, import.Alias)));
+                        break;
+
+                    case ImportDefinitionKind.AliasAssemblyReference:
+                        externAliasesBuilder.Add(new ExternAliasRecord(
+                            alias: ReadUtf8String(reader, import.Alias),
+                            targetAssembly: symbolProvider.GetReferencedAssembly(import.TargetAssembly)));
+                        break;
+
+                    case ImportDefinitionKind.AliasNamespace:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.Namespace,
+                            alias: ReadUtf8String(reader, import.Alias),
+                            targetString: ReadUtf8String(reader, import.TargetNamespace)));
+                        break;
+
+                    case ImportDefinitionKind.AliasAssemblyNamespace:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.Namespace,
+                            alias: ReadUtf8String(reader, import.Alias),
+                            targetString: ReadUtf8String(reader, import.TargetNamespace),
+                            targetAssembly: symbolProvider.GetReferencedAssembly(import.TargetAssembly)));
+                        break;
+
+                    case ImportDefinitionKind.AliasType:
+                        importGroupBuilder.Add(new ImportRecord(
+                            ImportTargetKind.Type,
+                            alias: ReadUtf8String(reader, import.Alias),
+                            targetType: symbolProvider.GetType(import.TargetType)));
+                        break;
+                }
+            }
+        }
+
+        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
         private static void ReadMethodCustomDebugInformation(
             MetadataReader reader,
             MethodDefinitionHandle methodHandle,
             out ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopes,
             out string defaultNamespace)
         {
-            hoistedLocalScopes = ImmutableArray<HoistedLocalScopeRecord>.Empty;
+            CustomDebugInformation info;
 
-            foreach (var infoHandle in reader.GetCustomDebugInformation(methodHandle))
-            {
-                var info = reader.GetCustomDebugInformation(infoHandle);
-                var id = reader.GetGuid(info.Kind);
-                if (id == PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes)
-                {
-                    // only single CDIof this kind is allowed on a method:
-                    if (!hoistedLocalScopes.IsEmpty)
-                    {
-                        throw new BadImageFormatException();
-                    }
-
-                    hoistedLocalScopes = DecodeHoistedLocalScopes(reader.GetBlobReader(info.Value));
-                }
-            }
+            hoistedLocalScopes = TryGetCustomDebugInformation(reader, methodHandle, PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes, out info) ?
+                DecodeHoistedLocalScopes(reader.GetBlobReader(info.Value)) :
+                ImmutableArray<HoistedLocalScopeRecord>.Empty;
 
             // TODO: consider looking this up once per module (not for every method)
-            defaultNamespace = null;
-            foreach (var infoHandle in reader.GetCustomDebugInformation(EntityHandle.ModuleDefinition))
-            {
-                var info = reader.GetCustomDebugInformation(infoHandle);
-                var id = reader.GetGuid(info.Kind);
-                if (id == PortableCustomDebugInfoKinds.DefaultNamespace)
-                {
-                    // only single CDI of this kind is allowed on the module:
-                    if (defaultNamespace != null)
-                    {
-                        throw new BadImageFormatException();
-                    }
-
-                    var valueReader = reader.GetBlobReader(info.Value);
-                    defaultNamespace = valueReader.ReadUTF8(valueReader.Length);
-                }
-            }
-
+            defaultNamespace = TryGetCustomDebugInformation(reader, EntityHandle.ModuleDefinition, PortableCustomDebugInfoKinds.DefaultNamespace, out info) ?
+                DecodeDefaultNamespace(reader.GetBlobReader(info.Value)) :
+                null;
             defaultNamespace = defaultNamespace ?? "";
         }
 
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>
         private static ImmutableArray<bool> ReadDynamicCustomDebugInformation(MetadataReader reader, EntityHandle variableOrConstantHandle)
         {
-            foreach (var infoHandle in reader.GetCustomDebugInformation(variableOrConstantHandle))
+            CustomDebugInformation info;
+            if (TryGetCustomDebugInformation(reader, variableOrConstantHandle, PortableCustomDebugInfoKinds.DynamicLocalVariables, out info))
             {
-                var info = reader.GetCustomDebugInformation(infoHandle);
-                var id = reader.GetGuid(info.Kind);
-                if (id == PortableCustomDebugInfoKinds.DynamicLocalVariables)
-                {
-                    return DecodeDynamicFlags(reader.GetBlobReader(info.Value));
-                }
+                return DecodeDynamicFlags(reader.GetBlobReader(info.Value));
             }
-
             return default(ImmutableArray<bool>);
         }
 
-        // internal for testing
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>
-        internal static ImmutableArray<bool> DecodeDynamicFlags(BlobReader reader)
+        private static ImmutableArray<string> ReadTupleCustomDebugInformation(MetadataReader reader, EntityHandle variableOrConstantHandle)
+        {
+            CustomDebugInformation info;
+            if (TryGetCustomDebugInformation(reader, variableOrConstantHandle, PortableCustomDebugInfoKinds.TupleElementNames, out info))
+            {
+                return DecodeTupleElementNames(reader.GetBlobReader(info.Value));
+            }
+            return default(ImmutableArray<string>);
+        }
+
+        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
+        private static bool TryGetCustomDebugInformation(MetadataReader reader, EntityHandle handle, Guid kind, out CustomDebugInformation customDebugInfo)
+        {
+            bool foundAny = false;
+            customDebugInfo = default(CustomDebugInformation);
+            foreach (var infoHandle in reader.GetCustomDebugInformation(handle))
+            {
+                var info = reader.GetCustomDebugInformation(infoHandle);
+                var id = reader.GetGuid(info.Kind);
+                if (id == kind)
+                {
+                    if (foundAny)
+                    {
+                        throw new BadImageFormatException();
+                    }
+                    customDebugInfo = info;
+                    foundAny = true;
+                }
+            }
+            return foundAny;
+        }
+
+        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
+        private static ImmutableArray<bool> DecodeDynamicFlags(BlobReader reader)
         {
             var builder = ImmutableArray.CreateBuilder<bool>(reader.Length * 8);
 
@@ -334,6 +389,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             return builder.MoveToImmutable();
+        }
+
+        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
+        private static ImmutableArray<string> DecodeTupleElementNames(BlobReader reader)
+        {
+            var builder = ArrayBuilder<string>.GetInstance();
+            while (reader.RemainingBytes > 0)
+            {
+                var value = ReadUtf8String(ref reader);
+                builder.Add(value.Length == 0 ? null : value);
+            }
+            return builder.ToImmutableAndFree();
         }
 
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>
@@ -351,6 +418,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             while (reader.RemainingBytes > 0);
 
             return result.ToImmutableAndFree();
+        }
+
+        private static string DecodeDefaultNamespace(BlobReader reader)
+        {
+            return reader.ReadUTF8(reader.Length);
         }
     }
 }

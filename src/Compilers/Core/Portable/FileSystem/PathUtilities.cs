@@ -2,6 +2,8 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
 
 namespace Roslyn.Utilities
 {
@@ -17,13 +19,7 @@ namespace Roslyn.Utilities
         internal static readonly string DirectorySeparatorStr = new string(DirectorySeparatorChar, 1);
         internal const char VolumeSeparatorChar = ':';
 
-        internal static bool IsUnixLikePlatform
-        {
-            get
-            {
-                return PortableShim.Path.DirectorySeparatorChar == '/';
-            }
-        }
+        internal static bool IsUnixLikePlatform => !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
         internal static bool IsDirectorySeparator(char c)
         {
@@ -109,6 +105,25 @@ namespace Roslyn.Utilities
             }
 
             return null;
+        }
+
+        internal static bool IsSameDirectoryOrChildOf(string child, string parent)
+        {
+            parent = RemoveTrailingDirectorySeparator(parent);
+
+            while (child != null)
+            {
+                child = RemoveTrailingDirectorySeparator(child);
+
+                if (child.Equals(parent, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                child = GetDirectoryName(child);
+            }
+
+            return false;
         }
 
         public static string GetPathRoot(string path)

@@ -24,12 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
 
         protected override SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, ITypeSymbol taskType, ITypeSymbol taskOfTType)
         {
-            return node.TypeSwitch(
-                (MethodDeclarationSyntax method) => FixMethod(methodSymbolOpt, method, taskType, taskOfTType),
-                (AnonymousMethodExpressionSyntax method) => FixAnonymousMethod(method),
-                (ParenthesizedLambdaExpressionSyntax lambda) => FixParenthesizedLambda(lambda),
-                (SimpleLambdaExpressionSyntax lambda) => FixSimpleLambda(lambda),
-                _ => node);
+            switch (node)
+            {
+                case MethodDeclarationSyntax method: return FixMethod(methodSymbolOpt, method, taskType, taskOfTType);
+                case AnonymousMethodExpressionSyntax method: return FixAnonymousMethod(method);
+                case ParenthesizedLambdaExpressionSyntax lambda: return FixParenthesizedLambda(lambda);
+                case SimpleLambdaExpressionSyntax lambda: return FixSimpleLambda(lambda);
+                default: return node;
+            }
         }
 
         private SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method, ITypeSymbol taskType, ITypeSymbol taskOfTType)

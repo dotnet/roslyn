@@ -1,25 +1,25 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <!-- Explicitly set the language before anything else is imported. That way VSL.Settings.targets sees the right value
+    <!-- Explicitly set the language before anything else is imported. That way Settings.props sees the right value
          even in WPF's build of a temporary project, where it won't be able to determine it based on the file extension. -->
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\..\build\Targets\Settings.props" />
   </ImportGroup>
   <PropertyGroup>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{971E832B-7471-48B5-833E-5913188EC0E4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.Xaml</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices.Xaml</AssemblyName>
     <DeployExtension>false</DeployExtension>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -51,8 +51,6 @@
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.DesignTools.XamlLanguageService" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeFixes\AddMissingNamespace\IXamlAddMissingNamespaceService.cs" />
-    <Compile Include="CodeFixes\AddMissingNamespace\XamlAddMissingNamespacePrefixCodeFixProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnnecessaryUsings\XamlRemoveUnnecessaryUsingsCodeFixProvider.cs" />
     <Compile Include="Diagnostics\Analyzers\IXamlDocumentAnalyzerService.cs" />
     <Compile Include="Diagnostics\Analyzers\XamlDocumentDiagnosticAnalyzer.cs" />
@@ -92,6 +90,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\build\Targets\Imports.targets" />
   </ImportGroup>
 </Project>

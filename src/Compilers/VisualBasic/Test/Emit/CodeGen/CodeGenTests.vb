@@ -13580,5 +13580,45 @@ End Class
 ]]>)
         End Sub
 
+
+        <Fact, WorkItem(9703, "https://github.com/dotnet/roslyn/issues/9703")>
+        Public Sub IgnoredConversion()
+            CompileAndVerify(
+                <compilation>
+                    <file name="ignoreNullableValue.vb">
+Module MainModule
+    Public Class Form1
+        Public Class BadCompiler
+            Public Property Value As Date?
+        End Class
+
+        Private TestObj As BadCompiler = New BadCompiler()
+
+        Public Sub IPE()
+            Dim o as Object
+            o = TestObj.Value
+        End Sub
+    End Class
+
+    Public Sub Main()
+        Dim f = new Form1
+        f.IPE()
+    End Sub
+End Module
+                    </file>
+                </compilation>).
+                            VerifyIL("MainModule.Form1.IPE",
+            <![CDATA[
+{
+// Code size       13 (0xd)
+.maxstack  1
+IL_0000:  ldarg.0
+IL_0001:  ldfld      "MainModule.Form1.TestObj As MainModule.Form1.BadCompiler"
+IL_0006:  callvirt   "Function MainModule.Form1.BadCompiler.get_Value() As Date?"
+IL_000b:  pop
+IL_000c:  ret
+}
+]]>)
+        End Sub
     End Class
 End Namespace

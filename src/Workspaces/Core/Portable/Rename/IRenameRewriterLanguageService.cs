@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -43,11 +44,11 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <param name="reverseMappedLocations">A mapping from new to old locations.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>All locations where conflicts were caused because the new declaration.</returns>
-        Task<IEnumerable<Location>> ComputeDeclarationConflictsAsync(
+        Task<ImmutableArray<Location>> ComputeDeclarationConflictsAsync(
             string replacementText,
             ISymbol renamedSymbol,
             ISymbol renameSymbol,
-            IEnumerable<ISymbol> referencedSymbols,
+            IEnumerable<SymbolAndProjectId> referencedSymbols,
             Solution baseSolution,
             Solution newSolution,
             IDictionary<Location, Location> reverseMappedLocations,
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <param name="implicitReferenceLocations">All implicit reference locations.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A list of implicit conflicts.</returns>
-        Task<IEnumerable<Location>> ComputeImplicitReferenceConflictsAsync(
+        Task<ImmutableArray<Location>> ComputeImplicitReferenceConflictsAsync(
             ISymbol renameSymbol,
             ISymbol renamedSymbol,
             IEnumerable<ReferenceLocation> implicitReferenceLocations,
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <param name="newDeclarationLocationStartingPosition">The starting position of the renamedSymbol in the new solution</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A list of implicit conflicts.</returns>
-        IEnumerable<Location> ComputePossibleImplicitUsageConflicts(
+        ImmutableArray<Location> ComputePossibleImplicitUsageConflicts(
             ISymbol renamedSymbol,
             SemanticModel semanticModel,
             Location originalDeclarationLocation,

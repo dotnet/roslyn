@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' TODO (tomat): Consider changing this to an empty name. This name shouldn't ever leak to the user in error messages.
         Friend Shared ReadOnly ImplicitTypeName As String = "<invalid-global-code>"
 
-        Private Shared ReadOnly s_EmptyTypeSymbols() As TypeSymbol = {}
+        Private Shared ReadOnly s_EmptyTypeSymbols() As TypeSymbol = Array.Empty(Of TypeSymbol)
 
         Private _lazyAllInterfaces As ImmutableArray(Of NamedTypeSymbol)
         Private _lazyInterfacesAndTheirBaseInterfaces As ImmutableHashSet(Of NamedTypeSymbol)
@@ -129,6 +129,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' list. This is not quite the same as "all interfaces of which this type is a proper
         ''' subtype" because it does not take into account variance: AllInterfaces for
         ''' IEnumerable(Of String) will not include IEnumerable(Of Object).
+        '''
+        ''' Note: When interfaces specified on the same inheritance level differ by tuple names only,
+        ''' only the last one will be listed here.
         ''' </summary>
         Public ReadOnly Property AllInterfaces As ImmutableArray(Of NamedTypeSymbol)
             Get
@@ -164,10 +167,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' long dependency cycles removed. Consequently, it is possible (and we do) use the
         ''' simplest version of Tarjan's topological sorting algorithm.
         Protected Overridable Function MakeAllInterfaces() As ImmutableArray(Of NamedTypeSymbol)
-            'TODO: Might want to use different implementation for substituted type (see C# code)
-
             Dim result = ArrayBuilder(Of NamedTypeSymbol).GetInstance()
-            Dim visited = New HashSet(Of NamedTypeSymbol)()
+            Dim visited = New HashSet(Of NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
 
             Dim baseType = Me
 
@@ -411,6 +412,12 @@ Done:
             End Get
         End Property
 
+        Public Overridable ReadOnly Property TupleElements As ImmutableArray(Of FieldSymbol)
+            Get
+                Return Nothing
+            End Get
+        End Property
+
         Public Overridable ReadOnly Property TupleElementTypes() As ImmutableArray(Of TypeSymbol)
             Get
                 Return Nothing
@@ -516,7 +523,7 @@ Done:
 
         Private ReadOnly Property ITypeSymbol_TypeKind As TypeKind Implements ITypeSymbol.TypeKind
             Get
-                Return Me.TypeKind.ToCommon()
+                Return Me.TypeKind
             End Get
         End Property
 

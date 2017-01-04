@@ -1265,6 +1265,12 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
+        Public NotOverridable Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property IsSub As Boolean
             Get
                 Debug.Assert(Me.MethodKind <> MethodKind.EventAdd,
@@ -1305,7 +1311,7 @@ lReportErrorOnTwoTokens:
                 If overridden Is Nothing Then
                     Return ImmutableArray(Of CustomModifier).Empty
                 Else
-                    Return overridden.ReturnTypeCustomModifiers
+                    Return overridden.ConstructIfGeneric(TypeArguments).ReturnTypeCustomModifiers
                 End If
             End Get
         End Property
@@ -1424,7 +1430,7 @@ lReportErrorOnTwoTokens:
             Return Me.GetAttributesBag().Attributes
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             ' Emit synthesized STAThreadAttribute for this method if both the following requirements are met:
@@ -1441,6 +1447,14 @@ lReportErrorOnTwoTokens:
                     AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                         WellKnownMember.System_STAThreadAttribute__ctor))
                 End If
+            End If
+        End Sub
+
+        Friend Overrides Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedReturnTypeAttributes(attributes)
+
+            If Me.ReturnType.ContainsTupleNames() Then
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Me.ReturnType))
             End If
         End Sub
 
@@ -1551,6 +1565,10 @@ lReportErrorOnTwoTokens:
         Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
+
+            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+            End If
 
             If arguments.SymbolPart = AttributeLocation.Return Then
                 ' Decode well-known attributes applied to return value
@@ -1684,6 +1702,8 @@ lReportErrorOnTwoTokens:
 
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasSpecialNameAttribute = True
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
+                arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasExcludeFromCodeCoverageAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasSuppressUnmanagedCodeSecurityAttribute = True
             ElseIf attrData.IsSecurityAttribute(Me.DeclaringCompilation) Then
@@ -1780,7 +1800,7 @@ lReportErrorOnTwoTokens:
                (methodImpl.IsAsync OrElse methodImpl.IsIterator) AndAlso
                Not methodImpl.ContainingType.IsInterfaceType() Then
 
-                Dim location As location = methodImpl.NonMergedLocation
+                Dim location As Location = methodImpl.NonMergedLocation
 
                 If location IsNot Nothing Then
                     Binder.ReportDiagnostic(diagnostics, location, ERRID.ERR_DllImportOnResumableMethod)
@@ -1907,6 +1927,13 @@ lReportErrorOnTwoTokens:
 
             Return SpecializedCollections.EmptyEnumerable(Of SecurityAttribute)()
         End Function
+
+        Friend NotOverridable Overrides ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
+            Get
+                Dim data = GetDecodedWellKnownAttributeData()
+                Return data IsNot Nothing AndAlso data.HasExcludeFromCodeCoverageAttribute
+            End Get
+        End Property
 
         Friend Overrides ReadOnly Property HasRuntimeSpecialName As Boolean
             Get
@@ -2076,6 +2103,7 @@ lReportErrorOnTwoTokens:
                         fakeParamsBuilder.Add(New SignatureOnlyParameterSymbol(
                                                 param.Type.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
                                                 ImmutableArray(Of CustomModifier).Empty,
+                                                ImmutableArray(Of CustomModifier).Empty,
                                                 defaultConstantValue:=Nothing,
                                                 isParamArray:=False,
                                                 isByRef:=param.IsByRef,
@@ -2091,6 +2119,7 @@ lReportErrorOnTwoTokens:
                                                                             returnsByRef:=False,
                                                                             returnType:=retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
                                                                             returnTypeCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
+                                                                            refCustomModifiers:=ImmutableArray(Of CustomModifier).Empty,
                                                                             explicitInterfaceImplementations:=ImmutableArray(Of MethodSymbol).Empty,
                                                                             isOverrides:=True))
                 End If
@@ -2099,33 +2128,7 @@ lReportErrorOnTwoTokens:
                 Dim overridden = overriddenMembers.OverriddenMember
 
                 If overridden IsNot Nothing Then
-                    ' Copy custom modifiers
-
-                    ' For the most part, we will copy custom modifiers by copying types.
-                    ' The only time when this fails Is when the type refers to a type parameter
-                    ' owned by the overridden method.  We need to replace all such references
-                    ' with (equivalent) type parameters owned by this method.  We know that
-                    ' we can perform this mapping positionally, because the method signatures
-                    ' have already been compared.
-                    Dim constructedMethodWithCustomModifiers As MethodSymbol
-
-                    If Me.Arity > 0 Then
-                        constructedMethodWithCustomModifiers = overridden.Construct(Me.TypeParameters.As(Of TypeSymbol))
-                    Else
-                        constructedMethodWithCustomModifiers = overridden
-                    End If
-
-                    Dim returnTypeWithCustomModifiers As TypeSymbol = constructedMethodWithCustomModifiers.ReturnType
-
-                    ' We do an extra check before copying the return type to handle the case where the overriding
-                    ' method (incorrectly) has a different return type than the overridden method.  In such cases,
-                    ' we want to retain the original (incorrect) return type to avoid hiding the return type
-                    ' given in source.
-                    If retType.IsSameTypeIgnoringCustomModifiers(returnTypeWithCustomModifiers) Then
-                        retType = returnTypeWithCustomModifiers
-                    End If
-
-                    params = CustomModifierUtils.CopyParameterCustomModifiers(constructedMethodWithCustomModifiers.Parameters, params)
+                    CustomModifierUtils.CopyMethodCustomModifiers(overridden, Me.TypeArguments, retType, params)
                 End If
 
                 ' Unlike MethodSymbol, in SourceMethodSymbol we cache the result of MakeOverriddenOfHiddenMembers, because we use
@@ -2173,7 +2176,7 @@ lReportErrorOnTwoTokens:
         End Sub
 
         Private Function CreateBinderForMethodDeclaration(sourceModule As SourceModuleSymbol) As Binder
-            Dim binder As binder = BinderBuilder.CreateBinderForMethodDeclaration(sourceModule, Me.SyntaxTree, Me)
+            Dim binder As Binder = BinderBuilder.CreateBinderForMethodDeclaration(sourceModule, Me.SyntaxTree, Me)
 
             ' Constraint checking for parameter and return types must be delayed
             ' until the parameter and return type fields have been set since
@@ -2186,7 +2189,7 @@ lReportErrorOnTwoTokens:
                                              diagBag As DiagnosticBag) As ImmutableArray(Of ParameterSymbol)
 
             Dim decl = Me.DeclarationSyntax
-            Dim binder As binder = CreateBinderForMethodDeclaration(sourceModule)
+            Dim binder As Binder = CreateBinderForMethodDeclaration(sourceModule)
 
             Dim paramList As ParameterListSyntax
 
@@ -2229,7 +2232,7 @@ lReportErrorOnTwoTokens:
         Private Function GetReturnType(sourceModule As SourceModuleSymbol,
                                        ByRef errorLocation As SyntaxNodeOrToken,
                                        diagBag As DiagnosticBag) As TypeSymbol
-            Dim binder As binder = CreateBinderForMethodDeclaration(sourceModule)
+            Dim binder As Binder = CreateBinderForMethodDeclaration(sourceModule)
 
             Select Case MethodKind
                 Case MethodKind.Constructor,
@@ -2292,13 +2295,13 @@ lReportErrorOnTwoTokens:
 
                         Dim restrictedType As TypeSymbol = Nothing
                         If retType.IsRestrictedArrayType(restrictedType) Then
-                            binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_RestrictedType1, restrictedType)
+                            Binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_RestrictedType1, restrictedType)
                         End If
 
                         If Not (Me.IsAsync AndAlso Me.IsIterator) Then
                             If Me.IsSub Then
                                 If Me.IsIterator Then
-                                    binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadIteratorReturn)
+                                    Binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadIteratorReturn)
                                 End If
 
                             Else
@@ -2307,7 +2310,7 @@ lReportErrorOnTwoTokens:
 
                                     If Not retType.OriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)) AndAlso
                                        Not retType.Equals(compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)) Then
-                                        binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadAsyncReturn)
+                                        Binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadAsyncReturn)
                                     End If
                                 End If
 
@@ -2318,7 +2321,7 @@ lReportErrorOnTwoTokens:
                                         originalRetTypeDef.SpecialType <> SpecialType.System_Collections_Generic_IEnumerator_T AndAlso
                                         retType.SpecialType <> SpecialType.System_Collections_IEnumerable AndAlso
                                         retType.SpecialType <> SpecialType.System_Collections_IEnumerator Then
-                                        binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadIteratorReturn)
+                                        Binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadIteratorReturn)
                                     End If
                                 End If
                             End If

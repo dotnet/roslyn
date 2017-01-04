@@ -2327,5 +2327,31 @@ class C
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
     );
         }
+
+        [Fact, WorkItem(14651, "https://github.com/dotnet/roslyn/issues/14651")]
+        public void IrrefutablePattern_1()
+        {
+            var source =
+@"using System;
+class C
+{
+    void TestFunc(int i)
+    {
+        int x;
+        if (i is int j)
+        {
+            Console.WriteLine(""matched"");
+        }
+        else
+        {
+            x = x + 1; // reachable, and x is definitely assigned here
+        }
+
+        Console.WriteLine(j);
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+        }
     }
 }

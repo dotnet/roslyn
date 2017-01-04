@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return from r in result
                    let aliasLocations = r.Locations.Where(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbolOpt))
                    where aliasLocations.Any()
-                   select new ReferencedSymbol(r.Definition, aliasLocations);
+                   select new ReferencedSymbol(r.DefinitionAndProjectId, aliasLocations);
         }
 
         public static IEnumerable<ReferencedSymbol> FilterNonMatchingMethodNames(

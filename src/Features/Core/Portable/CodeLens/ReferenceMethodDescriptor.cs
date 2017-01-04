@@ -10,16 +10,16 @@ namespace Microsoft.CodeAnalysis.CodeLens
         /// <summary>
         /// Describe a caller method of a callee
         /// </summary>
-        /// <param name="methodFullName">Method's fully qualified name</param>
-        /// <param name="methodFilePath">Method full path</param>
+        /// <param name="fullName">Method's fully qualified name</param>
+        /// <param name="filePath">Method full path</param>
         /// <remarks>
         ///  Method full name is expected to be in the .NET full name type convention. That is,
         ///  namespace/type is delimited by '.' and nested type is delimited by '+'
         /// </remarks>
-        public ReferenceMethodDescriptor(string methodFullName, string methodFilePath)
+        public ReferenceMethodDescriptor(string fullName, string filePath)
         {
-            FullName = methodFullName;
-            FilePath = methodFilePath;
+            FullName = fullName;
+            FilePath = filePath;
         }
 
         /// <summary>

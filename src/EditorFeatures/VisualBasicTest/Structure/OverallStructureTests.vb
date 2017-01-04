@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 Imports Microsoft.CodeAnalysis.Structure
@@ -14,13 +15,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             End Get
         End Property
 
-        Friend Overrides Async Function GetBlockSpansAsync(document As Document, position As Integer) As Task(Of BlockSpan())
+        Friend Overrides Async Function GetBlockSpansWorkerAsync(document As Document, position As Integer) As Task(Of ImmutableArray(Of BlockSpan))
             Dim outliningService = document.Project.LanguageServices.GetService(Of BlockStructureService)()
 
-            Return (Await outliningService.GetBlockStructureAsync(document, CancellationToken.None)) _
-                .Spans _
-                .WhereNotNull() _
-                .ToArray()
+            Return (Await outliningService.GetBlockStructureAsync(document, CancellationToken.None)).Spans
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>

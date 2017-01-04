@@ -143,8 +143,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal bool HasProject(ProjectId id)
         {
-            ProjectReadOnlyReason reason;
-            return Projects.TryGetValue(id, out reason);
+            return Projects.TryGetValue(id, out var reason);
         }
 
         private List<ValueTuple<DocumentId, AsyncLazy<DocumentAnalysisResults>>> GetChangedDocumentsAnalyses(Project baseProject, Project project)
@@ -203,16 +202,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Document document)
         {
-            Analysis analysis;
-            if (_analyses.TryGetValue(document.Id, out analysis) && analysis.Document == document)
+            if (_analyses.TryGetValue(document.Id, out var analysis) && analysis.Document == document)
             {
                 return analysis.Results;
             }
 
             var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
-
-            ImmutableArray<ActiveStatementSpan> activeStatements;
-            if (!_baseActiveStatements.TryGetValue(document.Id, out activeStatements))
+            if (!_baseActiveStatements.TryGetValue(document.Id, out var activeStatements))
             {
                 activeStatements = ImmutableArray.Create<ActiveStatementSpan>();
             }

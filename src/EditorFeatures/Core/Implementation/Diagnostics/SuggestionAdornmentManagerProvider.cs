@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     /// </summary>
     [Export(typeof(IWpfTextViewCreationListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal class SuggestionAdornmentManagerProvider :
         AbstractAdornmentManagerProvider<SuggestionTag>

@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis
         private static readonly ConditionalWeakTable<GreenNode, SyntaxAnnotation[]> s_annotationsTable =
             new ConditionalWeakTable<GreenNode, SyntaxAnnotation[]>();
 
-        private static readonly DiagnosticInfo[] s_noDiagnostics = SpecializedCollections.EmptyArray<DiagnosticInfo>();
-        private static readonly SyntaxAnnotation[] s_noAnnotations = SpecializedCollections.EmptyArray<SyntaxAnnotation>();
+        private static readonly DiagnosticInfo[] s_noDiagnostics = Array.Empty<DiagnosticInfo>();
+        private static readonly SyntaxAnnotation[] s_noAnnotations = Array.Empty<SyntaxAnnotation>();
         private static readonly IEnumerable<SyntaxAnnotation> s_noAnnotationsEnumerable = SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
 
         protected GreenNode(ushort kind)
@@ -646,15 +646,16 @@ namespace Microsoft.CodeAnalysis
         protected internal void WriteTo(TextWriter writer, bool leading, bool trailing)
         {
             // Use an actual Stack so we can write out deeply recursive structures without overflowing.
-            var stack = new Stack<ValueTuple<GreenNode, bool, bool>>();
-            stack.Push(ValueTuple.Create(this, leading, trailing));
+            var stack = new Stack<(GreenNode node, bool leading, bool trailing)>();
+            stack.Push((this, leading, trailing));
 
             // Separated out stack processing logic so that it does not unintentially refer to 
             // "this", "leading" or "trailing.
             ProcessStack(writer, stack);
         }
 
-        private static void ProcessStack(TextWriter writer, Stack<ValueTuple<GreenNode, bool, bool>> stack)
+        private static void ProcessStack(TextWriter writer,
+            Stack<(GreenNode node, bool leading, bool trailing)> stack)
         {
             while (stack.Count > 0)
             {
@@ -685,7 +686,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         var first = i == firstIndex;
                         var last = i == lastIndex;
-                        stack.Push(ValueTuple.Create(child, currentLeading | !first, currentTrailing | !last));
+                        stack.Push((child, currentLeading | !first, currentTrailing | !last));
                     }
                 }
             }

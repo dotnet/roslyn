@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         Inherits VisualBasicResultProviderTestBase
 
         <Fact>
-        Public Sub LongTuple()
+        Public Sub LongTuple_NoNames()
             Const source =
 "Class C
     Private _17 As (Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short) =
@@ -32,7 +32,7 @@ End Class"
                 Dim value = type.Instantiate()
                 Dim result = FormatResult("o", value)
                 Verify(result,
-                       EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable))
+                    EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable))
                 Dim children = GetChildren(result)
                 Verify(children,
                     EvalResult(
@@ -42,25 +42,55 @@ End Class"
                         "o._17",
                         DkmEvaluationResultFlags.Expandable))
                 children = GetChildren(children(0))
-                Assert.Equal(18, children.Length)
-                Dim child = children(children.Length - 1)
-                Verify(child,
+                Verify(children,
+                    EvalResult("Item1", "1", "Short", "o._17.Item1"),
+                    EvalResult("Item2", "2", "Short", "o._17.Item2"),
+                    EvalResult("Item3", "3", "Short", "o._17.Item3"),
+                    EvalResult("Item4", "4", "Short", "o._17.Item4"),
+                    EvalResult("Item5", "5", "Short", "o._17.Item5"),
+                    EvalResult("Item6", "6", "Short", "o._17.Item6"),
+                    EvalResult("Item7", "7", "Short", "o._17.Item7"),
+                    EvalResult("Item8", "8", "Short", "o._17.Rest.Item1"),
+                    EvalResult("Item9", "9", "Short", "o._17.Rest.Item2"),
+                    EvalResult("Item10", "10", "Short", "o._17.Rest.Item3"),
+                    EvalResult("Item11", "11", "Short", "o._17.Rest.Item4"),
+                    EvalResult("Item12", "12", "Short", "o._17.Rest.Item5"),
+                    EvalResult("Item13", "13", "Short", "o._17.Rest.Item6"),
+                    EvalResult("Item14", "14", "Short", "o._17.Rest.Item7"),
+                    EvalResult("Item15", "15", "Short", "o._17.Rest.Rest.Item1"),
+                    EvalResult("Item16", "16", "Short", "o._17.Rest.Rest.Item2"),
+                    EvalResult("Item17", "17", "Short", "o._17.Rest.Rest.Item3"),
                     EvalResult(
-                        "Rest",
-                        "(8, 9, 10, 11, 12, 13, 14, 15, 16, 17)",
-                        "(Short, Short, Short, Short, Short, Short, Short, Short, Short, Short)",
-                        "o._17.Rest",
-                        DkmEvaluationResultFlags.Expandable))
-                children = GetChildren(child)
-                Assert.Equal(11, children.Length)
-                child = children(children.Length - 1)
-                Verify(child,
-                    EvalResult(
-                        "Rest",
-                        "(15, 16, 17)",
-                        "(Short, Short, Short)",
-                        "o._17.Rest.Rest",
-                        DkmEvaluationResultFlags.Expandable))
+                        "Raw View",
+                        "(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17)",
+                        "(Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short)",
+                        "o._17, raw",
+                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly))
+                children = GetChildren(children(children.Length - 1))
+                Verify(children,
+                    EvalResult("Item1", "1", "Short", "o._17.Item1"),
+                    EvalResult("Item2", "2", "Short", "o._17.Item2"),
+                    EvalResult("Item3", "3", "Short", "o._17.Item3"),
+                    EvalResult("Item4", "4", "Short", "o._17.Item4"),
+                    EvalResult("Item5", "5", "Short", "o._17.Item5"),
+                    EvalResult("Item6", "6", "Short", "o._17.Item6"),
+                    EvalResult("Item7", "7", "Short", "o._17.Item7"),
+                    EvalResult("Rest", "(8, 9, 10, 11, 12, 13, 14, 15, 16, 17)", "(Short, Short, Short, Short, Short, Short, Short, Short, Short, Short)", "o._17.Rest, raw", DkmEvaluationResultFlags.Expandable))
+                children = GetChildren(children(children.Length - 1))
+                Verify(children,
+                    EvalResult("Item1", "8", "Short", "o._17.Rest.Item1"),
+                    EvalResult("Item2", "9", "Short", "o._17.Rest.Item2"),
+                    EvalResult("Item3", "10", "Short", "o._17.Rest.Item3"),
+                    EvalResult("Item4", "11", "Short", "o._17.Rest.Item4"),
+                    EvalResult("Item5", "12", "Short", "o._17.Rest.Item5"),
+                    EvalResult("Item6", "13", "Short", "o._17.Rest.Item6"),
+                    EvalResult("Item7", "14", "Short", "o._17.Rest.Item7"),
+                    EvalResult("Rest", "(15, 16, 17)", "(Short, Short, Short)", "o._17.Rest.Rest, raw", DkmEvaluationResultFlags.Expandable))
+                children = GetChildren(children(children.Length - 1))
+                Verify(children,
+                    EvalResult("Item1", "15", "Short", "o._17.Rest.Rest.Item1"),
+                    EvalResult("Item2", "16", "Short", "o._17.Rest.Rest.Item2"),
+                    EvalResult("Item3", "17", "Short", "o._17.Rest.Rest.Item3"))
             End Using
         End Sub
 
@@ -136,15 +166,13 @@ class C
                 moreChildren = GetChildren(moreChildren(0))
                 Verify(moreChildren,
                     EvalResult("X", "Nothing", "Object", "o.G.F.Item1"),
-                    EvalResult("Item1", "Nothing", "Object", "o.G.F.Item1"),
                     EvalResult("Y", "(Nothing, {B(Of (Object, Object)).S})", "(E As Object, H As B(Of (F As Object, G As Object)).S)", "o.G.F.Item2", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("Item2", "(Nothing, {B(Of (Object, Object)).S})", "(E As Object, H As B(Of (F As Object, G As Object)).S)", "o.G.F.Item2", DkmEvaluationResultFlags.Expandable))
-                moreChildren = GetChildren(moreChildren(3))
+                    EvalResult("Raw View", "(Nothing, (Nothing, {B(Of (Object, Object)).S}))", "(X As Object, Y As (E As Object, H As B(Of (F As Object, G As Object)).S))", "o.G.F, raw", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly))
+                moreChildren = GetChildren(moreChildren(1))
                 Verify(moreChildren,
                     EvalResult("E", "Nothing", "Object", "o.G.F.Item2.Item1"),
-                    EvalResult("Item1", "Nothing", "Object", "o.G.F.Item2.Item1"),
                     EvalResult("H", "{B(Of (Object, Object)).S}", "B(Of (F As Object, G As Object)).S", "o.G.F.Item2.Item2"),
-                    EvalResult("Item2", "{B(Of (Object, Object)).S}", "B(Of (F As Object, G As Object)).S", "o.G.F.Item2.Item2"))
+                    EvalResult("Raw View", "(Nothing, {B(Of (Object, Object)).S})", "(E As Object, H As B(Of (F As Object, G As Object)).S)", "o.G.F.Item2, raw", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly))
             End Using
         End Sub
 

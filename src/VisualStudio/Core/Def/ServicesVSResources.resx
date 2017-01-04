@@ -447,12 +447,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="No_Changes" xml:space="preserve">
     <value>No Changes</value>
   </data>
-  <data name="Get_help_for_0_1_2_3" xml:space="preserve">
-    <value>Get help for '{0}'{1}{2}{3}</value>
-  </data>
-  <data name="from_Bing" xml:space="preserve">
-    <value> from Bing</value>
-  </data>
   <data name="Current_block" xml:space="preserve">
     <value>Current block</value>
   </data>
@@ -567,9 +561,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Pascal_Case_Name" xml:space="preserve">
     <value>Pascal Case Name</value>
   </data>
-  <data name="Custom_Tags_must_match_all" xml:space="preserve">
-    <value>Custom Tags (must match all)</value>
-  </data>
   <data name="Severity_colon" xml:space="preserve">
     <value>Severity:</value>
   </data>
@@ -653,7 +644,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Project_loading_failed" xml:space="preserve">
     <value>Project loading failed.</value>
   </data>
-  <data name="To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_2_Open_a_Visual_Studio_Developer_Command_Prompt_3_Set_environment_variable_TraceDesignTime_to_true_set_TraceDesignTime_true_4_Delete_vs_directory_suo_file_5_Restart_VS_from_the_command_prompt_you_set_the_environment_varaible_devenv_6_Open_the_solution_7_Check_0_and_look_for_the_failed_tasks_FAILED" xml:space="preserve">
+  <data name="To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragraph_follows" xml:space="preserve">
     <value>To see what caused the issue, please try below.
 
 1. Close Visual Studio
@@ -711,9 +702,6 @@ Additional information: {1}</value>
   <data name="Close" xml:space="preserve">
     <value>Close</value>
   </data>
-  <data name="in_0_line_1" xml:space="preserve">
-    <value>in {0}:line {1}</value>
-  </data>
   <data name="Unknown_parameters" xml:space="preserve">
     <value>&lt;Unknown Parameters&gt;</value>
   </data>
@@ -725,5 +713,149 @@ Additional information: {1}</value>
   </data>
   <data name="For_member_access_expressions" xml:space="preserve">
     <value>For member access expressions</value>
+  </data>
+  <data name="Prefer_object_initializer" xml:space="preserve">
+    <value>Prefer object initializer</value>
+  </data>
+  <data name="Expression_preferences_colon" xml:space="preserve">
+    <value>Expression preferences:</value>
+  </data>
+  <data name="Block_Structure_Guides" xml:space="preserve">
+    <value>Block Structure Guides</value>
+  </data>
+  <data name="Outlining" xml:space="preserve">
+    <value>Outlining</value>
+  </data>
+  <data name="Show_guides_for_code_level_constructs" xml:space="preserve">
+    <value>Show guides for code level constructs</value>
+  </data>
+  <data name="Show_guides_for_comments_and_preprocessor_regions" xml:space="preserve">
+    <value>Show guides for comments and preprocessor regions</value>
+  </data>
+  <data name="Show_guides_for_declaration_level_constructs" xml:space="preserve">
+    <value>Show guides for declaration level constructs</value>
+  </data>
+  <data name="Show_outlining_for_code_level_constructs" xml:space="preserve">
+    <value>Show outlining for code level constructs</value>
+  </data>
+  <data name="Show_outlining_for_comments_and_preprocessor_regions" xml:space="preserve">
+    <value>Show outlining for comments and preprocessor regions</value>
+  </data>
+  <data name="Show_outlining_for_declaration_level_constructs" xml:space="preserve">
+    <value>Show outlining for declaration level constructs</value>
+  </data>
+  <data name="Variable_preferences_colon" xml:space="preserve">
+    <value>Variable preferences:</value>
+  </data>
+  <data name="Prefer_inlined_variable_declaration" xml:space="preserve">
+    <value>Prefer inlined variable declaration</value>
+  </data>
+  <data name="For_methods" xml:space="preserve">
+    <value>For methods</value>
+  </data>
+  <data name="Code_block_preferences_colon" xml:space="preserve">
+    <value>Code block preferences:</value>
+  </data>
+  <data name="For_accessors" xml:space="preserve">
+    <value>For accessors</value>
+  </data>
+  <data name="For_constructors" xml:space="preserve">
+    <value>For constructors</value>
+  </data>
+  <data name="For_indexers" xml:space="preserve">
+    <value>For indexers</value>
+  </data>
+  <data name="For_operators" xml:space="preserve">
+    <value>For operators</value>
+  </data>
+  <data name="For_properties" xml:space="preserve">
+    <value>For properties</value>
+  </data>
+  <data name="Some_naming_rules_are_incomplete_Please_complete_or_remove_them" xml:space="preserve">
+    <value>Some naming rules are incomplete. Please complete or remove them.</value>
+  </data>
+  <data name="Manage_specifications" xml:space="preserve">
+    <value>Manage specifications</value>
+  </data>
+  <data name="Manage_styles" xml:space="preserve">
+    <value>Manage styles</value>
+  </data>
+  <data name="Reorder" xml:space="preserve">
+    <value>Reorder</value>
+  </data>
+  <data name="Severity" xml:space="preserve">
+    <value>Severity</value>
+  </data>
+  <data name="Specification" xml:space="preserve">
+    <value>Specification</value>
+  </data>
+  <data name="Required_Style" xml:space="preserve">
+    <value>Required Style</value>
+  </data>
+  <data name="This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule" xml:space="preserve">
+    <value>This item cannot be deleted because it is used by an existing Naming Rule.</value>
+  </data>
+  <data name="Prefer_collection_initializer" xml:space="preserve">
+    <value>Prefer collection initializer</value>
+  </data>
+  <data name="Prefer_coalesce_expression" xml:space="preserve">
+    <value>Prefer coalesce expression</value>
+  </data>
+  <data name="Collapse_regions_when_collapsing_to_definitions" xml:space="preserve">
+    <value>Collapse #regions when collapsing to definitions</value>
+  </data>
+  <data name="Prefer_null_propagation" xml:space="preserve">
+    <value>Prefer null propagation</value>
+  </data>
+  <data name="Prefer_explicit_tuple_name" xml:space="preserve">
+    <value>Prefer explicit tuple name</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Preference" xml:space="preserve">
+    <value>Preference</value>
+  </data>
+  <data name="Implement_Interface_or_Abstract_Class" xml:space="preserve">
+    <value>Implement Interface or Abstract Class</value>
+  </data>
+  <data name="For_a_given_symbol_only_the_topmost_rule_with_a_matching_Specification_will_be_applied_Violation_of_that_rules_Required_Style_will_be_reported_at_the_chosen_Severity_level" xml:space="preserve">
+    <value>For a given symbol, only the topmost rule with a matching 'Specification' will be applied. Violation of that rule's 'Required Style' will be reported at the chosen 'Severity' level.</value>
+  </data>
+  <data name="at_the_end" xml:space="preserve">
+    <value>at the end</value>
+  </data>
+  <data name="When_inserting_properties_events_and_methods_place_them" xml:space="preserve">
+    <value>When inserting properties, events and methods, place them:</value>
+  </data>
+  <data name="with_other_members_of_the_same_kind" xml:space="preserve">
+    <value>with other members of the same kind</value>
+  </data>
+  <data name="Prefer_braces" xml:space="preserve">
+    <value>Prefer braces</value>
+  </data>
+  <data name="Over_colon" xml:space="preserve">
+    <value>Over:</value>
+  </data>
+  <data name="Prefer_colon" xml:space="preserve">
+    <value>Prefer:</value>
+  </data>
+  <data name="or" xml:space="preserve">
+    <value>or</value>
+  </data>
+  <data name="built_in_types" xml:space="preserve">
+    <value>built-in types</value>
+  </data>
+  <data name="everywhere_else" xml:space="preserve">
+    <value>everywhere else</value>
+  </data>
+  <data name="type_is_apparent_from_assignment_expression" xml:space="preserve">
+    <value>type is apparent from assignment expression</value>
+  </data>
+  <data name="Get_help_for_0" xml:space="preserve">
+    <value>Get help for '{0}'</value>
+  </data>
+  <data name="Get_help_for_0_from_Bing" xml:space="preserve">
+    <value>Get help for '{0}' from Bing</value>
   </data>
 </root>

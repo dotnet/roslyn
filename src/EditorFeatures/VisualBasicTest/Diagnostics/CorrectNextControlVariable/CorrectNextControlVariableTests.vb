@@ -16,118 +16,311 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Correc
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForLoopBoundIdentifier() As Task
             Await TestAsync(
-NewLines("Module M1 \n Sub Main() \n Dim y As Integer \n For x = 1 To 10 \n Next [|y|] \n End Sub \n End Module"),
-NewLines("Module M1 \n Sub Main() \n Dim y As Integer \n For x = 1 To 10 \n Next x \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        Dim y As Integer
+        For x = 1 To 10
+        Next [|y|]
+    End Sub
+End Module",
+"Module M1
+    Sub Main()
+        Dim y As Integer
+        For x = 1 To 10
+        Next x
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForLoopUnboundIdentifier() As Task
             Await TestAsync(
-NewLines("Module M1 \n Sub Main() \n For x = 1 To 10 \n Next [|y|] \n End Sub \n End Module"),
-NewLines("Module M1 \n Sub Main() \n For x = 1 To 10 \n Next x \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        For x = 1 To 10
+        Next [|y|]
+    End Sub
+End Module",
+"Module M1
+    Sub Main()
+        For x = 1 To 10
+        Next x
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForEachLoopBoundIdentifier() As Task
             Await TestAsync(
-NewLines("Module M1 \n Sub Main() \n Dim y As Integer \n For Each x In {1, 2, 3} \n Next [|y|] \n End Sub \n End Module"),
-NewLines("Module M1 \n Sub Main() \n Dim y As Integer \n For Each x In {1, 2, 3} \n Next x \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        Dim y As Integer
+        For Each x In {1, 2, 3}
+        Next [|y|]
+    End Sub
+End Module",
+"Module M1
+    Sub Main()
+        Dim y As Integer
+        For Each x In {1, 2, 3}
+        Next x
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForEachLoopUnboundIdentifier() As Task
             Await TestAsync(
-NewLines("Module M1 \n Sub Main() \n For Each x In {1, 2, 3} \n Next [|y|] \n End Sub \n End Module"),
-NewLines("Module M1 \n Sub Main() \n For Each x In {1, 2, 3} \n Next x \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        For Each x In {1, 2, 3}
+        Next [|y|]
+    End Sub
+End Module",
+"Module M1
+    Sub Main()
+        For Each x In {1, 2, 3}
+        Next x
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForEachNested() As Task
             Await TestAsync(
-NewLines("Module M1 \n Sub Main() \n For Each x In {1, 2, 3} \n For Each y In {1, 2, 3} \n Next [|x|] \n Next x \n End Sub \n End Module"),
-NewLines("Module M1 \n Sub Main() \n For Each x In {1, 2, 3} \n For Each y In {1, 2, 3} \n Next y \n Next x \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        For Each x In {1, 2, 3}
+            For Each y In {1, 2, 3}
+            Next [|x|]
+        Next x
+    End Sub
+End Module",
+"Module M1
+    Sub Main()
+        For Each x In {1, 2, 3}
+            For Each y In {1, 2, 3}
+            Next y
+        Next x
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForEachNestedOuter() As Task
             Await TestAsync(
-NewLines("Module M1 \n Sub Main() \n For Each x In {1, 2, 3} \n For Each y In {1, 2, 3} \n Next y \n Next [|y|] \n End Sub \n End Module"),
-NewLines("Module M1 \n Sub Main() \n For Each x In {1, 2, 3} \n For Each y In {1, 2, 3} \n Next y \n Next x \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        For Each x In {1, 2, 3}
+            For Each y In {1, 2, 3}
+            Next y
+        Next [|y|]
+    End Sub
+End Module",
+"Module M1
+    Sub Main()
+        For Each x In {1, 2, 3}
+            For Each y In {1, 2, 3}
+            Next y
+        Next x
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForLoopWithDeclarator() As Task
             Await TestAsync(
-NewLines("Module M1 \n Sub Main() \n Dim y As Integer \n For x As Integer = 1 To 10 \n Next [|y|] \n End Sub \n End Module"),
-NewLines("Module M1 \n Sub Main() \n Dim y As Integer \n For x As Integer = 1 To 10 \n Next x \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        Dim y As Integer
+        For x As Integer = 1 To 10
+        Next [|y|]
+    End Sub
+End Module",
+"Module M1
+    Sub Main()
+        Dim y As Integer
+        For x As Integer = 1 To 10
+        Next x
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestForEachLoopWithDeclarator() As Task
             Await TestAsync(
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n Next [|y|] \n End Sub \n End Module"),
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n Next x \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+        Next [|y|]
+    End Sub
+End Module",
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+        Next x
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestMultipleControl1() As Task
             Await TestAsync(
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n For Each y In {1, 2, 3} \n Next [|x|], y \n End Sub \n End Module"),
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n For Each y In {1, 2, 3} \n Next y, y \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+            For Each y In {1, 2, 3}
+        Next [|x|], y
+    End Sub
+End Module",
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+            For Each y In {1, 2, 3}
+        Next y, y
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestMultipleControl2() As Task
             Await TestAsync(
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n For Each y In {1, 2, 3} \n Next x, [|y|] \n End Sub \n End Module"),
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n For Each y In {1, 2, 3} \n Next x, x \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+            For Each y In {1, 2, 3}
+        Next x, [|y|]
+    End Sub
+End Module",
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+            For Each y In {1, 2, 3}
+        Next x, x
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestMixedNestedLoop() As Task
             Await TestAsync(
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n For y = 1 To 10 \n Next y, [|y|] \n End Sub \n End Module"),
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n For y = 1 To 10 \n Next y, x \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+            For y = 1 To 10
+        Next y, [|y|]
+    End Sub
+End Module",
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+            For y = 1 To 10
+        Next y, x
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestThreeLevels() As Task
             Await TestAsync(
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n For y = 1 To 10 \n For Each z As Integer In {1, 2, 3} \n Next z \n Next y, [|z|] \n End Sub \n End Module"),
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n For y = 1 To 10 \n For Each z As Integer In {1, 2, 3} \n Next z \n Next y, x \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+            For y = 1 To 10
+                For Each z As Integer In {1, 2, 3}
+                Next z
+        Next y, [|z|]
+    End Sub
+End Module",
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+            For y = 1 To 10
+                For Each z As Integer In {1, 2, 3}
+                Next z
+        Next y, x
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestExtraVariable() As Task
             Await TestAsync(
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n For y = 1 To 10 \n Next y, [|z|], x \n End Sub \n End Module"),
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n For y = 1 To 10 \n Next y, x, x \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+            For y = 1 To 10
+        Next y, [|z|], x
+    End Sub
+End Module",
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+            For y = 1 To 10
+        Next y, x, x
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestMethodCall() As Task
             Await TestAsync(
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n For y = 1 To 10 \n Next y \n Next [|y|]() \n End Sub \n End Module"),
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n For y = 1 To 10 \n Next y \n Next x \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+            For y = 1 To 10
+            Next y
+        Next [|y|]()
+    End Sub
+End Module",
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+            For y = 1 To 10
+            Next y
+        Next x
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestLongExpressions() As Task
             Await TestAsync(
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n For y = 1 To 10 \n Next [|x + 10 + 11|], x \n End Sub \n End Module"),
-NewLines("Module M1 \n Sub Main() \n For Each x As Integer In {1, 2, 4} \n For y = 1 To 10 \n Next y, x \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+            For y = 1 To 10
+        Next [|x + 10 + 11|], x
+    End Sub
+End Module",
+"Module M1
+    Sub Main()
+        For Each x As Integer In {1, 2, 4}
+            For y = 1 To 10
+        Next y, x
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestNoLoop() As Task
             Await TestMissingAsync(
-NewLines("Module M1 \n Sub Main() \n Next [|y|] \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        Next [|y|]
+    End Sub
+End Module")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectNextControlVariable)>
         Public Async Function TestMissingNesting() As Task
             Await TestMissingAsync(
-NewLines("Module M1 \n Sub Main() \n For Each x In {1, 2, 3} \n Next x, [|y|] \n End Sub \n End Module"))
+"Module M1
+    Sub Main()
+        For Each x In {1, 2, 3}
+        Next x, [|y|]
+    End Sub
+End Module")
         End Function
     End Class
 End Namespace

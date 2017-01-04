@@ -28,6 +28,31 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestIndentation() As Task
+            Await TestAsync(
+"class C
+    readonly property [||]Prop As Integer
+        get 
+            dim count = 0
+            for each x in y
+                count = count + z
+            next
+            return count
+        end get
+    end property
+end class",
+"class C
+    Public Function GetProp() As Integer
+        dim count = 0
+        for each x in y
+            count = count + z
+        next
+        return count
+    End Function
+end class", compareTokens:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestPrivateProperty() As Task
             Await TestAsync(
 "class C

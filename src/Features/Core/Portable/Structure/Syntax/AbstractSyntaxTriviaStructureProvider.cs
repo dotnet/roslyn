@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Structure
         public sealed override void CollectBlockSpans(
             Document document,
             SyntaxNode node,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
             throw new NotSupportedException();

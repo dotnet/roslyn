@@ -107,41 +107,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
         End Function
 
         Private Shared Function GetBeginStatement(node As SyntaxNode) As SyntaxNode
-            Return node.TypeSwitch((Function(n As MultiLineIfBlockSyntax) n.IfStatement),
-                              (Function(n As UsingBlockSyntax) n.UsingStatement),
-                              (Function(n As StructureBlockSyntax) n.BlockStatement),
-                              (Function(n As ModuleBlockSyntax) n.BlockStatement),
-                              (Function(n As NamespaceBlockSyntax) n.NamespaceStatement),
-                              (Function(n As ClassBlockSyntax) n.BlockStatement),
-                              (Function(n As InterfaceBlockSyntax) n.BlockStatement),
-                              (Function(n As EnumBlockSyntax) n.EnumStatement),
-                              (Function(n As WhileBlockSyntax) n.WhileStatement),
-                              (Function(n As WithBlockSyntax) n.WithStatement),
-                              (Function(n As SyncLockBlockSyntax) n.SyncLockStatement),
-                              (Function(n As DoLoopBlockSyntax) n.DoStatement),
-                              (Function(n As ForOrForEachBlockSyntax) n.ForOrForEachStatement),
-                              (Function(n As TryBlockSyntax) DirectCast(n, SyntaxNode)),
-                              (Function(n As MethodBlockBaseSyntax) n.BlockStatement),
-                              (Function(n As PropertyBlockSyntax) n.PropertyStatement))
+            Return node.TypeSwitch(
+                (Function(n As MultiLineIfBlockSyntax) n.IfStatement),
+                (Function(n As UsingBlockSyntax) n.UsingStatement),
+                (Function(n As StructureBlockSyntax) n.BlockStatement),
+                (Function(n As ModuleBlockSyntax) n.BlockStatement),
+                (Function(n As NamespaceBlockSyntax) n.NamespaceStatement),
+                (Function(n As ClassBlockSyntax) n.BlockStatement),
+                (Function(n As InterfaceBlockSyntax) n.BlockStatement),
+                (Function(n As EnumBlockSyntax) n.EnumStatement),
+                (Function(n As WhileBlockSyntax) n.WhileStatement),
+                (Function(n As WithBlockSyntax) n.WithStatement),
+                (Function(n As SyncLockBlockSyntax) n.SyncLockStatement),
+                (Function(n As DoLoopBlockSyntax) n.DoStatement),
+                (Function(n As ForOrForEachBlockSyntax) n.ForOrForEachStatement),
+                (Function(n As TryBlockSyntax) DirectCast(n, SyntaxNode)),
+                (Function(n As MethodBlockBaseSyntax) n.BlockStatement),
+                (Function(n As PropertyBlockSyntax) n.PropertyStatement))
         End Function
 
         Private Shared Function GetEndStatement(node As SyntaxNode) As SyntaxNode
-            Return node.TypeSwitch((Function(n As MultiLineIfBlockSyntax) DirectCast(n.EndIfStatement, SyntaxNode)),
-                              (Function(n As UsingBlockSyntax) n.EndUsingStatement),
-                              (Function(n As StructureBlockSyntax) n.EndBlockStatement),
-                              (Function(n As ModuleBlockSyntax) n.EndBlockStatement),
-                              (Function(n As NamespaceBlockSyntax) n.EndNamespaceStatement),
-                              (Function(n As ClassBlockSyntax) n.EndBlockStatement),
-                              (Function(n As InterfaceBlockSyntax) n.EndBlockStatement),
-                              (Function(n As EnumBlockSyntax) n.EndEnumStatement),
-                              (Function(n As WhileBlockSyntax) n.EndWhileStatement),
-                              (Function(n As WithBlockSyntax) n.EndWithStatement),
-                              (Function(n As SyncLockBlockSyntax) n.EndSyncLockStatement),
-                              (Function(n As DoLoopBlockSyntax) n.LoopStatement),
-                              (Function(n As ForOrForEachBlockSyntax) n.NextStatement),
-                              (Function(n As TryBlockSyntax) n.EndTryStatement),
-                              (Function(n As MethodBlockBaseSyntax) n.EndBlockStatement),
-                              (Function(n As PropertyBlockSyntax) n.EndPropertyStatement))
+            Return node.TypeSwitch(
+                (Function(n As MultiLineIfBlockSyntax) DirectCast(n.EndIfStatement, SyntaxNode)),
+                (Function(n As UsingBlockSyntax) n.EndUsingStatement),
+                (Function(n As StructureBlockSyntax) n.EndBlockStatement),
+                (Function(n As ModuleBlockSyntax) n.EndBlockStatement),
+                (Function(n As NamespaceBlockSyntax) n.EndNamespaceStatement),
+                (Function(n As ClassBlockSyntax) n.EndBlockStatement),
+                (Function(n As InterfaceBlockSyntax) n.EndBlockStatement),
+                (Function(n As EnumBlockSyntax) n.EndEnumStatement),
+                (Function(n As WhileBlockSyntax) n.EndWhileStatement),
+                (Function(n As WithBlockSyntax) n.EndWithStatement),
+                (Function(n As SyncLockBlockSyntax) n.EndSyncLockStatement),
+                (Function(n As DoLoopBlockSyntax) n.LoopStatement),
+                (Function(n As ForOrForEachBlockSyntax) n.NextStatement),
+                (Function(n As TryBlockSyntax) n.EndTryStatement),
+                (Function(n As MethodBlockBaseSyntax) n.EndBlockStatement),
+                (Function(n As PropertyBlockSyntax) n.EndPropertyStatement))
         End Function
 
         Private Async Function GeneratePropertyEndConstructAsync(document As Document, node As PropertyBlockSyntax, cancellationToken As CancellationToken) As Task(Of Document)
@@ -165,11 +167,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
             Dim gen = document.GetLanguageService(Of SyntaxGenerator)()
 
             If getter Is Nothing AndAlso Not updatedProperty.PropertyStatement.Modifiers.Any(SyntaxKind.WriteOnlyKeyword) Then
-                updatedProperty = DirectCast(gen.WithGetAccessorStatements(updatedProperty, SpecializedCollections.EmptyArray(Of SyntaxNode)()), PropertyBlockSyntax)
+                updatedProperty = DirectCast(gen.WithGetAccessorStatements(updatedProperty, Array.Empty(Of SyntaxNode)()), PropertyBlockSyntax)
             End If
 
             If setter Is Nothing AndAlso Not updatedProperty.PropertyStatement.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) Then
-                updatedProperty = DirectCast(gen.WithSetAccessorStatements(updatedProperty, SpecializedCollections.EmptyArray(Of SyntaxNode)()), PropertyBlockSyntax)
+                updatedProperty = DirectCast(gen.WithSetAccessorStatements(updatedProperty, Array.Empty(Of SyntaxNode)()), PropertyBlockSyntax)
             End If
 
             Dim updatedDocument = Await document.ReplaceNodeAsync(node, updatedProperty.WithAdditionalAnnotations(Formatter.Annotation), cancellationToken).ConfigureAwait(False)

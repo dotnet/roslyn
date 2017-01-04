@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!switchExpression.HasAnyErrors)
             {
                 Debug.Assert((object)switchExpression.Type == null || switchExpression.Type.SpecialType == SpecialType.System_Void);
-                diagnostics.Add(ErrorCode.ERR_PatternValueExpected, node.Location, switchExpression.Display);
+                diagnostics.Add(ErrorCode.ERR_SwitchExpressionValueExpected, node.Location, switchExpression.Display);
             }
 
             return new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(switchExpression), switchGoverningType ?? CreateErrorType());

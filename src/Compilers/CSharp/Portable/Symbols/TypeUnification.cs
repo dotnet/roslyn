@@ -173,13 +173,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var nt1Arguments = nt1.TypeArgumentsNoUseSiteDiagnostics;
                         var nt2Arguments = nt2.TypeArgumentsNoUseSiteDiagnostics;
 
-                        var nt1ArgumentsCustomModifiers = nt1.HasTypeArgumentsCustomModifiers ? nt1.TypeArgumentsCustomModifiers : default(ImmutableArray<ImmutableArray<CustomModifier>>);
-                        var nt2ArgumentsCustomModifiers = nt2.HasTypeArgumentsCustomModifiers ? nt2.TypeArgumentsCustomModifiers : default(ImmutableArray<ImmutableArray<CustomModifier>>);
+                        var nt1HasModifiers = nt1.HasTypeArgumentsCustomModifiers;
+                        var nt2HasModifiers = nt2.HasTypeArgumentsCustomModifiers;
 
                         for (int i = 0; i < arity; i++)
                         {
-                            if (!CanUnifyHelper(new TypeWithModifiers(nt1Arguments[i], nt1ArgumentsCustomModifiers.IsDefault ? default(ImmutableArray<CustomModifier>) : nt1ArgumentsCustomModifiers[i]),
-                                                new TypeWithModifiers(nt2Arguments[i], nt2ArgumentsCustomModifiers.IsDefault ? default(ImmutableArray<CustomModifier>) : nt2ArgumentsCustomModifiers[i]),
+                            if (!CanUnifyHelper(new TypeWithModifiers(nt1Arguments[i], nt1HasModifiers ? nt1.GetTypeArgumentCustomModifiers(i) : default(ImmutableArray<CustomModifier>)),
+                                                new TypeWithModifiers(nt2Arguments[i], nt2HasModifiers ? nt2.GetTypeArgumentCustomModifiers(i) : default(ImmutableArray<CustomModifier>)),
                                                 ref substitution))
                             {
                                 return false;

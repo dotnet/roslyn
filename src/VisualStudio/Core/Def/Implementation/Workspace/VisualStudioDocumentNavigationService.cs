@@ -249,8 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private bool CanMapFromSecondaryBufferToPrimaryBuffer(Workspace workspace, DocumentId documentId, VsTextSpan spanInSecondaryBuffer)
         {
-            VsTextSpan spanInPrimaryBuffer;
-            return spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out spanInPrimaryBuffer);
+            return spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out var spanInPrimaryBuffer);
         }
     }
 }

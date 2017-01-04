@@ -235,6 +235,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return rewrittenOperand;
                     }
 
+                case ConversionKind.ImplicitThrow:
+                    {
+                        // the operand must be a bound throw expression
+                        var operand = (BoundThrowExpression)rewrittenOperand;
+                        return _factory.ThrowExpression(operand.Expression, rewrittenType);
+                    }
+
                 case ConversionKind.ImplicitEnumeration:
                     // A conversion from constant zero to nullable is actually classified as an 
                     // implicit enumeration conversion, not an implicit nullable conversion. 
@@ -543,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Lifted conversion, wrap return type in Nullable
                 // The conversion only needs to happen for non-nullable valuetypes
                 if (rewrittenOperand.Type.IsNullableType() &&
-                        conversion.Method.ParameterTypes[0] == rewrittenOperand.Type.GetNullableUnderlyingType() &&
+                        conversion.Method.ParameterTypes[0].Equals(rewrittenOperand.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions) &&
                         !userDefinedConversionRewrittenType.IsNullableType() &&
                         userDefinedConversionRewrittenType.IsValueType)
                 {
@@ -599,12 +606,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var destElementTypes = rewrittenType.GetElementTypesOfTupleOrCompatible();
             var numElements = destElementTypes.Length;
 
-            ImmutableArray<FieldSymbol> srcElementFields;
             TypeSymbol srcType = rewrittenOperand.Type;
 
+            TupleTypeSymbol tupleTypeSymbol;
             if (srcType.IsTupleType)
             {
-                srcElementFields = ((TupleTypeSymbol)srcType).TupleElementFields;
+                tupleTypeSymbol = (TupleTypeSymbol)srcType;
             }
             else
             {
@@ -615,9 +622,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // PERF: if allocations here become nuisance, consider caching the TupleTypeSymbol
                 //       in the type symbols that can actually be tuple compatible
-                srcElementFields = TupleTypeSymbol.Create((NamedTypeSymbol)srcType).TupleElementFields;
+                tupleTypeSymbol = TupleTypeSymbol.Create((NamedTypeSymbol)srcType);
             }
 
+            var srcElementFields = tupleTypeSymbol.TupleElements;
             var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
 
             BoundAssignmentOperator assignmentToTemp;
@@ -975,11 +983,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol rewrittenType)
         {
             Debug.Assert((object)conversion.Method != null && !conversion.Method.ReturnsVoid && conversion.Method.ParameterCount == 1);
-            if (rewrittenOperand.Type != conversion.Method.ParameterTypes[0])
+            if (rewrittenOperand.Type.IsNullableType())
             {
-                Debug.Assert(rewrittenOperand.Type.IsNullableType());
-                Debug.Assert(rewrittenOperand.Type.GetNullableUnderlyingType() == conversion.Method.ParameterTypes[0]);
-                return RewriteLiftedUserDefinedConversion(syntax, rewrittenOperand, conversion, rewrittenType);
+                var parameterType = conversion.Method.ParameterTypes[0];
+                if (parameterType.Equals(rewrittenOperand.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions) &&
+                    !parameterType.IsNullableType() &&
+                    parameterType.IsValueType)
+                {
+                    return RewriteLiftedUserDefinedConversion(syntax, rewrittenOperand, conversion, rewrittenType);
+                }
             }
 
             BoundExpression result =

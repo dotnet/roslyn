@@ -76,8 +76,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 semanticModel.LookupSymbols(raiseEventStatement.SpanStart, containingType, raiseEventStatement.Name.Identifier.ValueText))
 
             Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
-            Dim allowedEvents = events.Where(Function(s) s.Kind = SymbolKind.Event AndAlso s.ContainingType Is containingType).
-                                       Cast(Of IEventSymbol)().
+            Dim allowedEvents = events.WhereAsArray(Function(s) s.Kind = SymbolKind.Event AndAlso s.ContainingType Is containingType).
+                                       OfType(Of IEventSymbol)().
+                                       ToImmutableArrayOrEmpty().
                                        FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
                                        Sort(symbolDisplayService, semanticModel, raiseEventStatement.SpanStart)
 

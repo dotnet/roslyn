@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private ImmutableArray<ParameterSymbol> _parameters;
         private readonly TypeSymbol _returnType;
-        private readonly RefKind _refKind;
 
         protected SourceDelegateMethodSymbol(
             SourceMemberContainerTypeSymbol delegateType,
@@ -35,8 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(_parameters.IsDefault);
             _parameters = parameters;
         }
-
-        internal override RefKind RefKind => _refKind;
 
         internal static void AddDelegateMembers(
             SourceMemberContainerTypeSymbol delegateType,
@@ -200,8 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : base(delegateType, voidType, syntax, MethodKind.Constructor, DeclarationModifiers.Public)
             {
                 InitializeParameters(ImmutableArray.Create<ParameterSymbol>(
-                    new SynthesizedParameterSymbol(this, objectType, 0, RefKind.None, "object"),
-                    new SynthesizedParameterSymbol(this, intPtrType, 1, RefKind.None, "method")));
+                    SynthesizedParameterSymbol.Create(this, objectType, 0, RefKind.None, "object"),
+                    SynthesizedParameterSymbol.Create(this, intPtrType, 1, RefKind.None, "method")));
             }
 
             public override string Name
@@ -300,8 +297,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 int paramCount = invoke.ParameterCount;
-                parameters.Add(new SynthesizedParameterSymbol(this, asyncCallbackType, paramCount, RefKind.None, GetUniqueParameterName(parameters, "callback")));
-                parameters.Add(new SynthesizedParameterSymbol(this, objectType, paramCount + 1, RefKind.None, GetUniqueParameterName(parameters, "object")));
+                parameters.Add(SynthesizedParameterSymbol.Create(this, asyncCallbackType, paramCount, RefKind.None, GetUniqueParameterName(parameters, "callback")));
+                parameters.Add(SynthesizedParameterSymbol.Create(this, objectType, paramCount + 1, RefKind.None, GetUniqueParameterName(parameters, "object")));
 
                 InitializeParameters(parameters.ToImmutableAndFree());
             }
@@ -349,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                parameters.Add(new SynthesizedParameterSymbol(this, iAsyncResultType, ordinal++, RefKind.None, GetUniqueParameterName(parameters, "result")));
+                parameters.Add(SynthesizedParameterSymbol.Create(this, iAsyncResultType, ordinal++, RefKind.None, GetUniqueParameterName(parameters, "result")));
                 InitializeParameters(parameters.ToImmutableAndFree());
             }
 

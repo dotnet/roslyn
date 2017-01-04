@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     item.AssertRValue()
 
                     If Not elementType.IsErrorType() AndAlso Not item.Type.IsErrorType() Then
-                        Debug.Assert(elementType.IsSameTypeIgnoringCustomModifiers(item.Type))
+                        Debug.Assert(elementType.IsSameTypeIgnoringAll(item.Type))
                     End If
                 End If
             Next

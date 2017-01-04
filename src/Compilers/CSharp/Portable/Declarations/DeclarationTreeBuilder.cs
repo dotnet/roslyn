@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System;
 using CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -436,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string[] result;
             if (set.Count == 0)
             {
-                result = SpecializedCollections.EmptyArray<string>();
+                result = Array.Empty<string>();
             }
             else
             {

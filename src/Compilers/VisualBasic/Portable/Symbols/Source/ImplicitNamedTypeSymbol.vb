@@ -191,5 +191,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Sub
 
+        Friend Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+            ' All infrastructure for proper WithEvents handling is in SourceNamedTypeSymbol, 
+            ' but this type derives directly from SourceMemberContainerTypeSymbol, which is a base class of 
+            ' SourceNamedTypeSymbol.
+            ' Tracked by https://github.com/dotnet/roslyn/issues/14073.
+            Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
+        End Function
+
     End Class
 End Namespace

@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveDocCommentNode), [Shared]>
     Friend Class VisualBasicRemoveDocCommentNodeCodeFixProvider
-        Inherits AbstractRemoveDocCommentNodeCodeFixProvider(Of XmlElementSyntax)
+        Inherits AbstractRemoveDocCommentNodeCodeFixProvider(Of XmlElementSyntax, XmlTextSyntax)
 
         ''' <summary>
         ''' XML comment tag with identical attributes
@@ -57,6 +57,28 @@ Namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
         Protected Overrides Function GetRevisedDocCommentTrivia(docCommentText As String) As SyntaxTriviaList
             Return SyntaxFactory.ParseLeadingTrivia(docCommentText)
+        End Function
+
+        Protected Overrides Function GetTextTokens(xmlText As XmlTextSyntax) As SyntaxTokenList
+            Return xmlText.TextTokens
+        End Function
+
+        Protected Overrides Function IsXmlWhitespaceToken(token As SyntaxToken) As Boolean
+            Return token.Kind() = SyntaxKind.XmlTextLiteralToken AndAlso IsWhitespace(token.Text)
+        End Function
+
+        Protected Overrides Function IsXmlNewLineToken(token As SyntaxToken) As Boolean
+            Return token.Kind() = SyntaxKind.DocumentationCommentLineBreakToken
+        End Function
+
+        Private Shared Function IsWhitespace(text As String) As Boolean
+            For Each c In text
+                If Not SyntaxFacts.IsWhitespace(c) Then
+                    Return False
+                End If
+            Next
+
+            Return True
         End Function
     End Class
 End Namespace

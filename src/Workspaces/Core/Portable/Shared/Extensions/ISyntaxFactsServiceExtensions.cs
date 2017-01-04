@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsAnyMemberAccessExpression(
             this ISyntaxFactsService syntaxFacts, SyntaxNode node)
         {
-            return syntaxFacts.IsMemberAccessExpression(node) || syntaxFacts.IsPointerMemberAccessExpression(node);
+            return syntaxFacts.IsSimpleMemberAccessExpression(node) || syntaxFacts.IsPointerMemberAccessExpression(node);
         }
     }
 }

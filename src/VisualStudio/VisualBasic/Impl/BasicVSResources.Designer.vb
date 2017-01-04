@@ -326,6 +326,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &apos;nothing&apos; checking:.
+        '''</summary>
+        Friend Shared ReadOnly Property nothing_checking_colon() As String
+            Get
+                Return ResourceManager.GetString("nothing_checking_colon", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to _Only add new line on enter after end of fully typed word.
         '''</summary>
         Friend Shared ReadOnly Property Only_add_new_line_on_enter_after_end_of_fully_typed_word() As String
@@ -340,15 +349,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Optimize_for_solution_size() As String
             Get
                 Return ResourceManager.GetString("Optimize_for_solution_size", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Outlining.
-        '''</summary>
-        Friend Shared ReadOnly Property Outlining() As String
-            Get
-                Return ResourceManager.GetString("Outlining", resourceCulture)
             End Get
         End Property
         
@@ -369,7 +369,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 Return ResourceManager.GetString("Place_System_directives_first_when_sorting_imports", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to Predefined type preferences:.
         '''</summary>

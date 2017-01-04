@@ -387,7 +387,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns True when field symbol is not mapped directly to a field in the underlying tuple struct.
         /// </summary>
-        internal virtual bool IsVirtualTupleField
+        public virtual bool IsVirtualTupleField
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if this is a field representing a Default element like Item1, Item2...
+        /// </summary>
+        public virtual bool IsDefaultTupleElement
         {
             get
             {
@@ -409,9 +420,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// If this field represents a tuple element, returns a corresponding default element field.
+        /// Otherwise returns null.
+        /// </summary>
+        public virtual FieldSymbol CorrespondingTupleField
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// If this is a field representing a tuple element,
         /// returns the index of the element (zero-based).
-        /// Otherwise, a negative number.
+        /// Otherwise returns -1
         /// </summary>
         public virtual int TupleElementIndex
         {
@@ -447,6 +470,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         IFieldSymbol IFieldSymbol.OriginalDefinition
         {
             get { return this.OriginalDefinition; }
+        }
+
+        IFieldSymbol IFieldSymbol.CorrespondingTupleField
+        {
+            get { return this.CorrespondingTupleField; }
         }
 
         #endregion

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 
 #pragma warning disable RS0010 // Avoid using cref tags with a prefix
@@ -71,10 +72,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             }
 
             int offset = 0;
-
-            byte globalVersion;
-            byte globalCount;
-            ReadGlobalHeader(customDebugInfo, ref offset, out globalVersion, out globalCount);
+            ReadGlobalHeader(customDebugInfo, ref offset, out var globalVersion, out var globalCount);
 
             if (globalVersion != CustomDebugInfoConstants.Version)
             {
@@ -83,22 +81,22 @@ namespace Microsoft.CodeAnalysis.Debugging
 
             while (offset <= customDebugInfo.Length - CustomDebugInfoConstants.RecordHeaderSize)
             {
-                byte version;
-                CustomDebugInfoKind kind;
-                int size;
-                int alignmentSize;
-
-                ReadRecordHeader(customDebugInfo, ref offset, out version, out kind, out size, out alignmentSize);
+                ReadRecordHeader(customDebugInfo, ref offset, out var version, out var kind, out var size, out var alignmentSize);
                 if (size < CustomDebugInfoConstants.RecordHeaderSize)
                 {
                     throw new InvalidOperationException("Invalid header.");
                 }
 
-                if (kind != CustomDebugInfoKind.EditAndContinueLambdaMap &&
-                    kind != CustomDebugInfoKind.EditAndContinueLocalSlotMap)
+                switch (kind)
                 {
-                    // ignore alignment for CDIs that don't support it
-                    alignmentSize = 0;
+                    case CustomDebugInfoKind.EditAndContinueLambdaMap:
+                    case CustomDebugInfoKind.EditAndContinueLocalSlotMap:
+                    case CustomDebugInfoKind.TupleElementNames:
+                        break;
+                    default:
+                        // ignore alignment for CDIs that don't support it
+                        alignmentSize = 0;
+                        break;
                 }
 
                 int bodySize = size - CustomDebugInfoConstants.RecordHeaderSize;
@@ -269,6 +267,37 @@ namespace Microsoft.CodeAnalysis.Debugging
             }
 
             return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Tuple element names for locals.
+        /// </summary>
+        public static ImmutableArray<TupleElementNamesInfo> DecodeTupleElementNamesRecord(ImmutableArray<byte> bytes)
+        {
+            int offset = 0;
+            int n = ReadInt32(bytes, ref offset);
+            var builder = ArrayBuilder<TupleElementNamesInfo>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                builder.Add(DecodeTupleElementNamesInfo(bytes, ref offset));
+            }
+            return builder.ToImmutableAndFree();
+        }
+
+        private static TupleElementNamesInfo DecodeTupleElementNamesInfo(ImmutableArray<byte> bytes, ref int offset)
+        {
+            int n = ReadInt32(bytes, ref offset);
+            var builder = ArrayBuilder<string>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                var value = ReadUtf8String(bytes, ref offset);
+                builder.Add(string.IsNullOrEmpty(value) ? null : value);
+            }
+            int slotIndex = ReadInt32(bytes, ref offset);
+            int scopeStart = ReadInt32(bytes, ref offset);
+            int scopeEnd = ReadInt32(bytes, ref offset);
+            var localName = ReadUtf8String(bytes, ref offset);
+            return new TupleElementNamesInfo(builder.ToImmutableAndFree(), slotIndex, localName, scopeStart, scopeEnd);
         }
 
         /// <summary>
@@ -466,8 +495,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 char ch1 = importString[1];
                 if ('0' <= ch1 && ch1 <= '9')
                 {
-                    int tempMethodToken;
-                    if (int.TryParse(importString.Substring(1), NumberStyles.None, CultureInfo.InvariantCulture, out tempMethodToken))
+                    if (int.TryParse(importString.Substring(1), NumberStyles.None, CultureInfo.InvariantCulture, out var tempMethodToken))
                     {
                         importStrings = getMethodImportStrings(tempMethodToken, arg);
                         Debug.Assert(!importStrings.IsDefault);
@@ -814,6 +842,25 @@ namespace Microsoft.CodeAnalysis.Debugging
         private static string FormatMethodToken(int methodToken)
         {
             return string.Format("0x{0:x8}", methodToken);
+        }
+
+        /// <summary>
+        /// Read UTF8 string with null terminator.
+        /// </summary>
+        private static string ReadUtf8String(ImmutableArray<byte> bytes, ref int offset)
+        {
+            var builder = ArrayBuilder<byte>.GetInstance();
+            while (true)
+            {
+                var b = ReadByte(bytes, ref offset);
+                if (b == 0)
+                {
+                    break;
+                }
+                builder.Add(b);
+            }
+            var block = builder.ToArrayAndFree();
+            return Encoding.UTF8.GetString(block, 0, block.Length);
         }
     }
 }

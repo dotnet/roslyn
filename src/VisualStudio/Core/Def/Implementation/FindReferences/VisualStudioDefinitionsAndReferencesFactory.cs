@@ -1,10 +1,12 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -12,7 +14,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
-using OLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 {
@@ -32,17 +33,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             Solution solution, ISymbol definition)
         {
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
-            string filePath;
-            int lineNumber, charOffset;
-            if (!symbolNavigationService.WouldNavigateToSymbol(definition, solution, out filePath, out lineNumber, out charOffset))
+            if (!symbolNavigationService.WouldNavigateToSymbol(definition, solution, out var filePath, out var lineNumber, out var charOffset))
             {
                 return null;
             }
 
             var displayParts = GetDisplayParts(filePath, lineNumber, charOffset);
             return new ExternalDefinitionItem(
-                GlyphTags.GetTags(definition.GetGlyph()),
-                displayParts, _serviceProvider, filePath, lineNumber, charOffset);
+                GlyphTags.GetTags(definition.GetGlyph()), displayParts,
+                _serviceProvider, filePath, lineNumber, charOffset);
         }
 
         private ImmutableArray<TaggedText> GetDisplayParts(
@@ -64,12 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 _serviceProvider, filePath, needsSave: false, needsUndoDisabled: false))
             {
                 var vsTextLines = invisibleEditor.VsTextLines;
-                int lineLength;
-                string lineText;
-
                 if (vsTextLines != null &&
-                    vsTextLines.GetLengthOfLine(lineNumber, out lineLength) == VSConstants.S_OK &&
-                    vsTextLines.GetLineText(lineNumber, 0, lineNumber, lineLength, out lineText) == VSConstants.S_OK)
+                    vsTextLines.GetLengthOfLine(lineNumber, out var lineLength) == VSConstants.S_OK &&
+                    vsTextLines.GetLineText(lineNumber, 0, lineNumber, lineLength, out var lineText) == VSConstants.S_OK)
                 {
                     return lineText;
                 }
@@ -94,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 string filePath,
                 int lineNumber,
                 int charOffset) 
-                : base(tags, displayParts)
+                : base(tags, displayParts, ImmutableArray<TaggedText>.Empty)
             {
                 _serviceProvider = serviceProvider;
                 _filePath = filePath;
@@ -113,13 +109,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             {
                 var shellOpenDocument = (IVsUIShellOpenDocument)_serviceProvider.GetService(typeof(SVsUIShellOpenDocument));
                 var textViewGuid = VSConstants.LOGVIEWID.TextView_guid;
-
-                uint itemid;
-                IVsUIHierarchy hierarchy;
-                OLEServiceProvider oleServiceProvider;
-                IVsWindowFrame frame;
                 if (shellOpenDocument.OpenDocumentViaProject(
-                    _filePath, ref textViewGuid, out oleServiceProvider, out hierarchy, out itemid, out frame) == VSConstants.S_OK)
+                        _filePath, ref textViewGuid, out var oleServiceProvider, 
+                        out var hierarchy, out var itemid, out var frame) == VSConstants.S_OK)
                 {
                     frame.Show();
                     return true;
@@ -131,13 +123,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             private bool TryNavigateToPosition()
             {
                 IVsRunningDocumentTable docTable = (IVsRunningDocumentTable)_serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-
-                IntPtr bufferPtr;
-                IVsHierarchy hierarchy;
-                uint cookie;
-                uint itemid;
-
-                if (docTable.FindAndLockDocument((uint)_VSRDTFLAGS.RDT_NoLock, _filePath, out hierarchy, out itemid, out bufferPtr, out cookie) != VSConstants.S_OK)
+                if (docTable.FindAndLockDocument((uint)_VSRDTFLAGS.RDT_NoLock, _filePath,
+                        out var hierarchy, out var itemid, out var bufferPtr, out var cookie) != VSConstants.S_OK)
                 {
                     return false;
                 }

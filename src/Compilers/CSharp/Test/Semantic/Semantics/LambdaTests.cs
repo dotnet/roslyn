@@ -1638,8 +1638,8 @@ namespace RoslynAsyncDelegate
 
             var lambdaParameters = ((MethodSymbol)(model.GetSymbolInfo(node1)).Symbol).Parameters;
 
-            Assert.Equal("System.Object <sender>", lambdaParameters[0].ToTestDisplayString());
-            Assert.Equal("System.EventArgs <e>", lambdaParameters[1].ToTestDisplayString());
+            Assert.Equal("System.Object <p0>", lambdaParameters[0].ToTestDisplayString());
+            Assert.Equal("System.EventArgs <p1>", lambdaParameters[1].ToTestDisplayString());
 
             CompileAndVerify(compilation);
         }
@@ -2270,6 +2270,182 @@ class Program
                 Assert.Equal("String", typeInfo.Type.Name);
                 Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
             }
+        }
+
+        [Fact]
+        [WorkItem(13797, "https://github.com/dotnet/roslyn/issues/13797")]
+        public void DelegateAsAction()
+        {
+            var source = @"
+using System;
+
+public static class C
+{
+    public static void M() => Dispatch(delegate { });
+
+    public static T Dispatch<T>(Func<T> func) => default(T);
+
+    public static void Dispatch(Action func) { }
+}";
+            var comp = CreateCompilationWithMscorlib(source);
+            CompileAndVerify(comp);
+        }
+
+        [Fact, WorkItem(278481, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=278481")]
+        public void LambdaReturningNull_1()
+        {
+            var src = @"
+public static class ExtensionMethods
+{
+    public static System.Linq.IQueryable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Linq.IQueryable<TOuter> outerValues,
+        System.Linq.IQueryable<TInner> innerValues,
+        System.Linq.Expressions.Expression<System.Func<TOuter, TKey>> outerKeySelector,
+        System.Linq.Expressions.Expression<System.Func<TInner, TKey>> innerKeySelector,
+        System.Linq.Expressions.Expression<System.Func<TOuter, TInner, TResult>> fullResultSelector,
+        System.Linq.Expressions.Expression<System.Func<TOuter, TResult>> partialResultSelector,
+        System.Collections.Generic.IEqualityComparer<TKey> comparer)
+    { return null; }
+
+    public static System.Linq.IQueryable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Linq.IQueryable<TOuter> outerValues, 
+        System.Linq.IQueryable<TInner> innerValues, 
+        System.Linq.Expressions.Expression<System.Func<TOuter, TKey>> outerKeySelector, 
+        System.Linq.Expressions.Expression<System.Func<TInner, TKey>> innerKeySelector, 
+        System.Linq.Expressions.Expression<System.Func<TOuter, TInner, TResult>> fullResultSelector, 
+        System.Linq.Expressions.Expression<System.Func<TOuter, TResult>> partialResultSelector)
+    {
+        System.Console.WriteLine(""1""); 
+        return null; 
+    }
+
+    public static System.Collections.Generic.IEnumerable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Collections.Generic.IEnumerable<TOuter> outerValues, 
+        System.Linq.IQueryable<TInner> innerValues, 
+        System.Func<TOuter, TKey> outerKeySelector, 
+        System.Func<TInner, TKey> innerKeySelector, 
+        System.Func<TOuter, TInner, TResult> fullResultSelector, 
+        System.Func<TOuter, TResult> partialResultSelector)
+    {
+        System.Console.WriteLine(""2""); 
+        return null; 
+    }
+
+    public static System.Collections.Generic.IEnumerable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Collections.Generic.IEnumerable<TOuter> outerQueryable,
+        System.Collections.Generic.IEnumerable<TInner> innerQueryable,
+        System.Func<TOuter, TKey> outerKeySelector,
+        System.Func<TInner, TKey> innerKeySelector,
+        System.Func<TOuter, TInner, TResult> resultSelector)
+    { return null; }
+}
+
+partial class C
+{
+    public static void Main()
+    {
+        System.Linq.IQueryable<A> outerValue = null;
+        System.Linq.IQueryable<B> innerValues = null;
+
+        outerValue.LeftOuterJoin(innerValues,
+                    co => co.id,
+                    coa => coa.id,
+                    (co, coa) => null,
+                    co => co);
+    }
+}
+
+class A
+{
+    public int id=2;
+}
+
+class B
+{
+    public int id = 2;
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "1");
+        }
+
+        [Fact, WorkItem(296550, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=296550")]
+        public void LambdaReturningNull_2()
+        {
+            var src = @"
+class Test1<T>
+    {
+        public void M1(System.Func<T> x) {}
+        public void M1<S>(System.Func<S> x) {}
+        public void M2<S>(System.Func<S> x) {}
+        public void M2(System.Func<T> x) {}
+    }
+
+    class Test2 : Test1<System.>
+    {
+        void Main()
+        {
+            M1(()=> null);
+            M2(()=> null);
+        }
+    }
+";
+            var comp = CreateCompilationWithMscorlib(src, options: TestOptions.DebugDll);
+
+            comp.VerifyDiagnostics(
+                // (10,32): error CS1001: Identifier expected
+                //     class Test2 : Test1<System.>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(10, 32)
+                );
+        }
+
+        [Fact]
+        public void ThrowExpression_Lambda()
+        {
+            var src = @"using System;
+class C
+{
+    public static void Main()
+    {
+        Action a = () => throw new Exception(""1"");
+        try
+        {
+            a();
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+        Func<int, int> b = x => throw new Exception(""2"");
+        try
+        {
+            b(0);
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+        b = (int x) => throw new Exception(""3"");
+        try
+        {
+            b(0);
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+        b = (x) => throw new Exception(""4"");
+        try
+        {
+            b(0);
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "1234");
         }
     }
 }

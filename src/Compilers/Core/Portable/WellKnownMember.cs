@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis
         System_CLSCompliantAttribute__ctor,
         System_FlagsAttribute__ctor,
         System_Guid__ctor,
-        System_Guid__Parse,
 
         System_Type__GetTypeFromCLSID,
         System_Type__GetTypeFromHandle,

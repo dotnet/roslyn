@@ -262,9 +262,15 @@ class C
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.AttributeLists.Count);
             Assert.Equal(0, file.Members.Count);
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
+            Assert.Equal(3, file.Errors().Length);
+            file.Errors().Verify(
+                // error CS1056: Unexpected character '$'
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("$"),
+                // error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments(",", ""),
+                // error CS1003: Syntax error, ']' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", "")
+                );
         }
 
         [Fact]
@@ -4109,8 +4115,12 @@ class C
             Assert.NotNull(ms.Body);
             Assert.Equal(1, ms.Body.Statements.Count);
             Assert.Equal(SyntaxKind.DoStatement, ms.Body.Statements[0].Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            file.Errors().Verify(
+                // error CS1003: Syntax error, ']' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", ")").WithLocation(1, 1),
+                // error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -4275,8 +4285,12 @@ class C
             Assert.NotNull(ms.Body);
             Assert.Equal(1, ms.Body.Statements.Count);
             Assert.Equal(SyntaxKind.ForStatement, ms.Body.Statements[0].Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            file.Errors().Verify(
+                // error CS1003: Syntax error, ']' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", ")").WithLocation(1, 1),
+                // error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -5294,13 +5308,13 @@ class C
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
-            Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(5, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_TypeExpected, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[3].Code);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[4].Code);
+            Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            file.Errors().Verify(
+                // error CS1525: Invalid expression term ';'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm).WithArguments(";").WithLocation(1, 1),
+                // error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -5385,14 +5399,15 @@ class C
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
-            Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(6, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_TypeExpected, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[3].Code);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[4].Code);
-            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[5].Code);
+            Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            file.Errors().Verify(
+                // error CS1525: Invalid expression term 'while'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm).WithArguments("while").WithLocation(1, 1),
+                // error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1),
+                // error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected).WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -5541,7 +5556,7 @@ class C
             Assert.True(acc.SemicolonToken.IsMissing);
 
             Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_SemiOrLBraceExpected, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemiOrLBraceOrArrowExpected, file.Errors()[0].Code);
             Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[1].Code);
         }
 
@@ -5652,7 +5667,7 @@ class C
             Assert.False(getBodyStmts[0].ContainsDiagnostics);
 
             Assert.Equal(1, file.Errors().Length);
-            Assert.Equal(ErrorCode.ERR_SemiOrLBraceExpected, (ErrorCode)file.Errors()[0].Code);
+            Assert.Equal(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, (ErrorCode)file.Errors()[0].Code);
         }
 
         [Fact]
@@ -5682,8 +5697,8 @@ class C
             Assert.True(setDecl.SemicolonToken.IsMissing);
 
             Assert.Equal(2, file.Errors().Length);
-            Assert.Equal(ErrorCode.ERR_SemiOrLBraceExpected, (ErrorCode)file.Errors()[0].Code);
-            Assert.Equal(ErrorCode.ERR_SemiOrLBraceExpected, (ErrorCode)file.Errors()[1].Code);
+            Assert.Equal(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, (ErrorCode)file.Errors()[0].Code);
+            Assert.Equal(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, (ErrorCode)file.Errors()[1].Code);
         }
 
         [Fact]
@@ -6710,7 +6725,7 @@ class C
 
                 // (4,17): error CS1043: { or ; expected
                 //     int P { set . } }
-                Diagnostic(ErrorCode.ERR_SemiOrLBraceExpected, "."),
+                Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "."),
 
                 // We see this diagnostic because we're trying to skip bad tokens in the block and 
                 // the "expected" token (i.e. the one we report when we see something that's not a

@@ -97,8 +97,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         internal TNode GetParent(TNode node)
         {
-            TNode parent;
-            bool hasParent = TryGetParent(node, out parent);
+            bool hasParent = TryGetParent(node, out var parent);
             Debug.Assert(hasParent);
             return parent;
         }

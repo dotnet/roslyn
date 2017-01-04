@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if ((object)set != treeFeatures && !set.SetEquals(treeFeatures))
                     {
-                        throw new ArgumentException("inconsistent syntax tree features", nameof(trees));
+                        throw new ArgumentException(CodeAnalysisResources.InconsistentSyntaxTreeFeature, nameof(trees));
                     }
                 }
             }
@@ -461,14 +461,15 @@ namespace Microsoft.CodeAnalysis
                 var reference = result[i];
                 if (reference == null)
                 {
-                    throw new ArgumentNullException("references[" + i + "]");
+                    throw new ArgumentNullException($"{nameof(references)}[{i}]");
                 }
 
                 var peReference = reference as PortableExecutableReference;
                 if (peReference == null && !(reference is T))
                 {
                     Debug.Assert(reference is UnresolvedMetadataReference || reference is CompilationReference);
-                    throw new ArgumentException(String.Format("Reference of type '{0}' is not valid for this compilation.", reference.GetType()), "references[" + i + "]");
+                    throw new ArgumentException(string.Format(CodeAnalysisResources.ReferenceOfTypeIsInvalid1, reference.GetType()),
+                                    $"{nameof(references)}[{i}]");
                 }
             }
 
@@ -500,7 +501,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Maps values of #r references to resolved metadata references.
         /// </summary>
-        internal abstract IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap { get; }
+        internal abstract IDictionary<(string path, string content), MetadataReference> ReferenceDirectiveMap { get; }
 
         /// <summary>
         /// All metadata references -- references passed to the compilation
@@ -627,7 +628,8 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!refSet.Remove(r))
                 {
-                    throw new ArgumentException($"MetadataReference '{r}' not found to remove", nameof(references));
+                    throw new ArgumentException(string.Format(CodeAnalysisResources.MetadataRefNotFoundToRemove1, r),
+                                nameof(references));
                 }
             }
 
@@ -824,19 +826,94 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract INamedTypeSymbol CommonGetTypeByMetadataName(string metadataName);
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Returns a new INamedTypeSymbol with the given element types and (optional) element names.
         /// </summary>
-        /// <remarks>
-        /// Since VB doesn't support tuples yet, this call will fail in a VB compilation.
-        /// </remarks>
-        public INamedTypeSymbol CreateTupleTypeSymbol(ImmutableArray<ITypeSymbol> elementTypes, ImmutableArray<string> elementNames = default(ImmutableArray<string>))
+        public INamedTypeSymbol CreateTupleTypeSymbol(
+            ImmutableArray<ITypeSymbol> elementTypes, 
+            ImmutableArray<string> elementNames = default(ImmutableArray<string>),
+            ImmutableArray<Location> elementLocations = default(ImmutableArray<Location>))
         {
-            return CommonCreateTupleTypeSymbol(elementTypes, elementNames);
+            if (elementTypes.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(elementTypes));
+            }
+
+            if (elementTypes.Length <= 1)
+            {
+                throw new ArgumentException(CodeAnalysisResources.TuplesNeedAtLeastTwoElements, nameof(elementNames));
+            }
+
+            elementNames = CheckTupleElementNames(elementTypes.Length, elementNames);
+            CheckTupleElementLocations(elementTypes.Length, elementLocations);
+
+            for (int i = 0, n = elementTypes.Length; i < n; i++)
+            {
+                if (elementTypes[i] == null)
+                {
+                    throw new ArgumentNullException($"{nameof(elementTypes)}[{i}]");
+                }
+
+                if (!elementLocations.IsDefault && elementLocations[i] == null)
+                {
+                    throw new ArgumentNullException($"{nameof(elementLocations)}[{i}]");
+                }
+            }
+
+            return CommonCreateTupleTypeSymbol(elementTypes, elementNames, elementLocations);
+        }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+
+        /// <summary>
+        /// Check that if any names are provided, and their number matches the expected cardinality.
+        /// Returns a normalized version of the element names (empty array if all the names are null).
+        /// </summary>
+        protected static ImmutableArray<string> CheckTupleElementNames(int cardinality, ImmutableArray<string> elementNames)
+        {
+            if (!elementNames.IsDefault)
+            {
+                if (elementNames.Length != cardinality)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.TupleElementNameCountMismatch, nameof(elementNames));
+                }
+
+                for (int i = 0; i < elementNames.Length; i++)
+                {
+                    if (elementNames[i] == "")
+                    {
+                        throw new ArgumentException(CodeAnalysisResources.TupleElementNameEmpty, $"{nameof(elementNames)}[{i}]");
+                    }
+                }
+
+                if (elementNames.All(n => n == null))
+                {
+                    return default(ImmutableArray<string>);
+                }
+            }
+
+            return elementNames;
         }
 
-        protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(ImmutableArray<ITypeSymbol> elementTypes, ImmutableArray<string> elementNames);
+        protected static void CheckTupleElementLocations(
+            int cardinality, 
+            ImmutableArray<Location> elementLocations)
+        {
+            if (!elementLocations.IsDefault)
+            {
+                if (elementLocations.Length != cardinality)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.TupleElementLocationCountMismatch, nameof(elementLocations));
+                }
+            }
+        }
 
+        protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(
+            ImmutableArray<ITypeSymbol> elementTypes, 
+            ImmutableArray<string> elementNames,
+            ImmutableArray<Location> elementLocations);
+
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Returns a new INamedTypeSymbol with the given underlying type and (optional) element names.
         /// </summary>
@@ -844,18 +921,39 @@ namespace Microsoft.CodeAnalysis
         /// Since VB doesn't support tuples yet, this call will fail in a VB compilation.
         /// Also, the underlying type needs to be tuple-compatible.
         /// </remarks>
-        public INamedTypeSymbol CreateTupleTypeSymbol(INamedTypeSymbol underlyingType, ImmutableArray<string> elementNames = default(ImmutableArray<string>))
+        public INamedTypeSymbol CreateTupleTypeSymbol(
+            INamedTypeSymbol underlyingType, 
+            ImmutableArray<string> elementNames = default(ImmutableArray<string>),
+            ImmutableArray<Location> elementLocations = default(ImmutableArray<Location>))
         {
-            return CommonCreateTupleTypeSymbol(underlyingType, elementNames);
-        }
+            if ((object)underlyingType == null)
+            {
+                throw new ArgumentNullException(nameof(underlyingType));
+            }
 
-        protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(INamedTypeSymbol underlyingType, ImmutableArray<string> elementNames);
+            return CommonCreateTupleTypeSymbol(
+                underlyingType, elementNames, elementLocations);
+        }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+
+        protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(
+            INamedTypeSymbol underlyingType, 
+            ImmutableArray<string> elementNames,
+            ImmutableArray<Location> elementLocations);
 
         /// <summary>
         /// Returns a new anonymous type symbol with the given member types member names.
+        /// Anonymous type members will be readonly by default.  Writable properties are
+        /// supported in VB and can be created by passing in <code>false</code> in the 
+        /// appropriate locations in <paramref name="memberIsReadOnly"/>. 
+        /// 
+        /// Source locations can also be provided through <paramref name="memberLocations"/>
         /// </summary>
         public INamedTypeSymbol CreateAnonymousTypeSymbol(
-            ImmutableArray<ITypeSymbol> memberTypes, ImmutableArray<string> memberNames)
+            ImmutableArray<ITypeSymbol> memberTypes,
+            ImmutableArray<string> memberNames,
+            ImmutableArray<bool> memberIsReadOnly = default(ImmutableArray<bool>),
+            ImmutableArray<Location> memberLocations = default(ImmutableArray<Location>))
         {
             if (memberTypes.IsDefault)
             {
@@ -869,7 +967,20 @@ namespace Microsoft.CodeAnalysis
 
             if (memberTypes.Length != memberNames.Length)
             {
-                throw new ArgumentException($"{nameof(memberTypes)} and {nameof(memberNames)} must have the same length.");
+                throw new ArgumentException(string.Format(CodeAnalysisResources.AnonymousTypeMemberAndNamesCountMismatch2,
+                                                    nameof(memberTypes), nameof(memberNames)));
+            }
+
+            if (!memberLocations.IsDefault && memberLocations.Length != memberTypes.Length)
+            {
+                throw new ArgumentException(string.Format(CodeAnalysisResources.AnonymousTypeArgumentCountMismatch2,
+                                                    nameof(memberLocations), nameof(memberNames)));
+            }
+
+            if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Length != memberTypes.Length)
+            {
+                throw new ArgumentException(string.Format(CodeAnalysisResources.AnonymousTypeArgumentCountMismatch2,
+                                                    nameof(memberIsReadOnly), nameof(memberNames)));
             }
 
             for (int i = 0, n = memberTypes.Length; i < n; i++)
@@ -883,13 +994,21 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw new ArgumentNullException($"{nameof(memberNames)}[{i}]");
                 }
+
+                if (!memberLocations.IsDefault && memberLocations[i] == null)
+                {
+                    throw new ArgumentNullException($"{nameof(memberLocations)}[{i}]");
+                }
             }
 
-            return CommonCreateAnonymousTypeSymbol(memberTypes, memberNames);
+            return CommonCreateAnonymousTypeSymbol(memberTypes, memberNames, memberLocations, memberIsReadOnly);
         }
 
         protected abstract INamedTypeSymbol CommonCreateAnonymousTypeSymbol(
-            ImmutableArray<ITypeSymbol> memberTypes, ImmutableArray<string> memberNames);
+            ImmutableArray<ITypeSymbol> memberTypes, 
+            ImmutableArray<string> memberNames,
+            ImmutableArray<Location> memberLocations,
+            ImmutableArray<bool> memberIsReadOnly);
 
         #endregion
 
@@ -1165,8 +1284,25 @@ namespace Microsoft.CodeAnalysis
             if (win32Resources == null)
                 return;
 
-            switch (DetectWin32ResourceForm(win32Resources))
+            Win32ResourceForm resourceForm;
+
+            try
             {
+                resourceForm = DetectWin32ResourceForm(win32Resources);
+            }
+            catch (EndOfStreamException)
+            {
+                diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_BadWin32Resource, NoLocation.Singleton, CodeAnalysisResources.UnrecognizedResourceFileFormat));
+                return;
+            }
+            catch (Exception ex)
+            {
+                diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_BadWin32Resource, NoLocation.Singleton, ex.Message));
+                return;
+            }
+
+            switch (resourceForm)
+            { 
                 case Win32ResourceForm.COFF:
                     moduleBeingBuilt.Win32ResourceSection = MakeWin32ResourcesFromCOFF(win32Resources, diagnostics);
                     break;
@@ -2549,5 +2685,36 @@ namespace Microsoft.CodeAnalysis
         }
         
         internal abstract bool IsIOperationFeatureEnabled();
+
+        /// <summary>
+        /// Given a <see cref="Diagnostic"/> reporting unreferenced <see cref="AssemblyIdentity"/>s, returns
+        /// the actual <see cref="AssemblyIdentity"/> instances that were not referenced.
+        /// </summary>
+        public ImmutableArray<AssemblyIdentity> GetUnreferencedAssemblyIdentities(Diagnostic diagnostic)
+        {
+            if (diagnostic == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostic));
+            }
+
+            if (!IsUnreferencedAssemblyIdentityDiagnosticCode(diagnostic.Code))
+            {
+                return ImmutableArray<AssemblyIdentity>.Empty;
+            }
+
+            var builder = ArrayBuilder<AssemblyIdentity>.GetInstance();
+
+            foreach (var argument in diagnostic.Arguments)
+            {
+                if (argument is AssemblyIdentity id)
+                {
+                    builder.Add(id);
+                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        internal abstract bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code);
     }
 }

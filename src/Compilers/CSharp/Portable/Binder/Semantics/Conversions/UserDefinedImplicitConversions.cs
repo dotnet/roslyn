@@ -600,6 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Added for C# 7.
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitTuple:
+                case ConversionKind.ImplicitThrow:
                     return true;
 
                 case ConversionKind.ExplicitTupleLiteral:

@@ -7,14 +7,14 @@ namespace Microsoft.CodeAnalysis.Debugging
         public readonly int FlagCount;
         public readonly ulong Flags;
         public readonly int SlotId;
-        public readonly string Name;
+        public readonly string LocalName;
 
-        public DynamicLocalInfo(int flagCount, ulong flags, int slotId, string name)
+        public DynamicLocalInfo(int flagCount, ulong flags, int slotId, string localName)
         {
             FlagCount = flagCount;
             Flags = flags;
             SlotId = slotId;
-            Name = name;
+            LocalName = localName;
         }
     }
 }

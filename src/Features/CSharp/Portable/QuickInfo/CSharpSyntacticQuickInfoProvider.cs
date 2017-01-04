@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.QuickInfo;
 using System.Collections.Immutable;
@@ -81,10 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
         private static void MarkInterestedSpanNearbyScopeBlock(SyntaxNode block, SyntaxToken openBrace, ref int spanStart, ref int spanEnd)
         {
-            SyntaxTrivia nearbyComment;
-
             var searchListAbove = openBrace.LeadingTrivia.Reverse();
-            if (TryFindFurthestNearbyComment(ref searchListAbove, out nearbyComment))
+            if (TryFindFurthestNearbyComment(ref searchListAbove, out var nearbyComment))
             {
                 spanStart = nearbyComment.SpanStart;
                 return;
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
             foreach (var trivia in triviaSearchList)
             {
-                if (IsCommentTrivia(trivia))
+                if (trivia.IsSingleOrMultiLineComment())
                 {
                     nearbyTrivia = trivia;
                 }
@@ -116,12 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 }
             }
 
-            return IsCommentTrivia(nearbyTrivia);
-        }
-
-        private static bool IsCommentTrivia(SyntaxTrivia trivia)
-        {
-            return trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
+            return nearbyTrivia.IsSingleOrMultiLineComment();
         }
     }
 }

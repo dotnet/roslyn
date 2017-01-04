@@ -59,28 +59,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal struct TupleTypeDecoder
     {
-        private readonly AssemblySymbol _containingAssembly;
         private readonly ImmutableArray<string> _elementNames;
         // Keep track of how many names we've "used" during decoding. Starts at
         // the back of the array and moves forward.
         private int _namesIndex;
 
-        private TupleTypeDecoder(ImmutableArray<string> elementNames, AssemblySymbol containingAssembly)
+        private TupleTypeDecoder(ImmutableArray<string> elementNames)
         {
-            _containingAssembly = containingAssembly;
             _elementNames = elementNames;
             _namesIndex = elementNames.IsDefault ? 0 : elementNames.Length;
         }
 
         public static TypeSymbol DecodeTupleTypesIfApplicable(
             TypeSymbol metadataType,
-            EntityHandle targetSymbolToken,
+            EntityHandle targetHandle,
             PEModuleSymbol containingModule)
         {
             ImmutableArray<string> elementNames;
             var hasTupleElementNamesAttribute = containingModule
                 .Module
-                .HasTupleElementNamesAttribute(targetSymbolToken, out elementNames);
+                .HasTupleElementNamesAttribute(targetHandle, out elementNames);
 
             // If we have the TupleElementNamesAttribute, but no names, that's
             // bad metadata
@@ -89,23 +87,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return new UnsupportedMetadataTypeSymbol();
             }
 
-            return DecodeTupleTypesInternal(metadataType, containingModule.ContainingAssembly, elementNames, hasTupleElementNamesAttribute);
+            return DecodeTupleTypesInternal(metadataType, elementNames, hasTupleElementNamesAttribute);
         }
 
         public static TypeSymbol DecodeTupleTypesIfApplicable(
             TypeSymbol metadataType,
-            AssemblySymbol containingAssembly,
             ImmutableArray<string> elementNames)
         {
-            return DecodeTupleTypesInternal(metadataType, containingAssembly, elementNames, hasTupleElementNamesAttribute: !elementNames.IsDefaultOrEmpty);
+            return DecodeTupleTypesInternal(metadataType, elementNames, hasTupleElementNamesAttribute: !elementNames.IsDefaultOrEmpty);
         }
 
-        private static TypeSymbol DecodeTupleTypesInternal(TypeSymbol metadataType, AssemblySymbol containingAssembly, ImmutableArray<string> elementNames, bool hasTupleElementNamesAttribute)
+        private static TypeSymbol DecodeTupleTypesInternal(TypeSymbol metadataType, ImmutableArray<string> elementNames, bool hasTupleElementNamesAttribute)
         {
             Debug.Assert((object)metadataType != null);
-            Debug.Assert((object)containingAssembly != null);
 
-            var decoder = new TupleTypeDecoder(elementNames, containingAssembly);
+            var decoder = new TupleTypeDecoder(elementNames);
             try
             {
                 var decoded = decoder.DecodeType(metadataType);
@@ -196,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (typeArgsChanged || containerChanged)
             {
                 var newTypeArgs = type.HasTypeArgumentsCustomModifiers
-                    ? decodedArgs.ZipAsArray(type.TypeArgumentsCustomModifiers, (t, m) => new TypeWithModifiers(t, m))
+                    ? decodedArgs.SelectAsArray((t, i, m) => new TypeWithModifiers(t, m.GetTypeArgumentCustomModifiers(i)), type)
                     : decodedArgs.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers);
 
                 if (containerChanged)
@@ -257,18 +253,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private ArrayTypeSymbol DecodeArrayType(ArrayTypeSymbol type)
         {
             var decodedElementType = DecodeType(type.ElementType);
-            return ReferenceEquals(decodedElementType, type)
+            return ReferenceEquals(decodedElementType, type.ElementType)
                 ? type
-                : type.IsSZArray
-                    ? ArrayTypeSymbol.CreateSZArray(_containingAssembly,
-                                                    decodedElementType,
-                                                    type.CustomModifiers)
-                    : ArrayTypeSymbol.CreateMDArray(_containingAssembly,
-                                                    decodedElementType,
-                                                    type.Rank,
-                                                    type.Sizes,
-                                                    type.LowerBounds,
-                                                    type.CustomModifiers);
+                : type.WithElementType(decodedElementType);
         }
 
         private ImmutableArray<string> EatElementNamesIfAvailable(int numberOfElements)

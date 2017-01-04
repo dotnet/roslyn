@@ -53,10 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         bool IOptionPersister.TryFetch(OptionKey optionKey, out object value)
         {
-            string path;
-            string key;
-
-            if (!TryGetKeyPathAndName(optionKey.Option, out path, out key))
+            if (!TryGetKeyPathAndName(optionKey.Option, out var path, out var key))
             {
                 value = null;
                 return false;
@@ -95,10 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 throw new InvalidOperationException();
             }
 
-            string path;
-            string key;
-
-            if (!TryGetKeyPathAndName(optionKey.Option, out path, out key))
+            if (!TryGetKeyPathAndName(optionKey.Option, out var path, out var key))
             {
                 value = null;
                 return false;

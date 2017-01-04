@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             internal static ImmutableArray<string> Format(IDocumentationCommentFormattingService docCommentFormattingService, DocumentationComment docComment)
             {
-                var formattedCommentLinesBuilder = ImmutableArray.CreateBuilder<string>();
+                var formattedCommentLinesBuilder = ArrayBuilder<string>.GetInstance();
                 var lineBuilder = new StringBuilder();
 
                 var formattedSummaryText = docCommentFormattingService.Format(docComment.SummaryText);
@@ -149,12 +149,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     formattedCommentLinesBuilder.RemoveAt(formattedCommentLinesBuilder.Count - 1);
                 }
 
-                return formattedCommentLinesBuilder.ToImmutable();
+                return formattedCommentLinesBuilder.ToImmutableAndFree();
             }
 
             private static ImmutableArray<string> CreateWrappedTextFromRawText(string rawText)
             {
-                var lines = ImmutableArray.CreateBuilder<string>();
+                var lines = ArrayBuilder<string>.GetInstance();
 
                 // First split the string into constituent lines.
                 var split = rawText.Split(new[] { "\r\n" }, System.StringSplitOptions.None);
@@ -165,10 +165,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     SplitRawLineIntoFormattedLines(item, lines);
                 }
 
-                return lines.ToImmutable();
+                return lines.ToImmutableAndFree();
             }
 
-            private static void SplitRawLineIntoFormattedLines(string line, ImmutableArray<string>.Builder lines)
+            private static void SplitRawLineIntoFormattedLines(
+                string line, ArrayBuilder<string> lines)
             {
                 var indent = new StringBuilder().Append(' ', s_indentSize * 2).ToString();
 

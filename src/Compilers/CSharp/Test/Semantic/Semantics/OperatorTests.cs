@@ -8810,5 +8810,48 @@ class MainClass
 
             compilation.VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(12345, "https://github.com/dotnet/roslyn/issues/12345")]
+        public void Bug12345()
+        {
+            string source = @"
+class EnumRepro
+{
+    public static void Main()
+    {
+        EnumWrapper<FlagsEnum> wrappedEnum = FlagsEnum.Foo;
+        wrappedEnum |= FlagsEnum.Bar;
+        System.Console.Write(wrappedEnum.Enum);
+    }
+}
+
+public struct EnumWrapper<T>
+    where T : struct
+{
+    public T? Enum { get; private set; }
+
+    public static implicit operator T? (EnumWrapper<T> safeEnum)
+    {
+        return safeEnum.Enum;
+    }
+
+    public static implicit operator EnumWrapper<T>(T source)
+    {
+        return new EnumWrapper<T> { Enum = source };
+    }
+}
+
+[System.Flags]
+public enum FlagsEnum
+{
+    None = 0,
+    Foo = 1,
+    Bar = 2,
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "Foo, Bar");
+            verifier.VerifyDiagnostics();
+        }
     }
 }

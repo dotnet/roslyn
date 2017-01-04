@@ -667,10 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         protected override bool ConversionsAreCompatible(ExpressionSyntax originalExpression, ITypeSymbol originalTargetType, ExpressionSyntax newExpression, ITypeSymbol newTargetType)
         {
-            Conversion? originalConversion = null;
-            Conversion? newConversion = null;
-
-            this.GetConversions(originalExpression, originalTargetType, newExpression, newTargetType, out originalConversion, out newConversion);
+            this.GetConversions(originalExpression, originalTargetType, newExpression, newTargetType, out var originalConversion, out var newConversion);
 
             if (originalConversion == null || newConversion == null)
             {

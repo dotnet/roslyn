@@ -35,23 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static BinderFlags GetFlags(MethodSymbol owner, Binder enclosing)
-        {
-            var flags = enclosing.Flags;
-
-            var isUnsafe = (owner as LocalFunctionSymbol)?.IsUnsafe;
-            if (isUnsafe.HasValue)
-            {
-                // only modify unsafe flag if owner has an explicit way of specifying unsafe-ness
-                // (i.e. lambdas retain the unsafe-ness of the containing block)
-                flags = (flags & ~BinderFlags.UnsafeRegion) | (isUnsafe.Value ? BinderFlags.UnsafeRegion : 0);
-            }
-
-            return flags;
-        }
-
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
-            : base(enclosing, GetFlags(owner, enclosing))
+            : base(enclosing)
         {
             Debug.Assert((object)owner != null);
             _methodSymbol = owner;
@@ -268,7 +253,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (parameterKind == SymbolKind.Parameter)
             {
-                if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
+                if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local ||
+                    (newSymbolKind == SymbolKind.Method &&
+                     ((MethodSymbol)newSymbol).MethodKind == MethodKind.LocalFunction))
                 {
                     // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                     diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
@@ -285,9 +272,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (parameterKind == SymbolKind.TypeParameter)
             {
-                if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
+                if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local ||
+                    (newSymbolKind == SymbolKind.Method && 
+                     ((MethodSymbol)newSymbol).MethodKind == MethodKind.LocalFunction))
                 {
-                    // CS0412: 'X': a parameter or local variable cannot have the same name as a method type parameter
+                    // CS0412: '{0}': a parameter, local variable, or local function cannot have the same name as a method type parameter
                     diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
                     return true;
                 }

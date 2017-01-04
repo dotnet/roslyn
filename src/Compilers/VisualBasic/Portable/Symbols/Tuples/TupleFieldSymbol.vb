@@ -15,7 +15,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected _containingTuple As TupleTypeSymbol
 
-        Private _tupleFieldId As Integer
+        ''' <summary>
+        ''' If this field represents a tuple element with index X, the field contains
+        '''  2X      if this field represents a Default-named element
+        '''  2X + 1  if this field represents a Friendly-named element
+        ''' Otherwise, (-1 - [index in members array]);
+        ''' </summary>
+        Private _tupleElementIndex As Integer
 
         Public Overrides ReadOnly Property IsTupleField As Boolean
             Get
@@ -29,9 +35,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public ReadOnly Property TupleFieldId As Integer
+        ''' <summary>
+        ''' If this is a field representing a tuple element,
+        ''' returns the index of the element (zero-based).
+        ''' Otherwise returns -1
+        ''' </summary>
+        Public Overrides ReadOnly Property TupleElementIndex As Integer
             Get
-                Return Me._tupleFieldId
+                If _tupleElementIndex < 0 Then
+                    Return -1
+                End If
+
+                Return _tupleElementIndex >> 1
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsDefaultTupleElement As Boolean
+            Get
+                ' not negative and even
+                Return (_tupleElementIndex And ((1 << 31) Or 1)) = 0
             End Get
         End Property
 
@@ -59,10 +81,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleFieldId As Integer)
+        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleElementIndex As Integer)
             MyBase.New(underlyingField)
-            Me._containingTuple = container
-            Me._tupleFieldId = tupleFieldId
+
+            Debug.Assert(container.UnderlyingNamedType.IsSameTypeIgnoringAll(underlyingField.ContainingType) OrElse TypeOf Me Is TupleVirtualElementFieldSymbol,
+                                            "virtual fields should be represented by " + NameOf(TupleVirtualElementFieldSymbol))
+
+            _containingTuple = container
+            _tupleElementIndex = tupleElementIndex
         End Sub
 
         Public Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
@@ -76,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(Me._containingTuple.GetHashCode(), Me._tupleFieldId.GetHashCode())
+            Return Hash.Combine(_containingTuple.GetHashCode(), _tupleElementIndex.GetHashCode())
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean
@@ -84,8 +110,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Function Equals(other As TupleFieldSymbol) As Boolean
-            Return other Is Me OrElse
-                (other IsNot Nothing AndAlso Me._tupleFieldId = other._tupleFieldId AndAlso Me._containingTuple = other._containingTuple)
+            Return other IsNot Nothing AndAlso
+                _tupleElementIndex = other._tupleElementIndex AndAlso
+                _containingTuple = other._containingTuple
         End Function
     End Class
 
@@ -98,6 +125,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private _locations As ImmutableArray(Of Location)
 
+        ' default tuple elements like Item1 Or Item20 could be provided by the user or
+        ' otherwise implicitly declared by compiler
+        Private ReadOnly _isImplicitlyDeclared As Boolean
+
+        Private ReadOnly _correspondingDefaultField As TupleElementFieldSymbol
+
+        Public Sub New(container As TupleTypeSymbol,
+                       underlyingField As FieldSymbol,
+                       tupleElementIndex As Integer,
+                       location As Location,
+                       isImplicitlyDeclared As Boolean,
+                       correspondingDefaultFieldOpt As TupleElementFieldSymbol)
+
+            MyBase.New(container, underlyingField, If(correspondingDefaultFieldOpt Is Nothing, tupleElementIndex << 1, (tupleElementIndex << 1) + 1))
+
+            Me._locations = If((location Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location))
+            Me._isImplicitlyDeclared = isImplicitlyDeclared
+
+            Debug.Assert(correspondingDefaultFieldOpt Is Nothing = Me.IsDefaultTupleElement)
+            Debug.Assert(correspondingDefaultFieldOpt Is Nothing OrElse correspondingDefaultFieldOpt.IsDefaultTupleElement)
+
+            _correspondingDefaultField = If(correspondingDefaultFieldOpt, Me)
+        End Sub
+
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return Me._locations
@@ -106,13 +157,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return Symbol.GetDeclaringSyntaxReferenceHelper(Of VisualBasicSyntaxNode)(Me._locations)
+                Return If(_isImplicitlyDeclared,
+                    ImmutableArray(Of SyntaxReference).Empty,
+                    GetDeclaringSyntaxReferenceHelper(Of VisualBasicSyntaxNode)(_locations))
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
-                Return False
+                Return _isImplicitlyDeclared
             End Get
         End Property
 
@@ -142,20 +195,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleFieldId As Integer, location As Location)
-            MyBase.New(container, underlyingField, tupleFieldId)
-            Me._locations = If((location Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location))
-        End Sub
+        Public Overrides ReadOnly Property CorrespondingTupleField As FieldSymbol
+            Get
+                Return _correspondingDefaultField
+            End Get
+        End Property
     End Class
 
     ''' <summary>
     ''' Represents an element field of a tuple type (such as (int a, byte b).a, or (int a, byte b).b)
     ''' that is backed by a real field with a different name within the tuple underlying type.
     ''' </summary>
-    Friend NotInheritable Class TupleRenamedElementFieldSymbol
+    Friend NotInheritable Class TupleVirtualElementFieldSymbol
         Inherits TupleElementFieldSymbol
 
         Private _name As String
+
+        Public Sub New(container As TupleTypeSymbol,
+                       underlyingField As FieldSymbol,
+                       name As String,
+                       tupleElementOrdinal As Integer,
+                       location As Location,
+                       isImplicitlyDeclared As Boolean,
+                       correspondingDefaultFieldOpt As TupleElementFieldSymbol)
+
+            MyBase.New(container, underlyingField, tupleElementOrdinal, location, isImplicitlyDeclared, correspondingDefaultFieldOpt)
+
+            Debug.Assert(name <> Nothing)
+            Debug.Assert(name <> underlyingField.Name OrElse Not container.UnderlyingNamedType.Equals(underlyingField.ContainingType),
+                                "fields that map directly to underlying should not be represented by " + NameOf(TupleVirtualElementFieldSymbol))
+
+            Me._name = name
+        End Sub
 
         Public Overrides ReadOnly Property Name As String
             Get
@@ -175,11 +246,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, name As String, tupleElementOrdinal As Integer, location As Location)
-            MyBase.New(container, underlyingField, tupleElementOrdinal, location)
-            Debug.Assert(name <> Nothing)
-            Debug.Assert(name <> underlyingField.Name)
-            Me._name = name
-        End Sub
+        Public Overrides ReadOnly Property IsVirtualTupleField As Boolean
+            Get
+                Return True
+            End Get
+        End Property
     End Class
 End Namespace

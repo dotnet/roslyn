@@ -558,17 +558,16 @@ End class
         <WorkItem(539240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestOnArrayCreation1() As Task
-            Await TestAsync(<Text>
+            Await TestAsync("
 class C
     Sub Test()
         Dim a As Integer() = N$$ew Integer(3) { }
     End Sub
-End class
-</Text>.NormalizedValue,
-            Nothing)
+End class",
+            MainDescription("Integer()"))
         End Function
 
-        <WorkItem(539240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")>
+        <WorkItem(539240, "http: //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestOnArrayCreation2() As Task
             Await TestAsync(<Text>

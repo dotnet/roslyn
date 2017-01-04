@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     [Guid(Guids.RoslynOptionPagePerformanceLoggersIdString)]
     internal class PerformanceLoggersPage : AbstractOptionPage
     {
-        private IOptionService _optionService;
+        private IGlobalOptionService _optionService;
 
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
         {
@@ -22,8 +22,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             {
                 var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
-                var workspace = componentModel.GetService<VisualStudioWorkspace>();
-                _optionService = workspace.Services.GetService<IOptionService>();
+                _optionService = componentModel.GetService<IGlobalOptionService>();
             }
 
             return new InternalOptionsControl(nameof(LoggerOptions), serviceProvider);

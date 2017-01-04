@@ -112,8 +112,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static async Task<ImmutableArray<ISymbol>> GetSymbolsAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
         {
-            string symbolIds;
-            if (item.Properties.TryGetValue("Symbols", out symbolIds))
+            if (item.Properties.TryGetValue("Symbols", out var symbolIds))
             {
                 var idList = symbolIds.Split(s_symbolSplitters, StringSplitOptions.RemoveEmptyEntries).ToList();
                 var symbols = new List<ISymbol>();
@@ -217,11 +216,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly char[] projectSeperators = new[] { ';' };
         public static SupportedPlatformData GetSupportedPlatforms(CompletionItem item, Workspace workspace)
         {
-            string invalidProjects;
-            string candidateProjects;
-
-            if (item.Properties.TryGetValue("InvalidProjects", out invalidProjects) 
-                && item.Properties.TryGetValue("CandidateProjects", out candidateProjects))
+            if (item.Properties.TryGetValue("InvalidProjects", out var invalidProjects) 
+                && item.Properties.TryGetValue("CandidateProjects", out var candidateProjects))
             {
                 return new SupportedPlatformData(
                     invalidProjects.Split(projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s))).ToList(),
@@ -234,9 +230,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static int GetContextPosition(CompletionItem item)
         {
-            string text;
-            int number;
-            if (item.Properties.TryGetValue("ContextPosition", out text) && int.TryParse(text, out number))
+            if (item.Properties.TryGetValue("ContextPosition", out var text) && int.TryParse(text, out var number))
             {
                 return number;
             }
@@ -253,8 +247,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static string GetInsertionText(CompletionItem item)
         {
-            string text;
-            item.Properties.TryGetValue("InsertionText", out text);
+            item.Properties.TryGetValue("InsertionText", out var text);
             return text;
         }
     }

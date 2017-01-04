@@ -124,13 +124,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Private Shared Function CreateTupleTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
-            Dim types = symbol.TupleElementTypes
-            Dim names = symbol.TupleElementNames
-            Dim hasNames = Not names.IsDefault
+            Dim elements = symbol.TupleElements
 
             Return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(
-                types.Select(Function(t, i) SyntaxFactory.TupleElement(
-                    If(hasNames, SyntaxFactory.IdentifierName(names(i)), Nothing), t.GenerateTypeSyntax()))))
+                elements.Select(Function(element) If(Not element.IsImplicitlyDeclared,
+                                                        SyntaxFactory.NamedTupleElement(
+                                                                        SyntaxFactory.Identifier(element.Name),
+                                                                        SyntaxFactory.SimpleAsClause(
+                                                                                    SyntaxFactory.Token(SyntaxKind.AsKeyword),
+                                                                                    Nothing,
+                                                                                    element.Type.GenerateTypeSyntax())),
+                                                        DirectCast(SyntaxFactory.TypedTupleElement(
+                                                                        element.Type.GenerateTypeSyntax()), TupleElementSyntax)))))
         End Function
 
         Public Overrides Function VisitNamedType(symbol As INamedTypeSymbol) As TypeSyntax

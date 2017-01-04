@@ -4,7 +4,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Diagnostics
 {
     internal static class XamlDiagnosticIds
     {
-        public const string UnnecessaryNamespacesId = "XAML0001";
+        public const string UnnecessaryNamespacesId = "XAML1103";
         public const string MissingNamespaceId = "XAML0002";
     }
 }

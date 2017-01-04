@@ -4,7 +4,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
     Friend Class MetadataConstructorDeclarationStructureProvider
-
         Inherits AbstractMetadataAsSourceStructureProvider(Of SubNewStatementSyntax)
 
         Protected Overrides Function GetEndToken(node As SubNewStatementSyntax) As SyntaxToken

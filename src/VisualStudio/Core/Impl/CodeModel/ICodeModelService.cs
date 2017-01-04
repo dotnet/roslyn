@@ -146,10 +146,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         SyntaxNode SetAccess(SyntaxNode node, EnvDTE.vsCMAccess access);
         EnvDTE.vsCMElement GetElementKind(SyntaxNode node);
 
+        bool IsExpressionBodiedProperty(SyntaxNode node);
         bool IsAccessorNode(SyntaxNode node);
         MethodKind GetAccessorKind(SyntaxNode node);
 
         bool TryGetAccessorNode(SyntaxNode parentNode, MethodKind kind, out SyntaxNode accessorNode);
+        bool TryGetAutoPropertyExpressionBody(SyntaxNode parentNode, out SyntaxNode expressionBody);
         bool TryGetParameterNode(SyntaxNode parentNode, string name, out SyntaxNode parameterNode);
         bool TryGetImportNode(SyntaxNode parentNode, string dottedName, out SyntaxNode importNode);
         bool TryGetOptionNode(SyntaxNode parentNode, string name, int ordinal, out SyntaxNode optionNode);

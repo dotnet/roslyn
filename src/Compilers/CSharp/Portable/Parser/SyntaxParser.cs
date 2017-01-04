@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private SyntaxToken _currentToken;
         private ArrayElement<SyntaxToken>[] _lexedTokens;
         private GreenNode _prevTokenTrailingTrivia;
-        private int _firstToken;
-        private int _tokenOffset;
+        private int _firstToken; // The position of _lexedTokens[0] (or _blendedTokens[0]).
+        private int _tokenOffset; // The index of the current token within _lexedTokens or _blendedTokens.
         private int _tokenCount;
         private int _resetCount;
         private int _resetStart;
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected ResetPoint GetResetPoint()
         {
-            var pos = _firstToken + _tokenOffset;
+            var pos = CurrentTokenPosition;
             if (_resetCount == 0)
             {
                 _resetStart = pos; // low water mark
@@ -474,6 +474,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return CreateMissingToken(kind, this.CurrentToken.Kind, reportError: true);
         }
 
+        // Consume a token if it is the right kind. Otherwise skip a token and replace it with one of the correct kind.
+        protected SyntaxToken EatTokenAsKind(SyntaxKind expected)
+        {
+            Debug.Assert(SyntaxFacts.IsAnyToken(expected));
+
+            var ct = this.CurrentToken;
+            if (ct.Kind == expected)
+            {
+                MoveToNextToken();
+                return ct;
+            }
+
+            var replacement = CreateMissingToken(expected, this.CurrentToken.Kind, reportError: true);
+            return AddTrailingSkippedSyntax(replacement, this.EatToken());
+        }
+
         private SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual, bool reportError)
         {
             // should we eat the current ParseToken's leading trivia?
@@ -678,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected TNode AddError<TNode>(TNode node, ErrorCode code) where TNode : GreenNode
         {
-            return AddError(node, code, SpecializedCollections.EmptyObjects);
+            return AddError(node, code, Array.Empty<object>());
         }
 
         protected TNode AddError<TNode>(TNode node, ErrorCode code, params object[] args) where TNode : GreenNode
@@ -1070,5 +1086,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             return this.Options.IsFeatureEnabled(feature);
         }
+
+        /// <summary>
+        /// Whenever parsing in a `while (true)` loop and a bug could prevent the loop from making progress,
+        /// this method can prevent the parsing from hanging.
+        /// Use as:
+        ///     int tokenProgress = -1;
+        ///     while (IsMakingProgress(ref tokenProgress))
+        /// It should be used as a guardrail, not as a crutch, so it asserts if no progress was made.
+        /// </summary>
+        protected bool IsMakingProgress(ref int lastTokenPosition)
+        {
+            var pos = CurrentTokenPosition;
+            if (pos > lastTokenPosition)
+            {
+                lastTokenPosition = pos;
+                return true;
+            }
+
+            Debug.Assert(false);
+            return false;
+        }
+
+        private int CurrentTokenPosition => _firstToken + _tokenOffset;
     }
 }

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
 
         Private Function WrapInNullable(expr As BoundExpression, nullableType As TypeSymbol) As BoundExpression
-            Debug.Assert(nullableType.GetNullableUnderlyingType.IsSameTypeIgnoringCustomModifiers(expr.Type))
+            Debug.Assert(nullableType.GetNullableUnderlyingType.IsSameTypeIgnoringAll(expr.Type))
 
             Dim ctor = GetNullableMethod(expr.Syntax, nullableType, SpecialMember.System_Nullable_T__ctor)
 
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' in case if the expression is any more complicated than just creating a Null
             ' simplify it. This may happen if HasNoValue gets smarter and can
             ' detect situations other than "New T?()"
-            If (Not type.IsSameTypeIgnoringCustomModifiers(candidateNullExpression.Type)) OrElse
+            If (Not type.IsSameTypeIgnoringAll(candidateNullExpression.Type)) OrElse
                 candidateNullExpression.Kind <> BoundKind.ObjectCreationExpression Then
 
                 Return NullableNull(candidateNullExpression.Syntax, type)
@@ -487,7 +487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                           whenFalse As BoundExpression) As BoundExpression
 
             Debug.Assert(condition.Type.IsBooleanType, "ternary condition must be boolean")
-            Debug.Assert(whenTrue.Type.IsSameTypeIgnoringCustomModifiers(whenFalse.Type), "ternary branches must have same types")
+            Debug.Assert(whenTrue.Type.IsSameTypeIgnoringAll(whenFalse.Type), "ternary branches must have same types")
 
             Dim ifConditionConst = condition.ConstantValueOpt
             If ifConditionConst IsNot Nothing Then

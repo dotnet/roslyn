@@ -180,9 +180,6 @@
   <data name="Small" xml:space="preserve">
     <value>Small</value>
   </data>
-  <data name="Outlining" xml:space="preserve">
-    <value>Outlining</value>
-  </data>
   <data name="Performance" xml:space="preserve">
     <value>Performance</value>
   </data>
@@ -269,5 +266,8 @@
   </data>
   <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
     <value>_Show completion list after a character is typed</value>
+  </data>
+  <data name="nothing_checking_colon" xml:space="preserve">
+    <value>'nothing' checking:</value>
   </data>
 </root>

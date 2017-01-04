@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum MessageID
     {
+        None = 0,
         MessageBase = 1200,
         IDS_SK_METHOD = MessageBase + 2000,
         IDS_SK_TYPE = MessageBase + 2001,
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureNullable = MessageBase + 12528,
         IDS_Lambda = MessageBase + 12531,
         IDS_FeaturePatternMatching = MessageBase + 12532,
+        IDS_FeatureThrowExpression = MessageBase + 12533,
 
         IDS_FeatureImplicitArray = MessageBase + 12557,
         IDS_FeatureImplicitLocal = MessageBase + 12558,
@@ -122,6 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureOutVar = MessageBase + 12713,
 
         IDS_FeatureIOperation = MessageBase + 12714,
+        IDS_FeatureExpressionBodiedAccessor = MessageBase + 12715,
+        IDS_FeatureExpressionBodiedDeOrConstructor = MessageBase + 12716,
+        IDS_ThrowExpression = MessageBase + 12717,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -184,8 +189,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureLocalFunctions:
                 case MessageID.IDS_FeatureRefLocalsReturns:
                 case MessageID.IDS_FeaturePatternMatching:
+                case MessageID.IDS_FeatureThrowExpression:
                 case MessageID.IDS_FeatureTuples:
                 case MessageID.IDS_FeatureOutVar:
+                case MessageID.IDS_FeatureExpressionBodiedAccessor:
+                case MessageID.IDS_FeatureExpressionBodiedDeOrConstructor:
                     return LanguageVersion.CSharp7;
 
                 // C# 6 features.

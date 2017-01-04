@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             public bool TryRemove(int pairIndex)
             {
-                TriviaData temp;
-                return _map?.TryRemove(pairIndex, out temp) ?? false;
+                return _map?.TryRemove(pairIndex, out var temp) ?? false;
             }
 
             public void AddOrReplace(int key, TriviaData triviaInfo)

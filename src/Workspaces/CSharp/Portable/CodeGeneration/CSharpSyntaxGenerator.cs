@@ -19,6 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     [ExportLanguageService(typeof(SyntaxGenerator), LanguageNames.CSharp), Shared]
     internal class CSharpSyntaxGenerator : SyntaxGenerator
     {
+        internal override SyntaxTrivia CarriageReturnLineFeed => SyntaxFactory.CarriageReturnLineFeed;
+
+        public static readonly SyntaxGenerator Instance = new CSharpSyntaxGenerator();
+
         #region Declarations
         public override SyntaxNode CompilationUnit(IEnumerable<SyntaxNode> declarations)
         {
@@ -905,8 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override IReadOnlyList<SyntaxNode> GetAttributes(SyntaxNode declaration)
         {
-            IReadOnlyList<SyntaxNode> attrs;
-            if (!s_declAttributes.TryGetValue(declaration, out attrs))
+            if (!s_declAttributes.TryGetValue(declaration, out var attrs))
             {
                 var tmp = this.Flatten(GetAttributeLists(declaration).Where(al => !IsReturnAttribute(al)).ToImmutableReadOnlyListOrEmpty());
                 attrs = s_declAttributes.GetValue(declaration, _d => tmp);
@@ -920,8 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override IReadOnlyList<SyntaxNode> GetReturnAttributes(SyntaxNode declaration)
         {
-            IReadOnlyList<SyntaxNode> attrs;
-            if (!s_declReturnAttributes.TryGetValue(declaration, out attrs))
+            if (!s_declReturnAttributes.TryGetValue(declaration, out var attrs))
             {
                 var tmp = this.Flatten(GetAttributeLists(declaration).Where(al => IsReturnAttribute(al)).ToImmutableReadOnlyListOrEmpty());
                 attrs = s_declReturnAttributes.GetValue(declaration, _d => tmp);
@@ -1441,9 +1443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var modifierTokens = GetModifierTokens(declaration);
-            Accessibility accessibility;
-            DeclarationModifiers modifiers;
-            GetAccessibilityAndModifiers(modifierTokens, out accessibility, out modifiers);
+            GetAccessibilityAndModifiers(modifierTokens, out var accessibility, out var modifiers);
             return accessibility;
         }
 
@@ -1457,9 +1457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return Isolate(declaration, d =>
             {
                 var tokens = GetModifierTokens(d);
-                Accessibility tmp;
-                DeclarationModifiers modifiers;
-                this.GetAccessibilityAndModifiers(tokens, out tmp, out modifiers);
+                this.GetAccessibilityAndModifiers(tokens, out var tmp, out var modifiers);
                 var newTokens = this.Merge(tokens, AsModifierList(accessibility, modifiers));
                 return SetModifierTokens(d, newTokens);
             });
@@ -1537,9 +1535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override DeclarationModifiers GetModifiers(SyntaxNode declaration)
         {
             var modifierTokens = GetModifierTokens(declaration);
-            Accessibility accessibility;
-            DeclarationModifiers modifiers;
-            GetAccessibilityAndModifiers(modifierTokens, out accessibility, out modifiers);
+            GetAccessibilityAndModifiers(modifierTokens, out var accessibility, out var modifiers);
             return modifiers;
         }
 
@@ -1558,9 +1554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return Isolate(declaration, d =>
                 {
                     var tokens = GetModifierTokens(d);
-                    Accessibility accessibility;
-                    DeclarationModifiers tmp;
-                    this.GetAccessibilityAndModifiers(tokens, out accessibility, out tmp);
+                    this.GetAccessibilityAndModifiers(tokens, out var accessibility, out var tmp);
                     var newTokens = this.Merge(tokens, AsModifierList(accessibility, modifiers));
                     return SetModifierTokens(d, newTokens);
                 });
@@ -3452,6 +3446,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return root;
         }
+
+        internal override bool IsRegularOrDocComment(SyntaxTrivia trivia)
+            => trivia.IsRegularOrDocComment();
+
         #endregion
 
         #region Statements and Expressions
@@ -3476,6 +3474,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode ThrowStatement(SyntaxNode expressionOpt = null)
         {
             return SyntaxFactory.ThrowStatement((ExpressionSyntax)expressionOpt);
+        }
+
+        public override SyntaxNode ThrowExpression(SyntaxNode expression)
+        {
+            return SyntaxFactory.ThrowExpression((ExpressionSyntax)expression);
         }
 
         public override SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, IEnumerable<SyntaxNode> falseStatements = null)
@@ -3539,6 +3542,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ParenthesizeLeft((ExpressionSyntax)expression),
                 (SimpleNameSyntax)simpleName);
         }
+
+        internal override SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull)
+            => SyntaxFactory.ConditionalAccessExpression((ExpressionSyntax)expression, (ExpressionSyntax)whenNotNull);
+
+        internal override SyntaxNode MemberBindingExpression(SyntaxNode name)
+            => SyntaxFactory.MemberBindingExpression((SimpleNameSyntax)name);
+
+        internal override SyntaxNode ElementBindingExpression(SyntaxNode argumentList)
+            => SyntaxFactory.ElementBindingExpression((BracketedArgumentListSyntax)argumentList);
 
         // parenthesize the left hand size of a member access, invocation or element access expression
         private ExpressionSyntax ParenthesizeLeft(ExpressionSyntax expression)
@@ -3614,6 +3626,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.ElementAccessExpression(ParenthesizeLeft((ExpressionSyntax)expression), SyntaxFactory.BracketedArgumentList(CreateArguments(arguments)));
         }
+
+        internal override SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken)
+            => SyntaxFactory.InterpolatedStringExpression(startToken, SyntaxFactory.List(content.Cast<InterpolatedStringContentSyntax>()), endToken);
+
+        internal override SyntaxNode InterpolatedStringText(SyntaxToken textToken)
+            => SyntaxFactory.InterpolatedStringText(textToken);
+
+        internal override SyntaxToken InterpolatedStringTextToken(string content)
+            => SyntaxFactory.Token(
+                SyntaxFactory.TriviaList(),
+                SyntaxKind.InterpolatedStringTextToken,
+                content, "",
+                SyntaxFactory.TriviaList());
+
+        internal override SyntaxNode Interpolation(SyntaxNode syntaxNode)
+            => SyntaxFactory.Interpolation((ExpressionSyntax)syntaxNode);
 
         public override SyntaxNode DefaultExpression(SyntaxNode type)
         {

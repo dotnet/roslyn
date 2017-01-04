@@ -94,6 +94,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Add &apos;Me.&apos;.
+        '''</summary>
+        Friend ReadOnly Property Add_Me() As String
+            Get
+                Return ResourceManager.GetString("Add_Me", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Add Overloads.
         '''</summary>
         Friend ReadOnly Property Add_Overloads() As String

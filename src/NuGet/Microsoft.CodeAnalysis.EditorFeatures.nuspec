@@ -22,11 +22,11 @@ Supported Platforms:
     <tags>$tags$</tags>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.EditorFeatures.dll" target="lib\net46" />
-    <file src="Microsoft.CodeAnalysis.EditorFeatures.xml" target="lib\net46" />
-    <file src="Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll" target="lib\net46" />
-    <file src="Microsoft.CodeAnalysis.CSharp.EditorFeatures.xml" target="lib\net46" />
-    <file src="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll" target="lib\net46" />
-    <file src="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml" target="lib\net46" />
+    <file src="Dlls\EditorFeatures\Microsoft.CodeAnalysis.EditorFeatures.dll" target="lib\net46" />
+    <file src="Dlls\EditorFeatures\Microsoft.CodeAnalysis.EditorFeatures.xml" target="lib\net46" />
+    <file src="Dlls\CSharpEditorFeatures\Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll" target="lib\net46" />
+    <file src="Dlls\CSharpEditorFeatures\Microsoft.CodeAnalysis.CSharp.EditorFeatures.xml" target="lib\net46" />
+    <file src="Dlls\BasicEditorFeatures\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll" target="lib\net46" />
+    <file src="Dlls\BasicEditorFeatures\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml" target="lib\net46" />
   </files>
 </package>

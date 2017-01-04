@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private static CodeGenerationConstructorInfo GetInfo(IMethodSymbol method)
         {
-            CodeGenerationConstructorInfo info;
-            s_constructorToInfoMap.TryGetValue(method, out info);
+            s_constructorToInfoMap.TryGetValue(method, out var info);
             return info;
         }
 

@@ -85,6 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim displayLogo As Boolean = True
             Dim displayHelp As Boolean = False
+            Dim displayVersion As Boolean = False
             Dim outputLevel As OutputLevel = OutputLevel.Normal
             Dim optimize As Boolean = False
             Dim checkOverflow As Boolean = True
@@ -193,6 +194,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         displayHelp = True
+                        Continue For
+
+                    Case "version"
+                        If value IsNot Nothing Then
+                            Exit Select
+                        End If
+
+                        displayVersion = True
                         Continue For
 
                     Case "r", "reference"
@@ -1281,7 +1290,7 @@ lVbRuntimePlus:
                 keyFileSearchPaths.Add(outputDirectory)
             End If
 
-            Dim parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(features)
+            Dim parsedFeatures = ParseFeatures(features)
 
             Dim compilationName As String = Nothing
             GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, moduleAssemblyName, outputFileName, moduleName, compilationName)
@@ -1386,6 +1395,7 @@ lVbRuntimePlus:
                 .NoWin32Manifest = noWin32Manifest,
                 .DisplayLogo = displayLogo,
                 .DisplayHelp = displayHelp,
+                .DisplayVersion = displayVersion,
                 .ManifestResources = managedResources.AsImmutable(),
                 .CompilationOptions = options,
                 .ParseOptions = If(IsScriptRunner, scriptParseOptions, parseOptions),
@@ -1452,7 +1462,7 @@ lVbRuntimePlus:
                 Dim absolutePath = FileUtilities.ResolveRelativePath(path, baseDirectory)
                 If absolutePath IsNot Nothing Then
                     Dim filePath = PathUtilities.CombineAbsoluteAndRelativePaths(absolutePath, fileName)
-                    If PortableShim.File.Exists(filePath) Then
+                    If File.Exists(filePath) Then
                         Return filePath
                     End If
                 End If
@@ -1629,7 +1639,10 @@ lVbRuntimePlus:
             Dim dataProvider As Func(Of Stream) = Function()
                                                       ' Use FileShare.ReadWrite because the file could be opened by the current process.
                                                       ' For example, it Is an XML doc file produced by the build.
-                                                      Return PortableShim.FileStream.Create(fullPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWrite)
+                                                      Return New FileStream(fullPath,
+                                                                            FileMode.Open,
+                                                                            FileAccess.Read,
+                                                                            FileShare.ReadWrite)
                                                   End Function
             Return New ResourceDescription(resourceName, fileName, dataProvider, isPublic, embedded, checkArgs:=False)
         End Function
@@ -2203,10 +2216,12 @@ lVbRuntimePlus:
                         outputFileName = outputFileName & ".netmodule"
                     End If
                 Else
-                    Dim defaultExtension As String = kind.GetDefaultExtension()
-                    If Not String.Equals(ext, defaultExtension, StringComparison.OrdinalIgnoreCase) Then
+                    If Not ext.Equals(".exe", StringComparison.OrdinalIgnoreCase) And
+                        Not ext.Equals(".dll", StringComparison.OrdinalIgnoreCase) And
+                        Not ext.Equals(".netmodule", StringComparison.OrdinalIgnoreCase) And
+                        Not ext.Equals(".winmdobj", StringComparison.OrdinalIgnoreCase) Then
                         simpleName = outputFileName
-                        outputFileName = outputFileName & defaultExtension
+                        outputFileName = outputFileName & kind.GetDefaultExtension()
                     End If
 
                     If simpleName Is Nothing Then

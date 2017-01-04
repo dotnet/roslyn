@@ -31,6 +31,18 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
         Return New SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create(keyFilePath))
     End Function
 
+    Private Shared Sub VerifySigned(comp As Compilation)
+        Using outStream = comp.EmitToStream()
+
+            outStream.Position = 0
+
+            Dim headers = New PEHeaders(outStream)
+
+            Dim flags = headers.CorHeader.Flags
+            Assert.True(flags.HasFlag(CorFlags.StrongNameSigned))
+        End Using
+    End Sub
+
 #End Region
 
 #Region "Naming Tests"
@@ -913,6 +925,63 @@ BC31535: Friend assembly reference 'WantsIVTAccess' is invalid. Strong-name sign
 #End Region
 
 #Region "Signing"
+
+    <Fact>
+    Public Sub MaxSizeKey()
+        Dim pubKey = TestResources.General.snMaxSizePublicKeyString
+        Const pubKeyToken = "1540923db30520b2"
+        Dim pubKeyTokenBytes As Byte() = {&H15, &H40, &H92, &H3D, &HB3, &H5, &H20, &HB2}
+
+        Dim comp = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="c.vb">
+Imports System
+Imports System.Runtime.CompilerServices
+
+&lt;Assembly:InternalsVisibleTo("MaxSizeComp2, PublicKey=<%= pubKey %>, PublicKeyToken=<%= pubKeyToken %>")&gt;
+
+Friend Class C
+    Public Shared Sub M()
+        Console.WriteLine("Called M")
+    End Sub
+End Class
+    </file>
+</compilation>,
+                options:=TestOptions.ReleaseDll.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile).WithStrongNameProvider(s_defaultProvider))
+
+        comp.VerifyEmitDiagnostics()
+
+        Assert.True(comp.IsRealSigned)
+        VerifySigned(comp)
+        Assert.Equal(TestResources.General.snMaxSizePublicKey, comp.Assembly.Identity.PublicKey)
+        Assert.Equal(Of Byte)(pubKeyTokenBytes, comp.Assembly.Identity.PublicKeyToken)
+
+        Dim src =
+<compilation name="MaxSizeComp2">
+    <file name="c.vb">
+Class D
+    Public Shared Sub Main()
+        C.M()
+    End Sub
+End Class
+    </file>
+</compilation>
+
+        Dim comp2 = CreateCompilationWithMscorlib(src, references:={comp.ToMetadataReference()},
+options:=TestOptions.ReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile).WithStrongNameProvider(s_defaultProvider))
+
+        CompileAndVerify(comp2, expectedOutput:="Called M")
+        Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey)
+        Assert.Equal(Of Byte)(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken)
+
+        Dim comp3 = CreateCompilationWithMscorlib(src, references:={comp.EmitToImageReference()},
+options:=TestOptions.ReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile).WithStrongNameProvider(s_defaultProvider))
+
+        CompileAndVerify(comp3, expectedOutput:="Called M")
+        Assert.Equal(TestResources.General.snMaxSizePublicKey, comp3.Assembly.Identity.PublicKey)
+        Assert.Equal(Of Byte)(pubKeyTokenBytes, comp3.Assembly.Identity.PublicKeyToken)
+    End Sub
+
     <Fact>
     Public Sub SignIt()
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(

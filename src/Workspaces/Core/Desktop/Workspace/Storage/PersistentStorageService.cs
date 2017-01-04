@@ -101,8 +101,7 @@ namespace Microsoft.CodeAnalysis.Storage
             lock (_lookupAccessLock)
             {
                 // see whether we have something we can use
-                AbstractPersistentStorage storage;
-                if (_lookup.TryGetValue(solution.FilePath, out storage))
+                if (_lookup.TryGetValue(solution.FilePath, out var storage))
                 {
                     // previous attempt to create esent storage failed.
                     if (storage == null && !SolutionSizeAboveThreshold(solution))
@@ -202,8 +201,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private AbstractPersistentStorage TryCreateEsentStorage(string workingFolderPath, string solutionPath)
         {
-            AbstractPersistentStorage esentStorage;
-            if (TryCreateEsentStorage(workingFolderPath, solutionPath, out esentStorage))
+            if (TryCreateEsentStorage(workingFolderPath, solutionPath, out var esentStorage))
             {
                 return esentStorage;
             }

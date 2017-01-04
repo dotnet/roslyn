@@ -29,6 +29,348 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
+        [Fact]
+        public void TypeParameterBindingScope()
+        {
+            var src = @"
+class C
+{
+    public void M()
+    {
+        {
+            int T = 0; // Should not have error
+
+            int Local<T>() => 0; // Should conflict with above
+            Local<int>();
+            T++;
+        }
+        {
+            int T<T>() => 0;
+            T<int>();
+        }
+        {
+            int Local<T, T>() => 0;
+            Local<int, int>();
+        }
+    }
+    public void M2<T>()
+    {
+        {
+            int Local<T>() => 0;
+            Local<int>();
+        }
+        {
+            int Local1<V>()
+            {
+                int Local2<V>() => 0;
+                return Local2<int>();
+            }
+            Local1<int>();
+        }
+        {
+            int T() => 0;
+            T();
+        }
+        {
+            int Local1<V>()
+            {
+                int V() => 0;
+                return V();
+            }
+            Local1<int>();
+        }
+        {
+            int Local1<V>()
+            {
+                int Local2<U>()
+                {
+                    // Conflicts with method type parameter
+                    int T() => 0;
+                    return T();
+                }
+                return Local2<int>();
+            }
+            Local1<int>();
+        }
+        {
+            int Local1<V>()
+            {
+                int Local2<U>()
+                {
+                    // Shadows M.2<T>
+                    int Local3<T>() => 0;
+                    return Local3<int>();
+                }
+                return Local2<int>();
+            }
+            Local1<int>();
+        }
+    }
+    public void V<V>() { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(src);
+            comp.VerifyDiagnostics(
+                // (9,23): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int Local<T>() => 0; // Should conflict with above
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(9, 23),
+                // (14,19): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int T<T>() => 0;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(14, 19),
+                // (18,26): error CS0692: Duplicate type parameter 'T'
+                //             int Local<T, T>() => 0;
+                Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(18, 26),
+                // (25,23): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'C.M2<T>()'
+                //             int Local<T>() => 0;
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(25, 23),
+                // (31,28): warning CS0693: Type parameter 'V' has the same name as the type parameter from outer type 'Local1<V>()'
+                //                 int Local2<V>() => 0;
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "V").WithArguments("V", "Local1<V>()").WithLocation(31, 28),
+                // (37,17): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //             int T() => 0;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(37, 17),
+                // (43,21): error CS0412: 'V': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //                 int V() => 0;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "V").WithArguments("V").WithLocation(43, 21),
+                // (54,25): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //                     int T() => 0;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(54, 25),
+                // (67,32): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'C.M2<T>()'
+                //                     int Local3<T>() => 0;
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(67, 32));
+        }
+
+        [Fact]
+        public void LocalFuncAndTypeParameterOnType()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C2<T>
+{
+    public void M()
+    {
+        {
+            int Local1()
+            {
+                int Local2<T>() => 0;
+                return Local2<int>();
+            }
+            Local1();
+        }
+        {
+            int Local1()
+            {
+                int Local2()
+                {
+                    // Shadows type parameter
+                    int T() => 0;
+
+                    // Type parameter resolves in type only context
+                    T t = default(T); 
+
+                    // Ambiguous context chooses local
+                    T.M();
+
+                    // Call chooses local
+                    return T();
+                }
+                return Local2();
+            }
+            Local1();
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,28): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'C2<T>'
+                //                 int Local2<T>() => 0;
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "C2<T>").WithLocation(9, 28),
+                // (26,21): error CS0119: 'T()' is a method, which is not valid in the given context
+                //                     T.M();
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T()", "method").WithLocation(26, 21),
+                // (23,23): warning CS0219: The variable 't' is assigned but its value is never used
+                //                     T t = default(T); 
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t").WithArguments("t").WithLocation(23, 23));
+        }
+
+        [Fact]
+        public void RefArgsInIteratorLocalFuncs()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    public void M1()
+    {
+        IEnumerable<int> Local(ref int a) { yield break; }
+        int x = 0;
+        Local(ref x);
+    }
+
+    public void M2()
+    {
+        Action a = () =>
+        {
+            IEnumerable<int> Local(ref int x) { yield break; }
+            int y = 0;
+            Local(ref y);
+            return;
+        };
+        a();
+    }
+
+    public Func<int> M3() => (() =>
+    {
+        IEnumerable<int> Local(ref int a) { yield break; }
+        int x = 0;
+        Local(ref x);
+        return 0;
+    });
+
+    public IEnumerable<int> M4(ref int a)
+    {
+        yield return new Func<int>(() =>
+            {
+                IEnumerable<int> Local(ref int b) { yield break; }
+                int x = 0;
+                Local(ref x);
+                return 0;
+            })();
+    }
+}";
+            VerifyDiagnostics(src,
+                // (8,40): error CS1623: Iterators cannot have ref or out parameters
+                //         IEnumerable<int> Local(ref int a) { yield break; }
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "a").WithLocation(8, 40),
+                // (17,44): error CS1623: Iterators cannot have ref or out parameters
+                //             IEnumerable<int> Local(ref int x) { yield break; }
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "x").WithLocation(17, 44),
+                // (27,40): error CS1623: Iterators cannot have ref or out parameters
+                //         IEnumerable<int> Local(ref int a) { yield break; }
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "a").WithLocation(27, 40),
+                // (33,40): error CS1623: Iterators cannot have ref or out parameters
+                //     public IEnumerable<int> M4(ref int a)
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "a").WithLocation(33, 40),
+                // (37,48): error CS1623: Iterators cannot have ref or out parameters
+                //                 IEnumerable<int> Local(ref int b) { yield break; }
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "b").WithLocation(37, 48));
+        }
+
+        [Fact]
+        public void UnsafeArgsInIteratorLocalFuncs()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    public unsafe void M1()
+    {
+        IEnumerable<int> Local(int* a) { yield break; }
+        int x = 0;
+        Local(&x);
+    }
+
+    public unsafe void M2()
+    {
+        Action a = () =>
+        {
+            IEnumerable<int> Local(int* x) { yield break; }
+            int y = 0;
+            Local(&y);
+            return;
+        };
+        a();
+    }
+
+    public unsafe Func<int> M3() => (() =>
+    {
+        IEnumerable<int> Local(int* a) { yield break; }
+        int x = 0;
+        Local(&x);
+        return 0;
+    });
+
+    public unsafe IEnumerable<int> M4(int* a)
+    {
+        yield return new Func<int>(() =>
+            {
+                IEnumerable<int> Local(int* b) { yield break; }
+                int x = 0;
+                Local(&x);
+                return 0;
+            })();
+    }
+}";
+            CreateCompilationWithMscorlib(src, options: TestOptions.UnsafeDebugDll)
+                .VerifyDiagnostics(
+                // (8,37): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //         IEnumerable<int> Local(int* a) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
+                // (17,41): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //             IEnumerable<int> Local(int* x) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "x").WithLocation(17, 41),
+                // (27,37): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //         IEnumerable<int> Local(int* a) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(27, 37),
+                // (33,44): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //     public unsafe IEnumerable<int> M4(int* a)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
+                // (33,36): error CS1629: Unsafe code may not appear in iterators
+                //     public unsafe IEnumerable<int> M4(int* a)
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "M4").WithLocation(33, 36),
+                // (37,40): error CS1629: Unsafe code may not appear in iterators
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "int*").WithLocation(37, 40),
+                // (39,23): error CS1629: Unsafe code may not appear in iterators
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "&x").WithLocation(39, 23),
+                // (39,17): error CS1629: Unsafe code may not appear in iterators
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17),
+                // (37,45): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45));
+        }
+
+        [Fact]
+        [WorkItem(13193, "https://github.com/dotnet/roslyn/issues/13193")]
+        public void LocalFunctionConflictingName()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public void M<TLocal>()
+    {
+        void TLocal() { }
+        TLocal();
+    }
+    public void M(int Local)
+    {
+        void Local() { }
+        Local();
+    }
+    public void M()
+    {
+        int local = 0;
+
+        void local() { }
+        local();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,14): error CS0412: 'TLocal': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //         void TLocal() { }
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "TLocal").WithArguments("TLocal").WithLocation(6, 14),
+                // (11,14): error CS0136: A local or parameter named 'Local' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void Local() { }
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "Local").WithArguments("Local").WithLocation(11, 14),
+                // (18,14): error CS0128: A local variable or function named 'local' is already defined in this scope
+                //         void local() { }
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "local").WithArguments("local").WithLocation(18, 14),
+                // (16,13): warning CS0219: The variable 'local' is assigned but its value is never used
+                //         int local = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local").WithArguments("local").WithLocation(16, 13));
+        }
 
         [Fact]
         public void ForgotSemicolonLocalFunctionsMistake()
@@ -597,11 +939,7 @@ class Program
     }
 }
 ";
-            VerifyDiagnostics(source, TestOptions.ReleaseExe.WithAllowUnsafe(true),
-    // (11,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-    //             Console.WriteLine(*&x);
-    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(11, 32)
-    );
+            VerifyDiagnostics(source, TestOptions.ReleaseExe.WithAllowUnsafe(true));
         }
 
         [Fact]
@@ -1235,49 +1573,40 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (6,17): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "operator").WithLocation(6, 17),
-    // (6,17): error CS1513: } expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_RbraceExpected, "operator").WithLocation(6, 17),
-    // (6,36): error CS1026: ) expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "left").WithLocation(6, 36),
-    // (6,36): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "left").WithLocation(6, 36),
-    // (6,40): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 40),
-    // (6,40): error CS1513: } expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 40),
-    // (6,55): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 55),
-    // (6,55): error CS1513: } expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 55),
-    // (6,9): error CS0119: 'Program' is a type, which is not valid in the given context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 9),
-    // (6,28): error CS0119: 'Program' is a type, which is not valid in the given context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 28),
-    // (6,28): error CS0119: 'Program' is a type, which is not valid in the given context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 28),
-    // (6,36): error CS0103: The name 'left' does not exist in the current context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "left").WithArguments("left").WithLocation(6, 36),
-    // (8,20): error CS0103: The name 'left' does not exist in the current context
-    //             return left;
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "left").WithArguments("left").WithLocation(8, 20),
-    // (6,50): warning CS0168: The variable 'right' is declared but never used
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "right").WithArguments("right").WithLocation(6, 50)
-    );
+                // (6,17): error CS1002: ; expected
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "operator").WithLocation(6, 17),
+                // (6,17): error CS1513: } expected
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "operator").WithLocation(6, 17),
+                // (6,56): error CS1002: ; expected
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 56),
+                // (6,9): error CS0119: 'Program' is a type, which is not valid in the given context
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 9),
+                // (6,28): error CS8184: A declaration is not allowed in this context.
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "Program left").WithLocation(6, 28),
+                // (6,42): error CS8184: A declaration is not allowed in this context.
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "Program right").WithLocation(6, 42),
+                // (6,27): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(Program left, Program right)").WithArguments("System.ValueTuple`2").WithLocation(6, 27),
+                // (6,26): error CS0023: Operator '+' cannot be applied to operand of type '(Program, Program)'
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+(Program left, Program right)").WithArguments("+", "(Program, Program)").WithLocation(6, 26),
+                // (8,13): error CS0127: Since 'Program.Main(string[])' returns void, a return keyword must not be followed by an object expression
+                //             return left;
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Program.Main(string[])").WithLocation(8, 13),
+                // (6,36): error CS0165: Use of unassigned local variable 'left'
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "left").WithArguments("left").WithLocation(6, 36),
+                // (6,50): error CS0165: Use of unassigned local variable 'right'
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "right").WithArguments("right").WithLocation(6, 50)
+                );
         }
 
         [Fact]
@@ -1605,6 +1934,230 @@ class Program
                     comp,
                     expectedOutput: "async");
             }
+        }
+
+        [Fact]
+        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        public void ParamUnassigned_01()
+        {
+            var src = @"
+class C
+{
+    public void M1()
+    {
+        void TakeOutParam1(out int x)
+        {
+        }
+
+        int y;
+        TakeOutParam1(out y);
+    }
+
+        void TakeOutParam2(out int x)
+        {
+        }
+}";
+            VerifyDiagnostics(src,
+                // (6,14): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         void TakeOutParam1(out int x)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "TakeOutParam1").WithArguments("x").WithLocation(6, 14),
+                // (14,14): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         void TakeOutParam2(out int x)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "TakeOutParam2").WithArguments("x").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        public void ParamUnassigned_02()
+        {
+            var src = @"
+class C
+{
+    public void M1()
+    {
+        void TakeOutParam1(out int x)
+        {
+            return; // 1 
+        }
+
+        int y;
+        TakeOutParam1(out y);
+    }
+
+        void TakeOutParam2(out int x)
+        {
+            return; // 2 
+        }
+}";
+            VerifyDiagnostics(src,
+                // (8,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //             return; // 1 
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return;").WithArguments("x").WithLocation(8, 13),
+                // (17,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //             return; // 2 
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return;").WithArguments("x").WithLocation(17, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        public void ParamUnassigned_03()
+        {
+            var src = @"
+class C
+{
+    public void M1()
+    {
+        int TakeOutParam1(out int x)
+        {
+        }
+
+        int y;
+        TakeOutParam1(out y);
+    }
+
+        int TakeOutParam2(out int x)
+        {
+        }
+}";
+            VerifyDiagnostics(src,
+                // (6,13): error CS0161: 'TakeOutParam1(out int)': not all code paths return a value
+                //         int TakeOutParam1(out int x)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "TakeOutParam1").WithArguments("TakeOutParam1(out int)").WithLocation(6, 13),
+                // (6,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         int TakeOutParam1(out int x)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "TakeOutParam1").WithArguments("x").WithLocation(6, 13),
+                // (14,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         int TakeOutParam2(out int x)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "TakeOutParam2").WithArguments("x").WithLocation(14, 13),
+                // (14,13): error CS0161: 'C.TakeOutParam2(out int)': not all code paths return a value
+                //         int TakeOutParam2(out int x)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "TakeOutParam2").WithArguments("C.TakeOutParam2(out int)").WithLocation(14, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(12467, "https://github.com/dotnet/roslyn/issues/12467")]
+        public void ParamUnassigned_04()
+        {
+            var src = @"
+class C
+{
+    public void M1()
+    {
+        int TakeOutParam1(out int x)
+        {
+            return 1;
+        }
+
+        int y;
+        TakeOutParam1(out y);
+    }
+
+        int TakeOutParam2(out int x)
+        {
+            return 2;
+        }
+}";
+            VerifyDiagnostics(src,
+                // (8,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //             return 1;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return 1;").WithArguments("x").WithLocation(8, 13),
+                // (17,13): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //             return 2;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return 2;").WithArguments("x").WithLocation(17, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(13172, "https://github.com/dotnet/roslyn/issues/13172")]
+        public void InheritUnsafeContext()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Threading.Tasks;
+class C
+{
+    public void M1()
+    {
+        async Task<IntPtr> Local()
+        {
+            await Task.Delay(0);
+            return (IntPtr)(void*)null;
+        }
+        var _ = Local();
+    }
+
+    public void M2()
+    {
+        unsafe
+        {
+            async Task<IntPtr> Local()
+            {
+                await Task.Delay(1);
+                return (IntPtr)(void*)null;
+            }
+            var _ = Local();
+        }
+    }
+
+    public unsafe void M3()
+    {
+        async Task<IntPtr> Local()
+        {
+            await Task.Delay(2);
+            return (IntPtr)(void*)null;
+        }
+        var _ = Local();
+    }
+}
+
+unsafe class D
+{
+    int* p = null;
+    public void M()
+    {
+        async Task<IntPtr> Local()
+        {
+            await Task.Delay(3);
+            return (IntPtr)p;
+        }
+        var _ = Local();
+    }
+
+    public unsafe void M2()
+    {
+        unsafe
+        {
+            async Task<IntPtr> Local()
+            {
+                await Task.Delay(4);
+                return (IntPtr)(void*)null;
+            }
+            var _ = Local();
+        }
+    }
+}", options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(                
+                // (11,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //             return (IntPtr)(void*)null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(11, 29),
+                // (11,28): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //             return (IntPtr)(void*)null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(void*)null").WithLocation(11, 28),
+                // (47,13): error CS4004: Cannot await in an unsafe context
+                //             await Task.Delay(3);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(3)").WithLocation(47, 13),
+                // (22,17): error CS4004: Cannot await in an unsafe context
+                //                 await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(1)").WithLocation(22, 17),
+                // (59,17): error CS4004: Cannot await in an unsafe context
+                //                 await Task.Delay(4);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(4)").WithLocation(59, 17),
+                // (33,13): error CS4004: Cannot await in an unsafe context
+                //             await Task.Delay(2);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(2)").WithLocation(33, 13));
         }
     }
 }

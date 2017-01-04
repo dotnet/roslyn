@@ -22,7 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
-        private readonly Dictionary<string, IVsReportExternalErrors> _externalErrorReporterMap;
         private readonly ImmutableDictionary<string, string> _projectLangaugeToErrorCodePrefixMap =
             ImmutableDictionary.CreateRange(StringComparer.OrdinalIgnoreCase, new[]
             {
@@ -39,7 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             _serviceProvider = serviceProvider;
             _visualStudioWorkspace = visualStudioWorkspace;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            _externalErrorReporterMap = new Dictionary<string, IVsReportExternalErrors>(StringComparer.OrdinalIgnoreCase);
         }
 
         // internal for testing purposes only.
@@ -59,14 +57,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             object hierarchy,
             string binOutputPath)
         {
-            Contract.ThrowIfNull(hierarchy);
+            // NOTE: It is acceptable for hierarchy to be null in Deferred Project Load scenarios.
             var vsHierarchy = hierarchy as IVsHierarchy;
-            if (vsHierarchy == null)
-            {
-                throw new ArgumentException(nameof(hierarchy));
-            }
-            
+
             Func<ProjectId, IVsReportExternalErrors> getExternalErrorReporter = id => GetExternalErrorReporter(id, languageName);
+            return new CPSProject(_visualStudioWorkspace.ProjectTracker, getExternalErrorReporter, projectDisplayName, projectFilePath,
+                vsHierarchy, languageName, projectGuid, binOutputPath, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource,
+                commandLineParserServiceOpt: _visualStudioWorkspace.Services.GetLanguageServices(languageName)?.GetService<ICommandLineParserService>());
+        }
+
+        // TODO: this is a workaround. Factory has to be refactored so that all callers supply their own error reporters
+        IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(
+            string languageName,
+            string projectDisplayName,
+            string projectFilePath,
+            Guid projectGuid,
+            object hierarchy,
+            string binOutputPath,
+            ProjectExternalErrorReporter errorReporter)
+        {
+            // NOTE: It is acceptable for hierarchy to be null in Deferred Project Load scenarios.
+            var vsHierarchy = hierarchy as IVsHierarchy;
+
+            Func<ProjectId, IVsReportExternalErrors> getExternalErrorReporter = id => errorReporter;
             return new CPSProject(_visualStudioWorkspace.ProjectTracker, getExternalErrorReporter, projectDisplayName, projectFilePath,
                 vsHierarchy, languageName, projectGuid, binOutputPath, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource,
                 commandLineParserServiceOpt: _visualStudioWorkspace.Services.GetLanguageServices(languageName)?.GetService<ICommandLineParserService>());
@@ -74,23 +87,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         private IVsReportExternalErrors GetExternalErrorReporter(ProjectId projectId, string languageName)
         {
-            lock (_externalErrorReporterMap)
+            if (!_projectLangaugeToErrorCodePrefixMap.TryGetValue(languageName, out var errorCodePrefix))
             {
-                IVsReportExternalErrors errorReporter;
-                if (!_externalErrorReporterMap.TryGetValue(languageName, out errorReporter))
-                {
-                    string errorCodePrefix;
-                    if (!_projectLangaugeToErrorCodePrefixMap.TryGetValue(languageName, out errorCodePrefix))
-                    {
-                        throw new NotSupportedException(nameof(languageName));
-                    }
-
-                    errorReporter = new ProjectExternalErrorReporter(projectId, errorCodePrefix, _serviceProvider);
-                    _externalErrorReporterMap.Add(languageName, errorReporter);
-                }
-
-                return errorReporter;
+                throw new NotSupportedException(nameof(languageName));
             }
+
+            return new ProjectExternalErrorReporter(projectId, errorCodePrefix, _serviceProvider);
         }
     }
 }

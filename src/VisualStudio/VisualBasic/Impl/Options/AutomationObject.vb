@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.SymbolSearch
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ComVisible(True)>
@@ -207,19 +208,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property Option_SuggestImportsForTypesInReferenceAssemblies As Boolean
             Get
-                Return GetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies)
+                Return GetBooleanOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, value)
+                SetBooleanOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, value)
             End Set
         End Property
 
         Public Property Option_SuggestImportsForTypesInNuGetPackages As Boolean
             Get
-                Return GetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages)
+                Return GetBooleanOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages, value)
+                SetBooleanOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, value)
             End Set
         End Property
 

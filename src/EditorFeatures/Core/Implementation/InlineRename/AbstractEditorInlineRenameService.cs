@@ -105,7 +105,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var symbol = RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            var symbolAndProjectId = RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            var symbol = symbolAndProjectId.Symbol;
             if (symbol == null)
             {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
@@ -215,7 +216,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            return new SymbolInlineRenameInfo(refactorNotifyServices, document, triggerToken.Span, symbol, forceRenameOverloads, cancellationToken);
+            return new SymbolInlineRenameInfo(
+                refactorNotifyServices, document, triggerToken.Span, 
+                symbolAndProjectId, forceRenameOverloads, cancellationToken);
         }
 
         private SyntaxToken GetTriggerToken(Document document, int position, CancellationToken cancellationToken)

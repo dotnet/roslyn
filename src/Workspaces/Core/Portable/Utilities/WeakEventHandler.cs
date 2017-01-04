@@ -19,8 +19,7 @@ namespace Roslyn.Utilities
 
             return (sender, args) =>
             {
-                TTarget targ;
-                if (weakTarget.TryGetTarget(out targ))
+                if (weakTarget.TryGetTarget(out var targ))
                 {
                     invoker(targ, sender, args);
                 }

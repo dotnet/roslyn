@@ -130,12 +130,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                     {
                         continue;
                     }
-
                     // This is used to get unresolved member names.  It will not alway find a member name, but has been tested to do so 
                     // in the cases where the error code needs it.
-                    string name;
-                    int arity;
-                    syntaxFacts.GetNameAndArityOfSimpleName(node, out name, out arity);
+                    syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var arity);
                     errorDetailsUnresolvedMemberName = name;
 
                     // Here we reuse the unresolved member name field for attribute classes that can't be resolved as
@@ -192,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                         }
                     }
 
-                    if (syntaxFacts.IsMemberAccessExpression(node.Parent))
+                    if (syntaxFacts.IsSimpleMemberAccessExpression(node.Parent))
                     {
                         var expression = node.Parent;
 

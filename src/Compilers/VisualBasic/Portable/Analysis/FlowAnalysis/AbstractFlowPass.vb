@@ -1375,6 +1375,14 @@ lUnsplitAndFinish:
             Return Nothing
         End Function
 
+        Public Overrides Function VisitRelaxationLambda(node As BoundRelaxationLambda) As BoundNode
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Public Overrides Function VisitConvertedTupleElements(node As BoundConvertedTupleElements) As BoundNode
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
         Public Overrides Function VisitUserDefinedConversion(node As BoundUserDefinedConversion) As BoundNode
             VisitRvalue(node.UnderlyingExpression)
             Return Nothing

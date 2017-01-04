@@ -8,11 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml
 {
     public static class XamlStaticTypeDefinitions
     {
-        [Export]
-        [Name(ContentTypeNames.XamlContentType)]
-        [BaseDefinition(ContentTypeNames.RoslynContentType)]
-        public static readonly ContentTypeDefinition XamlContentTypeDefinition;
-
         // Associate .xaml as the Xaml content type.
         [Export]
         [FileExtension(StringConstants.XamlFileExtension)]

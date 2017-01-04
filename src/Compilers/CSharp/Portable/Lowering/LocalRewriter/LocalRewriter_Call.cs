@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -328,6 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // expression trees rewrite this later.
                                 // it is a kind of user defined conversions on IntPtr and in some cases can fail
                                 case ConversionKind.IntPtr:
+                                case ConversionKind.ImplicitThrow:
                                     return false;
 
                                 default:
@@ -403,12 +405,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
 
+            ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+            rewrittenArguments = _factory.MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
+
             if (rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
                 !expanded &&
                 !isComReceiver)
             {
-                temps = default(ImmutableArray<LocalSymbol>);
+                temps = temporariesBuilder.ToImmutableAndFree();
                 return rewrittenArguments;
             }
 
@@ -477,7 +482,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Optimize away unnecessary temporaries.
             // Necessary temporaries have their store instructions merged into the appropriate 
             // argument expression.
-            ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             OptimizeTemporaries(actualArguments, refKinds, storesToTemps, temporariesBuilder);
 
             // Step two: If we have a params array, build the array and fill in the argument.

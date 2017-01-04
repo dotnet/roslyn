@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = block.Syntax;
 
             Debug.Assert(method.MethodKind == MethodKind.Destructor);
-            Debug.Assert(syntax.Kind() == SyntaxKind.Block);
+            Debug.Assert(syntax.Kind() == SyntaxKind.Block || syntax.Kind() == SyntaxKind.ArrowExpressionClause);
 
             // If this is a destructor and a base type has a Finalize method (see GetBaseTypeFinalizeMethod for exact 
             // requirements), then we need to call that method in a finally block.  Otherwise, just return block as-is.
@@ -523,20 +523,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)baseTypeFinalize != null)
             {
-                BoundStatement baseFinalizeCall = new BoundSequencePointWithSpan( //sequence point to mimic Dev10
+                BoundStatement baseFinalizeCall = new BoundExpressionStatement(
                     syntax,
-                    new BoundExpressionStatement(
+                    BoundCall.Synthesized(
                         syntax,
-                        BoundCall.Synthesized(
+                        new BoundBaseReference(
                             syntax,
-                            new BoundBaseReference(
-                                syntax,
-                                method.ContainingType)
-                            { WasCompilerGenerated = true },
-                            baseTypeFinalize)
-                        )
-                    { WasCompilerGenerated = true },
-                    ((BlockSyntax)syntax).CloseBraceToken.Span);
+                            method.ContainingType)
+                        { WasCompilerGenerated = true },
+                        baseTypeFinalize))
+                    { WasCompilerGenerated = true };
+
+                if (syntax.Kind() == SyntaxKind.Block)
+                {
+                    //sequence point to mimic Dev10
+                    baseFinalizeCall = new BoundSequencePointWithSpan(
+                        syntax,
+                        baseFinalizeCall,
+                        ((BlockSyntax)syntax).CloseBraceToken.Span);
+                }
 
                 return new BoundBlock(
                     syntax,

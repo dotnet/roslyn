@@ -832,6 +832,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
+        ''' Gets the corresponding symbol for a specified tuple element.
+        ''' </summary>
+        ''' <param name="semanticModel">A source semantic model.</param>
+        ''' <param name="elementSyntax">A TupleElementSyntax object.</param>
+        ''' <param name="cancellationToken">A cancellation token.</param>
+        ''' <returns>A symbol, for the specified element; otherwise Nothing. </returns>
+        <Extension>
+        Public Function GetDeclaredSymbol(semanticModel As SemanticModel, elementSyntax As TupleElementSyntax, Optional cancellationToken As CancellationToken = Nothing) As ISymbol
+            Dim vbmodel = TryCast(semanticModel, VBSemanticModel)
+            If vbmodel IsNot Nothing Then
+                Return vbmodel.GetDeclaredSymbol(elementSyntax, cancellationToken)
+            Else
+                Return Nothing
+            End If
+        End Function
+
+        ''' <summary>
         ''' Gets the corresponding PropertySymbol for a specified FieldInitializerSyntax.
         ''' </summary>
         ''' <param name="semanticModel">A source semantic model.</param>

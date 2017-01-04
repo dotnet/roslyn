@@ -143,16 +143,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitPatternSwitchBlock(BoundPatternSwitchStatement node)
         {
+            var initialState = this.State;
             var afterSwitchState = UnreachableState();
             var switchSections = node.SwitchSections;
             var iLastSection = (switchSections.Length - 1);
 
-            // simulate the dispatch (setting pattern variables and jumping to labels) using the decision tree
-            VisitDecisionTree(node.DecisionTree);
+            // simulate the dispatch (setting pattern variables and jumping to labels) to
+            // all reachable switch labels
+            foreach (var section in switchSections)
+            {
+                foreach (var label in section.SwitchLabels)
+                {
+                    if (label.IsReachable)
+                    {
+                        SetState(initialState.Clone());
+                        // assign pattern variables
+                        VisitPattern(null, label.Pattern);
+                        SetState(StateWhenTrue);
+                        if (label.Guard != null)
+                        {
+                            VisitCondition(label.Guard);
+                            SetState(StateWhenTrue);
+                        }
+
+                        _pendingBranches.Add(new PendingBranch(label, this.State));
+                    }
+                }
+            }
 
             // we always consider the default label reachable for flow analysis purposes.
             if (node.DefaultLabel != null)
             {
+                SetState(initialState.Clone());
                 _pendingBranches.Add(new PendingBranch(node.DefaultLabel, this.State));
             }
 
@@ -168,122 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetState(afterSwitchState);
         }
 
-        // Visit all the branches in the decision tree
-        private void VisitDecisionTree(DecisionTree decisionTree)
-        {
-            if (decisionTree == null)
-            {
-                return;
-            }
-
-            switch (decisionTree.Kind)
-            {
-                case DecisionTree.DecisionKind.ByType:
-                    {
-                        var byType = (DecisionTree.ByType)decisionTree;
-                        var inputConstant = byType.Expression.ConstantValue;
-                        if (inputConstant != null)
-                        {
-                            if (inputConstant.IsNull)
-                            {
-                                VisitDecisionTree(byType.WhenNull);
-                            }
-                            else
-                            {
-                                foreach (var kvp in byType.TypeAndDecision)
-                                {
-                                    VisitDecisionTree(kvp.Value);
-                                    if (kvp.Value.MatchIsComplete)
-                                    {
-                                        return;
-                                    }
-                                }
-
-                                VisitDecisionTree(byType.Default);
-                            }
-                        }
-                        else
-                        {
-                            VisitDecisionTree(byType.WhenNull);
-                            foreach (var kvp in byType.TypeAndDecision)
-                            {
-                                VisitDecisionTree(kvp.Value);
-                            }
-
-                            VisitDecisionTree(byType.Default);
-                        }
-                        return;
-                    }
-                case DecisionTree.DecisionKind.ByValue:
-                    {
-                        var byValue = (DecisionTree.ByValue)decisionTree;
-                        var inputConstant = byValue.Expression.ConstantValue;
-                        if (inputConstant != null)
-                        {
-                            DecisionTree onValue;
-                            if (byValue.ValueAndDecision.TryGetValue(inputConstant.Value, out onValue))
-                            {
-                                VisitDecisionTree(onValue);
-                                if (!onValue.MatchIsComplete)
-                                {
-                                    VisitDecisionTree(byValue.Default);
-                                }
-                            }
-                            else
-                            {
-                                VisitDecisionTree(byValue.Default);
-                            }
-                        }
-                        else
-                        {
-                            foreach (var kvp in byValue.ValueAndDecision)
-                            {
-                                VisitDecisionTree(kvp.Value);
-                            }
-
-                            VisitDecisionTree(byValue.Default);
-                        }
-                        return;
-                    }
-                case DecisionTree.DecisionKind.Guarded:
-                    {
-                        VisitGuardedDecisionTree((DecisionTree.Guarded)decisionTree);
-                        return;
-                    }
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(decisionTree.Kind);
-            }
-        }
-
-        private void VisitGuardedDecisionTree(DecisionTree.Guarded guarded)
-        {
-            var initialState = this.State;
-            SetState(initialState.Clone());
-
-            // assign pattern variables
-            VisitGuardedPattern(guarded);
-
-            if (guarded.Guard != null)
-            {
-                VisitCondition(guarded.Guard);
-                SetState(StateWhenTrue);
-                // discard StateWhenFalse
-            }
-
-            // goto the label for the switch block
-            _pendingBranches.Add(new PendingBranch(guarded.Label, this.State));
-
-            // put the state back where we found it for the next case
-            SetState(initialState);
-
-            // Handle the "default" case when the guard fails
-            VisitDecisionTree(guarded.Default);
-        }
-
-        protected virtual void VisitGuardedPattern(DecisionTree.Guarded guarded)
-        {
-        }
-
         /// <summary>
         /// Visit the switch expression, and return the initial break state.
         /// </summary>
@@ -293,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.Expression);
 
             // return the exit state to use if no pattern matches
-            if (FullyHandlesItsInput(node.DecisionTree))
+            if (FullyHandlesItsInput(node))
             {
                 return UnreachableState();
             }
@@ -303,69 +209,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool FullyHandlesItsInput(DecisionTree decision)
+        private bool FullyHandlesItsInput(BoundPatternSwitchStatement node)
         {
-            if (decision == null)
-            {
-                return false;
-            }
-
-            if (decision.MatchIsComplete)
+            // If the switch is complete (for example, because it has a default label),
+            // just return true.
+            if (node.IsComplete)
             {
                 return true;
             }
 
-            // We check for completeness based on value. Other cases were handled in the construction of the decision tree.
-            if (decision.Expression.ConstantValue == null)
+            // We also check for completeness based on value. Other cases were handled in the construction of the decision tree.
+            if (node.Expression.ConstantValue == null)
             {
                 return false;
             }
 
-            var value = decision.Expression.ConstantValue;
-            switch (decision.Kind)
+            foreach (var section in node.SwitchSections)
             {
-                case DecisionTree.DecisionKind.ByType:
+                foreach (var label in section.SwitchLabels)
+                {
+                    if (label.Guard != null && label.Guard.ConstantValue != ConstantValue.True)
                     {
-                        var byType = (DecisionTree.ByType)decision;
-                        if (value.IsNull)
-                        {
-                            return FullyHandlesItsInput(byType.WhenNull);
-                        }
-
-                        foreach (var kv in byType.TypeAndDecision)
-                        {
-                            // the only types that should appear in the decision tree are those
-                            // that can accept the input constant. Other types should have been
-                            // removed when the decision tree was produced. This depends on the
-                            // fact that all constants are of sealed types.
-                            if (FullyHandlesItsInput(kv.Value))
-                            {
-                                return true;
-                            }
-                        }
-
-                        return FullyHandlesItsInput(byType.Default);
+                        continue;
                     }
-                case DecisionTree.DecisionKind.ByValue:
+
+                    if (label.Pattern.Kind == BoundKind.ConstantPattern &&
+                        ((BoundConstantPattern)label.Pattern).ConstantValue == node.Expression.ConstantValue)
                     {
-                        var byValue = (DecisionTree.ByValue)decision;
-                        if (value.IsNull)
-                        {
-                            return false;
-                        }
-
-                        DecisionTree onValue;
-                        return
-                            byValue.ValueAndDecision.TryGetValue(value.Value, out onValue) && FullyHandlesItsInput(onValue) ||
-                            byValue.Default != null && FullyHandlesItsInput(byValue.Default);
+                        return true;
                     }
-                case DecisionTree.DecisionKind.Guarded:
-                    {
-                        return decision.MatchIsComplete;
-                    }
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(decision.Kind);
+                }
             }
+
+            return false;
         }
 
         protected virtual void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)

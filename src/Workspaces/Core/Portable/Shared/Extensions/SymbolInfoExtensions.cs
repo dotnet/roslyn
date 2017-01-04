@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                var builder = ImmutableArray.CreateBuilder<ISymbol>(info.CandidateSymbols.Length + 1);
+                var builder = ArrayBuilder<ISymbol>.GetInstance(info.CandidateSymbols.Length + 1);
                 builder.Add(info.Symbol);
                 builder.AddRange(info.CandidateSymbols);
-                return builder.ToImmutable();
+                return builder.ToImmutableAndFree();
             }
         }
 

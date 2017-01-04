@@ -9,9 +9,8 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Options;
-using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Shell.Settings;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -20,6 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         public class RemoteHostClientService : ForegroundThreadAffinitizedObject, IRemoteHostClientService
         {
+            private readonly IAsynchronousOperationListener _listener;
             private readonly Workspace _workspace;
             private readonly IDiagnosticAnalyzerService _analyzerService;
 
@@ -29,16 +29,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private CancellationTokenSource _shutdownCancellationTokenSource;
             private Task<RemoteHostClient> _instanceTask;
 
-            public RemoteHostClientService(Workspace workspace, IDiagnosticAnalyzerService analyzerService) :
+            public RemoteHostClientService(
+                IAsynchronousOperationListener listener,
+                Workspace workspace,
+                IDiagnosticAnalyzerService analyzerService) :
                 base()
             {
                 _gate = new object();
 
+                _listener = listener;
                 _workspace = workspace;
                 _analyzerService = analyzerService;
             }
 
             public Workspace Workspace => _workspace;
+            public IAsynchronousOperationListener Listener => _listener;
 
             public void Enable()
             {
@@ -50,15 +55,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         return;
                     }
 
-                    if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
+                    // We enable the remote host if either RemoteHostTest or RemoteHost are on.
+                    if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest) &&
+                        !_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
                     {
                         // not turned on
-                        return;
-                    }
-
-                    if (!FeaturesEnabled())
-                    {
-                        // none of features that require OOP is enabled.
                         return;
                     }
 
@@ -107,7 +108,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     try
                     {
                         instanceTask.Wait(_shutdownCancellationTokenSource.Token);
-                        instanceTask.Result.Shutdown();
+
+                        // result can be null if service hub failed to launch
+                        instanceTask.Result?.Shutdown();
                     }
                     catch (OperationCanceledException)
                     {
@@ -132,9 +135,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return SpecializedTasks.Default<RemoteHostClient>();
                 }
 
-                // ensure we have solution checksum
-                _checksumUpdater.EnsureSolutionChecksum(cancellationToken);
-
                 return instanceTask;
             }
 
@@ -145,6 +145,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // if we reached here, IRemoteHostClientFactory must exist.
                 // this will make VS.Next dll to be loaded
                 var instance = await _workspace.Services.GetRequiredService<IRemoteHostClientFactory>().CreateAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                if (instance == null)
+                {
+                    return null;
+                }
+
                 instance.ConnectionChanged += OnConnectionChanged;
 
                 return instance;
@@ -154,8 +159,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_AddGlobalAssetsAsync, cancellationToken))
                 {
-                    var snapshotService = _workspace.Services.GetService<ISolutionChecksumService>();
-                    var assetBuilder = new AssetBuilder(_workspace.CurrentSolution);
+                    var snapshotService = _workspace.Services.GetService<ISolutionSynchronizationService>();
+                    var assetBuilder = new CustomAssetBuilder(_workspace);
 
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
                     {
@@ -169,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_RemoveGlobalAssets, CancellationToken.None))
                 {
-                    var snapshotService = _workspace.Services.GetService<ISolutionChecksumService>();
+                    var snapshotService = _workspace.Services.GetService<ISolutionSynchronizationService>();
 
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
                     {
@@ -197,44 +202,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // crash right away when connection is closed
                 FatalError.Report(new Exception("Connection to remote host closed"));
-            }
-
-            private bool FeaturesEnabled()
-            {
-                if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace.Options, LanguageNames.CSharp))
-                {
-                    return true;
-                }
-
-                if (TestImpactEnabled())
-                {
-                    return true;
-                }
-
-                // TODO: add check for code lens.
-                return false;
-            }
-
-            private bool TestImpactEnabled()
-            {
-                const string TestImpactPath = @"CodeAnalysis\TestImpact\IsGloballyEnabled";
-                const string KeyName = "Value";
-
-                // TODO: think about how to get rid of this code. since we don't want any code that require foreground
-                //       thread to run
-                AssertIsForeground();
-
-                var shellSettingsManager = new ShellSettingsManager(Shell.ServiceProvider.GlobalProvider);
-                var writeableSettingsStore = shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
-
-                if (writeableSettingsStore.PropertyExists(TestImpactPath, KeyName))
-                {
-                    return writeableSettingsStore.GetBoolean(TestImpactPath, KeyName);
-                }
-                else
-                {
-                    return false;
-                }
             }
         }
     }

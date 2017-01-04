@@ -114,6 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _features = ImmutableDictionary<string, string>.Empty;
         }
 
+        public override string Language => LanguageNames.CSharp;
+
         public new CSharpParseOptions WithKind(SourceCodeKind kind)
         {
             if (kind == this.Kind)

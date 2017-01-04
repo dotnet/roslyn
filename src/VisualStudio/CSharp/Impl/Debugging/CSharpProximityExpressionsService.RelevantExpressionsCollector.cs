@@ -85,9 +85,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                 AddExpressionTerms(node.Expression, _expressions);
             }
 
-            public override void VisitForEachComponentStatement(ForEachComponentStatementSyntax node)
+            public override void VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
             {
-                AddVariableExpressions(node.VariableComponent, _expressions);
+                AddVariableExpressions(node.Variable, _expressions);
                 AddExpressionTerms(node.Expression, _expressions);
             }
 
@@ -125,22 +125,26 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             }
 
             private void AddVariableExpressions(
-                VariableComponentSyntax component,
+                ExpressionSyntax component,
                 IList<string> expressions)
             {
                 if (!_includeDeclarations) return;
 
                 switch (component.Kind())
                 {
-                    case SyntaxKind.ParenthesizedVariableComponent:
+                    case SyntaxKind.TupleExpression:
                         {
-                            var t = (ParenthesizedVariableComponentSyntax)component;
-                            foreach (var v in t.Variables) AddVariableExpressions(component, expressions);
+                            var t = (TupleExpressionSyntax)component;
+                            foreach (ArgumentSyntax a in t.Arguments)
+                            {
+                                AddVariableExpressions(a.Expression, expressions);
+                            }
+
                             break;
                         }
-                    case SyntaxKind.TypedVariableComponent:
+                    case SyntaxKind.DeclarationExpression:
                         {
-                            var t = (TypedVariableComponentSyntax)component;
+                            var t = (DeclarationExpressionSyntax)component;
                             AddVariableExpressions(t.Designation, expressions);
                             break;
                         }
@@ -158,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
                     case SyntaxKind.ParenthesizedVariableDesignation:
                         {
                             var t = (ParenthesizedVariableDesignationSyntax)component;
-                            foreach (var v in t.Variables) AddVariableExpressions(component, expressions);
+                            foreach (VariableDesignationSyntax v in t.Variables) AddVariableExpressions(v, expressions);
                             break;
                         }
                     case SyntaxKind.SingleVariableDesignation:

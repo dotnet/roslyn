@@ -595,7 +595,7 @@ class C1
             Assert.Empty(project.ProjectReferences);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/15102"), Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_WithXaml()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -1265,20 +1265,14 @@ class C1
             Workspace.TestHookStandaloneProjectsDoNotHoldReferences = true;
 
             var ws = MSBuildWorkspace.Create();
-
-            var diags = new List<WorkspaceDiagnostic>();
-            ws.WorkspaceFailed += (s, args) =>
-            {
-                diags.Add(args.Diagnostic);
-            };
-
             ws.SkipUnrecognizedProjects = true;
+
             var project = ws.OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
 
             Assert.Equal(1, project.Solution.ProjectIds.Count);
             Assert.Equal(0, project.ProjectReferences.Count());
             Assert.Equal(1, project.AllProjectReferences.Count());
-            Assert.Equal(2, diags.Count);
+            Assert.Equal(1, ws.Diagnostics.Count);
         }
 
         [Fact(Skip = "https://roslyn.codeplex.com/workitem/451"), Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -2263,6 +2257,50 @@ class C1
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestLoadTextSync()
+        {
+            var files = GetAnalyzerReferenceSolutionFiles();
+
+            CreateFiles(files);
+
+            using (var ws = new AdhocWorkspace(DesktopMefHostServices.DefaultServices))
+            {
+                var projectFullPath = Path.Combine(this.SolutionDirectory.Path, @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj");
+
+                var loader = new MSBuildProjectLoader(ws);
+                var infos = loader.LoadProjectInfoAsync(projectFullPath).Result;
+
+                var doc = infos[0].Documents[0];
+                var tav = doc.TextLoader.LoadTextAndVersionSynchronously(ws, doc.Id, CancellationToken.None);
+
+                var adoc = infos[0].AdditionalDocuments.First(a => a.Name == "XamlFile.xaml");
+                var atav = adoc.TextLoader.LoadTextAndVersionSynchronously(ws, adoc.Id, CancellationToken.None);
+                Assert.Contains("Window", atav.Text.ToString(), StringComparison.Ordinal);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestGetTextSynchronously()
+        {
+            var files = GetAnalyzerReferenceSolutionFiles();
+
+            CreateFiles(files);
+
+            using (var ws = MSBuildWorkspace.Create())
+            {
+                var projectFullPath = Path.Combine(this.SolutionDirectory.Path, @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj");
+                var proj = ws.OpenProjectAsync(projectFullPath).Result;
+
+                var doc = proj.Documents.First();
+                var text = doc.State.GetTextSynchronously(CancellationToken.None);
+
+                var adoc = proj.AdditionalDocuments.First(a => a.Name == "XamlFile.xaml");
+                var atext = adoc.State.GetTextSynchronously(CancellationToken.None);
+                Assert.Contains("Window", atext.ToString(), StringComparison.Ordinal);
+            }
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
         public void TestCSharpExternAlias()
         {
@@ -2791,7 +2829,7 @@ class C { }";
 
             var projFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             var projFileText = File.ReadAllText(projFile);
-            Assert.Equal(false, projFileText.Contains(@"<Reference Include=""System.Xaml"));
+            Assert.Equal(false, projFileText.Contains(@"System.Xaml"));
 
             using (var ws = MSBuildWorkspace.Create())
             {
@@ -2803,24 +2841,58 @@ class C { }";
                 // add reference to System.Xaml
                 ws.TryApplyChanges(project.AddMetadataReference(mref).Solution);
                 projFileText = File.ReadAllText(projFile);
-                Assert.Equal(true, projFileText.Contains(@"<Reference Include=""System.Xaml"));
+                Assert.Equal(true, projFileText.Contains(@"<Reference Include=""System.Xaml,"));
 
                 // remove reference to System.Xaml
                 ws.TryApplyChanges(ws.CurrentSolution.GetProject(project.Id).RemoveMetadataReference(mref).Solution);
                 projFileText = File.ReadAllText(projFile);
-                Assert.Equal(false, projFileText.Contains(@"<Reference Include=""System.Xaml"));
+                Assert.Equal(false, projFileText.Contains(@"<Reference Include=""System.Xaml,"));
             }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestAddRemoveMetadataReference_NonGAC()
+        public void TestAddRemoveMetadataReference_ReferenceAssembly()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_WithSystemNumerics.csproj")));
+
+            var csProjFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+            var csProjFileText = File.ReadAllText(csProjFile);
+            Assert.Equal(true, csProjFileText.Contains(@"<Reference Include=""System.Numerics"""));
+
+            var vbProjFile = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
+            var vbProjFileText = File.ReadAllText(vbProjFile);
+            Assert.Equal(false, vbProjFileText.Contains(@"System.Numerics"));
+
+            using (var ws = MSBuildWorkspace.Create())
+            {
+                var solution = ws.OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
+                var csProject = solution.Projects.First(p => p.Language == LanguageNames.CSharp);
+                var vbProject = solution.Projects.First(p => p.Language == LanguageNames.VisualBasic);
+
+                var numericsMetadata = csProject.MetadataReferences.Single(m => m.Display.Contains("System.Numerics"));
+
+                // add reference to System.Xaml
+                ws.TryApplyChanges(vbProject.AddMetadataReference(numericsMetadata).Solution);
+                var newVbProjFileText = File.ReadAllText(vbProjFile);
+                Assert.Equal(true, newVbProjFileText.Contains(@"<Reference Include=""System.Numerics"""));
+
+                // remove reference MyAssembly.dll
+                ws.TryApplyChanges(ws.CurrentSolution.GetProject(vbProject.Id).RemoveMetadataReference(numericsMetadata).Solution);
+                var newVbProjFileText2 = File.ReadAllText(vbProjFile);
+                Assert.Equal(false, newVbProjFileText2.Contains(@"<Reference Include=""System.Numerics"""));
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestAddRemoveMetadataReference_NonGACorRefAssembly()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
                 .WithFile(@"References\MyAssembly.dll", GetResourceBytes("EmptyLibrary.dll")));
 
             var projFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             var projFileText = File.ReadAllText(projFile);
-            Assert.Equal(false, projFileText.Contains(@"<Reference Include=""..\References\MyAssembly.dll"));
+            Assert.Equal(false, projFileText.Contains(@"MyAssembly"));
 
             using (var ws = MSBuildWorkspace.Create())
             {
@@ -2833,12 +2905,14 @@ class C { }";
                 // add reference to MyAssembly.dll
                 ws.TryApplyChanges(project.AddMetadataReference(mref).Solution);
                 projFileText = File.ReadAllText(projFile);
-                Assert.Equal(true, projFileText.Contains(@"<Reference Include=""..\References\MyAssembly.dll"));
+                Assert.Equal(true, projFileText.Contains(@"<Reference Include=""MyAssembly"""));
+                Assert.Equal(true, projFileText.Contains(@"<HintPath>..\References\MyAssembly.dll"));
 
                 // remove reference MyAssembly.dll
                 ws.TryApplyChanges(ws.CurrentSolution.GetProject(project.Id).RemoveMetadataReference(mref).Solution);
                 projFileText = File.ReadAllText(projFile);
-                Assert.Equal(false, projFileText.Contains(@"<Reference Include=""..\References\MyAssembly.dll"));
+                Assert.Equal(false, projFileText.Contains(@"<Reference Include=""MyAssembly"""));
+                Assert.Equal(false, projFileText.Contains(@"<HintPath>..\References\MyAssembly.dll"));
             }
         }
 
@@ -2914,6 +2988,78 @@ class C { }";
             var proj = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
             var docs = proj.Documents.ToList();
             Assert.Equal(3, docs.Count);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestOpenProject_BadElement()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_BadElement.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+            var proj = await ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
+
+            Assert.Equal(1, ws.Diagnostics.Count);
+            Assert.True(ws.Diagnostics[0].Message.StartsWith("Msbuild failed"));
+
+            Assert.Equal(0, proj.DocumentIds.Count);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestOpenProject_BadTaskImport()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_BadTasks.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+            var proj = await ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
+
+            Assert.Equal(1, ws.Diagnostics.Count);
+            Assert.True(ws.Diagnostics[0].Message.StartsWith("Msbuild failed"));
+
+            Assert.Equal(0, proj.DocumentIds.Count);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestOpenSolution_BadTaskImport()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_BadTasks.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+            var solution = await ws.OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln"));
+
+            Assert.Equal(1, ws.Diagnostics.Count);
+            Assert.True(ws.Diagnostics[0].Message.StartsWith("Msbuild failed"));
+
+            Assert.Equal(1, solution.ProjectIds.Count);
+            Assert.Equal(0, solution.Projects.First().DocumentIds.Count);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestOpenProject_MsbuildError()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_MsbuildError.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+            var proj = await ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
+
+            Assert.Equal(1, ws.Diagnostics.Count);
+            Assert.True(ws.Diagnostics[0].Message.StartsWith("Msbuild failed"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestOpenProject_WildcardsWithLink()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_Wildcards.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+            var proj = await ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
+
+            // prove that the file identified with a wildcard and remapped to a computed link is named correctly.
+            Assert.True(proj.Documents.Any(d => d.Name == "AssemblyInfo.cs"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

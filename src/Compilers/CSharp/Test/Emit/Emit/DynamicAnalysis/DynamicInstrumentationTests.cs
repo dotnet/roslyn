@@ -1,68 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Test.Utilities.CSharpInstrumentationChecker;
 
 namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
 {
     public class DynamicInstrumentationTests : CSharpTestBase
     {
-        const string InstrumentationHelperSource = @"
-namespace Microsoft.CodeAnalysis.Runtime
-{
-    public static class Instrumentation
-    {
-        private static bool[][] _payloads;
-        private static int[] _fileIndices;
-        private static System.Guid _mvid;
-
-        public static bool[] CreatePayload(System.Guid mvid, int methodIndex, int fileIndex, ref bool[] payload, int payloadLength)
-        {
-            if (_mvid != mvid)
-            {
-                _payloads = new bool[100][];
-                _fileIndices = new int[100];
-                _mvid = mvid;
-            }
-
-            if (System.Threading.Interlocked.CompareExchange(ref payload, new bool[payloadLength], null) == null)
-            {
-                _payloads[methodIndex] = payload;
-                _fileIndices[methodIndex] = fileIndex;
-                return payload;
-            }
-
-            return _payloads[methodIndex];
-        }
-
-        public static void FlushPayload()
-        {
-            Console.WriteLine(""Flushing"");
-            if (_payloads == null)
-            {
-                return;
-            }
-            for (int i = 0; i < _payloads.Length; i++)
-            {
-                bool[] payload = _payloads[i];
-                if (payload != null)
-                {
-                    Console.WriteLine(""Method "" + i.ToString());
-                    Console.WriteLine(""File "" + _fileIndices[i].ToString());
-                    for (int j = 0; j < payload.Length; j++)
-                    {
-                        Console.WriteLine(payload[j]);
-                        payload[j] = false;
-                    }
-                }
-            }
-        }
-    }
-}
-";
-
         [Fact]
         public void HelpersInstrumentation()
         {
@@ -461,7 +410,7 @@ True
   IL_0007:  newarr     ""bool[]""
   IL_000c:  stsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
   IL_0011:  ldstr      ##MVID##
-  IL_0016:  call       ""System.Guid System.Guid.Parse(string)""
+  IL_0016:  newobj     ""System.Guid..ctor(string)""
   IL_001b:  stsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
   IL_0020:  ret
 }";
@@ -707,50 +656,43 @@ public class Program
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 }
-";
-            string expectedOutput = @"Flushing
-Method 3
-File 1
-True
-True
-Method 4
-File 1
-True
-True
-Method 5
-File 1
-True
-True
-True
-True
-True
-Method 6
-File 1
-True
-True
-True
-Method 8
-File 1
-True
-True
-False
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-";
+" + InstrumentationHelperSource;
 
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(3, 1, "public int Prop3")
+                .True("get");
+            checker.Method(4, 1, "public int Prop3")
+                .True("set");
+            checker.Method(5, 1, "public Program()")
+                .True("25")
+                .True("Prop = 12;")
+                .True("Prop3 = 12;")
+                .True("Prop2 = Prop3;");
+            checker.Method(6, 1, "public static void Main")
+                .True("new Program();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+            checker.Method(8, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: checker.ExpectedOutput, options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
-            verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+
+            verifier = CompileAndVerify(source, expectedOutput: checker.ExpectedOutput, options: TestOptions.DebugExe);
             verifier.VerifyDiagnostics();
+            checker.CompleteCheck(verifier.Compilation, source);
         }
 
         [Fact]
@@ -761,13 +703,13 @@ using System;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                  // Method 1
     {
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
     
-    static void TestMain()
+    static void TestMain()                                                  // Method 2
     {
         int x = Count;
         x += Prop;
@@ -801,6 +743,7 @@ True
 True
 Method 2
 File 1
+True
 True
 True
 True
@@ -851,11 +794,105 @@ True
 True
 True
 ";
-
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.DebugExe);
             verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunctionWithLambdaCoverage()
+        {
+            string source = @"
+using System;
+
+public class Program
+{
+    public static void Main(string[] args)                                  // Method 1
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+    
+    static void TestMain()                                                  // Method 2
+    {
+        new D().M1();
+    } 
+}
+
+public class D
+{
+    public void M1()                                                        // Method 4
+    {
+        L1();
+        void L1()
+        {
+            var f = new Func<int>(
+                () => 1
+            );
+
+            var f1 = new Func<int>(
+                () => 2
+            );
+
+            var f2 = new Func<int, int>(
+                (x) => x + 3
+            );
+
+            var f3 = new Func<int, int>(
+                x => x + 4
+            );
+
+            f();
+            f3(2);
+        }
+    }
+
+    // Method 5 is the synthesized instance constructor for D.
+}
+" + InstrumentationHelperSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(1, 1, "public static void Main")
+                .True("TestMain();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+            checker.Method(2, 1, "static void TestMain")
+                .True("new D().M1();");
+            checker.Method(4, 1, "public void M1()")
+                .True("L1();")
+                .True("1")
+                .True("var f = new Func<int>")
+                .False("2")
+                .True("var f1 = new Func<int>")
+                .False("x + 3")
+                .True("var f2 = new Func<int, int>")
+                .True("x + 4")
+                .True("var f3 = new Func<int, int>")
+                .True("f();")
+                .True("f3(2);");
+            checker.Method(5, 1, snippet: null, expectBodySpan: false);
+            checker.Method(7, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: checker.ExpectedOutput, options: TestOptions.ReleaseExe);
+            verifier.VerifyDiagnostics();
+            checker.CompleteCheck(verifier.Compilation, source);
+
+            verifier = CompileAndVerify(source, expectedOutput: checker.ExpectedOutput, options: TestOptions.DebugExe);
+            verifier.VerifyDiagnostics();
+            checker.CompleteCheck(verifier.Compilation, source);
         }
 
         [Fact]
@@ -1122,7 +1159,7 @@ True
 True
 True
 ";
-           
+
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics();
         }
@@ -1374,6 +1411,7 @@ True
 Method 3
 File 1
 True
+True
 False
 True
 False
@@ -1403,6 +1441,166 @@ True
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Subject").WithArguments("Teacher.Subject", "null").WithLocation(37, 40));
+        }
+
+        [Fact]
+        public void DeconstructionStatementCoverage()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main() // Method 1
+    {
+        TestMain2();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void TestMain2() // Method 2
+    {
+        var (x, y) = new C();
+    }
+
+    static void TestMain3() // Method 3
+    {
+        var (x, y) = new C();
+    }
+
+    public C() // Method 4
+    {
+    }
+
+    public void Deconstruct(out int x, out int y) // Method 5
+    {
+        x = 1;
+        y = 2;
+    }
+}
+";
+            string expectedOutput = @"Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+Method 4
+File 1
+True
+Method 5
+File 1
+True
+True
+True
+Method 7
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void DeconstructionForeachStatementCoverage()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main() // Method 1
+    {
+        TestMain2(new C[] { new C() });
+        TestMain3(new C[] { });
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static void TestMain2(C[] a) // Method 2
+    {
+        foreach (
+            var (x, y)
+            in a)
+            ;
+    }
+
+    static void TestMain3(C[] a) // Method 3
+    {
+        foreach (
+            var (x, y)
+            in a)
+            ;
+    }
+
+    public C() // Method 4
+    {
+    }
+
+    public void Deconstruct(out int x, out int y) // Method 5
+    {
+        x = 1;
+        y = 2;
+    }
+}
+";
+            string expectedOutput = @"Flushing
+Method 1
+File 1
+True
+True
+True
+True
+Method 2
+File 1
+True
+True
+True
+Method 3
+File 1
+True
+False
+False
+Method 4
+File 1
+True
+Method 5
+File 1
+True
+True
+True
+Method 7
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1490,18 +1688,18 @@ using System.Threading.Tasks;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                  // Method 1
     {
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 
-    static void TestMain()
+    static void TestMain()                                                  // Method 2
     {
         Console.WriteLine(Outer(""Goo"").Result);
     }
 
-    async static Task<string> Outer(string s)
+    async static Task<string> Outer(string s)                               // Method 3
     {
         string s1 = await First(s);
         string s2 = await Second(s);
@@ -1509,7 +1707,7 @@ public class Program
         return s1 + s2;
     }
 
-    async static Task<string> First(string s)
+    async static Task<string> First(string s)                               // Method 4
     {
         string result = await Second(s) + ""Glue"";
         if (result.Length > 2)
@@ -1518,7 +1716,7 @@ public class Program
             return ""Too short"";
     }
 
-    async static Task<string> Second(string s)
+    async static Task<string> Second(string s)                              // Method 5
     {
         string doubled = """";
         if (s.Length > 2)
@@ -1559,6 +1757,7 @@ True
 True
 True
 False
+True
 True
 True
 Method 8
@@ -1944,7 +2143,7 @@ public class Program
             foreach (Diagnostic diagnostic in diagnostics)
             {
                 if (diagnostic.Code == (int)ErrorCode.ERR_MissingPredefinedMember &&
-                    diagnostic.Arguments[0].Equals("System.Guid") && diagnostic.Arguments[1].Equals("Parse"))
+                    diagnostic.Arguments[0].Equals("System.Guid") && diagnostic.Arguments[1].Equals(".ctor"))
                 {
                     return;
                 }
@@ -1953,11 +2152,399 @@ public class Program
             Assert.True(false);
         }
 
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_Method()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    [ExcludeFromCodeCoverage]
+    void M1() { Console.WriteLine(1); }
+
+    void M2() { Console.WriteLine(1); }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+
+            AssertNotInstrumented(verifier, "C.M1");
+            AssertInstrumented(verifier, "C.M2");
+        }
+
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_Ctor()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    int a = 1;
+
+    [ExcludeFromCodeCoverage]
+    public C() { Console.WriteLine(3); }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+
+            AssertNotInstrumented(verifier, "C..ctor");
+        }
+
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_Cctor()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    static int a = 1;
+
+    [ExcludeFromCodeCoverage]
+    static C() { Console.WriteLine(3); }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            AssertNotInstrumented(verifier, "C..cctor");
+        }
+
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_LocalFunctionsAndLambdas_InMethod()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    [ExcludeFromCodeCoverage]
+    static void M1() { L1(); void L1() { new Action(() => { Console.WriteLine(1); }).Invoke(); } }
+                                                      
+    static void M2() { L2(); void L2() { new Action(() => { Console.WriteLine(2); }).Invoke(); } }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+
+            AssertNotInstrumented(verifier, "C.M1");
+            AssertNotInstrumented(verifier, "C.<M1>g__L10_0");
+            AssertNotInstrumented(verifier, "C.<>c.<M1>b__0_1");
+
+            AssertInstrumented(verifier, "C.M2");
+            AssertInstrumented(verifier, "C.<>c__DisplayClass1_0.<M2>g__L20"); // M2:L2
+            AssertInstrumented(verifier, "C.<>c__DisplayClass1_0.<M2>b__1"); // M2:L2 lambda
+        }
+
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_LocalFunctionsAndLambdas_InInitializers()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    Action IF = new Action(() => { Console.WriteLine(1); });
+    Action IP { get; } = new Action(() => { Console.WriteLine(2); });
+
+    static Action SF = new Action(() => { Console.WriteLine(3); });
+    static Action SP { get; } = new Action(() => { Console.WriteLine(4); });
+
+    [ExcludeFromCodeCoverage]
+    C() {}
+
+    static C() {}
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+
+            AssertNotInstrumented(verifier, "C..ctor");
+            AssertNotInstrumented(verifier, "C.<>c.<.ctor>b__8_0");
+            AssertNotInstrumented(verifier, "C.<>c.<.ctor>b__8_1");
+
+            AssertInstrumented(verifier, "C..cctor");
+            AssertInstrumented(verifier, "C.<>c__DisplayClass9_0.<.cctor>b__0");
+            AssertInstrumented(verifier, "C.<>c__DisplayClass9_0.<.cctor>b__1");
+        }
+
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_LocalFunctionsAndLambdas_InAccessors()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    [ExcludeFromCodeCoverage]
+    int P1 
+    { 
+        get { L1(); void L1() { Console.WriteLine(1); } return 1; } 
+        set { L2(); void L2() { Console.WriteLine(2); } } 
+    }
+
+    int P2
+    { 
+        get { L3(); void L3() { Console.WriteLine(3); } return 3; } 
+        set { L4(); void L4() { Console.WriteLine(4); } } 
+    }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            
+            AssertNotInstrumented(verifier, "C.P1.get");
+            AssertNotInstrumented(verifier, "C.P1.set");
+            AssertNotInstrumented(verifier, "C.<get_P1>g__L11_0");
+            AssertNotInstrumented(verifier, "C.<set_P1>g__L22_0");
+
+            AssertInstrumented(verifier, "C.P2.get");
+            AssertInstrumented(verifier, "C.P2.set");
+            AssertInstrumented(verifier, "C.<get_P2>g__L34_0");
+            AssertInstrumented(verifier, "C.<set_P2>g__L45_0");
+        }
+
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_Type()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+[ExcludeFromCodeCoverage]
+class C
+{
+    int x = 1;
+
+    static C() { }
+
+    void M1() { Console.WriteLine(1); }
+
+    int P { get => 1; set { } }
+
+    event Action E { add { } remove { } }
+}
+
+class D
+{
+    int x = 1;
+
+    static D() { }
+
+    void M1() { Console.WriteLine(1); }
+
+    int P { get => 1; set { } }
+
+    event Action E { add { } remove { } }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+
+            AssertNotInstrumented(verifier, "C..ctor");
+            AssertNotInstrumented(verifier, "C..cctor");
+            AssertNotInstrumented(verifier, "C.M1");
+            AssertNotInstrumented(verifier, "C.P.get");
+            AssertNotInstrumented(verifier, "C.P.set");
+            AssertNotInstrumented(verifier, "C.E.add");
+            AssertNotInstrumented(verifier, "C.E.remove");
+
+            AssertInstrumented(verifier, "D..ctor");
+            AssertInstrumented(verifier, "D..cctor");
+            AssertInstrumented(verifier, "D.M1");
+            AssertInstrumented(verifier, "D.P.get");
+            AssertInstrumented(verifier, "D.P.set");
+            AssertInstrumented(verifier, "D.E.add");
+            AssertInstrumented(verifier, "D.E.remove");
+        }
+
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_NestedType()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class A
+{
+    class B1
+    {
+        [ExcludeFromCodeCoverage]
+        class C
+        {
+            void M1() { Console.WriteLine(1); }
+        }
+
+        void M2() { Console.WriteLine(2); }
+    }
+
+    [ExcludeFromCodeCoverage]
+    partial class B2
+    {
+        partial class C1
+        {
+            void M3() { Console.WriteLine(3); }
+        }
+
+        class C2
+        {
+            void M4() { Console.WriteLine(4); }
+        }
+
+        void M5() { Console.WriteLine(5); }
+    }
+
+    partial class B2
+    {
+        [ExcludeFromCodeCoverage]
+        partial class C1
+        {
+            void M6() { Console.WriteLine(6); }
+        }
+
+        void M7() { Console.WriteLine(7); }
+    }
+
+    void M8() { Console.WriteLine(8); }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+
+            AssertNotInstrumented(verifier, "A.B1.C.M1");
+            AssertInstrumented(verifier, "A.B1.M2");
+            AssertNotInstrumented(verifier, "A.B2.C1.M3");
+            AssertNotInstrumented(verifier, "A.B2.C2.M4");
+            AssertNotInstrumented(verifier, "A.B2.C1.M6");
+            AssertNotInstrumented(verifier, "A.B2.M7");
+            AssertInstrumented(verifier, "A.M8");
+        }
+
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_Accessors()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    [ExcludeFromCodeCoverage]
+    int P1 { get => 1; set {} }
+          
+    [ExcludeFromCodeCoverage]
+    event Action E1 { add { } remove { } }
+                                            
+    int P2 { get => 1; set {} }
+    event Action E2 { add { } remove { } }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            
+            AssertNotInstrumented(verifier, "C.P1.get");
+            AssertNotInstrumented(verifier, "C.P1.set");
+            AssertNotInstrumented(verifier, "C.E1.add");
+            AssertNotInstrumented(verifier, "C.E1.remove");
+
+            AssertInstrumented(verifier, "C.P2.get");
+            AssertInstrumented(verifier, "C.P2.set");
+            AssertInstrumented(verifier, "C.E2.add");
+            AssertInstrumented(verifier, "C.E2.remove");
+        }
+
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_CustomDefinition_Good()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Class)]
+    public sealed class ExcludeFromCodeCoverageAttribute : Attribute
+    {
+        public ExcludeFromCodeCoverageAttribute() {}
+    }
+}
+
+[ExcludeFromCodeCoverage]
+class C
+{
+    void M() {}
+}
+
+class D
+{
+    void M() {}
+}
+";
+            var c = CreateCompilationWithMscorlib(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            c.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+            c.VerifyEmitDiagnostics();
+
+            AssertNotInstrumented(verifier, "C.M");
+            AssertInstrumented(verifier, "D.M");
+        }
+
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_CustomDefinition_Bad()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Class)]
+    public sealed class ExcludeFromCodeCoverageAttribute : Attribute
+    {
+        public ExcludeFromCodeCoverageAttribute(int x) {}
+    }
+}
+
+[ExcludeFromCodeCoverage(1)]
+class C
+{
+    void M() {}
+}
+
+class D
+{
+    void M() {}
+}
+";
+            var c = CreateCompilationWithMscorlib(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            c.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+            c.VerifyEmitDiagnostics();
+
+            AssertInstrumented(verifier, "C.M");
+            AssertInstrumented(verifier, "D.M");
+        }
+
+        private static void AssertNotInstrumented(CompilationVerifier verifier, string qualifiedMethodName)
+            => AssertInstrumented(verifier, qualifiedMethodName, expected: false);
+
+        private static void AssertInstrumented(CompilationVerifier verifier, string qualifiedMethodName, bool expected = true)
+        {
+            string il = verifier.VisualizeIL(qualifiedMethodName);
+
+            // Tests using this helper are constructed such that instrumented methods contain a call to CreatePayload, 
+            // lambdas a reference to payload bool array.
+            bool instrumented = il.Contains("CreatePayload") || il.Contains("bool[]");
+
+            Assert.True(expected == instrumented, $"Method '{qualifiedMethodName}' should {(expected ? "be" : "not be")} instrumented. Actual IL:{Environment.NewLine}{il}");
+        }
+
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CompilationOptions options = null)
         {
             return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_refs, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
         }
 
-        private static readonly MetadataReference[] s_refs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
+        private static readonly MetadataReference[] s_refs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, ValueTupleRef, SystemRuntimeFacadeRef };
     }
 }

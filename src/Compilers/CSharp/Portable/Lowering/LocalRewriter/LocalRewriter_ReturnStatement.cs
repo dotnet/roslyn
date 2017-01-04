@@ -41,9 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return true;
                 }
-                var sourceMethod = method as SourceMethodSymbol;
-                return sourceMethod != null
-                    && sourceMethod.IsExpressionBodied;
+
+                return
+                    (method as SourceMethodSymbol)?.IsExpressionBodied ??
+                    (method as LocalFunctionSymbol)?.IsExpressionBodied ?? false;
             }
         }
     }

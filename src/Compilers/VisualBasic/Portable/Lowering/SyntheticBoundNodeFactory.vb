@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Assignment expressions in lowered form should always have suppressObjectClone = True
         ''' </summary>
         Public Function AssignmentExpression(left As BoundExpression, right As BoundExpression) As BoundAssignmentOperator
-            Debug.Assert(left.Type.IsSameTypeIgnoringCustomModifiers(right.Type) OrElse right.Type.IsErrorType() OrElse left.Type.IsErrorType())
+            Debug.Assert(left.Type.IsSameTypeIgnoringAll(right.Type) OrElse right.Type.IsErrorType() OrElse left.Type.IsErrorType())
             Dim boundNode = New BoundAssignmentOperator(_syntax, left, right, True)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
@@ -355,6 +355,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function Block(locals As ImmutableArray(Of LocalSymbol), ParamArray statements As BoundStatement()) As BoundBlock
             Return Block(locals, ImmutableArray.Create(Of BoundStatement)(statements))
+        End Function
+
+        Public Function StatementList() As BoundStatementList
+            Return StatementList(ImmutableArray(Of BoundStatement).Empty)
         End Function
 
         Public Function StatementList(statements As ImmutableArray(Of BoundStatement)) As BoundStatementList
@@ -476,14 +480,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundNode
         End Function
 
-        Public Function [New](type As NamedTypeSymbol, ParamArray args As BoundExpression()) As BoundObjectCreationExpression
+        Public Function [New](type As NamedTypeSymbol) As BoundObjectCreationExpression
             ' TODO: add diagnostics for when things fall apart
-            Dim ctor = type.InstanceConstructors.Single(Function(c) c.ParameterCount = args.Length)
-            Return [New](ctor, args)
+            Dim ctor = type.InstanceConstructors.Single(Function(c) c.ParameterCount = 0)
+            Return [New](ctor)
         End Function
 
         Public Function [New](ctor As MethodSymbol, ParamArray args As BoundExpression()) As BoundObjectCreationExpression
-            Dim boundNode = New BoundObjectCreationExpression(_syntax, ctor, ImmutableArray.Create(Of BoundExpression)(args), Nothing, ctor.ContainingType)
+            Dim boundNode = New BoundObjectCreationExpression(_syntax, ctor, ImmutableArray.Create(args), Nothing, ctor.ContainingType)
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        Public Function [New](ctor As MethodSymbol) As BoundObjectCreationExpression
+            Dim boundNode = New BoundObjectCreationExpression(_syntax,
+                                                              ctor,
+                                                              ImmutableArray(Of BoundExpression).Empty,
+                                                              Nothing,
+                                                              ctor.ContainingType)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function

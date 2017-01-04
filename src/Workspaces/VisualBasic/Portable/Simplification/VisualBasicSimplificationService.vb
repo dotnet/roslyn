@@ -4,7 +4,6 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Simplification
@@ -16,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     Partial Friend Class VisualBasicSimplificationService
         Inherits AbstractSimplificationService(Of ExpressionSyntax, ExecutableStatementSyntax, CrefReferenceSyntax)
 
-        Protected Overrides Function GetReducers() As IEnumerable(Of AbstractReducer)
-            Return {
+        Private Shared ReadOnly s_reducers As ImmutableArray(Of AbstractReducer) =
+            ImmutableArray.Create(Of AbstractReducer)(
                 New VisualBasicExtensionMethodReducer(),
                 New VisualBasicCastReducer(),
                 New VisualBasicNameReducer(),
@@ -26,9 +25,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 New VisualBasicEscapingReducer(), ' order before VisualBasicMiscellaneousReducer, see RenameNewOverload test
                 New VisualBasicMiscellaneousReducer(),
                 New VisualBasicCastReducer(),
-                New VisualBasicVariableDeclaratorReducer()
-            }
-        End Function
+                New VisualBasicVariableDeclaratorReducer())
+
+        Public Sub New()
+            MyBase.New(s_reducers)
+        End Sub
 
         Public Overrides Function Expand(node As SyntaxNode, semanticModel As SemanticModel, aliasReplacementAnnotation As SyntaxAnnotation, expandInsideNode As Func(Of SyntaxNode, Boolean), expandParameter As Boolean, cancellationToken As CancellationToken) As SyntaxNode
             Using Logger.LogBlock(FunctionId.Simplifier_ExpandNode, cancellationToken)

@@ -4,11 +4,12 @@ Imports System.Collections.Immutable
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.FindReferences
+Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 Imports Xunit.Abstractions
+Imports Microsoft.CodeAnalysis.Editor.FindUsages
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -38,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Dim startDocument = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
                     Assert.NotNull(startDocument)
 
-                    Dim findRefsService = startDocument.GetLanguageService(Of IStreamingFindReferencesService)
+                    Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
                     Dim context = New TestContext()
                     Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context)
 
@@ -109,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Structure
 
         Private Class TestContext
-            Inherits FindReferencesContext
+            Inherits FindUsagesContext
 
             Private ReadOnly gate As Object = New Object()
 
@@ -124,17 +125,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return definition.DisplayIfNoReferences
             End Function
 
-            Public Overrides Sub OnDefinitionFound(definition As DefinitionItem)
+            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem) As Task
                 SyncLock gate
                     Me.Definitions.Add(definition)
                 End SyncLock
-            End Sub
 
-            Public Overrides Sub OnReferenceFound(reference As SourceReferenceItem)
+                Return SpecializedTasks.EmptyTask
+            End Function
+
+            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem) As Task
                 SyncLock gate
                     References.Add(reference)
                 End SyncLock
-            End Sub
+
+                Return SpecializedTasks.EmptyTask
+            End Function
         End Class
 
         Private Async Function TestAPI(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task

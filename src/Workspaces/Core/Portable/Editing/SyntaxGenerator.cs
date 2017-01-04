@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editing
     {
         public static SyntaxRemoveOptions DefaultRemoveOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
 
+        internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
+
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
@@ -117,6 +119,10 @@ namespace Microsoft.CodeAnalysis.Editing
                 DeclarationModifiers.From(field),
                 initializer);
         }
+
+        //internal abstract SyntaxNode ObjectMemberInitializer(IEnumerable<SyntaxNode> fieldInitializers);
+        //internal abstract SyntaxNode NamedFieldInitializer(SyntaxNode name, SyntaxNode value);
+        //internal abstract SyntaxNode WithObjectCreationInitializer(SyntaxNode objectCreationExpression, SyntaxNode initializer);
 
         /// <summary>
         /// Creates a method declaration.
@@ -798,6 +804,14 @@ namespace Microsoft.CodeAnalysis.Editing
             return this.RemoveNodes(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
         }
 
+        internal SyntaxNode RemoveAllComments(SyntaxNode declaration)
+        {
+            return declaration.WithLeadingTrivia(declaration.GetLeadingTrivia().Where(t => !IsRegularOrDocComment(t)))
+                              .WithTrailingTrivia(declaration.GetTrailingTrivia().Where(t => !IsRegularOrDocComment(t)));
+        }
+
+        internal abstract bool IsRegularOrDocComment(SyntaxTrivia trivia);
+
         /// <summary>
         /// Gets the attributes of a declaration, not including the return attributes.
         /// </summary>
@@ -1303,6 +1317,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode ThrowStatement(SyntaxNode expression = null);
 
         /// <summary>
+        /// Creates an expression that can be used to throw an exception.
+        /// </summary>
+        public abstract SyntaxNode ThrowExpression(SyntaxNode expression);
+
+        /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
         public abstract SyntaxNode LocalDeclarationStatement(SyntaxNode type, string identifier, SyntaxNode initializer = null, bool isConst = false);
@@ -1438,6 +1457,12 @@ namespace Microsoft.CodeAnalysis.Editing
         #endregion
 
         #region Expressions
+
+        internal abstract SyntaxToken InterpolatedStringTextToken(string content);
+        internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);
+        internal abstract SyntaxNode Interpolation(SyntaxNode syntaxNode);
+        internal abstract SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken);
+
         /// <summary>
         /// An expression that represents the default value of a type.
         /// This is typically a null value for reference types or a zero-filled value for value types.
@@ -1710,6 +1735,10 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that denotes a conditional evaluation operation.
         /// </summary>
         public abstract SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse);
+
+        internal abstract SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
+        internal abstract SyntaxNode MemberBindingExpression(SyntaxNode name);
+        internal abstract SyntaxNode ElementBindingExpression(SyntaxNode argumentList);
 
         /// <summary>
         /// Creates an expression that denotes a coalesce operation. 

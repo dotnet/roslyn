@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Interop
         {
             // When running in a complus environment we must respect the specified CLR version.  This 
             // important to keeping internal builds running. 
-            if (!string.IsNullOrEmpty(PortableShim.Environment.GetEnvironmentVariable("COMPLUS_InstallRoot")))
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("COMPLUS_InstallRoot")))
             {
-                var version = PortableShim.Environment.GetEnvironmentVariable("COMPLUS_Version");
+                var version = Environment.GetEnvironmentVariable("COMPLUS_Version");
                 if (!string.IsNullOrEmpty(version))
                 {
                     return version;

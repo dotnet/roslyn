@@ -4,12 +4,11 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
-
+using Roslyn.Utilities;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Tasks.Hosting;
 using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -154,8 +153,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #region Tool Members
 
-        internal override RequestLanguage Language => RequestLanguage.CSharpCompile;
-
         private static readonly string[] s_separators = { "\r\n" };
 
         internal override void LogMessages(string output, MessageImportance messageImportance)
@@ -180,26 +177,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 return "csc.exe";
             }
-        }
-
-        /// <summary>
-        /// Return the path to the tool to execute.
-        /// </summary>
-        protected override string GenerateFullPathToTool()
-        {
-            string pathToTool = ToolLocationHelper.GetPathToBuildToolsFile(ToolName, ToolLocationHelper.CurrentToolsVersion);
-
-            if (null == pathToTool)
-            {
-                pathToTool = ToolLocationHelper.GetPathToDotNetFrameworkFile(ToolName, TargetDotNetFrameworkVersion.VersionLatest);
-
-                if (null == pathToTool)
-                {
-                    Log.LogErrorWithCodeFromResources("General_FrameworksFileNotFound", ToolName, ToolLocationHelper.GetDotNetFrameworkVersionFolderPrefix(TargetDotNetFrameworkVersion.VersionLatest));
-                }
-            }
-
-            return pathToTool;
         }
 
         /// <summary>
@@ -280,6 +257,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         #endregion
+
+        internal override RequestLanguage Language => RequestLanguage.CSharpCompile;
 
         /// <summary>
         /// The C# compiler (starting with Whidbey) supports assembly aliasing for references.
@@ -412,7 +391,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // add them to the outgoing string.
             foreach (string singleIdentifier in allIdentifiers)
             {
-                if (SyntaxFacts.IsValidIdentifier(singleIdentifier))
+                if (UnicodeCharacterUtilities.IsValidIdentifier(singleIdentifier))
                 {
                     // Separate them with a semicolon if there's something already in
                     // the outgoing string.

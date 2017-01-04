@@ -14,14 +14,37 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Composition;
+using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
 {
     public partial class WorkspaceTests
     {
+        [Shared]
+        [Export(typeof(IAsynchronousOperationListener))]
+        [Export(typeof(IAsynchronousOperationWaiter))]
+        [Feature(FeatureAttribute.Workspace)]
+        private class WorkspaceWaiter : AsynchronousOperationListener
+        {
+            internal WorkspaceWaiter()
+            {
+            }
+        }
+
+        private static Lazy<ExportProvider> s_exportProvider = new Lazy<ExportProvider>(CreateExportProvider);
+
+        private static ExportProvider CreateExportProvider()
+        {
+            var catalog = MinimalTestExportProvider.WithPart(
+                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic(),
+                typeof(WorkspaceWaiter));
+            return MinimalTestExportProvider.CreateExportProvider(catalog);
+        }
+
         private TestWorkspace CreateWorkspace(bool disablePartialSolutions = true)
         {
-            return new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, disablePartialSolutions: disablePartialSolutions);
+            return new TestWorkspace(s_exportProvider.Value, disablePartialSolutions: disablePartialSolutions);
         }
 
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)

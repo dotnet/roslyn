@@ -140,20 +140,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitThrowStatement(BoundThrowStatement node)
         {
-            BoundExpression expr = node.ExpressionOpt;
-            if (expr != null)
-            {
-                this.EmitExpression(expr, true);
+            EmitThrow(node.ExpressionOpt);
+        }
 
-                var exprType = expr.Type;
+        private void EmitThrow(BoundExpression thrown)
+        {
+            if (thrown != null)
+            {
+                this.EmitExpression(thrown, true);
+
+                var exprType = thrown.Type;
                 // Expression type will be null for "throw null;".
                 if (exprType?.TypeKind == TypeKind.TypeParameter)
                 {
-                    this.EmitBox(exprType, expr.Syntax);
+                    this.EmitBox(exprType, thrown.Syntax);
                 }
             }
 
-            _builder.EmitThrow(isRethrow: expr == null);
+            _builder.EmitThrow(isRethrow: thrown == null);
         }
 
         private void EmitConditionalGoto(BoundConditionalGoto boundConditionalGoto)
@@ -722,13 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         // Ensure the return type has been translated. (Necessary
                         // for cases of untranslated anonymous types.)
-                        var returnType = expressionOpt.Type;
-                        var byRefType = returnType as ByRefReturnErrorTypeSymbol;
-                        if ((object)byRefType != null)
-                        {
-                            returnType = byRefType.ReferencedType;
-                        }
-                        _module.Translate(returnType, boundReturnStatement.Syntax, _diagnostics);
+                        _module.Translate(expressionOpt.Type, boundReturnStatement.Syntax, _diagnostics);
                     }
                     _builder.EmitRet(expressionOpt == null);
                 }
@@ -1077,11 +1075,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSwitchBody(switchStatement.InnerLocals, switchSections, breakLabel, switchStatement.Syntax);
         }
 
-        private static KeyValuePair<ConstantValue, object>[] GetSwitchCaseLabels(ImmutableArray<BoundSwitchSection> sections, ref LabelSymbol fallThroughLabel)
+        private KeyValuePair<ConstantValue, object>[] GetSwitchCaseLabels(ImmutableArray<BoundSwitchSection> sections, ref LabelSymbol fallThroughLabel)
         {
             var labelsBuilder = ArrayBuilder<KeyValuePair<ConstantValue, object>>.GetInstance();
             foreach (var section in sections)
             {
+                // all labels in a section are labeling the same region of code, 
+                // so we could use just the first one for a better codegen
+                object firstLabelInSection = null;
+
                 foreach (BoundSwitchLabel boundLabel in section.SwitchLabels)
                 {
                     var label = boundLabel.Label;
@@ -1094,7 +1096,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var value = boundLabel.ConstantValueOpt;
                         Debug.Assert(value != null
                             && SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(value));
-                        labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, label));
+
+                        if (firstLabelInSection == null)
+                        {
+                            firstLabelInSection = label;
+                        }
+
+                        labelsBuilder.Add(new KeyValuePair<ConstantValue, object>(value, firstLabelInSection));
                     }
                 }
             }
@@ -1385,20 +1393,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private LocalDefinition DefineLocal(LocalSymbol local, SyntaxNode syntaxNode)
         {
-            var transformFlags = default(ImmutableArray<TypedConstant>);
-            bool hasDynamic = local.Type.ContainsDynamic();
-            var isDynamicSourceLocal = hasDynamic && !local.IsCompilerGenerated;
-            if (isDynamicSourceLocal)
-            {
-                NamedTypeSymbol booleanType = _module.Compilation.GetSpecialType(SpecialType.System_Boolean);
-                transformFlags = CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, booleanType, 0, RefKind.None);
-            }
+            var dynamicTransformFlags = !local.IsCompilerGenerated && local.Type.ContainsDynamic() ?
+                CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, _module.Compilation.GetSpecialType(SpecialType.System_Boolean), 0, RefKind.None) :
+                ImmutableArray<TypedConstant>.Empty;
+            var tupleElementNames = !local.IsCompilerGenerated && local.Type.ContainsTupleNames() ?
+                CSharpCompilation.TupleNamesEncoder.Encode(local.Type, _module.Compilation.GetSpecialType(SpecialType.System_String)) :
+                ImmutableArray<TypedConstant>.Empty;
 
             if (local.IsConst)
             {
                 Debug.Assert(local.HasConstantValue);
                 MetadataConstant compileTimeValue = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics);
-                LocalConstantDefinition localConstantDef = new LocalConstantDefinition(local.Name, local.Locations.FirstOrDefault() ?? Location.None, compileTimeValue, isDynamicSourceLocal, transformFlags);
+                LocalConstantDefinition localConstantDef = new LocalConstantDefinition(
+                    local.Name,
+                    local.Locations.FirstOrDefault() ?? Location.None,
+                    compileTimeValue,
+                    dynamicTransformFlags: dynamicTransformFlags,
+                    tupleElementNames: tupleElementNames);
                 _builder.AddLocalConstantToScope(localConstantDef);
                 return null;
             }
@@ -1448,8 +1459,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 id: localId,
                 pdbAttributes: local.SynthesizedKind.PdbAttributes(),
                 constraints: constraints,
-                isDynamic: isDynamicSourceLocal,
-                dynamicTransformFlags: transformFlags,
+                dynamicTransformFlags: dynamicTransformFlags,
+                tupleElementNames: tupleElementNames,
                 isSlotReusable: local.SynthesizedKind.IsSlotReusable(_ilEmitStyle != ILEmitStyle.Release));
 
             // If named, add it to the local debug scope.

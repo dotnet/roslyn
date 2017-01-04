@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -46,5 +48,12 @@ namespace Microsoft.CodeAnalysis.Options
         IEnumerable<IOption> GetRegisteredOptions();
 
         event EventHandler<OptionChangedEventArgs> OptionChanged;
+
+        void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider);
+        
+        /// <summary>
+        /// Returns the <see cref="OptionSet"/> that applies to a specific document, given that document and the global options.
+        /// </summary>
+        Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken);
     }
 }

@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -47,15 +48,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             Contract.ThrowIfNull(globalOptionService);
 
-            this._settingManager = (ISettingsManager)serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
+            _settingManager = (ISettingsManager)serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
             _globalOptionService = globalOptionService;
 
             // While the settings persistence service should be available in all SKUs it is possible an ISO shell author has undefined the
             // contributing package. In that case persistence of settings won't work (we don't bother with a backup solution for persistence
             // as the scenario seems exceedingly unlikely), but we shouldn't crash the IDE.
-            if (this._settingManager != null)
+            if (_settingManager != null)
             {
-                ISettingsSubset settingsSubset = this._settingManager.GetSubset("*");
+                var settingsSubset = _settingManager.GetSubset("*");
                 settingsSubset.SettingChangedAsync += OnSettingChangedAsync;
             }
         }
@@ -64,13 +65,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             lock (_optionsToMonitorForChangesGate)
             {
-                List<OptionKey> optionsToRefresh;
-                if (_optionsToMonitorForChanges.TryGetValue(args.PropertyName, out optionsToRefresh))
+                if (_optionsToMonitorForChanges.TryGetValue(args.PropertyName, out var optionsToRefresh))
                 {
                     foreach (var optionToRefresh in optionsToRefresh)
                     {
-                        object optionValue;
-                        if (TryFetch(optionToRefresh, out optionValue))
+                        if (TryFetch(optionToRefresh, out var optionValue))
                         {
                             _globalOptionService.RefreshOption(optionToRefresh, optionValue);
                         }
@@ -83,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public bool TryFetch(OptionKey optionKey, out object value)
         {
-            if (this._settingManager == null)
+            if (_settingManager == null)
             {
                 Debug.Fail("Manager field is unexpectedly null.");
                 value = null;
@@ -103,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             RecordObservedValueToWatchForChanges(optionKey, storageKey);
 
-            value = this._settingManager.GetValueOrDefault(storageKey, optionKey.Option.DefaultValue);
+            value = _settingManager.GetValueOrDefault(storageKey, optionKey.Option.DefaultValue);
 
             // VS's ISettingsManager has some quirks around storing enums.  Specifically,
             // it *can* persist and retrieve enums, but only if you properly call 
@@ -124,16 +123,62 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             else if (optionKey.Option.Type == typeof(CodeStyleOption<bool>))
             {
                 // We store these as strings, so deserialize
-                var serializedValue = value as string;
-
-                if (serializedValue != null)
+                if (value is string serializedValue)
                 {
-                    value = CodeStyleOption<bool>.FromXElement(XElement.Parse(serializedValue));
+                    try
+                    {
+                        value = CodeStyleOption<bool>.FromXElement(XElement.Parse(serializedValue));
+                    }
+                    catch (Exception)
+                    {
+                        value = null;
+                        return false;
+                    }
                 }
                 else
                 {
-                    value = optionKey.Option.DefaultValue;
+                    value = null;
+                    return false;
                 }
+            }
+            else if (optionKey.Option.Type == typeof(NamingStylePreferences))
+            {
+                // We store these as strings, so deserialize
+                if (value is string serializedValue)
+                {
+                    try
+                    {
+                        value = NamingStylePreferences.FromXElement(XElement.Parse(serializedValue));
+                    }
+                    catch (Exception)
+                    {
+                        value = null;
+                        return false;
+                    }
+                }
+                else
+                {
+                    value = null;
+                    return false;
+                }
+            }
+            else if (optionKey.Option.Type == typeof(bool) && value is int intValue)
+            {
+                // TypeScript used to store some booleans as integers. We now handle them properly for legacy sync scenarios.
+                value = intValue != 0;
+                return true;
+            }
+            else if (optionKey.Option.Type == typeof(bool) && value is long longValue)
+            {
+                // TypeScript used to store some booleans as integers. We now handle them properly for legacy sync scenarios.
+                value = longValue != 0;
+                return true;
+            }
+            else if (value != null && optionKey.Option.Type != value.GetType())
+            {
+                // We got something back different than we expected, so fail to deserialize
+                value = null;
+                return false;
             }
 
             return true;
@@ -155,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public bool TryPersist(OptionKey optionKey, object value)
         {
-            if (this._settingManager == null)
+            if (_settingManager == null)
             {
                 Debug.Fail("Manager field is unexpectedly null.");
                 return false;
@@ -184,8 +229,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     value = valueToSerialize.ToXElement().ToString();
                 }
             }
+            else if (optionKey.Option.Type == typeof(NamingStylePreferences))
+            {
+                // We store these as strings, so serialize
+                var valueToSerialize = value as NamingStylePreferences;
 
-            this._settingManager.SetValueAsync(storageKey, value, isMachineLocal: false);
+                if (value != null)
+                {
+                    value = valueToSerialize.CreateXElement().ToString();
+                }
+            }
+
+            _settingManager.SetValueAsync(storageKey, value, isMachineLocal: false);
             return true;
         }
     }

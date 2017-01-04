@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Diagnostic CreateDiagnostic(int code, Location location)
         {
-            return CreateDiagnostic(code, location, SpecializedCollections.EmptyObjects);
+            return CreateDiagnostic(code, location, Array.Empty<object>());
         }
 
         /// <summary>

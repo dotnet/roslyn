@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <StartupObject />
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
@@ -19,6 +20,10 @@
       <Project>{7a4b2176-7bfd-4b75-a61a-e25a1fdd0a1e}</Project>
       <Name>CSharpCompilerTestUtilities.Desktop</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj">
+      <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f9}</Project>
+      <Name>CSharpCompilerTestUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
       <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
       <Name>CSharpInteractiveEditorFeatures</Name>
@@ -26,6 +31,10 @@
     <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj">
+      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
+      <Name>TestUtilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
@@ -51,10 +60,6 @@
       <Project>{8E2A252E-A140-45A6-A81A-2652996EA589}</Project>
       <Name>InteractiveFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
-      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
-      <Name>InteractiveWindow</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
       <Name>TextEditorFeatures</Name>
@@ -66,10 +71,6 @@
     <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj">
       <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
       <Name>EditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Test\EditorServicesTest.csproj">
-      <Project>{8CEE3609-A5A9-4A9B-86D7-33118F5D6B33}</Project>
-      <Name>EditorServicesTest</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj">
       <Project>{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}</Project>
@@ -87,20 +88,71 @@
       <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
       <Name>ServicesTestUtilities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
+      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
+      <Name>BasicCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VisualBasic\BasicEditorFeatures.vbproj">
+      <Project>{49bfae50-1bce-48ae-bc89-78b7d90a3ecd}</Project>
+      <Name>BasicEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
+      <Project>{a1bcd0ce-6c2f-4f8c-9a48-d9d93928e26d}</Project>
+      <Name>BasicFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj">
+      <Project>{849e516a-595f-474b-adb4-e099f921cedf}</Project>
+      <Name>BasicInteractiveEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj">
+      <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
+      <Name>BasicScripting</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
+      <Project>{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}</Project>
+      <Name>BasicWorkspace</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj">
+      <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
+      <Name>CSharpScripting</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj">
+      <Project>{eba4dfa1-6ded-418f-a485-a3b608978906}</Project>
+      <Name>InteractiveHost</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\PdbUtilities\PdbUtilities.csproj">
+      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
+      <Name>PdbUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj">
+      <Project>{f822f72a-cc87-4e31-b57d-853f65cbebf3}</Project>
+      <Name>RemoteWorkspaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
+      <Project>{12a68549-4e8c-42d6-8703-a09335f97997}</Project>
+      <Name>Scripting</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
+      <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
+      <Name>ServiceHub</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj">
+      <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
+      <Name>WorkspacesTestUtilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{AC2BCEFB-9298-4621-AC48-1FF5E639E48D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.CSharp.UnitTests</AssemblyName>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="PresentationCore" />
@@ -143,7 +195,8 @@
     <Compile Include="Classification\TotalClassifierTests.cs" />
     <Compile Include="Classification\TotalClassifierTests_Dynamic.cs" />
     <Compile Include="CodeActions\AbstractCSharpCodeActionTest.cs" />
-    <Compile Include="CodeActions\ConvertToInterpolatedString\ConvertToInterpolatedStringTests.cs" />
+    <Compile Include="ConvertToInterpolatedString\ConvertConcatenationToInterpolatedStringTests.cs" />
+    <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.cs" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.cs" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.cs" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
@@ -164,6 +217,7 @@
     <Compile Include="Completion\CompletionServiceTests.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests_NuGet.cs" />
     <Compile Include="Diagnostics\GenerateMethod\GenerateConversionTests.cs" />
+    <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.cs" />
     <Compile Include="CodeActions\MoveDeclarationNearReference\MoveDeclarationNearReferenceTests.cs" />
     <Compile Include="CodeActions\Preview\ErrorCases\ExceptionInCodeAction.cs" />
@@ -171,11 +225,14 @@
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
     <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
     <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests.cs" />
+    <Compile Include="Diagnostics\NamingStyles\EditorConfigNamingStyleParserTests.cs" />
     <Compile Include="Diagnostics\NamingStyles\NamingStylesTests_OptionSets.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.cs" />
-    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
+    <Compile Include="Extensions\ContextQuery\IsPossibleDeconstructionDesignationTests.cs" />
+    <Compile Include="Extensions\ContextQuery\PossibleTupleContextTests.cs" />
+    <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.cs" />
+    <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />
     <Compile Include="Diagnostics\Suppression\RemoveSuppressionTests.cs" />
     <Compile Include="Diagnostics\Suppression\SuppressionTest_FixMultipleTests.cs" />
@@ -227,17 +284,17 @@
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests_Dialog.cs" />
     <Compile Include="Diagnostics\GenerateVariable\GenerateVariableTests.cs" />
     <Compile Include="Diagnostics\HideBase\HideBaseTests.cs" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests.cs" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests.cs" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests.cs" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
+    <Compile Include="ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />
+    <Compile Include="ImplementInterface\ImplementInterfaceTests.cs" />
     <Compile Include="Diagnostics\Iterator\AddYieldTests.cs" />
     <Compile Include="Diagnostics\Iterator\ChangeToIEnumerableTests.cs" />
     <Compile Include="Diagnostics\MockDiagnosticAnalyzerTests.cs" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.cs" />
     <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\RemoveUnnecessaryUsings\RemoveUnnecessaryUsingsTests.cs" />
-    <Compile Include="Diagnostics\RemoveUnnecessaryUsings\RemoveUnnecessaryUsingsTests_FixAllTests.cs" />
+    <Compile Include="RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.cs" />
+    <Compile Include="RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests.cs" />
     <Compile Include="Diagnostics\Suppression\SuppressionTest_FixAllTests.cs" />
@@ -281,6 +338,20 @@
     <Compile Include="Formatting\Indentation\SmartIndenterTests_Performance.cs" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatRangeTests.cs" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatTokenTests.cs" />
+    <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests_FixAllTests.cs" />
+    <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests.cs" />
+    <Compile Include="Structure\ArrowExpressionClauseStructureTests.cs" />
+    <Compile Include="Structure\InitializerExpressionStructureTests.cs" />
+    <Compile Include="SuggestionTags\SuggestionTagProducerTests.cs" />
+    <Compile Include="UseCollectionInitializer\UseCollectionInitializerTests.cs" />
+    <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.cs" />
+    <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.cs" />
+    <Compile Include="UseExplicitTupleName\UseExplicitTupleNameTests.cs" />
+    <Compile Include="UseNullPropagation\UseNullPropagationTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests_FixAllTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpAsAndNullCheckTests.cs" />
+    <Compile Include="UsePatternMatching\CSharpAsAndNullCheckTests_FixAllTests.cs" />
     <Compile Include="Interactive\BraceMatching\InteractiveBraceHighlightingTests.cs" />
     <Compile Include="Interactive\CodeActions\InteractiveIntroduceVariableTests.cs" />
     <Compile Include="Interactive\NavigateTo\InteractiveNavigateToTests.cs" />
@@ -309,6 +380,18 @@
     <Compile Include="Organizing\OrganizeModifiersTests.cs" />
     <Compile Include="Organizing\OrganizeTypeDeclarationTests.cs" />
     <Compile Include="Organizing\OrganizeUsingsTests.cs" />
+    <Compile Include="Structure\BlockSyntaxStructureTests.cs" />
+    <Compile Include="Structure\SwitchStatementStructureTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForIndexerTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForPropertiesTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForConstructorsTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForConversionOperatorsTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForAccessorsTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForOperatorsTests.cs" />
+    <Compile Include="UseExpressionBody\UseExpressionBodyForMethodsTests.cs" />
+    <Compile Include="SignatureHelp\TupleConstructionSignatureHelpProviderTests.cs" />
+    <Compile Include="UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
+    <Compile Include="UseThrowExpression\UseThrowExpressionTests.cs" />
     <Compile Include="Structure\AbstractCSharpSyntaxNodeStructureTests.cs" />
     <Compile Include="Structure\AbstractCSharpSyntaxTriviaStructureTests.cs" />
     <Compile Include="Structure\AccessorDeclarationStructureTests.cs" />
@@ -370,13 +453,12 @@
     <Compile Include="SymbolId\SymbolKeyTestBase.cs" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorTests.cs" />
     <Compile Include="TodoComment\TodoCommentTests.cs" />
+    <Compile Include="UseObjectInitializer\UseObjectInitializerTests.cs" />
     <Compile Include="Utilities\CodeSnippets.cs" />
     <Compile Include="Utilities\CSharpServiceTestExtensions.cs" />
-    <Compile Include="Utilities\Options.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.Delegate.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.cs" />
     <Compile Include="Workspaces\WorkspaceTests.cs" />
-    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="PerfTests\CSharpPerfFindRefs.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -527,6 +609,5 @@
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
   </ItemGroup>
-  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-  <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
+  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

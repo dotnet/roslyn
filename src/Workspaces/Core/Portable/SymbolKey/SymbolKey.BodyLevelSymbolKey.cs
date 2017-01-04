@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -28,9 +29,9 @@ namespace Microsoft.CodeAnalysis
                 var ordinal = 0;
                 foreach (var possibleSymbol in EnumerateSymbols(visitor.Compilation, containingSymbol, kind, localName, visitor.CancellationToken))
                 {
-                    if (possibleSymbol.Item1.Equals(symbol))
+                    if (possibleSymbol.symbol.Equals(symbol))
                     {
-                        ordinal = possibleSymbol.Item2;
+                        ordinal = possibleSymbol.ordinal;
                         break;
                     }
                 }
@@ -39,14 +40,6 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteSymbolKey(containingSymbol);
                 visitor.WriteInteger(ordinal);
                 visitor.WriteInteger((int)kind);
-            }
-
-            public static int GetHashCode(GetHashCodeReader reader)
-            {
-                return Hash.Combine(reader.ReadString(),
-                       Hash.Combine(reader.ReadSymbolKey(),
-                       Hash.Combine(reader.ReadInteger(),
-                                    reader.ReadInteger())));
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
@@ -62,9 +55,9 @@ namespace Microsoft.CodeAnalysis
                     foreach (var symbol in EnumerateSymbols(
                         reader.Compilation, containingSymbol, kind, localName, reader.CancellationToken))
                     {
-                        if (symbol.Item2 == ordinal)
+                        if (symbol.ordinal == ordinal)
                         {
-                            return new SymbolKeyResolution(symbol.Item1);
+                            return new SymbolKeyResolution(symbol.symbol);
                         }
                     }
                 }
@@ -72,7 +65,7 @@ namespace Microsoft.CodeAnalysis
                 return new SymbolKeyResolution();
             }
 
-            private static IEnumerable<ValueTuple<ISymbol, int>> EnumerateSymbols(
+            private static IEnumerable<(ISymbol symbol, int ordinal)> EnumerateSymbols(
                 Compilation compilation, ISymbol containingSymbol,
                 SymbolKind kind, string localName,
                 CancellationToken cancellationToken)
@@ -117,7 +110,7 @@ namespace Microsoft.CodeAnalysis
                             symbol.Kind == kind &&
                             SymbolKey.Equals(compilation, symbol.Name, localName))
                         {
-                            yield return ValueTuple.Create(symbol, ordinal++);
+                            yield return (symbol, ordinal++);
                         }
                     }
                 }

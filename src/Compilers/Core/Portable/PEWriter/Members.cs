@@ -257,11 +257,6 @@ namespace Microsoft.Cci
         LocalSlotConstraints Constraints { get; }
 
         /// <summary>
-        /// True if the local variable is of type Dynamic.
-        /// </summary>
-        bool IsDynamic { get; }
-
-        /// <summary>
         /// Each local has an attributes field in the PDB.  To match the native compiler,
         /// we emit <see cref="LocalVariableAttributes.DebuggerHidden"/> for locals that should 
         /// definitely not bind in the debugger and <see cref="LocalVariableAttributes.None"/>
@@ -276,9 +271,14 @@ namespace Microsoft.Cci
         LocalVariableAttributes PdbAttributes { get; }
 
         /// <summary>
-        /// Should return the synthesized dynamic attributes of the local definition if any. Else null.
+        /// The synthesized dynamic attributes of the local definition if any, or empty.
         /// </summary>
         ImmutableArray<TypedConstant> DynamicTransformFlags { get; }
+
+        /// <summary>
+        /// The tuple element names of the local definition if any, or empty.
+        /// </summary>
+        ImmutableArray<TypedConstant> TupleElementNames { get; }
 
         /// <summary>
         /// The type of the local.
@@ -777,9 +777,17 @@ namespace Microsoft.Cci
         ImmutableArray<IParameterTypeInformation> GetParameters(EmitContext context);
 
         /// <summary>
-        /// Returns the list of custom modifiers, if any, associated with the returned value. Evaluate this property only if ReturnValueIsModified is true.
+        /// Returns the list of custom modifiers, if any, associated with the return type. 
         /// </summary>
         ImmutableArray<ICustomModifier> ReturnValueCustomModifiers
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Returns the list of custom modifiers, if any, associated with the ref modifier. 
+        /// </summary>
+        ImmutableArray<ICustomModifier> RefCustomModifiers
         {
             get;
         }

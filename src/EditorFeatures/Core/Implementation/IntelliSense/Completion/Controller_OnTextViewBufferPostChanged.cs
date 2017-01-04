@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (model != null && this.IsCaretOutsideAllItemBounds(model, this.GetCaretPointInViewBuffer()))
             {
                 // If the caret moved out of bounds of our items, then we want to dismiss the list. 
-                this.StopModelComputation();
+                this.DismissSessionIfActive();
             }
             else
             {

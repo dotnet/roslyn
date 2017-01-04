@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -107,7 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
         protected override void CollectBlockSpans(
             DocumentationCommentTriviaSyntax documentationComment,
-            ImmutableArray<BlockSpan>.Builder spans,
+            ArrayBuilder<BlockSpan> spans,
+            OptionSet options,
             CancellationToken cancellationToken)
         {
             var startPos = documentationComment.FullSpan.Start;
@@ -120,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             spans.Add(new BlockSpan(
                 isCollapsible: true,
                 textSpan: span,
+                type: BlockTypes.Comment,
                 bannerText: GetBannerText(documentationComment, cancellationToken),
                 autoCollapse: true));
         }

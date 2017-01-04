@@ -73,8 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 return false;
             }
 
-            SyntaxNode importNode;
-            if (!CodeModelService.TryGetImportNode(parentNode, _dottedName, out importNode))
+            if (!CodeModelService.TryGetImportNode(parentNode, _dottedName, out var importNode))
             {
                 return false;
             }

@@ -864,6 +864,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' Here we are after parsing " New Blah(a1,a2)"
 
+            If Type.Kind = SyntaxKind.TupleType Then
+                Type = ReportSyntaxError(Type, ERRID.ERR_NewWithTupleTypeSyntax)
+            End If
+
             Dim FromToken As KeywordSyntax = Nothing
             If TryTokenAsContextualKeyword(CurrentToken, SyntaxKind.FromKeyword, FromToken) Then
 
@@ -1286,6 +1290,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim closeParen As PunctuationSyntax = Nothing
             TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
+
+            If argumentBuilder.Count < 2 Then
+                argumentBuilder.AddSeparator(InternalSyntaxFactory.MissingToken(SyntaxKind.CommaToken))
+
+                Dim missing = SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier())
+                missing = ReportSyntaxError(missing, ERRID.ERR_TupleTooFewElements)
+                argumentBuilder.Add(SyntaxFactory.SimpleArgument(nameColonEquals:=Nothing, expression:=missing))
+            End If
 
             Dim arguments = argumentBuilder.ToList
             _pool.Free(argumentBuilder)

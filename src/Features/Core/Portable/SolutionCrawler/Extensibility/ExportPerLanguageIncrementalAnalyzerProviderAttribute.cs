@@ -15,18 +15,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public ExportPerLanguageIncrementalAnalyzerProviderAttribute(string name, string language)
             : base(typeof(IPerLanguageIncrementalAnalyzerProvider))
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (language == null)
-            {
-                throw new ArgumentNullException(nameof(language));
-            }
-
-            this.Name = name;
-            this.Language = language;
+            this.Name = name ?? throw new ArgumentNullException(nameof(name));
+            this.Language = language ?? throw new ArgumentNullException(nameof(language));
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         protected abstract ITypeSymbol GetArgumentType(SemanticModel semanticModel, TArgumentSyntax argument, CancellationToken cancellationToken);
         protected virtual ITypeSymbol GetAttributeArgumentType(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) { return null; }
 
-        public async Task<IEnumerable<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateConstructor, cancellationToken))
             {
@@ -47,16 +48,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
                 if (state == null)
                 {
-                    return SpecializedCollections.EmptyEnumerable<CodeAction>();
+                    return ImmutableArray<CodeAction>.Empty;
                 }
 
                 return GetActions(document, state);
             }
         }
 
-        private IEnumerable<CodeAction> GetActions(Document document, State state)
+        private ImmutableArray<CodeAction> GetActions(Document document, State state)
         {
-            yield return new GenerateConstructorCodeAction((TService)this, document, state);
+            return ImmutableArray.Create<CodeAction>(new GenerateConstructorCodeAction((TService)this, document, state));
         }
 
         protected static bool IsSymbolAccessible(

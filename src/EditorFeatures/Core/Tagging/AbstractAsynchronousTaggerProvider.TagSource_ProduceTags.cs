@@ -169,8 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
 
                 var buffer = e.After.TextBuffer;
-                TagSpanIntervalTree<TTag> treeForBuffer;
-                if (!this.CachedTagTrees.TryGetValue(buffer, out treeForBuffer))
+                if (!this.CachedTagTrees.TryGetValue(buffer, out var treeForBuffer))
                 {
                     return;
                 }
@@ -203,8 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private TagSpanIntervalTree<TTag> GetTagTree(ITextSnapshot snapshot, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> tagTrees)
             {
-                TagSpanIntervalTree<TTag> tagTree = null;
-                return tagTrees.TryGetValue(snapshot.TextBuffer, out tagTree)
+                return tagTrees.TryGetValue(snapshot.TextBuffer, out var tagTree)
                     ? tagTree
                     : new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, _dataSource.SpanTrackingMode);
             }
@@ -308,8 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 var spansAndDocumentsToTag = spansToTag.Select(span =>
                 {
-                    Document document = null;
-                    if (!snapshotToDocumentMap.TryGetValue(span.Snapshot, out document))
+                    if (!snapshotToDocumentMap.TryGetValue(span.Snapshot, out var document))
                     {
                         CheckSnapshot(span.Snapshot);
 
@@ -329,9 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private void CheckSnapshot(ITextSnapshot snapshot)
             {
                 var container = snapshot.TextBuffer.AsTextContainer();
-
-                Workspace dummy;
-                if (Workspace.TryGetWorkspace(container, out dummy))
+                if (Workspace.TryGetWorkspace(container, out var dummy))
                 {
                     // if the buffer is part of our workspace, it must be the latest.
                     Contract.Assert(snapshot.Version.Next == null, "should be on latest snapshot");
@@ -384,9 +379,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 var noNewTags = newTags.IsEmpty();
                 var noSpansToInvalidate = spansToInvalidate.IsEmpty();
-
-                TagSpanIntervalTree<TTag> oldTagTree;
-                oldTagTrees.TryGetValue(textBuffer, out oldTagTree);
+                oldTagTrees.TryGetValue(textBuffer, out var oldTagTree);
 
                 if (oldTagTree == null)
                 {
@@ -461,8 +454,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ITextBuffer textBuffer,
                 IEnumerable<ITagSpan<TTag>> newTags)
             {
-                TagSpanIntervalTree<TTag> oldTagTree;
-                oldTagTrees.TryGetValue(textBuffer, out oldTagTree);
+                oldTagTrees.TryGetValue(textBuffer, out var oldTagTree);
 
                 if (oldTagTree == null)
                 {
@@ -528,10 +520,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 {
                     return;
                 }
-
                 // we actually have span to invalidate from old tree
-                TagSpanIntervalTree<TTag> treeForBuffer;
-                if (!oldTagTrees.TryGetValue(spanTagged.Snapshot.TextBuffer, out treeForBuffer))
+                if (!oldTagTrees.TryGetValue(spanTagged.Snapshot.TextBuffer, out var treeForBuffer))
                 {
                     return;
                 }
@@ -707,9 +697,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 //
                 // We're on the UI thread, so it's safe to access these variables.
                 var map = _previousCachedTagTrees ?? this.CachedTagTrees;
-
-                TagSpanIntervalTree<TTag> tags;
-                map.TryGetValue(buffer, out tags);
+                map.TryGetValue(buffer, out var tags);
                 return tags;
             }
 
@@ -746,9 +734,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
 
                 Debug.Assert(this.UpToDate);
-
-                TagSpanIntervalTree<TTag> tags;
-                this.CachedTagTrees.TryGetValue(buffer, out tags);
+                this.CachedTagTrees.TryGetValue(buffer, out var tags);
                 return tags;
             }
         }

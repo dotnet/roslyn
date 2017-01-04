@@ -1048,6 +1048,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return GetExternalSymbolFullName(symbol)
         End Function
 
+        Public Overrides Function IsExpressionBodiedProperty(node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
+        Public Overrides Function TryGetAutoPropertyExpressionBody(parentNode As SyntaxNode, ByRef accessorNode As SyntaxNode) As Boolean
+            Return False
+        End Function
+
         Public Overrides Function IsAccessorNode(node As SyntaxNode) As Boolean
             Select Case node.Kind
                 Case SyntaxKind.GetAccessorBlock,

@@ -301,17 +301,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend MustOverride Function ProcessStatementTerminator(lambdaContext As BlockContext) As BlockContext
 
-        Friend Overridable Function ProcessElseAsStatementTerminator() As BlockContext
-            ' Nothing to do. The Else should be processed as a
-            ' statement associated with this context.
-            Return Me
-        End Function
-
-        Friend Overridable Function ProcessOtherAsStatementTerminator() As BlockContext
-            ' Nothing to do.
-            Return Me
-        End Function
-
         Friend MustOverride ReadOnly Property IsSingleLine As Boolean
 
         Friend Overridable ReadOnly Property IsLambda As Boolean

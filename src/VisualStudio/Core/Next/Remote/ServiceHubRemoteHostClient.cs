@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
@@ -15,11 +15,13 @@ using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal partial class ServiceHubRemoteHostClient : RemoteHostClient
     {
         private readonly HubClient _hubClient;
-        private readonly Stream _stream;
         private readonly JsonRpc _rpc;
+        private readonly HostGroup _hostGroup;
 
         public static async Task<RemoteHostClient> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
@@ -27,12 +29,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
             {
                 var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
-                var remoteHostStream = await primary.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
+                var current = $"VS ({Process.GetCurrentProcess().Id})";
 
-                var instance = new ServiceHubRemoteHostClient(workspace, primary, remoteHostStream);
+                var hostGroup = new HostGroup(current);
+                var remoteHostStream = await RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, cancellationToken).ConfigureAwait(false);
+
+                var instance = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, remoteHostStream);
 
                 // make sure connection is done right
-                var current = $"VS ({Process.GetCurrentProcess().Id})";
                 var host = await instance._rpc.InvokeAsync<string>(WellKnownRemoteHostServices.RemoteHostService_Connect, current).ConfigureAwait(false);
 
                 // TODO: change this to non fatal watson and make VS to use inproc implementation
@@ -61,29 +65,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 new WorkspaceHost(vsWorkspace, client));
         }
 
-        private ServiceHubRemoteHostClient(Workspace workspace, HubClient hubClient, Stream stream) :
+        private ServiceHubRemoteHostClient(
+            Workspace workspace, HubClient hubClient, HostGroup hostGroup, Stream stream) :
             base(workspace)
         {
             _hubClient = hubClient;
-            _stream = stream;
+            _hostGroup = hostGroup;
 
             _rpc = JsonRpc.Attach(stream, target: this);
+            _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
             // handle disconnected situation
             _rpc.Disconnected += OnRpcDisconnected;
         }
 
-        protected override async Task<Session> CreateServiceSessionAsync(string serviceName, ChecksumScope snapshot, object callbackTarget, CancellationToken cancellationToken)
+        protected override async Task<Session> CreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate snapshot/asset related information
             // this is the back channel the system uses to move data between VS and remote host
-            var snapshotStream = await _hubClient.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false);
+            var snapshotStream = await RequestServiceAsync(_hubClient, WellKnownServiceHubServices.SnapshotService, _hostGroup, cancellationToken).ConfigureAwait(false);
 
             // get stream from service hub to communicate service specific information
             // this is what consumer actually use to communicate information
-            var serviceStream = await _hubClient.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
+            var serviceStream = await RequestServiceAsync(_hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
 
-            return new JsonRpcSession(snapshot, snapshotStream, callbackTarget, serviceStream, cancellationToken);
+            return await JsonRpcSession.CreateAsync(snapshot, snapshotStream, callbackTarget, serviceStream, cancellationToken).ConfigureAwait(false);
         }
 
         protected override void OnConnected()
@@ -93,12 +99,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         protected override void OnDisconnected()
         {
             _rpc.Dispose();
-            _stream.Dispose();
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
             Disconnected();
+        }
+
+        private static async Task<Stream> RequestServiceAsync(HubClient client, string serviceName, HostGroup hostGroup, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            const int max_retry = 10;
+            const int retry_delayInMS = 50;
+
+            // call to get service can fail due to this bug - devdiv#288961
+            // until root cause is fixed, we decide to have retry rather than fail right away
+            for (var i = 0; i < max_retry; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                try
+                {
+                    var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
+                    return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
+                }
+                catch (RemoteInvocationException ex)
+                {
+                    // RequestServiceAsync should never fail unless service itself is actually broken.
+                    // right now, we know only 1 case where it can randomly fail. but there might be more cases so 
+                    // adding non fatal watson here.
+                    FatalError.ReportWithoutCrash(ex);
+                }
+
+                // wait for retry_delayInMS before next try
+                await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
+            }
+
+            return Contract.FailWithReturn<Stream>("Fail to get service. look FatalError.s_reportedException for more detail");
         }
     }
 }

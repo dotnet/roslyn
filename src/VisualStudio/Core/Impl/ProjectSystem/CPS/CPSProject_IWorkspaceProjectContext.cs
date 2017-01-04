@@ -2,6 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Roslyn.Utilities;
@@ -10,6 +13,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 {
     internal sealed partial class CPSProject : AbstractProject, IWorkspaceProjectContext
     {
+        /// <summary>
+        /// Holds the task with continuations to sequentially execute all the foreground affinitized actions on the foreground task scheduler.
+        /// More specifically, all the notifications to workspace hosts are executed on the foreground thread. However, the project system might make project state changes
+        /// and request notifications to workspace hosts on background thread. So we queue up all the notifications for project state changes onto this task and execute them on the foreground thread.
+        /// </summary>
+        private Task _foregroundTaskQueue = Task.CompletedTask;
+
+        /// <summary>
+        /// Controls access to task queue
+        /// </summary>
+        private readonly object _queueGate = new object();
+
+        private void ExecuteForegroundAction(Action action)
+        {
+            if (IsForeground())
+            {
+                action();
+            }
+            else
+            {
+                lock (_queueGate)
+                {
+                    _foregroundTaskQueue = _foregroundTaskQueue.SafeContinueWith(
+                        _ =>
+                        {
+                            // since execution is now technically asynchronous
+                            // only execute action if project is not disconnected and currently being tracked.
+                            if (!_disconnected && this.ProjectTracker.ContainsProject(this))
+                            {
+                                action();
+                            }
+                        },
+                        ForegroundTaskScheduler);
+                }
+            }
+        }
+
         #region Project properties
         string IWorkspaceProjectContext.DisplayName
         {
@@ -19,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             set
             {
-                UpdateProjectDisplayName(value);
+                ExecuteForegroundAction(() => UpdateProjectDisplayName(value));
             }
         }
 
@@ -31,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             set
             {
-                UpdateProjectFilePath(value);
+                ExecuteForegroundAction(() => UpdateProjectFilePath(value));
             }
         }
 
@@ -52,11 +92,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         {
             get
             {
-                return _lastDesignTimeBuildSucceeded;
+                return LastDesignTimeBuildSucceeded;
             }
             set
             {
-                _lastDesignTimeBuildSucceeded = value;
+                ExecuteForegroundAction(() => SetIntellisenseBuildResultAndNotifyWorkspaceHosts(value));
             }
         }
 
@@ -68,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             set
             {
-                SetBinOutputPathAndRelatedData(value);
+                ExecuteForegroundAction(() => NormalizeAndSetBinOutputPathAndRelatedData(value));
             }
         }
 
@@ -77,60 +117,63 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         #region Options
         public void SetOptions(string commandLineForOptions)
         {
-            var commandLineArguments = SetArgumentsAndUpdateOptions(commandLineForOptions);
-            PostSetOptions(commandLineArguments);
+            ExecuteForegroundAction(() =>
+            {
+                var commandLineArguments = SetArgumentsAndUpdateOptions(commandLineForOptions);
+                PostSetOptions(commandLineArguments);
+            });
         }
 
         private void PostSetOptions(CommandLineArguments commandLineArguments)
         {
-            // Invoke SetOutputPathAndRelatedData to update the project obj output path.
-            if (commandLineArguments.OutputFileName != null && commandLineArguments.OutputDirectory != null)
+            ExecuteForegroundAction(() =>
             {
-                var objOutputPath = PathUtilities.CombinePathsUnchecked(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName);
-                SetObjOutputPathAndRelatedData(objOutputPath);
-            }
+                // Invoke SetOutputPathAndRelatedData to update the project obj output path.
+                if (commandLineArguments.OutputFileName != null && commandLineArguments.OutputDirectory != null)
+                {
+                    var objOutputPath = PathUtilities.CombinePathsUnchecked(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName);
+                    SetObjOutputPathAndRelatedData(objOutputPath);
+                }
+            });
         }
         #endregion
 
         #region References
         public void AddMetadataReference(string referencePath, MetadataReferenceProperties properties)
         {
-            referencePath = FileUtilities.NormalizeAbsolutePath(referencePath);
-            AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(referencePath, properties);
+            ExecuteForegroundAction(() =>
+            {
+                referencePath = FileUtilities.NormalizeAbsolutePath(referencePath);
+                AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(referencePath, properties);
+            });
         }
 
         public new void RemoveMetadataReference(string referencePath)
         {
-            referencePath = FileUtilities.NormalizeAbsolutePath(referencePath);
-            base.RemoveMetadataReference(referencePath);
+            ExecuteForegroundAction(() =>
+            {
+                referencePath = FileUtilities.NormalizeAbsolutePath(referencePath);
+                base.RemoveMetadataReference(referencePath);
+            });
         }
 
         public void AddProjectReference(IWorkspaceProjectContext project, MetadataReferenceProperties properties)
         {
-            var abstractProject = GetAbstractProject(project);
-
-            // AbstractProject and ProjectTracker track project references using the project bin output path.
-            // Setting the command line arguments should have already set the output file name and folder.
-            // We fetch this output path to add the reference.
-            var referencedProject = this.ProjectTracker.GetProject(abstractProject.Id);
-            var binPathOpt = referencedProject.BinOutputPath;
-            if (!string.IsNullOrEmpty(binPathOpt))
+            ExecuteForegroundAction(() =>
             {
-                AddMetadataReferenceAndTryConvertingToProjectReferenceIfPossible(binPathOpt, properties);
-            }
+                var abstractProject = GetAbstractProject(project);
+                AddProjectReference(new ProjectReference(abstractProject.Id, properties.Aliases, properties.EmbedInteropTypes));
+            });
         }
 
         public void RemoveProjectReference(IWorkspaceProjectContext project)
         {
-            var referencedProject = GetAbstractProject(project);
-
-            // AbstractProject and ProjectTracker track project references using the project bin output path.
-            // We fetch this output path to remove the reference.
-            var binPathOpt = referencedProject.BinOutputPath;
-            if (!string.IsNullOrEmpty(binPathOpt))
+            ExecuteForegroundAction(() =>
             {
-                base.RemoveMetadataReference(binPathOpt);
-            }
+                var referencedProject = GetAbstractProject(project);
+                var projectReference = GetCurrentProjectReferences().Single(p => p.ProjectId == referencedProject.Id);
+                RemoveProjectReference(projectReference);
+            });
         }
 
         private AbstractProject GetAbstractProject(IWorkspaceProjectContext project)
@@ -148,17 +191,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         #region Files
         public void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
         {
-            AddFile(filePath, sourceCodeKind, getIsCurrentContext: _ => isInCurrentContext, folderNames: folderNames.ToImmutableArrayOrEmpty());
+            ExecuteForegroundAction(() =>
+            {
+                AddFile(filePath, sourceCodeKind, _ => isInCurrentContext, _ => folderNames.ToImmutableArrayOrEmpty());
+            });
         }
 
         public void RemoveSourceFile(string filePath)
         {
-            RemoveFile(filePath);
+            ExecuteForegroundAction(() =>
+            {
+                RemoveFile(filePath);
+            });
         }
 
         public void AddAdditionalFile(string filePath, bool isInCurrentContext = true)
         {
-            AddAdditionalFile(filePath, getIsInCurrentContext: _ => isInCurrentContext);
+            ExecuteForegroundAction(() =>
+            {
+                AddAdditionalFile(filePath, getIsInCurrentContext: _ => isInCurrentContext);
+            });
         }
 
         #endregion

@@ -19,11 +19,29 @@ namespace Roslyn.Utilities
             Debug.Assert(stream.CanSeek);
             long length = stream.Length;
 
+            int maxCharCount;
+            if (encoding.TryGetMaxCharCount(length, out maxCharCount))
+            {
+                return maxCharCount;
+            }
+
+#if WORKSPACE_DESKTOP
+            throw new IOException(WorkspacesResources.Stream_is_too_long);
+#else
+            throw new IOException(CodeAnalysisResources.StreamIsTooLong);
+#endif
+        }
+
+        internal static bool TryGetMaxCharCount(this Encoding encoding, long length, out int maxCharCount)
+        {
+            maxCharCount = 0;
+
             if (length <= int.MaxValue)
             {
                 try
                 {
-                    return encoding.GetMaxCharCount((int)length);
+                    maxCharCount = encoding.GetMaxCharCount((int)length);
+                    return true;
                 }
                 catch (ArgumentOutOfRangeException)
                 {
@@ -33,11 +51,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-#if WORKSPACE_DESKTOP
-            throw new IOException(WorkspacesResources.Stream_is_too_long);
-#else
-            throw new IOException(CodeAnalysisResources.StreamIsTooLong);
-#endif
+            return false;
         }
     }
 }

@@ -31,7 +31,7 @@ class $$C
         public async Task WithAttributes()
         {
             const string code = @"
-{|hint:{|collapse:[Bar]
+{|hint:{|textspan:[Bar]
 [Baz]
 |}public class $$C|}
 {
@@ -39,14 +39,14 @@ class $$C
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task WithCommentsAndAttributes()
         {
             const string code = @"
-{|hint:{|collapse:// Summary:
+{|hint:{|textspan:// Summary:
 //     This is a doc comment.
 [Bar, Baz]
 |}public class $$C|}
@@ -55,7 +55,7 @@ class $$C
 }";
 
             await VerifyBlockSpansAsync(code,
-                Region("collapse", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

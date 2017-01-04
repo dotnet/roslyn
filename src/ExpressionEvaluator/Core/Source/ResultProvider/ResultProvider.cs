@@ -240,6 +240,25 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             switch (result.Kind)
             {
+                case ExpansionKind.Explicit:
+                    completionRoutine(DkmSuccessEvaluationResult.Create(
+                        inspectionContext,
+                        stackFrame,
+                        Name: result.DisplayName,
+                        FullName: result.FullName,
+                        Flags: result.Flags,
+                        Value: result.DisplayValue,
+                        EditableValue: result.EditableValue,
+                        Type: result.DisplayType,
+                        Category: DkmEvaluationResultCategory.Data,
+                        Access: DkmEvaluationResultAccessType.None,
+                        StorageType: DkmEvaluationResultStorageType.None,
+                        TypeModifierFlags: DkmEvaluationResultTypeModifierFlags.None,
+                        Address: result.Value.Address,
+                        CustomUIVisualizers: null,
+                        ExternalModules: null,
+                        DataItem: result.ToDataItem()));
+                    break;
                 case ExpansionKind.Error:
                     completionRoutine(DkmFailedEvaluationResult.Create(
                         inspectionContext,
@@ -465,14 +484,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// The qualified name (i.e. including containing types and namespaces) of a named, pointer,
         /// or array type followed by the qualified name of the actual runtime type, if provided.
         /// </returns>
-        private static string GetTypeName(DkmInspectionContext inspectionContext, DkmClrValue value, DkmClrType declaredType, DkmClrCustomTypeInfo declaredTypeInfo, ExpansionKind kind)
+        internal static string GetTypeName(
+            DkmInspectionContext inspectionContext,
+            DkmClrValue value,
+            DkmClrType declaredType,
+            DkmClrCustomTypeInfo declaredTypeInfo,
+            bool isPointerDereference)
         {
             var declaredLmrType = declaredType.GetLmrType();
             var runtimeType = value.Type;
             var declaredTypeName = inspectionContext.GetTypeName(declaredType, declaredTypeInfo, Formatter.NoFormatSpecifiers);
             // Include the runtime type if distinct.
             if (!declaredLmrType.IsPointer &&
-                (kind != ExpansionKind.PointerDereference) &&
+                !isPointerDereference &&
                 (!declaredLmrType.IsNullable() || value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown)))
             {
                 // Generate the declared type name without tuple element names.
@@ -831,7 +855,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 display = value.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers);
             }
 
-            var typeName = displayType ?? GetTypeName(inspectionContext, value, declaredType, declaredTypeInfo, result.Kind);
+            var typeName = displayType ?? GetTypeName(inspectionContext, value, declaredType, declaredTypeInfo, result.Kind == ExpansionKind.PointerDereference);
 
             return CreateEvaluationResult(inspectionContext, value, name, typeName, display, result);
         }
@@ -951,7 +975,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             int cardinality;
             if (runtimeType.IsTupleCompatible(out cardinality))
             {
-                return TupleExpansion.CreateExpansion(value, declaredTypeAndInfo, cardinality);
+                return TupleExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, cardinality);
             }
 
             return MemberExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, flags, TypeHelpers.IsVisibleMember, this);

@@ -1,7 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -10,7 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Inherits AbstractSyntaxNodeStructureProvider(Of XmlNodeSyntax)
 
         Protected Overrides Sub CollectBlockSpans(xmlExpression As XmlNodeSyntax,
-                                                  spans As ImmutableArray(Of BlockSpan).Builder,
+                                                  spans As ArrayBuilder(Of BlockSpan),
+                                                  options As OptionSet,
                                                   cancellationToken As CancellationToken)
             ' If this XML expression is inside structured trivia (i.e. an XML doc comment), don't outline.
             If xmlExpression.HasAncestor(Of DocumentationCommentTriviaSyntax)() Then
@@ -23,8 +24,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Dim lineText = line.ToString().Substring(span.Start - line.Start)
             Dim bannerText = lineText & SpaceEllipsis
 
-            spans.Add(
-                CreateRegion(span, bannerText, autoCollapse:=False))
+            spans.AddIfNotNull(CreateBlockSpan(
+                span, span, bannerText, autoCollapse:=False,
+                type:=BlockTypes.Expression,
+                isCollapsible:=True, isDefaultCollapsed:=False))
         End Sub
     End Class
 End Namespace

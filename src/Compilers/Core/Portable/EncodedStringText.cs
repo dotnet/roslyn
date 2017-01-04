@@ -30,17 +30,17 @@ namespace Microsoft.CodeAnalysis.Text
         {
             try
             {
-                if (CoreClrShim.CodePagesEncodingProvider.Type != null)
+                if (CodePagesEncodingProvider.Instance != null)
                 {
                     // If we're running on CoreCLR we have to register the CodePagesEncodingProvider
                     // first
-                    CoreClrShim.Encoding.RegisterProvider(CoreClrShim.CodePagesEncodingProvider.Instance);
+                    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
                 }
 
                 // Try to get the default ANSI code page in the operating system's
                 // regional and language settings, and fall back to 1252 otherwise
-                return PortableShim.Encoding.GetEncoding(0)
-                    ?? PortableShim.Encoding.GetEncoding(1252);
+                return Encoding.GetEncoding(0)
+                    ?? Encoding.GetEncoding(1252);
             }
             catch (NotSupportedException)
             {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             try
             {
-                return Decode(stream, defaultEncoding ?? getEncoding.Value, checksumAlgorithm, throwIfBinaryDetected: detectEncoding);
+                return Decode(stream, defaultEncoding ?? getEncoding.Value, checksumAlgorithm, throwIfBinaryDetected: detectEncoding, canBeEmbedded: canBeEmbedded);
             }
             catch (DecoderFallbackException e)
             {
@@ -141,10 +141,15 @@ namespace Microsoft.CodeAnalysis.Text
             // For small streams, see if we can read the byte buffer directly.
             if (encoding.GetMaxCharCountOrThrowIfHuge(data) < LargeObjectHeapLimitInChars)
             {
-                byte[] buffer = TryGetByteArrayFromStream(data);
-                if (buffer != null)
+                ArraySegment<byte> bytes;
+                if (TryGetBytesFromStream(data, out bytes) && bytes.Offset == 0)
                 {
-                    return SourceText.From(buffer, (int)data.Length, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded);
+                    return SourceText.From(bytes.Array,
+                                           (int)data.Length,
+                                           encoding,
+                                           checksumAlgorithm,
+                                           throwIfBinaryDetected,
+                                           canBeEmbedded);
                 }
             }
 
@@ -152,68 +157,41 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Some streams are easily represented as byte arrays.
+        /// Some streams are easily represented as bytes.
         /// </summary>
         /// <param name="data">The stream</param>
+        /// <param name="bytes">The bytes, if available.</param>
         /// <returns>
-        /// The contents of <paramref name="data"/> as a byte array or null if the stream can't easily
-        /// be read into a byte array.
+        /// True if the stream's bytes could easily be read, false otherwise.
         /// </returns>
-        internal static byte[] TryGetByteArrayFromStream(Stream data)
+        internal static bool TryGetBytesFromStream(Stream data, out ArraySegment<byte> bytes)
         {
-            byte[] buffer;
-
             // PERF: If the input is a MemoryStream, we may be able to get at the buffer directly
             var memoryStream = data as MemoryStream;
-            if (memoryStream != null && TryGetByteArrayFromMemoryStream(memoryStream, out buffer))
+            if (memoryStream != null)
             {
-                return buffer;
+                return memoryStream.TryGetBuffer(out bytes);
             }
 
             // PERF: If the input is a FileStream, we may be able to minimize allocations
-            if (data.GetType() == PortableShim.FileStream.Type &&
-                TryGetByteArrayFromFileStream(data, out buffer))
+            var fileStream = data as FileStream;
+            if (fileStream != null)
             {
-                return buffer;
+                return TryGetBytesFromFileStream(fileStream, out bytes);
             }
 
-            return null;
-        }
-
-        /// <summary>
-        /// If the MemoryStream was created with publiclyVisible=true, then we can access its buffer
-        /// directly and save allocations in StreamReader. The input MemoryStream is not closed on exit.
-        /// </summary>
-        /// <returns>True if a byte array could be created.</returns>
-        private static bool TryGetByteArrayFromMemoryStream(MemoryStream data, out byte[] buffer)
-        {
-            Debug.Assert(data.Position == 0);
-
-            try
-            {
-                if (PortableShim.MemoryStream.GetBuffer != null)
-                {
-                    buffer = (byte[])PortableShim.MemoryStream.GetBuffer.Invoke(data, null);
-                    return true;
-                }
-
-                buffer = null;
-                return false;
-            }
-            catch (Exception)
-            {
-                buffer = null;
-                return false;
-            }
+            bytes = new ArraySegment<byte>(Array.Empty<byte>());
+            return false;
         }
 
         /// <summary>
         /// Read the contents of a FileStream into a byte array.
         /// </summary>
         /// <param name="stream">The FileStream with encoded text.</param>
-        /// <param name="buffer">A byte array filled with the contents of the file.</param>
+        /// <param name="bytes">A byte array filled with the contents of the file.</param>
         /// <returns>True if a byte array could be created.</returns>
-        private static bool TryGetByteArrayFromFileStream(Stream stream, out byte[] buffer)
+        private static bool TryGetBytesFromFileStream(FileStream stream,
+                                                      out ArraySegment<byte> bytes)
         {
             Debug.Assert(stream != null);
             Debug.Assert(stream.Position == 0);
@@ -221,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Text
             int length = (int)stream.Length;
             if (length == 0)
             {
-                buffer = SpecializedCollections.EmptyBytes;
+                bytes = new ArraySegment<byte>(Array.Empty<byte>());
                 return true;
             }
 
@@ -232,13 +210,19 @@ namespace Microsoft.CodeAnalysis.Text
             // 3. A StringBuilder and its associated char arrays (enough to represent the final decoded string)
 
             // TODO: Can this allocation be pooled?
-            buffer = new byte[length];
+            var buffer = new byte[length];
 
             // Note: FileStream.Read may still allocate its internal buffer if length is less
             // than the buffer size. The default buffer size is 4KB, so this will incur a 4KB
             // allocation for any files less than 4KB. That's why, for example, the command
             // line compiler actually specifies a very small buffer size.
-            return stream.TryReadAll(buffer, 0, length) == length;
+            var success = stream.TryReadAll(buffer, 0, length) == length;
+
+            bytes = success
+                ? new ArraySegment<byte>(buffer)
+                : new ArraySegment<byte>(Array.Empty<byte>());
+
+            return success;
         }
     }
 }

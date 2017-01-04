@@ -38,4 +38,7 @@ governing permissions and limitations under the License.
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="MakeConstCS.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="MakeConstCS.dll" />
   </Assets>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
 </PackageManifest>

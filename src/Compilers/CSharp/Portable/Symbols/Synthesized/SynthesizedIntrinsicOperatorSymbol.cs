@@ -272,6 +272,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                return ImmutableArray<CustomModifier>.Empty;
+            }
+        }
+
         public override Symbol AssociatedSymbol
         {
             get
@@ -441,15 +449,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(_name, Hash.Combine(_containingType, _parameters.Length));
         }
 
-        private sealed class SynthesizedOperatorParameterSymbol : SynthesizedParameterSymbol
+        private sealed class SynthesizedOperatorParameterSymbol : SynthesizedParameterSymbolBase
         {
             public SynthesizedOperatorParameterSymbol(
                 SynthesizedIntrinsicOperatorSymbol container,
                 TypeSymbol type,
                 int ordinal,
                 string name
-            ) : base(container, type, ordinal, RefKind.None, name, ImmutableArray<CustomModifier>.Empty)
-
+            ) : base(container, type, ordinal, RefKind.None, name)
             {
             }
 
@@ -473,6 +480,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override int GetHashCode()
             {
                 return Hash.Combine(ContainingSymbol, Ordinal.GetHashCode());
+            }
+
+            public override ImmutableArray<CustomModifier> CustomModifiers
+            {
+                get { return ImmutableArray<CustomModifier>.Empty; }
+            }
+
+            public override ImmutableArray<CustomModifier> RefCustomModifiers
+            {
+                get { return ImmutableArray<CustomModifier>.Empty; }
             }
         }
     }

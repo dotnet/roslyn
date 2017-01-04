@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -20,6 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void AddAnalyzerReference(string analyzerAssemblyFullPath)
         {
+            AssertIsForeground();
+
             if (CurrentProjectAnalyzersContains(analyzerAssemblyFullPath))
             {
                 return;
@@ -69,8 +72,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RemoveAnalyzerReference(string analyzerAssemblyFullPath)
         {
-            VisualStudioAnalyzer analyzer;
-            if (!TryGetAnalyzer(analyzerAssemblyFullPath, out analyzer))
+            AssertIsForeground();
+
+            if (!TryGetAnalyzer(analyzerAssemblyFullPath, out var analyzer))
             {
                 return;
             }
@@ -100,6 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void SetRuleSetFile(string ruleSetFileFullPath)
         {
+            AssertIsForeground();
+
             if (ruleSetFileFullPath == null)
             {
                 ruleSetFileFullPath = string.Empty;
@@ -123,11 +129,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void AddAdditionalFile(string additionalFilePath, Func<IVisualStudioHostDocument, bool> getIsInCurrentContext)
         {
+            AssertIsForeground();
+
             var document = this.DocumentProvider.TryGetDocumentForFile(
                 this,
-                ImmutableArray<string>.Empty,
                 filePath: additionalFilePath,
                 sourceCodeKind: SourceCodeKind.Regular,
+                getFolderNames: _ => SpecializedCollections.EmptyReadOnlyList<string>(),
                 canUseTextBuffer: _ => true,
                 updatedOnDiskHandler: s_additionalDocumentUpdatedOnDiskEventHandler,
                 openedHandler: s_additionalDocumentOpenedEventHandler,
@@ -180,6 +188,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // internal for testing purpose.
         internal void OnRuleSetFileUpdateOnDisk(object sender, EventArgs e)
         {
+            AssertIsForeground();
+
             var filePath = this.RuleSetFile.FilePath;
 
             ResetAnalyzerRuleSet(filePath);

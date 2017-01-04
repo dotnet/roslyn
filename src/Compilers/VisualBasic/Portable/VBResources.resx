@@ -285,18 +285,6 @@
   <data name="ERR_UnreferencedModuleEvent3" xml:space="preserve">
     <value>Reference required to module '{0}' containing the definition for event '{1}'. Add one to your project.</value>
   </data>
-  <data name="ERR_UnreferencedAssemblyBase3" xml:space="preserve">
-    <value>Reference required to assembly '{0}' containing the base class '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedModuleBase3" xml:space="preserve">
-    <value>Reference required to module '{0}' containing the base class '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedAssemblyImplements3" xml:space="preserve">
-    <value>Reference required to assembly '{0}' containing the implemented interface '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedModuleImplements3" xml:space="preserve">
-    <value>Reference required to module '{0}' containing the implemented interface '{1}'. Add one to your project.</value>
-  </data>
   <data name="ERR_LbExpectedEndIf" xml:space="preserve">
     <value>'#If' block must end with a matching '#End If'.</value>
   </data>
@@ -785,6 +773,9 @@
   <data name="ERR_DuplicateProcDef1" xml:space="preserve">
     <value>'{0}' has multiple definitions with identical signatures.</value>
   </data>
+  <data name="ERR_DuplicateProcDefWithDifferentTupleNames2" xml:space="preserve">
+    <value>'{0}' has multiple definitions with identical signatures with different tuple element names, including '{1}'.</value>
+  </data>
   <data name="ERR_BadInterfaceMethodFlags1" xml:space="preserve">
     <value>'{0}' is not valid on an interface method declaration.</value>
   </data>
@@ -1000,6 +991,9 @@
   <data name="ERR_IdentNotMemberOfInterface4" xml:space="preserve">
     <value>'{0}' cannot implement '{1}' because there is no matching {2} on interface '{3}'.</value>
   </data>
+  <data name="ERR_ImplementingInterfaceWithDifferentTupleNames5" xml:space="preserve">
+    <value>'{0}' cannot implement {1} '{2}' on interface '{3}' because the tuple element names in '{4}' do not match those in '{5}'.</value>
+  </data>
   <data name="ERR_WithEventsRequiresClass" xml:space="preserve">
     <value>'WithEvents' variables must have an 'As' clause.</value>
   </data>
@@ -1038,6 +1032,12 @@
   </data>
   <data name="ERR_InvalidOverrideDueToReturn2" xml:space="preserve">
     <value>'{0}' cannot override '{1}' because they differ by their return types.</value>
+  </data>
+  <data name="WRN_InvalidOverrideDueToTupleNames2" xml:space="preserve">
+    <value>'{0}' cannot override '{1}' because they differ by their tuple element names.</value>
+  </data>
+  <data name="WRN_InvalidOverrideDueToTupleNames2_Title" xml:space="preserve">
+    <value>Member cannot override because it differs by its tuple element names.</value>
   </data>
   <data name="ERR_ConstantWithNoValue" xml:space="preserve">
     <value>Constants must have a value.</value>
@@ -1863,6 +1863,30 @@
   <data name="ERR_InterfaceImplementedTwice1" xml:space="preserve">
     <value>Interface '{0}' can be implemented only once by this type.</value>
   </data>
+  <data name="ERR_InterfaceImplementedTwiceWithDifferentTupleNames2" xml:space="preserve">
+    <value>Interface '{0}' can be implemented only once by this type, but already appears with different tuple element names, as '{1}'.</value>
+  </data>
+  <data name="ERR_InterfaceImplementedTwiceWithDifferentTupleNames3" xml:space="preserve">
+    <value>Interface '{0}' can be implemented only once by this type, but already appears with different tuple element names, as '{1}' (via '{2}').</value>
+  </data>
+  <data name="ERR_InterfaceImplementedTwiceWithDifferentTupleNamesReverse3" xml:space="preserve">
+    <value>Interface '{0}' (via '{1}') can be implemented only once by this type, but already appears with different tuple element names, as '{2}'.</value>
+  </data>
+  <data name="ERR_InterfaceImplementedTwiceWithDifferentTupleNames4" xml:space="preserve">
+    <value>Interface '{0}' (via '{1}') can be implemented only once by this type, but already appears with different tuple element names, as '{2}' (via '{3}').</value>
+  </data>
+  <data name="ERR_InterfaceInheritedTwiceWithDifferentTupleNames2" xml:space="preserve">
+    <value>Interface '{0}' can be inherited only once by this interface, but already appears with different tuple element names, as '{1}'.</value>
+  </data>
+  <data name="ERR_InterfaceInheritedTwiceWithDifferentTupleNames3" xml:space="preserve">
+    <value>Interface '{0}' can be inherited only once by this interface, but already appears with different tuple element names, as '{1}' (via '{2}').</value>
+  </data>
+  <data name="ERR_InterfaceInheritedTwiceWithDifferentTupleNamesReverse3" xml:space="preserve">
+    <value>Interface '{0}' (via '{1}') can be inherited only once by this interface, but already appears with different tuple element names, as '{2}'.</value>
+  </data>
+  <data name="ERR_InterfaceInheritedTwiceWithDifferentTupleNames4" xml:space="preserve">
+    <value>Interface '{0}' (via '{1}') can be inherited only once by this interface, but already appears with different tuple element names, as '{2}' (via '{3}').</value>
+  </data>
   <data name="ERR_InterfaceNotImplemented1" xml:space="preserve">
     <value>Interface '{0}' is not implemented by this class.</value>
   </data>
@@ -1995,7 +2019,7 @@
   <data name="ERR_TypeRefResolutionError3" xml:space="preserve">
     <value>Import of type '{0}' from assembly or module '{1}' failed.</value>
   </data>
-  <data name="ERR_ValueTupleTypeRefResolutionError" xml:space="preserve">
+  <data name="ERR_ValueTupleTypeRefResolutionError1" xml:space="preserve">
     <value>Predefined type '{0}' is not defined or imported.</value>
   </data>
   <data name="ERR_ParamArrayWrongType" xml:space="preserve">
@@ -3127,6 +3151,15 @@
   <data name="ERR_AnonymousTypeDisallowsTypeChar" xml:space="preserve">
     <value>Type characters cannot be used in anonymous type declarations.</value>
   </data>
+  <data name="ERR_TupleLiteralDisallowsTypeChar" xml:space="preserve">
+    <value>Type characters cannot be used in tuple literals.</value>
+  </data>
+  <data name="ERR_NewWithTupleTypeSyntax" xml:space="preserve">
+    <value>'New' cannot be used with tuple type. Use a tuple literal expression instead.</value>
+  </data>
+  <data name="ERR_PredefinedValueTupleTypeMustBeStruct" xml:space="preserve">
+    <value>Predefined type '{0}' must be a structure.</value>
+  </data>
   <data name="ERR_ExtensionMethodUncallable1" xml:space="preserve">
     <value>Extension method '{0}' has type constraints that can never be satisfied.</value>
   </data>
@@ -3431,7 +3464,7 @@
     <value>Type '{0}' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.</value>
   </data>
   <data name="ERR_CannotUseGenericTypeAcrossAssemblyBoundaries" xml:space="preserve">
-    <value>Type '{0}' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.</value>
+    <value>Type '{0}' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.</value>
   </data>
   <data name="WRN_UseOfObsoleteSymbol2" xml:space="preserve">
     <value>'{0}' is obsolete: '{1}'.</value>
@@ -5107,6 +5140,7 @@
 /quiet                            Quiet output mode.
 /verbose                          Display verbose messages.
 /parallel[+|-]                    Concurrent build. 
+/version                          Display the compiler version number and exit.
 
                                   - ADVANCED -
 /baseaddress:&lt;number&gt;             The base address for a library or module 
@@ -5379,20 +5413,29 @@
   <data name="ERR_SourceLinkRequiresPortablePdb" xml:space="preserve">
     <value>/sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified).</value>
   </data>
-  <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
-    <value>Tuple member names must be unique.</value>
+  <data name="ERR_TupleDuplicateElementName" xml:space="preserve">
+    <value>Tuple element names must be unique.</value>
   </data>
-  <data name="ERR_TupleExplicitNamesOnAllMembersOrNone" xml:space="preserve">
-    <value>Tuple member names must all be provided, if any one is provided.</value>
+  <data name="WRN_TupleLiteralNameMismatch" xml:space="preserve">
+    <value>The tuple element name '{0}' is ignored because a different name is specified by the target type '{1}'.</value>
   </data>
-  <data name="ERR_TupleReservedMemberName" xml:space="preserve">
-    <value>Tuple member name '{0}' is only allowed at position {1}.</value>
+  <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
+    <value>The tuple element name is ignored because a different name is specified by the assignment target.</value>
   </data>
-  <data name="ERR_TupleReservedMemberNameAnyPosition" xml:space="preserve">
-    <value>Tuple member name '{0}' is disallowed at any position.</value>
+  <data name="ERR_TupleReservedElementName" xml:space="preserve">
+    <value>Tuple element name '{0}' is only allowed at position {1}.</value>
+  </data>
+  <data name="ERR_TupleReservedElementNameAnyPosition" xml:space="preserve">
+    <value>Tuple element name '{0}' is disallowed at any position.</value>
   </data>
   <data name="ERR_TupleTooFewElements" xml:space="preserve">
     <value>Tuple must contain at least two elements.</value>
+  </data>
+  <data name="ERR_TupleElementNamesAttributeMissing" xml:space="preserve">
+    <value>Cannot define a class or member that utilizes tuples because the compiler required type '{0}' cannot be found. Are you missing a reference?</value>
+  </data>
+  <data name="ERR_ExplicitTupleElementNamesAttribute" xml:space="preserve">
+    <value>Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.</value>
   </data>
   <data name="ERR_RefReturningCallInExpressionTree" xml:space="preserve">
     <value>An expression tree may not contain a call to a method or property that returns by reference.</value>
@@ -5402,5 +5445,8 @@
   </data>
   <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
     <value>Invalid instrumentation kind: {0}</value>
+  </data>
+  <data name="ERR_DocFileGen" xml:space="preserve">
+    <value>Error writing to XML documentation file: {0}</value>
   </data>
 </root>
