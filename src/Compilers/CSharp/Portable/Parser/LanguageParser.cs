@@ -3682,12 +3682,10 @@ parse_member_name:;
         }
 
         private SyntaxToken EatAccessorSemicolon()
-        {
-            return this.EatToken(SyntaxKind.SemicolonToken,
-                            IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor)
-                                ? ErrorCode.ERR_SemiOrLBraceOrArrowExpected
-                                : ErrorCode.ERR_SemiOrLBraceExpected);
-        }
+            => this.EatToken(SyntaxKind.SemicolonToken,
+                IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor)
+                    ? ErrorCode.ERR_SemiOrLBraceOrArrowExpected
+                    : ErrorCode.ERR_SemiOrLBraceExpected);
 
         private SyntaxKind GetAccessorKind(SyntaxToken accessorName)
         {
