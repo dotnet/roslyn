@@ -46,23 +46,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // Create a workspace host to hear about workspace changes.  We'll 
                 // remote those changes over to the remote side when they happen.
-                RegisterWorkspaceHost(workspace, instance);
+                await RegisterWorkspaceHostAsync(workspace, instance).ConfigureAwait(false);
 
                 // return instance
                 return instance;
             }
         }
 
-        private static void RegisterWorkspaceHost(Workspace workspace, RemoteHostClient client)
+        private static Task RegisterWorkspaceHostAsync(Workspace workspace, RemoteHostClient client)
         {
             var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (vsWorkspace == null)
             {
-                return;
+                return Task.CompletedTask;
             }
 
-            vsWorkspace.ProjectTracker.RegisterWorkspaceHost(
-                new WorkspaceHost(vsWorkspace, client));
+            return vsWorkspace.ProjectTracker.RegisterWorkspaceHostFromForegroundThreadAsync(new WorkspaceHost(vsWorkspace, client));
         }
 
         private ServiceHubRemoteHostClient(

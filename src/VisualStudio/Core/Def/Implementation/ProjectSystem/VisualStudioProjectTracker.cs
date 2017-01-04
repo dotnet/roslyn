@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
@@ -67,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly Dictionary<ProjectId, AbstractProject> _projectMap;
         private readonly Dictionary<string, ProjectId> _projectPathToIdMap;
-#endregion
+        #endregion
 
         /// <summary>
         /// Provided to not break CodeLens which has a dependency on this API until there is a
@@ -177,6 +178,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             _workspaceHosts.Add(new WorkspaceHostState(this, host));
+        }
+
+        public Task RegisterWorkspaceHostFromForegroundThreadAsync(IVisualStudioWorkspaceHost host)
+        {
+            return InvokeBelowInputPriority(() => RegisterWorkspaceHost(host));
         }
 
         public void StartSendingEventsToWorkspaceHost(IVisualStudioWorkspaceHost host)
