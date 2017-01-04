@@ -147,10 +147,16 @@ exit /b 1
 
 @REM An error-level of 1 means that the process was found, but could not be killed.
 echo Killing all build-related processes
-taskkill /F /IM msbuild.exe > nul
-if %ERRORLEVEL% == 1 exit /b 1
+taskkill /F /IM msbuild.exe > nul 2>&1
+if %ERRORLEVEL% == 1 (
+  echo ERROR: taskkill for msbuild.exe failed
+  exit /b 1
+)
 
-taskkill /F /IM vbcscompiler.exe > nul
-if %ERRORLEVEL% == 1 exit /b 1
+taskkill /F /IM vbcscompiler.exe > nul 2>&1
+if %ERRORLEVEL% == 1 (
+  echo ERROR: taskkill for vbcscompiler.exe failed
+  exit /b 1
+)
 
 exit /b 0
