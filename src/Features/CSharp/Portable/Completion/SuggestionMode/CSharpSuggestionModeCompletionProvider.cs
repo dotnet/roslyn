@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             // We need to explicitly exclude invocation/member access from suggestion mode
             var previousToken = token.GetPreviousTokenIfTouchingWord(position);
             if (previousToken.IsKind(SyntaxKind.DotToken) &&
-                previousToken.Parent.IsKind(SyntaxKind.InvocationExpression, SyntaxKind.SimpleMemberAccessExpression))
+                previousToken.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
             {
                 return false;
             }
