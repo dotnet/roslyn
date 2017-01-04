@@ -32,17 +32,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public CompilationDifference(
             ImmutableArray<byte> metadata,
             ImmutableArray<byte> il,
-            ImmutableArray<byte> pdbStream,
+            ImmutableArray<byte> pdb,
             CompilationTestData testData,
             EmitDifferenceResult result,
             ImmutableArray<MethodDefinitionHandle> methodHandles)
         {
-            this.MetadataDelta = metadata;
-            this.ILDelta = il;
-            this.PdbDelta = pdbStream;
-            this.TestData = testData;
-            this.EmitResult = result;
-            this.UpdatedMethods = methodHandles;
+            MetadataDelta = metadata;
+            ILDelta = il;
+            PdbDelta = pdb;
+            TestData = testData;
+            EmitResult = result;
+            UpdatedMethods = methodHandles;
         }
 
         public EmitBaseline NextGeneration

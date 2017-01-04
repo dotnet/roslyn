@@ -1809,7 +1809,8 @@ namespace Microsoft.Cci
 
         public void PopulateEncTables(ImmutableArray<int> typeSystemRowCounts)
         {
-            Debug.Assert(typeSystemRowCounts[(int)TableIndex.EncLog] == 0 && typeSystemRowCounts[(int)TableIndex.EncMap] == 0);
+            Debug.Assert(typeSystemRowCounts[(int)TableIndex.EncLog] == 0);
+            Debug.Assert(typeSystemRowCounts[(int)TableIndex.EncMap] == 0);
 
             PopulateEncLogTableRows(typeSystemRowCounts);
             PopulateEncMapTableRows(typeSystemRowCounts);

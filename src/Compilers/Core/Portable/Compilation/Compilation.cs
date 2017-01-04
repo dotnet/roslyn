@@ -2508,7 +2508,7 @@ namespace Microsoft.CodeAnalysis
                         metadataStream, 
                         ilStream, 
                         (nativePdbWriterOpt == null) ? pdbStream : null,
-                        out var metadataSizes);
+                        out MetadataSizes metadataSizes);
 
                     writer.GetMethodTokens(updatedMethods);
 

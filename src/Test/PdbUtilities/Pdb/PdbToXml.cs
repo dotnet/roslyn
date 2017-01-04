@@ -1270,8 +1270,8 @@ namespace Roslyn.Test.PdbUtilities
 
         private unsafe ImmutableArray<MethodDefinitionHandle> BuildMethodTokenMap()
         {
-            if (!(_symReader is ISymUnmanagedReader5 symReader5) ||
-                symReader5.GetPortableDebugMetadata(out byte* metadata, out int size) != 0)
+            if (!(_symReader is ISymUnmanagedReader4 symReader4) ||
+                symReader4.GetPortableDebugMetadata(out byte* metadata, out int size) != 0)
             {
                 return ImmutableArray<MethodDefinitionHandle>.Empty;
             }

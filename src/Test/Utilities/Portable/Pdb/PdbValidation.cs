@@ -146,14 +146,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.True(actualIsPortable);
 
             // SymWriter doesn't create empty scopes. When the C# compiler uses forwarding CDI instead of a NamespaceScope
-            // the scope is actually not empty - it logically contains the imports. Portable PDB does not used forwarding and thus
+            // the scope is actually not empty - it logically contains the imports. Portable PDB does not use forwarding and thus
             // creates the scope. When generating PDB XML for testing the Portable DiaSymReader returns empty namespaces.
             RemoveEmptyScopes(actualPdb);
 
             // if the actual format is portable and the expected is not, remove native-only artifacts:
             RemoveNonPortablePdb(expectedPdb);
 
-            // TODO: remove
             RemoveEmptySequencePoints(expectedPdb);
 
             // remove scopes that only contained non-portable elements (namespace scopes)
