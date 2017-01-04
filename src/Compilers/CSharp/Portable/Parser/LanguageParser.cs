@@ -6471,13 +6471,20 @@ tryAgain:
                     }
                 }
 
-                var close = this.EatToken(SyntaxKind.CloseParenToken);
-                var result = _syntaxFactory.TupleType(open, list, close);
-
                 if (list.Count < 2)
                 {
-                    result = this.AddError(result, ErrorCode.ERR_TupleTooFewElements);
+                    if (list.Count < 1)
+                    {
+                        list.Add(_syntaxFactory.TupleElement(this.CreateMissingIdentifierName(), identifier: null));
+                    }
+
+                    list.AddSeparator(SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
+                    var missing = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TupleTooFewElements);
+                    list.Add(_syntaxFactory.TupleElement(missing, identifier: null));
                 }
+
+                var close = this.EatToken(SyntaxKind.CloseParenToken);
+                var result = _syntaxFactory.TupleType(open, list, close);
 
                 result = CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples);
 
@@ -10119,13 +10126,15 @@ tryAgain:
                     list.Add(arg);
                 }
 
-                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                var result = _syntaxFactory.TupleExpression(openParen, list, closeParen);
-
                 if (list.Count < 2)
                 {
-                    result = this.AddError(result, ErrorCode.ERR_TupleTooFewElements);
+                    list.AddSeparator(SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
+                    var missing = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TupleTooFewElements);
+                    list.Add(_syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: missing));
                 }
+
+                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+                var result = _syntaxFactory.TupleExpression(openParen, list, closeParen);
 
                 result = CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples);
                 return result;

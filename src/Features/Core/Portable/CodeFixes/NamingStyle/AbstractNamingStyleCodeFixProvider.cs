@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Rename;
 using Roslyn.Utilities;
 
@@ -43,15 +43,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 context.RegisterCodeFix(
                     new FixNameCodeAction(
                         string.Format(FeaturesResources.Fix_Name_Violation_colon_0, fixedName),
-                        async c => await Renamer.RenameSymbolAsync(
-                            solution,
-                            symbol,
-                            fixedName,
-                            await document.GetOptionsAsync(c).ConfigureAwait(false),
-                            c).ConfigureAwait(false),
+                        c => FixAsync(document, symbol, fixedName, c),
                         nameof(NamingStyleCodeFixProvider)),
                     diagnostic);
             }
+        }
+
+        private static async Task<Solution> FixAsync(
+            Document document, ISymbol symbol, string fixedName, CancellationToken cancellationToken)
+        {
+            return await Renamer.RenameSymbolAsync(
+                document.Project.Solution, symbol, fixedName,
+                await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
+                cancellationToken).ConfigureAwait(false);
         }
 
         private class FixNameCodeAction : CodeAction.SolutionChangeAction

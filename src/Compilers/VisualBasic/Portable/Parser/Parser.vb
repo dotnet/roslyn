@@ -3019,6 +3019,15 @@ checkNullable:
                 closeParen = closeParen.AddLeadingSyntax(unexpected)
             End If
 
+            If elementBuilder.Count < 2 Then
+                Debug.Assert(elementBuilder.Count > 0)
+                elementBuilder.AddSeparator(InternalSyntaxFactory.MissingToken(SyntaxKind.CommaToken))
+
+                Dim missing = SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier())
+                missing = ReportSyntaxError(missing, ERRID.ERR_TupleTooFewElements)
+                elementBuilder.Add(_syntaxFactory.TypedTupleElement(missing))
+            End If
+
             Dim tupleElements = elementBuilder.ToList
             _pool.Free(elementBuilder)
 
