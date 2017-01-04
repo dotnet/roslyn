@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// </summary>
         protected abstract SyntaxNode GetObjectCreationNewExpression(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
-        private static readonly ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.ObjectCreation);
-
         protected override CompletionItem CreateItem(
             string displayText, string insertionText, List<ISymbol> symbols,
             SyntaxContext context, bool preselect,
@@ -38,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 symbols: symbols,
                 supportedPlatforms: supportedPlatformData,
                 matchPriority: MatchPriority.Preselect, // Always preselect
-                tags: s_Tags,
                 rules: GetCompletionItemRules(symbols, context));
         }
 
