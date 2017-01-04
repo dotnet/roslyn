@@ -174,6 +174,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 value = longValue != 0;
                 return true;
             }
+            else if (optionKey.Option.Type == typeof(bool?))
+            {
+                // when nullable type is assigned to object, it can lose nullable type.
+                return (value is bool) || (value == null);
+            }
             else if (value != null && optionKey.Option.Type != value.GetType())
             {
                 // We got something back different than we expected, so fail to deserialize
