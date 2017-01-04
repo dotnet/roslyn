@@ -76,12 +76,6 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\Extensions.cs">
       <Link>Shared\Extensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.cs">
-      <Link>Shared\RoslynJsonConverter.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.SolutionIdConverters.cs">
-      <Link>Shared\RoslynJsonConverter.SolutionIdConverters.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ServerDirectStream.cs">
       <Link>Shared\ServerDirectStream.cs</Link>
     </Compile>

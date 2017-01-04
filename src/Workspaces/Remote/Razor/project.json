@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "StreamJsonRpc": "1.0.2-rc"
+    "StreamJsonRpc": "0.12.32-alpha-g90be50f449"
   },
   "frameworks": {
     "net46": {}
