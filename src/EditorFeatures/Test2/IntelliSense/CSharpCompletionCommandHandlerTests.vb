@@ -290,7 +290,7 @@ class Variable
 }]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=False)
             End Using
         End Function
 
@@ -307,7 +307,7 @@ class Variable
 }]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=False)
             End Using
         End Function
 
