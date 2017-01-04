@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal interface IRemoteSymbolFinder
     {
-        Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs);
+        Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, SerializableDocumentId[] documentArgs);
     }
 }
