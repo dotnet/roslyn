@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private const string SpaceEqualsString = " =";
         private const string ColonString = ":";
 
+        private static CompletionItemRules _spaceItemFilterRule = CompletionItemRules.Default.WithFilterCharacterRule(
+            CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' '));
+
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
@@ -151,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                        symbol: p,
                        contextPosition: token.SpanStart,
                        sortText: p.Name,
-                       rules: CompletionItemRules.Default);
+                       rules: _spaceItemFilterRule);
             return q.ToImmutableArray();
         }
 
