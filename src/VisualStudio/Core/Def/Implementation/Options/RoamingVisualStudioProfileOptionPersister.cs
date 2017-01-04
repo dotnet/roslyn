@@ -177,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             else if (optionKey.Option.Type == typeof(bool?))
             {
                 // when nullable type is assigned to object, it can lose nullable type.
-                return (value is bool) || (value == null);
+                return (value is bool?) || (value is bool) || (value == null);
             }
             else if (value != null && optionKey.Option.Type != value.GetType())
             {
