@@ -21,7 +21,7 @@
     "RoslynDependencies.Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime": "15.0.25718-Preview5",
     "RoslynDependencies.Microsoft.VisualStudio.Workspace": "14.0.983-pre-ge167e81694",
     "System.Collections.Immutable": "1.3.1",
-    "System.Threading.Tasks.Dataflow": "4.5.25.0",
+    "System.Threading.Tasks.Dataflow": "4.5.24",
     "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.25802-alpha",
     "Microsoft.VisualStudio.Shell.15.0": "15.0.25726-Preview5",
     "Microsoft.VisualStudio.Shell.Immutable.10.0": {
