@@ -42,6 +42,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
+        public static readonly SymbolDisplayFormat SpecialTypeCrefFormat =
+            new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                parameterOptions: SymbolDisplayParameterOptions.None,
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+
         private readonly Action<SyntaxNode> _testSpeculativeNodeCallbackOpt;
 
         public CrefCompletionProvider(Action<SyntaxNode> testSpeculativeNodeCallbackOpt = null)
@@ -251,8 +261,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 foreach (var symbol in symbols)
                 {
-                    builder.Clear();
                     yield return CreateItem(workspace, semanticModel, symbol, token, position, builder, options);
+                    if (TryCreateSpecialTypeItem(workspace, semanticModel, symbol, token, position, builder, options, out var item))
+                    {
+                        yield return item;
+                    }
                 }
             }
             finally
@@ -261,20 +274,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
+        private bool TryCreateSpecialTypeItem(
+            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, 
+            ImmutableDictionary<string, string> options, out CompletionItem item)
+        {
+            var typeSymbol = symbol as ITypeSymbol;
+            if (typeSymbol.IsSpecialType())
+            {
+                item = CreateItem(workspace, semanticModel, symbol, token, position, builder, options, SpecialTypeCrefFormat);
+                return true;
+            }
+
+            item = null;
+            return false;
+        }
+
         private CompletionItem CreateItem(
             Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, ImmutableDictionary<string, string> options)
         {
+            return CreateItem(workspace, semanticModel, symbol, token, position, builder, options, CrefFormat);
+        }
+
+        private CompletionItem CreateItem(
+            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, ImmutableDictionary<string, string> options,
+            SymbolDisplayFormat unqualifiedCrefFormat)
+        {
+            builder.Clear();
             if (symbol is INamespaceOrTypeSymbol && token.IsKind(SyntaxKind.DotToken))
             {
                 // Handle qualified namespace and type names.
-
                 builder.Append(symbol.ToDisplayString(QualifiedCrefFormat));
             }
             else
             {
                 // Handle unqualified namespace and type names, or member names.
 
-                builder.Append(symbol.ToMinimalDisplayString(semanticModel, token.SpanStart, CrefFormat));
+                builder.Append(symbol.ToMinimalDisplayString(semanticModel, token.SpanStart, unqualifiedCrefFormat));
 
                 var parameters = symbol.GetParameters();
                 if (!parameters.IsDefaultOrEmpty)
@@ -308,6 +343,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
+            return CreateItemFromBuilder(symbol, position, builder, options);
+        }
+
+        private CompletionItem CreateItemFromBuilder(ISymbol symbol, int position, StringBuilder builder, ImmutableDictionary<string, string> options)
+        {
             var symbolText = builder.ToString();
 
             var insertionText = builder
