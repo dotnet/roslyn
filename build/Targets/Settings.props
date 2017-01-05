@@ -57,7 +57,6 @@
          locations such as GAC, AssemblyFoldersEx, etc ... are deliberately removed from this 
          list as they will not be the same from machine to machine -->
     <AssemblySearchPaths>
-      {CandidateAssemblyFiles};
       {TargetFrameworkDirectory};
       {RawFileName};
     </AssemblySearchPaths>
