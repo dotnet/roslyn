@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "System.Threading.Tasks.Dataflow": "4.5.25",
+    "System.Threading.Tasks.Dataflow": "4.5.24",
     "Newtonsoft.Json": "8.0.3",
     "Moq": "4.2.1402.2112",
     "Microsoft.VisualStudio.Composition": "14.2.19-pre",
