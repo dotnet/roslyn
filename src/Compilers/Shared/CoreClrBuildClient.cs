@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -25,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc)
         {
+            // Register encodings for console
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             // Should be using BuildClient.GetCommandLineArgs(arguments) here.  But the native invoke
             // ends up giving us both CoreRun and the exe file.  Need to find a good way to remove the host
             // as well as the EXE argument.
