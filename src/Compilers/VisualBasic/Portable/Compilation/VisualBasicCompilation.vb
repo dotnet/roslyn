@@ -2589,7 +2589,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TupleTypeSymbol.Create(locationOpt:=Nothing,
                                           elementTypes:=typesBuilder.ToImmutableAndFree(),
                                           elementLocations:=elementLocations,
-                                          elementNames:=elementNames, compilation:=Me)
+                                          elementNames:=elementNames, compilation:=Me,
+                                          shouldCheckConstraints:=False)
         End Function
 
         Protected Overrides Function CommonCreateTupleTypeSymbol(

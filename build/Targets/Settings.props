@@ -1,12 +1,14 @@
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <Import Project="Versions.props"/>
+  <Import Project="Versions.props" />
 
   <PropertyGroup>
     <JenkinsBuild>false</JenkinsBuild>
     <JenkinsBuild Condition="'$(JENKINS_HOME)' != ''">true</JenkinsBuild>
     <DeveloperBuild>false</DeveloperBuild>
-    <DeveloperBuild Condition="'$(OfficialBuild)' != 'true' and '$(JenkinsBuild)' != 'true'">true</DeveloperBuild>
+    <DeveloperBuild Condition="'$(OfficialBuild)' != 'true' AND '$(JenkinsBuild)' != 'true'">true</DeveloperBuild>
 
     <ProjectDir>$(MSBuildThisFileDirectory)..\..\</ProjectDir>
     <NuGetToolPath>$(ProjectDir)nuget.exe</NuGetToolPath>
@@ -28,7 +30,7 @@
     <BaseIntermediateOutputPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\Obj\$(MSBuildProjectName)'))\</BaseIntermediateOutputPath>
 
     <!-- Workaround until we move to Microsoft.Net.Compilers.nupkg with this fix: https://github.com/dotnet/roslyn/commit/05c12ebfcdd08a02dbceded5327a8da7a7df23be:
-         Use the Microsoft.Net.Compilers.props file with the fix checked into the repo instead of the one that comes along with the nuget package: 
+         Use the Microsoft.Net.Compilers.props file with the fix checked into the repo instead of the one that comes along with the nuget package:
          $(NuGetPackageRoot)\Microsoft.Net.Compilers\$(ToolsetCompilerPackageVersion)\build\Microsoft.Net.Compilers.props -->
     <ToolsetCompilerPropsFilePath>$(MSBuildThisFileDirectory)Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
 
@@ -46,7 +48,7 @@
     <CompilerGeneratorToolsDir>$(OutDir)Exes\DeployCompilerGeneratorToolsRuntime\</CompilerGeneratorToolsDir>
     <MSBuildAssemblyNameFragment>Core</MSBuildAssemblyNameFragment>
 
-    <!-- To copy .dll.config and .exe.config files of the referenced projects to the output dir 
+    <!-- To copy .dll.config and .exe.config files of the referenced projects to the output dir
          (see https://github.com/Microsoft/msbuild/issues/1307) -->
     <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.dll.config;.exe.config</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
@@ -57,11 +59,11 @@
     <DebugType>pdbonly</DebugType>
     <UseSharedCompilation>true</UseSharedCompilation>
 
-    <!-- Presently our code can build on machines with Dev14 or Dev15 but only successfully deploy 
+    <!-- Presently our code can build on machines with Dev14 or Dev15 but only successfully deploy
          in the Dev15 environment.  -->
     <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
     <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
-    <DeployExtension Condition="'$(IsDev15RC)' != 'true' or '$(VisualStudioVersion)' != '15.0'">false</DeployExtension>
+    <DeployExtension Condition="'$(IsDev15RC)' != 'true' OR '$(VisualStudioVersion)' != '15.0'">false</DeployExtension>
     <VisualStudioBuildToolsVersion>15.0.25929-RC2</VisualStudioBuildToolsVersion>
 
     <!-- For the moment our Dev14 VSI suites must continue to use the Dev14 SDK. -->
@@ -94,7 +96,7 @@
     <DevEnvDir>$(DevEnvDir)\..\IDE</DevEnvDir>
     <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
     <CSharpCoreTargetsPath>$(BootstrapBuildPath)\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
     <VisualBasicCoreTargetsPath>$(BootstrapBuildPath)\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
@@ -187,7 +189,7 @@
     <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
   </ItemGroup>
 
-  <!-- During bootstrap builds it's important to load our bootstrap tasks before doing any 
+  <!-- During bootstrap builds it's important to load our bootstrap tasks before doing any
        other imports (which could load a same named DLL) -->
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc"
              AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
@@ -199,10 +201,10 @@
              AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
 
-  <!-- 
-    Roslyn uses the WriteCodeFragment task to output generated assembly attributes.  In MSBuild 14.0 update 1 this task 
+  <!--
+    Roslyn uses the WriteCodeFragment task to output generated assembly attributes.  In MSBuild 14.0 update 1 this task
     produces non-deterministic output.  This is fixed in update 2 but until that is released we use a hand patched
-    version of the Task that is deterministic.  
+    version of the Task that is deterministic.
 
     MSBuild bug: https://github.com/Microsoft/msbuild/issues/408
     Bug tracking removing this: https://github.com/dotnet/roslyn/issues/8421

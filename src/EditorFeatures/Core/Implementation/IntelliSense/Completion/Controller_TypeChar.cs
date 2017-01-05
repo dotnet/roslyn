@@ -368,6 +368,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
+            if (model.SelectedItemOpt == null)
+            {
+                return false;
+            }
+
             if (model.SelectedItemOpt == model.SuggestionModeItem)
             {
                 return char.IsLetterOrDigit(ch);

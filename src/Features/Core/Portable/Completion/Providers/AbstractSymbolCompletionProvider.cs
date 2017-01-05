@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SyntaxContext context, bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
-            return SymbolCompletionItem.Create(
+            return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),
@@ -128,9 +128,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 matchPriority: preselect ? MatchPriority.Preselect : MatchPriority.Default,
                 rules: GetCompletionItemRules(symbols, context));
         }
-
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         protected virtual string GetFilterText(ISymbol symbol, string displayText, SyntaxContext context)
         {
@@ -147,6 +144,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
+
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
