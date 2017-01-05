@@ -186,6 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
 
+                    case SyntaxKind.LocalFunctionStatement:
                     case SyntaxKind.ExpressionStatement:
                     case SyntaxKind.IfStatement:
                     case SyntaxKind.YieldReturnStatement:

@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.VariableDeclarator:
+                case SyntaxKind.LocalFunctionStatement:
                     break;
                 case SyntaxKind.ArgumentList:
                     Debug.Assert(node.Parent is ConstructorInitializerSyntax);
@@ -177,6 +178,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitSwitchStatement(SwitchStatementSyntax node)
         {
             VisitNodeToBind(node.Expression);
+        }
+
+        public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
+        {
+            // Expression variables may not be declared in a local function's
+            // parameter initializer, because the initializer is required to be a kind
+            // of constant. Although it is an error, we must handle such code.
+            // We give such variables the scope of the enclosing block.
+            foreach (var parameter in node.ParameterList.Parameters)
+            {
+                VisitNodeToBind(parameter.Default?.Value);
+            }
         }
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
