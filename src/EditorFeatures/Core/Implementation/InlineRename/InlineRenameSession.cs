@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var asyncToken = _asyncListener.BeginAsyncOperation("UpdateReferencesTask");
             _allRenameLocationsTask = allRenameLocationsTask;
             allRenameLocationsTask.SafeContinueWith(
-                t => RaiseSessionSpansUpdated(t.Result.Locations),
+                t => RaiseSessionSpansUpdated(t.Result.Locations.ToImmutableArray()),
                 _cancellationTokenSource.Token,
                 TaskContinuationOptions.OnlyOnRanToCompletion,
                 ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
