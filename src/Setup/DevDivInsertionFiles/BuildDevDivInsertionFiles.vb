@@ -879,6 +879,7 @@ Public Class BuildDevDivInsertionFiles
         add("Vsix\CompilerExtension\System.Security.Principal.Windows.dll")
         add("Vsix\CompilerExtension\System.Text.Encoding.CodePages.dll")
         add("Vsix\CompilerExtension\System.Threading.Thread.dll")
+        add("Vsix\CompilerExtension\System.Xml.ReaderWriter.dll")
         add("Vsix\CompilerExtension\System.Xml.XmlDocument.dll")
         add("Vsix\CompilerExtension\System.Xml.XPath.dll")
         add("Vsix\CompilerExtension\System.Xml.XPath.XDocument.dll")
