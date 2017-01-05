@@ -2926,6 +2926,7 @@ class AAttribute: Attribute
                 Await state.AssertCompletionSession()
                 state.SendTypeChars(" ")
                 Await state.AssertNoCompletionSession()
+                Assert.Equal("[A(Skip )]", state.GetLineTextFromCaretPosition())
             End Using
         End Function
     End Class
