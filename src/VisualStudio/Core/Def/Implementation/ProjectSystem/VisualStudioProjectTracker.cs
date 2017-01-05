@@ -180,11 +180,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _workspaceHosts.Add(new WorkspaceHostState(this, host));
         }
 
-        public Task RegisterWorkspaceHostFromForegroundThreadAsync(IVisualStudioWorkspaceHost host)
-        {
-            return InvokeBelowInputPriority(() => RegisterWorkspaceHost(host));
-        }
-
         public void StartSendingEventsToWorkspaceHost(IVisualStudioWorkspaceHost host)
         {
             AssertIsForeground();
