@@ -1,5 +1,6 @@
 ﻿{
   "dependencies": {
+    "System.Threading.Tasks.Dataflow": "4.5.24",
     "Microsoft.VisualStudio.Composition": "14.2.19-pre",
     "RoslynDependencies.Microsoft.VisualStudio.Platform.VSEditor": "14.3.25407",
     "BasicUndo": "0.9.3",
