@@ -368,8 +368,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //
                 // In both these cases, we simply back up before the 'new' if it follows an equals
                 // and start the inference again.
+                //
+                // Analogously, but in a method call:
+                //      Test(new $$
+                //      o = s
+                // or:
+                //      Test(1, new $$
+                //      o = s
+                // The new is part of the assignment to o but the user is really trying to 
+                // add a parameter to the method call.
                 if (previousToken.Kind() == SyntaxKind.NewKeyword &&
-                    previousToken.GetPreviousToken().Kind() == SyntaxKind.EqualsToken)
+                    previousToken.GetPreviousToken().IsKind(SyntaxKind.EqualsToken, SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
                 {
                     return InferTypes(previousToken.SpanStart);
                 }
