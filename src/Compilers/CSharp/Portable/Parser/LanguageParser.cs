@@ -3592,27 +3592,20 @@ parse_member_name:;
                     }
                 }
 
-                SyntaxToken accessorName;
-                SyntaxKind accessorKind;
-
-                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
-                {
-                    accessorName = this.EatToken();
-                    accessorKind = GetAccessorKind(accessorName);
-                }
-                else
-                {
-                    accessorName = SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken);
-                    accessorKind = SyntaxKind.UnknownAccessorDeclaration;
-                }
+                var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
+                    isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
+                var accessorKind = GetAccessorKind(accessorName);
 
                 // Only convert the identifier to a keyword if it's a valid one.  Otherwise any
                 // other contextual keyword (like 'partial') will be converted into a keyword
                 // and will be invalid.
                 if (accessorKind == SyntaxKind.UnknownAccessorDeclaration)
                 {
-                    accessorName = this.AddError(accessorName,
-                        isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
+                    if (!accessorName.ContainsDiagnostics)
+                    {
+                        accessorName = this.AddError(accessorName,
+                            isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
+                    }
                 }
                 else
                 {
@@ -3621,8 +3614,8 @@ parse_member_name:;
 
                 BlockSyntax blockBody = null;
                 ArrowExpressionClauseSyntax expressionBody = null;
-
                 SyntaxToken semicolon = null;
+
                 bool currentTokenIsSemicolon = this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
                 bool currentTokenIsArrow = this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken;
                 bool currentTokenIsOpenBraceToken = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
