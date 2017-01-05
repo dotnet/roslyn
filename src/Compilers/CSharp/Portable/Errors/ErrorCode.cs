@@ -1449,6 +1449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarInvocationLvalueReserved = 8199,
         ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
         ERR_ExpressionVariableInQueryClause = 8201,
+        ERR_PublicSignNetModule = 8202,
         #endregion more stragglers for C# 7
     }
 }
