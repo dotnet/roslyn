@@ -437,5 +437,21 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "object");
         }
+
+        [WorkItem(15804, "https://github.com/dotnet/roslyn/issues/15804")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task BeforeAttributeParsedAsImplicitArray()
+        {
+            var markup =
+@"class Program
+{
+    Program p = new $$ 
+
+    [STAThread]
+    static void Main() { }
+}
+";
+            await VerifyItemExistsAsync(markup, "Program");
+        }
     }
 }
