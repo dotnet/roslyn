@@ -124,32 +124,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     switch (accessor.Kind())
                     {
-                    case SyntaxKind.GetAccessorDeclaration:
-                        if (getSyntax == null)
-                        {
-                            getSyntax = accessor;
-                        }
-                        else
-                        {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
-                        }
-                        break;
-                    case SyntaxKind.SetAccessorDeclaration:
-                        if (setSyntax == null)
-                        {
-                            setSyntax = accessor;
-                        }
-                        else
-                        {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
-                        }
-                        break;
-                    case SyntaxKind.AddAccessorDeclaration:
-                    case SyntaxKind.RemoveAccessorDeclaration:
-                        diagnostics.Add(ErrorCode.ERR_GetOrSetExpected, accessor.Keyword.GetLocation());
-                        continue;
-                    default:
-                        continue;
+                        case SyntaxKind.GetAccessorDeclaration:
+                            if (getSyntax == null)
+                            {
+                                getSyntax = accessor;
+                            }
+                            else
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
+                            }
+                            break;
+                        case SyntaxKind.SetAccessorDeclaration:
+                            if (setSyntax == null)
+                            {
+                                setSyntax = accessor;
+                            }
+                            else
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateAccessor, accessor.Keyword.GetLocation());
+                            }
+                            break;
+                        case SyntaxKind.AddAccessorDeclaration:
+                        case SyntaxKind.RemoveAccessorDeclaration:
+                            diagnostics.Add(ErrorCode.ERR_GetOrSetExpected, accessor.Keyword.GetLocation());
+                            continue;
+                        case SyntaxKind.UnknownAccessorDeclaration:
+                            // We don't need to report an error here as the parser will already have
+                            // done that for us.
+                            continue;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(accessor.Kind());
                     }
 
                     if (accessor.Body != null || accessor.ExpressionBody != null)
