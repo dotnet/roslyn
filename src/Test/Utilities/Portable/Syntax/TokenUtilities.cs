@@ -22,16 +22,33 @@ namespace Roslyn.Test.Utilities
         {
             var expectedTokens = GetTokens(expected, language);
             var actualTokens = GetTokens(actual, language);
-
-            for (var i = 0; i < Math.Min(expectedTokens.Count, actualTokens.Count); i++)
+            var max = Math.Min(expectedTokens.Count, actualTokens.Count);
+            for (var i = 0; i < max; i++)
             {
                 var expectedToken = expectedTokens[i].ToString();
                 var actualToken = actualTokens[i].ToString();
-                if (!String.Equals(expectedToken, actualToken))
+                if (!string.Equals(expectedToken, actualToken))
                 {
-                    var prev = (i - 1 > -1) ? actualTokens[i - 1].ToString() : "^";
-                    var next = (i + 1 < actualTokens.Count) ? actualTokens[i + 1].ToString() : "$";
-                    AssertEx.Fail($"Unexpected token at index {i} near \"{prev} {actualToken} {next}\". Expected '{expectedToken}', Actual '{actualToken}'");
+                    string actualAll = "";
+                    string expectedAll = "";
+                    for (var j = i - 3; j <= i + 3; j++)
+                    {
+                        if (j >= 0 && j < max)
+                        {
+                            if (j == i)
+                            {
+                                actualAll += "^" + actualTokens[j].ToString() + "^ ";
+                                expectedAll += "^" + expectedTokens[j].ToString() + "^ ";
+                            }
+                            else
+                            {
+                                actualAll += actualTokens[j].ToString() + " ";
+                                expectedAll += expectedTokens[j].ToString() + " ";
+                            }
+                        }
+                    }
+
+                    AssertEx.Fail($"Unexpected token.  Actual '{actualAll}' Expected '{expectedAll}'");
                 }
             }
 

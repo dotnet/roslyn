@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -27,12 +28,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         Private Async Function TestStreamingFeature(element As XElement, searchSingleFileOnly As Boolean, uiVisibleOnly As Boolean) As Task
+            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=True)
+            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
+        End Function
+
+        Private Async Function TestStreamingFeature(element As XElement,
+                                                    searchSingleFileOnly As Boolean,
+                                                    uiVisibleOnly As Boolean,
+                                                    outOfProcess As Boolean) As Task
             ' We don't support testing features htat only expect partial results.
             If searchSingleFileOnly OrElse uiVisibleOnly Then
                 Return
             End If
 
             Using workspace = Await TestWorkspace.CreateAsync(element)
+                workspace.Options = workspace.Options.WithChangedOption(
+                    SymbolFinderOptions.OutOfProcessAllowed, outOfProcess)
+
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
                     Dim cursorPosition = cursorDocument.CursorPosition.Value
 
@@ -142,9 +154,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End Function
         End Class
 
-        Private Async Function TestAPI(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+        Private Async Function TestAPI(definition As XElement,
+                                       Optional searchSingleFileOnly As Boolean = False,
+                                       Optional uiVisibleOnly As Boolean = False) As Task
+            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=True)
+            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
+        End Function
+
+        Private Async Function TestAPI(definition As XElement,
+                                       searchSingleFileOnly As Boolean,
+                                       uiVisibleOnly As Boolean,
+                                       outOfProcess As Boolean) As Task
             Using workspace = Await TestWorkspace.CreateAsync(definition)
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
+                workspace.Options = workspace.Options.WithChangedOption(
+                    SymbolFinderOptions.OutOfProcessAllowed, outOfProcess)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
                     Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -156,9 +180,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Dim result = SpecializedCollections.EmptyEnumerable(Of ReferencedSymbol)()
                     If symbol IsNot Nothing Then
 
-                        Dim scope = If(searchSingleFileOnly, ImmutableHashSet.Create(Of Document)(document), Nothing)
+                        Dim scope = If(searchSingleFileOnly, ImmutableHashSet.Create(document), Nothing)
 
-                        result = result.Concat(Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=scope))
+                        Dim progress = New StreamingProgressCollector(StreamingFindReferencesProgress.Instance)
+                        Await SymbolFinder.FindReferencesAsync(
+                            New SymbolAndProjectId(symbol, document.Project.Id),
+                            document.Project.Solution, progress, documents:=scope, cancellationToken:=CancellationToken.None)
+
+                        result = result.Concat(progress.GetReferencedSymbols())
                     End If
 
                     Dim actualDefinitions =

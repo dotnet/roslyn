@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
-using Roslyn.Test.Utilities.Remote;
 
-namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
+namespace Roslyn.Test.Utilities.Remote
 {
     [ExportWorkspaceService(typeof(IRemoteHostClientFactory), layer: ServiceLayer.Host), Shared]
     internal class InProcRemoteHostClientFactory : IRemoteHostClientFactory
