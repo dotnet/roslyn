@@ -4340,6 +4340,15 @@
   <data name="ERR_PublicSignNoKey" xml:space="preserve">
     <value>Public sign was specified and requires a public key, but no public key was specified</value>
   </data>
+  <data name="ERR_PublicSignNetModule" xml:space="preserve">
+    <value>Public signing is not supported for netmodules.</value>
+  </data>
+  <data name="WRN_AttributeIgnoredWhenPublicSigning" xml:space="preserve">
+    <value>Attribute '{0}' is ignored when public signing is specified.</value>
+  </data>
+  <data name="WRN_AttributeIgnoredWhenPublicSigning_Title" xml:space="preserve">
+    <value>Attribute is ignored when public signing is specified.</value>
+  </data>
   <data name="WRN_DelaySignButNoKey" xml:space="preserve">
     <value>Delay signing was specified and requires a public key, but no public key was specified.</value>
   </data>

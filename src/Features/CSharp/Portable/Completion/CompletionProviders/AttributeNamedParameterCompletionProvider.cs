@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var text = await semanticModel.SyntaxTree.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
             var q = from p in attributeNamedParameters
                     where !existingNamedParameters.Contains(p.Name)
-                    select SymbolCompletionItem.Create(
+                    select SymbolCompletionItem.CreateWithSymbolId(
                        displayText: p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
                        insertionText: null,
                        symbol: p,
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return from pl in parameterLists
                    from p in pl
                    where !existingNamedParameters.Contains(p.Name)
-                   select SymbolCompletionItem.Create(
+                   select SymbolCompletionItem.CreateWithSymbolId(
                        displayText: p.Name.ToIdentifierToken().ToString() + ColonString,
                        insertionText: null,
                        symbol: p,

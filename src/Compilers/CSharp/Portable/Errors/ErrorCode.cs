@@ -1435,9 +1435,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DeclarationExpressionNotPermitted = 8185,
         ERR_MustDeclareForeachIteration = 8186,
         ERR_TupleElementNamesInDeconstruction = 8187,
+        ERR_ExpressionTreeContainsThrowExpression = 8188,
         #endregion stragglers for C# 7
 
-        // Available  = 8188-8195
+        // Available  = 8189-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
@@ -1449,6 +1450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarInvocationLvalueReserved = 8199,
         ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
         ERR_ExpressionVariableInQueryClause = 8201,
+        ERR_PublicSignNetModule = 8202,
         #endregion more stragglers for C# 7
     }
 }

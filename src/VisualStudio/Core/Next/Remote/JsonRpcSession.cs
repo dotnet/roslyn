@@ -66,8 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private async Task InitializeAsync()
         {
             // all roslyn remote service must based on ServiceHubServiceBase which implements Initialize method
-            await _snapshotClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum).ConfigureAwait(false);
-            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum).ConfigureAwait(false);
+            await _snapshotClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
+            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScope.SolutionChecksum.ToArray()).ConfigureAwait(false);
         }
 
         public override Task InvokeAsync(string targetName, params object[] arguments)
@@ -220,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var checksum = kv.Key;
                     var remotableData = kv.Value;
 
-                    checksum.WriteTo(writer);
+                    writer.WriteValue(checksum.ToArray());
                     writer.WriteString(remotableData.Kind);
 
                     await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);

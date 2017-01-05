@@ -385,19 +385,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     return true;
                 }
 
-                // If the lengths are the same, prefer the one with the higher match priority.
-                // But only if it's an item that would have been hard selected.  We don't want
-                // to aggressively select an item that was only going to be softly offered.
-                var item1Priority = item1.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
-                    ? item1.Rules.MatchPriority : MatchPriority.Default;
-                var item2Priority = item2.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
-                    ? item2.Rules.MatchPriority : MatchPriority.Default;
-
-                if (item1Priority > item2Priority)
+                if (prefixLength1 == prefixLength2)
                 {
-                    return true;
-                }
+                    // If the lengths are the same, prefer the one with the higher match priority.
+                    // But only if it's an item that would have been hard selected.  We don't want
+                    // to aggressively select an item that was only going to be softly offered.
+                    var item1Priority = item1.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
+                        ? item1.Rules.MatchPriority : MatchPriority.Default;
+                    var item2Priority = item2.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
+                        ? item2.Rules.MatchPriority : MatchPriority.Default;
 
+                    if (item1Priority > item2Priority)
+                    {
+                        return true;
+                    }
+                }
                 return false;
             }
 

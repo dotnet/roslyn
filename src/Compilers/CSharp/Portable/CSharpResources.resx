@@ -3833,6 +3833,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_PublicSignButNoKey" xml:space="preserve">
     <value>Public signing was specified and requires a public key, but no public key was specified.</value>
   </data>
+  <data name="ERR_PublicSignNetModule" xml:space="preserve">
+    <value>Public signing is not supported for netmodules.</value>
+  </data>
   <data name="WRN_DelaySignButNoKey" xml:space="preserve">
     <value>Delay signing was specified and requires a public key, but no public key was specified</value>
   </data>
@@ -4992,5 +4995,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PossibleBadNegCast" xml:space="preserve">
     <value>To cast a negative value, you must enclose the value in parentheses.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsThrowExpression" xml:space="preserve">
+    <value>An expression tree may not contain a throw-expression.</value>
   </data>
 </root>

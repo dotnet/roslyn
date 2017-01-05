@@ -43,8 +43,6 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken = _cancellationTokenSource.Token;
 
             Rpc = JsonRpc.Attach(stream, this);
-            Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
-
             Rpc.Disconnected += OnRpcDisconnected;
         }
 

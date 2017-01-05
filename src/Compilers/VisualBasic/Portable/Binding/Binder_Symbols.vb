@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Interface IA(Of T As C) : End Interface
             ' Interface IB(Of T As C) : Inherits IA(Of T) : End Interface
             If checkConstraints AndAlso ShouldCheckConstraints Then
-                constructedType.CheckConstraints(syntaxArguments, diagnostics)
+                constructedType.CheckConstraintsForNonTuple(syntaxArguments, diagnostics)
             End If
 
             constructedType = DirectCast(TupleTypeSymbol.TransformToTupleIfCompatible(constructedType), NamedTypeSymbol)
@@ -723,11 +723,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     types.Add(argumentType)
 
-                    If argumentType.IsRestrictedType() Then
-                        Binder.ReportDiagnostic(diagnostics, argumentSyntax, ERRID.ERR_RestrictedType1, argumentType)
-                    End If
-
-
                     If nameSyntax.Kind() = SyntaxKind.IdentifierToken Then
                         ' validate name if we have one
                         hasExplicitNames = True
@@ -761,12 +756,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Return TupleTypeSymbol.Create(syntax.GetLocation,
-                                            typesArray,
-                                            locationsArray,
-                                            If(elementNames Is Nothing, Nothing, elementNames.ToImmutableAndFree()),
-                                            binder.Compilation,
-                                            syntax,
-                                            diagnostics)
+                                                typesArray,
+                                                locationsArray,
+                                                If(elementNames Is Nothing, Nothing, elementNames.ToImmutableAndFree()),
+                                                binder.Compilation,
+                                                binder.ShouldCheckConstraints,
+                                                syntax,
+                                                diagnostics)
             End Function
 
             Private Shared Sub AnalyzeLookupResultForIllegalBaseTypeReferences(lookupResult As LookupResult,

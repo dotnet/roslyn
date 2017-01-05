@@ -2517,5 +2517,80 @@ public class A<T>
                 );
         }
 
+        [Fact]
+        public void ThrowRefReturn()
+        {
+            var text = @"using System;
+class Program
+{
+    static ref int P1 { get => throw new E(1); }
+    static ref int P2 => throw new E(2);
+    static ref int M() => throw new E(3);
+
+    public static void Main()
+    {
+        ref int L() => throw new E(4);
+        D d = () => throw new E(5);
+
+        try { ref int x = ref P1; }  catch (E e) { Console.Write(e.Value); }
+        try { ref int x = ref P2; }  catch (E e) { Console.Write(e.Value); }
+        try { ref int x = ref M(); } catch (E e) { Console.Write(e.Value); }
+        try { ref int x = ref L(); } catch (E e) { Console.Write(e.Value); }
+        try { ref int x = ref d(); } catch (E e) { Console.Write(e.Value); }
+    }
+}
+delegate ref int D();
+class E : Exception
+{
+    public int Value;
+    public E(int value) { this.Value = value; }
+}
+";
+            var v = CompileAndVerify(text, expectedOutput: "12345");
+        }
+
+        [Fact]
+        public void NoRefThrow()
+        {
+            var text = @"using System;
+class Program
+{
+    static ref int P1 { get => ref throw new E(1); }
+    static ref int P2 => ref throw new E(2);
+    static ref int M() => ref throw new E(3);
+
+    public static void Main()
+    {
+        ref int L() => ref throw new E(4);
+        D d = () => ref throw new E(5);
+        L();
+        d();
+    }
+}
+delegate ref int D();
+class E : Exception
+{
+    public int Value;
+    public E(int value) { this.Value = value; }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (4,36): error CS8115: A throw expression is not allowed in this context.
+                //     static ref int P1 { get => ref throw new E(1); }
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(4, 36),
+                // (5,30): error CS8115: A throw expression is not allowed in this context.
+                //     static ref int P2 => ref throw new E(2);
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(5, 30),
+                // (6,31): error CS8115: A throw expression is not allowed in this context.
+                //     static ref int M() => ref throw new E(3);
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(6, 31),
+                // (10,28): error CS8115: A throw expression is not allowed in this context.
+                //         ref int L() => ref throw new E(4);
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(10, 28),
+                // (11,25): error CS8115: A throw expression is not allowed in this context.
+                //         D d = () => ref throw new E(5);
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(11, 25)
+                );
+        }
     }
 }

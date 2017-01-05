@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SmallDictionary<Symbol, Symbol> _lazyUnderlyingDefinitionToMemberMap;
 
         internal const int RestPosition = 8; // The Rest field is in 8th position
+        internal const int RestIndex = RestPosition - 1;
         internal const string TupleTypeName = "ValueTuple";
         internal const string RestFieldName = "Rest";
 
@@ -74,10 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Location> elementLocations,
             ImmutableArray<string> elementNames,
             CSharpCompilation compilation,
+            bool shouldCheckConstraints,
             CSharpSyntaxNode syntax = null,
-            DiagnosticBag diagnostics = null
-            )
+            DiagnosticBag diagnostics = null)
         {
+            Debug.Assert(!shouldCheckConstraints || (object)syntax != null);
             Debug.Assert(elementNames.IsDefault || elementTypes.Length == elementNames.Length);
 
             int numElements = elementTypes.Length;
@@ -95,7 +97,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(underlyingType, syntax, diagnostics);
             }
 
-            return Create(underlyingType, elementNames, locationOpt, elementLocations);
+            var constructedType = Create(underlyingType, elementNames, locationOpt, elementLocations);
+            if (shouldCheckConstraints)
+            {
+                constructedType.CheckConstraints(compilation.Conversions, syntax, elementLocations, compilation, diagnostics);
+            }
+
+            return constructedType;
         }
 
         public static TupleTypeSymbol Create(NamedTypeSymbol tupleCompatibleType,

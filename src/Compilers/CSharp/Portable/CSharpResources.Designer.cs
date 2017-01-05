@@ -4193,6 +4193,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain a throw-expression..
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsThrowExpression {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsThrowExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain a tuple conversion..
         /// </summary>
         internal static string ERR_ExpressionTreeContainsTupleConversion {
@@ -7699,6 +7708,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_PublicSignButNoKey {
             get {
                 return ResourceManager.GetString("ERR_PublicSignButNoKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public signing is not supported for netmodules..
+        /// </summary>
+        internal static string ERR_PublicSignNetModule {
+            get {
+                return ResourceManager.GetString("ERR_PublicSignNetModule", resourceCulture);
             }
         }
         

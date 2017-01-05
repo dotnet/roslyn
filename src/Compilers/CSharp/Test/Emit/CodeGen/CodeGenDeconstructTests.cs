@@ -1160,13 +1160,13 @@ class C
         }
 
         [Fact]
-        public void NoArgIteratorTypeInAsync()
+        public void Constraints_01()
         {
             string source = @"
 using System;
 class C
 {
-    public async void M()
+    public void M()
     {
         (int x, var (err1, y)) = (0, new C());
         (ArgIterator err2, var err3) = M2();
@@ -1179,58 +1179,107 @@ class C
     {
         return (default(ArgIterator), default(ArgIterator));
     }
+
     public void Deconstruct(out ArgIterator a, out int b)
     {
         a = default(ArgIterator);
         b = 2;
-    }
-
-    public void M3()
-    {
-        (int x, var (err1, y)) = (0, new C());
-        (ArgIterator err2, var err3) = M2();
-        foreach ((ArgIterator err4, var err5) in new[] { M2() })
-        {
-        }
     }
 }
 ";
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (14,20): error CS0610: Field or property cannot be of type 'ArgIterator'
-                //     public static (ArgIterator, ArgIterator) M2()
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 20),
-                // (14,33): error CS0610: Field or property cannot be of type 'ArgIterator'
-                //     public static (ArgIterator, ArgIterator) M2()
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 33),
-                // (18,29): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                // (19,29): error CS1601: Cannot make reference to variable of type 'ArgIterator'
                 //     public void Deconstruct(out ArgIterator a, out int b)
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out ArgIterator a").WithArguments("System.ArgIterator").WithLocation(18, 29),
-                // (7,22): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out ArgIterator a").WithArguments("System.ArgIterator").WithLocation(19, 29),
+                // (14,46): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                //     public static (ArgIterator, ArgIterator) M2()
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M2").WithArguments("System.ArgIterator").WithLocation(14, 46),
+                // (14,46): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                //     public static (ArgIterator, ArgIterator) M2()
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M2").WithArguments("System.ArgIterator").WithLocation(14, 46),
+                // (7,22): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         (int x, var (err1, y)) = (0, new C());
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "err1").WithArguments("System.ArgIterator").WithLocation(7, 22),
-                // (8,22): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err1").WithArguments("System.ArgIterator").WithLocation(7, 22),
+                // (8,22): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         (ArgIterator err2, var err3) = M2();
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "err2").WithArguments("System.ArgIterator").WithLocation(8, 22),
-                // (8,32): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err2").WithArguments("System.ArgIterator").WithLocation(8, 22),
+                // (8,32): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         (ArgIterator err2, var err3) = M2();
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "err3").WithArguments("System.ArgIterator").WithLocation(8, 32),
-                // (9,31): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err3").WithArguments("System.ArgIterator").WithLocation(8, 32),
+                // (9,31): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         foreach ((ArgIterator err4, var err5) in new[] { M2() })
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "err4").WithArguments("System.ArgIterator").WithLocation(9, 31),
-                // (9,41): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err4").WithArguments("System.ArgIterator").WithLocation(9, 31),
+                // (9,41): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         foreach ((ArgIterator err4, var err5) in new[] { M2() })
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "err5").WithArguments("System.ArgIterator").WithLocation(9, 41),
-                // (5,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public async void M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(5, 23),
-                // (16,17): error CS0610: Field or property cannot be of type 'ArgIterator'
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err5").WithArguments("System.ArgIterator").WithLocation(9, 41),
+                // (16,17): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         return (default(ArgIterator), default(ArgIterator));
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "default(ArgIterator)").WithArguments("System.ArgIterator").WithLocation(16, 17),
-                // (16,39): error CS0610: Field or property cannot be of type 'ArgIterator'
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "default(ArgIterator)").WithArguments("System.ArgIterator").WithLocation(16, 17),
+                // (16,39): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         return (default(ArgIterator), default(ArgIterator));
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "default(ArgIterator)").WithArguments("System.ArgIterator").WithLocation(16, 39)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "default(ArgIterator)").WithArguments("System.ArgIterator").WithLocation(16, 39)
+                );
+        }
+
+        [Fact]
+        public void Constraints_02()
+        {
+            string source = @"
+unsafe class C
+{
+    public void M()
+    {
+        (int x, var (err1, y)) = (0, new C());
+        (var err2, var err3) = M2();
+        foreach ((var err4, var err5) in new[] { M2() })
+        {
+        }
+    }
+
+    public static (int*, int*) M2()
+    {
+        return (default(int*), default(int*));
+    }
+
+    public void Deconstruct(out int* a, out int b)
+    {
+        a = default(int*);
+        b = 2;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (13,32): error CS0306: The type 'int*' may not be used as a type argument
+                //     public static (int*, int*) M2()
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M2").WithArguments("int*").WithLocation(13, 32),
+                // (13,32): error CS0306: The type 'int*' may not be used as a type argument
+                //     public static (int*, int*) M2()
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M2").WithArguments("int*").WithLocation(13, 32),
+                // (6,22): error CS0306: The type 'int*' may not be used as a type argument
+                //         (int x, var (err1, y)) = (0, new C());
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err1").WithArguments("int*").WithLocation(6, 22),
+                // (7,14): error CS0306: The type 'int*' may not be used as a type argument
+                //         (var err2, var err3) = M2();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err2").WithArguments("int*").WithLocation(7, 14),
+                // (7,24): error CS0306: The type 'int*' may not be used as a type argument
+                //         (var err2, var err3) = M2();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err3").WithArguments("int*").WithLocation(7, 24),
+                // (8,23): error CS0306: The type 'int*' may not be used as a type argument
+                //         foreach ((var err4, var err5) in new[] { M2() })
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err4").WithArguments("int*").WithLocation(8, 23),
+                // (8,33): error CS0306: The type 'int*' may not be used as a type argument
+                //         foreach ((var err4, var err5) in new[] { M2() })
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "err5").WithArguments("int*").WithLocation(8, 33),
+                // (15,17): error CS0306: The type 'int*' may not be used as a type argument
+                //         return (default(int*), default(int*));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "default(int*)").WithArguments("int*").WithLocation(15, 17),
+                // (15,32): error CS0306: The type 'int*' may not be used as a type argument
+                //         return (default(int*), default(int*));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "default(int*)").WithArguments("int*").WithLocation(15, 32)
                 );
         }
 
@@ -5844,7 +5893,7 @@ class Program
             System.Console.WriteLine(x2);
         }
     }
-    
+
     static int _M;
     static ref int M1(int m2, int x, string[] y) { return ref _M; }
     static int M2(out int x, bool b) => x = 2;

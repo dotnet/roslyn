@@ -13044,6 +13044,302 @@ System.Object
 
         End Sub
 
+        <Fact()>
+        Public Sub Constraints_01()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+<file name="a.vb"><![CDATA[
+Namespace System
+    Public Structure ValueTuple(Of T1 As Class, T2)   
+        Sub New(_1 As T1, _2 As T2)       
+        End Sub
+    End Structure
+End Namespace
+
+Class C
+    Sub M(p As (Integer, Integer))
+        Dim t0 = (1, 2)
+        Dim t1 As (Integer, Integer) = t0
+    End Sub
+End Class
+]]></file>
+</compilation>)
+
+        	comp.AssertTheseDiagnostics(
+<errors>
+BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T1'.
+    Sub M(p As (Integer, Integer))
+          ~
+BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T1'.
+        Dim t0 = (1, 2)
+                  ~
+BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T1'.
+        Dim t1 As (Integer, Integer) = t0
+                   ~~~~~~~
+</errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub Constraints_02()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+<file name="a.vb"><![CDATA[
+Imports System
+Class C
+    Sub M(p As (Integer, ArgIterator), q As ValueTuple(Of Integer, ArgIterator))
+        Dim t0 As (Integer, ArgIterator) = p
+        Dim t1 = (1, New ArgIterator())
+        Dim t2 = New ValueTuple(Of Integer, ArgIterator)(1, Nothing)
+        Dim t3 As ValueTuple(Of Integer, ArgIterator) = t2
+    End Sub
+End Class
+]]></file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+    Sub M(p As (Integer, ArgIterator), q As ValueTuple(Of Integer, ArgIterator))
+          ~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+    Sub M(p As (Integer, ArgIterator), q As ValueTuple(Of Integer, ArgIterator))
+                                       ~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim t0 As (Integer, ArgIterator) = p
+                            ~~~~~~~~~~~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim t1 = (1, New ArgIterator())
+                     ~~~~~~~~~~~~~~~~~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim t2 = New ValueTuple(Of Integer, ArgIterator)(1, Nothing)
+                                            ~~~~~~~~~~~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim t3 As ValueTuple(Of Integer, ArgIterator) = t2
+                                         ~~~~~~~~~~~
+</errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub Constraints_03()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+<file name="a.vb"><![CDATA[
+Imports System.Collections.Generic
+Namespace System
+    Public Structure ValueTuple(Of T1, T2 As Class)   
+        Sub New(_1 As T1, _2 As T2)       
+        End Sub
+    End Structure
+End Namespace
+Class C(Of T)
+    Dim field As List(Of (T, T))
+    Function M(Of U)(x As U) As (U, U)
+        Dim t0 = New C(Of Integer)()
+        Dim t1 = M(1)
+        Return (Nothing, Nothing)
+    End Function
+End Class
+]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC32106: Type argument 'T' does not satisfy the 'Class' constraint for type parameter 'T2'.
+    Dim field As List(Of (T, T))
+                             ~
+BC32106: Type argument 'U' does not satisfy the 'Class' constraint for type parameter 'T2'.
+    Function M(Of U)(x As U) As (U, U)
+                                ~~~~~~
+</errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub Constraints_04()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+<file name="a.vb"><![CDATA[
+Imports System.Collections.Generic
+Namespace System
+    Public Structure ValueTuple(Of T1, T2 As Class)   
+        Sub New(_1 As T1, _2 As T2)       
+        End Sub
+    End Structure
+End Namespace
+Class C(Of T As Class)
+    Dim field As List(Of (T, T))
+    Function M(Of U As Class)(x As U) As (U, U)
+        Dim t0 = New C(Of Integer)()
+        Dim t1 = M(1)
+        Return (Nothing, Nothing)
+    End Function
+End Class
+]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T'.
+        Dim t0 = New C(Of Integer)()
+                          ~~~~~~~
+BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'U'.
+        Dim t1 = M(1)
+                 ~
+</errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub Constraints_05()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+<file name="a.vb"><![CDATA[
+Imports System.Collections.Generic
+Namespace System
+    Public Structure ValueTuple(Of T1, T2 As Structure)   
+        Sub New(_1 As T1, _2 As T2)       
+        End Sub
+    End Structure
+End Namespace
+Class C(Of T As Class)
+    Dim field As List(Of (T, T))
+    Function M(Of U As Class)(x As (U, U)) As (U, U)
+        Dim t0 = New C(Of Integer)()
+        Dim t1 = M((1, 2))
+        Return (Nothing, Nothing)
+    End Function
+End Class
+]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC32105: Type argument 'T' does not satisfy the 'Structure' constraint for type parameter 'T2'.
+    Dim field As List(Of (T, T))
+                             ~
+BC32105: Type argument 'U' does not satisfy the 'Structure' constraint for type parameter 'T2'.
+    Function M(Of U As Class)(x As (U, U)) As (U, U)
+                              ~
+BC32105: Type argument 'U' does not satisfy the 'Structure' constraint for type parameter 'T2'.
+    Function M(Of U As Class)(x As (U, U)) As (U, U)
+                                              ~~~~~~
+BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T'.
+        Dim t0 = New C(Of Integer)()
+                          ~~~~~~~
+BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'U'.
+        Dim t1 = M((1, 2))
+                 ~
+BC32105: Type argument 'Object' does not satisfy the 'Structure' constraint for type parameter 'T2'.
+        Return (Nothing, Nothing)
+                         ~~~~~~~
+</errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub Constraints_06()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+<file name="a.vb"><![CDATA[
+Namespace System
+    Public Structure ValueTuple(Of T1 As Class)
+        Public Sub New(item1 As T1)
+        End Sub
+    End Structure
+    Public Structure ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest As Class)
+        Public Sub New(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5, item6 As T6, item7 As T7, rest As TRest)
+        End Sub
+    End Structure
+End Namespace
+Class C
+    Sub M(p As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer))
+        Dim t0 = (1, 2, 3, 4, 5, 6, 7, 8)
+        Dim t1 As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = t0
+    End Sub
+End Class
+]]></file>
+</compilation>)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC32106: Type argument '(Integer)' does not satisfy the 'Class' constraint for type parameter 'TRest'.
+    Sub M(p As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer))
+          ~
+BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T1'.
+    Sub M(p As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer))
+          ~
+BC32106: Type argument '(Integer)' does not satisfy the 'Class' constraint for type parameter 'TRest'.
+        Dim t0 = (1, 2, 3, 4, 5, 6, 7, 8)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~
+BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T1'.
+        Dim t0 = (1, 2, 3, 4, 5, 6, 7, 8)
+                                       ~
+BC32106: Type argument '(Integer)' does not satisfy the 'Class' constraint for type parameter 'TRest'.
+        Dim t1 As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = t0
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T1'.
+        Dim t1 As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) = t0
+                                                                                  ~~~~~~~
+</errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub LongTupleConstraints()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+<file name="a.vb"><![CDATA[
+Imports System
+Class C
+    Sub M0(p As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, ArgIterator))
+        Dim t1 As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, ArgIterator) = p
+        Dim t2 = (1, 2, 3, 4, 5, 6, 7, New ArgIterator())
+        Dim t3 = New ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer, ArgIterator))()
+        Dim t4 = New ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, ArgIterator))()
+        Dim t5 As ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer, ArgIterator)) = t3
+        Dim t6 As ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, ArgIterator)) = t4
+    End Sub
+
+    Sub M1(q As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, ArgIterator))
+        Dim v1 As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, ArgIterator) = q
+        Dim v2 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, New ArgIterator())
+    End Sub
+End Class]]></file>
+</compilation>,
+additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+    Sub M0(p As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, ArgIterator))
+           ~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim t1 As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, ArgIterator) = p
+                                                                                  ~~~~~~~~~~~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim t2 = (1, 2, 3, 4, 5, 6, 7, New ArgIterator())
+                                       ~~~~~~~~~~~~~~~~~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim t3 = New ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer, ArgIterator))()
+                                                                                                                         ~~~~~~~~~~~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim t4 = New ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, ArgIterator))()
+                                                                                                            ~~~~~~~~~~~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim t5 As ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer, ArgIterator)) = t3
+                                                                                                                      ~~~~~~~~~~~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim t6 As ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, ArgIterator)) = t4
+                                                                                                         ~~~~~~~~~~~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+    Sub M1(q As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, ArgIterator))
+           ~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim v1 As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, ArgIterator) = q
+                                                                                                                                                          ~~~~~~~~~~~
+BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
+        Dim v2 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, New ArgIterator())
+                                                                     ~~~~~~~~~~~~~~~~~
+</errors>)
+        End Sub
+
         <Fact>
         Public Sub RestrictedTypes1()
 
@@ -13067,12 +13363,18 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
 BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim x = (1, 2, New ArgIterator())
                        ~~~~~~~~~~~~~~~~~
+BC30311: Value of type '(Integer, Integer, ArgIterator)' cannot be converted to '(x As Integer, y As Object)'.
+        Dim y As (x As Integer, y As Object) = (1, 2, New ArgIterator())
+                                               ~~~~~~~~~~~~~~~~~~~~~~~~~
 BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim y As (x As Integer, y As Object) = (1, 2, New ArgIterator())
                                                       ~~~~~~~~~~~~~~~~~
 BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim z As (x As Integer, y As ArgIterator) = (1, 2, New ArgIterator())
-                                ~~~~~~~~~~~~~~~~
+                                ~
+BC30311: Value of type '(Integer, Integer, ArgIterator)' cannot be converted to '(x As Integer, y As ArgIterator)'.
+        Dim z As (x As Integer, y As ArgIterator) = (1, 2, New ArgIterator())
+                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~
 BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim z As (x As Integer, y As ArgIterator) = (1, 2, New ArgIterator())
                                                            ~~~~~~~~~~~~~~~~~
@@ -13103,7 +13405,7 @@ BC42024: Unused local variable: 'y'.
             ~
 BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim y As (x As Integer, y As ArgIterator)
-                                ~~~~~~~~~~~~~~~~
+                                ~
 </errors>)
 
         End Sub

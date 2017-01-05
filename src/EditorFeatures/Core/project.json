@@ -11,6 +11,9 @@
     "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": "14.3.25407",
     "Microsoft.VisualStudio.ImageCatalog": "14.3.25407",
     "Microsoft.VisualStudio.Text.UI.Wpf": "14.3.25407",
+    "Microsoft.VisualStudio.Utilities": "14.3.25407",
+    "Microsoft.VisualStudio.Validation": "14.1.111",
+    "Microsoft.VisualStudio.Threading": "14.1.111"
   },
   "frameworks": {
     "net46": { }
