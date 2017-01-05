@@ -2,10 +2,10 @@
   "dependencies": {
     "EnvDTE": "8.0.0",
     "RoslynDependencies.Microsoft.VisualStudio.CodeAnalysis.Sdk.UI": "14.3.25420",
-    "Microsoft.VisualStudio.Language.Intellisense": "14.3.25407",
-    "Microsoft.VisualStudio.ComponentModelHost": "14.3.25407-alpha",
+    "Microsoft.VisualStudio.Language.Intellisense": "15.0.26014-alpha",
+    "Microsoft.VisualStudio.ComponentModelHost": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "14.3.25420-alpha",
-    "Microsoft.VisualStudio.ImageCatalog": "14.3.25407"
+    "Microsoft.VisualStudio.ImageCatalog": "15.0.26014-alpha"
   },
   "frameworks": {
     "net46": { }

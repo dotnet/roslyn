@@ -1,9 +1,9 @@
 ﻿{
   "dependencies": {
-    "Microsoft.VisualStudio.Editor": "15.0.25726-Preview5",
-    "Microsoft.VisualStudio.ImageCatalog": "15.0.25726-Preview5",
-    "Microsoft.VisualStudio.Shell.15.0": "15.0.25726-Preview5",
-    "Microsoft.VisualStudio.ComponentModelHost": "15.0.25824-RC",
+    "Microsoft.VisualStudio.Editor": "15.0.26014-alpha",
+    "Microsoft.VisualStudio.ImageCatalog": "15.0.26014-alpha",
+    "Microsoft.VisualStudio.Shell.15.0": "15.0.26014-alpha",
+    "Microsoft.VisualStudio.ComponentModelHost": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.25802-alpha",
     "Newtonsoft.Json": "8.0.3",
     "Microsoft.VisualStudio.Shell.Immutable.10.0": {
