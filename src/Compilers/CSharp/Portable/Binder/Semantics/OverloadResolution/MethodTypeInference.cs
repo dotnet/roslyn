@@ -2378,7 +2378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lower = _lowerBounds[iParam];
             var upper = _upperBounds[iParam];
 
-            var candidates = new Dictionary<TypeSymbol, TypeSymbol>(EqualsIgnoringComparer.Instance);
+            var candidates = new Dictionary<TypeSymbol, TypeSymbol>(EqualsIgnoringDynamicAndTupleNamesComparer.Instance);
 
             // Optimization: if we have one exact bound then we need not add any
             // inexact bounds; we're just going to remove them anyway.
@@ -2439,7 +2439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (bound.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames))
                             {
-                                MergeAndReplace(candidates, candidate, bound);
+                                MergeAndReplaceIfStillCandidate(candidates, candidate, bound);
                             }
                         }
                     }
@@ -2463,7 +2463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (bound.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames))
                             {
-                                MergeAndReplace(candidates, candidate, bound);
+                                MergeAndReplaceIfStillCandidate(candidates, candidate, bound);
                             }
                         }
                     }
@@ -2806,19 +2806,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (type.SpecialType != SpecialType.System_Void);
         }
 
-        private void AddOrMerge(Dictionary<TypeSymbol, TypeSymbol> dict, TypeSymbol entry)
+        private void AddOrMerge(Dictionary<TypeSymbol, TypeSymbol> candidates, TypeSymbol @new)
         {
-            if (dict.TryGetValue(entry, out TypeSymbol found))
+            if (candidates.TryGetValue(@new, out TypeSymbol old))
             {
-                MergeAndReplace(dict, found, entry);
+                MergeAndReplaceIfStillCandidate(candidates, old, @new);
             }
             else
             {
-                dict.Add(entry, entry);
+                candidates.Add(@new, @new);
             }
         }
 
-        private void MergeAndReplace(Dictionary<TypeSymbol, TypeSymbol> dict, TypeSymbol old, TypeSymbol @new)
+        private void MergeAndReplaceIfStillCandidate(Dictionary<TypeSymbol, TypeSymbol> dict, TypeSymbol old, TypeSymbol @new)
         {
             // We make an exception when @new is dynamic, for backwards compatibility 
             if (@new.IsDynamic())
@@ -2826,14 +2826,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            TypeSymbol merged = MergeTupleNames(MergeDynamic(old, @new, _conversions.CorLibrary), @new);
-            dict.Remove(old);
-            dict.Add(merged, merged);
+            if (dict.Remove(old))
+            {
+                TypeSymbol merged = MergeTupleNames(MergeDynamic(old, @new, _conversions.CorLibrary), @new);
+                dict.Add(merged, merged);
+            }
         }
 
-        private sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
+        /// <summary>
+        /// This is a comparer that ignores differences in dynamic-ness and tuple names.
+        /// But it has a special case for top-level object vs. dynamic for purpose of method type inference.
+        /// </summary>
+        private sealed class EqualsIgnoringDynamicAndTupleNamesComparer : EqualityComparer<TypeSymbol>
         {
-            public static EqualsIgnoringComparer Instance { get; } = new EqualsIgnoringComparer();
+            public static EqualsIgnoringDynamicAndTupleNamesComparer Instance { get; } = new EqualsIgnoringDynamicAndTupleNamesComparer();
 
             public override int GetHashCode(TypeSymbol obj)
             {

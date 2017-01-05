@@ -8095,6 +8095,166 @@ class C
             Assert.Equal("T d3", model.GetDeclaredSymbol(d3).ToTestDisplayString());
         }
 
+        [WorkItem(10800, "https://github.com/dotnet/roslyn/issues/10800")]
+        [Fact]
+        public void Inference11InNestedType()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        object o = null;
+        dynamic d = null;
+        var ab = new [] { ((a: 1, b: o), c: 2) };
+        var ad = new [] { ((a: 1, d: d), c: 2) };
+
+        var t1 = Test1(ref ab, ad); // exact bound and lower bound
+        var t2 = Test2(ab, ref ad); // lower bound and exact bound
+        var t3 = Test3(ref ab, ref ad); // two exact bounds
+    }
+
+    static T Test1<T>(ref T x, T y) => x;
+    static T Test2<T>(T x, ref T y) => x;
+    static T Test3<T>(ref T x, ref T y) => x;
+}
+" + trivial2uple + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { CSharpRef });
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var names = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
+
+            var t1 = names.ElementAt(4);
+            Assert.Equal("((System.Int32 a, dynamic), System.Int32 c)[] t1", model.GetDeclaredSymbol(t1).ToTestDisplayString());
+
+            var t2 = names.ElementAt(5);
+            Assert.Equal("((System.Int32 a, dynamic), System.Int32 c)[] t2", model.GetDeclaredSymbol(t2).ToTestDisplayString());
+
+            var t3 = names.ElementAt(6);
+            Assert.Equal("((System.Int32 a, dynamic), System.Int32 c)[] t3", model.GetDeclaredSymbol(t3).ToTestDisplayString());
+        }
+
+        [WorkItem(10800, "https://github.com/dotnet/roslyn/issues/10800")]
+        [Fact]
+        public void Inference11WithLongTuple()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        object o = null;
+        dynamic d = null;
+        var ay = (a: o, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, y: 9);
+        var az = (a: d, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, 8, z: 10);
+
+        var t1 = Test1(ref ay, az); // exact bound and lower bound
+        var t2 = Test2(ay, ref az); // lower bound and exact bound
+        var t3 = Test3(ref ay, ref az); // two exact bounds
+    }
+
+    static T Test1<T>(ref T x, T y) => x;
+    static T Test2<T>(T x, ref T y) => x;
+    static T Test3<T>(ref T x, ref T y) => x;
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var names = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
+
+            var t1 = names.ElementAt(4);
+            Assert.Equal("(dynamic a, System.Int32 b, System.Int32 c, System.Int32 d, System.Int32 e, System.Int32 f, System.Int32 g, System.Int32, System.Int32) t1",
+                model.GetDeclaredSymbol(t1).ToTestDisplayString());
+
+            var t2 = names.ElementAt(5);
+            Assert.Equal("(dynamic a, System.Int32 b, System.Int32 c, System.Int32 d, System.Int32 e, System.Int32 f, System.Int32 g, System.Int32, System.Int32) t2",
+                model.GetDeclaredSymbol(t2).ToTestDisplayString());
+
+            var t3 = names.ElementAt(6);
+            Assert.Equal("(dynamic a, System.Int32 b, System.Int32 c, System.Int32 d, System.Int32 e, System.Int32 f, System.Int32 g, System.Int32, System.Int32) t3",
+                model.GetDeclaredSymbol(t3).ToTestDisplayString());
+        }
+
+        [WorkItem(10800, "https://github.com/dotnet/roslyn/issues/10800")]
+        [Fact]
+        public void Inference11OnlyDynamicMismatch()
+        {
+            var source = @"
+using System.Linq;
+class C
+{
+    static void Main()
+    {
+        object o = null;
+        dynamic d = null;
+        var doc = (new [] { ((d, o), c: 2) }).ToList();
+        var odc = (new [] { ((o, d), c: 2) }).ToList();
+
+        var t1 = Test1(ref doc, odc); // exact bound and lower bound
+        var t2 = Test2(doc, ref odc); // lower bound and exact bound
+        var t3 = Test3(ref doc, ref odc); // two exact bounds
+    }
+
+    static T Test1<T>(ref T x, T y) => x;
+    static T Test2<T>(T x, ref T y) => x;
+    static T Test3<T>(ref T x, ref T y) => x;
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef, LinqAssemblyRef });
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var names = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
+
+            var t1 = names.ElementAt(4);
+            Assert.Equal("System.Collections.Generic.List<((dynamic, dynamic), System.Int32 c)> t1",
+                model.GetDeclaredSymbol(t1).ToTestDisplayString());
+
+            var t2 = names.ElementAt(5);
+            Assert.Equal("System.Collections.Generic.List<((dynamic, dynamic), System.Int32 c)> t2",
+                model.GetDeclaredSymbol(t2).ToTestDisplayString());
+
+            var t3 = names.ElementAt(6);
+            Assert.Equal("System.Collections.Generic.List<((dynamic, dynamic), System.Int32 c)> t3",
+                model.GetDeclaredSymbol(t3).ToTestDisplayString());
+        }
+
+        [WorkItem(10800, "https://github.com/dotnet/roslyn/issues/10800")]
+        [Fact]
+        public void Inference11WithMoreThanTwoTypes()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var ab = (a: 1, b: 2);
+        var cd = (c: 1, d: 2);
+        var de = (d: 1, e: 2);
+
+        var t1 = Test1(ref ab, cd, 1, de);
+    }
+    static T Test1<T>(ref T x, T y, T z, T w) => x;
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (10,18): error CS0411: The type arguments for method 'C.Test1<T>(ref T, T, T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var t1 = Test1(ref ab, cd, 1, de);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("C.Test1<T>(ref T, T, T, T)").WithLocation(10, 18)
+                );
+        }
+
         [Fact]
         public void Inference11WithUpperBound()
         {
