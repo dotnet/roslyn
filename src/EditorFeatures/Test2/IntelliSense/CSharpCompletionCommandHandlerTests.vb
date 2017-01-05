@@ -2888,8 +2888,8 @@ class C
                 Await state.AssertCompletionSession()
             End Using
         End Function
-		
-		<WorkItem(14704, "https://github.com/dotnet/roslyn/issues/14704")>
+
+        <WorkItem(14704, "https://github.com/dotnet/roslyn/issues/14704")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function BackspaceTriggerSubstringMatching() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -2909,6 +2909,24 @@ class Program
 
                 state.SendBackspace()
                 Await state.AssertSelectedCompletionItem(displayText:="Environment", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WorkItem(16236, "https://github.com/dotnet/roslyn/issues/16236")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AttributeNamedParameterEqualsItemCommittedOnSpace() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+[A($$)]
+class AAttribute: Attribute
+{
+    public string Skip { get; set; }
+} </Document>)
+                state.SendTypeChars("Skip")
+                Await state.AssertCompletionSession()
+                state.SendTypeChars(" ")
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("[A(Skip )]", state.GetLineTextFromCaretPosition())
             End Using
         End Function
     End Class
