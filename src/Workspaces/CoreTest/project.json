@@ -3,10 +3,7 @@
     "xunit": "2.2.0-beta4-build3444",
     "xunit.runner.console": "2.2.0-beta4-build3444",
     "xunit.runner.visualstudio": "2.2.0-beta4-build1194",
-    "Microsoft.CodeAnalysis.Elfie": {
-      "version": "0.10.6-rc2",
-      "suppressParent": "all"
-    }
+    "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2"
   },
   "frameworks": {
     "net46": { }

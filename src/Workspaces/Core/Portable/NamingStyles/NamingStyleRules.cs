@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -16,28 +15,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         internal bool TryGetApplicableRule(ISymbol symbol, out NamingRule applicableRule)
         {
-            if (NamingRules == null)
+            if (NamingRules != null &&
+                IsSymbolNameAnalyzable(symbol))
             {
-                applicableRule = null;
-                return false;
-            }
-
-            if (!IsSymbolNameAnalyzable(symbol))
-            {
-                applicableRule = null;
-                return false;
-            }
-            
-            foreach (var namingRule in NamingRules)
-            {
-                if (namingRule.AppliesTo(symbol))
+                foreach (var namingRule in NamingRules)
                 {
-                    applicableRule = namingRule;
-                    return true;
+                    if (namingRule.SymbolSpecification.AppliesTo(symbol))
+                    {
+                        applicableRule = namingRule;
+                        return true;
+                    }
                 }
             }
 
-            applicableRule = null;
+            applicableRule = default(NamingRule);
             return false;
         }
 
@@ -45,18 +36,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             if (symbol.Kind == SymbolKind.Method)
             {
-                if (symbol is IMethodSymbol methodSymbol && methodSymbol.MethodKind != MethodKind.Ordinary)
-                {
-                    return false;
-                }
+                return ((IMethodSymbol)symbol).MethodKind == MethodKind.Ordinary;
             }
 
             if (symbol.Kind == SymbolKind.Property)
             {
-                if (symbol is IPropertySymbol propertySymbol && propertySymbol.IsIndexer)
-                {
-                    return false;
-                }
+                return !((IPropertySymbol)symbol).IsIndexer;
             }
 
             return true;

@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_lazyChecksum == null)
                     {
-                        _lazyChecksum = Checksum.Create(nameof(SolutionAttributes), this);
+                        _lazyChecksum = Checksum.Create(this, nameof(SolutionAttributes));
                     }
 
                     return _lazyChecksum;

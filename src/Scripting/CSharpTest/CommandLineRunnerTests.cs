@@ -913,7 +913,7 @@ Assembly '{libBaseName}, Version=0.0.0.0' has already been loaded from '{fileBas
 > ", runner.Console.Out.ToString());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11716")]
+        [Fact]
         [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
         public void PreservingDeclarationsOnException()
         {
@@ -931,6 +931,8 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 Type ""#help"" for more information.
 > int i = 100;
 > int j = 20; throw new System.Exception(""Bang!""); int k = 3;
+«Yellow»
+(1,58): warning CS0162: Unreachable code detected
 «Red»
 Bang!
 «Gray»
@@ -939,7 +941,8 @@ Bang!
 > ", runner.Console.Out.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-                @"Bang!",
+@"(1,58): warning CS0162: Unreachable code detected
+Bang!",
                 runner.Console.Error.ToString());
         }
     }

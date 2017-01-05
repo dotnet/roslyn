@@ -2712,8 +2712,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typesBuilder.Add(elementTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(elementTypes)}[{i}]"));
             }
 
-            return TupleTypeSymbol.Create(null, // no location for the type declaration
-                typesBuilder.ToImmutableAndFree(), elementLocations, elementNames, this);
+            return TupleTypeSymbol.Create(
+                locationOpt: null, // no location for the type declaration
+                elementTypes: typesBuilder.ToImmutableAndFree(),
+                elementLocations: elementLocations, 
+                elementNames: elementNames, 
+                compilation: this,
+                shouldCheckConstraints: false);
         }
 
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(

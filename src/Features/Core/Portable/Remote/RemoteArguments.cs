@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public NavigateToMatchKind MatchKind;
         public bool IsCaseSensitive;
         public string Name;
-        public TextSpan[] NameMatchSpans;
+        public SerializableTextSpan[] NameMatchSpans;
         public string SecondarySort;
         public string Summary;
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 MatchKind = result.MatchKind,
                 IsCaseSensitive = result.IsCaseSensitive,
                 Name = result.Name,
-                NameMatchSpans = result.NameMatchSpans.ToArray(),
+                NameMatchSpans = result.NameMatchSpans.Select(SerializableTextSpan.Dehydrate).ToArray(),
                 SecondarySort = result.SecondarySort,
                 Summary = result.Summary,
                 NavigableItem = SerializableNavigableItem.Dehydrate(result.NavigableItem)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return new NavigateToSearchResult(
                 AdditionalInformation, Kind, MatchKind, IsCaseSensitive,
-                Name, NameMatchSpans.ToImmutableArray(),
+                Name, NameMatchSpans.Select(s => s.Rehydrate()).ToImmutableArray(),
                 SecondarySort, Summary, NavigableItem.Rehydrate(solution));
         }
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public INavigableItem NavigableItem { get; }
 
             public NavigateToSearchResult(
-                string additionalInformation, string kind, NavigateToMatchKind matchKind,
+                string additionalInformation, string kind, NavigateToMatchKind matchKind, 
                 bool isCaseSensitive, string name, ImmutableArray<TextSpan> nameMatchSpans,
                 string secondarySort, string summary, INavigableItem navigableItem)
             {
@@ -110,8 +110,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public bool IsImplicitlyDeclared;
 
-        public DocumentId Document;
-        public TextSpan SourceSpan;
+        public SerializableDocumentId Document;
+        public SerializableTextSpan SourceSpan;
 
         SerializableNavigableItem[] ChildItems;
 
@@ -123,8 +123,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 DisplayTaggedParts = SerializableTaggedText.Dehydrate(item.DisplayTaggedParts),
                 DisplayFileLocation = item.DisplayFileLocation,
                 IsImplicitlyDeclared = item.IsImplicitlyDeclared,
-                Document = item.Document.Id,
-                SourceSpan = item.SourceSpan,
+                Document = SerializableDocumentId.Dehydrate(item.Document),
+                SourceSpan = SerializableTextSpan.Dehydrate(item.SourceSpan),
                 ChildItems = SerializableNavigableItem.Dehydrate(item.ChildItems)
             };
         }
@@ -142,8 +142,8 @@ namespace Microsoft.CodeAnalysis.Remote
             return new NavigableItem(
                 Glyph, DisplayTaggedParts.Select(p => p.Rehydrate()).ToImmutableArray(),
                 DisplayFileLocation, IsImplicitlyDeclared,
-                solution.GetDocument(Document),
-                SourceSpan,
+                solution.GetDocument(Document.Rehydrate()),
+                SourceSpan.Rehydrate(),
                 childItems);
         }
 

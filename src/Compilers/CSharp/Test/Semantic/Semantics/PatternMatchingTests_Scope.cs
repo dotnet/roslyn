@@ -1661,105 +1661,141 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (25,26): error CS0103: The name 'z2' does not exist in the current context
-    //                          z2;
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(25, 26),
-    // (27,15): error CS0103: The name 'z2' does not exist in the current context
-    //         Dummy(z2); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(27, 15),
-    // (35,32): error CS0103: The name 'z3' does not exist in the current context
-    //                                z3};
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(35, 32),
-    // (37,15): error CS0103: The name 'z3' does not exist in the current context
-    //         Dummy(z3); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(37, 15),
-    // (45,35): error CS0103: The name 'v4' does not exist in the current context
-    //                                   v4 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(45, 35),
-    // (47,35): error CS1938: The name 'u4' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
-    //                                   u4 
-    Diagnostic(ErrorCode.ERR_QueryInnerKey, "u4").WithArguments("u4").WithLocation(47, 35),
-    // (49,32): error CS0103: The name 'u4' does not exist in the current context
-    //                                u4, v4 };
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(49, 32),
-    // (49,36): error CS0103: The name 'v4' does not exist in the current context
-    //                                u4, v4 };
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(49, 36),
-    // (52,15): error CS0103: The name 'u4' does not exist in the current context
-    //         Dummy(u4); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(52, 15),
-    // (53,15): error CS0103: The name 'v4' does not exist in the current context
-    //         Dummy(v4); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(53, 15),
-    // (61,35): error CS0103: The name 'v5' does not exist in the current context
-    //                                   v5 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(61, 35),
-    // (63,35): error CS1938: The name 'u5' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
-    //                                   u5 
-    Diagnostic(ErrorCode.ERR_QueryInnerKey, "u5").WithArguments("u5").WithLocation(63, 35),
-    // (66,32): error CS0103: The name 'u5' does not exist in the current context
-    //                                u5, v5 };
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(66, 32),
-    // (66,36): error CS0103: The name 'v5' does not exist in the current context
-    //                                u5, v5 };
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(66, 36),
-    // (69,15): error CS0103: The name 'u5' does not exist in the current context
-    //         Dummy(u5); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(69, 15),
-    // (70,15): error CS0103: The name 'v5' does not exist in the current context
-    //         Dummy(v5); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(70, 15),
-    // (78,26): error CS0103: The name 'z6' does not exist in the current context
-    //                          z6;
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(78, 26),
-    // (80,15): error CS0103: The name 'z6' does not exist in the current context
-    //         Dummy(z6); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(80, 15),
-    // (87,27): error CS0103: The name 'u7' does not exist in the current context
-    //                           u7,
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(87, 27),
-    // (89,27): error CS0103: The name 'z7' does not exist in the current context
-    //                           z7   
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(89, 27),
-    // (91,31): error CS0103: The name 'u7' does not exist in the current context
-    //                          z7 + u7;
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(91, 31),
-    // (91,26): error CS0103: The name 'z7' does not exist in the current context
-    //                          z7 + u7;
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(91, 26),
-    // (93,15): error CS0103: The name 'z7' does not exist in the current context
-    //         Dummy(z7); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(93, 15),
-    // (94,15): error CS0103: The name 'u7' does not exist in the current context
-    //         Dummy(u7); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(94, 15),
-    // (88,52): error CS0165: Use of unassigned local variable 'u7'
-    //                           x > y7 && 1 is var u7 && u7 == 
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(88, 52),
-    // (102,15): error CS0103: The name 'z8' does not exist in the current context
-    //         Dummy(z8); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z8").WithArguments("z8").WithLocation(102, 15),
-    // (112,25): error CS0103: The name 'z9' does not exist in the current context
-    //                         z9;   
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(112, 25),
-    // (109,25): error CS0103: The name 'u9' does not exist in the current context
-    //                         u9
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(109, 25),
-    // (114,15): error CS0103: The name 'z9' does not exist in the current context
-    //         Dummy(z9); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(114, 15),
-    // (115,15): error CS0103: The name 'u9' does not exist in the current context
-    //         Dummy(u9); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(115, 15),
-    // (108,50): error CS0165: Use of unassigned local variable 'z9'
-    //                   group x > y9 && 1 is var z9 && z9 == 
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "z9").WithArguments("z9").WithLocation(108, 50),
-    // (121,24): error CS1931: The range variable 'y10' conflicts with a previous declaration of 'y10'
-    //                   from y10 in new[] { 1 }
-    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y10").WithArguments("y10").WithLocation(121, 24),
-    // (128,23): error CS1931: The range variable 'y11' conflicts with a previous declaration of 'y11'
-    //                   let y11 = x1 + 1
-    Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y11").WithArguments("y11").WithLocation(128, 23)
+                // (23,48): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   from x2 in new[] { x1 is var z2 ? z2 : 0, z2, y2}
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z2").WithLocation(23, 48),
+                // (25,26): error CS0103: The name 'z2' does not exist in the current context
+                //                          z2;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(25, 26),
+                // (27,15): error CS0103: The name 'z2' does not exist in the current context
+                //         Dummy(z2); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(27, 15),
+                // (33,38): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   let x2 = x1 is var z3 && z3 > 0 && y3 < 0 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z3").WithLocation(33, 38),
+                // (35,32): error CS0103: The name 'z3' does not exist in the current context
+                //                                z3};
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(35, 32),
+                // (37,15): error CS0103: The name 'z3' does not exist in the current context
+                //         Dummy(z3); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(37, 15),
+                // (45,35): error CS0103: The name 'v4' does not exist in the current context
+                //                                   v4 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(45, 35),
+                // (44,56): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                             on x1 + y4 + z4 + 3 is var u4 ? u4 : 0 + 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u4").WithLocation(44, 56),
+                // (47,35): error CS1938: The name 'u4' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
+                //                                   u4 
+                Diagnostic(ErrorCode.ERR_QueryInnerKey, "u4").WithArguments("u4").WithLocation(47, 35),
+                // (46,63): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                                equals x2 + y4 + z4 + 4 is var v4 ? v4 : 0 +
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v4").WithLocation(46, 63),
+                // (49,32): error CS0103: The name 'u4' does not exist in the current context
+                //                                u4, v4 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(49, 32),
+                // (49,36): error CS0103: The name 'v4' does not exist in the current context
+                //                                u4, v4 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(49, 36),
+                // (52,15): error CS0103: The name 'u4' does not exist in the current context
+                //         Dummy(u4); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(52, 15),
+                // (53,15): error CS0103: The name 'v4' does not exist in the current context
+                //         Dummy(v4); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(53, 15),
+                // (61,35): error CS0103: The name 'v5' does not exist in the current context
+                //                                   v5 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(61, 35),
+                // (60,56): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                             on x1 + y5 + z5 + 3 is var u5 ? u5 : 0 + 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u5").WithLocation(60, 56),
+                // (63,35): error CS1938: The name 'u5' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
+                //                                   u5 
+                Diagnostic(ErrorCode.ERR_QueryInnerKey, "u5").WithArguments("u5").WithLocation(63, 35),
+                // (62,63): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                                equals x2 + y5 + z5 + 4 is var v5 ? v5 : 0 +
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v5").WithLocation(62, 63),
+                // (66,32): error CS0103: The name 'u5' does not exist in the current context
+                //                                u5, v5 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(66, 32),
+                // (66,36): error CS0103: The name 'v5' does not exist in the current context
+                //                                u5, v5 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(66, 36),
+                // (69,15): error CS0103: The name 'u5' does not exist in the current context
+                //         Dummy(u5); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(69, 15),
+                // (70,15): error CS0103: The name 'v5' does not exist in the current context
+                //         Dummy(v5); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(70, 15),
+                // (76,44): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   where x > y6 && 1 is var z6 && z6 == 1
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z6").WithLocation(76, 44),
+                // (78,26): error CS0103: The name 'z6' does not exist in the current context
+                //                          z6;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(78, 26),
+                // (80,15): error CS0103: The name 'z6' does not exist in the current context
+                //         Dummy(z6); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(80, 15),
+                // (87,27): error CS0103: The name 'u7' does not exist in the current context
+                //                           u7,
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(87, 27),
+                // (86,46): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   orderby x > y7 && 1 is var z7 && z7 == 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z7").WithLocation(86, 46),
+                // (89,27): error CS0103: The name 'z7' does not exist in the current context
+                //                           z7   
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(89, 27),
+                // (88,46): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           x > y7 && 1 is var u7 && u7 == 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u7").WithLocation(88, 46),
+                // (91,26): error CS0103: The name 'z7' does not exist in the current context
+                //                          z7 + u7;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(91, 26),
+                // (91,31): error CS0103: The name 'u7' does not exist in the current context
+                //                          z7 + u7;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(91, 31),
+                // (93,15): error CS0103: The name 'z7' does not exist in the current context
+                //         Dummy(z7); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z7").WithArguments("z7").WithLocation(93, 15),
+                // (94,15): error CS0103: The name 'u7' does not exist in the current context
+                //         Dummy(u7); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u7").WithArguments("u7").WithLocation(94, 15),
+                // (88,52): error CS0165: Use of unassigned local variable 'u7'
+                //                           x > y7 && 1 is var u7 && u7 == 
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(88, 52),
+                // (100,45): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   select x > y8 && 1 is var z8 && z8 == 1;
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z8").WithLocation(100, 45),
+                // (102,15): error CS0103: The name 'z8' does not exist in the current context
+                //         Dummy(z8); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z8").WithArguments("z8").WithLocation(102, 15),
+                // (112,25): error CS0103: The name 'z9' does not exist in the current context
+                //                         z9;   
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(112, 25),
+                // (111,44): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                         x > y9 && 1 is var u9 && u9 == 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u9").WithLocation(111, 44),
+                // (109,25): error CS0103: The name 'u9' does not exist in the current context
+                //                         u9
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(109, 25),
+                // (108,44): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   group x > y9 && 1 is var z9 && z9 == 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z9").WithLocation(108, 44),
+                // (114,15): error CS0103: The name 'z9' does not exist in the current context
+                //         Dummy(z9); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(114, 15),
+                // (115,15): error CS0103: The name 'u9' does not exist in the current context
+                //         Dummy(u9); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(115, 15),
+                // (108,50): error CS0165: Use of unassigned local variable 'z9'
+                //                   group x > y9 && 1 is var z9 && z9 == 
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z9").WithArguments("z9").WithLocation(108, 50),
+                // (121,24): error CS1931: The range variable 'y10' conflicts with a previous declaration of 'y10'
+                //                   from y10 in new[] { 1 }
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y10").WithArguments("y10").WithLocation(121, 24),
+                // (128,23): error CS1931: The range variable 'y11' conflicts with a previous declaration of 'y11'
+                //                   let y11 = x1 + 1
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "y11").WithArguments("y11").WithLocation(128, 23)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -1975,42 +2011,54 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (18,35): error CS0103: The name 'v4' does not exist in the current context
-    //                                   v4 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(18, 35),
-    // (20,35): error CS1938: The name 'u4' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
-    //                                   u4 
-    Diagnostic(ErrorCode.ERR_QueryInnerKey, "u4").WithArguments("u4").WithLocation(20, 35),
-    // (22,32): error CS0103: The name 'u4' does not exist in the current context
-    //                                u4, v4 };
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(22, 32),
-    // (22,36): error CS0103: The name 'v4' does not exist in the current context
-    //                                u4, v4 };
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(22, 36),
-    // (25,15): error CS0103: The name 'u4' does not exist in the current context
-    //         Dummy(u4); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(25, 15),
-    // (26,15): error CS0103: The name 'v4' does not exist in the current context
-    //         Dummy(v4); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(26, 15),
-    // (35,35): error CS0103: The name 'v5' does not exist in the current context
-    //                                   v5 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(35, 35),
-    // (37,35): error CS1938: The name 'u5' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
-    //                                   u5 
-    Diagnostic(ErrorCode.ERR_QueryInnerKey, "u5").WithArguments("u5").WithLocation(37, 35),
-    // (40,32): error CS0103: The name 'u5' does not exist in the current context
-    //                                u5, v5 };
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(40, 32),
-    // (40,36): error CS0103: The name 'v5' does not exist in the current context
-    //                                u5, v5 };
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(40, 36),
-    // (43,15): error CS0103: The name 'u5' does not exist in the current context
-    //         Dummy(u5); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(43, 15),
-    // (44,15): error CS0103: The name 'v5' does not exist in the current context
-    //         Dummy(v5); 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(44, 15)
+                // (18,35): error CS0103: The name 'v4' does not exist in the current context
+                //                                   v4 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(18, 35),
+                // (17,56): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                             on x1 + y4 + z4 + 3 is var u4 ? u4 : 0 + 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u4").WithLocation(17, 56),
+                // (20,35): error CS1938: The name 'u4' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
+                //                                   u4 
+                Diagnostic(ErrorCode.ERR_QueryInnerKey, "u4").WithArguments("u4").WithLocation(20, 35),
+                // (19,63): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                                equals x2 + y4 + z4 + 4 is var v4 ? v4 : 0 +
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v4").WithLocation(19, 63),
+                // (22,32): error CS0103: The name 'u4' does not exist in the current context
+                //                                u4, v4 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(22, 32),
+                // (22,36): error CS0103: The name 'v4' does not exist in the current context
+                //                                u4, v4 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(22, 36),
+                // (25,15): error CS0103: The name 'u4' does not exist in the current context
+                //         Dummy(u4); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u4").WithArguments("u4").WithLocation(25, 15),
+                // (26,15): error CS0103: The name 'v4' does not exist in the current context
+                //         Dummy(v4); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v4").WithArguments("v4").WithLocation(26, 15),
+                // (35,35): error CS0103: The name 'v5' does not exist in the current context
+                //                                   v5 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(35, 35),
+                // (34,56): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                             on x1 + y5 + z5 + 3 is var u5 ? u5 : 0 + 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "u5").WithLocation(34, 56),
+                // (37,35): error CS1938: The name 'u5' is not in scope on the right side of 'equals'.  Consider swapping the expressions on either side of 'equals'.
+                //                                   u5 
+                Diagnostic(ErrorCode.ERR_QueryInnerKey, "u5").WithArguments("u5").WithLocation(37, 35),
+                // (36,63): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                                equals x2 + y5 + z5 + 4 is var v5 ? v5 : 0 +
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "v5").WithLocation(36, 63),
+                // (40,32): error CS0103: The name 'u5' does not exist in the current context
+                //                                u5, v5 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(40, 32),
+                // (40,36): error CS0103: The name 'v5' does not exist in the current context
+                //                                u5, v5 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(40, 36),
+                // (43,15): error CS0103: The name 'u5' does not exist in the current context
+                //         Dummy(u5); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u5").WithArguments("u5").WithLocation(43, 15),
+                // (44,15): error CS0103: The name 'v5' does not exist in the current context
+                //         Dummy(v5); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "v5").WithArguments("v5").WithLocation(44, 15)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -2111,42 +2159,72 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (16,47): error CS0128: A local variable named 'y1' is already defined in this scope
+                // (16,47): error CS0128: A local variable or function named 'y1' is already defined in this scope
                 //         var res = from x1 in new[] { 1 is var y1 ? y1 : 0}
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "y1").WithArguments("y1").WithLocation(16, 47),
                 // (17,47): error CS0136: A local or parameter named 'y2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   from x2 in new[] { 2 is var y2 ? y2 : 0}
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y2").WithArguments("y2").WithLocation(17, 47),
-                // (18,47): error CS0128: A local variable named 'y3' is already defined in this scope
+                // (17,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   from x2 in new[] { 2 is var y2 ? y2 : 0}
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(17, 47),
+                // (18,47): error CS0128: A local variable or function named 'y3' is already defined in this scope
                 //                   join x3 in new[] { 3 is var y3 ? y3 : 0}
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "y3").WithArguments("y3").WithLocation(18, 47),
                 // (19,36): error CS0136: A local or parameter named 'y4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                        on 4 is var y4 ? y4 : 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y4").WithArguments("y4").WithLocation(19, 36),
+                // (19,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                        on 4 is var y4 ? y4 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(19, 36),
                 // (20,43): error CS0136: A local or parameter named 'y5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                           equals 5 is var y5 ? y5 : 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y5").WithArguments("y5").WithLocation(20, 43),
+                // (20,43): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           equals 5 is var y5 ? y5 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(20, 43),
                 // (21,34): error CS0136: A local or parameter named 'y6' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   where 6 is var y6 && y6 == 1
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y6").WithArguments("y6").WithLocation(21, 34),
+                // (21,34): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   where 6 is var y6 && y6 == 1
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(21, 34),
                 // (22,36): error CS0136: A local or parameter named 'y7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   orderby 7 is var y7 && y7 > 0, 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y7").WithArguments("y7").WithLocation(22, 36),
+                // (22,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   orderby 7 is var y7 && y7 > 0, 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(22, 36),
                 // (23,36): error CS0136: A local or parameter named 'y8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                           8 is var y8 && y8 > 0 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y8").WithArguments("y8").WithLocation(23, 36),
+                // (23,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           8 is var y8 && y8 > 0 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(23, 36),
                 // (25,32): error CS0136: A local or parameter named 'y10' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   by 10 is var y10 && y10 > 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y10").WithArguments("y10").WithLocation(25, 32),
+                // (25,32): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   by 10 is var y10 && y10 > 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(25, 32),
                 // (24,34): error CS0136: A local or parameter named 'y9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   group 9 is var y9 && y9 > 0 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y9").WithArguments("y9").WithLocation(24, 34),
+                // (24,34): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   group 9 is var y9 && y9 > 0 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(24, 34),
                 // (27,39): error CS0136: A local or parameter named 'y11' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   let x11 = 11 is var y11 && y11 > 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y11").WithArguments("y11").WithLocation(27, 39),
+                // (27,39): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   let x11 = 11 is var y11 && y11 > 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y11").WithLocation(27, 39),
                 // (28,36): error CS0136: A local or parameter named 'y12' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   select 12 is var y12 && y12 > 0
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(28, 36)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(28, 36),
+                // (28,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   select 12 is var y12 && y12 > 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y12").WithLocation(28, 36)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -2237,42 +2315,72 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (26,47): error CS0128: A local variable named 'y1' is already defined in this scope
+                // (26,47): error CS0128: A local variable or function named 'y1' is already defined in this scope
                 //                   from x1 in new[] { 1 is var y1 ? y1 : 0}
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "y1").WithArguments("y1").WithLocation(26, 47),
                 // (27,47): error CS0136: A local or parameter named 'y2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   from x2 in new[] { 2 is var y2 ? y2 : 0}
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y2").WithArguments("y2").WithLocation(27, 47),
-                // (28,47): error CS0128: A local variable named 'y3' is already defined in this scope
+                // (27,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   from x2 in new[] { 2 is var y2 ? y2 : 0}
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(27, 47),
+                // (28,47): error CS0128: A local variable or function named 'y3' is already defined in this scope
                 //                   join x3 in new[] { 3 is var y3 ? y3 : 0}
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "y3").WithArguments("y3").WithLocation(28, 47),
                 // (29,36): error CS0136: A local or parameter named 'y4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                        on 4 is var y4 ? y4 : 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y4").WithArguments("y4").WithLocation(29, 36),
+                // (29,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                        on 4 is var y4 ? y4 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(29, 36),
                 // (30,43): error CS0136: A local or parameter named 'y5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                           equals 5 is var y5 ? y5 : 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y5").WithArguments("y5").WithLocation(30, 43),
+                // (30,43): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           equals 5 is var y5 ? y5 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(30, 43),
                 // (31,34): error CS0136: A local or parameter named 'y6' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   where 6 is var y6 && y6 == 1
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y6").WithArguments("y6").WithLocation(31, 34),
+                // (31,34): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   where 6 is var y6 && y6 == 1
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(31, 34),
                 // (32,36): error CS0136: A local or parameter named 'y7' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   orderby 7 is var y7 && y7 > 0, 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y7").WithArguments("y7").WithLocation(32, 36),
+                // (32,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   orderby 7 is var y7 && y7 > 0, 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(32, 36),
                 // (33,36): error CS0136: A local or parameter named 'y8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                           8 is var y8 && y8 > 0 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y8").WithArguments("y8").WithLocation(33, 36),
+                // (33,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           8 is var y8 && y8 > 0 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(33, 36),
                 // (35,32): error CS0136: A local or parameter named 'y10' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   by 10 is var y10 && y10 > 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y10").WithArguments("y10").WithLocation(35, 32),
+                // (35,32): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   by 10 is var y10 && y10 > 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(35, 32),
                 // (34,34): error CS0136: A local or parameter named 'y9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   group 9 is var y9 && y9 > 0 
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y9").WithArguments("y9").WithLocation(34, 34),
+                // (34,34): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   group 9 is var y9 && y9 > 0 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(34, 34),
                 // (37,39): error CS0136: A local or parameter named 'y11' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   let x11 = 11 is var y11 && y11 > 0
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y11").WithArguments("y11").WithLocation(37, 39),
+                // (37,39): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   let x11 = 11 is var y11 && y11 > 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y11").WithLocation(37, 39),
                 // (38,36): error CS0136: A local or parameter named 'y12' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   select 12 is var y12 && y12 > 0
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(38, 36)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y12").WithArguments("y12").WithLocation(38, 36),
+                // (38,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   select 12 is var y12 && y12 > 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y12").WithLocation(38, 36)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -2597,36 +2705,66 @@ public class X
 
             // error CS0412 is misleading and reported due to preexisting bug https://github.com/dotnet/roslyn/issues/12052
             compilation.VerifyDiagnostics(
-                // (15,47): error CS0412: 'y1': a parameter or local variable cannot have the same name as a method type parameter
+                // (15,47): error CS0412: 'y1': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                   from x2 in new[] { 1 is var y1 ? y1 : 1 }
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y1").WithArguments("y1").WithLocation(15, 47),
-                // (23,36): error CS0412: 'y2': a parameter or local variable cannot have the same name as a method type parameter
+                // (15,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   from x2 in new[] { 1 is var y1 ? y1 : 1 }
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y1").WithLocation(15, 47),
+                // (23,36): error CS0412: 'y2': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                        on 2 is var y2 ? y2 : 0 
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y2").WithArguments("y2").WithLocation(23, 36),
-                // (33,40): error CS0412: 'y3': a parameter or local variable cannot have the same name as a method type parameter
+                // (23,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                        on 2 is var y2 ? y2 : 0 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(23, 36),
+                // (33,40): error CS0412: 'y3': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                        equals 3 is var y3 ? y3 : 0
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y3").WithArguments("y3").WithLocation(33, 40),
-                // (40,34): error CS0412: 'y4': a parameter or local variable cannot have the same name as a method type parameter
+                // (33,40): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                        equals 3 is var y3 ? y3 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y3").WithLocation(33, 40),
+                // (40,34): error CS0412: 'y4': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                   where 4 is var y4 && y4 == 1
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y4").WithArguments("y4").WithLocation(40, 34),
-                // (47,36): error CS0412: 'y5': a parameter or local variable cannot have the same name as a method type parameter
+                // (40,34): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   where 4 is var y4 && y4 == 1
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(40, 34),
+                // (47,36): error CS0412: 'y5': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                   orderby 5 is var y5 && y5 > 1, 
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y5").WithArguments("y5").WithLocation(47, 36),
-                // (56,36): error CS0412: 'y6': a parameter or local variable cannot have the same name as a method type parameter
+                // (47,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   orderby 5 is var y5 && y5 > 1, 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(47, 36),
+                // (56,36): error CS0412: 'y6': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                           6 is var y6 && y6 > 1 
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y6").WithArguments("y6").WithLocation(56, 36),
-                // (63,34): error CS0412: 'y7': a parameter or local variable cannot have the same name as a method type parameter
+                // (56,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           6 is var y6 && y6 > 1 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(56, 36),
+                // (63,34): error CS0412: 'y7': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                   group 7 is var y7 && y7 == 3 
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y7").WithArguments("y7").WithLocation(63, 34),
-                // (71,31): error CS0412: 'y8': a parameter or local variable cannot have the same name as a method type parameter
+                // (63,34): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   group 7 is var y7 && y7 == 3 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(63, 34),
+                // (71,31): error CS0412: 'y8': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                   by 8 is var y8 && y8 == 3;
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y8").WithArguments("y8").WithLocation(71, 31),
-                // (77,37): error CS0412: 'y9': a parameter or local variable cannot have the same name as a method type parameter
+                // (71,31): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   by 8 is var y8 && y8 == 3;
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(71, 31),
+                // (77,37): error CS0412: 'y9': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                   let x4 = 9 is var y9 && y9 > 0
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y9").WithArguments("y9").WithLocation(77, 37),
-                // (84,36): error CS0412: 'y10': a parameter or local variable cannot have the same name as a method type parameter
+                // (77,37): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   let x4 = 9 is var y9 && y9 > 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(77, 37),
+                // (84,36): error CS0412: 'y10': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                   select 10 is var y10 && y10 > 0;
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y10").WithArguments("y10").WithLocation(84, 36)
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "y10").WithArguments("y10").WithLocation(84, 36),
+                // (84,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   select 10 is var y10 && y10 > 0;
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(84, 36)
                 );
 
             var tree = compilation.SyntaxTrees.Single();

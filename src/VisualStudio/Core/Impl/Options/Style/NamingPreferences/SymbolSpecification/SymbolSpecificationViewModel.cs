@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -23,14 +24,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         public bool CanBeDeleted { get; set; }
 
-        
-
         private readonly INotificationService _notificationService;
 
         public SymbolSpecificationViewModel(
             string languageName,
             bool canBeDeleted,
-            INotificationService notificationService) : this(languageName, new SymbolSpecification(), canBeDeleted, notificationService) { }
+            INotificationService notificationService) : this(languageName, SymbolSpecification.All, canBeDeleted, notificationService) { }
 
         public SymbolSpecificationViewModel(string languageName, SymbolSpecification specification, bool canBeDeleted, INotificationService notificationService)
         {
@@ -122,11 +121,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         internal SymbolSpecification GetSymbolSpecification()
         {
             return new SymbolSpecification(
-                id: ID,
-                symbolSpecName: ItemName,
-                symbolKindList: SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolKindOrTypeKind()).ToList(),
-                accessibilityList: AccessibilityList.Where(a => a.IsChecked).Select(a => a._accessibility).ToList(),
-                modifiers: ModifierList.Where(m => m.IsChecked).Select(m => new ModifierKind(m._modifier)).ToList());
+                ID,
+                ItemName,
+                SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolKindOrTypeKind()).ToImmutableArray(),
+                AccessibilityList.Where(a => a.IsChecked).Select(a => a._accessibility).ToImmutableArray(),
+                ModifierList.Where(m => m.IsChecked).Select(m => new ModifierKind(m._modifier)).ToImmutableArray());
         }
 
         internal bool TrySubmit()
@@ -205,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 Name = name;
 
                 IsChecked = specification.ApplicableAccessibilityList.Any(a => a == accessibility);
-            }
+            }   
         }
 
         public class ModifierViewModel : AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart

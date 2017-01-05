@@ -2,13 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyles
 {
@@ -32,29 +30,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         private NamingStylePreferences ClassNamesArePascalCaseOption()
         {
             var symbolSpecification = new SymbolSpecification(
+                null,
                 "Name",
-                SpecializedCollections.SingletonEnumerable(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)).ToList(),
-                SpecializedCollections.EmptyList<Accessibility>(),
-                SpecializedCollections.EmptyList<SymbolSpecification.ModifierKind>());
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)),
+                ImmutableArray<Accessibility>.Empty,
+                ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
 
-            var namingStyle = new NamingStyle()
-            {
-                CapitalizationScheme = Capitalization.PascalCase,
-                Name = "Name",
-                Prefix = "",
-                Suffix = "",
-                WordSeparator = ""
-            };
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.PascalCase,
+                name: "Name",
+                prefix: "",
+                suffix: "",
+                wordSeparator: "");
             var namingRule = new SerializableNamingRule()
             {
                 SymbolSpecificationID = symbolSpecification.ID,
                 NamingStyleID = namingStyle.ID,
                 EnforcementLevel = DiagnosticSeverity.Error
             };
-            var info = new NamingStylePreferences();
-            info.SymbolSpecifications.Add(symbolSpecification);
-            info.NamingStyles.Add(namingStyle);
-            info.NamingRules.Add(namingRule);
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
 
             return info;
         }
@@ -62,29 +60,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         private NamingStylePreferences MethodNamesArePascalCaseOption()
         {
             var symbolSpecification = new SymbolSpecification(
+                null,
                 "Name",
-                SpecializedCollections.SingletonEnumerable(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Method)).ToList(),
-                SpecializedCollections.EmptyList<Accessibility>(),
-                SpecializedCollections.EmptyList<SymbolSpecification.ModifierKind>());
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Method)),
+                ImmutableArray<Accessibility>.Empty,
+                ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
 
-            var namingStyle = new NamingStyle()
-            {
-                CapitalizationScheme = Capitalization.PascalCase,
-                Name = "Name",
-                Prefix = "",
-                Suffix = "",
-                WordSeparator = ""
-            };
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.PascalCase,
+                name: "Name",
+                prefix: "",
+                suffix: "",
+                wordSeparator: "");
+
             var namingRule = new SerializableNamingRule()
             {
                 SymbolSpecificationID = symbolSpecification.ID,
                 NamingStyleID = namingStyle.ID,
                 EnforcementLevel = DiagnosticSeverity.Error
             };
-            var info = new NamingStylePreferences();
-            info.SymbolSpecifications.Add(symbolSpecification);
-            info.NamingStyles.Add(namingStyle);
-            info.NamingRules.Add(namingRule);
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
 
             return info;
         }

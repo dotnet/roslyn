@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -41,9 +42,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         public bool OpenFileOnly(Workspace workspace) => false;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode, SyntaxKind.Argument);
+        {
+            context.RegisterCompilationStartAction(compilationContext =>
+            {
+                var compilation = compilationContext.Compilation;
+                var expressionTypeOpt = compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+                compilationContext.RegisterSyntaxNodeAction(
+                    syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionTypeOpt), SyntaxKind.Argument);
+            });
+        }
 
-        private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context)
+        private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol expressionTypeOpt)
         {
             var argumentNode = (ArgumentSyntax)context.Node;
             var csOptions = (CSharpParseOptions)context.Node.SyntaxTree.Options;
@@ -52,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // out-vars are not supported prior to C# 7.0.
                 return;
             }
+
             var options = context.Options;
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
@@ -165,6 +175,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return;
             }
 
+            if (IsInExpressionTree(semanticModel, argumentExpression, expressionTypeOpt, cancellationToken))
+            {
+                // out-vars are not allowed inside expression-trees.  So don't offer to
+                // fix if we're inside one.
+                return;
+            }
+
             // Find the scope that the out-declaration variable will live in after we
             // rewrite things.
             var outArgumentScope = GetOutArgumentScope(argumentExpression);
@@ -215,6 +232,28 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 GetDescriptorWithSeverity(option.Notification.Value),
                 reportNode.GetLocation(),
                 additionalLocations: allLocations));
+        }
+
+        private bool IsInExpressionTree(
+            SemanticModel semanticModel, SyntaxNode argumentExpression,
+            INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
+        {
+            if (expressionTypeOpt != null)
+            {
+                for (var current = argumentExpression; current != null; current = current.Parent)
+                {
+                    if (current.IsAnyLambda())
+                    {
+                        var typeInfo = semanticModel.GetTypeInfo(current, cancellationToken);
+                        if (expressionTypeOpt.Equals(typeInfo.ConvertedType?.OriginalDefinition))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private bool WouldCauseDefiniteAssignmentErrors(

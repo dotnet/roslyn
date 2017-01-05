@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -13,16 +14,28 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed partial class Checksum : IObjectWritable, IEquatable<Checksum>
     {
-        public static readonly Checksum Null = new Checksum(Array.Empty<byte>());
+        public static readonly Checksum Null = new Checksum(ImmutableArray<byte>.Empty);
 
-        private readonly byte[] _checkSum;
+        private readonly ImmutableArray<byte> _checkSum;
         private int _lazyHash;
 
-        public Checksum(byte[] checksum)
+        public Checksum(byte[] checksum) :
+            this(ImmutableArray.Create(checksum))
+        {
+        }
+
+        public Checksum(ImmutableArray<byte> checksum)
         {
             // 0 means it is not initialized
             _lazyHash = 0;
+
             _checkSum = checksum;
+        }
+
+        public byte[] ToArray()
+        {
+            // TODO: think a way to make this better
+            return _checkSum.ToArray();
         }
 
         public bool Equals(Checksum other)
@@ -65,7 +78,7 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString()
         {
-            return Convert.ToBase64String(_checkSum);
+            return Convert.ToBase64String(ToArray());
         }
 
         private int CalculateHashCode()
@@ -94,12 +107,25 @@ namespace Microsoft.CodeAnalysis
 
         public void WriteTo(ObjectWriter writer)
         {
-            writer.WriteValue(_checkSum);
+            writer.WriteInt32(_checkSum.Length);
+
+            for (var i = 0; i < _checkSum.Length; i++)
+            {
+                writer.WriteByte(_checkSum[i]);
+            }
         }
 
         public static Checksum ReadFrom(ObjectReader reader)
         {
-            return new Checksum((byte[])reader.ReadValue());
+            var length = reader.ReadInt32();
+            var builder = ImmutableArray.CreateBuilder<byte>(length);
+
+            for (var i = 0; i < length; i++)
+            {
+                builder.Add(reader.ReadByte());
+            }
+
+            return new Checksum(builder.MoveToImmutable());
         }
 
         public static string GetChecksumLogInfo(Checksum checksum)

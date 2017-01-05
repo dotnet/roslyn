@@ -1638,8 +1638,8 @@ namespace RoslynAsyncDelegate
 
             var lambdaParameters = ((MethodSymbol)(model.GetSymbolInfo(node1)).Symbol).Parameters;
 
-            Assert.Equal("System.Object <sender>", lambdaParameters[0].ToTestDisplayString());
-            Assert.Equal("System.EventArgs <e>", lambdaParameters[1].ToTestDisplayString());
+            Assert.Equal("System.Object <p0>", lambdaParameters[0].ToTestDisplayString());
+            Assert.Equal("System.EventArgs <p1>", lambdaParameters[1].ToTestDisplayString());
 
             CompileAndVerify(compilation);
         }
@@ -2292,7 +2292,7 @@ public static class C
         }
 
         [Fact, WorkItem(278481, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=278481")]
-        public void LambdaReturningNull()
+        public void LambdaReturningNull_1()
         {
             var src = @"
 public static class ExtensionMethods
@@ -2316,6 +2316,18 @@ public static class ExtensionMethods
         System.Linq.Expressions.Expression<System.Func<TOuter, TResult>> partialResultSelector)
     {
         System.Console.WriteLine(""1""); 
+        return null; 
+    }
+
+    public static System.Collections.Generic.IEnumerable<TResult> LeftOuterJoin<TOuter, TInner, TKey, TResult>(
+        this System.Collections.Generic.IEnumerable<TOuter> outerValues, 
+        System.Linq.IQueryable<TInner> innerValues, 
+        System.Func<TOuter, TKey> outerKeySelector, 
+        System.Func<TInner, TKey> innerKeySelector, 
+        System.Func<TOuter, TInner, TResult> fullResultSelector, 
+        System.Func<TOuter, TResult> partialResultSelector)
+    {
+        System.Console.WriteLine(""2""); 
         return null; 
     }
 
@@ -2354,6 +2366,36 @@ class B
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "1");
+        }
+
+        [Fact, WorkItem(296550, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=296550")]
+        public void LambdaReturningNull_2()
+        {
+            var src = @"
+class Test1<T>
+    {
+        public void M1(System.Func<T> x) {}
+        public void M1<S>(System.Func<S> x) {}
+        public void M2<S>(System.Func<S> x) {}
+        public void M2(System.Func<T> x) {}
+    }
+
+    class Test2 : Test1<System.>
+    {
+        void Main()
+        {
+            M1(()=> null);
+            M2(()=> null);
+        }
+    }
+";
+            var comp = CreateCompilationWithMscorlib(src, options: TestOptions.DebugDll);
+
+            comp.VerifyDiagnostics(
+                // (10,32): error CS1001: Identifier expected
+                //     class Test2 : Test1<System.>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(10, 32)
+                );
         }
 
         [Fact]

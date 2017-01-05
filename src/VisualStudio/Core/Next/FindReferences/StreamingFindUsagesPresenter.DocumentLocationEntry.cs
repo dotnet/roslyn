@@ -29,12 +29,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     {
         private class DocumentSpanEntry : Entry
         {
-            private static readonly object s_boxedProjectGuid = Guid.Empty;
-
             private readonly TableDataSourceFindUsagesContext _context;
 
             private readonly DocumentSpan _documentSpan;
             private readonly bool _isDefinitionLocation;
+            private readonly object _boxedProjectGuid;
             private readonly SourceText _sourceText;
             private readonly ClassifiedSpansAndHighlightSpan _classifiedSpans;
 
@@ -43,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 bool isDefinitionLocation,
+                Guid projectGuid,
                 SourceText sourceText,
                 ClassifiedSpansAndHighlightSpan classifiedSpans)
                 : base(definitionBucket)
@@ -51,6 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 _documentSpan = documentSpan;
                 _isDefinitionLocation = isDefinitionLocation;
+                _boxedProjectGuid = projectGuid;
                 _sourceText = sourceText;
                 _classifiedSpans = classifiedSpans;
             }
@@ -73,11 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 case StandardTableKeyNames.ProjectName:
                     return Document.Project.Name;
                 case StandardTableKeyNames.ProjectGuid:
-                    // This keyname is part of the standard table control. However, according
-                    // to the editor team, it is never used for FindReferences purposes.  
-                    // I'm including this here just so it is clear that we were not unintentionally
-                    // forgetting about it.
-                    return s_boxedProjectGuid;
+                    return _boxedProjectGuid;
                 case StandardTableKeyNames.Text:
                     return _sourceText.Lines.GetLineFromPosition(SourceSpan.Start).ToString().Trim();
                 }

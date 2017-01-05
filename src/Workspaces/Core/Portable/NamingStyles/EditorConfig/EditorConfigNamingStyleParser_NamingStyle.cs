@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             IReadOnlyDictionary<string, object> allRawConventions,
             out NamingStyle namingStyle)
         {
-            namingStyle = null;
+            namingStyle = default(NamingStyle);
             if (!TryGetNamingStyleTitle(namingRuleName, allRawConventions, out string namingStyleTitle))
             {
                 return false;
@@ -20,20 +22,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             var requiredPrefix = GetNamingRequiredPrefix(namingStyleTitle, allRawConventions);
             var requiredSuffix = GetNamingRequiredSuffix(namingStyleTitle, allRawConventions);
             var wordSeparator = GetNamingWordSeparator(namingStyleTitle, allRawConventions);
-             if(!TryGetNamingCapitalization(namingStyleTitle, allRawConventions, out var capitalization))
+            if (!TryGetNamingCapitalization(namingStyleTitle, allRawConventions, out var capitalization))
             {
-                namingStyle = null;
                 return false;
             }
 
-            namingStyle = new NamingStyle()
-            {
-                Name = namingStyleTitle,
-                Prefix = requiredPrefix,
-                Suffix = requiredSuffix,
-                WordSeparator = wordSeparator,
-                CapitalizationScheme = capitalization
-            };
+            namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                name: namingStyleTitle,
+                prefix: requiredPrefix,
+                suffix: requiredSuffix,
+                wordSeparator: wordSeparator,
+                capitalizationScheme: capitalization);
 
             return true;
         }

@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     {
                         // ask remote host to sync initial asset
                         var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-                        await session.InvokeAsync(WellKnownRemoteHostServices.RemoteHostService_SynchronizePrimaryWorkspaceAsync, checksum).ConfigureAwait(false);
+                        await session.InvokeAsync(WellKnownRemoteHostServices.RemoteHostService_SynchronizePrimaryWorkspaceAsync, new object[] { checksum.ToArray() }).ConfigureAwait(false);
                     }
                 }
             }

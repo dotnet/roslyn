@@ -18,14 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [ExportWorkspaceServiceFactory(typeof(IFixAllGetFixesService), ServiceLayer.Host), Shared]
     internal class FixAllGetFixesService : IFixAllGetFixesService, IWorkspaceServiceFactory
     {
-        private readonly IWaitIndicator _waitIndicator;
-
-        [ImportingConstructor]
-        public FixAllGetFixesService(IWaitIndicator waitIndicator)
-        {
-            _waitIndicator = waitIndicator;
-        }
-
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return this;
@@ -167,15 +159,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private ImmutableArray<CodeActionOperation> GetNewFixAllOperations(IEnumerable<CodeActionOperation> operations, Solution newSolution, CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<CodeActionOperation>.GetInstance();
-            bool foundApplyChanges = false;
+            var foundApplyChanges = false;
             foreach (var operation in operations)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (!foundApplyChanges)
                 {
-                    var applyChangesOperation = operation as ApplyChangesOperation;
-                    if (applyChangesOperation != null)
+                    if (operation is ApplyChangesOperation applyChangesOperation)
                     {
                         foundApplyChanges = true;
                         result.Add(new ApplyChangesOperation(newSolution));
