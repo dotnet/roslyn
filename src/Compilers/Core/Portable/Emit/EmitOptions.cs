@@ -236,11 +236,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             if (OutputNameOverride != null)
             {
-                Exception error = MetadataHelpers.CheckAssemblyOrModuleName(OutputNameOverride, argumentName: null);
-                if (error != null)
-                {
-                    diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidOutputName, Location.None, error.Message));
-                }
+                MetadataHelpers.CheckAssemblyOrModuleName(OutputNameOverride, messageProvider, messageProvider.ERR_InvalidOutputName, diagnostics);
             }
 
             if (FileAlignment != 0 && !IsValidFileAlignment(FileAlignment))

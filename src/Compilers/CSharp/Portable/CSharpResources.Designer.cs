@@ -881,6 +881,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid assembly name: {0}.
+        /// </summary>
+        internal static string ERR_BadAssemblyName {
+            get {
+                return ResourceManager.GetString("ERR_BadAssemblyName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Async methods cannot have ref or out parameters.
         /// </summary>
         internal static string ERR_BadAsyncArgType {
@@ -1219,15 +1228,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadCompatMode {
             get {
                 return ResourceManager.GetString("ERR_BadCompatMode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {0}.
-        /// </summary>
-        internal static string ERR_BadCompilationOption {
-            get {
-                return ResourceManager.GetString("ERR_BadCompilationOption", resourceCulture);
             }
         }
         
@@ -1642,6 +1642,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadModifiersOnNamespace {
             get {
                 return ResourceManager.GetString("ERR_BadModifiersOnNamespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid module name: {0}.
+        /// </summary>
+        internal static string ERR_BadModuleName {
+            get {
+                return ResourceManager.GetString("ERR_BadModuleName", resourceCulture);
             }
         }
         

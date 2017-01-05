@@ -248,38 +248,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // ModuleName
             Assert.Equal(null, TestOptions.ReleaseDll.WithModuleName(null).ModuleName);
             TestOptions.ReleaseDll.WithModuleName("").VerifyErrors(
-    // error CS7087: Name cannot be empty.
-    // Parameter name: ModuleName
-    Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(new ArgumentException(CodeAnalysisResources.NameCannotBeEmpty, "ModuleName").Message));
+                // error CS7087: Invalid module name: Name cannot be empty.
+                Diagnostic(ErrorCode.ERR_BadModuleName).WithArguments("Name cannot be empty.").WithLocation(1, 1)
+                );
 
             TestOptions.ReleaseDll.WithModuleName("a\0a").VerifyErrors(
-    // error CS7087: Name contains invalid characters.
-    // Parameter name: ModuleName
-    Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(new ArgumentException(CodeAnalysisResources.NameContainsInvalidCharacter, "ModuleName").Message)
+                // error CS7087: Invalid module name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadModuleName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
                 );
 
             TestOptions.ReleaseDll.WithModuleName("a\uD800b").VerifyErrors(
-    // error CS7087: Name contains invalid characters.
-    // Parameter name: ModuleName
-    Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(new ArgumentException(CodeAnalysisResources.NameContainsInvalidCharacter, "ModuleName").Message)
+                // error CS7087: Invalid module name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadModuleName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
                 );
 
             TestOptions.ReleaseDll.WithModuleName("a\\b").VerifyErrors(
-    // error CS7087: Name contains invalid characters.
-    // Parameter name: ModuleName
-    Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(new ArgumentException(CodeAnalysisResources.NameContainsInvalidCharacter, "ModuleName").Message)
+                // error CS7087: Invalid module name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadModuleName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
                 );
 
             TestOptions.ReleaseDll.WithModuleName("a/b").VerifyErrors(
-    // error CS7087: Name contains invalid characters.
-    // Parameter name: ModuleName
-    Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(new ArgumentException(CodeAnalysisResources.NameContainsInvalidCharacter, "ModuleName").Message)
+                // error CS7087: Invalid module name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadModuleName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
                 );
 
             TestOptions.ReleaseDll.WithModuleName("a:b").VerifyErrors(
-    // error CS7087: Name contains invalid characters.
-    // Parameter name: ModuleName
-    Diagnostic(ErrorCode.ERR_BadCompilationOption).WithArguments(new ArgumentException(CodeAnalysisResources.NameContainsInvalidCharacter, "ModuleName").Message)
+                // error CS7087: Invalid module name: Name contains invalid characters.
+                Diagnostic(ErrorCode.ERR_BadModuleName).WithArguments("Name contains invalid characters.").WithLocation(1, 1)
                 );
         }
 

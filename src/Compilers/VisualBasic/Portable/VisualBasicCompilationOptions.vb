@@ -911,10 +911,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If ModuleName IsNot Nothing Then
-                Dim e As Exception = MetadataHelpers.CheckAssemblyOrModuleName(ModuleName, NameOf(ModuleName))
-                If e IsNot Nothing Then
-                    builder.Add(Diagnostic.Create(MessageProvider.Instance, ERRID.ERR_BadCompilationOption, e.Message))
-                End If
+                MetadataHelpers.CheckAssemblyOrModuleName(ModuleName, MessageProvider.Instance, ERRID.ERR_BadModuleName, builder)
             End If
 
             If Not OutputKind.IsValid() Then

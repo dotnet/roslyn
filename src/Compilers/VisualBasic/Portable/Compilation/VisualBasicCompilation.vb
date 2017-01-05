@@ -366,8 +366,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
             End If
 
-            CheckAssemblyName(assemblyName)
-
             Dim validatedReferences = ValidateReferences(Of VisualBasicCompilationReference)(references)
 
             Dim c As VisualBasicCompilation = Nothing
@@ -535,8 +533,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Creates a new compilation with the specified name.
         ''' </summary>
         Public Shadows Function WithAssemblyName(assemblyName As String) As VisualBasicCompilation
-            CheckAssemblyName(assemblyName)
-
             ' Can't reuse references since the source assembly name changed and the referenced symbols might 
             ' have internals-visible-to relationship with this compilation or they might had a circular reference 
             ' to this compilation.
@@ -1942,6 +1938,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Add declaration errors
             If (stage = CompilationStage.Declare OrElse stage > CompilationStage.Declare AndAlso includeEarlierStages) Then
+                CheckAssemblyName(builder)
                 builder.AddRange(Options.Errors)
                 builder.AddRange(GetBoundReferenceManager().Diagnostics)
                 builder.AddRange(SourceAssembly.GetAllDeclarationErrors(cancellationToken))
