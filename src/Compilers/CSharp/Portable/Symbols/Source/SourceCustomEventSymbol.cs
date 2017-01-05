@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -99,8 +100,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_AddOrRemoveExpected, accessor.Keyword.GetLocation());
                         break;
 
+                    case SyntaxKind.UnknownAccessorDeclaration:
                         // Don't need to handle UnknownAccessorDeclaration.  An error will have 
                         // already been produced for it in the parser.
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(accessor.Kind());
                 }
             }
 
