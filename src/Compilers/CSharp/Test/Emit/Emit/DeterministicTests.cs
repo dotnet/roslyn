@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using System.Diagnostics;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -182,6 +183,54 @@ namespace N
                                                        new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithDeterministic(true));
             var output = new WriteOnlyStream();
             compilation.Emit(output);
+        }
+
+        [Fact, WorkItem(11990, "https://github.com/dotnet/roslyn/issues/11990")]
+        public void ForwardedTypesAreEmmittedInADeterministicOrder()
+        {
+            const int generatedTypes = 100;
+
+            var forwardedToCode = new StringBuilder();
+            forwardedToCode.AppendLine("namespace ForwardedToNamespace {");
+            for (var i = 1; i <= generatedTypes; i++)
+            {
+                forwardedToCode.AppendLine($"public class T{i} {{}}");
+            }
+            forwardedToCode.AppendLine("}");
+
+            var forwardedToCompilation = CreateCompilation(forwardedToCode.ToString());
+            var forwardedToReference = new CSharpCompilationReference(forwardedToCompilation);
+
+            IEnumerable<string> compileAndGetExportedTypes()
+            {
+                var forwardingCode = new StringBuilder();
+                forwardingCode.AppendLine("using System.Runtime.CompilerServices;");
+                for (var i = 1; i <= generatedTypes; i++)
+                {
+                    forwardingCode.AppendLine($"[assembly: TypeForwardedTo(typeof(ForwardedToNamespace.T{i}))]");
+                }
+
+                var forwardingCompilation = CreateCompilationWithMscorlib(forwardingCode.ToString(), new MetadataReference[] { forwardedToReference });
+
+                using (var stream = forwardingCompilation.EmitToStream())
+                {
+                    using (var block = ModuleMetadata.CreateFromStream(stream))
+                    {
+                        foreach (var handle in block.MetadataReader.ExportedTypes)
+                        {
+                            var type = block.MetadataReader.GetExportedType(handle);
+                            var typeName = block.MetadataReader.GetString(type.Name);
+                            yield return typeName;
+                        }
+                    }
+                }
+            }
+
+            var baseline = compileAndGetExportedTypes().ToArray();
+            Assert.Equal(generatedTypes, baseline.Length);
+
+            var reference = compileAndGetExportedTypes().ToArray();
+            Assert.Equal(baseline, reference);
         }
 
         [Fact]

@@ -7,6 +7,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
+Imports System.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
@@ -129,6 +130,67 @@ Partial.c = 3
 ]]>)
 
             Next
+        End Sub
+
+        <Fact>
+        <WorkItem(11990, "https://github.com/dotnet/roslyn/issues/11990")>
+        Public Sub ForwardedTypesAreEmmittedInADeterministicOrder()
+            Const generatedTypes = 100
+
+            ' VBC doesn't recognize type forwards in VB source code. Because of that,
+            ' this test generates types as a C# library (1), then generates a C# netmodule (2) that
+            ' contains the type forwards that forwards to reference (1), then generates an empty VB
+            ' library (3) that contains (2) and references (1).
+
+            Dim forwardedToCode = New StringBuilder()
+            forwardedToCode.AppendLine("namespace ForwardedToNamespace {")
+            For i = 1 To generatedTypes
+                forwardedToCode.AppendLine($"public class T{i} {{}}")
+            Next
+            forwardedToCode.AppendLine("}")
+
+            Dim forwardedToCompilation = CreateCSharpCompilation(
+                forwardedToCode.ToString(),
+                compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+
+            Dim compileAndGetExportedTypes As Func(Of List(Of String)) =
+            Function()
+                Dim forwardingCode = New StringBuilder()
+                forwardingCode.AppendLine("using System.Runtime.CompilerServices;")
+                For i = 1 To generatedTypes
+                    forwardingCode.AppendLine($"[assembly: TypeForwardedTo(typeof(ForwardedToNamespace.T{i}))]")
+                Next
+
+                Dim forwardingNetModule = CreateCSharpCompilation(
+                    "ForwardingAssembly",
+                    forwardingCode.ToString(),
+                    compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.NetModule),
+                    referencedAssemblies:={MscorlibRef, SystemRef, forwardedToCompilation.EmitToImageReference()})
+
+                Dim forwardingCompilation = CreateCompilationWithMscorlib(
+                    assemblyName:="ForwardingAssembly",
+                    source:=String.Empty,
+                    options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                    references:={forwardingNetModule.EmitToImageReference(), forwardedToCompilation.EmitToImageReference()})
+
+                Using stream = forwardingCompilation.EmitToStream()
+                    Using block = ModuleMetadata.CreateFromStream(stream)
+                        Dim typeNames = New List(Of String)(block.MetadataReader.ExportedTypes.Count)
+                        For Each handle In block.MetadataReader.ExportedTypes
+                            Dim Type = block.MetadataReader.GetExportedType(handle)
+                            Dim TypeName = block.MetadataReader.GetString(Type.Name)
+                            typeNames.Add(TypeName)
+                        Next
+                        Return typeNames
+                    End Using
+                End Using
+            End Function
+
+            Dim baseline = compileAndGetExportedTypes().ToArray()
+            Assert.Equal(generatedTypes, baseline.Length)
+
+            Dim reference = compileAndGetExportedTypes().ToArray()
+            Assert.Equal(baseline, reference)
         End Sub
 
         <Fact>
