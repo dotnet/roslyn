@@ -218,6 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ForEachStatementSyntax forEachStatement: return InferTypeInForEachStatement(forEachStatement, previousToken: token);
                     case ForStatementSyntax forStatement: return InferTypeInForStatement(forStatement, previousToken: token);
                     case IfStatementSyntax ifStatement: return InferTypeInIfStatement(ifStatement, token);
+                    case ImplicitArrayCreationExpressionSyntax implicitArray: return InferTypeInImplicitArrayCreation(implicitArray, token);
                     case InitializerExpressionSyntax initializerExpression: return InferTypeInInitializerExpression(initializerExpression, previousToken: token);
                     case LockStatementSyntax lockStatement: return InferTypeInLockStatement(lockStatement, token);
                     case MemberAccessExpressionSyntax memberAccessExpression: return InferTypeInMemberAccessExpression(memberAccessExpression, previousToken: token);
@@ -1205,6 +1206,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInImplicitArrayCreation(ImplicitArrayCreationExpressionSyntax implicitArray, SyntaxToken previousToken)
+            {
+                return InferTypes(implicitArray.SpanStart);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInInitializerExpression(
