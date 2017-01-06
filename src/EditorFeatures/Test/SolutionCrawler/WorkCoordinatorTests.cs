@@ -265,6 +265,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [Fact]
+        public async Task Test_NeedsReanalysisOnOptionChanged()
+        {
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
+            {
+                var solutionInfo = GetInitialSolutionInfo(workspace);
+                workspace.OnSolutionAdded(solutionInfo);
+                await WaitWaiterAsync(workspace.ExportProvider);
+
+                var worker = await ExecuteOperation(workspace, w => w.Options = w.Options.WithChangedOption(Analyzer.TestOption, false));
+
+                Assert.Equal(10, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(10, worker.DocumentIds.Count);
+                Assert.Equal(2, worker.ProjectIds.Count);
+            }
+        }
+
+        [Fact]
         public async Task Project_Reload()
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
@@ -1051,6 +1068,8 @@ End Class";
 
         private class Analyzer : IIncrementalAnalyzer
         {
+            public static readonly Option<bool> TestOption = new Option<bool>("TestOptions", "TestOption", defaultValue: true);
+
             private readonly bool _waitForCancellation;
             private readonly bool _blockedRun;
 
@@ -1125,6 +1144,11 @@ End Class";
                 }
             }
 
+            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
+            {
+                return e.Option == TestOption;
+            }
+
             #region unused 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
@@ -1144,11 +1168,6 @@ End Class";
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
-            }
-
-            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                return false;
             }
             #endregion
         }
