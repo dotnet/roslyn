@@ -1120,5 +1120,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return result;
         }
+
+        public static bool IsInExpressionTree(
+            this SyntaxNode node, SemanticModel semanticModel,
+            INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
+        {
+            if (expressionTypeOpt != null)
+            {
+                for (var current = node; current != null; current = current.Parent)
+                {
+                    if (current.IsAnyLambda())
+                    {
+                        var typeInfo = semanticModel.GetTypeInfo(current, cancellationToken);
+                        if (expressionTypeOpt.Equals(typeInfo.ConvertedType?.OriginalDefinition))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
     }
 }
