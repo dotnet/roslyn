@@ -42,7 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        public static readonly SymbolDisplayFormat SpecialTypeCrefFormat =
+        // When creating items for SpecialTypes (eg. `UInt32`), create an item
+        // that uses the intrinsic type keyword and an item that uses the
+        // name of the special type 
+        public static readonly SymbolDisplayFormat CrefFormatForSpecialTypes =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
@@ -278,10 +281,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, 
             ImmutableDictionary<string, string> options, out CompletionItem item)
         {
+            // If the type is a SpecialType, create an additional item using 
+            // its actual name (as opposed to intrinsic type keyword)
             var typeSymbol = symbol as ITypeSymbol;
             if (typeSymbol.IsSpecialType())
             {
-                item = CreateItem(workspace, semanticModel, symbol, token, position, builder, options, SpecialTypeCrefFormat);
+                item = CreateItem(workspace, semanticModel, symbol, token, position, builder, options, CrefFormatForSpecialTypes);
                 return true;
             }
 
@@ -292,6 +297,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private CompletionItem CreateItem(
             Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder, ImmutableDictionary<string, string> options)
         {
+            // For every symbol, we create an item that uses the regular CrefFormat,
+            // which uses intrinsic type keywords
             return CreateItem(workspace, semanticModel, symbol, token, position, builder, options, CrefFormat);
         }
 
