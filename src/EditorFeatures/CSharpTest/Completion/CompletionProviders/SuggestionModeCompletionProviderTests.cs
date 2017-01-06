@@ -751,6 +751,17 @@ namespace ConsoleApplication1
             await VerifyNotBuilderAsync(markup);
         }
 
+        [WorkItem(16176, "https://github.com/dotnet/roslyn/issues/16176")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotBuilderForLambdaAfterNew()
+        {
+            var markup = @"
+class C {
+	Action a = new $$
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
         {
             await VerifyWorkerAsync(markup, isBuilder: false);

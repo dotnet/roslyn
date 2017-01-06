@@ -110,6 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 
         private bool IsLambdaExpression(SemanticModel semanticModel, int position, SyntaxToken token, ITypeInferenceService typeInferrer, CancellationToken cancellationToken)
         {
+            // Not after `new`
+            if (token.IsKind(SyntaxKind.NewKeyword) && token.Parent.IsKind(SyntaxKind.ObjectCreationExpression))
+            {
+                return false;
+            }
+
             // Typing a generic type parameter, the tree might look like a binary expression around the < token.
             // If we infer a delegate type here (because that's what on the other side of the binop), 
             // ignore it.
