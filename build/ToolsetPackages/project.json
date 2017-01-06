@@ -14,9 +14,9 @@
     "xunit.runner.visualstudio": "2.2.0-beta4-build1194",
     "Roslyn.Build.Util": "0.9.4-portable",
     "RoslynDependencies.OptimizationData": "2.0.0-rc-61101-16",
-    "RoslynTools.Microsoft.LocateVS": "0.2.2-beta",
-    "RoslynTools.Microsoft.SignTool": "0.2.2-beta",
-    "RoslynTools.Microsoft.VSIXExpInstaller": "0.2.2-beta",
+    "RoslynTools.Microsoft.LocateVS": "0.2.4-beta",
+    "RoslynTools.Microsoft.SignTool": "0.3.0-beta",
+    "RoslynTools.Microsoft.VSIXExpInstaller": "0.2.4-beta",
     "GitLink": "2.3.0"
   },
   "frameworks": {
