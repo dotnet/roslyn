@@ -489,7 +489,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 _tracker.SelectedHierarchy.TryGetCanonicalName(_tracker.SelectedItemId, out var ruleSetFileFullPath))
             {
                 string projectDirectoryFullPath = Path.GetDirectoryName(project.FullName);
-                string ruleSetFileRelativePath = FilePathUtilities.GetRelativePath(projectDirectoryFullPath, ruleSetFileFullPath);
+                string ruleSetFileRelativePath = PathUtilities.GetRelativePath(projectDirectoryFullPath, ruleSetFileFullPath);
 
                 UpdateProjectConfigurationsToUseRuleSetFile(project, ruleSetFileRelativePath);
             }
