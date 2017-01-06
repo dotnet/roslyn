@@ -2826,9 +2826,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (dict.Remove(old))
+            if (dict.TryGetValue(old, out TypeSymbol latest))
             {
-                TypeSymbol merged = MergeTupleNames(MergeDynamic(old, @new, _conversions.CorLibrary), @new);
+                dict.Remove(old);
+                TypeSymbol merged = MergeTupleNames(MergeDynamic(latest, @new, _conversions.CorLibrary), @new);
                 dict.Add(merged, merged);
             }
         }

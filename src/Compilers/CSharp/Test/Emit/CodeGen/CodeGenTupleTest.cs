@@ -8194,8 +8194,8 @@ class C
     {
         object o = null;
         dynamic d = null;
-        var doc = (new [] { ((d, o), c: 2) }).ToList();
-        var odc = (new [] { ((o, d), c: 2) }).ToList();
+        var doc = (new [] { ((a: d, b: o), c: 2) }).ToList();
+        var odc = (new [] { ((a: o, b: d), c: 2) }).ToList();
 
         var t1 = Test1(ref doc, odc); // exact bound and lower bound
         var t2 = Test2(doc, ref odc); // lower bound and exact bound
@@ -8216,15 +8216,15 @@ class C
             var names = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
 
             var t1 = names.ElementAt(4);
-            Assert.Equal("System.Collections.Generic.List<((dynamic, dynamic), System.Int32 c)> t1",
+            Assert.Equal("System.Collections.Generic.List<((dynamic a, dynamic b), System.Int32 c)> t1",
                 model.GetDeclaredSymbol(t1).ToTestDisplayString());
 
             var t2 = names.ElementAt(5);
-            Assert.Equal("System.Collections.Generic.List<((dynamic, dynamic), System.Int32 c)> t2",
+            Assert.Equal("System.Collections.Generic.List<((dynamic a, dynamic b), System.Int32 c)> t2",
                 model.GetDeclaredSymbol(t2).ToTestDisplayString());
 
             var t3 = names.ElementAt(6);
-            Assert.Equal("System.Collections.Generic.List<((dynamic, dynamic), System.Int32 c)> t3",
+            Assert.Equal("System.Collections.Generic.List<((dynamic a, dynamic b), System.Int32 c)> t3",
                 model.GetDeclaredSymbol(t3).ToTestDisplayString());
         }
 
@@ -8253,6 +8253,34 @@ class C
                 //         var t1 = Test1(ref ab, cd, 1, de);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("C.Test1<T>(ref T, T, T, T)").WithLocation(10, 18)
                 );
+        }
+
+        [WorkItem(10800, "https://github.com/dotnet/roslyn/issues/10800")]
+        [Fact]
+        public void Inference11WithMoreThanTwoTypes2()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var abc = (a: 1, b: 2, c: 3);
+        var abd = (a: 1, b: 2, d: 3);
+        var byz = (b: 1, y: 2, c: 3);
+
+        var t1 = Test1(ref abc, abd, byz);
+    }
+    static T Test1<T>(ref T x, T y, T z) => x;
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var t1 = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(3);
+            Assert.Equal("(System.Int32, System.Int32, System.Int32) t1", model.GetDeclaredSymbol(t1).ToTestDisplayString());
         }
 
         [Fact]
