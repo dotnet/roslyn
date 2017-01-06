@@ -1826,7 +1826,7 @@ tryAgain:
                 }
                 else
                 {
-                    TypeSyntax firstType = this.ParseDeclarationType(isConstraint: false);
+                    TypeSyntax firstType = this.ParseType();
 
                     list.Add(_syntaxFactory.SimpleBaseType(firstType));
 
@@ -1847,7 +1847,7 @@ tryAgain:
                             }
                             else
                             {
-                                list.Add(_syntaxFactory.SimpleBaseType(this.ParseDeclarationType(isConstraint: false)));
+                                list.Add(_syntaxFactory.SimpleBaseType(this.ParseType()));
                             }
 
                             continue;

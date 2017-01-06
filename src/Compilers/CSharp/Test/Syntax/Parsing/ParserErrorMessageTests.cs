@@ -3251,8 +3251,25 @@ class Program
     }
 }
 ";
-
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadBaseType, "Test1[]"), Diagnostic(ErrorCode.ERR_BadBaseType, "Test1*"));
+            CreateCompilationWithMscorlib(test).GetDeclarationDiagnostics().Verify(
+                // (6,15): error CS1521: Invalid base type
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_BadBaseType, "Test1*").WithLocation(6, 15),
+                // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Test1*").WithLocation(6, 15),
+                // (6,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Test1')
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "Test1*").WithArguments("Test1").WithLocation(6, 15),
+                // (6,15): error CS0527: Type 'Test1*' in interface list is not an interface
+                // class Test3 : Test1*    // CS1521
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Test1*").WithArguments("Test1*").WithLocation(6, 15),
+                // (3,15): error CS1521: Invalid base type
+                // class Test2 : Test1[]   // CS1521
+                Diagnostic(ErrorCode.ERR_BadBaseType, "Test1[]").WithLocation(3, 15),
+                // (3,15): error CS0527: Type 'Test1[]' in interface list is not an interface
+                // class Test2 : Test1[]   // CS1521
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Test1[]").WithArguments("Test1[]").WithLocation(3, 15));
         }
 
         [WorkItem(906299, "DevDiv/Personal")]
