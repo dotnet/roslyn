@@ -237,6 +237,10 @@
     <NuGetPackageToIncludeInVsix Include="System.Xml.XmlDocument" />
     <NuGetPackageToIncludeInVsix Include="System.Xml.XPath.XDocument" />
   </ItemGroup>
+  <ItemGroup>
+    <VSIXSourceItem Include="$(OutputPath)Microsoft.DiaSymReader.Native.amd64.dll" />
+    <VSIXSourceItem Include="$(OutputPath)Microsoft.DiaSymReader.Native.x86.dll" />
+  </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <PropertyGroup>
