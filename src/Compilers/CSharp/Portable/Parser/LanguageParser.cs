@@ -2126,6 +2126,7 @@ tryAgain:
                     case SyntaxKind.IndexerDeclaration:
                     case SyntaxKind.OperatorDeclaration:
                     case SyntaxKind.ConversionOperatorDeclaration:
+                    case SyntaxKind.DestructorDeclaration:
                         return true;
                 }
 
@@ -2141,15 +2142,11 @@ tryAgain:
                     {
                         case SyntaxKind.MethodDeclaration:
                             // can reuse a method as long as it *doesn't* match the type name.
-                            //
-                            // TODO(cyrusn): Relax this in the case of generic methods?
                             var methodDeclaration = (CSharp.Syntax.MethodDeclarationSyntax)member;
                             return methodDeclaration.Identifier.ValueText != typeName;
 
-                        case SyntaxKind.ConstructorDeclaration: // fall through
-                        case SyntaxKind.DestructorDeclaration:
-                            // can reuse constructors or destructors if the name and type name still
-                            // match.
+                        case SyntaxKind.ConstructorDeclaration:
+                            // can reuse constructors if the name and type name still match.
                             return originalTypeDeclaration.Identifier.ValueText == typeName;
                     }
                 }
