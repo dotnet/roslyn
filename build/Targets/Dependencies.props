@@ -24,9 +24,9 @@
     <MicrosoftDiaSymReaderPortablePdbVersion>1.2.0-rc3-61304-09</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftNETCoreRuntimeCoreCLRVersion>1.1.0</MicrosoftNETCoreRuntimeCoreCLRVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
-    <RoslynToolsMicrosoftLocateVSVersion>0.2.2-beta</RoslynToolsMicrosoftLocateVSVersion>
-    <RoslynToolsMicrosoftSignToolVersion>0.2.2-beta</RoslynToolsMicrosoftSignToolVersion>
-    <RoslynToolsMicrosoftVSIXExpInstallerVersion>0.2.2-beta</RoslynToolsMicrosoftVSIXExpInstallerVersion>
+    <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
+    <RoslynToolsMicrosoftSignToolVersion>0.3.0-beta</RoslynToolsMicrosoftSignToolVersion>
+    <RoslynToolsMicrosoftVSIXExpInstallerVersion>0.2.4-beta</RoslynToolsMicrosoftVSIXExpInstallerVersion>
     <SystemAppContextVersion>4.3.0</SystemAppContextVersion>
     <SystemCollectionsVersion>4.3.0</SystemCollectionsVersion>
     <SystemCollectionsConcurrentVersion>4.3.0</SystemCollectionsConcurrentVersion>
