@@ -27360,7 +27360,7 @@ class H
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 AssertContainedInDeclaratorArguments(x1Decl);
-                VerifyModelForOutField(model, x1Decl, x1Ref); // TODO FIX problem with verifying type (which is inferred to int). No member model returned.
+                VerifyModelForOutField(model, x1Decl, x1Ref);
             }
 
             {
@@ -28403,18 +28403,23 @@ public class C
             var discard1 = GetDiscardDesignations(tree).ElementAt(0);
             Assert.Null(model.GetDeclaredSymbol(discard1));
             Assert.Null(model.GetTypeInfo(discard1).Type);
+            Assert.Null(model.GetSymbolInfo(discard1).Symbol);
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
             Assert.Equal("int _", declaration1.ToString());
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration1).Symbol);
 
             var discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
             Assert.Null(model.GetTypeInfo(discard2).Type);
+            Assert.Null(model.GetSymbolInfo(discard2).Symbol);
             var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
             Assert.Equal("var _", declaration2.ToString());
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration2).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
 
             var discard3 = GetDiscardIdentifiers(tree).First();
+            Assert.Null(model.GetDeclaredSymbol(discard3));
             var discard3Symbol = (IDiscardSymbol)model.GetSymbolInfo(discard3).Symbol;
             Assert.Equal("System.Int32", discard3Symbol.Type.ToTestDisplayString());
             Assert.Equal("System.Int32", model.GetTypeInfo(discard3).Type.ToTestDisplayString());
@@ -28482,17 +28487,22 @@ public class C
 
             var discard1 = GetDiscardDesignations(tree).ElementAt(0);
             Assert.Null(model.GetDeclaredSymbol(discard1));
+            Assert.Equal(null, model.GetSymbolInfo(discard1).Symbol);
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
             Assert.Equal("int _", declaration1.ToString());
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
+            Assert.Equal(null, model.GetSymbolInfo(declaration1).Symbol);
 
             var discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
+            Assert.Equal(null, model.GetSymbolInfo(discard2).Symbol);
             var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
             Assert.Equal("var _", declaration2.ToString());
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration2).Type.ToTestDisplayString());
+            Assert.Equal(null, model.GetSymbolInfo(declaration2).Symbol);
 
             var discard3 = GetDiscardIdentifiers(tree).First();
+            Assert.Equal("System.Int32", model.GetTypeInfo(discard3).Type.ToTestDisplayString());
             var discard3Symbol = (IDiscardSymbol)model.GetSymbolInfo(discard3).Symbol;
             Assert.Equal("System.Int32", discard3Symbol.Type.ToTestDisplayString());
         }

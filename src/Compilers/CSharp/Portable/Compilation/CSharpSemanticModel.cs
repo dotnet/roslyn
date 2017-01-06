@@ -117,8 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (node is ExpressionSyntax && (isSpeculative || allowNamedArgumentName || !SyntaxFacts.IsNamedArgumentName(node))) ||
                         (node is ConstructorInitializerSyntax) ||
                         (node is AttributeSyntax) ||
-                        (node is CrefSyntax) ||
-                        (node is DeclarationExpressionSyntax);
+                        (node is CrefSyntax);
             }
         }
 
@@ -536,6 +535,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var symbol = GetDeclaredSymbol((SingleVariableDesignationSyntax)declaration.Designation, cancellationToken);
+                if ((object)symbol == null)
+                {
+                    return SymbolInfo.None;
+                }
                 return new SymbolInfo(symbol);
             }
 

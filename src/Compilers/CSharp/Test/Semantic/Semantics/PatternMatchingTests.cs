@@ -4034,10 +4034,12 @@ public class C
 
             var discard2 = GetDiscardDesignations(tree).Skip(1).First();
             Assert.Null(model.GetDeclaredSymbol(discard2));
+            Assert.Null(model.GetSymbolInfo(discard2).Symbol);
             var declaration2 = (DeclarationPatternSyntax)discard2.Parent;
             Assert.Equal("var _", declaration2.ToString());
             Assert.Null(model.GetTypeInfo(declaration2).Type);
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration2.Type).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
 
             var discard3 = GetDiscardDesignations(tree).Skip(2).First();
             Assert.Null(model.GetDeclaredSymbol(discard3));

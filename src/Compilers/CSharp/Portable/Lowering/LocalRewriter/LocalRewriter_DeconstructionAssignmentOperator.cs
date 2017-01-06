@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private ImmutableArray<BoundExpression> GetAssignmentTargetsAndSideEffects(BoundTupleExpression variables, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores)
         {
-            var assignmentTargets = ArrayBuilder<BoundExpression>.GetInstance();
+            var assignmentTargets = ArrayBuilder<BoundExpression>.GetInstance(variables.Arguments.Length);
 
             variables.VisitAllElements(
                 (variable, args) =>

@@ -2203,10 +2203,60 @@ class C
                 var lhs = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().First();
                 Assert.Equal(@"var (x1, (x2, x3))", lhs.ToString());
                 Assert.Equal("(System.Int32, (System.Int32, System.String))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(lhs).Symbol);
 
                 var lhsNested = tree.GetRoot().DescendantNodes().OfType<ParenthesizedVariableDesignationSyntax>().ElementAt(1);
                 Assert.Equal(@"(x2, x3)", lhsNested.ToString());
                 Assert.Null(model.GetTypeInfo(lhsNested).Type);
+                Assert.Null(model.GetSymbolInfo(lhsNested).Symbol);
+
+                var x1 = GetDeconstructionVariable(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionVariable(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+
+                var x3 = GetDeconstructionVariable(tree, "x3");
+                var x3Ref = GetReference(tree, "x3");
+                VerifyModelForDeconstructionLocal(model, x3, x3Ref);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NestedVarDeconstructionDeclaration2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (var x1, var (x2, x3)) = (1, (2, ""hello""));
+        System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3);
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal("(var x1, var (x2, x3))", lhs.ToString());
+                Assert.Equal("(System.Int32, (System.Int32, System.String))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(lhs).Symbol);
+
+                var lhsNested = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ElementAt(1);
+                Assert.Equal("var (x2, x3)", lhsNested.ToString());
+                Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(lhsNested).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(lhsNested).Symbol);
 
                 var x1 = GetDeconstructionVariable(tree, "x1");
                 var x1Ref = GetReference(tree, "x1");
@@ -4726,12 +4776,14 @@ System.Console.Write($""{x1} {x2} {x3}"");
             var x1Symbol = model.GetDeclaredSymbol(x1);
             var x1Ref = GetReference(tree, "x1");
             Assert.Equal("Script.var Script.x1", x1Symbol.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(x1).Symbol);
             VerifyModelForDeconstructionField(model, x1, x1Ref);
 
             var x3 = GetDeconstructionVariable(tree, "x3");
             var x3Symbol = model.GetDeclaredSymbol(x3);
             var x3Ref = GetReference(tree, "x3");
             Assert.Equal("Script.var Script.x3", x3Symbol.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(x3).Symbol);
             VerifyModelForDeconstructionField(model, x3, x3Ref);
 
             // extra checks on x1's var
@@ -4776,20 +4828,25 @@ class C
 
             var discard1 = GetDiscardDesignations(tree).First();
             Assert.Null(model.GetDeclaredSymbol(discard1));
+            Assert.Null(model.GetSymbolInfo(discard1).Symbol);
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
             Assert.Equal("int _", declaration1.ToString());
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration1).Symbol);
 
             var discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
+            Assert.Null(model.GetSymbolInfo(discard2).Symbol);
             var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
             Assert.Equal("var _", declaration2.ToString());
             Assert.Equal("C", model.GetTypeInfo(declaration2).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
 
             var discard3 = GetDiscardDesignations(tree).ElementAt(2);
             var declaration3 = (DeclarationExpressionSyntax)discard3.Parent.Parent;
             Assert.Equal("var (_, z)", declaration3.ToString());
             Assert.Equal("(C, System.Int32)", model.GetTypeInfo(declaration3).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration3).Symbol);
         }
 
         [Fact]
@@ -4862,7 +4919,8 @@ class C
 
             var discard = GetDiscardIdentifiers(tree).First();
             var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol;
-            Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            Assert.Equal("int _", symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+            Assert.Equal("System.Int32", model.GetTypeInfo(discard).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -4894,7 +4952,8 @@ class C
             var discard = GetDiscardIdentifiers(tree).First();
             Assert.Equal("(_, var x)", discard.Parent.Parent.ToString());
             var symbol = (LocalSymbol)model.GetSymbolInfo(discard).Symbol;
-            Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            Assert.Equal("int _", symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+            Assert.Equal("System.Int32", model.GetTypeInfo(discard).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -4951,7 +5010,7 @@ class C
     static void Main()
     {
         int x;
-        (_, x) = (1, 2);
+        (_, x) = (1L, 2);
         System.Console.Write(x);
     }
 }
@@ -4966,9 +5025,12 @@ class C
 
             var discard1 = GetDiscardIdentifiers(tree).First();
             Assert.Null(model.GetDeclaredSymbol(discard1));
+            Assert.Equal("long _", model.GetSymbolInfo(discard1).Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+
             var tuple1 = (TupleExpressionSyntax)discard1.Parent.Parent;
             Assert.Equal("(_, x)", tuple1.ToString());
-            Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(tuple1).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int64, System.Int32)", model.GetTypeInfo(tuple1).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(tuple1).Symbol);
         }
 
         [Fact]
@@ -5061,16 +5123,18 @@ class C
 
             IdentifierNameSyntax discard2 = GetDiscardIdentifiers(tree).First();
             Assert.Equal("(_, (var y, int z))", discard2.Parent.Parent.ToString());
-            var symbol2 = (IDiscardSymbol)model.GetSymbolInfo(discard2).Symbol;
-            Assert.Equal("System.Int32", symbol2.Type.ToTestDisplayString());
+            Assert.Equal("int _", model.GetSymbolInfo(discard2).Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+            Assert.Equal("System.Int32", model.GetTypeInfo(discard2).Type.ToTestDisplayString());
 
             var yz = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(2);
             Assert.Equal("(var y, int z)", yz.ToString());
             Assert.Equal("(System.String, System.Int32)", model.GetTypeInfo(yz).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(yz).Symbol);
 
             var y = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ElementAt(1);
             Assert.Equal("var y", y.ToString());
             Assert.Equal("System.String", model.GetTypeInfo(y).Type.ToTestDisplayString());
+            Assert.Equal("System.String y", model.GetSymbolInfo(y).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -5533,10 +5597,12 @@ System.Console.Write($""{x3}"");
                 Assert.Null(model.GetDeclaredSymbol(nestedDeclaration));
                 Assert.Null(model.GetDeclaredSymbol(discard2));
                 Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(nestedDeclaration).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(nestedDeclaration).Symbol);
 
                 var tuple = (TupleExpressionSyntax)discard2.Parent.Parent.Parent.Parent;
                 Assert.Equal("(var _, var (_, x3))", tuple.ToString());
                 Assert.Equal("(System.String, (System.Int32, System.Int32))", model.GetTypeInfo(tuple).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(tuple).Symbol);
             };
 
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
@@ -5571,20 +5637,26 @@ class C
             var discard1 = GetDiscardDesignations(tree).First();
             Assert.Null(model.GetDeclaredSymbol(discard1));
             Assert.True(model.GetSymbolInfo(discard1).IsEmpty);
+            Assert.Null(model.GetTypeInfo(discard1).Type); // TODO REVIEW This seems wrong
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
             Assert.Equal("var _", declaration1.ToString());
             Assert.Equal("System.Int64", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration1).Symbol); // TODO REVIEW This seems wrong
 
             var discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));
             Assert.True(model.GetSymbolInfo(discard2).IsEmpty);
+            Assert.Null(model.GetTypeInfo(discard2).Type);
             var declaration2 = (DeclarationExpressionSyntax)discard2.Parent;
             Assert.Equal("int _", declaration2.ToString());
             Assert.Equal("System.Int32", model.GetTypeInfo(declaration2).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
 
             var discard3 = GetDiscardIdentifiers(tree).First();
             Assert.Equal("_", discard3.Parent.ToString());
             Assert.Null(model.GetDeclaredSymbol(discard3));
+            Assert.Equal("System.Int32", model.GetTypeInfo(discard3).Type.ToTestDisplayString());
+            Assert.Equal("int _", model.GetSymbolInfo(discard3).Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
             var discard3Symbol = (IDiscardSymbol)model.GetSymbolInfo(discard3).Symbol;
             Assert.Equal("System.Int32", discard3Symbol.Type.ToTestDisplayString());
             Assert.Equal("System.Int32", model.GetTypeInfo(discard3).Type.ToTestDisplayString());
@@ -5597,6 +5669,7 @@ class C
             var nestedDeclaration = (DeclarationExpressionSyntax)discard4.Parent.Parent;
             Assert.Equal("var (_, _)", nestedDeclaration.ToString());
             Assert.Equal("(System.String, System.Int32)", model.GetTypeInfo(nestedDeclaration).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(nestedDeclaration).Symbol);
         }
 
         [Fact]
