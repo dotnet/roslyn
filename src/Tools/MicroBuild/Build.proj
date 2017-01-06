@@ -28,7 +28,6 @@
 
     <Exec Command="$(NuGetPackageRoot)\GitLink\$(GitLinkVersion)\lib\net45\GitLink.exe $(ProjectDir) -u https://github.com/dotnet/roslyn -f Roslyn.sln -c $(Configuration)" />
 
-    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\check-nuspec.ps1 &quot;$(MSBuildThisFileDirectory)..\..\..&quot; &quot;$(BinariesPath)&quot;" />
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\create-perftests.ps1 &quot;$(BinariesPath)&quot;" />
 
     <MSBuild Projects="$(ProjectDir)src\Setup\SetupStep1.proj" Properties="DeployExtension=false" />
@@ -40,6 +39,8 @@
 
     <MSBuild Projects="$(ProjectDir)BuildAndTest.proj" Targets="Test" Condition="'$(SkipTest)' != 'true'" />
 
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\check-toolset-insertion.ps1 &quot;$(MSBuildThisFileDirectory)..\..\..&quot; &quot;$(BinariesPath)&quot;" />
+    
     <!-- Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green
          and ready to be inserted -->
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)write-test-sentinel-file.ps1 -binariesPath &quot;$(BinariesPath)&quot;" />

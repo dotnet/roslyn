@@ -119,6 +119,7 @@
     <Compile Include="Emit\DynamicAnalysis\DynamicInstrumentationTests.vb" />
     <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueClosureTests.vb" />
+    <Compile Include="Emit\EditAndContinue\EditAndContinuePdbTests.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueStateMachineTests.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.vb" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTests.vb" />

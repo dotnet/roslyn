@@ -3347,6 +3347,170 @@ class Program
             VerifyOutput(src, "DECBADECBADECBADECBADECBA");
         }
 
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction6()
+        {
+            var src = @"
+using System;
+class C<T1>
+{
+    T1 t1;
+
+    public C(T1 t1)
+    {
+        this.t1 = t1;
+    }
+
+    public void M<T2>(T2 t2)
+    {
+        void L1<T3>(T3 t3)
+        {
+            void L2<T4>(T4 t4)
+            {
+                void L3<U>(U u, int count)
+                {
+                    if (count > 0)
+                    {
+                        Console.Write(t1);
+                        Console.Write(t2);
+                        Console.Write(t3);
+                        Console.Write(t4);
+                        Console.Write(u);
+                        var a = new Action<U, int>(L3);
+                        a(u, count - 1);
+                    }
+                }
+                var b = new Action<string, int>(L3);
+                b(""A"", 5);
+            }
+            var c = new Action<string>(L2);
+            c(""B"");
+        }
+        var d = new Action<string>(L1);
+        d(""C"");
+    }
+
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var c = new C<string>(""D"");
+        c.M(""E"");
+    }
+}";
+            VerifyOutput(src, "DECBADECBADECBADECBADECBA");
+        }
+
+        [Fact]
+        [WorkItem(15751, "https://github.com/dotnet/roslyn/issues/15751")]
+        public void RecursiveGenericLocalFunction7()
+        {
+            var src = @"
+using System;
+class C<T1>
+{
+    T1 t1;
+
+    public C(T1 t1)
+    {
+        this.t1 = t1;
+    }
+
+    public void M<T2>(T2 t2)
+    {
+        void L1<T3>(T3 t3)
+        {
+            void L2<T4>(T4 t4)
+            {
+                void L3<U>(U u, int count)
+                {
+                    if (count > 0)
+                    {
+                        Console.Write(t1);
+                        Console.Write(t2);
+                        Console.Write(t3);
+                        Console.Write(t4);
+                        Console.Write(u);
+                        var a = (Action<U, int>)(L3);
+                        a(u, count - 1);
+                    }
+                }
+                var b = (Action<string, int>)(L3);
+                b(""A"", 5);
+            }
+            var c = (Action<string>)(L2);
+            c(""B"");
+        }
+        var d = (Action<string>)(L1);
+        d(""C"");
+    }
+
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var c = new C<string>(""D"");
+        c.M(""E"");
+    }
+}";
+            VerifyOutput(src, "DECBADECBADECBADECBADECBA");
+        }
+
+        [Fact]
+        [WorkItem(16038, "https://github.com/dotnet/roslyn/issues/16038")]
+        public void RecursiveGenericLocalFunction8()
+        {
+            var src = @"
+using System;
+class C<T0>
+{
+    T0 t0;
+
+    public C(T0 t0)
+    {
+        this.t0 = t0;
+    }
+
+    public void M<T1>(T1 t1)
+    {
+        (T0, T1, T2) L1<T2>(T2 t2)
+        {
+            (T0, T1, T2, T3) L2<T3>(T3 t3, int count)
+            {
+                if (count > 0)
+                {
+                    Console.Write(t0);
+                    Console.Write(t1);
+                    Console.Write(t2);
+                    Console.Write(t3);
+                    return L2(t3, count - 1);
+                }
+                return (t0, t1, t2, t3);
+            }
+            var (t4, t5, t6, t7) = L2(""A"", 5);
+            return (t4, t5, t6);
+        }
+        L1(""B"");
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+        var c = new C<string>(""C"");
+        c.M(""D"");
+    }
+}";
+            CompileAndVerify(src, expectedOutput: "CDBACDBACDBACDBACDBA",
+                additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+        }
+
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options);

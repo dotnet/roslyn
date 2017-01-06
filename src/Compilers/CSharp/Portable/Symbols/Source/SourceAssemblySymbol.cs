@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<PEModule> netModules)
         {
             Debug.Assert(compilation != null);
-            Debug.Assert(!String.IsNullOrWhiteSpace(assemblySimpleName));
+            Debug.Assert(assemblySimpleName != null);
             Debug.Assert(!String.IsNullOrWhiteSpace(moduleName));
             Debug.Assert(!netModules.IsDefault);
 

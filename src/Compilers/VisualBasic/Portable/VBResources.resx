@@ -4844,8 +4844,8 @@
   <data name="ERR_NetModuleNameMismatch" xml:space="preserve">
     <value>Module name '{0}' stored in '{1}' must match its filename.</value>
   </data>
-  <data name="ERR_BadCompilationOption" xml:space="preserve">
-    <value>{0}</value>
+  <data name="ERR_BadModuleName" xml:space="preserve">
+    <value>Invalid module name: {0}</value>
   </data>
   <data name="WRN_AssemblyAttributeFromModuleIsOverridden" xml:space="preserve">
     <value>Attribute '{0}' from module '{1}' will be ignored in favor of the instance appearing in source.</value>
@@ -5457,5 +5457,8 @@
   </data>
   <data name="ERR_DocFileGen" xml:space="preserve">
     <value>Error writing to XML documentation file: {0}</value>
+  </data>
+  <data name="ERR_BadAssemblyName" xml:space="preserve">
+    <value>Invalid assembly name: {0}</value>
   </data>
 </root>

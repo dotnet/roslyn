@@ -890,12 +890,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Method.MethodKind == MethodKind.LocalFunction)
             {
-                var rewrittenArguments = this.VisitList(node.Arguments);
-
                 var withArguments = node.Update(
                     node.ReceiverOpt,
                     node.Method,
-                    rewrittenArguments,
+                    this.VisitList(node.Arguments),
                     node.ArgumentNamesOpt,
                     node.ArgumentRefKindsOpt,
                     node.IsDelegateCall,
@@ -903,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.InvokedAsExtensionMethod,
                     node.ArgsToParamsOpt,
                     node.ResultKind,
-                    node.Type);
+                    this.VisitType(node.Type));
 
                 return PartiallyLowerLocalFunctionReference(withArguments);
             }
@@ -1147,7 +1145,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
             {
-                return PartiallyLowerLocalFunctionReference(node);
+                var rewritten = node.Update(
+                    node.Argument,
+                    node.MethodOpt,
+                    node.IsExtensionMethod,
+                    this.VisitType(node.Type));
+
+                return PartiallyLowerLocalFunctionReference(rewritten);
             }
             return base.VisitDelegateCreationExpression(node);
         }
@@ -1177,7 +1181,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.ConversionKind == ConversionKind.MethodGroup &&
                 conversion.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
             {
-                return PartiallyLowerLocalFunctionReference(conversion);
+                var rewritten = conversion.Update(
+                    conversion.Operand,
+                    conversion.Conversion,
+                    conversion.IsBaseConversion,
+                    conversion.Checked,
+                    conversion.ExplicitCastInCode,
+                    conversion.ConstantValueOpt,
+                    this.VisitType(conversion.Type));
+
+                return PartiallyLowerLocalFunctionReference(rewritten);
             }
             return base.VisitConversion(conversion);
         }

@@ -648,5 +648,42 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(16158, "https://github.com/dotnet/roslyn/issues/16158")]
+        public async Task TestIncorrectAddName()
+        {
+            await TestAsync(
+@"using System.Collections.Generic;
+
+public class Foo
+{
+    public static void Bar()
+    {
+        string item = null;
+        var items = new List<string>();
+
+        var values = new [||]List<string>(); // Collection initialization can be simplified
+        values.Add(item);
+        values.AddRange(items);
+    }
+}",
+@"using System.Collections.Generic;
+
+public class Foo
+{
+    public static void Bar()
+    {
+        string item = null;
+        var items = new List<string>();
+
+        var values = new List<string>
+        {
+            item
+        }; // Collection initialization can be simplified
+        values.AddRange(items);
+    }
+}");
+        }
     }
 }
