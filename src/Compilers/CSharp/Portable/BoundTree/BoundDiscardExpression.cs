@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                Debug.Assert((object)this.Type != null);
                 return new DiscardSymbol(this.Type);
             }
         }

@@ -534,32 +534,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundTupleLiteral DeconstructVariablesAsTuple(SyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables)
         {
             int count = variables.Count;
-            var argBuilder = ArrayBuilder<BoundExpression>.GetInstance(count);
-            var elementsBuilder = ArrayBuilder<TypeSymbol>.GetInstance(count);
+            var valuesBuilder = ArrayBuilder<BoundExpression>.GetInstance(count);
+            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(count);
             var locationsBuilder = ArrayBuilder<Location>.GetInstance(count);
             foreach (var variable in variables)
             {
                 if (variable.HasNestedVariables)
                 {
                     var nestedTuple = DeconstructVariablesAsTuple(variable.Syntax, variable.NestedVariables);
-                    argBuilder.Add(nestedTuple);
-                    elementsBuilder.Add(nestedTuple.Type);
+                    valuesBuilder.Add(nestedTuple);
+                    typesBuilder.Add(nestedTuple.Type);
                 }
                 else
                 {
                     var single = variable.Single;
-                    argBuilder.Add(single);
-                    elementsBuilder.Add(single.Type);
+                    valuesBuilder.Add(single);
+                    typesBuilder.Add(single.Type);
                 }
                 locationsBuilder.Add(variable.Syntax.Location);
             }
 
+            // MakeDeconstructionConstructionStep constructs the final tuple type and checks constraints already.
             var type = TupleTypeSymbol.Create(syntax.Location,
-                elementsBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
+                typesBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
                 elementNames: default(ImmutableArray<string>), compilation: this.Compilation, shouldCheckConstraints: false);
 
             return new BoundTupleLiteral(syntax: syntax, argumentNamesOpt: default(ImmutableArray<string>),
-                arguments: argBuilder.ToImmutableAndFree(), type: type);
+                arguments: valuesBuilder.ToImmutableAndFree(), type: type);
         }
 
         /// <summary>

@@ -638,24 +638,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Applies action to all the nested elements of this tuple.
         /// </summary>
-        internal void VisitAllElements(Action<BoundExpression> action)
-        {
-            foreach (var argument in this.Arguments)
-            {
-                if (argument.Kind == BoundKind.TupleLiteral)
-                {
-                    ((BoundTupleExpression)argument).VisitAllElements(action);
-                }
-                else
-                {
-                    action(argument);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Applies action to all the nested elements of this tuple.
-        /// </summary>
         internal void VisitAllElements<T>(Action<BoundExpression, T> action, T args)
         {
             foreach (var argument in this.Arguments)

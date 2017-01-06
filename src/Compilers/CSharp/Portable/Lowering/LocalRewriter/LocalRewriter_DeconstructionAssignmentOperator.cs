@@ -165,10 +165,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        args.targets.Add(this.TransformCompoundAssignmentLHS(variable, args.stores, args.temps, isDynamicAssignment: variable.Type.IsDynamic()));
+                        args.targets.Add(args.self.TransformCompoundAssignmentLHS(variable, args.stores, args.temps, isDynamicAssignment: variable.Type.IsDynamic()));
                     }
                 },
-                (temps: temps, stores: stores, targets: assignmentTargets)
+                (temps: temps, stores: stores, targets: assignmentTargets, self: this)
             );
 
             return assignmentTargets.ToImmutableAndFree();
