@@ -3611,6 +3611,10 @@ parse_member_name:;
                         accessorName = this.AddError(accessorName,
                             isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
                     }
+                    else
+                    {
+                        Debug.Assert(accessorName.ContainsDiagnostics);
+                    }
                 }
                 else
                 {
