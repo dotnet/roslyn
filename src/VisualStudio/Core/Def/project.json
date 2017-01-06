@@ -31,7 +31,7 @@
     "Microsoft.VisualStudio.TextManager.Interop.12.0": "12.0.30110",
     "Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime": "12.1.30328",
     "Microsoft.VisualStudio.Designer.Interfaces": "1.1.4322",
-    "Microsoft.DiaSymReader": "1.1.0-beta1-60818-02",
+    "Microsoft.DiaSymReader": "1.1.0-rc3-61303-01",
     "Microsoft.MSXML": "8.0.0.0-alpha",
     "Microsoft.Build": "14.3.0",
     "VSLangProj": "7.0.3300-alpha",

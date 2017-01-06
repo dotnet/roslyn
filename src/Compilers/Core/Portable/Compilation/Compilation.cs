@@ -2481,10 +2481,13 @@ namespace Microsoft.CodeAnalysis
             Func<object> testSymWriterFactory,
             CancellationToken cancellationToken)
         {
-            using (var pdbWriter = new Cci.PdbWriter(
-                moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
-                testSymWriterFactory,
-                deterministic: false))
+            var nativePdbWriterOpt = (moduleBeingBuilt.EmitOptions.DebugInformationFormat != DebugInformationFormat.Pdb) ? null :
+                new Cci.PdbWriter(
+                    moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
+                    testSymWriterFactory,
+                    deterministic: false);
+
+            using (nativePdbWriterOpt)
             {
                 var context = new EmitContext(moduleBeingBuilt, null, diagnostics);
                 var encId = Guid.NewGuid();
@@ -2500,11 +2503,16 @@ namespace Microsoft.CodeAnalysis
                         changes,
                         cancellationToken);
 
-                    MetadataSizes metadataSizes;
-                    writer.WriteMetadataAndIL(pdbWriter, metadataStream, ilStream, out metadataSizes);
+                    writer.WriteMetadataAndIL(
+                        nativePdbWriterOpt,
+                        metadataStream, 
+                        ilStream, 
+                        (nativePdbWriterOpt == null) ? pdbStream : null,
+                        out MetadataSizes metadataSizes);
+
                     writer.GetMethodTokens(updatedMethods);
 
-                    pdbWriter.WriteTo(pdbStream);
+                    nativePdbWriterOpt?.WriteTo(pdbStream);
 
                     return diagnostics.HasAnyErrors() ? null : writer.GetDelta(baseline, this, encId, metadataSizes);
                 }
