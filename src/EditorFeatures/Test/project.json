@@ -1,8 +1,9 @@
 ﻿{
   "dependencies": {
     "BasicUndo": "0.9.3",
-    "Microsoft.VisualStudio.Composition": "14.2.19-pre",
-    "RoslynDependencies.Microsoft.VisualStudio.Platform.VSEditor": "14.3.25407",
+    "Microsoft.VisualStudio.Composition": "15.0.66-rc",
+    "Microsoft.VisualStudio.Platform.VSEditor": "15.0.26014-alpha",
+    "Microsoft.VisualStudio.Platform.VSEditor.Interop": "15.0.26014-alpha",
     "BasicUndo": "0.9.3",
     "Microsoft.VisualStudio.InteractiveWindow": "2.0.0-beta5-60820-04",
     "Microsoft.VisualStudio.Language.Intellisense": "15.0.26014-alpha",

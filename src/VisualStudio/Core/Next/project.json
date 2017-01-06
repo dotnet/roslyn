@@ -18,18 +18,18 @@
     "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": "14.3.25407",
     "Microsoft.ServiceHub.Client": "1.0.177-rc-g56d40a8a02",
     "Newtonsoft.Json": "8.0.3",
-    "RoslynDependencies.Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime": "15.0.25718-Preview5",
+    "Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime": "15.0.26014-alpha",
     "RoslynDependencies.Microsoft.VisualStudio.Workspace": "14.0.983-pre-ge167e81694",
     "System.Collections.Immutable": "1.3.1",
     "System.Threading.Tasks.Dataflow": "4.5.24",
     "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.25802-alpha",
-    "Microsoft.VisualStudio.Shell.15.0": "15.0.25726-Preview5",
+    "Microsoft.VisualStudio.Shell.15.0": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Shell.Immutable.10.0": {
-        "version": "15.0.25413-Preview5",
+        "version": "15.0.26014-alpha",
         "include": "runtime"
     },
     "Microsoft.VisualStudio.Shell.Immutable.14.0": {
-        "version": "15.0.25403-Preview5",
+        "version": "15.0.26014-alpha",
         "include": "runtime"
     },
     "Microsoft.VisualStudio.Shell.14.0": {
