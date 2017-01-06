@@ -5120,10 +5120,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "_").WithArguments("string", "int").WithLocation(11, 30),
                 // (11,22): error CS8186: A foreach loop must declare its iteration variables.
                 //             foreach ((var y, _) in new[] { (1, "hello") }) { System.Console.Write("4"); } // error
-                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(var y, _)").WithLocation(11, 22),
-                // (10,17): warning CS0168: The variable '_' is declared but never used
-                //             int _;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_").WithArguments("_").WithLocation(10, 17)
+                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(var y, _)").WithLocation(11, 22)
                 );
         }
 
@@ -6067,5 +6064,46 @@ class Program
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "10");
         }
+
+        [Fact]
+        [WorkItem(16106, "https://github.com/dotnet/roslyn/issues/16106")]
+        public void DefAssignmentsStruct001()
+        {
+            string source = @"
+
+        using System.Collections.Generic;
+
+        public class MyClass
+        {
+            public static void Main()
+            {
+                ((int, int), string)[] arr = new((int, int), string)[1];
+
+                Test5(arr);
+            }
+
+            public static void Test4(IEnumerable<(KeyValuePair<int, int>, string)> en)
+            {
+                foreach ((KeyValuePair<int, int> t, string s) in en)
+                {
+                    var a = t.Key; // false error CS0170: Use of possibly unassigned field
+                }
+            }
+
+            public static void Test5(IEnumerable<((int, int), string)> en)
+            {
+                foreach (((int, int k) t, string s) in en)
+                {
+                    var a = t.k; // false error CS0170: Use of possibly unassigned field
+                    System.Console.WriteLine(a);
+                }
+            }
+        }";
+
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "0");
+        }
+
     }
 }
