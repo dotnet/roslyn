@@ -7715,10 +7715,9 @@ tryAgain:
                     this.ParseForStatementExpressionList(ref semi2, incrementors);
                 }
 
-                return _syntaxFactory.ForStatement(
-                    forToken, openParen, decl, initializers, semi, condition, semi2, incrementors,
-                    this.EatToken(SyntaxKind.CloseParenToken),
-                    ParseEmbeddedStatement());
+                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+                var statement = ParseEmbeddedStatement();
+                return _syntaxFactory.ForStatement(forToken, openParen, decl, initializers, semi, condition, semi2, incrementors, closeParen, statement);
             }
             finally
             {
@@ -7897,33 +7896,37 @@ tryAgain:
         private IfStatementSyntax ParseIfStatement()
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword);
-            return _syntaxFactory.IfStatement(
-                this.EatToken(SyntaxKind.IfKeyword),
-                this.EatToken(SyntaxKind.OpenParenToken),
-                this.ParseExpressionCore(),
-                this.EatToken(SyntaxKind.CloseParenToken),
-                this.ParseEmbeddedStatement(),
-                ParseElseClauseOpt());
+            var @if = this.EatToken(SyntaxKind.IfKeyword);
+            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+            var condition = this.ParseExpressionCore();
+            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+            var statement = this.ParseEmbeddedStatement();
+            var elseClause = ParseElseClauseOpt();
+
+            return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, elseClause);
         }
 
         private ElseClauseSyntax ParseElseClauseOpt()
         {
-            return this.CurrentToken.Kind != SyntaxKind.ElseKeyword
-                ? null
-                : _syntaxFactory.ElseClause(
-                    this.EatToken(SyntaxKind.ElseKeyword),
-                    this.ParseEmbeddedStatement());
+           if (this.CurrentToken.Kind != SyntaxKind.ElseKeyword)
+            {
+                return null;
+            }
+
+            var elseToken = this.EatToken(SyntaxKind.ElseKeyword);
+            var elseStatement = this.ParseEmbeddedStatement();
+            return _syntaxFactory.ElseClause(elseToken, elseStatement);
         }
 
         private LockStatementSyntax ParseLockStatement()
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.LockKeyword);
-            return _syntaxFactory.LockStatement(
-                this.EatToken(SyntaxKind.LockKeyword),
-                this.EatToken(SyntaxKind.OpenParenToken),
-                this.ParseExpressionCore(),
-                this.EatToken(SyntaxKind.CloseParenToken),
-                this.ParseEmbeddedStatement());
+            var @lock = this.EatToken(SyntaxKind.LockKeyword);
+            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+            var expression = this.ParseExpressionCore();
+            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+            var statement = this.ParseEmbeddedStatement();
+            return _syntaxFactory.LockStatement(@lock, openParen, expression, closeParen, statement);
         }
 
         private ReturnStatementSyntax ParseReturnStatement()
@@ -8120,10 +8123,10 @@ tryAgain:
             ParseUsingExpression(ref declaration, ref expression, ref resetPoint);
             this.Release(ref resetPoint);
 
-            return _syntaxFactory.UsingStatement(
-                @using, openParen, declaration, expression, 
-                this.EatToken(SyntaxKind.CloseParenToken),
-                this.ParseEmbeddedStatement());
+            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+            var statement = this.ParseEmbeddedStatement();
+
+            return _syntaxFactory.UsingStatement(@using, openParen, declaration, expression, closeParen, statement);
         }
 
         private void ParseUsingExpression(ref VariableDeclarationSyntax declaration, ref ExpressionSyntax expression, ref ResetPoint resetPoint)
@@ -8223,12 +8226,12 @@ tryAgain:
         private WhileStatementSyntax ParseWhileStatement()
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.WhileKeyword);
-            return _syntaxFactory.WhileStatement(
-                this.EatToken(SyntaxKind.WhileKeyword),
-                this.EatToken(SyntaxKind.OpenParenToken),
-                this.ParseExpressionCore(),
-                this.EatToken(SyntaxKind.CloseParenToken),
-                this.ParseEmbeddedStatement());
+            var @while = this.EatToken(SyntaxKind.WhileKeyword);
+            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+            var condition = this.ParseExpressionCore();
+            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+            var statement = this.ParseEmbeddedStatement();
+            return _syntaxFactory.WhileStatement(@while, openParen, condition, closeParen, statement);
         }
 
         private LabeledStatementSyntax ParseLabeledStatement()
