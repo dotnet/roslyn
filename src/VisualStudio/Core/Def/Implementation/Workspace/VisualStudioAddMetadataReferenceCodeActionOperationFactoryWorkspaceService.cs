@@ -71,12 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             public override string Title
-            {
-                get
-                {
-                    return string.Format(ServicesVSResources.Add_a_reference_to_0, _assemblyIdentity.GetDisplayName());
-                }
-            }
+                => string.Format(ServicesVSResources.Add_a_reference_to_0, _assemblyIdentity.GetDisplayName());
         }
     }
 }
