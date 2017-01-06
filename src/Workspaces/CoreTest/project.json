@@ -3,7 +3,8 @@
     "xunit": "2.2.0-beta4-build3444",
     "xunit.runner.console": "2.2.0-beta4-build3444",
     "xunit.runner.visualstudio": "2.2.0-beta4-build1194",
-    "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2"
+    "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",
+    "System.Threading.Tasks.Dataflow": "4.5.24"
   },
   "frameworks": {
     "net46": { }

@@ -26,7 +26,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         static IntegrationTests()
         {
             s_msbuildDirectory = TestHelpers.GetMSBuildDirectory();
-            s_msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
+            if (s_msbuildExecutable != null)
+            {
+                s_msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
+            }
         }
 
         private readonly TempDirectory _tempDirectory;
@@ -604,7 +607,7 @@ End Class
 "}
             };
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
         public void ReportAnalyzerMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
