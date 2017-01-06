@@ -136,15 +136,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If the well-known member does Not exist in the compilation then no attribute
         ''' will be synthesized.
         ''' </param>
+        ''' <param name="isOptionalUse">
+        ''' Indicates if this particular attribute application should be considered optional.
+        ''' </param>
         Friend Function TrySynthesizeAttribute(
             constructor As WellKnownMember,
             Optional arguments As ImmutableArray(Of TypedConstant) = Nothing,
-            Optional namedArguments As ImmutableArray(Of KeyValuePair(Of WellKnownMember, TypedConstant)) = Nothing) As SynthesizedAttributeData
+            Optional namedArguments As ImmutableArray(Of KeyValuePair(Of WellKnownMember, TypedConstant)) = Nothing,
+            Optional isOptionalUse As Boolean = False
+        ) As SynthesizedAttributeData
 
             Dim constructorSymbol = TryCast(GetWellKnownTypeMember(constructor), MethodSymbol)
             If constructorSymbol Is Nothing OrElse
                Binder.GetUseSiteErrorForWellKnownTypeMember(constructorSymbol, constructor, False) IsNot Nothing Then
-                Return ReturnNothingOrThrowIfAttributeNonOptional(constructor)
+                Return ReturnNothingOrThrowIfAttributeNonOptional(constructor, isOptionalUse)
             End If
 
             If arguments.IsDefault Then
@@ -172,8 +177,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New SynthesizedAttributeData(constructorSymbol, arguments, namedStringArguments)
         End Function
 
-        Private Function ReturnNothingOrThrowIfAttributeNonOptional(constructor As WellKnownMember) As SynthesizedAttributeData
-            If WellKnownMembers.IsSynthesizedAttributeOptional(constructor) Then
+        Private Function ReturnNothingOrThrowIfAttributeNonOptional(constructor As WellKnownMember, Optional isOptionalUse As Boolean = False) As SynthesizedAttributeData
+            If isOptionalUse OrElse WellKnownMembers.IsSynthesizedAttributeOptional(constructor) Then
                 Return Nothing
             Else
                 Throw ExceptionUtilities.Unreachable
