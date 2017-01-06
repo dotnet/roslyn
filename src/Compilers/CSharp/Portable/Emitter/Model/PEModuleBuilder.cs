@@ -557,7 +557,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // (type, index of the parent exported type in builder, or -1 if the type is a top-level type)
                 var stack = ArrayBuilder<(NamedTypeSymbol type, int parentIndex)>.GetInstance();
 
-                foreach (NamedTypeSymbol forwardedType in wellKnownAttributeData.ForwardedTypes)
+                // Hashset enumeration is not guaranteed to be deterministic. Emitting in the order of fully qualified names.
+                var orderedForwardedTypes = wellKnownAttributeData.ForwardedTypes.OrderBy(t => t.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
+
+                foreach (NamedTypeSymbol forwardedType in orderedForwardedTypes)
                 {
                     NamedTypeSymbol originalDefinition = forwardedType.OriginalDefinition;
                     Debug.Assert((object)originalDefinition.ContainingType == null, "How did a nested type get forwarded?");
