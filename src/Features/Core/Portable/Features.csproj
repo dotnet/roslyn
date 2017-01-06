@@ -363,7 +363,6 @@
     <Compile Include="Diagnostics\BuildToolId.cs" />
     <Compile Include="Diagnostics\HostAnalyzerManager.cs" />
     <Compile Include="Diagnostics\Analyzers\IDEDiagnosticIds.cs" />
-    <Compile Include="Diagnostics\BaseDiagnosticIncrementalAnalyzer.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.cs" />
     <Compile Include="Diagnostics\Log\DiagnosticAnalyzerLogger.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService.cs" />
