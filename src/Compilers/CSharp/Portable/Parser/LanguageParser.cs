@@ -3601,7 +3601,12 @@ parse_member_name:;
                 // and will be invalid.
                 if (accessorKind == SyntaxKind.UnknownAccessorDeclaration)
                 {
-                    if (!accessorName.ContainsDiagnostics)
+                    // We'll have an UnknownAccessorDeclaration either because we didn't have
+                    // an IdentifierToken or because we have an IdentifierToken which is not
+                    // add/remove/get/set.  In the former case, we'll already have reported
+                    // an error and will have a missing token.  But in the latter case we need 
+                    // to report that the identifier is incorrect.
+                    if (!accessorName.IsMissing)
                     {
                         accessorName = this.AddError(accessorName,
                             isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
