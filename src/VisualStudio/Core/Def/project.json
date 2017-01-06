@@ -32,7 +32,12 @@
     "Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime": "12.1.30328",
     "Microsoft.VisualStudio.Designer.Interfaces": "1.1.4322",
     "Microsoft.DiaSymReader": "1.1.0-beta1-60818-02",
+    "Microsoft.MSXML": "8.0.0.0-alpha",
     "Microsoft.Build": "14.3.0",
+    "VSLangProj": "7.0.3300-alpha",
+    "VSLangProj80": "8.0.0.0-alpha",
+    "VSLangProj140": "14.3.25407-alpha",
+    "VsWebsite.Interop": "8.0.0.0-alpha",
     "NuGet.VisualStudio": "4.0.0-rc-2048",
   },
   "frameworks": {
