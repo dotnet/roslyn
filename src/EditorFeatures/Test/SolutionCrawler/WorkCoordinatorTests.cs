@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 // create solution and wait for it to settle
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
 
                 var worker = await ExecuteOperation(workspace, w => w.OnSolutionAdded(solution));
                 Assert.Equal(10, worker.SyntaxDocumentIds.Count);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solutionInfo = GetInitialSolutionInfo(workspace);
+                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solutionInfo = GetInitialSolutionInfo(workspace);
+                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solutionInfo = GetInitialSolutionInfo(workspace);
+                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solutionInfo = GetInitialSolutionInfo(workspace);
+                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solutionInfo = GetInitialSolutionInfo(workspace);
+                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
-                var solution = GetInitialSolutionInfo(workspace);
+                var solution = GetInitialSolutionInfo_2Projects_10Documents(workspace);
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -948,7 +948,7 @@ End Class";
             return solution;
         }
 
-        private static SolutionInfo GetInitialSolutionInfo(TestWorkspace workspace)
+        private static SolutionInfo GetInitialSolutionInfo_2Projects_10Documents(TestWorkspace workspace)
         {
             var projectId1 = ProjectId.CreateNewId();
             var projectId2 = ProjectId.CreateNewId();
