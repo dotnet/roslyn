@@ -2475,7 +2475,6 @@ abstract Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.StartQuoteToken
 override Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.GetHashCode() -> int
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ContainsSymbolsWithName(System.Func<string, bool> predicate, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CreateErrorTypeSymbol(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol container, string name, int arity) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.DirectiveReferences.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference>
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetDeclarationDiagnostics(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetDiagnostics(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
