@@ -1621,5 +1621,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             expression = memberAccess.Expression
             name = memberAccess.Name
         End Sub
+
+        Public Function IsWhitespaceTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsWhitespaceTrivia
+            Return trivia.IsWhitespace()
+        End Function
+
+        Public Function IsEndOfLineTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsEndOfLineTrivia
+            Return trivia.IsEndOfLine()
+        End Function
     End Class
 End Namespace
