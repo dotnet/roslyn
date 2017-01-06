@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             var requiredModifiers = GetSymbolsRequiredModifiers(symbolSpecName, conventionsDictionary);
 
             symbolSpec = new SymbolSpecification(
+                null,
                 symbolSpecName,
                 symbolKindList: applicableKinds,
                 accessibilityList: applicableAccessibilities,

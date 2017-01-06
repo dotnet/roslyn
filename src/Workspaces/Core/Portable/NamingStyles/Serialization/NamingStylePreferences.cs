@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Simplification;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -17,24 +16,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     /// </summary>
     internal class NamingStylePreferences : IEquatable<NamingStylePreferences>
     {
-        public List<SymbolSpecification> SymbolSpecifications;
-        public List<NamingStyle> NamingStyles;
-        public List<SerializableNamingRule> NamingRules;
         private readonly static int s_serializationVersion = 3;
 
+        public readonly ImmutableArray<SymbolSpecification> SymbolSpecifications;
+        public readonly ImmutableArray<NamingStyle> NamingStyles;
+        public readonly ImmutableArray<SerializableNamingRule> NamingRules;
 
-        internal NamingStylePreferences(List<SymbolSpecification> symbolSpecifications, List<NamingStyle> namingStyles, List<SerializableNamingRule> namingRules)
+        private readonly Lazy<NamingStyleRules> _lazyRules;
+
+        internal NamingStylePreferences(
+            ImmutableArray<SymbolSpecification> symbolSpecifications,
+            ImmutableArray<NamingStyle> namingStyles,
+            ImmutableArray<SerializableNamingRule> namingRules)
         {
             SymbolSpecifications = symbolSpecifications;
             NamingStyles = namingStyles;
             NamingRules = namingRules;
-        }
 
-        internal NamingStylePreferences()
-        {
-            SymbolSpecifications = new List<SymbolSpecification>();
-            NamingStyles = new List<NamingStyle>();
-            NamingRules = new List<SerializableNamingRule>();
+            _lazyRules = new Lazy<NamingStyleRules>(CreateRules, isThreadSafe: true);
         }
 
         public static NamingStylePreferences Default => FromXElement(XElement.Parse(DefaultNamingPreferencesString));
@@ -42,104 +41,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public static string DefaultNamingPreferencesString => _defaultNamingPreferencesString;
 
         internal NamingStyle GetNamingStyle(Guid namingStyleID)
-        {
-            return NamingStyles.Single(s => s.ID == namingStyleID);
-        }
+            => NamingStyles.Single(s => s.ID == namingStyleID);
 
         internal SymbolSpecification GetSymbolSpecification(Guid symbolSpecificationID)
-        {
-            return SymbolSpecifications.Single(s => s.ID == symbolSpecificationID);
-        }
+            => SymbolSpecifications.Single(s => s.ID == symbolSpecificationID);
 
-        public NamingStyleRules GetNamingStyleRules()
-        {
-            return new NamingStyleRules(NamingRules.Select(r => r.GetRule(this)).ToImmutableArray());
-        }
+        public NamingStyleRules Rules => _lazyRules.Value;
+
+        public NamingStyleRules CreateRules()
+            => new NamingStyleRules(NamingRules.Select(r => r.GetRule(this)).ToImmutableArray());
 
         internal XElement CreateXElement()
         {
-            return new XElement("NamingPreferencesInfo", 
+            return new XElement("NamingPreferencesInfo",
                 new XAttribute("SerializationVersion", s_serializationVersion),
-                CreateSymbolSpecificationListXElement(),
-                CreateNamingStyleListXElement(),
-                CreateNamingRuleTreeXElement());
+                new XElement(nameof(SymbolSpecifications), SymbolSpecifications.Select(s => s.CreateXElement())),
+                new XElement(nameof(NamingStyles), NamingStyles.Select(n => n.CreateXElement())),
+                new XElement(nameof(NamingRules), NamingRules.Select(n => n.CreateXElement())));
         }
 
-        private XElement CreateNamingRuleTreeXElement()
+        internal static NamingStylePreferences FromXElement(XElement element)
         {
-            var namingRulesElement = new XElement(nameof(NamingRules));
-
-            foreach (var namingRule in NamingRules)
-            {
-                namingRulesElement.Add(namingRule.CreateXElement());
-            }
-
-            return namingRulesElement;
-        }
-
-        private XElement CreateNamingStyleListXElement()
-        {
-            var namingStylesElement = new XElement(nameof(NamingStyles));
-
-            foreach (var namingStyle in NamingStyles)
-            {
-                namingStylesElement.Add(namingStyle.CreateXElement());
-            }
-
-            return namingStylesElement;
-        }
-
-        private XElement CreateSymbolSpecificationListXElement()
-        {
-            var symbolSpecificationsElement = new XElement(nameof(SymbolSpecifications));
-
-            foreach (var symbolSpecification in SymbolSpecifications)
-            {
-                symbolSpecificationsElement.Add(symbolSpecification.CreateXElement());
-            }
-
-            return symbolSpecificationsElement;
-        }
-
-        internal static NamingStylePreferences FromXElement(XElement namingPreferencesInfoElement)
-        {
-            var namingPreferencesInfo = new NamingStylePreferences();
-
-            var serializationVersion = int.Parse(namingPreferencesInfoElement.Attribute("SerializationVersion").Value);
+            var serializationVersion = int.Parse(element.Attribute("SerializationVersion").Value);
             if (serializationVersion != s_serializationVersion)
             {
-                namingPreferencesInfoElement = XElement.Parse(DefaultNamingPreferencesString);
+                element = XElement.Parse(DefaultNamingPreferencesString);
             }
 
-            namingPreferencesInfo.SetSymbolSpecificationListFromXElement(namingPreferencesInfoElement.Element(nameof(SymbolSpecifications)));
-            namingPreferencesInfo.SetNamingStyleListFromXElement(namingPreferencesInfoElement.Element(nameof(NamingStyles)));
-            namingPreferencesInfo.SetNamingRuleTreeFromXElement(namingPreferencesInfoElement.Element(nameof(NamingRules)));
-
-            return namingPreferencesInfo;
-        }
-
-        private void SetSymbolSpecificationListFromXElement(XElement symbolSpecificationsElement)
-        {
-            foreach (var symbolSpecificationElement in symbolSpecificationsElement.Elements(nameof(SymbolSpecification)))
-            {
-                SymbolSpecifications.Add(SymbolSpecification.FromXElement(symbolSpecificationElement));
-            }
-        }
-
-        private void SetNamingStyleListFromXElement(XElement namingStylesElement)
-        {
-            foreach (var namingStyleElement in namingStylesElement.Elements(nameof(NamingStyle)))
-            {
-                NamingStyles.Add(NamingStyle.FromXElement(namingStyleElement));
-            }
-        }
-
-        private void SetNamingRuleTreeFromXElement(XElement namingRulesElement)
-        {
-            foreach (var namingRuleElement in namingRulesElement.Elements(nameof(SerializableNamingRule)))
-            {
-                NamingRules.Add(SerializableNamingRule.FromXElement(namingRuleElement));
-            }
+            return new NamingStylePreferences(
+                element.Element(nameof(SymbolSpecifications)).Elements(nameof(SymbolSpecification))
+                       .Select(SymbolSpecification.FromXElement).ToImmutableArray(),
+                element.Element(nameof(NamingStyles)).Elements(nameof(NamingStyle))
+                       .Select(NamingStyle.FromXElement).ToImmutableArray(),
+                element.Element(nameof(NamingRules)).Elements(nameof(SerializableNamingRule))
+                       .Select(SerializableNamingRule.FromXElement).ToImmutableArray());
         }
 
         public override bool Equals(object obj)
@@ -147,33 +82,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         public bool Equals(NamingStylePreferences other)
         {
-            if (object.ReferenceEquals(other, null))
-            {
-                return false;
-            }
-
-            return CreateXElement().ToString() == other.CreateXElement().ToString();
+            return !ReferenceEquals(other, null) &&
+                   CreateXElement().ToString() == other.CreateXElement().ToString();
         }
 
         public static bool operator ==(NamingStylePreferences left, NamingStylePreferences right)
-        {
-            var leftIsNull = object.ReferenceEquals(left, null);
-            var rightIsNull = object.ReferenceEquals(right, null);
-            if (leftIsNull && rightIsNull)
-            {
-                return true;
-            }
-            else if(leftIsNull)
-            {
-                return false;
-            }
-            else if(rightIsNull)
-            {
-                return false;
-            }
-            
-            return left.Equals(right);
-        }
+            => left?.Equals(right) == true;
 
         public static bool operator !=(NamingStylePreferences left, NamingStylePreferences right)
             => !(left == right);

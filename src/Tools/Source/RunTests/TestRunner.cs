@@ -68,7 +68,7 @@ namespace RunTests
                                 failures++;
                             }
 
-                            if (testResult.IsResultFromCache)
+                            if (testResult.IsFromCache)
                             {
                                 cacheCount++;
                             }
@@ -94,6 +94,7 @@ namespace RunTests
                     var task = _testExecutor.RunTestAsync(waiting.Pop(), cancellationToken);
                     running.Add(task);
                 }
+
                 // Display the current status of the TestRunner.
                 // Note: The { ... , 2 } is to right align the values, thus aligns sections into columns. 
                 Console.Write($"  {running.Count, 2} running, {waiting.Count, 2} queued, {completed.Count, 2} completed");
@@ -107,7 +108,7 @@ namespace RunTests
 
             Print(completed);
 
-            return new RunAllResult( (failures == 0), cacheCount, completed.ToImmutableArray());
+            return new RunAllResult((failures == 0), cacheCount, completed.ToImmutableArray());
         }
 
         private void Print(List<TestResult> testResults)
@@ -123,17 +124,23 @@ namespace RunTests
             foreach (var testResult in testResults)
             {
                 var color = testResult.Succeeded ? Console.ForegroundColor : ConsoleColor.Red;
-                var message = $"{testResult.DisplayName,-75} {(testResult.Succeeded ? "PASSED" : "FAILED")} {testResult.Elapsed}{(testResult.IsResultFromCache ? "*" : "")}";
+                var message = $"{testResult.DisplayName,-75} {(testResult.Succeeded ? "PASSED" : "FAILED")} {testResult.Elapsed}{(testResult.IsFromCache ? "*" : "")}";
                 ConsoleUtil.WriteLine(color, message);
                 Logger.Log(message);
             }
             Console.WriteLine("================");
+
+            // Print diagnostics out last so they are cleanly visible at the end of the test summary
+            foreach (var testResult in testResults.Where(x => !string.IsNullOrEmpty(x.Diagnostics)))
+            {
+                Console.WriteLine(testResult.Diagnostics);
+            }
         }
 
         private void PrintFailedTestResult(TestResult testResult)
         {
             // Save out the error output for easy artifact inspecting
-            var resultsDir = testResult.ResultDir;
+            var resultsDir = testResult.ResultsDirectory;
             var outputLogPath = Path.Combine(resultsDir, $"{testResult.DisplayName}.out.log");
             File.WriteAllText(outputLogPath, testResult.StandardOutput);
 

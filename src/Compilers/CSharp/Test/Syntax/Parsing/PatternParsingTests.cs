@@ -4,12 +4,17 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.Patterns)]
     public class PatternParsingTexts : ParsingTests
     {
+        public PatternParsingTexts(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void CasePatternVersusFeatureFlag()
         {

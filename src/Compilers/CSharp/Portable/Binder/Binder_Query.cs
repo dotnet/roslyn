@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // The bound block represents a closure scope for transparent identifiers captured in the let clause.
                 // Such closures shall be associated with the lambda body expression.
-                return lambdaBodyBinder.CreateBlockFromExpression(let.Expression, lambdaBodyBinder.GetDeclaredLocalsForScope(let.Expression), RefKind.None, construction, null, d);
+                return lambdaBodyBinder.CreateLambdaBlockForQueryClause(let.Expression, construction, d);
             };
 
             var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), ImmutableArray.Create(x), let.Expression, bodyFactory);
@@ -592,6 +592,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             state.allRangeVariables[y].Add(let.Identifier.ValueText);
             var invocation = MakeQueryInvocation(let, state.fromExpression, "Select", lambda, diagnostics);
             state.fromExpression = MakeQueryClause(let, invocation, y, invocation);
+        }
+
+        private BoundBlock CreateLambdaBlockForQueryClause(ExpressionSyntax expression, BoundExpression result, DiagnosticBag diagnostics)
+        {
+            var locals = this.GetDeclaredLocalsForScope(expression);
+            if (locals.Any())
+            {
+                diagnostics.Add(ErrorCode.ERR_ExpressionVariableInQueryClause, locals[0].Locations[0]);
+            }
+
+            return this.CreateBlockFromExpression(expression, locals, RefKind.None, result, expression, diagnostics);
         }
 
         private BoundQueryClause MakeQueryClause(
@@ -648,7 +659,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, parameters, (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
-                return lambdaBodyBinder.BindLambdaExpressionAsBlock(expression, diagnostics);
+                lambdaBodyBinder = lambdaBodyBinder.GetBinder(expression);
+                Debug.Assert(lambdaSymbol != null);
+                BoundExpression boundExpression = lambdaBodyBinder.BindValue(expression, diagnostics, BindValueKind.RValue);
+                return lambdaBodyBinder.CreateLambdaBlockForQueryClause(expression, boundExpression, diagnostics);
             }));
         }
 
@@ -658,13 +672,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 lambdaBodyBinder = lambdaBodyBinder.GetBinder(expression);
                 Debug.Assert(lambdaBodyBinder != null);
-
                 BoundExpression boundExpression = lambdaBodyBinder.BindValue(expression, diagnostics, BindValueKind.RValue);
 
                 // We transform the expression from "expr" to "expr.Cast<castTypeOpt>()".
                 boundExpression = lambdaBodyBinder.MakeQueryInvocation(expression, boundExpression, "Cast", castTypeSyntax, castType, diagnostics);
 
-                return lambdaBodyBinder.CreateBlockFromExpression(expression, lambdaBodyBinder.GetDeclaredLocalsForScope(expression), RefKind.None, boundExpression, expression, diagnostics);
+                return lambdaBodyBinder.CreateLambdaBlockForQueryClause(expression, boundExpression, diagnostics);
             }));
         }
 

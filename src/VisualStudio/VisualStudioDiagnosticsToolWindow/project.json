@@ -2,22 +2,10 @@
   "dependencies": {
     "EnvDTE": "8.0.0",
     "EnvDTE80": "8.0.0",
-    "RoslynDependencies.Microsoft.VisualStudio.ComponentModelHost": {
-      "version": "14.3.25407",
-      "suppressParent": "all"
-    },
-    "RoslynDependencies.Microsoft.VisualStudio.Diagnostics.PerformanceProvider": {
-      "version": "14.3.25420",
-      "suppressParent": "all"
-    },
-    "Microsoft.VisualStudio.Text.UI": {
-      "version": "14.3.25407",
-      "suppressParent": "all"
-    },
-    "Microsoft.VisualStudio.Text.UI.Wpf": {
-      "version": "14.3.25407",
-      "suppressParent": "all"
-    },
+    "Microsoft.VisualStudio.ComponentModelHost": "14.3.25407-alpha",
+    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "14.3.25420-alpha",
+    "Microsoft.VisualStudio.Text.UI": "14.3.25407",
+    "Microsoft.VisualStudio.Text.UI.Wpf": "14.3.25407"
   },
   "frameworks": {
     "net46": { }

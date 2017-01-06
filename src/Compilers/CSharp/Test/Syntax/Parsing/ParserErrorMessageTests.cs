@@ -6,11 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ParserErrorMessageTests : ParsingTests
     {
+        public ParserErrorMessageTests(ITestOutputHelper output) : base(output) { }
+
         #region "Targeted Error Tests - please arrange tests in the order of error code"
 
         [WorkItem(536666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536666")]
@@ -2150,9 +2153,9 @@ namespace x
                 // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //             e = new ();     // CS1031, too few tuple elements
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
-                // (9,21): error CS8124: Tuple must contain at least two elements.
+                // (9,22): error CS8124: Tuple must contain at least two elements.
                 //             e = new ();     // CS1031, too few tuple elements
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 22),
                 // (9,23): error CS1526: A new expression requires (), [], or {} after type
                 //             e = new ();     // CS1031, too few tuple elements
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
@@ -2198,12 +2201,12 @@ namespace x
                 // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
-                // (9,21): error CS8124: Tuple must contain at least two elements.
-                //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(9, 21),
                 // (9,21): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(9, 21),
+                // (9,22): error CS8124: Tuple must contain at least two elements.
+                //             e = new ();     // CS1031, not a type
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 22),
                 // (9,23): error CS1526: A new expression requires (), [], or {} after type
                 //             e = new ();     // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
@@ -2282,9 +2285,9 @@ class A
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-                // (4,41): error CS8124: Tuple must contain at least two elements.
+                // (4,42): error CS8124: Tuple must contain at least two elements.
                 //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(4, 41),
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 42),
                 // (4,43): error CS1001: Identifier expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 43),
@@ -2340,12 +2343,12 @@ class A
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-                // (4,41): error CS8124: Tuple must contain at least two elements.
-                //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(4, 41),
                 // (4,41): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(4, 41),
+                // (4,42): error CS8124: Tuple must contain at least two elements.
+                //     public static int explicit operator ()
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 42),
                 // (4,43): error CS1001: Identifier expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 43),
@@ -3826,9 +3829,9 @@ public class MainClass
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
-                // (3,41): error CS8124: Tuple must contain at least two elements.
+                // (3,47): error CS8124: Tuple must contain at least two elements.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(foo f)").WithLocation(3, 41),
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),
                 // (3,49): error CS1001: Identifier expected
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 49),
@@ -3880,12 +3883,12 @@ public class MainClass
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
-                // (3,41): error CS8124: Tuple must contain at least two elements.
-                //     public static int implicit operator (foo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(foo f)").WithLocation(3, 41),
                 // (3,41): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7").WithLocation(3, 41),
+                // (3,47): error CS8124: Tuple must contain at least two elements.
+                //     public static int implicit operator (foo f) { return 6; }    // Error
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),
                 // (3,49): error CS1001: Identifier expected
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 49),
@@ -4389,26 +4392,57 @@ class A<out T>
     delegate void D<in U>();
     class B<out U> { }
 }";
-
-            ParseAndValidate(test,
-                // (3,12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
-                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(3, 12),
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
                 // (4,12): error CS7002: Unexpected use of a generic name
+                //     object this<out U>[int i] { get; set; }
                 Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "this").WithLocation(4, 12),
-                // (4,17): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
-                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(4, 17),
                 // (6,10): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                // struct S<out T>
                 Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(6, 10),
-                // (8,12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
-                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(8, 12),
                 // (11,9): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                // class A<out T>
                 Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(11, 9),
-                // (13, 12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                // (3,12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //     void M<in U>();
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(3, 12),
+                // (13,12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //     void M<out U>();
                 Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(13, 12),
-                // (15, 14): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
-                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(15, 14),
+                // (8,12): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //     void M<out U>();
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(8, 12),
+                // (8,10): error CS0501: 'S<T>.M<U>()' must declare a body because it is not marked abstract, extern, or partial
+                //     void M<out U>();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("S<T>.M<U>()").WithLocation(8, 10),
+                // (13,10): error CS0501: 'A<T>.M<U>()' must declare a body because it is not marked abstract, extern, or partial
+                //     void M<out U>();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("A<T>.M<U>()").WithLocation(13, 10),
                 // (17,13): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
-                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(17, 13));
+                //     class B<out U> { }
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(17, 13),
+                // (15,14): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //     struct S<out U> { }
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(15, 14));
+        }
+
+        [Fact]
+        public void CS1960ERR_IllegalVarianceSyntax_LocalFunction()
+        {
+            var test =
+@"class C
+{
+    void M()
+    {
+        void Local<in T>() { }
+    }
+}";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (5,20): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+                //         void Local<in T>() { }
+                Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(5, 20),
+                // (5,14): warning CS0168: The variable 'Local' is declared but never used
+                //         void Local<in T>() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(5, 14));
         }
 
         [Fact]
