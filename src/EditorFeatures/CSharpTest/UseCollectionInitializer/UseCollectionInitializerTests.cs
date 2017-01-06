@@ -685,5 +685,25 @@ public class Foo
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(16241, "https://github.com/dotnet/roslyn/issues/16241")]
+        public async Task TestNestedCollectionInitializer()
+        {
+            await TestMissingAsync(
+@"
+        using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var myStringArray = new string[] { ""Test"", ""123"", ""ABC"" };
+        var myStringList = myStringArray?.ToList() ?? new [||]List<string>();
+        myStringList.Add(""Done"");
+    }
+}");
+        }
     }
 }

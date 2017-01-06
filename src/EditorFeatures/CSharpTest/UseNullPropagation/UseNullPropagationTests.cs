@@ -325,5 +325,24 @@ class C
     }
 }");
         }
+
+        [WorkItem(16287, "https://github.com/dotnet/roslyn/issues/16287")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestMethodGroup()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class D
+{
+    void Foo()
+    {
+        var c = new C();
+        Action<string> a = [||]c != null ? c.M : (Action<string>)null;
+    }
+}
+class C { public void M(string s) { } }");
+        }
     }
 }
