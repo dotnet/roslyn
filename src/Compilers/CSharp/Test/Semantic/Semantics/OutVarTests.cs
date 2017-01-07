@@ -910,7 +910,7 @@ public class Cls
                 Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
             }
 
-            AssertInfoForDeclarationExpressionSyntax(model, decl);
+            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: local.Type);
 
             foreach (var reference in references)
             {
@@ -926,22 +926,22 @@ public class Cls
             }
         }
 
-        private static void AssertInfoForDeclarationExpressionSyntax(SemanticModel model, DeclarationExpressionSyntax decl, bool expectSymbol = true, bool expectType = true)
+        private static void AssertInfoForDeclarationExpressionSyntax(SemanticModel model, DeclarationExpressionSyntax decl, Symbol expectedSymbol = null, TypeSymbol expectedType = null)
         {
             var symbolInfo = model.GetSymbolInfo(decl);
-            if (expectSymbol)
+            if (expectedSymbol != null)
             {
-                Assert.NotNull(symbolInfo.Symbol);
+                Assert.Equal(expectedSymbol, symbolInfo.Symbol);
             }
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(symbolInfo, ((CSharpSemanticModel)model).GetSymbolInfo(decl));
 
             var typeInfo = model.GetTypeInfo(decl);
-            if (expectType)
+            if (expectedType != null)
             {
-                Assert.NotNull(typeInfo.Type);
-                Assert.NotNull(typeInfo.ConvertedType);
+                Assert.Equal(expectedType, typeInfo.Type);
+                Assert.Equal(expectedType, typeInfo.ConvertedType);
             }
             Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl));
 
@@ -20920,7 +20920,7 @@ public class X
             Assert.False(model.LookupNames(decl.SpanStart).Contains(identifierText));
             Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
 
-            AssertInfoForDeclarationExpressionSyntax(model, decl, expectSymbol: false, expectType: false);
+            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: null, expectedType: null);
 
             VerifyModelNotSupported(model, references);
         }
@@ -28183,7 +28183,7 @@ class Program
 
             // We're not able to get type information at such location (out var argument in global code) at this point
             // Seee https://github.com/dotnet/roslyn/issues/13569
-            AssertInfoForDeclarationExpressionSyntax(model, decl, expectType: false);
+            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: inFieldDeclaratorArgumentlist ? null : local.Type);
 
             foreach (var reference in references)
             {
