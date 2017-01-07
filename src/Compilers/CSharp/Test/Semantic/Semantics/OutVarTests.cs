@@ -929,20 +929,14 @@ public class Cls
         private static void AssertInfoForDeclarationExpressionSyntax(SemanticModel model, DeclarationExpressionSyntax decl, Symbol expectedSymbol = null, TypeSymbol expectedType = null)
         {
             var symbolInfo = model.GetSymbolInfo(decl);
-            if (expectedSymbol != null)
-            {
-                Assert.Equal(expectedSymbol, symbolInfo.Symbol);
-            }
+            Assert.Equal(expectedSymbol, symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(symbolInfo, ((CSharpSemanticModel)model).GetSymbolInfo(decl));
 
             var typeInfo = model.GetTypeInfo(decl);
-            if (expectedType != null)
-            {
-                Assert.Equal(expectedType, typeInfo.Type);
-                Assert.Equal(expectedType, typeInfo.ConvertedType);
-            }
+            Assert.Equal(expectedType, typeInfo.Type);
+            Assert.Equal(expectedType, typeInfo.ConvertedType);
             Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl));
 
             var conversion = model.ClassifyConversion(decl, model.Compilation.ObjectType, false);
@@ -11970,20 +11964,20 @@ public class X
             // this program cannot be run. However, once we allow that (https://github.com/dotnet/roslyn/issues/15619)
             // the program wil be capable of being run. In that case the following (commented code) would test for the expected output.
 
-//            CompileAndVerify(compilation, expectedOutput:
-//@"1
-//3
-//5
-//2
-//4
-//6
-//7
-//8
-//10
-//9
-//11
-//12
-//");
+            //            CompileAndVerify(compilation, expectedOutput:
+            //@"1
+            //3
+            //5
+            //2
+            //4
+            //6
+            //7
+            //8
+            //10
+            //9
+            //11
+            //12
+            //");
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
