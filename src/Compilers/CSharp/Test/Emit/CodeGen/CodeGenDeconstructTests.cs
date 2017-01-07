@@ -5637,11 +5637,11 @@ class C
             var discard1 = GetDiscardDesignations(tree).First();
             Assert.Null(model.GetDeclaredSymbol(discard1));
             Assert.True(model.GetSymbolInfo(discard1).IsEmpty);
-            Assert.Null(model.GetTypeInfo(discard1).Type); // TODO REVIEW This seems wrong
+            Assert.Null(model.GetTypeInfo(discard1).Type);
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent;
             Assert.Equal("var _", declaration1.ToString());
             Assert.Equal("System.Int64", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(declaration1).Symbol); // TODO REVIEW This seems wrong
+            Assert.Null(model.GetSymbolInfo(declaration1).Symbol);
 
             var discard2 = GetDiscardDesignations(tree).ElementAt(1);
             Assert.Null(model.GetDeclaredSymbol(discard2));

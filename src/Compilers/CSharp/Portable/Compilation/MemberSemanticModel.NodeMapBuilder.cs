@@ -255,30 +255,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.Unreachable;
             }
 
-            public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
-            {
-                Visit(node.Left);
-                Visit(node.Right);
-                // don't map the deconstruction, conversion or assignment steps
-                return null;
-            }
-
-            public override BoundNode VisitForEachStatement(BoundForEachStatement node)
-            {
-                if ((object)node.DeconstructionOpt == null)
-                {
-                    this.Visit(node.IterationVariableType);
-                }
-                else
-                {
-                    this.Visit(node.DeconstructionOpt.DeconstructionAssignment.Left);
-                }
-
-                this.Visit(node.Expression);
-                this.Visit(node.Body);
-                return null;
-            }
-
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
             {
                 return false;
