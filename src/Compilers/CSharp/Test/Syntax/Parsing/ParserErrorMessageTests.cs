@@ -1827,6 +1827,22 @@ namespace x
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "ii"));
         }
 
+        [Fact]
+        public void CS1019ERR_OvlUnaryOperatorExpected2()
+        {
+            var test = @"
+class C
+{
+    public static implicit operator int(C c1, C c2) => 0;
+}
+";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,40): error CS1019: Overloadable unary operator expected
+                //     public static implicit operator int(C c1, C c2) => 0;
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "(C c1, C c2)").WithLocation(4, 40));
+        }
+
         [WorkItem(906502, "DevDiv/Personal")]
         [Fact]
         public void CS1020ERR_OvlBinaryOperatorExpected()

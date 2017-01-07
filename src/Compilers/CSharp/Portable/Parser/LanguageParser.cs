@@ -2958,10 +2958,6 @@ parse_member_name:;
             var type = this.ParseType();
 
             var paramList = this.ParseParenthesizedParameterList();
-            if (paramList.Parameters.Count != 1)
-            {
-                paramList = this.AddErrorToFirstToken(paramList, ErrorCode.ERR_OvlUnaryOperatorExpected);
-            }
 
             BlockSyntax blockBody;
             ArrowExpressionClauseSyntax expressionBody;
