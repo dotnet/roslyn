@@ -1676,18 +1676,6 @@ done:
                     case SyntaxKind.AnonymousObjectMemberDeclarator:
                         return GetBindableSyntaxNode(parent);
 
-                    case SyntaxKind.DeclarationExpression:
-                    case SyntaxKind.TupleExpression:
-                        var assignment = ((ExpressionSyntax)node).GetContainingDeconstruction() as AssignmentExpressionSyntax;
-                        if (assignment != null)
-                        {
-                            return assignment;
-                        }
-                        else
-                        {
-                            goto default;
-                        }
-
                     case SyntaxKind.VariableDeclarator: // declarators are mapped in SyntaxBinder
 
                         // When a local variable declaration contains a single declarator, the bound node

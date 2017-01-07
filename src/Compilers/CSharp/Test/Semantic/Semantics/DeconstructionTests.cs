@@ -2526,7 +2526,15 @@ class Program
                 var si = model.GetSymbolInfo(node);
                 var symbol = si.Symbol;
                 if (symbol == null) continue;
-                Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+
+                if (node is DeclarationExpressionSyntax)
+                {
+                    Assert.Equal(SymbolKind.Local, symbol.Kind);
+                }
+                else
+                {
+                    Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+                }
             }
         }
 

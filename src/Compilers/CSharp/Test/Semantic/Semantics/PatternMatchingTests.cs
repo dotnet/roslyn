@@ -4130,7 +4130,7 @@ public class C
                 Write(""case int _, "");
                 break;
         }
-        switch (3)
+        switch (3L)
         {
             case var _:
                 Write(""case var _"");
@@ -4149,25 +4149,31 @@ public class C
             Assert.Null(model.GetDeclaredSymbol(discard1));
             var declaration1 = (DeclarationPatternSyntax)discard1.Parent;
             Assert.Equal("int _", declaration1.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration1).Type.ToTestDisplayString()); //  https://github.com/dotnet/roslyn/issues/15450
+            Assert.Null(model.GetTypeInfo(declaration1).Type);
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration1.Type).Type.ToTestDisplayString());
 
             var discard2 = GetDiscardDesignations(tree).Skip(1).First();
             Assert.Null(model.GetDeclaredSymbol(discard2));
+            Assert.Null(model.GetSymbolInfo(discard2).Symbol);
             var declaration2 = (DeclarationPatternSyntax)discard2.Parent;
             Assert.Equal("var _", declaration2.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration2).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
+            Assert.Null(model.GetTypeInfo(declaration2).Type);
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration2.Type).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
 
             var discard3 = GetDiscardDesignations(tree).Skip(2).First();
             Assert.Null(model.GetDeclaredSymbol(discard3));
             var declaration3 = (DeclarationPatternSyntax)discard3.Parent;
             Assert.Equal("int _", declaration3.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration3).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
+            Assert.Null(model.GetTypeInfo(declaration3).Type);
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration3.Type).Type.ToTestDisplayString());
 
             var discard4 = GetDiscardDesignations(tree).Skip(3).First();
             Assert.Null(model.GetDeclaredSymbol(discard4));
             var declaration4 = (DeclarationPatternSyntax)discard4.Parent;
             Assert.Equal("var _", declaration4.ToString());
-            //Assert.Equal("", model.GetTypeInfo(declaration4).Type.ToTestDisplayString()); // https://github.com/dotnet/roslyn/issues/15450
+            Assert.Null(model.GetTypeInfo(declaration4).Type);
+            Assert.Equal("System.Int64", model.GetTypeInfo(declaration4.Type).Type.ToTestDisplayString());
         }
 
         [Fact]

@@ -1585,10 +1585,10 @@ class Program
                 // (6,9): error CS0119: 'Program' is a type, which is not valid in the given context
                 //         Program operator +(Program left, Program right)
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 9),
-                // (6,28): error CS8184: A declaration is not allowed in this context.
+                // (6,28): error CS8185: A declaration is not allowed in this context.
                 //         Program operator +(Program left, Program right)
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "Program left").WithLocation(6, 28),
-                // (6,42): error CS8184: A declaration is not allowed in this context.
+                // (6,42): error CS8185: A declaration is not allowed in this context.
                 //         Program operator +(Program left, Program right)
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "Program right").WithLocation(6, 42),
                 // (6,27): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
@@ -1600,12 +1600,12 @@ class Program
                 // (8,13): error CS0127: Since 'Program.Main(string[])' returns void, a return keyword must not be followed by an object expression
                 //             return left;
                 Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Program.Main(string[])").WithLocation(8, 13),
-                // (6,36): error CS0165: Use of unassigned local variable 'left'
+                // (6,28): error CS0165: Use of unassigned local variable 'left'
                 //         Program operator +(Program left, Program right)
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "left").WithArguments("left").WithLocation(6, 36),
-                // (6,50): error CS0165: Use of unassigned local variable 'right'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Program left").WithArguments("left").WithLocation(6, 28),
+                // (6,42): error CS0165: Use of unassigned local variable 'right'
                 //         Program operator +(Program left, Program right)
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "right").WithArguments("right").WithLocation(6, 50)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Program right").WithArguments("right").WithLocation(6, 42)
                 );
         }
 

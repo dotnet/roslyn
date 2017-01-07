@@ -13992,12 +13992,12 @@ class C
                 // (6,18): error CS0150: A constant value is expected
                 //         if (o is (int a, int b)) { }
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(int a, int b)").WithLocation(6, 18),
-                // (6,23): error CS0165: Use of unassigned local variable 'a'
+                // (6,19): error CS0165: Use of unassigned local variable 'a'
                 //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(6, 23),
-                // (6,30): error CS0165: Use of unassigned local variable 'b'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int a").WithArguments("a").WithLocation(6, 19),
+                // (6,26): error CS0165: Use of unassigned local variable 'b'
                 //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "b").WithArguments("b").WithLocation(6, 30)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int b").WithArguments("b").WithLocation(6, 26)
                 );
         }
 
