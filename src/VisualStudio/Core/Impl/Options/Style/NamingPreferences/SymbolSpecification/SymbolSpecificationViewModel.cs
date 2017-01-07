@@ -52,6 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new SymbolKindViewModel(SymbolKind.Field, "field", specification),
                     new SymbolKindViewModel(SymbolKind.Event, "event", specification),
                     new SymbolKindViewModel(TypeKind.Delegate, "delegate", specification),
+                    new SymbolKindViewModel(SymbolKind.Parameter, "parameter", specification)
                 };
 
                 AccessibilityList = new List<AccessibilityViewModel>
@@ -86,6 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new SymbolKindViewModel(SymbolKind.Field, "Field", specification),
                     new SymbolKindViewModel(SymbolKind.Event, "Event", specification),
                     new SymbolKindViewModel(TypeKind.Delegate, "Delegate", specification),
+                    new SymbolKindViewModel(SymbolKind.Parameter, "Parameter", specification)
                 };
 
                 AccessibilityList = new List<AccessibilityViewModel>

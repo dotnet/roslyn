@@ -113,5 +113,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
 }",
                 options: MethodNamesArePascalCase);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseParameters()
+        {
+            await TestAsync(
+@"class C
+{
+    public void M(int [|X|])
+    {
+    }
+}",
+@"class C
+{
+    public void M(int x)
+    {
+    }
+}",
+                options: ParameterNamesAreCamelCase);
+        }
     }
 }
