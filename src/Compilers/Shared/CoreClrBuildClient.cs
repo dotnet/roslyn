@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc)
         {
             // Register encodings for console
+            // https://github.com/dotnet/roslyn/issues/10785 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             // Should be using BuildClient.GetCommandLineArgs(arguments) here.  But the native invoke
