@@ -1100,6 +1100,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static void CheckForBlockAndExpressionBody(
+            CSharpSyntaxNode block,
+            CSharpSyntaxNode expression,
+            CSharpSyntaxNode syntax,
+            DiagnosticBag diagnostics)
+        {
+            if (block != null && expression != null)
+            {
+                ErrorCode code;
+                if (syntax is BaseMethodDeclarationSyntax ||
+                    syntax is AccessorDeclarationSyntax ||
+                    syntax is LocalFunctionStatementSyntax)
+                {
+                    code = ErrorCode.ERR_BlockBodyAndExpressionBody;
+                }
+                else
+                {
+                    Debug.Assert(syntax is BasePropertyDeclarationSyntax);
+                    code = ErrorCode.ERR_AccessorListAndExpressionBody;
+                }
+
+                diagnostics.Add(code, syntax.GetLocation());
+            }
+        }
+
         #region ISymbol Members
 
         SymbolKind ISymbol.Kind

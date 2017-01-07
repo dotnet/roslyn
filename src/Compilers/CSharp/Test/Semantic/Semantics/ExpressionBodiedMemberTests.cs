@@ -918,6 +918,77 @@ public class C
             }
         }
 
+        [Fact]
+        public void BlockBodyAndExpressionBody_15()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    void Foo()
+    {
+        int Bar() { return 0; } => 0;
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                //         int Bar() { return 0; } => 0;
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "int Bar() { return 0; } => 0;").WithLocation(6, 9),
+                // (6,13): warning CS0168: The variable 'Bar' is declared but never used
+                //         int Bar() { return 0; } => 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Bar").WithArguments("Bar").WithLocation(6, 13));
+        }
+
+        [Fact]
+        public void BlockBodyAndExpressionBody_16()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    int this[int i] { get { return 0; } } => 0;
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (4,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
+                //     int this[int i] { get { return 0; } } => 0;
+                Diagnostic(ErrorCode.ERR_AccessorListAndExpressionBody, "int this[int i] { get { return 0; } } => 0;").WithLocation(4, 5));
+        }
+
+        [Fact]
+        public void BlockBodyAndExpressionBody_17()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    int this[int i] { get { return 0; } => 0; }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (4,23): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                //     int this[int i] { get { return 0; } => 0; }
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "get { return 0; } => 0;").WithLocation(4, 23));
+        }
+
+        [Fact]
+        public void BlockBodyAndExpressionBody_18()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+public class C
+{
+    event Action E { add { } => null; remove { } }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (5,22): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                //     event Action E { add { } => null; remove { } }
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "add { } => null;").WithLocation(5, 22));
+        }
+
         [Fact, WorkItem(971, "https://github.com/dotnet/roslyn/issues/971")]
         public void LookupSymbols()
         {
