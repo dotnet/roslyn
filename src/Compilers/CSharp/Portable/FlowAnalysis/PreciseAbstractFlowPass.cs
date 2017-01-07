@@ -2118,7 +2118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.Expression);
             var breakState = this.State.Clone();
             LoopHead(node);
-            VisitForEachIterationVariable(node);
+            VisitForEachIterationVariables(node);
             VisitStatement(node.Body);
             ResolveContinues(node.ContinueLabel);
             LoopTail(node);
@@ -2126,7 +2126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public virtual void VisitForEachIterationVariable(BoundForEachStatement node)
+        public virtual void VisitForEachIterationVariables(BoundForEachStatement node)
         {
         }
 

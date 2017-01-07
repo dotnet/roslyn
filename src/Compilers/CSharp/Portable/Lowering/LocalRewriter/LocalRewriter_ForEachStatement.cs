@@ -96,9 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             InstrumentForEachStatementCollectionVarDeclaration(node, ref enumeratorVarDecl);
 
-            // V v
-            LocalSymbol iterationVar = node.IterationVariableOpt;
-
             //(V)(T)e.Current
             BoundExpression iterationVarAssignValue = MakeConversionNode(
                 syntax: forEachSyntax,
@@ -117,8 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // V v = (V)(T)e.Current;  -OR-  (D1 d1, ...) = (V)(T)e.Current;
 
-            ImmutableArray<LocalSymbol> iterationVariables;
-            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, iterationVar, iterationVarAssignValue, out iterationVariables);
+            ImmutableArray<LocalSymbol> iterationVariables = node.IterationVariables;
+            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, iterationVariables, iterationVarAssignValue);
 
             InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVarDecl);
 
@@ -436,7 +433,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // p = p + 1;
             BoundStatement positionIncrement = MakePositionIncrement(forEachSyntax, boundPositionVar, intType);
 
-            LocalSymbol iterationVar = node.IterationVariableOpt;
             Debug.Assert(node.ElementConversion.IsValid);
 
             // (V)s.Chars[p]
@@ -453,8 +449,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 @checked: node.Checked);
 
             // V v = (V)s.Chars[p];   /* OR */   (D1 d1, ...) = (V)s.Chars[p];
-            ImmutableArray<LocalSymbol> iterationVariables;
-            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, iterationVar, iterationVarInitValue, out iterationVariables);
+            ImmutableArray<LocalSymbol> iterationVariables = node.IterationVariables;
+            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, iterationVariables, iterationVarInitValue);
 
             InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVarDecl);
 
@@ -494,9 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundStatement LocalOrDeconstructionDeclaration(
                                     BoundForEachStatement forEachBound,
-                                    LocalSymbol iterationVar,
-                                    BoundExpression iterationVarValue,
-                                    out ImmutableArray<LocalSymbol> iterationVariables)
+                                    ImmutableArray<LocalSymbol> iterationVariables,
+                                    BoundExpression iterationVarValue)
         {
             var forEachSyntax = (CommonForEachStatementSyntax)forEachBound.Syntax;
 
@@ -506,8 +501,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (deconstruction == null)
             {
                 // V v = /* expression */
-                iterationVarDecl = MakeLocalDeclaration(forEachSyntax, iterationVar, iterationVarValue);
-                iterationVariables = ImmutableArray.Create(iterationVar);
+                Debug.Assert(iterationVariables.Length == 1);
+                iterationVarDecl = MakeLocalDeclaration(forEachSyntax, iterationVariables[0], iterationVarValue);
             }
             else
             {
@@ -518,8 +513,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression loweredAssignment = VisitExpression(assignment);
                 iterationVarDecl = new BoundExpressionStatement(assignment.Syntax, loweredAssignment);
                 RemovePlaceholderReplacement(deconstruction.TargetPlaceholder);
-
-                iterationVariables = GetLocalSymbols(assignment.Left);
             }
 
             return iterationVarDecl;
@@ -613,9 +606,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar,
                 MakeLiteral(forEachSyntax, ConstantValue.Default(SpecialType.System_Int32), intType));
 
-            // V v
-            LocalSymbol iterationVar = node.IterationVariableOpt;
-
             // (V)a[p]
             BoundExpression iterationVarInitValue = MakeConversionNode(
                 syntax: forEachSyntax,
@@ -629,8 +619,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 @checked: node.Checked);
 
             // V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
-            ImmutableArray<LocalSymbol> iterationVariables;
-            BoundStatement iterationVariableDecl = LocalOrDeconstructionDeclaration(node, iterationVar, iterationVarInitValue, out iterationVariables);
+            ImmutableArray<LocalSymbol> iterationVariables = node.IterationVariables;
+            BoundStatement iterationVariableDecl = LocalOrDeconstructionDeclaration(node, iterationVariables, iterationVarInitValue);
 
             InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVariableDecl);
 
@@ -771,9 +761,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundPositionVar[dimension] = MakeBoundLocal(forEachSyntax, positionVar[dimension], intType);
             }
 
-            // V v
-            LocalSymbol iterationVar = node.IterationVariableOpt;
-
             // (V)a[p_0, p_1, ...]
             BoundExpression iterationVarInitValue = MakeConversionNode(
                 syntax: forEachSyntax,
@@ -787,8 +774,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // V v = (V)a[p_0, p_1, ...];   /* OR */   (D1 d1, ...) = (V)a[p_0, p_1, ...];
 
-            ImmutableArray<LocalSymbol> iterationVariables;
-            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, iterationVar, iterationVarInitValue, out iterationVariables);
+            ImmutableArray<LocalSymbol> iterationVariables = node.IterationVariables;
+            BoundStatement iterationVarDecl = LocalOrDeconstructionDeclaration(node, iterationVariables, iterationVarInitValue);
 
             InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVarDecl);
 
