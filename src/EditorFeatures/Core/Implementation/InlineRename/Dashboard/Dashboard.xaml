@@ -102,7 +102,7 @@
                                MaxWidth="260"
                                VerticalAlignment="Center"
                                HorizontalAlignment="Left"
-                               ToolTip="{Binding Session.OriginalSymbolName}">
+                               ToolTip="{Binding Session.OriginalSymbolName, Mode=OneTime}">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Foreground" Value="{StaticResource ForegroundText}"/>
