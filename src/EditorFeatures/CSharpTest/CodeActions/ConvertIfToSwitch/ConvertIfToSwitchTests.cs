@@ -1,0 +1,519 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Roslyn.Test.Utilities;
+using Xunit;
+
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfToSwitch
+{
+    public class ConvertIfToSwitchTests : AbstractCSharpCodeActionTest
+    {
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
+            => new CSharpConvertIfToSwitchCodeRefactoringProvider();
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestUnreachableEndPoint()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 1 || i == 2 || i == 3)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1:
+            case 2:
+            case 3:
+                return;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestReachableEndPoint()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 1 || i == 2 || i == 3)
+            M(i);
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1:
+            case 2:
+            case 3:
+                M(i);
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMultipleCases_01()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 1 || 2 == i || i == 3) M(0);
+        else if (i == 4 || 5 == i || i == 6) M(1);
+        else M(2);
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1:
+            case 2:
+            case 3:
+                M(0);
+                break;
+            case 4:
+            case 5:
+            case 6:
+                M(1);
+                break;
+            default:
+                M(2);
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMultipleCases_02()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(object o)
+    {
+        [||]if (o is string s && s.Length > 0) M(0);
+        else if (o is int i && i > 0) M(1);
+        else return;
+    }
+}",
+@"class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case string s when s.Length > 0:
+                M(0);
+                break;
+            case int i when i > 0:
+                M(1);
+                break;
+            default:
+                return;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestExpressionOrder()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (1 == i || i == 2 || 3 == i)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1:
+            case 2:
+            case 3:
+                return;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestConstantExpression()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(int i)
+    {
+        const int A = 1, B = 2, C = 3;
+        [||]if (A == i || B == i || C == i)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        const int A = 1, B = 2, C = 3;
+        switch (i)
+        {
+            case A:
+            case B:
+            case C:
+                return;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingOnNonConstantExpression()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int i)
+    {
+        int A = 1, B = 2, C = 3;
+        [||]if (A == i || B == i || C == i)
+            return;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingOnDifferentOperands()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int i, int j)
+    {
+        [||]if (i == 5 || 6 == j) {}
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestSingleCase()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 5) {}
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 5:
+                break;
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestIsExpression()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(object o)
+    {
+        [||]if (o is int || o is string || o is C)
+            return;
+    }
+}",
+@"class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case int _:
+            case string _:
+            case C _:
+                return;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestIsPatternExpression_01()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(object o)
+    {
+        [||]if (o is int i)
+            return;
+    }
+}",
+@"class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case int i:
+                return;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestIsPatternExpression_02()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(object o)
+    {
+        [||]if (o is string s && s.Length == 5)
+            return;
+    }
+}",
+@"class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case string s when s.Length == 5:
+                return;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestIsPatternExpression_03()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(object o)
+    {
+        [||]if (o is string s && (s.Length > 5 && s.Length < 10))
+            return;
+    }
+}",
+@"class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case string s when s.Length > 5 && s.Length < 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestIsPatternExpression_04()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(object o)
+    {
+        [||]if (o is string s && s.Length > 5 && s.Length < 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case string s when s.Length > 5 && s.Length < 10:
+                return;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestPreserveTrivia()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(object o)
+    {
+        [||]if (o is string s && s.Length > 5 &&
+                                 s.Length < 10)
+            {
+                M(o:   0);
+
+            }
+    }
+}",
+@"class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case string s when s.Length > 5 &&
+                               s.Length < 10:
+                M(o:   0);
+
+                break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingIfCaretDoesntIntersectWithTheIfKeyword()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int i)
+    {
+        if [||](i == 3) {}
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestKeepBlockIfThereIsVariableDeclaration()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 3)
+        {
+            var x = i;
+        }
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 3:
+                {
+                    var x = i;
+                    break;
+                }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingOnBreak_01()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int i)
+    {
+        while (true)
+        {
+            [||]if (i == 5) break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingOnBreak_02()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int i)
+    {
+        while (true)
+        {
+            [||]if (i == 5) M(b, i);
+            else break;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestNestedBreak()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 1)
+        {
+            while (true)
+            {
+                break;
+            }
+        }
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1:
+                while (true)
+                {
+                    break;
+                }
+                break;
+        }
+    }
+}");
+        }
+    }
+}
