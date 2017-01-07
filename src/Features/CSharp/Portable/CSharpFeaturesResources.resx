@@ -503,4 +503,7 @@
   <data name="Add_this" xml:space="preserve">
     <value>Add 'this.'</value>
   </data>
+  <data name="Remove_Unused_Var" xml:space="preserve">
+    <value>Remove unused variable</value>
+  </data>
 </root>

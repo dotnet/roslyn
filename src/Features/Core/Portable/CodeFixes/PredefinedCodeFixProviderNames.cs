@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string QualifyMemberAccess = nameof(QualifyMemberAccess);
         public const string RemoveUnnecessaryCast = nameof(RemoveUnnecessaryCast);
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
+        public const string RemoveUnusedVar = nameof(RemoveUnusedVar);
         public const string RenameTracking = nameof(RenameTracking);
         public const string SimplifyNames = nameof(SimplifyNames);
         public const string SpellCheck = nameof(SpellCheck);
