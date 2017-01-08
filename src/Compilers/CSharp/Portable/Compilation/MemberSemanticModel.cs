@@ -1671,6 +1671,11 @@ done:
                             return GetBindableSyntaxNode(tmp);
                         }
 
+                        if (node.Kind() == SyntaxKind.IdentifierName && parent.Kind() == SyntaxKind.RefType)
+                        {
+                            return GetBindableSyntaxNode(parent);
+                        }
+
                         break;
 
                     case SyntaxKind.AnonymousObjectMemberDeclarator:
@@ -1743,6 +1748,7 @@ done:
                 {
                     case SyntaxKind.ParenthesizedExpression:
                     case SyntaxKind.RefExpression:
+                    case SyntaxKind.RefType:
                         var pp = parent.Parent;
                         if (pp == null) break;
                         parent = pp;
