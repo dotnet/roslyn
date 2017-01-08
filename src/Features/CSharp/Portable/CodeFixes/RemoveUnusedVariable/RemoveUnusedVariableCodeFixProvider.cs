@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -15,8 +14,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnusedVar
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedVar), Shared]
-    internal partial class RemoveUnusedVarCodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedVariable), Shared]
+    internal partial class RemoveUnusedVariableCodeFixProvider : CodeFixProvider
     {
         private const string CS0168 = nameof(CS0168);
         private const string CS0219 = nameof(CS0219);
@@ -40,15 +39,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnusedVar
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(diagnostic.Location.SourceSpan.Start);
             var ancestor = token.GetAncestor<LocalDeclarationStatementSyntax>();
-            var newRoot = root.RemoveNode(ancestor, SyntaxRemoveOptions.KeepNoTrivia);
+            root = root.RemoveNode(ancestor, SyntaxRemoveOptions.KeepNoTrivia);
 
-            return document.WithSyntaxRoot(newRoot);
+            return document.WithSyntaxRoot(root);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(CSharpFeaturesResources.Remove_Unused_Var, createChangedDocument, CSharpFeaturesResources.Remove_Unused_Var)
+                base(CSharpFeaturesResources.Remove_Unused_Variable, createChangedDocument, CSharpFeaturesResources.Remove_Unused_Variable)
             {
             }
         }

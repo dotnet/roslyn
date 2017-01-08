@@ -821,9 +821,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Remove unused variable.
         /// </summary>
-        internal static string Remove_Unused_Var {
+        internal static string Remove_Unused_Variable {
             get {
-                return ResourceManager.GetString("Remove_Unused_Var", resourceCulture);
+                return ResourceManager.GetString("Remove_Unused_Variable", resourceCulture);
             }
         }
         
