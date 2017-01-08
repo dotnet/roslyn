@@ -3,7 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnusedVar;
+using Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnuse
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task RemoveUnusedVar()
+        public async Task RemoveUnusedVariable()
         {
             await TestAsync(
 @"class Class
@@ -36,8 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnuse
     }
 }");
         }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task RemoveUnusedVar1()
+        public async Task RemoveUnusedVariable1()
         {
             await TestAsync(
 @"class Class
@@ -58,8 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnuse
     }
 }");
         }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-        public async Task RemoveUnusedVar3()
+        public async Task RemoveUnusedVariable3()
         {
             await TestAsync(
 @"class Class
@@ -67,6 +69,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnuse
     void Method()
     {
         [|string a;|]
+    }
+}",
+@"class Class
+{
+    void Method()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableFixAll()
+        {
+            await TestAsync(
+@"class Class
+{
+    void Method()
+    {
+        {|FixAllInDocument:string a;|}
+        string b;
     }
 }",
 @"class Class

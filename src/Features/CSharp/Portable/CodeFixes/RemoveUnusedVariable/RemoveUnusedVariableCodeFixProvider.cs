@@ -9,13 +9,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnusedVar
+namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnusedVariable
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedVariable), Shared]
-    internal partial class RemoveUnusedVariableCodeFixProvider : CodeFixProvider
+    internal partial class RemoveUnusedVariableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         private const string CS0168 = nameof(CS0168);
         private const string CS0219 = nameof(CS0219);
@@ -34,14 +35,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnusedVar
             return SpecializedTasks.EmptyTask;
         }
 
-        private async Task<Document> FixAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(diagnostic.Location.SourceSpan.Start);
-            var ancestor = token.GetAncestor<LocalDeclarationStatementSyntax>();
-            root = root.RemoveNode(ancestor, SyntaxRemoveOptions.KeepNoTrivia);
+            var root = editor.OriginalRoot;
+            foreach (var diagnostic in diagnostics)
+            {
+                var ancestor = root.FindToken(diagnostic.Location.SourceSpan.Start).GetAncestor<LocalDeclarationStatementSyntax>();
 
-            return document.WithSyntaxRoot(root);
+                editor.RemoveNode(ancestor);
+            }
+
+            return SpecializedTasks.EmptyTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
