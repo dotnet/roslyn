@@ -85,12 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.False;
             }
 
-            if (declaration.Arity == 0 && declaration.HasConstraints)
+            foreach (var singleDeclaration in declaration.Declarations)
             {
-                foreach (var syntaxRef in this.SyntaxReferences)
+                if (singleDeclaration.Diagnostics != null)
                 {
-                    var constraintClauses = GetConstraintClauses((CSharpSyntaxNode)syntaxRef.GetSyntax());
-                    ReportErrorIfHasConstraints(constraintClauses, diagnostics);
+                    diagnostics.AddRange(singleDeclaration.Diagnostics);
                 }
             }
         }
