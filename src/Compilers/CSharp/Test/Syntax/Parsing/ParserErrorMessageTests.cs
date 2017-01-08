@@ -1409,6 +1409,204 @@ namespace x {
         }
 
         [Fact]
+        public void CS1004ERR_DuplicateModifier1()
+        {
+            var test = @"
+class C 
+{
+    public public C()
+    {
+    }
+}";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public C()
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier2()
+        {
+            var test = @"
+class C 
+{
+    public public ~C()
+    {
+    }
+}";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public ~C()
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12),
+                // (4,20): error CS0106: The modifier 'public' is not valid for this item
+                //     public public ~C()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("public").WithLocation(4, 20));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier3()
+        {
+            var test = @"
+class C 
+{
+    public public int x;
+}";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public int x;
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12),
+                // (4,23): warning CS0649: Field 'C.x' is never assigned to, and will always have its default value 0
+                //     public public int x;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("C.x", "0").WithLocation(4, 23));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier4()
+        {
+            var test = @"
+class C 
+{
+    public public int P { get; }
+}";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public int P { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier5()
+        {
+            var test = @"
+class C 
+{
+    public public static implicit operator int(C c) => 0;
+}";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public static implicit operator int(C c) => 0;
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier6()
+        {
+            var test = @"
+class C 
+{
+    public public static int operator +(C c1, C c2) => 0;
+}";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public static int operator +(C c1, C c2) => 0;
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier7()
+        {
+            var test = @"
+class C 
+{
+    public int P { get; private private set; }
+}";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,33): error CS1004: Duplicate 'private' modifier
+                //     public int P { get; private private set; }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "private").WithArguments("private").WithLocation(4, 33));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier8()
+        {
+            var test = @"
+class C 
+{
+    public public int this[int i] => 0;
+}";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,12): error CS1004: Duplicate 'public' modifier
+                //     public public int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier9()
+        {
+            var test = @"
+public public class C 
+{
+}";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (2,8): error CS1004: Duplicate 'public' modifier
+                // public public class C 
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier10()
+        {
+            var test = @"
+public public interface I
+{
+}";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (2,8): error CS1004: Duplicate 'public' modifier
+                // public public interface I
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier11()
+        {
+            var test = @"
+public public enum E
+{
+}";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (2,8): error CS1004: Duplicate 'public' modifier
+                // public public enum E
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier12()
+        {
+            var test = @"
+public public struct S
+{
+}";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (2,8): error CS1004: Duplicate 'public' modifier
+                // public public struct S
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
+        }
+
+        [Fact]
+        public void CS1004ERR_DuplicateModifier13()
+        {
+            var test = @"
+public public delegate void D();";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (2,8): error CS1004: Duplicate 'public' modifier
+                // public public delegate void D();
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
+        }
+
+        [Fact]
         public void CS1007ERR_DuplicateAccessor()
         {
             var test = @"using System;
