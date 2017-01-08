@@ -13620,5 +13620,50 @@ IL_000c:  ret
 }
 ]]>)
         End Sub
+
+        <Fact, WorkItem(15672, "https://github.com/dotnet/roslyn/pull/15672")>
+        Public Sub ConditionalAccessOffOfUnconstrainedDefault1()
+            Dim c = CompileAndVerify(
+                <compilation>
+                    <file name="ignoreNullableValue.vb">
+Module Module1
+    Public Sub Main()
+        Test(42)
+        Test("")
+    End Sub
+
+    Public Sub Test(of T)(arg as T)
+        System.Console.WriteLine(DirectCast(Nothing, T)?.ToString())
+    End Sub
+End Module
+                    </file>
+                </compilation>, options:=TestOptions.ReleaseExe,
+                expectedOutput:="0")
+
+            c.VerifyIL("Module1.Test",
+            <![CDATA[
+{
+  // Code size       48 (0x30)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "T"
+  IL_0008:  ldloc.0
+  IL_0009:  box        "T"
+  IL_000e:  brtrue.s   IL_0013
+  IL_0010:  ldnull
+  IL_0011:  br.s       IL_002a
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  initobj    "T"
+  IL_001b:  ldloc.0
+  IL_001c:  stloc.0
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  constrained. "T"
+  IL_0025:  callvirt   "Function Object.ToString() As String"
+  IL_002a:  call       "Sub System.Console.WriteLine(String)"
+  IL_002f:  ret
+}
+]]>)
+        End Sub
     End Class
 End Namespace

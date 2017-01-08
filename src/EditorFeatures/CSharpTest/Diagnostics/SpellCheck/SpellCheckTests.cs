@@ -14,10 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
 {
     public class SpellCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpSpellCheckCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new CSharpSpellCheckCodeFixProvider());
 
         protected override IList<CodeAction> MassageActions(IList<CodeAction> actions)
             => FlattenActions(actions);
@@ -513,6 +511,24 @@ class C
     {
         // here 'for' is *only* a snippet, and we should not offer to spell check to it.
         var v = [|foo|];
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [WorkItem(15733, "https://github.com/dotnet/roslyn/issues/15733")]
+        public async Task TestMissingOnVar()
+        {
+            await TestMissingAsync(
+@"
+namespace bar { }
+
+class C
+{
+    void M()
+    {
+        var y =
+        [|var|]
     }
 }");
         }

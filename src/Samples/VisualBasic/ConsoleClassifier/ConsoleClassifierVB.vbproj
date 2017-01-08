@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <UseRoslynAnalyzers>false</UseRoslynAnalyzers>
   </PropertyGroup>
@@ -10,12 +11,13 @@
     <ProjectGuid>{41C3D7F9-BB1F-46F9-82E5-12B8C52F27B6}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <StartupObject>Program</StartupObject>
-    <RootNamespace></RootNamespace>
     <AssemblyName>ConsoleClassifier</AssemblyName>
     <MyType>Console</MyType>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <ScrubbedSamplePath>VisualBasic\ConsoleClassifier</ScrubbedSamplePath>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <OptionStrict>Off</OptionStrict>
+    <NoWarn>$(NoWarn);42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\src\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -48,39 +50,10 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <OutputPath>bin\Debug\</OutputPath>
-    <NoWarn>$(NoWarn);42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
     <DefineConstants>$(DefineConstants),_MyType="Empty"</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineDebug>false</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <NoWarn>$(NoWarn);42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
-  </PropertyGroup>
-  <PropertyGroup>
-    <OptionExplicit>On</OptionExplicit>
-  </PropertyGroup>
-  <PropertyGroup>
-    <OptionCompare>Binary</OptionCompare>
-  </PropertyGroup>
-  <PropertyGroup>
-    <OptionStrict>Off</OptionStrict>
-  </PropertyGroup>
-  <PropertyGroup>
-    <OptionInfer>On</OptionInfer>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Import Include="Microsoft.VisualBasic" />
-    <Import Include="System" />
-    <Import Include="System.Collections" />
-    <Import Include="System.Collections.Generic" />
-    <Import Include="System.Diagnostics" />
-    <Import Include="System.Linq" />
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
@@ -96,7 +69,7 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>

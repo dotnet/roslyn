@@ -38,15 +38,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public Task OnCompletedAsync() => _progress.OnCompletedAsync();
             public Task ReportProgressAsync(int current, int maximum) => _progress.ReportProgressAsync(current, maximum);
 
-            public Task OnFindInDocumentStartedAsync(DocumentId documentId)
+            public Task OnFindInDocumentStartedAsync(SerializableDocumentId documentId)
             {
-                var document = _solution.GetDocument(documentId);
+                var document = _solution.GetDocument(documentId.Rehydrate());
                 return _progress.OnFindInDocumentStartedAsync(document);
             }
 
-            public Task OnFindInDocumentCompletedAsync(DocumentId documentId)
+            public Task OnFindInDocumentCompletedAsync(SerializableDocumentId documentId)
             {
-                var document = _solution.GetDocument(documentId);
+                var document = _solution.GetDocument(documentId.Rehydrate());
                 return _progress.OnFindInDocumentCompletedAsync(document);
             }
 

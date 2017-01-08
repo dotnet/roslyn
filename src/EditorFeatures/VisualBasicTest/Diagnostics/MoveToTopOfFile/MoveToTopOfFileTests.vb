@@ -8,8 +8,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MoveTo
     Public Class MoveToTopOfFileTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New MoveToTopOfFileCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New MoveToTopOfFileCodeFixProvider())
         End Function
 
 #Region "Imports Tests"
@@ -628,6 +628,5 @@ End Class
 
             Await TestMissingAsync(code)
         End Function
-
     End Class
 End Namespace

@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -15,10 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
 {
     public class GenerateMethodTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new GenerateMethodCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new GenerateMethodCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationIntoSameType()

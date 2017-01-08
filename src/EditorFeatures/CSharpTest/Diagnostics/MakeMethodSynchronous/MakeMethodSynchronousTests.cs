@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous;
@@ -13,10 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MakeMethodS
 {
     public class MakeMethodSynchronousTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpMakeMethodSynchronousCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (null, new CSharpMakeMethodSynchronousCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestTaskReturnType()

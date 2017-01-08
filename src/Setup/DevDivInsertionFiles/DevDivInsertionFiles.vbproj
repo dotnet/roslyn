@@ -1,4 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
@@ -11,17 +12,10 @@
     <AssemblyName>Roslyn.BuildDevDivInsertionFiles</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-  </PropertyGroup>
-  <PropertyGroup>
-    <OptionExplicit>On</OptionExplicit>
-    <OptionCompare>Binary</OptionCompare>
     <OptionStrict>Off</OptionStrict>
-    <OptionInfer>On</OptionInfer>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -35,13 +29,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Import Include="Microsoft.VisualBasic" />
-    <Import Include="System" />
-    <Import Include="System.Collections" />
-    <Import Include="System.Collections.Generic" />
     <Import Include="System.Data" />
-    <Import Include="System.Diagnostics" />
-    <Import Include="System.Linq" />
     <Import Include="System.Xml.Linq" />
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>

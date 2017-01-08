@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Completion;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
@@ -573,10 +572,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CodeStyleOptions.QualifyEventAccess, value); }
         }
 
+        [Obsolete("Use Style_UseImplicitTypeWherePossible, Style_UseImplicitTypeWhereApparent or Style_UseImplicitTypeForIntrinsicTypes", error: true)]
         public int Style_UseVarWhenDeclaringLocals
         {
-            get { return GetBooleanOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals); }
-            set { SetBooleanOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, value); }
+            get { return 0; }
+            set { }
         }
 
         public string Style_UseImplicitTypeWherePossible

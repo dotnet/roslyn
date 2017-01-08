@@ -9,9 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractC
     Partial Public Class ImplementAbstractClassTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(
-                Nothing, New VisualBasicImplementAbstractClassCodeFixProvider)
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New VisualBasicImplementAbstractClassCodeFixProvider)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>

@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TargetNetFX20>true</TargetNetFX20>
   </PropertyGroup>
@@ -11,6 +12,8 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
+    <DefineConstants>$(DefineConstants);NETFX20</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs">
@@ -73,14 +76,8 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;NETFX20</DefineConstants>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineConstants>TRACE;NETFX20</DefineConstants>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Compile Include="..\Portable\Resources.Designer.cs">
       <Link>Resources.Designer.cs</Link>
