@@ -150,15 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Fixed;
                 case SyntaxKind.VolatileKeyword:
                     return DeclarationModifiers.Volatile;
-                case SyntaxKind.ThisKeyword:
-                case SyntaxKind.RefKeyword:
-                case SyntaxKind.OutKeyword:
-                //case SyntaxKind.ParamsKeyword:
-                //    if (ignoreParameterModifiers)
-                //    {
-                //        return DeclarationModifiers.None;
-                //    }
-                //    goto default;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
