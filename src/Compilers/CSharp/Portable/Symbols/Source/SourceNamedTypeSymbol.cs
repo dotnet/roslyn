@@ -87,10 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var singleDeclaration in declaration.Declarations)
             {
-                if (singleDeclaration.Diagnostics != null)
-                {
-                    diagnostics.AddRange(singleDeclaration.Diagnostics);
-                }
+                diagnostics.AddRange(singleDeclaration.Diagnostics);
             }
         }
 
