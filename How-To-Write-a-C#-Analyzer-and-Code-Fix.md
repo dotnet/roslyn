@@ -34,7 +34,7 @@ The analysis to determine whether a variable can be made constant is actually fa
 
 ![New Project dialog](images/how-to-write-a-csharp-analyzer-and-code-fix-figure1.png)
 
-2) Press F5 to run the newly created Analyzer project in a second instance of Visual Studio.
+2) Press F5 to run the newly created Analyzer project in a second instance of Visual Studio. The project template creates three projects, and the .VSIX is the one the debugger will start.
   * In the second Visual Studio instance that you just started, create a new C# Console Application project. Hover over the token with a wavy underline, and the warning text provided by an Analyzer appears.
 
 This Analyzer is provided by the AnalyzeSymbol method in the debugger project. So initially, the debugger project contains enough code to create an Analyzer for every type declaration in a C# file whose identifier contains lowercase letters.
