@@ -7,8 +7,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertIfToSwitchCodeRefactoringProvider)), [Shared]>
-    Partial Friend Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
+    Partial NotInheritable Friend Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
         Inherits AbstractConvertIfToSwitchCodeRefactoringProvider(Of SyntaxList(Of StatementSyntax), MultiLineIfBlockSyntax, ExpressionSyntax, Pattern)
+
+        Protected Overrides ReadOnly Property Title As String
+            Get
+                Return VBFeaturesResources.Convert_If_to_Select_Case
+            End Get
+        End Property
 
         Protected Overrides Function AreEquivalentCore(expression As ExpressionSyntax, switchExpression As ExpressionSyntax) As Boolean
             Return SyntaxFactory.AreEquivalent(expression, switchExpression)
@@ -45,31 +51,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
                     Dim flipOperator = constant Is node.Left
                     Return New Pattern.Comparison(constant, flipOperator, node.OperatorToken)
 
-                Case SyntaxKind.AndAlsoExpression
+                Case SyntaxKind.AndAlsoExpression,
+                     SyntaxKind.AndExpression
                     ' Look for the from "x >= 1 AndAlso x <= 9" where x is equivalent to the switch expression.
                     ' This will turn into a range case clause e.g. "Case 1 To 10"
                     Dim node = DirectCast(operand, BinaryExpressionSyntax)
-                    Dim left = TryCast(node.Left.WalkDownParentheses, BinaryExpressionSyntax)
-                    Dim right = TryCast(node.Right.WalkDownParentheses, BinaryExpressionSyntax)
+                    Dim left = node.Left.WalkDownParentheses
+                    Dim right = node.Right.WalkDownParentheses
 
-                    If left Is Nothing OrElse right Is Nothing Then
+                    If Not IsRangeComparisonOperator(left) OrElse Not IsRangeComparisonOperator(right) Then
                         Return Nothing
                     End If
 
-                    If Not IsRangeComparisonOperator(left.Kind) OrElse Not IsRangeComparisonOperator(right.Kind) Then
-                        Return Nothing
-                    End If
-
+                    Dim leftComparison = DirectCast(left, BinaryExpressionSyntax)
+                    Dim rightComparison = DirectCast(right, BinaryExpressionSyntax)
                     Dim leftConstant As ExpressionSyntax = Nothing
                     Dim rightConstant As ExpressionSyntax = Nothing
                     Dim leftExpression As ExpressionSyntax = Nothing
                     Dim rightExpression As ExpressionSyntax = Nothing
 
-                    If Not TryDetermineConstant(left.Right, left.Left, semanticModel, leftConstant, leftExpression) Then
-                        Return Nothing
+                    If Not TryDetermineConstant(leftComparison.Right, leftComparison.Left, semanticModel, 
+                                                leftConstant, leftExpression) Then
+                        Return Nothing  
                     End If
 
-                    If Not TryDetermineConstant(right.Right, right.Left, semanticModel, rightConstant, rightExpression) Then
+                    If Not TryDetermineConstant(rightComparison.Right, rightComparison.Left, semanticModel,
+                                                rightConstant, rightExpression) Then
                         Return Nothing
                     End If
 
@@ -77,9 +84,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
                         Return Nothing
                     End If
 
-                    Dim leftHasLowerPosition = HasLowerPosition(leftExpression, left)
-                    Dim rightHasLowerPosition = HasLowerPosition(rightExpression, right)
-                    If leftHasLowerPosition = rightHasLowerPosition Then
+                    Dim leftIsLowerBound = IsLowerBound(leftExpression, leftComparison)
+                    Dim rightIsLowerBound = IsLowerBound(rightExpression, rightComparison)
+                    If leftIsLowerBound = rightIsLowerBound Then
                         Return Nothing
                     End If
 
@@ -87,8 +94,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
                         Return Nothing
                     End If
 
-                    Dim range = If(leftHasLowerPosition, (rightConstant, leftConstant), (leftConstant, rightConstant))
-                    Return New Pattern.Range(range)
+                    Dim rangeBounds = If(leftIsLowerBound, (rightConstant, leftConstant), (leftConstant, rightConstant))
+                    Return New Pattern.Range(rangeBounds)
 
                 Case Else
                     Return Nothing
@@ -96,16 +103,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
             End Select
         End Function
 
-        Private Shared Function HasLowerPosition(expression As ExpressionSyntax, node As BinaryExpressionSyntax) As Boolean
+        Private Shared Function IsLowerBound(expression As ExpressionSyntax, node As BinaryExpressionSyntax) As Boolean
             Return If(node.IsKind(SyntaxKind.LessThanOrEqualExpression), expression Is node.Left, expression Is node.Right)
         End Function
 
-        Private Shared Function IsRangeComparisonOperator(kind As SyntaxKind) As Boolean
-            Return kind = SyntaxKind.LessThanOrEqualExpression OrElse kind = SyntaxKind.GreaterThanOrEqualExpression
-        End Function
-
-        Protected Overrides Function GetIfKeyword(node As MultiLineIfBlockSyntax) As SyntaxToken
-            Return node.IfStatement.IfKeyword
+        Private Shared Function IsRangeComparisonOperator(node As SyntaxNode) As Boolean
+            Select Case node.Kind
+                Case SyntaxKind.LessThanOrEqualExpression,
+                     SyntaxKind.GreaterThanOrEqualExpression
+                    Return True
+                Case Else
+                    Return False
+            End Select
         End Function
 
         Protected Overrides Iterator Function GetLogicalOrExpressionOperands(node As ExpressionSyntax) As IEnumerable(Of ExpressionSyntax)

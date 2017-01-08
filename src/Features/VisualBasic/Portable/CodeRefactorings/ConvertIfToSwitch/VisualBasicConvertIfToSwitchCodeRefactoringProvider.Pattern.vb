@@ -3,22 +3,22 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
-    Partial Friend Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
-        Public MustInherit Class Pattern
-            Public NotInheritable Class Comparison
+    Partial Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
+        Friend MustInherit Class Pattern
+            Friend NotInheritable Class Comparison
                 Inherits Pattern
 
                 Private ReadOnly _constant As ExpressionSyntax
                 Private ReadOnly _flipOperator As Boolean
                 Private ReadOnly _operatorToken As SyntaxToken
 
-                Public Sub New(constant As ExpressionSyntax, flipOperator As Boolean, operatorToken As SyntaxToken)
+                Friend Sub New(constant As ExpressionSyntax, flipOperator As Boolean, operatorToken As SyntaxToken)
                     _constant = constant
                     _flipOperator = flipOperator
                     _operatorToken = operatorToken
                 End Sub
 
-                Public Overrides Function CreateCaseClause() As CaseClauseSyntax
+                Friend Overrides Function CreateCaseClause() As CaseClauseSyntax
                     Return SyntaxFactory.RelationalCaseClause(
                         GetRelationalCaseClauseKind(),
                         SyntaxFactory.Token(SyntaxKind.IsKeyword),
@@ -70,35 +70,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
                 End Function
             End Class
 
-            Public NotInheritable Class Constant
+            Friend NotInheritable Class Constant
                 Inherits Pattern
 
                 Private ReadOnly _constant As ExpressionSyntax
 
-                Public Sub New(constant As ExpressionSyntax)
+                Friend Sub New(constant As ExpressionSyntax)
                     _constant = constant
                 End Sub
 
-                Public Overrides Function CreateCaseClause() As CaseClauseSyntax
+                Friend Overrides Function CreateCaseClause() As CaseClauseSyntax
                     Return SyntaxFactory.SimpleCaseClause(_constant)
                 End Function
             End Class
 
-            Public NotInheritable Class Range
+            Friend NotInheritable Class Range
                 Inherits Pattern
 
-                Private ReadOnly _range As (lower As ExpressionSyntax, upper As ExpressionSyntax)
+                Private ReadOnly _rangeBounds As (lower As ExpressionSyntax, upper As ExpressionSyntax)
 
-                Public Sub New(range As (ExpressionSyntax, ExpressionSyntax))
-                    _range = range
+                Friend Sub New(rangeBounds As (ExpressionSyntax, ExpressionSyntax))
+                    _rangeBounds = rangeBounds
                 End Sub
 
-                Public Overrides Function CreateCaseClause() As CaseClauseSyntax
-                    Return SyntaxFactory.RangeCaseClause(_range.lower, _range.upper)
+                Friend Overrides Function CreateCaseClause() As CaseClauseSyntax
+                    Return SyntaxFactory.RangeCaseClause(_rangeBounds.lower, _rangeBounds.upper)
                 End Function
             End Class
 
-            Public MustOverride Function CreateCaseClause() As CaseClauseSyntax
+            Friend MustOverride Function CreateCaseClause() As CaseClauseSyntax
         End Class
     End Class
 End Namespace

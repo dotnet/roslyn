@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                 return;
             }
 
-            if (!GetIfKeyword(ifStatement).GetLocation().SourceSpan.IntersectsWith(context.Span))
+            if (!ifStatement.GetFirstToken().GetLocation().SourceSpan.IntersectsWith(context.Span))
             {
                 return;
             }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                 switchSections.Add((patterns, body));
             }
 
-            context.RegisterRefactoring(new MyCodeAction(c =>
+            context.RegisterRefactoring(new MyCodeAction(Title, c =>
                 UpdateDocumentAsync(root, document, ifStatement, switchDefaultBody, switchExpression, semanticModel, switchSections)));
         }
 
@@ -114,14 +114,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
             return constant != null;
         }
 
-        protected abstract SyntaxToken GetIfKeyword(TIfStatementSyntax ifStatement);
         protected abstract bool AreEquivalentCore(TExpressionSyntax expression, TExpressionSyntax switchExpression);
         protected abstract bool CanConvertIfToSwitch(TIfStatementSyntax ifStatement, SemanticModel semanticModel);
-        protected abstract IEnumerable<TExpressionSyntax>
-            GetLogicalOrExpressionOperands(TExpressionSyntax syntaxNode);
+        protected abstract IEnumerable<TExpressionSyntax> GetLogicalOrExpressionOperands(
+            TExpressionSyntax syntaxNode);
 
-        protected abstract IEnumerable<(TStatementSyntax, TExpressionSyntax)>
-            GetIfElseStatementChain(TIfStatementSyntax ifStatement);
+        protected abstract IEnumerable<(TStatementSyntax, TExpressionSyntax)> GetIfElseStatementChain(
+            TIfStatementSyntax ifStatement);
 
         protected abstract TPattern CreatePatternFromExpression(
             TExpressionSyntax operand, SemanticModel semanticModel, ref TExpressionSyntax switchExpression);
@@ -146,10 +145,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
             return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
 
+        protected abstract string Title { get; }
+
         protected sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Convert_if_to_switch, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

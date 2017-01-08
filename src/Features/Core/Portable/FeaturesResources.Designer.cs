@@ -736,15 +736,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert if to switch.
-        /// </summary>
-        internal static string Convert_if_to_switch {
-            get {
-                return ResourceManager.GetString("Convert_if_to_switch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Convert to interpolated string.
         /// </summary>
         internal static string Convert_to_interpolated_string {

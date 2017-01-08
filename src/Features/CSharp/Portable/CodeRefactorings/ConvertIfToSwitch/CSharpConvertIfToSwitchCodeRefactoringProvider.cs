@@ -11,10 +11,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertIfToSwitchCodeRefactoringProvider)), Shared]
-    internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider :
-        AbstractConvertIfToSwitchCodeRefactoringProvider<
-            StatementSyntax, IfStatementSyntax, ExpressionSyntax, CSharpConvertIfToSwitchCodeRefactoringProvider.Pattern>
+    internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider : AbstractConvertIfToSwitchCodeRefactoringProvider<
+        StatementSyntax, IfStatementSyntax, ExpressionSyntax, CSharpConvertIfToSwitchCodeRefactoringProvider.Pattern>
     {
+        protected override string Title => CSharpFeaturesResources.Convert_if_to_switch;
+
         protected override Pattern CreatePatternFromExpression(ExpressionSyntax operand, SemanticModel semanticModel, ref ExpressionSyntax switchExpression)
         {
             switch (operand.Kind())
@@ -119,17 +120,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
             }
         }
 
-        protected override SyntaxToken GetIfKeyword(IfStatementSyntax ifStatement)
-            => ifStatement.IfKeyword;
-
         protected override bool AreEquivalentCore(ExpressionSyntax expression, ExpressionSyntax switchExpression)
             => SyntaxFactory.AreEquivalent(expression, switchExpression);
 
         protected override bool CanConvertIfToSwitch(IfStatementSyntax ifStatement, SemanticModel semanticModel)
             => !semanticModel.AnalyzeControlFlow(ifStatement).ExitPoints.Any(n => n.IsKind(SyntaxKind.BreakStatement));
 
-        protected override IEnumerable<ExpressionSyntax>
-            GetLogicalOrExpressionOperands(ExpressionSyntax syntaxNode)
+        protected override IEnumerable<ExpressionSyntax> GetLogicalOrExpressionOperands(
+            ExpressionSyntax syntaxNode)
         {
             syntaxNode = syntaxNode.WalkDownParentheses();
             while (syntaxNode.IsKind(SyntaxKind.LogicalOrExpression))
@@ -142,8 +140,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
             yield return syntaxNode;
         }
 
-        protected override IEnumerable<(StatementSyntax, ExpressionSyntax)>
-            GetIfElseStatementChain(IfStatementSyntax ifStatement)
+        protected override IEnumerable<(StatementSyntax, ExpressionSyntax)> GetIfElseStatementChain(
+            IfStatementSyntax ifStatement)
         {
             StatementSyntax elseBody;
             do

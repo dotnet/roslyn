@@ -1154,7 +1154,4 @@ This version used in: {2}</value>
   <data name="Add_argument_name_0" xml:space="preserve">
     <value>Add argument name '{0}'</value>
   </data>
-  <data name="Convert_if_to_switch" xml:space="preserve">
-    <value>Convert if to switch</value>
-  </data>
 </root>
