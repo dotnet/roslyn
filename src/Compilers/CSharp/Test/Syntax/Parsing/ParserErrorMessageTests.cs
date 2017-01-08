@@ -124,7 +124,13 @@ public class C
     }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadMemberProtection, "internal"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,13): error CS0107: More than one protection modifier
+                //     private internal void f() {}
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "internal").WithLocation(4, 13),
+                // (4,27): error CS0107: More than one protection modifier
+                //     private internal void f() {}
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "f").WithLocation(4, 27));
         }
 
         [Fact, WorkItem(543622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543622")]
@@ -365,7 +371,7 @@ public class Test
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics();
         }
 
         [Fact]
@@ -375,39 +381,59 @@ public class Test
 partial enum E { }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial enum E { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
         }
 
         [Fact]
-        public void CS0267ERR_PartialMisplaced_Delegate()
+        public void CS0267ERR_PartialMisplaced_Delegate1()
         {
             var test = @"
 partial delegate E { }
 ";
 
             // Extra errors
-            ParseAndValidate(test,
-    // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial"),
-    // (2,20): error CS1001: Identifier expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_IdentifierExpected, "{"),
-    // (2,20): error CS1003: Syntax error, '(' expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("(", "{"),
-    // (2,20): error CS1026: ) expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "{"),
-    // (2,20): error CS1002: ; expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "{"),
-    // (2,20): error CS1022: Type or namespace definition, or end-of-file expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "{"),
-    // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
-    // partial delegate E { }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (2,20): error CS1001: Identifier expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 20),
+                // (2,20): error CS1003: Syntax error, '(' expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("(", "{").WithLocation(2, 20),
+                // (2,20): error CS1026: ) expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(2, 20),
+                // (2,20): error CS1002: ; expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(2, 20),
+                // (2,20): error CS1022: Type or namespace definition, or end-of-file expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(2, 20),
+                // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 22),
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
+                // (2,18): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(2, 18));
+        }
+
+        [Fact]
+        public void CS0267ERR_PartialMisplaced_Delegate2()
+        {
+            var test = @"
+partial delegate void E();
+";
+
+            // Extra errors
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial delegate void E();
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
         }
 
         // TODO: Extra errors
@@ -1373,7 +1399,13 @@ namespace x {
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (6,16): error CS1004: Duplicate 'public' modifier
+                //         public public static int Main()    // CS1004, two public keywords
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(6, 16),
+                // (5,13): warning CS0169: The field 'clx.i' is never used
+                //         int i;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.clx.i").WithLocation(5, 13));
         }
 
         [Fact]
