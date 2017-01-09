@@ -55,6 +55,77 @@ public class Cls
         }
 
         [Fact]
+        [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
+        [WorkItem(16348, "https://github.com/dotnet/roslyn/issues/16348")]
+        public void DiagnosticsDifferenceBetweenLanguageVersions_01()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Test1()
+    {
+        Test(out int x1);
+    }
+
+    public static void Test2()
+    {
+        var x = new Cls(out int x2);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            compilation.VerifyDiagnostics(
+                // (6,22): error CS8059: Feature 'out variable declaration' is not available in C# 6.  Please use language version 7 or greater.
+                //         Test(out int x1);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7").WithLocation(6, 22),
+                // (11,33): error CS8059: Feature 'out variable declaration' is not available in C# 6.  Please use language version 7 or greater.
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x2").WithArguments("out variable declaration", "7").WithLocation(11, 33),
+                // (6,9): error CS0103: The name 'Test' does not exist in the current context
+                //         Test(out int x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Test").WithArguments("Test").WithLocation(6, 9),
+                // (11,21): error CS1729: 'Cls' does not contain a constructor that takes 1 arguments
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Cls").WithArguments("Cls", "1").WithLocation(11, 21),
+                // (11,29): error CS0165: Use of unassigned local variable 'x2'
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x2").WithArguments("x2").WithLocation(11, 29)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl);
+
+            var x2Decl = GetOutVarDeclaration(tree, "x2");
+            //VerifyModelForOutVar(model, x2Decl); Probably fails due to https://github.com/dotnet/roslyn/issues/16348
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl);
+
+            compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (6,9): error CS0103: The name 'Test' does not exist in the current context
+                //         Test(out int x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Test").WithArguments("Test").WithLocation(6, 9),
+                // (11,21): error CS1729: 'Cls' does not contain a constructor that takes 1 arguments
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Cls").WithArguments("Cls", "1").WithLocation(11, 21),
+                // (11,29): error CS0165: Use of unassigned local variable 'x2'
+                //         var x = new Cls(out int x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x2").WithArguments("x2").WithLocation(11, 29)
+                );
+
+            tree = compilation.SyntaxTrees.Single();
+            model = compilation.GetSemanticModel(tree);
+
+            x1Decl = GetOutVarDeclaration(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl);
+
+            x2Decl = GetOutVarDeclaration(tree, "x2");
+            //VerifyModelForOutVar(model, x2Decl); Probably fails due to https://github.com/dotnet/roslyn/issues/16348
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl);
+        }
+
+        [Fact]
         [CompilerTrait(CompilerFeature.Tuples)]
         [WorkItem(13148, "https://github.com/dotnet/roslyn/issues/13148")]
         public void OutVarDeconstruction_01()
@@ -2296,9 +2367,15 @@ class Test : System.Attribute
                 // (4,19): error CS0103: The name 'x3' does not exist in the current context
                 //     [Test(out var x3)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(4, 19),
+                // (4,6): error CS1729: 'Test' does not contain a constructor that takes 2 arguments
+                //     [Test(out var x3)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(out var x3)").WithArguments("Test", "2").WithLocation(4, 6),
                 // (5,19): error CS0103: The name 'x4' does not exist in the current context
                 //     [Test(out int x4)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(5, 19),
+                // (5,6): error CS1729: 'Test' does not contain a constructor that takes 2 arguments
+                //     [Test(out int x4)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(out int x4)").WithArguments("Test", "2").WithLocation(5, 6),
                 // (6,18): error CS0103: The name 'var' does not exist in the current context
                 //     [Test(p: out var x5)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 18),
@@ -2308,12 +2385,18 @@ class Test : System.Attribute
                 // (6,22): error CS0103: The name 'x5' does not exist in the current context
                 //     [Test(p: out var x5)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(6, 22),
+                // (6,6): error CS1729: 'Test' does not contain a constructor that takes 3 arguments
+                //     [Test(p: out var x5)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(p: out var x5)").WithArguments("Test", "3").WithLocation(6, 6),
                 // (7,18): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
                 //     [Test(p: out int x6)]
                 Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "int").WithLocation(7, 18),
                 // (7,22): error CS0103: The name 'x6' does not exist in the current context
                 //     [Test(p: out int x6)]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(7, 22)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(7, 22),
+                // (7,6): error CS1729: 'Test' does not contain a constructor that takes 3 arguments
+                //     [Test(p: out int x6)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(p: out int x6)").WithArguments("Test", "3").WithLocation(7, 6)
                 );
 
             var tree = compilation.SyntaxTrees.Single();

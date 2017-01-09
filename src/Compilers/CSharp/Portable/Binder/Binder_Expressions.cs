@@ -4684,10 +4684,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // CS0122: 'MyBase.MyBase' is inaccessible due to its protection level
                     diagnostics.Add(ErrorCode.ERR_BadAccess, errorLocation, result.ValidResult.Member);
                 }
-                else if (!analyzedArguments.HasErrors)
+                else
                 {
-                    // If the arguments had an error reported then do not report further errors for 
-                    // overload resolution failure.
                     result.ReportDiagnostics(this, errorLocation, diagnostics,
                         errorName, null, analyzedArguments, candidateConstructors, typeContainingConstructors, null);
                 }
