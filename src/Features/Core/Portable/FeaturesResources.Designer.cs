@@ -99,6 +99,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add argument name &apos;{0}&apos;.
+        /// </summary>
+        internal static string Add_argument_name_0 {
+            get {
+                return ResourceManager.GetString("Add_argument_name_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add both.
         /// </summary>
         internal static string Add_both {
