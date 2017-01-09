@@ -6158,34 +6158,34 @@ class Program
         {
             string source = @"
 
-        using System.Collections.Generic;
+using System.Collections.Generic;
 
-        public class MyClass
+public class MyClass
+{
+    public static void Main()
+    {
+        ((int, int), string)[] arr = new((int, int), string)[1];
+
+        Test5(arr);
+    }
+
+    public static void Test4(IEnumerable<(KeyValuePair<int, int>, string)> en)
+    {
+        foreach ((KeyValuePair<int, int> kv, string s) in en)
         {
-            public static void Main()
-            {
-                ((int, int), string)[] arr = new((int, int), string)[1];
+            var a = kv.Key; // false error CS0170: Use of possibly unassigned field
+        }
+    }
 
-                Test5(arr);
-            }
-
-            public static void Test4(IEnumerable<(KeyValuePair<int, int>, string)> en)
-            {
-                foreach ((KeyValuePair<int, int> kv, string s) in en)
-                {
-                    var a = kv.Key; // false error CS0170: Use of possibly unassigned field
-                }
-            }
-
-            public static void Test5(IEnumerable<((int, int), string)> en)
-            {
-                foreach (((int, int k) t, string s) in en)
-                {
-                    var a = t.k; // false error CS0170: Use of possibly unassigned field
-                    System.Console.WriteLine(a);
-                }
-            }
-        }";
+    public static void Test5(IEnumerable<((int, int), string)> en)
+    {
+        foreach (((int, int k) t, string s) in en)
+        {
+            var a = t.k; // false error CS0170: Use of possibly unassigned field
+            System.Console.WriteLine(a);
+        }
+    }
+}";
 
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
