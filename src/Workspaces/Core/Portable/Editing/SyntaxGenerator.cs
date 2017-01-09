@@ -1379,6 +1379,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode SwitchSection(IEnumerable<SyntaxNode> caseExpressions, IEnumerable<SyntaxNode> statements);
 
+        internal abstract SyntaxNode PatternSwitchSection(IEnumerable<SyntaxNode> labels, IEnumerable<SyntaxNode> statements);
+
         /// <summary>
         /// Creates a single-case section a switch statement.
         /// </summary>

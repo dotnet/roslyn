@@ -1,14 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
 {
     partial class CSharpConvertIfToSwitchCodeRefactoringProvider
     {
-        internal abstract class Pattern
+        private abstract class Pattern : IPattern
         {
+            SyntaxNode IPattern.CreateSwitchLabel() => CreateSwitchLabel();
+
+            protected abstract CasePatternSwitchLabelSyntax CreateSwitchLabel();
+
+            private static CasePatternSwitchLabelSyntax CasePatternSwitchLabel(TypeSyntax type, VariableDesignationSyntax designation)
+                => SyntaxFactory.CasePatternSwitchLabel(
+                    SyntaxFactory.DeclarationPattern(type, designation),
+                    SyntaxFactory.Token(SyntaxKind.ColonToken));
+
             internal sealed class ByValue : Pattern
             {
                 private readonly ExpressionSyntax _expression;
@@ -18,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                     _expression = expression;
                 }
 
-                internal override CasePatternSwitchLabelSyntax CreateSwitchLabel()
+                protected override CasePatternSwitchLabelSyntax CreateSwitchLabel()
                     => SyntaxFactory.CasePatternSwitchLabel(
                         SyntaxFactory.ConstantPattern(_expression),
                         SyntaxFactory.Token(SyntaxKind.ColonToken));
@@ -35,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                     _identifier = identifier;
                 }
 
-                internal override CasePatternSwitchLabelSyntax CreateSwitchLabel()
+                protected override CasePatternSwitchLabelSyntax CreateSwitchLabel()
                     => CasePatternSwitchLabel(_type, SyntaxFactory.SingleVariableDesignation(_identifier));
             }
 
@@ -48,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                     _type = type;
                 }
 
-                internal override CasePatternSwitchLabelSyntax CreateSwitchLabel()
+                protected override CasePatternSwitchLabelSyntax CreateSwitchLabel()
                     => CasePatternSwitchLabel(_type, SyntaxFactory.DiscardDesignation());
             }
 
@@ -63,16 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                     _expression = expression;
                 }
 
-                internal override CasePatternSwitchLabelSyntax CreateSwitchLabel()
+                protected override CasePatternSwitchLabelSyntax CreateSwitchLabel()
                     => _pattern.CreateSwitchLabel().WithWhenClause(SyntaxFactory.WhenClause(_expression));
             }
-
-            internal abstract CasePatternSwitchLabelSyntax CreateSwitchLabel();
-
-            private static CasePatternSwitchLabelSyntax CasePatternSwitchLabel(TypeSyntax type, VariableDesignationSyntax designation)
-                => SyntaxFactory.CasePatternSwitchLabel(
-                    SyntaxFactory.DeclarationPattern(type, designation),
-                    SyntaxFactory.Token(SyntaxKind.ColonToken));
         }
     }
 }

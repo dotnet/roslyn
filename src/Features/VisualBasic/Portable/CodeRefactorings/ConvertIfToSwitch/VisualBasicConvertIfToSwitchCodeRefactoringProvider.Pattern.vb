@@ -4,69 +4,45 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
     Partial Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
-        Friend MustInherit Class Pattern
+        Private MustInherit Class Pattern
+            Implements IPattern
             Friend NotInheritable Class Comparison
                 Inherits Pattern
 
                 Private ReadOnly _constant As ExpressionSyntax
-                Private ReadOnly _flipOperator As Boolean
-                Private ReadOnly _operatorToken As SyntaxToken
+                Private ReadOnly _inverted As Boolean
+                Private ReadOnly _operatorTokenKind As SyntaxKind
 
-                Friend Sub New(constant As ExpressionSyntax, flipOperator As Boolean, operatorToken As SyntaxToken)
+                Private Shared ReadOnly s_comparisonInversesMap As Dictionary(Of SyntaxKind, SyntaxKind) =
+                    New Dictionary(Of SyntaxKind, SyntaxKind)(SyntaxFacts.EqualityComparer) From
+                    {
+                        {SyntaxKind.GreaterThanEqualsToken, SyntaxKind.LessThanEqualsToken},
+                        {SyntaxKind.LessThanEqualsToken, SyntaxKind.GreaterThanEqualsToken},
+                        {SyntaxKind.GreaterThanToken, SyntaxKind.LessThanToken},
+                        {SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken}
+                    }
+
+                Private Shared ReadOnly s_caseClausesMap As Dictionary(Of SyntaxKind, SyntaxKind) =
+                    New Dictionary(Of SyntaxKind, SyntaxKind)(SyntaxFacts.EqualityComparer) From
+                    {
+                        {SyntaxKind.GreaterThanEqualsToken, SyntaxKind.CaseGreaterThanOrEqualClause},
+                        {SyntaxKind.LessThanEqualsToken, SyntaxKind.CaseLessThanOrEqualClause},
+                        {SyntaxKind.GreaterThanToken, SyntaxKind.CaseGreaterThanClause},
+                        {SyntaxKind.LessThanToken, SyntaxKind.CaseLessThanClause}
+                    }
+
+                Friend Sub New(constant As ExpressionSyntax, inverted As Boolean, operatorTokenKind As SyntaxKind)
                     _constant = constant
-                    _flipOperator = flipOperator
-                    _operatorToken = operatorToken
+                    _inverted = inverted
+                    _operatorTokenKind = operatorTokenKind
                 End Sub
 
-                Friend Overrides Function CreateCaseClause() As CaseClauseSyntax
+                Public Overrides Function CreateSwitchLabel() As SyntaxNode
+                    Dim comparisonToken = If(_inverted, s_comparisonInversesMap(_operatorTokenKind), _operatorTokenKind)
                     Return SyntaxFactory.RelationalCaseClause(
-                        GetRelationalCaseClauseKind(),
+                        s_caseClausesMap(comparisonToken),
                         SyntaxFactory.Token(SyntaxKind.IsKeyword),
-                        SyntaxFactory.Token(GetOperatorToken()), _constant)
-                End Function
-
-                Private Function GetOperatorToken() As SyntaxKind
-                    If Not _flipOperator Then
-                        Return _operatorToken.Kind
-                    End If
-
-                    Select Case _operatorToken.Kind
-                        Case SyntaxKind.GreaterThanEqualsToken
-                            Return SyntaxKind.LessThanEqualsToken
-
-                        Case SyntaxKind.GreaterThanToken
-                            Return SyntaxKind.LessThanEqualsToken
-
-                        Case SyntaxKind.LessThanEqualsToken
-                            Return SyntaxKind.GreaterThanEqualsToken
-
-                        Case SyntaxKind.LessThanToken
-                            Return SyntaxKind.GreaterThanToken
-
-                        Case Else
-                            Throw New InvalidOperationException()
-
-                    End Select
-                End Function
-
-                Private Function GetRelationalCaseClauseKind() As SyntaxKind
-                    Select Case GetOperatorToken()
-                        Case SyntaxKind.GreaterThanEqualsToken
-                            Return SyntaxKind.CaseGreaterThanOrEqualClause
-
-                        Case SyntaxKind.GreaterThanToken
-                            Return SyntaxKind.CaseGreaterThanClause
-
-                        Case SyntaxKind.LessThanEqualsToken
-                            Return SyntaxKind.CaseLessThanOrEqualClause
-
-                        Case SyntaxKind.LessThanToken
-                            Return SyntaxKind.CaseLessThanClause
-
-                        Case Else
-                            Throw New InvalidOperationException()
-
-                    End Select
+                        SyntaxFactory.Token(comparisonToken), _constant)
                 End Function
             End Class
 
@@ -79,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
                     _constant = constant
                 End Sub
 
-                Friend Overrides Function CreateCaseClause() As CaseClauseSyntax
+                Public Overrides Function CreateSwitchLabel() As SyntaxNode
                     Return SyntaxFactory.SimpleCaseClause(_constant)
                 End Function
             End Class
@@ -93,12 +69,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
                     _rangeBounds = rangeBounds
                 End Sub
 
-                Friend Overrides Function CreateCaseClause() As CaseClauseSyntax
+                Public Overrides Function CreateSwitchLabel() As SyntaxNode
                     Return SyntaxFactory.RangeCaseClause(_rangeBounds.lower, _rangeBounds.upper)
                 End Function
             End Class
 
-            Friend MustOverride Function CreateCaseClause() As CaseClauseSyntax
+            Public MustOverride Function CreateSwitchLabel() As SyntaxNode Implements IPattern.CreateSwitchLabel
         End Class
     End Class
 End Namespace

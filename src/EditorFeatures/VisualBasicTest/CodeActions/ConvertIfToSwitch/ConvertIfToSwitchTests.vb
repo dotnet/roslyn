@@ -142,7 +142,7 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
-        Public Async Function TextComplexIf() As Task
+        Public Async Function TestComplexIf() As Task
             Await TestAsync(
 "Class C
     Sub M(i As Integer)

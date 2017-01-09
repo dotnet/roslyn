@@ -6,14 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
 {
-    internal abstract class AbstractConvertIfToSwitchCodeRefactoringProvider<
-        TStatementSyntax, TIfStatementSyntax, TExpressionSyntax, TPattern> : CodeRefactoringProvider
-        where TPattern : class
-        where TExpressionSyntax : SyntaxNode
-        where TIfStatementSyntax : SyntaxNode
+    internal abstract class AbstractConvertIfToSwitchCodeRefactoringProvider : CodeRefactoringProvider
     {
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -23,129 +22,165 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                 return;
             }
 
-            var cancellationToken = context.CancellationToken;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
 
-            var ifStatement = root.FindNode(context.Span).FirstAncestorOrSelf<TIfStatementSyntax>();
-            if (ifStatement == null)
+            await CreateAnalyzer(syntaxFacts, semanticModel)
+                .ComputeRefactoringsAsync(context).ConfigureAwait(false);
+        }
+
+        protected interface IPattern
+        {
+            SyntaxNode CreateSwitchLabel();
+        }
+
+        protected interface IAnalyzer
+        {
+            Task ComputeRefactoringsAsync(CodeRefactoringContext context);
+        }
+
+        protected abstract IAnalyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel);
+
+        protected abstract class Analyzer<TStatementSyntax, TIfStatementSyntax, TExpressionSyntax> : IAnalyzer
+            where TExpressionSyntax : SyntaxNode
+            where TIfStatementSyntax : SyntaxNode
+        {
+            protected readonly ISyntaxFactsService _syntaxFacts;
+            protected readonly SemanticModel _semanticModel;
+            private TExpressionSyntax _switchExpression;
+
+            public Analyzer(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel)
             {
-                return;
+                _syntaxFacts = syntaxFacts;
+                _semanticModel = semanticModel;
             }
 
-            if (ifStatement.ContainsDiagnostics)
+            public async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
-                return;
-            }
+                var document = context.Document;
+                var cancellationToken = context.CancellationToken;
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!ifStatement.GetFirstToken().GetLocation().SourceSpan.IntersectsWith(context.Span))
-            {
-                return;
-            }
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (!CanConvertIfToSwitch(ifStatement, semanticModel))
-            {
-                return;
-            }
-
-            var switchDefaultBody = default(TStatementSyntax);
-            var switchExpression = default(TExpressionSyntax);
-            var switchSections = new List<(List<TPattern>, TStatementSyntax)>();
-
-            // Iterate over if-else statement chain.
-            foreach (var (body, condition) in GetIfElseStatementChain(ifStatement))
-            {
-                if (condition == null)
+                var ifStatement = root.FindNode(context.Span).FirstAncestorOrSelf<TIfStatementSyntax>();
+                if (ifStatement == null)
                 {
-                    switchDefaultBody = body;
-                    break;
+                    return;
                 }
 
-                var operands = GetLogicalOrExpressionOperands(condition);
-                var patterns = new List<TPattern>();
-
-                // Iterate over "||" operands to make a case label per each condition.
-                foreach (var operand in operands.Reverse())
+                if (ifStatement.ContainsDiagnostics)
                 {
-                    var pattern = CreatePatternFromExpression(operand, semanticModel, ref switchExpression);
-                    if (pattern == null)
+                    return;
+                }
+
+                if (!ifStatement.GetFirstToken().GetLocation().SourceSpan.IntersectsWith(context.Span))
+                {
+                    return;
+                }
+
+                if (!CanConvertIfToSwitch(ifStatement))
+                {
+                    return;
+                }
+
+                var switchDefaultBody = default(TStatementSyntax);
+                var switchSections = new List<(IEnumerable<IPattern>, TStatementSyntax)>();
+
+                // Iterate over if-else statement chain.
+                foreach (var (body, condition) in GetIfElseStatementChain(ifStatement))
+                {
+                    if (condition == null)
                     {
-                        return;
+                        switchDefaultBody = body;
+                        break;
                     }
 
-                    patterns.Add(pattern);
+                    var operands = GetLogicalOrExpressionOperands(condition);
+                    var patterns = new List<IPattern>();
+
+                    // Iterate over "||" operands to make a case label per each condition.
+                    foreach (var operand in operands.Reverse())
+                    {
+                        var pattern = CreatePatternFromExpression(operand);
+                        if (pattern == null)
+                        {
+                            return;
+                        }
+
+                        patterns.Add(pattern);
+                    }
+
+                    switchSections.Add((patterns, body));
                 }
 
-                switchSections.Add((patterns, body));
+                context.RegisterRefactoring(new MyCodeAction(Title, c =>
+                    UpdateDocumentAsync(root, document, ifStatement, switchDefaultBody, switchSections)));
             }
 
-            context.RegisterRefactoring(new MyCodeAction(Title, c =>
-                UpdateDocumentAsync(root, document, ifStatement, switchDefaultBody, switchExpression, semanticModel, switchSections)));
-        }
-
-        protected bool AreEquivalent(TExpressionSyntax expression, ref TExpressionSyntax switchExpression)
-        {
-            // If we have not figured the switch expression yet,
-            // we will assume that the first expression is the one.
-            if (switchExpression == null)
+            protected bool IsEquivalentToSwitchExpression(TExpressionSyntax expression)
             {
-                switchExpression = expression;
-                return true;
+                // If we have not figured the switch expression yet,
+                // we will assume that the first expression is the one.
+                if (_switchExpression == null)
+                {
+                    _switchExpression = expression;
+                    return true;
+                }
+
+                return _syntaxFacts.AreEquivalent(expression, _switchExpression);
             }
 
-            return AreEquivalentCore(expression, switchExpression);
+            private bool IsConstant(TExpressionSyntax node)
+                => _semanticModel.GetConstantValue(node).HasValue;
+
+            protected bool TryDetermineConstant(
+                TExpressionSyntax expression1,
+                TExpressionSyntax expression2,
+                out TExpressionSyntax constant,
+                out TExpressionSyntax expression)
+            {
+                (constant, expression) =
+                        IsConstant(expression1) ? (expression1, expression2) :
+                        IsConstant(expression2) ? (expression2, expression1) :
+                        default((TExpressionSyntax, TExpressionSyntax));
+
+                return constant != null;
+            }
+
+            protected abstract bool CanConvertIfToSwitch(TIfStatementSyntax ifStatement);
+
+            protected abstract IEnumerable<TExpressionSyntax> GetLogicalOrExpressionOperands(TExpressionSyntax syntaxNode);
+
+            protected abstract IEnumerable<(TStatementSyntax, TExpressionSyntax)> GetIfElseStatementChain(TIfStatementSyntax ifStatement);
+
+            protected abstract IPattern CreatePatternFromExpression(TExpressionSyntax operand);
+
+            protected abstract IEnumerable<SyntaxNode> GetSwitchSectionBody(TStatementSyntax switchDefaultBody);
+
+            protected abstract string Title { get; }
+
+            private Task<Document> UpdateDocumentAsync(
+                SyntaxNode root,
+                Document document,
+                TIfStatementSyntax ifStatement,
+                TStatementSyntax switchDefaultBody,
+                IEnumerable<(IEnumerable<IPattern> patterns, TStatementSyntax statement)> sections)
+            {
+                var generator = SyntaxGenerator.GetGenerator(document);
+                var sectionList =
+                    sections.Select(s => generator.PatternSwitchSection(
+                        labels: s.patterns.Select(p => p.CreateSwitchLabel()),
+                        statements: GetSwitchSectionBody(s.statement))).ToList();
+
+                if (switchDefaultBody?.Equals(default(TStatementSyntax)) == false)
+                {
+                    sectionList.Add(generator.DefaultSwitchSection(GetSwitchSectionBody(switchDefaultBody)));
+                }
+
+                var @switch = generator.SwitchStatement(_switchExpression, sectionList);
+                var newRoot = root.ReplaceNode(ifStatement, @switch);
+                return Task.FromResult(document.WithSyntaxRoot(newRoot));
+            }
         }
-
-        private static bool IsConstant(TExpressionSyntax node, SemanticModel semanticModel)
-            => semanticModel.GetConstantValue(node).HasValue;
-
-        protected static bool TryDetermineConstant(
-            TExpressionSyntax expression1,
-            TExpressionSyntax expression2,
-            SemanticModel semanticModel,
-            out TExpressionSyntax constant,
-            out TExpressionSyntax expression)
-        {
-            (constant, expression) =
-                    IsConstant(expression1, semanticModel) ? (expression1, expression2) :
-                    IsConstant(expression2, semanticModel) ? (expression2, expression1) :
-                    default((TExpressionSyntax, TExpressionSyntax));
-
-            return constant != null;
-        }
-
-        protected abstract bool AreEquivalentCore(TExpressionSyntax expression, TExpressionSyntax switchExpression);
-        protected abstract bool CanConvertIfToSwitch(TIfStatementSyntax ifStatement, SemanticModel semanticModel);
-        protected abstract IEnumerable<TExpressionSyntax> GetLogicalOrExpressionOperands(
-            TExpressionSyntax syntaxNode);
-
-        protected abstract IEnumerable<(TStatementSyntax, TExpressionSyntax)> GetIfElseStatementChain(
-            TIfStatementSyntax ifStatement);
-
-        protected abstract TPattern CreatePatternFromExpression(
-            TExpressionSyntax operand, SemanticModel semanticModel, ref TExpressionSyntax switchExpression);
-
-        protected abstract SyntaxNode CreateSwitchStatement(
-            TStatementSyntax switchDefaultBody,
-            TExpressionSyntax switchExpression,
-            SemanticModel semanticModel,
-            List<(List<TPattern> patterns, TStatementSyntax body)> sections);
-
-        private Task<Document> UpdateDocumentAsync(
-            SyntaxNode root,
-            Document document,
-            TIfStatementSyntax ifStatement,
-            TStatementSyntax switchDefaultBody,
-            TExpressionSyntax switchExpression,
-            SemanticModel semanticModel,
-            List<(List<TPattern>, TStatementSyntax)> sections)
-        {
-            var @switch = CreateSwitchStatement(switchDefaultBody, switchExpression, semanticModel, sections);
-            var newRoot = root.ReplaceNode(ifStatement, @switch);
-            return Task.FromResult(document.WithSyntaxRoot(newRoot));
-        }
-
-        protected abstract string Title { get; }
 
         protected sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
