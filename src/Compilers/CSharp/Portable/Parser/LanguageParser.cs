@@ -3223,7 +3223,7 @@ parse_member_name:;
             else if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
             {
                 var equals = this.EatToken(SyntaxKind.EqualsToken);
-                var value = this.ParseVariableInitializer(allowStackAlloc: false);
+                var value = this.ParseVariableInitializer();
                 initializer = _syntaxFactory.EqualsValueClause(equals, value: value);
                 initializer = CheckFeatureAvailability(initializer, MessageID.IDS_FeatureAutoPropertyInitializer);
             }
@@ -4097,7 +4097,7 @@ tryAgain:
             }
         }
 
-        private MemberDeclarationSyntax ParseFixedSizeBufferDeclaration(
+        private FieldDeclarationSyntax ParseFixedSizeBufferDeclaration(
             SyntaxListBuilder<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             SyntaxKind parentKind)
@@ -4274,7 +4274,7 @@ tryAgain:
             }
         }
 
-        private MemberDeclarationSyntax ParseEventFieldDeclaration(
+        private EventFieldDeclarationSyntax ParseEventFieldDeclaration(
             SyntaxListBuilder<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             SyntaxToken eventToken,
@@ -4642,7 +4642,7 @@ tryAgain:
                         refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
                     }
 
-                    var init = this.ParseVariableInitializer(isLocal && !isConst);
+                    var init = this.ParseVariableInitializer();
                     if (refKeyword != null)
                     {
                         init = CheckValidLvalue(init);
@@ -4795,19 +4795,12 @@ tryAgain:
             }
         }
 
-        private ExpressionSyntax ParseVariableInitializer(bool allowStackAlloc)
+        private ExpressionSyntax ParseVariableInitializer()
         {
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.StackAllocKeyword:
-                    StackAllocArrayCreationExpressionSyntax stackAllocExpr = this.ParseStackAllocExpression();
-                    if (!allowStackAlloc)
-                    {
-                        // CONSIDER: this is what dev10 reports (assuming unsafe constructs are allowed at all),
-                        // but we could add a more specific error code.
-                        stackAllocExpr = this.AddErrorToFirstToken(stackAllocExpr, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(SyntaxKind.StackAllocKeyword));
-                    }
-                    return stackAllocExpr;
+                    return this.ParseStackAllocExpression();
                 case SyntaxKind.OpenBraceToken:
                     return this.ParseArrayInitializer();
                 default:
@@ -4815,9 +4808,9 @@ tryAgain:
             }
         }
 
-        private bool IsPossibleVariableInitializer(bool allowStack)
+        private bool IsPossibleVariableInitializer()
         {
-            return (allowStack && this.CurrentToken.Kind == SyntaxKind.StackAllocKeyword)
+            return this.CurrentToken.Kind == SyntaxKind.StackAllocKeyword
                 || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                 || this.IsPossibleExpression();
         }
@@ -6926,7 +6919,7 @@ tryAgain:
                 var saveTerm = _termState;
                 _termState |= TerminatorState.IsEndOfFieldDeclaration;
                 this.EatToken();
-                this.ParseVariableInitializer(allowStackAlloc: false);
+                this.ParseVariableInitializer();
                 _termState = saveTerm;
             }
 
@@ -10769,9 +10762,9 @@ tryAgain:
                 if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
                 {
 tryAgain:
-                    if (this.IsPossibleVariableInitializer(false) || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                    if (this.IsPossibleVariableInitializer() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
-                        list.Add(this.ParseVariableInitializer(false));
+                        list.Add(this.ParseVariableInitializer());
 
                         while (true)
                         {
@@ -10779,7 +10772,7 @@ tryAgain:
                             {
                                 break;
                             }
-                            else if (this.IsPossibleVariableInitializer(false) || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                            else if (this.IsPossibleVariableInitializer() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                             {
                                 list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
 
@@ -10788,12 +10781,12 @@ tryAgain:
                                 {
                                     break;
                                 }
-                                else if (!this.IsPossibleVariableInitializer(false))
+                                else if (!this.IsPossibleVariableInitializer())
                                 {
                                     goto tryAgain;
                                 }
 
-                                list.Add(this.ParseVariableInitializer(false));
+                                list.Add(this.ParseVariableInitializer());
                                 continue;
                             }
                             else if (SkipBadArrayInitializerTokens(ref openBrace, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
@@ -10821,7 +10814,7 @@ tryAgain:
         private PostSkipAction SkipBadArrayInitializerTokens(ref SyntaxToken openBrace, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expected)
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref openBrace, list,
-                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleVariableInitializer(false),
+                p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleVariableInitializer(),
                 p => this.CurrentToken.Kind == SyntaxKind.CloseBraceToken || this.IsTerminator(),
                 expected);
         }

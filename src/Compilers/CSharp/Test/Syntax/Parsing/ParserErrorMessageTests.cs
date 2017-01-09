@@ -3910,6 +3910,63 @@ public class Test
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "30"));
         }
 
+        [Fact]
+        public void CS1575ERR_BadStackAllocExpr1()
+        {
+            // Diff errors
+            var test = @"
+unsafe public class Test
+{
+    int* p = stackalloc int[1];
+}
+";
+            CreateCompilationWithMscorlib(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+                // (4,14): error CS1525: Invalid expression term 'stackalloc'
+                //     int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 14));
+        }
+
+        [Fact]
+        public void CS1575ERR_BadStackAllocExpr2()
+        {
+            // Diff errors
+            var test = @"
+unsafe public class Test
+{
+    void M()
+    {
+        int*[] p = new int*[] { stackalloc int[1] };
+    }
+}
+";
+            CreateCompilationWithMscorlib(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+                // (6,33): error CS1525: Invalid expression term 'stackalloc'
+                //         int*[] p = new int*[] { stackalloc int[1] };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 33));
+        }
+
+        [Fact]
+        public void CS1575ERR_BadStackAllocExpr3()
+        {
+            // Diff errors
+            var test = @"
+unsafe public class Test
+{
+    void M()
+    {
+        const int* p = stackalloc int[1];
+    }
+}
+";
+            CreateCompilationWithMscorlib(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+                // (6,15): error CS0283: The type 'int*' cannot be declared const
+                //         const int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15),
+                // (6,24): error CS1525: Invalid expression term 'stackalloc'
+                //         const int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 24));
+        }
+
         [WorkItem(906993, "DevDiv/Personal")]
         [Fact]
         public void CS1576ERR_InvalidLineNumberpp()

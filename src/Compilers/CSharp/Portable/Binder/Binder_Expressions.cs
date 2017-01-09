@@ -2912,8 +2912,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 
-        private BoundExpression BindStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindStackAllocArrayCreationExpression(
+            StackAllocArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
+            if (!IsLegalStackAllocLocation(node))
+            { 
+                diagnostics.Add(
+                    ErrorCode.ERR_InvalidExprTerm,
+                    node.StackAllocKeyword.GetLocation(),
+                    SyntaxFacts.GetText(SyntaxKind.StackAllocKeyword));
+            }
+
             bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics);
 
             // Check if we're syntactically within a catch or finally clause.
@@ -2999,6 +3008,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundStackAllocArrayCreation(node, count, pointerType, hasErrors || typeHasErrors);
+        }
+
+        private bool IsLegalStackAllocLocation(StackAllocArrayCreationExpressionSyntax node)
+        {
+            if (node.Parent == null ||
+                node.Parent.Kind() != SyntaxKind.EqualsValueClause ||
+                node.Parent.Parent.Kind() != SyntaxKind.VariableDeclarator ||
+                node.Parent.Parent.Parent.Kind() != SyntaxKind.VariableDeclaration)
+            {
+                return false;
+            }
+
+            var variableDeclaration = (VariableDeclarationSyntax)node.Parent.Parent.Parent;
+            if (variableDeclaration.Parent.Kind() == SyntaxKind.FieldDeclaration ||
+                variableDeclaration.Parent.Kind() == SyntaxKind.EventFieldDeclaration)
+            {
+                return false;
+            }
+
+            if (variableDeclaration.Parent.Kind() == SyntaxKind.LocalDeclarationStatement)
+            {
+                var localDeclaration = (LocalDeclarationStatementSyntax)variableDeclaration.Parent;
+                if (localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static int? GetIntegerConstantForArraySize(BoundExpression expression)
