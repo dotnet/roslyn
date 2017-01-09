@@ -2275,6 +2275,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove unused variable.
+        /// </summary>
+        internal static string Remove_Unused_Variable {
+            get {
+                return ResourceManager.GetString("Remove_Unused_Variable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Removing &apos;{0}&apos; that accessed captured variables &apos;{1}&apos; and &apos;{2}&apos; declared in different scopes will prevent the debug session from continuing..
         /// </summary>
         internal static string Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing {
