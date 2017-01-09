@@ -3115,7 +3115,7 @@ parse_member_name:;
             return CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
         }
 
-        private MemberDeclarationSyntax ParseIndexerDeclaration(
+        private IndexerDeclarationSyntax ParseIndexerDeclaration(
             SyntaxListBuilder<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             TypeSyntax type,
@@ -3133,11 +3133,6 @@ parse_member_name:;
             }
 
             var parameterList = this.ParseBracketedParameterList();
-            // TODO: ReportExtensionMethods(parameters, retval);
-            if (parameterList.Parameters.Count == 0)
-            {
-                parameterList = this.AddErrorToLastToken(parameterList, ErrorCode.ERR_IndexerNeedsParam);
-            }
 
             AccessorListSyntax accessorList = null;
             ArrowExpressionClauseSyntax expressionBody = null;

@@ -1870,11 +1870,27 @@ class C
             var agg = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(1, agg.Members.Count);
             Assert.Equal(SyntaxKind.IndexerDeclaration, agg.Members[0].Kind());
-            Assert.Equal(4, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_IndexerNeedsParam, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_LbraceExpected, file.Errors()[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[3].Code);
+            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_LbraceExpected, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[2].Code);
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (1,21): error CS1003: Syntax error, ']' expected
+                // class c { int this[ }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]", "}").WithLocation(1, 21),
+                // (1,21): error CS1514: { expected
+                // class c { int this[ }
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "}").WithLocation(1, 21),
+                // (1,22): error CS1513: } expected
+                // class c { int this[ }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 22),
+                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // class c { int this[ }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15),
+                // (1,19): error CS1551: Indexers must have at least one parameter
+                // class c { int this[ }
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19));
         }
 
         [Fact]
@@ -1968,9 +1984,19 @@ class C
             var agg = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(1, agg.Members.Count);
             Assert.Equal(SyntaxKind.IndexerDeclaration, agg.Members[0].Kind());
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_IndexerNeedsParam, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[1].Code);
+            Assert.Equal(1, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, file.Errors()[0].Code);
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (1,21): error CS1056: Unexpected character '$'
+                // class c { int this[ $ ] { } }
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(1, 21),
+                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // class c { int this[ $ ] { } }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15),
+                // (1,23): error CS1551: Indexers must have at least one parameter
+                // class c { int this[ $ ] { } }
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]").WithLocation(1, 23));
         }
 
         [Fact]
@@ -2041,11 +2067,27 @@ class C
             Assert.Equal(2, agg.Members.Count);
             Assert.Equal(SyntaxKind.IndexerDeclaration, agg.Members[0].Kind());
             Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[1].Kind());
-            Assert.Equal(4, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_IndexerNeedsParam, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_LbraceExpected, file.Errors()[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[3].Code);
+            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_LbraceExpected, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[2].Code);
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (1,21): error CS1003: Syntax error, ']' expected
+                // class c { int this[ public void m() { } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "public").WithArguments("]", "public").WithLocation(1, 21),
+                // (1,21): error CS1514: { expected
+                // class c { int this[ public void m() { } }
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "public").WithLocation(1, 21),
+                // (1,21): error CS1513: } expected
+                // class c { int this[ public void m() { } }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 21),
+                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // class c { int this[ public void m() { } }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15),
+                // (1,19): error CS1551: Indexers must have at least one parameter
+                // class c { int this[ public void m() { } }
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19));
         }
 
         [Fact]
@@ -6679,9 +6721,6 @@ _ _::this
                 // (2,4): error CS1003: Syntax error, '.' expected
                 // _ _::this
                 Diagnostic(ErrorCode.ERR_SyntaxError, "::").WithArguments(".", "::"),
-                // (3,1): error CS1551: Indexers must have at least one parameter
-                // 
-                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, ""),
                 // (2,10): error CS1003: Syntax error, '[' expected
                 // _ _::this
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("[", ""),
@@ -6694,6 +6733,37 @@ _ _::this
                 // (2,10): error CS1513: } expected
                 // _ _::this
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ""));
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (2,4): error CS1003: Syntax error, '.' expected
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_SyntaxError, "::").WithArguments(".", "::").WithLocation(2, 4),
+                // (2,10): error CS1003: Syntax error, '[' expected
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("[", "").WithLocation(2, 10),
+                // (2,10): error CS1003: Syntax error, ']' expected
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "").WithLocation(2, 10),
+                // (2,10): error CS1514: { expected
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 10),
+                // (2,10): error CS1513: } expected
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 10),
+                // (2,3): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(2, 3),
+                // (2,1): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(2, 1),
+                // error CS1551: Indexers must have at least one parameter
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam).WithLocation(1, 1),
+                // (2,3): error CS0538: '_' in explicit interface declaration is not an interface
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "_").WithArguments("_").WithLocation(2, 3),
+                // (2,6): error CS0548: '<invalid-global-code>.this': property or indexer must have at least one accessor
+                // _ _::this
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("<invalid-global-code>.this").WithLocation(2, 6));
         }
 
         [WorkItem(649806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649806")]
