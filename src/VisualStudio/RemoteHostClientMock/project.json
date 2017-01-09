@@ -2,11 +2,7 @@
   "dependencies": {
     "Newtonsoft.Json": "8.0.3",
     "Microsoft.VisualStudio.ComponentModelHost": "15.0.26014-alpha",
-    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.25802-alpha",
-    "RoslynDependencies.Microsoft.VisualStudio.GraphModel": {
-        "version": "14.3.25407",
-        "include": "none"
-    }
+    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.26014-alpha",
   },
   "frameworks": {
     "net46": { }

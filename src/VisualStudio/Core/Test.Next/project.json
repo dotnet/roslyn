@@ -22,15 +22,11 @@
     "Microsoft.VisualStudio.Text.Internal": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Platform.VSEditor": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Platform.VSEditor.Interop": "15.0.26014-alpha",
-    "Microsoft.VisualStudio.InteractiveWindow": "2.0.0-beta5-60820-04",
-    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.25802-alpha",
+    "Microsoft.VisualStudio.InteractiveWindow": "2.0.0-rc3-61304-01",
+    "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Utilities": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Validation": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Threading": "15.0.26014-alpha",
-    "RoslynDependencies.Microsoft.VisualStudio.GraphModel": {
-        "version": "14.3.25407",
-        "include": "none"
-    }
   },
   "frameworks": {
     "net46": {}
