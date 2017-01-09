@@ -902,11 +902,11 @@ compareTokens: false);
 {
     static void Main(string[] args)
     {
-        object x = {|Rename:NewMethod|}();
+        (int c, int d) x = {|Rename:NewMethod|}();
         System.Console.WriteLine(x.c);
     }
 
-    private static object NewMethod()
+    private static (int c, int d) NewMethod()
     {
         return (c: 1, d: 2);
     }
