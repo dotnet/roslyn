@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (oneError)
                 {
                     case DeclarationModifiers.Partial:
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyMethods, errorLocation);
+                        // Errors about 'partial' are reported in ToDeclarationModifiers.  So no need to report
+                        // any issues here.
                         break;
 
                     default:
