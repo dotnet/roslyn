@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
-            if (_inExpressionLambda && node.LeftOperand.IsLiteralNull())
+            if (_inExpressionLambda && (node.LeftOperand.IsLiteralNull() || node.LeftOperand.IsLiteralDefault()))
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, node.LeftOperand);
             }

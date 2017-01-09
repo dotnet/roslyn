@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var constantValue = source.ConstantValue;
 
-            if (constantValue == null)
+            if (constantValue == null || constantValue.IsDefaultLiteral)
             {
                 return false;
             }

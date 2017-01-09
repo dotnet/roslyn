@@ -3019,8 +3019,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundAsOperator(node, operand, typeExpression, Conversion.NullLiteral, resultType);
             }
 
-            // PROTOTYPE(default) Something needed here for "as" operator
-
             if (operand.Kind == BoundKind.MethodGroup)
             {
                 Error(diagnostics, ErrorCode.ERR_NoExplicitBuiltinConv, node, MessageID.IDS_MethodGroup.Localize(), targetType);

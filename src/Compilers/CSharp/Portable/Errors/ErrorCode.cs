@@ -1435,5 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OutVarDeconstructionIsNotSupported = 8199,
         ERR_ExpressionVariableInConstructorOrFieldInitializer = 8200,
         #endregion diagnostics for out var
+
+        ERR_BadDynamicMethodArgDefault = 9000,
     }
 }

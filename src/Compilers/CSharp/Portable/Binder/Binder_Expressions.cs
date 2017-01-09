@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindDefaultExpression((DefaultExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.DefaultLiteral:
-                    return new BoundDefaultOperator((DefaultLiteralSyntax)node);
+                    return new BoundDefaultOperator((DefaultLiteralSyntax)node, ConstantValue.DefaultLiteral, type: null);
 
                 case SyntaxKind.TypeOfExpression:
                     return BindTypeOf((TypeOfExpressionSyntax)node, diagnostics);
@@ -1729,8 +1729,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_ValueCantBeNull, syntax.Location, targetType);
                 return;
             }
-
-            // PROTOTYPE(default) SHould handle default literal here?
 
             if (conversion.ResultKind == LookupResultKind.OverloadResolutionFailure)
             {
@@ -4834,7 +4832,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, boundLeft);
             }
 
-            // PROTOTYPE(default) unify with case above
             // No member accesses on default
             if (boundLeft.IsLiteralDefault())
             {

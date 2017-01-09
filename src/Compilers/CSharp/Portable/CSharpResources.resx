@@ -2169,7 +2169,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Cannot use local variable '{0}' before it is declared. The declaration of the local variable hides the field '{1}'.</value>
   </data>
   <data name="ERR_ExpressionTreeContainsBadCoalesce" xml:space="preserve">
-    <value>An expression tree lambda may not contain a coalescing operator with a null literal left-hand side</value>
+    <value>An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side</value>
   </data>
   <data name="ERR_IdentifierExpected" xml:space="preserve">
     <value>Identifier expected</value>
@@ -4955,5 +4955,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExpressionVariableInConstructorOrFieldInitializer" xml:space="preserve">
     <value>Out variable or pattern variable declarations are not allowed within constructor/field/auto-implemented property initializers.</value>
+  </data>
+  <data name="ERR_BadDynamicMethodArgDefault" xml:space="preserve">
+    <value>Cannot use a type-inferred default operator as an argument to a dynamically dispatched operation.</value>
   </data>
 </root>
