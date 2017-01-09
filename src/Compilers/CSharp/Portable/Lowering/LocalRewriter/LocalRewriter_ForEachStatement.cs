@@ -518,19 +518,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return iterationVarDecl;
         }
 
-        private static ImmutableArray<LocalSymbol> GetLocalSymbols(BoundTupleExpression left)
-        {
-            var builder = ArrayBuilder<LocalSymbol>.GetInstance();
-            left.VisitAllElements((variable, b) =>
-                {
-                    if (variable.Kind == BoundKind.Local)
-                    {
-                        b.Add(((BoundLocal)variable).LocalSymbol);
-                    }
-                }, builder);
-            return builder.ToImmutableAndFree();
-        }
-
         private static BoundBlock CreateBlockDeclaringIterationVariables(
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundStatement iteratorVariableInitialization,
