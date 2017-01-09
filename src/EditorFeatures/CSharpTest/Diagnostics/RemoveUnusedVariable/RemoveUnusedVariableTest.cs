@@ -79,6 +79,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnuse
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableMultipleOnLine()
+        {
+            await TestAsync(
+@"class Class
+{
+    void Method()
+    {
+        [|string a|], b;
+    }
+}",
+@"class Class
+{
+    void Method()
+    {
+        string b;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableMultipleOnLine1()
+        {
+            await TestAsync(
+@"class Class
+{
+    void Method()
+    {
+        string a, [|b|];
+    }
+}",
+@"class Class
+{
+    void Method()
+    {
+        string a;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
         public async Task RemoveUnusedVariableFixAll()
         {
             await TestAsync(
@@ -98,5 +138,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnuse
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableFixAll1()
+        {
+            await TestAsync(
+@"class Class
+{
+    void Method()
+    {
+        {|FixAllInDocument:string a;|}
+        string b, c;
+    }
+}",
+@"class Class
+{
+    void Method()
+    {
+    }
+}");
+        }
     }
 }
