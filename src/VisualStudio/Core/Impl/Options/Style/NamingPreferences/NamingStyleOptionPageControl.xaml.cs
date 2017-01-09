@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             var viewModel = new ManageSymbolSpecificationsDialogViewModel(_viewModel.Specifications, _viewModel.CodeStyleItems.ToList(), _languageName, _notificationService);
             var dialog = new ManageNamingStylesInfoDialog(viewModel);
-            if (dialog.ShowDialog().Value == true)
+            if (dialog.ShowModal().Value == true)
             {
                 _viewModel.UpdateSpecificationList(viewModel);
             }
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             var viewModel = new ManageNamingStylesDialogViewModel(_viewModel.NamingStyles, _viewModel.CodeStyleItems.ToList(), _notificationService);
             var dialog = new ManageNamingStylesInfoDialog(viewModel);
-            if (dialog.ShowDialog().Value == true)
+            if (dialog.ShowModal().Value == true)
             {
                 _viewModel.UpdateStyleList(viewModel);
             }
