@@ -247,20 +247,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim displayText As String = Nothing
             Dim insertionText As String = Nothing
 
-            If symbol.MatchesKind(SymbolKind.NamedType) AndAlso symbol.GetAllTypeArguments().Any() Then
+            If IsGenericType(symbol) Then
                 displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position)
                 insertionText = displayText
             Else
                 Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(
-                    symbol, isAttributeNameContext:=False, isAfterDot:=context.IsRightOfNameSeparator,
-                    isWithinAsyncMethod:=False,
-                    syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService)())
+                    symbol,
+                    syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService)(),
+                    context:=DirectCast(context, VisualBasicSyntaxContext))
 
                 displayText = displayAndInsertionText.Item1
                 insertionText = displayAndInsertionText.Item2
             End If
 
             Return ValueTuple.Create(displayText, insertionText)
+        End Function
+
+        Private Shared Function IsGenericType(symbol As ISymbol) As Boolean
+            Return symbol.MatchesKind(SymbolKind.NamedType) AndAlso symbol.GetAllTypeArguments().Any()
+        End Function
+
+        Private Shared ReadOnly MinimalFormatWithoutGenerics As SymbolDisplayFormat =
+            SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(SymbolDisplayGenericsOptions.None)
+
+        Private Const InsertionTextOnOpenParen As String = NameOf(InsertionTextOnOpenParen)
+
+        Protected Overrides Function GetInitialProperties(symbol As ISymbol, context As AbstractSyntaxContext) As ImmutableDictionary(Of String, String)
+            If IsGenericType(symbol) Then
+                Dim text = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)
+                Return ImmutableDictionary(Of String, String).Empty.Add(InsertionTextOnOpenParen, text)
+            End If
+
+            Return MyBase.GetInitialProperties(symbol, context)
         End Function
 
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
@@ -272,31 +290,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionItemRules.Default
         End Function
 
-        Public Overrides Async Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
-            If SymbolCompletionItem.HasSymbols(selectedItem) Then
-                Dim insertionText As String
-
-                If ch Is Nothing Then
-                    insertionText = SymbolCompletionItem.GetInsertionText(selectedItem)
-                Else
-                    Dim symbols = Await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(False)
-                    Dim position = SymbolCompletionItem.GetContextPosition(selectedItem)
-                    Dim context = Await CreateContext(document, position, cancellationToken).ConfigureAwait(False)
-                    If symbols.Length > 0 Then
-                        insertionText = GetInsertionTextAtInsertionTime(symbols(0), context, ch.Value)
-                    Else
-                        insertionText = selectedItem.DisplayText
-                    End If
+        Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
+            If ch = "("c Then
+                Dim insertionText As String = Nothing
+                If item.Properties.TryGetValue(InsertionTextOnOpenParen, insertionText) Then
+                    Return insertionText
                 End If
-
-                Return New TextChange(selectedItem.Span, insertionText)
             End If
 
-            Return Await MyBase.GetTextChangeAsync(document, selectedItem, ch, cancellationToken).ConfigureAwait(False)
-        End Function
-
-        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
+            Return CompletionUtilities.GetInsertionTextAtInsertionTime(item, ch)
         End Function
 
     End Class
