@@ -224,21 +224,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         <ModifierKind>IsStatic</ModifierKind>
       </RequiredModifierList>
     </SymbolSpecification>
-    <SymbolSpecification ID=""03a274df-b686-4a76-9138-96aecb9bd33b"" Name=""{WorkspacesResources.Async_Method}"">
-      <ApplicableSymbolKindList>
-        <SymbolKind>Method</SymbolKind>
-      </ApplicableSymbolKindList>
-      <ApplicableAccessibilityList>
-        <AccessibilityKind>Public</AccessibilityKind>
-        <AccessibilityKind>Internal</AccessibilityKind>
-        <AccessibilityKind>Private</AccessibilityKind>
-        <AccessibilityKind>Protected</AccessibilityKind>
-        <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
-      </ApplicableAccessibilityList>
-      <RequiredModifierList>
-        <ModifierKind>IsAsync</ModifierKind>
-      </RequiredModifierList>
-    </SymbolSpecification>
     <SymbolSpecification ID=""da6a2919-5aa6-4ad1-a24d-576776ed3974"" Name=""{WorkspacesResources.Property}"">
       <ApplicableSymbolKindList>
         <SymbolKind>Property</SymbolKind>
@@ -333,13 +318,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
   </SymbolSpecifications>
   <NamingStyles>
     <NamingStyle ID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" Name=""{WorkspacesResources.Pascal_Case}"" Prefix="""" Suffix="""" WordSeparator="""" CapitalizationScheme=""PascalCase"" />
-    <NamingStyle ID=""308152f2-a334-48b3-8bec-ddee40785feb"" Name=""{WorkspacesResources.Ends_with_Async}"" Prefix="""" Suffix=""Async"" WordSeparator="""" CapitalizationScheme=""PascalCase"" />
     <NamingStyle ID=""1ecc5eb6-b5fc-49a5-a9f1-a980f3e48c92"" Name=""{WorkspacesResources.Begins_with_I}"" Prefix=""I"" Suffix="""" WordSeparator="""" CapitalizationScheme=""PascalCase"" />
   </NamingStyles>
   <NamingRules>
     <SerializableNamingRule SymbolSpecificationID=""23d856b4-5089-4405-83ce-749aada99153"" NamingStyleID=""1ecc5eb6-b5fc-49a5-a9f1-a980f3e48c92"" EnforcementLevel=""Info"" />
     <SerializableNamingRule SymbolSpecificationID=""2c07f5bf-bc81-4c2b-82b4-ae9b3ffd0ba4"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />
-    <SerializableNamingRule SymbolSpecificationID=""03a274df-b686-4a76-9138-96aecb9bd33b"" NamingStyleID=""308152f2-a334-48b3-8bec-ddee40785feb"" EnforcementLevel=""Info"" />
     <SerializableNamingRule SymbolSpecificationID=""5f3ddba1-279f-486c-801e-5c097c36dd85"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />
   </NamingRules>
 </NamingPreferencesInfo>
