@@ -13,15 +13,15 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Enabled)));
 
         public static readonly Option<bool> OutOfProcessAllowed = new Option<bool>(
-            nameof(SymbolSearchOptions), nameof(OutOfProcessAllowed), defaultValue: false,
+            nameof(SymbolSearchOptions), nameof(OutOfProcessAllowed), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OutOfProcessAllowed)));
 
         public static PerLanguageOption<bool> SuggestForTypesInReferenceAssemblies =
-            new PerLanguageOption<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInReferenceAssemblies), defaultValue: false,
+            new PerLanguageOption<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInReferenceAssemblies), defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies"));
 
         public static PerLanguageOption<bool> SuggestForTypesInNuGetPackages =
-            new PerLanguageOption<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInNuGetPackages), defaultValue: false,
+            new PerLanguageOption<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInNuGetPackages), defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages"));
     }
 }
