@@ -38,7 +38,7 @@
     "Microsoft.VisualStudio.Designer.Interfaces": "1.1.4322",
     "Microsoft.DiaSymReader": "1.1.0-rc3-61303-01",
     "Microsoft.MSXML": "8.0.0.0-alpha",
-    "Microsoft.Build": "14.3.0",
+    "Microsoft.Build": "15.1.0-preview-000458-02",
     "VSLangProj": "7.0.3300-alpha",
     "VSLangProj80": "8.0.0.0-alpha",
     "VSLangProj140": "14.3.25407-alpha",
