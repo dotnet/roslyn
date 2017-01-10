@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
                             Return Nothing
                         End If
 
-                        If Not IsEquivalentToSwitchExpression(expression) Then
+                        If Not SetInitialOrIsEquivalentToSwitchExpression(expression) Then
                             Return Nothing
                         End If
 
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
                             Return Nothing
                         End If
 
-                        If Not IsEquivalentToSwitchExpression(leftExpression) Then
+                        If Not SetInitialOrIsEquivalentToSwitchExpression(leftExpression) Then
                             Return Nothing
                         End If
 

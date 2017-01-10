@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                     UpdateDocumentAsync(root, document, ifStatement, switchDefaultBody, switchSections)));
             }
 
-            protected bool IsEquivalentToSwitchExpression(TExpressionSyntax expression)
+            protected bool SetInitialOrIsEquivalentToSwitchExpression(TExpressionSyntax expression)
             {
                 // If we have not figured the switch expression yet,
                 // we will assume that the first expression is the one.
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
             {
                 var generator = SyntaxGenerator.GetGenerator(document);
                 var sectionList =
-                    sections.Select(s => generator.PatternSwitchSection(
+                    sections.Select(s => generator.SwitchSectionFromLabels(
                         labels: s.patterns.Select(p => p.CreateSwitchLabel()),
                         statements: GetSwitchSectionBody(s.statement))).ToList();
 

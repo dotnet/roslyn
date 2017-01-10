@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                                 return null;
                             }
 
-                            if (!IsEquivalentToSwitchExpression(expression))
+                            if (!SetInitialOrIsEquivalentToSwitchExpression(expression))
                             {
                                 return null;
                             }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                             // Look for the form "x is T" where "x" is equivalent to the  switch expression.
                             // This will turn into a discarded type pattern e.g. "case T _:".
                             var node = (BinaryExpressionSyntax)operand;
-                            if (!IsEquivalentToSwitchExpression(node.Left))
+                            if (!SetInitialOrIsEquivalentToSwitchExpression(node.Left))
                             {
                                 return null;
                             }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                             // Look for the form "x is T t" where "x" is equivalent to the switch expression.
                             // This will turn into a type pattern e.g. "case T t:".
                             var node = (IsPatternExpressionSyntax)operand;
-                            if (!IsEquivalentToSwitchExpression(node.Expression))
+                            if (!SetInitialOrIsEquivalentToSwitchExpression(node.Expression))
                             {
                                 return null;
                             }

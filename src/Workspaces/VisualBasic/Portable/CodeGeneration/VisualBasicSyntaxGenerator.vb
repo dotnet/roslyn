@@ -431,7 +431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 GetStatementList(statements))
         End Function
 
-        Friend Overrides Function PatternSwitchSection(labels As IEnumerable(Of SyntaxNode), statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+        Friend Overrides Function SwitchSectionFromLabels(labels As IEnumerable(Of SyntaxNode), statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.CaseBlock(
                 SyntaxFactory.CaseStatement(SyntaxFactory.SeparatedList(labels.Cast(Of CaseClauseSyntax))),
                 GetStatementList(statements))
