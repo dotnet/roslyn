@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
 
         private sealed class CSharpAnalyzer : Analyzer<StatementSyntax, IfStatementSyntax, ExpressionSyntax>
         {
-            private int _numberOfSubsequentIfStatementsToRemove = 0;
-
             public CSharpAnalyzer(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel)
                 : base(syntaxFacts, semanticModel)
             {
@@ -174,15 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                 while (currentStatement != null);
 
                 yield return (elseBody, null);
-            }
-
-            protected override IEnumerable<SyntaxNode> GetSubsequentIfStatements(IfStatementSyntax ifStatement)
-            {
-                StatementSyntax currentStatement = ifStatement;
-                for (int i = 0; i < _numberOfSubsequentIfStatementsToRemove; ++i)
-                {
-                    yield return currentStatement = currentStatement.GetNextStatement();
-                }
             }
 
             private static ExpressionSyntax GetLeftmostCondition(ExpressionSyntax syntaxNode)

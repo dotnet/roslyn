@@ -1808,6 +1808,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
             => ((PrefixUnaryExpressionSyntax)node).Operand;
 
+        public SyntaxNode GetNextStatement(SyntaxNode statement)
+            => ((StatementSyntax)statement).GetNextStatement();
+
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
         {
             private readonly SyntaxNode _contextNode; 

@@ -18,8 +18,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
         Private NotInheritable Class VisualBasicAnalyzer
             Inherits Analyzer(Of SyntaxList(Of StatementSyntax), ExecutableStatementSyntax, ExpressionSyntax)
 
-            Private _numberOfSubsequentIfStatementsToRemove As Integer
-
             Public Sub New(syntaxFacts As ISyntaxFactsService, semanticModel As SemanticModel)
                 MyBase.New(syntaxFacts, semanticModel)
             End Sub
@@ -178,14 +176,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
 
             Private Function AnalyzeControlFlow(statements As SyntaxList(Of StatementSyntax)) As ControlFlowAnalysis
                 Return If(statements.IsEmpty, Nothing, _semanticModel.AnalyzeControlFlow(statements.First(), statements.Last()))
-            End Function
-
-            Protected Overrides Iterator Function GetSubsequentIfStatements(ifStatement As ExecutableStatementSyntax) As IEnumerable(Of SyntaxNode)
-                Dim currentStatement As StatementSyntax = ifStatement
-                For i = 0 To _numberOfSubsequentIfStatementsToRemove - 1
-                    currentStatement = currentStatement.GetNextNonEmptyStatement
-                    Yield currentStatement
-                Next
             End Function
         End Class
     End Class

@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
         {
             protected readonly ISyntaxFactsService _syntaxFacts;
             protected readonly SemanticModel _semanticModel;
+            protected int _numberOfSubsequentIfStatementsToRemove = 0;
             private TExpressionSyntax _switchExpression;
 
             public Analyzer(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel)
@@ -146,6 +147,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                 return constant != null;
             }
 
+            private IEnumerable<SyntaxNode> GetSubsequentIfStatements(SyntaxNode currentStatement)
+            {
+                for (int i = 0; i < _numberOfSubsequentIfStatementsToRemove; ++i)
+                {
+                    yield return currentStatement = _syntaxFacts.GetNextStatement(currentStatement);
+                }
+            }
+
             protected abstract bool CanConvertIfToSwitch(TIfStatementSyntax ifStatement);
 
             protected abstract IEnumerable<TExpressionSyntax> GetLogicalOrExpressionOperands(TExpressionSyntax syntaxNode);
@@ -155,8 +164,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
             protected abstract IPattern CreatePatternFromExpression(TExpressionSyntax operand);
 
             protected abstract IEnumerable<SyntaxNode> GetSwitchSectionBody(TStatementSyntax switchDefaultBody);
-
-            protected abstract IEnumerable<SyntaxNode> GetSubsequentIfStatements(TIfStatementSyntax ifStatement);
 
             protected abstract string Title { get; }
 
@@ -180,8 +187,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
 
                 var ifSpan = ifStatement.Span;
                 var @switch = generator.SwitchStatement(_switchExpression, sectionList);
-                var subsequentIfStatements = GetSubsequentIfStatements(ifStatement);
-                root = root.RemoveNodes(subsequentIfStatements, SyntaxRemoveOptions.KeepNoTrivia);
+                root = root.RemoveNodes(GetSubsequentIfStatements(ifStatement), SyntaxRemoveOptions.KeepNoTrivia);
                 root = root.ReplaceNode(root.FindNode(ifSpan), @switch);
                 return Task.FromResult(document.WithSyntaxRoot(root));
             }

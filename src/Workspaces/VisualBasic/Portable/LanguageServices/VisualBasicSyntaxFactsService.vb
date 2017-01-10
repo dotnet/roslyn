@@ -1609,7 +1609,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsLogicalNotExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalNotExpression
             Return node.IsKind(SyntaxKind.NotExpression)
-            Throw New NotImplementedException()
         End Function
 
         Public Function GetOperandOfPrefixUnaryExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetOperandOfPrefixUnaryExpression
@@ -1621,5 +1620,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             expression = memberAccess.Expression
             name = memberAccess.Name
         End Sub
+
+        Public Function GetNextStatement(statement As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetNextStatement
+            return DirectCast(statement, StatementSyntax).GetNextNonEmptyStatement()
+        End Function
     End Class
 End Namespace
