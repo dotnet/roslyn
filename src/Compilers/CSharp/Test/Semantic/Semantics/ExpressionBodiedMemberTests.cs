@@ -458,7 +458,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static void M1() 
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static void M1() 
     { }
@@ -489,7 +489,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static public int operator + (C x, C y)
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public int operator + (C x, C y)
     { return 1; }
@@ -520,7 +520,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (5,5): error  CS8057: Methods cannot combine block bodies with expression bodies.
+    // (5,5): error  CS8057: Block bodies and expression bodies cannot both be provided.
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"C()
     { P1 = 1; }
     => P1;").WithLocation(6, 5)
@@ -558,7 +558,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-                // (6,5): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
                 //     ~C()
                 Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"~C()
     { P1 = 1; }
@@ -601,7 +601,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-                // (8,9): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                // (8,9): error CS8057: Block bodies and expression bodies cannot both be provided.
                 //         get
                 Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"get
         { return 1; }
@@ -628,7 +628,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static public int P2
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public int P2
     {
@@ -663,7 +663,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static public explicit operator int (C x)
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public explicit operator int (C x)
     { return 1; }
@@ -694,7 +694,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static int M1() 
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static int M1() 
     { return P1; }
@@ -725,7 +725,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static public int operator + (C x, C y)
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public int operator + (C x, C y)
     { return P1; }
@@ -758,7 +758,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static public int P2
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public int P2
     {
@@ -791,7 +791,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
     //     static public explicit operator int (C x)
     Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public explicit operator int (C x)
     { return P1; }
@@ -822,7 +822,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-                // (6,5): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
                 //     public C()
                 Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"public C()
     { P1 = 1; }
@@ -858,7 +858,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-                // (6,5): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                // (6,5): error CS8057: Block bodies and expression bodies cannot both be provided.
                 //     public C()
                 Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"~C()
     { P1 = 1; }
@@ -896,7 +896,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-                // (8,9): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                // (8,9): error CS8057: Block bodies and expression bodies cannot both be provided.
                 //         set
                 Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"set
             { P1 = 1; }
@@ -931,7 +931,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-                // (6,9): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                // (6,9): error CS8057: Block bodies and expression bodies cannot both be provided.
                 //         int Bar() { return 0; } => 0;
                 Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "int Bar() { return 0; } => 0;").WithLocation(6, 9),
                 // (6,13): warning CS0168: The variable 'Bar' is declared but never used
@@ -950,7 +950,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-                // (4,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
+                // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
                 //     int this[int i] { get { return 0; } } => 0;
                 Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "int this[int i] { get { return 0; } } => 0;").WithLocation(4, 5));
         }
@@ -966,7 +966,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-                // (4,23): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                // (4,23): error CS8057: Block bodies and expression bodies cannot both be provided.
                 //     int this[int i] { get { return 0; } => 0; }
                 Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "get { return 0; } => 0;").WithLocation(4, 23));
         }
@@ -983,7 +983,7 @@ public class C
 ");
 
             comp.VerifyDiagnostics(
-                // (5,22): error CS8057: Methods and accessors cannot combine block bodies with expression bodies.
+                // (5,22): error CS8057: Block bodies and expression bodies cannot both be provided.
                 //     event Action E { add { } => null; remove { } }
                 Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "add { } => null;").WithLocation(5, 22));
         }
