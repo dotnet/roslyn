@@ -2195,6 +2195,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Assign(node, value: null);
                 // TODO: node needed? NoteRead(local); // Never warn about unused foreach variables.
             }
+
+            var deconstruction = node.DeconstructionOpt;
+            if (deconstruction != null)
+            {
+                VisitDeconstructionAssignmentOperator(deconstruction.DeconstructionAssignment);
+            }
+
         }
 
         public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
