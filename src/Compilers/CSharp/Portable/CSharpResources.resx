@@ -4579,7 +4579,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot emit debug information for a source text without encoding.</value>
   </data>
   <data name="ERR_BlockBodyAndExpressionBody" xml:space="preserve">
-    <value>Block bodies and expression bodies cannot both be provided at the same time</value>
+    <value>Block bodies and expression bodies cannot both be provided at the same time.</value>
   </data>
   <data name="ERR_SwitchFallOut" xml:space="preserve">
     <value>Control cannot fall out of switch from final case label ('{0}')</value>

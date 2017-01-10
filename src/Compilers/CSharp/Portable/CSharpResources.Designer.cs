@@ -2213,7 +2213,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Block bodies and expression bodies cannot both be provided at the same time.
+        ///   Looks up a localized string similar to Block bodies and expression bodies cannot both be provided at the same time..
         /// </summary>
         internal static string ERR_BlockBodyAndExpressionBody {
             get {
