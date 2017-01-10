@@ -48,6 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 isExpressionBodied)
         {
+            if (syntax.ParameterList.Parameters.Count != 1)
+            {
+                diagnostics.Add(ErrorCode.ERR_OvlUnaryOperatorExpected, syntax.ParameterList.GetLocation());
+            }
         }
 
         internal new ConversionOperatorDeclarationSyntax GetSyntax()
