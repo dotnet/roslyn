@@ -2,6 +2,7 @@
 
 using System;
 using System.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -36,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             {
                 return;
             }
+
             // Update the original source span, if required.
             if (!TryAdjustSpanIfNeededForVenus(documentId, originalLineInfo, mappedLineInfo, out var originalSpan, out var mappedSpan))
             {
@@ -46,17 +48,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             {
                 originalLineInfo = new FileLinePositionSpan(originalLineInfo.Path, originalSpan.Start, originalSpan.End);
 
-                var textLines = location.SourceTree.GetText().Lines;
-                var startPos = textLines.GetPosition(originalSpan.Start);
-                var endPos = textLines.GetPosition(originalSpan.End);
+                var textLines = GetTextLines(documentId, location);
+                if (textLines != null)
+                {
+                    // adjust sourceSpan only if we could get text lines
+                    var startPos = textLines.GetPosition(originalSpan.Start);
+                    var endPos = textLines.GetPosition(originalSpan.End);
 
-                sourceSpan = TextSpan.FromBounds(startPos, Math.Max(startPos, endPos));
+                    sourceSpan = TextSpan.FromBounds(startPos, Math.Max(startPos, endPos));
+                }
             }
 
             if (mappedSpan.Start != mappedLineInfo.StartLinePosition || mappedSpan.End != mappedLineInfo.EndLinePosition)
             {
                 mappedLineInfo = new FileLinePositionSpan(mappedLineInfo.Path, mappedSpan.Start, mappedSpan.End);
             }
+        }
+
+        private TextLineCollection GetTextLines(DocumentId currentDocumentId, Location location)
+        {
+            if (location.SourceTree != null)
+            {
+                // normal case - all C# and VB should hit this
+                return location.SourceTree.GetText().Lines;
+            }
+
+            var filePath = location.GetLineSpan().Path;
+            if (filePath != null)
+            {
+                // special case for typescript and etc that don't use our compilations.
+                var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath);
+
+                // make sure we are dealing with right document
+                if (documentIds.Contains(currentDocumentId))
+                {
+                    // text most likely already read in
+                    return _workspace.CurrentSolution.GetDocument(currentDocumentId).State.GetTextSynchronously(CancellationToken.None).Lines;
+                }
+            }
+
+            // we don't know how to get text lines for the given location
+            return null;
         }
 
         private bool TryAdjustSpanIfNeededForVenus(
