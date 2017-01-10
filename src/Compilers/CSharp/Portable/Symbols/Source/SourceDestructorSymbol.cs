@@ -58,8 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CheckForBlockAndExpressionBody(
-                syntax.Body, syntax.ExpressionBody, syntax, diagnostics,
-                ErrorCode.ERR_BlockBodyAndExpressionBody);
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
         protected override void MethodChecks(DiagnosticBag diagnostics)

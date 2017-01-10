@@ -1103,12 +1103,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode block,
             CSharpSyntaxNode expression,
             CSharpSyntaxNode syntax,
-            DiagnosticBag diagnostics,
-            ErrorCode code)
+            DiagnosticBag diagnostics)
         {
             if (block != null && expression != null)
             {
-                diagnostics.Add(code, syntax.GetLocation());
+                diagnostics.Add(ErrorCode.ERR_BlockBodyAndExpressionBody, syntax.GetLocation());
             }
         }
 

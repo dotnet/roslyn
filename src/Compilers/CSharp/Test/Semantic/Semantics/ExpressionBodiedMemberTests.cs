@@ -630,7 +630,7 @@ public class C
             comp.VerifyDiagnostics(
     // (6,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
     //     static public int P2
-    Diagnostic(ErrorCode.ERR_AccessorListAndExpressionBody, @"static public int P2
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public int P2
     {
     }
     => P1;").WithLocation(6, 5),
@@ -760,7 +760,7 @@ public class C
             comp.VerifyDiagnostics(
     // (6,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
     //     static public int P2
-    Diagnostic(ErrorCode.ERR_AccessorListAndExpressionBody, @"static public int P2
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public int P2
     {
         get { return P1; }
     }
@@ -862,8 +862,7 @@ public class C
                 //     public C()
                 Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"~C()
     { P1 = 1; }
-    => P1 = 1;").WithLocation(6, 5)
-                );
+    => P1 = 1;").WithLocation(6, 5));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -953,7 +952,7 @@ public class C
             comp.VerifyDiagnostics(
                 // (4,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
                 //     int this[int i] { get { return 0; } } => 0;
-                Diagnostic(ErrorCode.ERR_AccessorListAndExpressionBody, "int this[int i] { get { return 0; } } => 0;").WithLocation(4, 5));
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "int this[int i] { get { return 0; } } => 0;").WithLocation(4, 5));
         }
 
         [Fact]

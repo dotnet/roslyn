@@ -1291,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_EnumsCantContainDefaultConstructor = 8054,
         ERR_EncodinglessSyntaxTree = 8055,
-        ERR_AccessorListAndExpressionBody = 8056,
+        // ERR_AccessorListAndExpressionBody = 8056, Deprecated in favor of ERR_BlockBodyAndExpressionBody
         ERR_BlockBodyAndExpressionBody = 8057,
         ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
