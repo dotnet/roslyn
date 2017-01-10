@@ -10,7 +10,7 @@
     "Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime": "14.3.25407-alpha",
     "Microsoft.VisualStudio.ComponentModelHost": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.26014-alpha",
-    "Microsoft.VisualStudio.Shell.Design": "14.3.25407"
+    "Microsoft.VisualStudio.Shell.Design": "15.0.26014-alpha",
   },
   "frameworks": {
     "net46": { }
