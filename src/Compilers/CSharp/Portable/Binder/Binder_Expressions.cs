@@ -3010,8 +3010,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundStackAllocArrayCreation(node, count, pointerType, hasErrors || typeHasErrors);
         }
 
-        private bool IsLegalStackAllocLocation(StackAllocArrayCreationExpressionSyntax node)
+        private static bool IsLegalStackAllocLocation(StackAllocArrayCreationExpressionSyntax node)
         {
+            // First, StackAllocs are only legal in variable declaration initializers.
             if (node.Parent == null ||
                 node.Parent.Kind() != SyntaxKind.EqualsValueClause ||
                 node.Parent.Parent.Kind() != SyntaxKind.VariableDeclarator ||
@@ -3020,6 +3021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            // However, they're not legal for the variable declarations in fields/event-fields.
             var variableDeclaration = (VariableDeclarationSyntax)node.Parent.Parent.Parent;
             if (variableDeclaration.Parent.Kind() == SyntaxKind.FieldDeclaration ||
                 variableDeclaration.Parent.Kind() == SyntaxKind.EventFieldDeclaration)
@@ -3027,6 +3029,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            // This leaves variable-declarations inside a method-body.  Stack-allocs are legal
+            // in all cases here except for const-locals.
             if (variableDeclaration.Parent.Kind() == SyntaxKind.LocalDeclarationStatement)
             {
                 var localDeclaration = (LocalDeclarationStatementSyntax)variableDeclaration.Parent;
