@@ -201,8 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
 
             protected override IEnumerable<SyntaxNode> GetSwitchSectionBody(StatementSyntax node)
             {
-                bool RequiresBreak() => _semanticModel.AnalyzeControlFlow(node).EndPointIsReachable;
-                bool RequiresBlock() => !_semanticModel.AnalyzeDataFlow(node).VariablesDeclared.IsDefaultOrEmpty;
+                var requiresBreak = _semanticModel.AnalyzeControlFlow(node).EndPointIsReachable;
+                var requiresBlock = !_semanticModel.AnalyzeDataFlow(node).VariablesDeclared.IsDefaultOrEmpty;
 
                 if (node is BlockSyntax block)
                 {
@@ -210,9 +210,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                     {
                         yield return SyntaxFactory.BreakStatement();
                     }
-                    else if (RequiresBlock())
+                    else if (requiresBlock)
                     {
-                        if (RequiresBreak())
+                        if (requiresBreak)
                         {
                             yield return block.AddStatements(SyntaxFactory.BreakStatement());
                         }
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                             yield return statement;
                         }
 
-                        if (RequiresBreak())
+                        if (requiresBreak)
                         {
                             yield return SyntaxFactory.BreakStatement();
                         }
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                 {
                     yield return node;
 
-                    if (RequiresBreak())
+                    if (requiresBreak)
                     {
                         yield return SyntaxFactory.BreakStatement();
                     }
