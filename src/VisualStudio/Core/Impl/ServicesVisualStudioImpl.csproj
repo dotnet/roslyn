@@ -210,6 +210,7 @@
     <Compile Include="Options\AbstractCodeStyleOptionViewModel.cs" />
     <Compile Include="Options\BooleanCodeStyleOptionViewModel.cs" />
     <Compile Include="Options\CodeStylePreference.cs" />
+    <Compile Include="Options\ColumnToTabStopConverter.cs" />
     <Compile Include="Options\Converters\MarginConverter.cs" />
     <Compile Include="Options\SimpleCodeStyleOptionViewModel.cs" />
     <Compile Include="Options\AbstractCheckBoxViewModel.cs" />
