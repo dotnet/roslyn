@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
     Partial Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
         Private MustInherit Class Pattern
-            Implements IPattern
+            Implements IPattern(Of CaseClauseSyntax)
             Friend NotInheritable Class Comparison
                 Inherits Pattern
 
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
                     _operatorTokenKind = operatorTokenKind
                 End Sub
 
-                Public Overrides Function CreateSwitchLabel() As SyntaxNode
+                Public Overrides Function CreateSwitchLabel() As CaseClauseSyntax
                     Dim comparisonToken = If(_inverted, s_comparisonTokenMap(_operatorTokenKind).inverse, _operatorTokenKind)
                     Return SyntaxFactory.RelationalCaseClause(
                         s_comparisonTokenMap(comparisonToken).caseClause,
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
                     _constant = constant
                 End Sub
 
-                Public Overrides Function CreateSwitchLabel() As SyntaxNode
+                Public Overrides Function CreateSwitchLabel() As CaseClauseSyntax
                     Return SyntaxFactory.SimpleCaseClause(_constant)
                 End Function
             End Class
@@ -60,12 +60,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
                     _rangeBounds = rangeBounds
                 End Sub
 
-                Public Overrides Function CreateSwitchLabel() As SyntaxNode
+                Public Overrides Function CreateSwitchLabel() As CaseClauseSyntax
                     Return SyntaxFactory.RangeCaseClause(_rangeBounds.lower, _rangeBounds.upper)
                 End Function
             End Class
 
-            Public MustOverride Function CreateSwitchLabel() As SyntaxNode Implements IPattern.CreateSwitchLabel
+            Public MustOverride Function CreateSwitchLabel() As CaseClauseSyntax Implements IPattern(Of CaseClauseSyntax).CreateSwitchLabel
         End Class
     End Class
 End Namespace

@@ -29,9 +29,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                 .ComputeRefactoringsAsync(context).ConfigureAwait(false);
         }
 
-        protected interface IPattern
+        protected interface IPattern<TSwitchLabelSyntax>
+            where TSwitchLabelSyntax : SyntaxNode
         {
-            SyntaxNode CreateSwitchLabel();
+            TSwitchLabelSyntax CreateSwitchLabel();
         }
 
         protected interface IAnalyzer
@@ -41,9 +42,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
 
         protected abstract IAnalyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel);
 
-        protected abstract class Analyzer<TStatementSyntax, TIfStatementSyntax, TExpressionSyntax> : IAnalyzer
+        protected abstract class Analyzer<TStatementSyntax, TIfStatementSyntax, TExpressionSyntax, TSwitchLabelSyntax> : IAnalyzer
             where TExpressionSyntax : SyntaxNode
             where TIfStatementSyntax : SyntaxNode
+            where TSwitchLabelSyntax : SyntaxNode
         {
             protected readonly ISyntaxFactsService _syntaxFacts;
             protected readonly SemanticModel _semanticModel;
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                 }
 
                 var switchDefaultBody = default(TStatementSyntax);
-                var switchSections = new List<(IEnumerable<IPattern>, TStatementSyntax)>();
+                var switchSections = new List<(IEnumerable<IPattern<TSwitchLabelSyntax>>, TStatementSyntax)>();
 
                 // Iterate over if-else statement chain.
                 foreach (var (body, condition) in GetIfElseStatementChain(ifStatement))
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                     }
 
                     var operands = GetLogicalOrExpressionOperands(condition);
-                    var patterns = new List<IPattern>();
+                    var patterns = new List<IPattern<TSwitchLabelSyntax>>();
 
                     // Iterate over "||" or "OrElse" operands. operands to make a case label per each condition.
                     foreach (var operand in operands.Reverse())
@@ -161,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
 
             protected abstract IEnumerable<(TStatementSyntax, TExpressionSyntax)> GetIfElseStatementChain(TIfStatementSyntax ifStatement);
 
-            protected abstract IPattern CreatePatternFromExpression(TExpressionSyntax operand);
+            protected abstract IPattern<TSwitchLabelSyntax> CreatePatternFromExpression(TExpressionSyntax operand);
 
             protected abstract IEnumerable<SyntaxNode> GetSwitchSectionBody(TStatementSyntax switchDefaultBody);
 
@@ -172,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                 Document document,
                 TIfStatementSyntax ifStatement,
                 TStatementSyntax switchDefaultBody,
-                IEnumerable<(IEnumerable<IPattern> patterns, TStatementSyntax statement)> sections)
+                IEnumerable<(IEnumerable<IPattern<TSwitchLabelSyntax>> patterns, TStatementSyntax statement)> sections)
             {
                 var generator = SyntaxGenerator.GetGenerator(document);
                 var sectionList =

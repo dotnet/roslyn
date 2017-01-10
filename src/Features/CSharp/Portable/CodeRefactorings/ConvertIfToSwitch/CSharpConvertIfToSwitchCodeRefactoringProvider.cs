@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
         protected override IAnalyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel)
             => new CSharpAnalyzer(syntaxFacts, semanticModel);
 
-        private sealed class CSharpAnalyzer : Analyzer<StatementSyntax, IfStatementSyntax, ExpressionSyntax>
+        private sealed class CSharpAnalyzer : Analyzer<StatementSyntax, IfStatementSyntax, ExpressionSyntax, CasePatternSwitchLabelSyntax>
         {
             public CSharpAnalyzer(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel)
                 : base(syntaxFacts, semanticModel)
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
 
             protected override string Title => CSharpFeaturesResources.Convert_if_to_switch;
 
-            protected override IPattern CreatePatternFromExpression(ExpressionSyntax operand)
+            protected override IPattern<CasePatternSwitchLabelSyntax> CreatePatternFromExpression(ExpressionSyntax operand)
             {
                 switch (operand.Kind())
                 {
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                             var condition = (leftmost.Parent.Parent as BinaryExpressionSyntax)
                                 ?.WithLeft(((BinaryExpressionSyntax)leftmost.Parent).Right);
 
-                            return new Pattern.Guarded((Pattern)pattern, (condition ?? node.Right).WalkDownParentheses());
+                            return new Pattern.Guarded(pattern, (condition ?? node.Right).WalkDownParentheses());
                         }
 
                     default:

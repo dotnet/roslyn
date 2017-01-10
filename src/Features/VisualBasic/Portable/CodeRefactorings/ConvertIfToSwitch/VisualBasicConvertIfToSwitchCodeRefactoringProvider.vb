@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
         End Function
 
         Private NotInheritable Class VisualBasicAnalyzer
-            Inherits Analyzer(Of SyntaxList(Of StatementSyntax), ExecutableStatementSyntax, ExpressionSyntax)
+            Inherits Analyzer(Of SyntaxList(Of StatementSyntax), ExecutableStatementSyntax, ExpressionSyntax, CaseClauseSyntax)
 
             Public Sub New(syntaxFacts As ISyntaxFactsService, semanticModel As SemanticModel)
                 MyBase.New(syntaxFacts, semanticModel)
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
                 Return statement
             End Function
 
-            Protected Overrides Function CreatePatternFromExpression(operand As ExpressionSyntax) As IPattern
+            Protected Overrides Function CreatePatternFromExpression(operand As ExpressionSyntax) As IPattern(Of CaseClauseSyntax)
                 Select Case operand.Kind
                     Case SyntaxKind.EqualsExpression,
                          SyntaxKind.GreaterThanOrEqualExpression,
