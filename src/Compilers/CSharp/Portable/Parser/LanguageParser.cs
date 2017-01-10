@@ -2925,10 +2925,6 @@ parse_member_name:;
             var type = this.ParseType();
 
             var paramList = this.ParseParenthesizedParameterList();
-            if (paramList.Parameters.Count != 1)
-            {
-                paramList = this.AddErrorToFirstToken(paramList, ErrorCode.ERR_OvlUnaryOperatorExpected);
-            }
 
             BlockSyntax blockBody;
             ArrowExpressionClauseSyntax expressionBody;
@@ -10785,11 +10781,6 @@ tryAgain:
         {
             var stackAlloc = this.EatToken(SyntaxKind.StackAllocKeyword);
             var elementType = this.ParseType(expectSizes: true);
-            if (elementType.Kind != SyntaxKind.ArrayType)
-            {
-                elementType = this.AddError(elementType, ErrorCode.ERR_BadStackAllocExpr);
-            }
-
             return _syntaxFactory.StackAllocArrayCreationExpression(stackAlloc, elementType);
         }
 
@@ -11205,7 +11196,9 @@ tryAgain:
                         selectOrGroupBy = this.ParseGroupClause();
                         break;
                     default:
-                        selectOrGroupBy = this.AddError(_syntaxFactory.SelectClause(SyntaxFactory.MissingToken(SyntaxKind.SelectKeyword), this.CreateMissingIdentifierName()), ErrorCode.ERR_ExpectedSelectOrGroup);
+                        selectOrGroupBy = _syntaxFactory.SelectClause(
+                            this.EatToken(SyntaxKind.SelectKeyword, ErrorCode.ERR_ExpectedSelectOrGroup),
+                            this.CreateMissingIdentifierName());
                         break;
                 }
 
