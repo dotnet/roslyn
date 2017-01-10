@@ -1577,8 +1577,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: iteration variables are not declared or assigned
             //       before the collection expression is evaluated 
             var result = base.VisitForEachStatement(node);
-
-            // NOTE: do not report unused iteration variables. They are always considered used.
             return result;
         }
 
@@ -2188,6 +2186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)iterationVariable != null);
                 int slot = GetOrCreateSlot(iterationVariable);
                 if (slot > 0) SetSlotAssigned(slot);
+                // NOTE: do not report unused iteration variables. They are always considered used.
                 NoteWrite(iterationVariable, null, read: true);
             }
         }

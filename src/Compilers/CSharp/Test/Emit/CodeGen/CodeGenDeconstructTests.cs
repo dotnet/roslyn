@@ -6192,5 +6192,56 @@ public class MyClass
             CompileAndVerify(compilation, expectedOutput: "0");
         }
 
+        [Fact]
+        [WorkItem(16106, "https://github.com/dotnet/roslyn/issues/16106")]
+        public void DefAssignmentsStruct002()
+        {
+            string source = @"
+public class MyClass
+{
+    public static void Main()
+    {
+        var data = new int[10];
+        var arr  = new int[2];
+
+        foreach (arr[out int size] in data) {}
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            compilation.VerifyDiagnostics(
+                // (9,36): error CS0230: Type and identifier are both required in a foreach statement
+                //         foreach (arr[out int size] in data) {}
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(9, 36)
+                );
+        }
+
+        [Fact]
+        [WorkItem(16106, "https://github.com/dotnet/roslyn/issues/16106")]
+        public void DefAssignmentsStruct003()
+        {
+            string source = @"
+public class MyClass
+{
+    public static void Main()
+    {
+        var data = new (int, int)[10];
+        var arr  = new int[2];
+
+        foreach ((arr[out int size], int b) in data) {}
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            compilation.VerifyDiagnostics(
+                // (9,27): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         foreach ((arr[out int size], int b) in data) {}
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "int size").WithArguments("1", "out").WithLocation(9, 27),
+                // (9,18): error CS8186: A foreach loop must declare its iteration variables.
+                //         foreach ((arr[out int size], int b) in data) {}
+                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(arr[out int size], int b)").WithLocation(9, 18)
+
+                );
+        }
     }
 }
