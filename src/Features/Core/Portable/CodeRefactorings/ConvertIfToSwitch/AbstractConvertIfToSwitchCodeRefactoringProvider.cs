@@ -156,6 +156,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
 
             protected abstract IEnumerable<SyntaxNode> GetSwitchSectionBody(TStatementSyntax switchDefaultBody);
 
+            protected abstract IEnumerable<SyntaxNode> GetSubsequentIfStatements(TIfStatementSyntax ifStatement);
+
             protected abstract string Title { get; }
 
             private Task<Document> UpdateDocumentAsync(
@@ -176,9 +178,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                     sectionList.Add(generator.DefaultSwitchSection(GetSwitchSectionBody(switchDefaultBody)));
                 }
 
+                var ifSpan = ifStatement.Span;
                 var @switch = generator.SwitchStatement(_switchExpression, sectionList);
-                var newRoot = root.ReplaceNode(ifStatement, @switch);
-                return Task.FromResult(document.WithSyntaxRoot(newRoot));
+                var subsequentIfStatements = GetSubsequentIfStatements(ifStatement);
+                root = root.RemoveNodes(subsequentIfStatements, SyntaxRemoveOptions.KeepNoTrivia);
+                root = root.ReplaceNode(root.FindNode(ifSpan), @switch);
+                return Task.FromResult(document.WithSyntaxRoot(root));
             }
         }
 

@@ -16,7 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
         End Function
 
         Private NotInheritable Class VisualBasicAnalyzer
-            Inherits Analyzer(Of SyntaxList(Of StatementSyntax), MultiLineIfBlockSyntax, ExpressionSyntax)
+            Inherits Analyzer(Of SyntaxList(Of StatementSyntax), ExecutableStatementSyntax, ExpressionSyntax)
+
+            Private _numberOfSubsequentIfStatementsToRemove As Integer
 
             Public Sub New(syntaxFacts As ISyntaxFactsService, semanticModel As SemanticModel)
                 MyBase.New(syntaxFacts, semanticModel)
@@ -138,19 +140,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
                 Yield node
             End Function
 
-            Protected Overrides Function CanConvertIfToSwitch(ifStatement As MultiLineIfBlockSyntax) As Boolean
-                ' No pre-condition
-                Return True
+            Protected Overrides Function CanConvertIfToSwitch(ifStatement As ExecutableStatementSyntax) As Boolean
+                Return TypeOf ifStatement Is SingleLineIfStatementSyntax OrElse TypeOf ifStatement Is MultiLineIfBlockSyntax
             End Function
 
-            Protected Overrides Iterator Function GetIfElseStatementChain(node As MultiLineIfBlockSyntax) _
+            Protected Overrides Iterator Function GetIfElseStatementChain(node As ExecutableStatementSyntax) _
                 As IEnumerable(Of (SyntaxList(Of StatementSyntax), ExpressionSyntax))
-                Yield (node.Statements, node.IfStatement.Condition)
-                For Each item In node.ElseIfBlocks
-                    Yield (item.Statements, item.ElseIfStatement.Condition)
-                Next
+                Do
+                    Dim elseBody As SyntaxList(Of StatementSyntax) ?
+                    Dim singleLineIf = TryCast(node, SingleLineIfStatementSyntax)
+                    If singleLineIf IsNot Nothing Then
+                        Yield (singleLineIf.Statements, singleLineIf.Condition)
+                        elseBody = singleLineIf.ElseClause?.Statements
+                    Else
+                        Dim multiLineIf = DirectCast(node, MultiLineIfBlockSyntax)
+                        Yield (multiLineIf.Statements, multiLineIf.IfStatement.Condition)
+                        For Each item In multiLineIf.ElseIfBlocks
+                            Yield (item.Statements, item.ElseIfStatement.Condition)
+                        Next
+                        elseBody = multiLineIf.ElseBlock?.Statements
+                    End If
 
-                Yield ((node.ElseBlock?.Statements).GetValueOrDefault(), Nothing)
+                    If elseBody Is Nothing AndAlso
+                        Not AnalyzeControlFlow(node.GetStatements)?.EndPointIsReachable = True Then
+                        Dim nextStatement = TryCast(singleLineIf.GetNextNonEmptyStatement, ExecutableStatementSyntax)
+                        If CanConvertIfToSwitch(nextStatement) Then
+                            node = nextStatement
+                            _numberOfSubsequentIfStatementsToRemove += 1
+                            Continue Do
+                        End If
+                    Else
+                        Yield (elseBody.GetValueOrDefault(), Nothing)
+                    End If
+                    Exit Do
+                Loop
+            End Function
+
+            Private Function AnalyzeControlFlow(statements As SyntaxList(Of StatementSyntax)) As ControlFlowAnalysis
+                Return If(statements.IsEmpty, Nothing, _semanticModel.AnalyzeControlFlow(statements.First(), statements.Last()))
+            End Function
+
+            Protected Overrides Iterator Function GetSubsequentIfStatements(ifStatement As ExecutableStatementSyntax) As IEnumerable(Of SyntaxNode)
+                Dim currentStatement As StatementSyntax = ifStatement
+                For i = 0 To _numberOfSubsequentIfStatementsToRemove - 1
+                    currentStatement = currentStatement.GetNextNonEmptyStatement
+                    Yield currentStatement
+                Next
             End Function
         End Class
     End Class

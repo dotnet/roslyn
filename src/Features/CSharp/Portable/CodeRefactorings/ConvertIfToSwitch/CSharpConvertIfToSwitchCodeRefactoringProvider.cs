@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
 {
@@ -20,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
 
         private sealed class CSharpAnalyzer : Analyzer<StatementSyntax, IfStatementSyntax, ExpressionSyntax>
         {
+            private int _numberOfSubsequentIfStatementsToRemove = 0;
+
             public CSharpAnalyzer(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel)
                 : base(syntaxFacts, semanticModel)
             {
@@ -148,19 +149,40 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                 yield return syntaxNode;
             }
 
-            protected override IEnumerable<(StatementSyntax, ExpressionSyntax)> GetIfElseStatementChain(
-                IfStatementSyntax ifStatement)
+            protected override IEnumerable<(StatementSyntax, ExpressionSyntax)> GetIfElseStatementChain(IfStatementSyntax currentStatement)
             {
                 StatementSyntax elseBody;
                 do
                 {
-                    yield return (ifStatement.Statement, ifStatement.Condition);
-                    elseBody = ifStatement.Else?.Statement;
-                    ifStatement = elseBody as IfStatementSyntax;
+                    yield return (currentStatement.Statement, currentStatement.Condition);
+                    elseBody = currentStatement.Else?.Statement;
+
+                    var elseIfStatement = elseBody as IfStatementSyntax;
+                    if (elseIfStatement == null
+                        && !_semanticModel.AnalyzeControlFlow(currentStatement.Statement).EndPointIsReachable
+                        && currentStatement.GetNextStatement() is IfStatementSyntax nextStatement
+                        && CanConvertIfToSwitch(nextStatement))
+                    {
+                        _numberOfSubsequentIfStatementsToRemove++;
+                        currentStatement = nextStatement;
+                    }
+                    else
+                    {
+                        currentStatement = elseIfStatement;
+                    }
                 }
-                while (ifStatement != null);
+                while (currentStatement != null);
 
                 yield return (elseBody, null);
+            }
+
+            protected override IEnumerable<SyntaxNode> GetSubsequentIfStatements(IfStatementSyntax ifStatement)
+            {
+                StatementSyntax currentStatement = ifStatement;
+                for (int i = 0; i < _numberOfSubsequentIfStatementsToRemove; ++i)
+                {
+                    yield return currentStatement = currentStatement.GetNextStatement();
+                }
             }
 
             private static ExpressionSyntax GetLeftmostCondition(ExpressionSyntax syntaxNode)

@@ -158,5 +158,96 @@ End Class",
     End Sub
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        Public Async Function TestSingleLineIf() As Task
+            Await TestAsync(
+"Class C
+    Sub M(i As Integer)
+        [||]If i = 10 Then M(5) Else M(6)
+    End Sub
+End Class",
+"Class C
+    Sub M(i As Integer)
+        Select i
+            Case 10
+                M(5)
+            Case Else
+                M(6)
+        End Select
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        Public Async Function TestSubsequentIfStatements_01() As Task
+            Await TestAsync(
+"Class C
+    Function M(i As Integer) As Integer
+        [||]If i = 10 Then Return 5
+        If i = 20 Then Return 6
+        Return 7
+    End Function
+End Class",
+"Class C
+    Function M(i As Integer) As Integer
+        Select i
+            Case 10
+                Return 5
+            Case 20
+                Return 6
+        End Select
+        Return 7
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        Public Async Function TestSubsequentIfStatements_02() As Task
+            Await TestAsync(
+"Class C
+    Function M(i As Integer) As Integer
+        [||]If i = 10 Then Return 5
+        If i = 20 Then Return 6 Else Return 7
+    End Function
+End Class",
+"Class C
+    Function M(i As Integer) As Integer
+        Select i
+            Case 10
+                Return 5
+            Case 20
+                Return 6
+            Case Else
+                Return 7
+        End Select
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        Public Async Function TestSubsequentIfStatements_03() As Task
+            Await TestAsync(
+"Class C
+    Function M(i As Integer) As Integer
+        [||]If i = 10 Then Return 5
+        If i = 20 Then M(6)
+        If i = 30 Then Return 6
+        Return 7
+    End Function
+End Class",
+"Class C
+    Function M(i As Integer) As Integer
+        Select i
+            Case 10
+                Return 5
+            Case 20
+                M(6)
+        End Select
+        If i = 30 Then Return 6
+        Return 7
+    End Function
+End Class")
+        End Function
     End Class
 End Namespace

@@ -515,5 +515,101 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestSubsequentIfStatementsWithUnreachableEndPoint_01()
+        {
+            await TestAsync(
+@"class C
+{
+    int M(int? i)
+    {
+        [||]if (i == null) return 5;
+        if (i == 0) return 6;
+        return 7;
+    }
+}",
+@"class C
+{
+    int M(int? i)
+    {
+        switch (i)
+        {
+            case null:
+                return 5;
+            case 0:
+                return 6;
+        }
+        return 7;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestSubsequentIfStatementsWithUnreachableEndPoint_02()
+        {
+            await TestAsync(
+@"class C
+{
+    int M(int? i)
+    {
+        [||]if (i == null) return 5;
+        if (i == 0) {}
+        if (i == 1) return 6;
+        return 7;
+    }
+}",
+@"class C
+{
+    int M(int? i)
+    {
+        switch (i)
+        {
+            case null:
+               return 5;
+            case 0:
+                break;
+        }
+        if (i == 1) return 6;
+        return 7;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestSubsequentIfStatementsWithUnreachableEndPoint_03()
+        {
+            await TestAsync(
+        @"class C
+{
+    int M(int? i)
+    {
+        while (true)
+        {
+            [||]if (i == null) return 5;
+            if (i == 0) break;
+            if (i == 1) return 6;
+            return 7;
+        }
+    }
+}",
+        @"class C
+{
+    int M(int? i)
+    {
+        while (true)
+        {
+            switch (i)
+            {
+                case null:
+                    return 5;
+            }
+            if (i == 0) break;
+            if (i == 1) return 6;
+            return 7;
+        }
+    }
+}");
+        }
     }
 }
