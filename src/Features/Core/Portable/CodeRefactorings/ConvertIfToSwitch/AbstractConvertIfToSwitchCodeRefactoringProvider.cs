@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                     var operands = GetLogicalOrExpressionOperands(condition);
                     var patterns = new List<IPattern>();
 
-                    // Iterate over "||" operands to make a case label per each condition.
+                    // Iterate over "||" or "OrElse" operands. operands to make a case label per each condition.
                     foreach (var operand in operands.Reverse())
                     {
                         var pattern = CreatePatternFromExpression(operand);

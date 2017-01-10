@@ -130,6 +130,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                 }
             }
 
+            // We do not offer a fix if the if-statement contains a break-statement, e.g.
+            //
+            //      while (...)
+            //      {
+            //          if (...) {
+            //              break;
+            //          }
+            //      }
+            // 
+            // When the 'break' moves into the switch, it will have different flow control impact.
             protected override bool CanConvertIfToSwitch(IfStatementSyntax ifStatement)
                 => !_semanticModel.AnalyzeControlFlow(ifStatement).ExitPoints.Any(n => n.IsKind(SyntaxKind.BreakStatement));
 
@@ -156,6 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                     elseBody = currentStatement.Else?.Statement;
 
                     var elseIfStatement = elseBody as IfStatementSyntax;
+
+                    // When there is no 'else' part and the last if-statement has an unreachable endpoint,
+                    // we look for a subsequent if-statement that is also safe to be converted to switch.
+                    // Thereafter, all conditions turn to case labels in a single switch-statement.
                     if (elseIfStatement == null
                         && !_semanticModel.AnalyzeControlFlow(currentStatement.Statement).EndPointIsReachable
                         && currentStatement.GetNextStatement() is IfStatementSyntax nextStatement
