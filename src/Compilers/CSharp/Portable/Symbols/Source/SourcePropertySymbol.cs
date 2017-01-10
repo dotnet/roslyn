@@ -360,7 +360,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CheckForBlockAndExpressionBody(
-                syntax.AccessorList, syntax.GetExpressionBodySyntax(), syntax, diagnostics);
+                syntax.AccessorList, syntax.GetExpressionBodySyntax(), syntax, diagnostics,
+                ErrorCode.ERR_AccessorListAndExpressionBody);
         }
 
         internal bool IsExpressionBodied

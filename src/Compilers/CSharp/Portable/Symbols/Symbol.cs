@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -1104,23 +1103,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode block,
             CSharpSyntaxNode expression,
             CSharpSyntaxNode syntax,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            ErrorCode code)
         {
             if (block != null && expression != null)
             {
-                ErrorCode code;
-                if (syntax is BaseMethodDeclarationSyntax ||
-                    syntax is AccessorDeclarationSyntax ||
-                    syntax is LocalFunctionStatementSyntax)
-                {
-                    code = ErrorCode.ERR_BlockBodyAndExpressionBody;
-                }
-                else
-                {
-                    Debug.Assert(syntax is BasePropertyDeclarationSyntax);
-                    code = ErrorCode.ERR_AccessorListAndExpressionBody;
-                }
-
                 diagnostics.Add(code, syntax.GetLocation());
             }
         }

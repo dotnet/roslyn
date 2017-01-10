@@ -92,7 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CheckForBlockAndExpressionBody(
-                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics,
+                ErrorCode.ERR_BlockBodyAndExpressionBody);
         }
 
         internal AccessorDeclarationSyntax GetSyntax()

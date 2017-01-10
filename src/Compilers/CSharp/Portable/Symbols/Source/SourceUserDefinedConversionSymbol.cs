@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isExpressionBodied)
         {
             CheckForBlockAndExpressionBody(
-                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics,
+                ErrorCode.ERR_BlockBodyAndExpressionBody);
         }
 
         internal new ConversionOperatorDeclarationSyntax GetSyntax()
