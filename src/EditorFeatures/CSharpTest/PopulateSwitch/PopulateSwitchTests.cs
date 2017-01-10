@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [|switch|] (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [|switch|] (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [|switch|] (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [|switch|] (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [|switch|] (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [|switch|] (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [|switch|] (e)
             {
                 default:
                     break;
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [|switch|] (e)
             {
             }
         }
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [|switch|] (e)
             {
             }
         }
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [|switch|] (e)
             {
             }
         }
@@ -556,7 +556,7 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            switch ([|e|])
+            [|switch|] (e)
             {
                 case CreateNew:
                     break;
@@ -591,7 +591,7 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            switch ([|e|])
+            [|switch|] (e)
             {
                 case CreateNew:
                     break;
@@ -626,7 +626,7 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            switch ([|e|])
+            [|switch|] (e)
             {
                 case CreateNew:
                     break;
@@ -686,7 +686,7 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = Append;
-            switch ([|e|])
+            [|switch|] (e)
             {
             }
         }
@@ -742,7 +742,7 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [|switch|] (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -799,7 +799,7 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch ([|e|])
+            [|switch|] (e)
             {
                 case MyEnum.Fizz:
                 case MyEnum.Buzz:
@@ -850,7 +850,7 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = ""test"";
-            switch ([|e|])
+            [|switch|] (e)
             {
                 case ""test1"":
                 case ""test1"":
@@ -878,7 +878,7 @@ class MyClass
     void Method()
     {
         var e = MyEnum.Fizz;
-        switch ([|e|])
+        [|switch|] (e)
         {
             case (MyEnum)0:
             case (MyEnum)1:
@@ -927,7 +927,7 @@ class MyClass
     void Method()
     {
         var e = MyEnum.Fizz;
-        switch ([|e|])
+        [|switch|] (e)
     }
 }
 ",
