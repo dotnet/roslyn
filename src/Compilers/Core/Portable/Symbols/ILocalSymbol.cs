@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis
         bool IsConst { get; }
 
         /// <summary>
+        /// Returns true if this local is a ref-local.
+        /// </summary>
+        bool IsRef { get; }
+
+        /// <summary>
         /// Returns false if the local variable wasn't declared as "const", or constant value was omitted or erroneous.
         /// True otherwise.
         /// </summary>
