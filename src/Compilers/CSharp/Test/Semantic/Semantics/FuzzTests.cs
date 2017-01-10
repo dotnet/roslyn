@@ -51,44 +51,5 @@ class C
                 var _ = model.GetSymbolInfo(node);
             }
         }
-
-        [Fact, WorkItem(16167, "https://github.com/dotnet/roslyn/issues/16167")]
-        public void Bug16167()
-        {
-            var text = @"
-class C
-{
-    public static void Main(int arg)
-    {
-        void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
-        void Local2(bool b = M(M(out int z2), z2)), int s2 = z2) {}
-        void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
-
-        void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
-        void Local5(bool b = M(M(out var z5), z5)), int s2 = z5) {}
-        void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
-    }
-    static void M(out int z) => z = 1; // needed to infer type of z5
-}
-";
-            // the scope of an expression variable introduced in the default expression
-            // of a local function parameter is that default expression.
-            var compilation = CreateCompilationWithMscorlib45(text);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var descendents = tree.GetRoot().DescendantNodes();
-            for (int i = 1; i <= 6; i++)
-            {
-                var name = $"z{i}";
-                var designation = descendents.OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == name).Single();
-                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(designation);
-                Assert.NotNull(symbol);
-                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
-                var refs = descendents.OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == name).ToArray();
-                Assert.Equal(2, refs.Length);
-                Assert.Equal(symbol, model.GetSymbolInfo(refs[0]).Symbol);
-                Assert.Null(model.GetSymbolInfo(refs[1]).Symbol);
-            }
-        }
     }
 }
