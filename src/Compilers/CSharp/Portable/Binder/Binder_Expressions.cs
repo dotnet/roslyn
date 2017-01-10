@@ -3023,17 +3023,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // However, they're not legal for the variable declarations in fields/event-fields.
             var variableDeclaration = (VariableDeclarationSyntax)node.Parent.Parent.Parent;
-            if (variableDeclaration.Parent.Kind() == SyntaxKind.FieldDeclaration ||
-                variableDeclaration.Parent.Kind() == SyntaxKind.EventFieldDeclaration)
+            var owner = variableDeclaration.Parent;
+            if (owner.Kind() == SyntaxKind.FieldDeclaration ||
+                owner.Kind() == SyntaxKind.EventFieldDeclaration)
             {
                 return false;
             }
 
             // This leaves variable-declarations inside a method-body.  Stack-allocs are legal
             // in all cases here except for const-locals.
-            if (variableDeclaration.Parent.Kind() == SyntaxKind.LocalDeclarationStatement)
+            if (owner.Kind() == SyntaxKind.LocalDeclarationStatement)
             {
-                var localDeclaration = (LocalDeclarationStatementSyntax)variableDeclaration.Parent;
+                var localDeclaration = (LocalDeclarationStatementSyntax)owner;
                 if (localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
                 {
                     return false;
