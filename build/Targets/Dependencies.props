@@ -7,11 +7,12 @@
     <MicroBuildCoreVersion>0.2.0</MicroBuildCoreVersion>
     <MicroBuildCoreSentinelVersion>1.0.0</MicroBuildCoreSentinelVersion>
     <MicroBuildPluginsSwixBuildVersion>1.0.101</MicroBuildPluginsSwixBuildVersion>
-    <MicrosoftBuildVersion>15.1.0-preview-000370-00</MicrosoftBuildVersion>
+    <MicrosoftBuildVersion>15.1.0-preview-000458-02</MicrosoftBuildVersion>
     <MicrosoftBuild14Version>14.3.0</MicrosoftBuild14Version>
+    <MicrosoftBuildFrameworkVersion>15.1.0-preview-000458-02</MicrosoftBuildFrameworkVersion>
     <MicrosoftBuildLoggingStructuredLoggerVersion>1.0.58</MicrosoftBuildLoggingStructuredLoggerVersion>
-    <MicrosoftBuildRuntimeVersion>15.1.0-preview-000370-00</MicrosoftBuildRuntimeVersion>
-    <MicrosoftBuildTasksCoreVersion>15.1.0-preview-000370-00</MicrosoftBuildTasksCoreVersion>
+    <MicrosoftBuildRuntimeVersion>15.1.0-preview-000458-02</MicrosoftBuildRuntimeVersion>
+    <MicrosoftBuildTasksCoreVersion>15.1.0-preview-000458-02</MicrosoftBuildTasksCoreVersion>
     <MicrosoftBuildTasksCore14Version>14.3.0</MicrosoftBuildTasksCore14Version>
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
