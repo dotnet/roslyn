@@ -306,5 +306,30 @@ class C
     }
 }");
         }
+
+        [WorkItem(16234, "https://github.com/dotnet/roslyn/issues/16234")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotInExpressionTree()
+        {
+            await TestMissingAsync(
+@"using System;
+using System.Linq.Expressions;
+
+class C
+{
+    private string _s;
+
+    void Foo()
+    {
+        Expression<Action<string>> e = s =>
+        {
+            if (s == null)
+                [|throw|] new ArgumentNullException(nameof(s));
+
+            _s = s;
+        };
+    }
+}");
+        }
     }
 }

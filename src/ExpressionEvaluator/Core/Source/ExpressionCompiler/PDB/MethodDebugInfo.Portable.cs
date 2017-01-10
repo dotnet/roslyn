@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ImmutableArray<TLocalSymbol> localConstants;
             ILSpan reuseSpan;
 
-            var methodHandle = (MethodDefinitionHandle)MetadataTokens.EntityHandle(methodToken);
+            var methodHandle = GetDeltaRelativeMethodDefinitionHandle(reader, methodToken);
 
             ReadLocalScopeInformation(
                 reader,
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 out tupleLocalMap,
                 out localConstants,
                 out reuseSpan);
+
             ReadMethodCustomDebugInformation(reader, methodHandle, out hoistedLocalScopes, out defaultNamespace);
 
             return new MethodDebugInfo<TTypeSymbol, TLocalSymbol>(
@@ -51,6 +53,40 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 localVariableNames,
                 localConstants,
                 reuseSpan);
+        }
+
+        /// <summary>
+        /// Maps global method token to a handle local to the current delta PDB. 
+        /// Debug tables referring to methods currently use local handles, not global handles. 
+        /// See https://github.com/dotnet/roslyn/issues/16286
+        /// </summary>
+        private static MethodDefinitionHandle GetDeltaRelativeMethodDefinitionHandle(MetadataReader reader, int methodToken)
+        {
+            var globalHandle = (MethodDefinitionHandle)MetadataTokens.EntityHandle(methodToken);
+
+            if (reader.GetTableRowCount(TableIndex.EncMap) == 0)
+            {
+                return globalHandle;
+            }
+
+            var globalDebugHandle = globalHandle.ToDebugInformationHandle();
+
+            int rowId = 1;
+            foreach (EntityHandle handle in reader.GetEditAndContinueMapEntries())
+            {
+                if (handle.Kind == HandleKind.MethodDebugInformation)
+                {
+                    if (handle == globalDebugHandle)
+                    {
+                        return MetadataTokens.MethodDefinitionHandle(rowId);
+                    }
+
+                    rowId++;
+                }
+            }
+
+            // compiler generated invalid EncMap table:
+            throw new BadImageFormatException();
         }
 
         private static void ReadLocalScopeInformation(

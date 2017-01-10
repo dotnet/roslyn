@@ -8599,6 +8599,10 @@ tryAgain:
             {
                 var openParen = this.EatToken(SyntaxKind.OpenParenToken);
                 var listOfDesignations = _pool.AllocateSeparated<VariableDesignationSyntax>();
+
+                listOfDesignations.Add(ParseDesignation());
+                listOfDesignations.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
+
                 while (true)
                 {
                     listOfDesignations.Add(ParseDesignation());
@@ -8611,6 +8615,7 @@ tryAgain:
                         break;
                     }
                 }
+
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
                 result = _syntaxFactory.ParenthesizedVariableDesignation(openParen, listOfDesignations, closeParen);
                 _pool.Free(listOfDesignations);

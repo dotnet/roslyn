@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -452,11 +453,20 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             private async Task<Entry> CreateDocumentLocationEntryAsync(
-                RoslynDefinitionBucket definitionBucket, 
+                RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 bool isDefinitionLocation)
             {
                 var document = documentSpan.Document;
+
+                // The FAR system needs to know the guid for the project that a def/reference is 
+                // from (to support features like filtering).  Normally that would mean we could
+                // only support this from a VisualStudioWorkspace.  However, we want till work 
+                // in cases lke Any-Code (which does not use a VSWorkspace).  So we are tolerant
+                // when we have another type of workspace.  This means we will show results, but
+                // certain features (like filtering) may not work in that context.
+                var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
+                var guid = workspace?.GetHostProject(document.Project.Id)?.Guid ?? Guid.Empty;
 
                 var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
 
@@ -466,8 +476,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var taggedLineParts = await GetTaggedTextForReferenceAsync(document, referenceSpan, lineSpan).ConfigureAwait(false);
 
                 return new DocumentSpanEntry(
-                    this, definitionBucket, documentSpan, 
-                    isDefinitionLocation, sourceText, taggedLineParts);
+                    this, definitionBucket, documentSpan, isDefinitionLocation,
+                    guid, sourceText, taggedLineParts);
             }
 
             private TextSpan GetLineSpanForReference(SourceText sourceText, TextSpan referenceSpan)

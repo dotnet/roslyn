@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
-using System.Security.Cryptography;
 using System.Threading;
-using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
+using System.Security.Cryptography;
+using Microsoft.CodeAnalysis.Serialization;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -24,19 +24,20 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static Checksum Create(string kind, IObjectWritable @object)
+        public static Checksum Create(string kind, Checksum checksum)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var objectWriter = new StreamObjectWriter(stream))
+            using (var writer = new StreamObjectWriter(stream))
             {
-                objectWriter.WriteString(kind);
-                @object.WriteTo(objectWriter);
+                writer.WriteString(kind);
+                checksum.WriteTo(writer);
 
                 return Create(stream);
             }
         }
 
-        public static Checksum Create(string kind, IEnumerable<Checksum> checksums)
+        public static Checksum Create<TChecksums>(string kind, TChecksums checksums)
+            where TChecksums : IEnumerable<Checksum>
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new StreamObjectWriter(stream))
@@ -52,29 +53,25 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static Checksum Create(string kind, ImmutableArray<byte> bytes)
-        {
-            using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new StreamObjectWriter(stream))
-            {
-                writer.WriteString(kind);
-
-                for (var i = 0; i < bytes.Length; i++)
-                {
-                    writer.WriteByte(bytes[i]);
-                }
-
-                return Create(stream);
-            }
-        }
-
-        public static Checksum Create<T>(string kind, T value, Serializer serializer)
+        public static Checksum Create<T>(T value, string kind, Serializer serializer)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var objectWriter = new StreamObjectWriter(stream))
             {
                 objectWriter.WriteString(kind);
                 serializer.Serialize(value, objectWriter, CancellationToken.None);
+                return Create(stream);
+            }
+        }
+
+        public static Checksum Create(IObjectWritable @object, string kind)
+        {
+            using (var stream = SerializableBytes.CreateWritableStream())
+            using (var objectWriter = new StreamObjectWriter(stream))
+            {
+                objectWriter.WriteString(kind);
+                @object.WriteTo(objectWriter);
+
                 return Create(stream);
             }
         }

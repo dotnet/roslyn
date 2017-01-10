@@ -1033,9 +1033,10 @@ End Class
                                                            Assert.Equal(TypeAttributes.Public Or TypeAttributes.SequentialLayout Or TypeAttributes.Class Or TypeAttributes.Sealed Or TypeAttributes.AnsiClass Or TypeAttributes.BeforeFieldInit, test2.TypeDefFlags)
 
                                                            attributes = test2.GetAttributes()
-                                                           Assert.Equal(2, attributes.Length)
+                                                           Assert.Equal(3, attributes.Length)
                                                            Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", attributes(0).ToString())
                                                            Assert.Equal("System.Runtime.InteropServices.TypeIdentifierAttribute(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"", ""Test2"")", attributes(1).ToString())
+                                                           Assert.Equal("System.Runtime.InteropServices.ComVisibleAttribute(True)", attributes(2).ToString())
 
                                                            Dim itest3 = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("ITest3")
                                                            Assert.Equal(TypeKind.Interface, itest3.TypeKind)
@@ -1093,9 +1094,10 @@ End Class
                                                            Assert.Equal(TypeAttributes.Public Or TypeAttributes.AutoLayout Or TypeAttributes.Class Or TypeAttributes.Sealed Or TypeAttributes.AnsiClass, test9.TypeDefFlags)
 
                                                            attributes = test9.GetAttributes()
-                                                           Assert.Equal(2, attributes.Length)
+                                                           Assert.Equal(3, attributes.Length)
                                                            Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", attributes(0).ToString())
                                                            Assert.Equal("System.Runtime.InteropServices.TypeIdentifierAttribute(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"", ""Test9"")", attributes(1).ToString())
+                                                           Assert.Equal("System.Runtime.InteropServices.ComVisibleAttribute(True)", attributes(2).ToString())
 
                                                            Dim fieldToEmit = test9.GetFieldsToEmit().ToArray().AsImmutableOrNull()
                                                            Assert.Equal(3, fieldToEmit.Length)

@@ -519,22 +519,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 iterationVarDecl = new BoundExpressionStatement(assignment.Syntax, loweredAssignment);
                 RemovePlaceholderReplacement(deconstruction.TargetPlaceholder);
 
-                iterationVariables = GetLocalSymbols(assignment.LeftVariables);
+                iterationVariables = GetLocalSymbols(assignment.Left);
             }
 
             return iterationVarDecl;
         }
 
-        private static ImmutableArray<LocalSymbol> GetLocalSymbols(ImmutableArray<BoundExpression> leftVariables)
+        private static ImmutableArray<LocalSymbol> GetLocalSymbols(BoundTupleExpression left)
         {
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
-            foreach (var variable in leftVariables)
-            {
-                if (variable.Kind == BoundKind.Local)
+            left.VisitAllElements((variable, b) =>
                 {
-                    builder.Add(((BoundLocal)variable).LocalSymbol);
-                }
-            }
+                    if (variable.Kind == BoundKind.Local)
+                    {
+                        b.Add(((BoundLocal)variable).LocalSymbol);
+                    }
+                }, builder);
             return builder.ToImmutableAndFree();
         }
 

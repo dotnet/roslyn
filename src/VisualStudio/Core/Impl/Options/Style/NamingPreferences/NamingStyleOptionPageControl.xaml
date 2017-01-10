@@ -182,7 +182,7 @@
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn 
                     x:Name="severity" 
-                    Header="Severity"
+                    Header="{x:Static style:NamingStyleOptionPageControl.SeverityHeader}"
                     Width="2.5*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>

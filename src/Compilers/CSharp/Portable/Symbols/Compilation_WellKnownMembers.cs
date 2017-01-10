@@ -306,10 +306,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If the well-known member does not exist in the compilation then no attribute
         /// will be synthesized.
         /// </param>
+        /// <param name="isOptionalUse">
+        /// Indicates if this particular attribute application should be considered optional.
+        /// </param>
         internal SynthesizedAttributeData TrySynthesizeAttribute(
             WellKnownMember constructor,
             ImmutableArray<TypedConstant> arguments = default(ImmutableArray<TypedConstant>),
-            ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments = default(ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>>))
+            ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments = default(ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>>),
+            bool isOptionalUse = false)
         {
             DiagnosticInfo diagnosticInfo;
             var ctorSymbol = (MethodSymbol)Binder.GetWellKnownTypeMember(this, constructor, out diagnosticInfo, isOptional: true);
@@ -317,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)ctorSymbol == null)
             {
                 // if this assert fails, UseSiteErrors for "member" have not been checked before emitting ...
-                Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(constructor));
+                Debug.Assert(isOptionalUse || WellKnownMembers.IsSynthesizedAttributeOptional(constructor));
                 return null;
             }
 

@@ -392,9 +392,7 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
-    <!-- Various assignable expressions, in a flat structure (no nesting) -->
-    <Field Name="LeftVariables" Type="ImmutableArray&lt;BoundExpression&gt;" Null="disallow"/>
-
+    <Field Name="Left" Type="BoundTupleExpression"/>
     <Field Name="Right" Type="BoundExpression"/>
 
     <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionDeconstructStep&gt;" Null="disallow" SkipInVisitor="true" />
@@ -884,7 +882,7 @@
          info.  It will be stripped off in the rewriter if it is redundant or causes extra
          boxing.  If this node has errors, then the conversion may not be present.-->
     <Field Name="Expression" Type="BoundExpression"/>
-    <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep" Null="allow" SkipInVisitor="true"/>
+    <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep" Null="allow"/>
     <Field Name="Body" Type="BoundStatement"/>
   
     <Field Name="Checked" Type="Boolean"/>

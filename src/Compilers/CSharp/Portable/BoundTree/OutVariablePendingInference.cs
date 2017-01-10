@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReportInferenceFailure(inferenceDiagnostics);
                     }
 
-                    fieldSymbol.SetType(type, inferenceDiagnostics);
+                    type = fieldSymbol.SetType(type, inferenceDiagnostics);
                     inferenceDiagnostics.Free();
 
                     return new BoundFieldAccess(this.Syntax,
