@@ -3911,19 +3911,28 @@ public class Test
 }
 ";
             // Extra errors
-            ParseAndValidate(test,
-                // (6,29): error CS1575: A stackalloc expression requires [] after type
-                //         int *p = stackalloc int (30); 
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int"),
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
                 // (6,33): error CS1002: ; expected
                 //         int *p = stackalloc int (30); 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "("),
-                // (7,30): error CS1575: A stackalloc expression requires [] after type
-                //         int *pp = stackalloc int 30; 
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int"),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(6, 33),
                 // (7,34): error CS1002: ; expected
                 //         int *pp = stackalloc int 30; 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "30"));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "30").WithLocation(7, 34),
+                // (4,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     unsafe public static int Main()
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Main").WithLocation(4, 30),
+                // (6,29): error CS1575: A stackalloc expression requires [] after type
+                //         int *p = stackalloc int (30); 
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(6, 29),
+                // (6,33): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         int *p = stackalloc int (30); 
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(30)").WithLocation(6, 33),
+                // (7,30): error CS1575: A stackalloc expression requires [] after type
+                //         int *pp = stackalloc int 30; 
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(7, 30),
+                // (7,34): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         int *pp = stackalloc int 30; 
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "30").WithLocation(7, 34));
         }
 
         [WorkItem(906993, "DevDiv/Personal")]

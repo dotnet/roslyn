@@ -10826,11 +10826,6 @@ tryAgain:
         {
             var stackAlloc = this.EatToken(SyntaxKind.StackAllocKeyword);
             var elementType = this.ParseType(expectSizes: true);
-            if (elementType.Kind != SyntaxKind.ArrayType)
-            {
-                elementType = this.AddError(elementType, ErrorCode.ERR_BadStackAllocExpr);
-            }
-
             return _syntaxFactory.StackAllocArrayCreationExpression(stackAlloc, elementType);
         }
 
