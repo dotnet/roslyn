@@ -51,15 +51,11 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     .Add(PopulateSwitchHelpers.MissingCases, missingCases.ToString())
                     .Add(PopulateSwitchHelpers.MissingDefaultCase, missingDefaultCase.ToString());
 
-                // Report diagnostic on 'switch' keyword
-                var reportLocation = switchBlock.GetFirstToken().GetLocation();
-                var switchLocation = switchBlock.GetLocation();
-
                 var diagnostic = Diagnostic.Create(
                     HiddenDescriptor,
-                    reportLocation,
+                    switchBlock.GetFirstToken().GetLocation(),
                     properties: properties,
-                    additionalLocations: new[] { switchLocation });
+                    additionalLocations: new[] { switchBlock.GetLocation() });
                 context.ReportDiagnostic(diagnostic);
             }
         }
