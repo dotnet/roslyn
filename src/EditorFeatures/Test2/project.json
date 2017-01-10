@@ -5,6 +5,7 @@
     "Microsoft.VisualStudio.Platform.VSEditor": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Platform.VSEditor.Interop": "15.0.26014-alpha",
     "BasicUndo": "0.9.3",
+    "Microsoft.Build.Runtime": "15.1.0-preview-000458-02",
     "Microsoft.VisualStudio.InteractiveWindow": "2.0.0-rc3-61304-01",
     "Microsoft.VisualStudio.Editor": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Language.Intellisense": "15.0.26014-alpha",
