@@ -3562,7 +3562,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (node.Type.Kind() == SyntaxKind.TupleType)
                 {
-                    Debug.Assert(node.HasErrors, "new <tuple type> should be a syntax error");
                     return MakeBadExpressionForObjectCreation(node, type, boundInitializerOpt, analyzedArguments);
                 }
 
