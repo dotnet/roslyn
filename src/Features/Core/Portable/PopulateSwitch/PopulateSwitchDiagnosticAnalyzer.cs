@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         {
         }
 
-        #region Interface methods
-
         public bool OpenFileOnly(Workspace workspace) => false;
 
         private static MethodInfo s_registerMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
@@ -52,12 +50,10 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     .Add(PopulateSwitchHelpers.MissingDefaultCase, missingDefaultCase.ToString());
 
                 var diagnostic = Diagnostic.Create(
-                    HiddenDescriptor, switchBlock.GetLocation(), properties: properties);
+                    HiddenDescriptor, switchBlock.GetFirstToken().GetLocation(), properties: properties);
                 context.ReportDiagnostic(diagnostic);
             }
         }
-
-        #endregion
 
         private bool SwitchIsIncomplete(
             ISwitchStatement switchStatement,
