@@ -2183,20 +2183,7 @@ namespace x
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
                 // (8,21): error CS1002: ; expected
                 //             e = new this;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
-                // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
-                // (9,21): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
-                //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(9, 21),
-                // (9,22): error CS8124: Tuple must contain at least two elements.
-                //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 22),
-                // (9,23): error CS1526: A new expression requires (), [], or {} after type
-                //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
-             );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21));
         }
 
         [Fact]
