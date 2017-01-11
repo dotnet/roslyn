@@ -104,13 +104,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 builder.MoveToImmutable(), parameterCount, typeParameterCount);
         }
 
-        public async Task<ISymbol> ResolveAsync(Document document, CancellationToken cancellationToken)
+        public async Task<ISymbol> TryResolveAsync(Document document, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return Resolve(semanticModel, cancellationToken);
+            return TryResolve(semanticModel, cancellationToken);
         }
 
-        public ISymbol Resolve(SemanticModel semanticModel, CancellationToken cancellationToken)
+        public ISymbol TryResolve(SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
             if (root.FullSpan.Contains(this.Span))
