@@ -2163,7 +2163,7 @@ unsafe class D
         }
 
         [Fact, WorkItem(16167, "https://github.com/dotnet/roslyn/issues/16167")]
-        public void Bug16167()
+        public void DeclarationInLocalFuncionParameterDefault()
         {
             var text = @"
 class C
