@@ -30,11 +30,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                 Return workspace
             End Function
 
-            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, fixProviderData As Object) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
+            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, fixProviderData As Object) As (DiagnosticAnalyzer, CodeFixProvider)
                 Dim data = DirectCast(fixProviderData, ProviderData)
-                Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                    Nothing,
-                    New VisualBasicAddImportCodeFixProvider(data.Item1, data.Item2))
+                Return (Nothing, New VisualBasicAddImportCodeFixProvider(data.Item1, data.Item2))
             End Function
 
             Protected Overrides Function MassageActions(actions As IList(Of CodeAction)) As IList(Of CodeAction)

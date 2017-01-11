@@ -84,6 +84,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Nested types are never unified.
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.False;
             }
+
+            if (declaration.Arity == 0 && declaration.HasConstraints)
+            {
+                foreach (var syntaxRef in this.SyntaxReferences)
+                {
+                    var constraintClauses = GetConstraintClauses((CSharpSyntaxNode)syntaxRef.GetSyntax());
+                    ReportErrorIfHasConstraints(constraintClauses, diagnostics);
+                }
+            }
         }
 
         #region Syntax
@@ -132,7 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var syntaxTree = syntaxRef.SyntaxTree;
 
                 TypeParameterListSyntax tpl;
-                switch (typeDecl.Kind())
+                SyntaxKind typeKind = typeDecl.Kind();
+                switch (typeKind)
                 {
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
@@ -150,11 +160,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(typeDecl.Kind());
                 }
 
+                bool isInterfaceOrDelegate = typeKind == SyntaxKind.InterfaceDeclaration || typeKind == SyntaxKind.DelegateDeclaration;
                 var parameterBuilder = new List<TypeParameterBuilder>();
                 parameterBuilders1.Add(parameterBuilder);
                 int i = 0;
                 foreach (var tp in tpl.Parameters)
                 {
+                    if (tp.VarianceKeyword.Kind() != SyntaxKind.None &&
+                        !isInterfaceOrDelegate)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, tp.VarianceKeyword.GetLocation());
+                    }
+
                     var name = typeParameterNames[i];
                     var location = new SourceLocation(tp.Identifier);
                     var varianceKind = typeParameterVarianceKeywords[i];

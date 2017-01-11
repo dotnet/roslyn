@@ -489,6 +489,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             localSymbol.GrabDiagnostics(diagnostics);
 
+            Symbol.CheckForBlockAndExpressionBody(
+                node.Body, node.ExpressionBody, node, diagnostics);
+
             return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
         }
 
@@ -3371,11 +3374,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var catchBlocks = ArrayBuilder<BoundCatchBlock>.GetInstance(n);
+            var hasCatchAll = false;
+
             foreach (var catchSyntax in catchClauses)
             {
+                if (hasCatchAll)
+                {
+                    diagnostics.Add(ErrorCode.ERR_TooManyCatches, catchSyntax.CatchKeyword.GetLocation());
+                }
+
                 var catchBinder = this.GetBinder(catchSyntax);
                 var catchBlock = catchBinder.BindCatchBlock(catchSyntax, catchBlocks, diagnostics);
                 catchBlocks.Add(catchBlock);
+
+                hasCatchAll |= catchSyntax.Declaration == null && catchSyntax.Filter == null;
             }
             return catchBlocks.ToImmutableAndFree();
         }

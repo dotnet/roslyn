@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.NamingStyles;
@@ -13,10 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
 {
     public partial class NamingStylesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace) =>
-            new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new CSharpNamingStyleDiagnosticAnalyzer(),
-                new NamingStyleCodeFixProvider());
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new CSharpNamingStyleDiagnosticAnalyzer(), new NamingStyleCodeFixProvider());
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseClass_CorrectName()

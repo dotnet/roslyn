@@ -2928,11 +2928,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (typeSyntax.Kind() != SyntaxKind.ArrayType)
             {
-                // If the syntax node comes from the parser, it should already have ERR_BadStackAllocExpr.
-                if (!typeSyntax.ContainsDiagnostics)
-                {
-                    Error(diagnostics, ErrorCode.ERR_BadStackAllocExpr, typeSyntax);
-                }
+                Error(diagnostics, ErrorCode.ERR_BadStackAllocExpr, typeSyntax);
+
                 return new BoundBadExpression(
                     node,
                     LookupResultKind.NotCreatable, //in this context, anyway

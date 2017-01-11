@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
             {
                 get
                 {
-                    var text = FeaturesResources.Generate_enum_member_0_in_1;
+                    var text = FeaturesResources.Generate_enum_member_1_0;
 
                     return string.Format(
                         text,

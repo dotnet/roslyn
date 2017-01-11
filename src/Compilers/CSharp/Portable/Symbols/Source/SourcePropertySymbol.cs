@@ -358,6 +358,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, location, this);
             }
+
+            CheckForBlockAndExpressionBody(
+                syntax.AccessorList, syntax.GetExpressionBodySyntax(), syntax, diagnostics);
         }
 
         internal bool IsExpressionBodied
@@ -751,7 +754,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             SyntaxToken arglistToken;
-            var parameters = ParameterHelpers.MakeParameters(binder, owner, parameterSyntaxOpt, false, out arglistToken, diagnostics, false);
+            var parameters = ParameterHelpers.MakeParameters(
+                binder, owner, parameterSyntaxOpt, out arglistToken, diagnostics, 
+                allowRefOrOut: false, allowThis: false, beStrict: false);
 
             if (arglistToken.Kind() != SyntaxKind.None)
             {
