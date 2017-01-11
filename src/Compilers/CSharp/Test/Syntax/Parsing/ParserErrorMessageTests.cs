@@ -4060,7 +4060,10 @@ public class MyClass {
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,14): error CS1551: Indexers must have at least one parameter
+                //     int this[] {
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]").WithLocation(4, 14));
         }
 
         [Fact]
