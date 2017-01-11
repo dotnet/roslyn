@@ -924,7 +924,6 @@ public class C
         public void CS0746ERR_InvalidAnonymousTypeMemberDeclarator()
         {
             var test = @"
-using System;
 public class C
 {
     public static int Main()
@@ -936,14 +935,22 @@ public class C
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "a.b = 1"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (7,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var t = new { a.b = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "a.b = 1").WithLocation(7, 23),
+                // (7,23): error CS0103: The name 'a' does not exist in the current context
+                //         var t = new { a.b = 1 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(7, 23),
+                // (6,13): warning CS0219: The variable 'i' is assigned but its value is never used
+                //         int i = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 13));
         }
 
         [Fact]
         public void CS0746ERR_InvalidAnonymousTypeMemberDeclarator_2()
         {
             var test = @"
-using System;
 public class C
 {
     public static void Main()
@@ -953,17 +960,19 @@ public class C
     }
 }
 ";
-            ParseAndValidate(test,
-    // (8,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
-    //         var t = new { s.Length = 1 };
-    Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "s.Length = 1"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (7,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var t = new { s.Length = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "s.Length = 1").WithLocation(7, 23),
+                // (7,23): error CS0200: Property or indexer 'string.Length' cannot be assigned to -- it is read only
+                //         var t = new { s.Length = 1 };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "s.Length").WithArguments("string.Length").WithLocation(7, 23));
         }
 
         [Fact]
         public void CS0746ERR_InvalidAnonymousTypeMemberDeclarator_3()
         {
             var test = @"
-using System;
 public class C
 {
     public static void Main()
@@ -973,7 +982,13 @@ public class C
     }
 }
 ";
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "s.ToString() = 1"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (7,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var t = new { s.ToString() = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "s.ToString() = 1").WithLocation(7, 23),
+                // (7,23): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         var t = new { s.ToString() = 1 };
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "s.ToString()").WithLocation(7, 23));
         }
 
         [Fact]

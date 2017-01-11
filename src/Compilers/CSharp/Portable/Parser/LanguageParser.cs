@@ -10303,47 +10303,12 @@ tryAgain:
 
         private AnonymousObjectMemberDeclaratorSyntax ParseAnonymousTypeMemberInitializer()
         {
-            bool isNamedAssignment = this.IsNamedAssignment();
-
-            NameEqualsSyntax nameEquals = null;
-            if (isNamedAssignment)
-            {
-                nameEquals = ParseNameEquals();
-            }
+            var nameEquals = this.IsNamedAssignment()
+                ? ParseNameEquals()
+                : null;
 
             var expression = this.ParseExpressionCore();
-            if (!isNamedAssignment && !IsAnonymousTypeMemberExpression(expression))
-            {
-                expression = this.AddError(expression, ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator);
-            }
-
             return _syntaxFactory.AnonymousObjectMemberDeclarator(nameEquals, expression);
-        }
-
-        private static bool IsAnonymousTypeMemberExpression(ExpressionSyntax expr)
-        {
-            while (true)
-            {
-                switch (expr.Kind)
-                {
-                    case SyntaxKind.QualifiedName:
-                        expr = ((QualifiedNameSyntax)expr).Right;
-                        continue;
-                    case SyntaxKind.ConditionalAccessExpression:
-                        expr = ((ConditionalAccessExpressionSyntax)expr).WhenNotNull;
-                        if (expr.Kind == SyntaxKind.MemberBindingExpression)
-                        {
-                            return true;
-                        }
-
-                        continue;
-                    case SyntaxKind.IdentifierName:
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
         }
 
         private bool IsInitializerMember()
