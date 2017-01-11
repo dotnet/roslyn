@@ -34,42 +34,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
 
         private static readonly LocalizableString s_localizableTitleRemoveThisOrMe = new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly DiagnosticDescriptor s_descriptorRemoveThisOrMe = new DiagnosticDescriptor(IDEDiagnosticIds.RemoveQualificationDiagnosticId,
-                                                                    s_localizableTitleRemoveThisOrMe,
-                                                                    s_localizableMessage,
-                                                                    DiagnosticCategory.Style,
-                                                                    DiagnosticSeverity.Hidden,
-                                                                    isEnabledByDefault: true,
-                                                                    customTags: DiagnosticCustomTags.Unnecessary);
         
-        private static readonly DiagnosticDescriptor s_descriptorPreferIntrinsicTypeInDeclarations = new DiagnosticDescriptor(IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId,
-                                                            s_localizableTitleSimplifyNames,
-                                                            s_localizableMessage,
-                                                            DiagnosticCategory.Style,
-                                                            DiagnosticSeverity.Hidden,
-                                                            isEnabledByDefault: true,
-                                                            customTags: DiagnosticCustomTags.Unnecessary);
-
-        private static readonly DiagnosticDescriptor s_descriptorPreferIntrinsicTypeInMemberAccess = new DiagnosticDescriptor(IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId,
-                                                            s_localizableTitleSimplifyNames,
-                                                            s_localizableMessage,
-                                                            DiagnosticCategory.Style,
-                                                            DiagnosticSeverity.Hidden,
-                                                            isEnabledByDefault: true,
-                                                            customTags: DiagnosticCustomTags.Unnecessary);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return ImmutableArray.Create(
-                    s_descriptorSimplifyNames,
-                    s_descriptorSimplifyMemberAccess,
-                    s_descriptorRemoveThisOrMe,
-                    s_descriptorPreferIntrinsicTypeInDeclarations,
-                    s_descriptorPreferIntrinsicTypeInMemberAccess);
-            }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
+            ImmutableArray.Create(s_descriptorSimplifyNames, s_descriptorSimplifyMemberAccess);
 
         public bool OpenFileOnly(Workspace workspace)
         {
@@ -196,8 +163,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        {
-            return DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-        }
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }
