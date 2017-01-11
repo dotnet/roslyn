@@ -23,6 +23,7 @@
                     <Setter.Value>
                         <Style TargetType="DataGridCell">
                             <Setter Property="BorderThickness" Value="1" />
+                            <Setter Property="IsTabStop" Value="False" />
                         </Style>
                     </Setter.Value>
                 </Setter>
@@ -158,7 +159,13 @@
                                 SelectedItem="{Binding SelectedSpecification, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                 VerticalContentAlignment="Center"
                                 HorizontalContentAlignment="Left"
-                                ToolTip="{Binding Path=SelectedItem.Name, RelativeSource={RelativeSource Self}}"/>
+                                ToolTip="{Binding Path=SelectedItem.Name, RelativeSource={RelativeSource Self}}">
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                            </ComboBox>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
@@ -176,6 +183,11 @@
                                     VerticalContentAlignment="Center"
                                     HorizontalContentAlignment="Left"
                                     ToolTip="{Binding Path=SelectedItem.Name, RelativeSource={RelativeSource Self}}">
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
                             </ComboBox>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -211,6 +223,11 @@
                                         </Grid>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
                             </ComboBox>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -219,14 +236,15 @@
                                         Width="30">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Click="RemoveButton_Click"  
+                            <Button Click="RemoveButton_Click"
                                     Height="16" 
                                     Width="16" 
                                     Margin="5, 0, 0, 0"
                                     VerticalContentAlignment="Center"
                                     HorizontalContentAlignment="Center"
                                     HorizontalAlignment="Center"
-                                    VerticalAlignment="Center">
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.Name="{Binding RemoveAutomationText}">
                                 <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.DeleteListItem}" />
                             </Button>
                         </DataTemplate>
