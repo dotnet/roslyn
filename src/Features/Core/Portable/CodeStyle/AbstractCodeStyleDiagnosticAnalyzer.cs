@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal abstract class AbstractCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer
+    internal abstract class AbstractCodeStyleDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         protected readonly string DescriptorId;
 
@@ -104,5 +104,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         protected abstract void InitializeWorker(AnalysisContext context);
+
+        public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
+        public abstract bool OpenFileOnly(Workspace workspace);
     }
 }
