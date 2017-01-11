@@ -71,12 +71,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntax = syntax;
             _containingSymbol = containingSymbol;
 
+            var diagnostics = DiagnosticBag.GetInstance();
+
             _declarationModifiers =
                 DeclarationModifiers.Private |
                 DeclarationModifiers.Static |
-                syntax.Modifiers.ToDeclarationModifiers();
-
-            var diagnostics = DiagnosticBag.GetInstance();
+                syntax.Modifiers.ToDeclarationModifiers(allowPartial: false, diagnostics: diagnostics);
 
             ScopeBinder = binder;
 

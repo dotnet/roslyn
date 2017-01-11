@@ -290,10 +290,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
                                                     ref declFlags);
 
+            var modifiers = node.Modifiers.ToDeclarationModifiers(
+                allowPartial: true, diagnostics: diagnostics);
+
             return new SingleTypeDeclaration(
                 kind: kind,
                 name: node.Identifier.ValueText,
-                modifiers: node.Modifiers.ToDeclarationModifiers(),
+                modifiers: modifiers,
                 arity: node.Arity,
                 declFlags: declFlags,
                 syntaxReference: _syntaxTree.GetReference(node),
@@ -337,10 +340,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
 
+            var modifiers = node.Modifiers.ToDeclarationModifiers(allowPartial: false, diagnostics: diagnostics);
+
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Delegate,
                 name: node.Identifier.ValueText,
-                modifiers: node.Modifiers.ToDeclarationModifiers(),
+                modifiers: modifiers,
                 declFlags: declFlags,
                 arity: node.Arity,
                 syntaxReference: _syntaxTree.GetReference(node),
@@ -365,17 +370,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             string[] memberNames = GetEnumMemberNames(members, ref declFlags);
 
+            var diagnostics = DiagnosticBag.GetInstance();
+            var modifiers = node.Modifiers.ToDeclarationModifiers(allowPartial: false, diagnostics: diagnostics);
+
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Enum,
                 name: node.Identifier.ValueText,
                 arity: 0,
-                modifiers: node.Modifiers.ToDeclarationModifiers(),
+                modifiers: modifiers,
                 declFlags: declFlags,
                 syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
                 memberNames: memberNames,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
-                diagnostics: ImmutableArray<Diagnostic>.Empty);
+                diagnostics: diagnostics.ToReadOnlyAndFree());
         }
 
         private static string[] GetEnumMemberNames(SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)

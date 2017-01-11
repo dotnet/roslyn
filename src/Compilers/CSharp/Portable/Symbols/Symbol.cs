@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using LanguageParser = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
