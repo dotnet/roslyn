@@ -9,14 +9,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntaxReference _syntaxReference;
         private readonly SourceLocation _nameLocation;
 
+        /// <summary>
+        /// Any diagnostics reported while converting the Namespace/Type syntax into the Declaration
+        /// instance.  Generally, we determine and store some diagnostics here because we don't want 
+        /// to have to go back to Syntax when we have our NamespaceSymbol or NamedTypeSymbol.
+        /// </summary>
+        public readonly ImmutableArray<Diagnostic> Diagnostics;
+
         protected SingleNamespaceOrTypeDeclaration(
             string name,
             SyntaxReference syntaxReference,
-            SourceLocation nameLocation)
+            SourceLocation nameLocation,
+            ImmutableArray<Diagnostic> diagnostics)
             : base(name)
         {
             _syntaxReference = syntaxReference;
             _nameLocation = nameLocation;
+            Diagnostics = diagnostics;
         }
 
         public SourceLocation Location

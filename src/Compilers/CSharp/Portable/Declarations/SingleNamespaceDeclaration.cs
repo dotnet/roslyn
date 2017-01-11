@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxReference syntaxReference,
             SourceLocation nameLocation,
             ImmutableArray<SingleNamespaceOrTypeDeclaration> children)
-            : base(name, syntaxReference, nameLocation)
+            : base(name, syntaxReference, nameLocation, diagnostics: ImmutableArray<Diagnostic>.Empty)
         {
             _children = children;
         }
