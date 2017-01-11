@@ -3322,6 +3322,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected BoundExpression BindObjectCreationExpression(ObjectCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
+            if (node.Type.Kind() == SyntaxKind.TupleType)
+            {
+                diagnostics.Add(ErrorCode.ERR_NewWithTupleTypeSyntax, node.Type.GetLocation());
+            }
+
             var type = BindType(node.Type, diagnostics);
 
             BoundExpression boundInitializerOpt = node.Initializer == null ?
