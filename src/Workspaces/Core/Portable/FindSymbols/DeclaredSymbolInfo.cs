@@ -79,35 +79,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static DeclaredSymbolInfo ReadFrom(ObjectReader reader)
+        internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(ObjectReader reader)
         {
-            try
-            {
-                var name = reader.ReadString();
-                var immediateContainer = reader.ReadString();
-                var entireContainer = reader.ReadString();
-                var kind = (DeclaredSymbolInfoKind)reader.ReadByte();
-                var spanStart = reader.ReadInt32();
-                var spanLength = reader.ReadInt32();
-                var parameterCount = reader.ReadUInt16();
-                var typeParameterCount = reader.ReadUInt16();
+            var name = reader.ReadString();
+            var immediateContainer = reader.ReadString();
+            var entireContainer = reader.ReadString();
+            var kind = (DeclaredSymbolInfoKind)reader.ReadByte();
+            var spanStart = reader.ReadInt32();
+            var spanLength = reader.ReadInt32();
+            var parameterCount = reader.ReadUInt16();
+            var typeParameterCount = reader.ReadUInt16();
 
-                var inheritanceNamesLength = reader.ReadInt32();
-                var builder = ImmutableArray.CreateBuilder<string>(inheritanceNamesLength);
-                for (var i = 0; i < inheritanceNamesLength; i++)
-                {
-                    builder.Add(reader.ReadString());
-                }
-
-                return new DeclaredSymbolInfo(
-                    name, immediateContainer, entireContainer, kind, new TextSpan(spanStart, spanLength),
-                    builder.MoveToImmutable(),
-                    parameterCount, typeParameterCount);
-            }
-            catch
+            var inheritanceNamesLength = reader.ReadInt32();
+            var builder = ImmutableArray.CreateBuilder<string>(inheritanceNamesLength);
+            for (var i = 0; i < inheritanceNamesLength; i++)
             {
-                return default(DeclaredSymbolInfo);
+                builder.Add(reader.ReadString());
             }
+
+            return new DeclaredSymbolInfo(
+                name, immediateContainer, entireContainer, kind, new TextSpan(spanStart, spanLength),
+                builder.MoveToImmutable(), parameterCount, typeParameterCount);
         }
 
         public async Task<ISymbol> ResolveAsync(Document document, CancellationToken cancellationToken)
