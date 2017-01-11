@@ -5429,7 +5429,7 @@ tryAgain:
             // remaining types & commas
             while (true)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken || this.IsPossibleTypeParameterConstraintClauseStart())
+                if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
                 {
                     break;
                 }
@@ -5460,11 +5460,6 @@ tryAgain:
         // Parses the individual generic parameter/arguments in a name.
         private TypeSyntax ParseTypeArgument()
         {
-            if (this.IsPossibleTypeParameterConstraintClauseStart())
-            {
-                return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TypeExpected);
-            }
-
             var attrs = _pool.Allocate<AttributeListSyntax>();
             try
             {
