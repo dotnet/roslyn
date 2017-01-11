@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         public static async Task<INavigableItem> TryGetItemFromDeclaredSymbolInfoAsync(
             DeclaredSymbolInfo declaredSymbolInfo, Document document, CancellationToken cancellationToken)
         {
-            var symbol = await declaredSymbolInfo.ResolveAsync(document, cancellationToken).ConfigureAwait(false);
+            var symbol = await declaredSymbolInfo.TryResolveAsync(document, cancellationToken).ConfigureAwait(false);
             return symbol == null
                 ? null
                 : new DeclaredSymbolNavigableItem(document, declaredSymbolInfo, symbol);
