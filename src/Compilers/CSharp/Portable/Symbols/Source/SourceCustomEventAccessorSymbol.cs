@@ -90,6 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_NoModifiersOnAccessor, syntax.Modifiers[0].GetLocation());
             }
+
+            CheckForBlockAndExpressionBody(
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
         internal AccessorDeclarationSyntax GetSyntax()
