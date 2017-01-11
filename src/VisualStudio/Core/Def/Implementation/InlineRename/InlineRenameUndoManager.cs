@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio;
@@ -208,9 +209,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 
             private IEnumerable<IOleUndoUnit> GetUndoUnits(IOleUndoManager undoManager)
             {
+                IEnumOleUndoUnits undoUnitEnumerator;
+                try
+                {
+                    // This sometimes crashes for unknown reasons at this time. If anything goes
+                    // wrong, treat it as though we received a null enumerator but continue 
+                    // reporting Watsons for future investigations.
+                    // See https://devdiv.visualstudio.com/DevDiv/_workitems?id=227513
 
-                // Unfortunately, EnumUndoable returns the units in oldest-first order.
-                undoManager.EnumUndoable(out var undoUnitEnumerator);
+                    // Unfortunately, EnumUndoable returns the units in oldest-first order.
+                    undoManager.EnumUndoable(out undoUnitEnumerator);
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                {
+                    yield break;
+                }
+
                 if (undoUnitEnumerator == null)
                 {
                     yield break;
