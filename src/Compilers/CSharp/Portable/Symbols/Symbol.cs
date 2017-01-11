@@ -1100,6 +1100,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static void CheckForBlockAndExpressionBody(
+            CSharpSyntaxNode block,
+            CSharpSyntaxNode expression,
+            CSharpSyntaxNode syntax,
+            DiagnosticBag diagnostics)
+        {
+            if (block != null && expression != null)
+            {
+                diagnostics.Add(ErrorCode.ERR_BlockBodyAndExpressionBody, syntax.GetLocation());
+            }
+        }
+
         #region ISymbol Members
 
         SymbolKind ISymbol.Kind

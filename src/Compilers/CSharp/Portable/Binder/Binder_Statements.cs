@@ -489,6 +489,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             localSymbol.GrabDiagnostics(diagnostics);
 
+            Symbol.CheckForBlockAndExpressionBody(
+                node.Body, node.ExpressionBody, node, diagnostics);
+
             return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
         }
 

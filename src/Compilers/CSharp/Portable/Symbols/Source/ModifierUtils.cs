@@ -166,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var modifier in modifiers)
             {
                 DeclarationModifiers one = ToDeclarationModifier(modifier.ContextualKind());
+
                 if (one == DeclarationModifiers.Partial && !allowPartial)
                 {
                     diagnostics.Add(ErrorCode.ERR_PartialMisplaced, modifier.GetLocation());

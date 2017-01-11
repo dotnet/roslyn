@@ -135,6 +135,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
                 }
             }
+
+            CheckForBlockAndExpressionBody(
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
 
         public override bool ReturnsVoid
