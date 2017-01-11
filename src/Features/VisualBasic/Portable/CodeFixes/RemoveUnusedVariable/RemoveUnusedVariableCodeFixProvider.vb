@@ -13,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnusedVariable
         Inherits AbstractRemoveUnusedVariableCodeFixProvider(Of
             LocalDeclarationStatementSyntax, ModifiedIdentifierSyntax, VariableDeclaratorSyntax)
 
-        Friend Const BC42024 As String = "BC42024"
-        Friend Shared ReadOnly Ids As ImmutableArray(Of String) = ImmutableArray.Create(BC42024)
+        Private Const BC42024 As String = "BC42024"
+        Private ReadOnly Ids As ImmutableArray(Of String) = ImmutableArray.Create(BC42024)
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
@@ -22,5 +22,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnusedVariable
             End Get
         End Property
     End Class
-
 End Namespace

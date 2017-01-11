@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.RemoveUnusedVariable
             context.RegisterCodeFix(
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
-
-            return;
         }
 
         protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.RemoveUnusedVariable
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Remove_Unused_Variable, createChangedDocument, FeaturesResources.Remove_Unused_Variable)
+                base(FeaturesResources.Remove_unused_variable, createChangedDocument, FeaturesResources.Remove_unused_variable)
             {
             }
         }

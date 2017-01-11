@@ -2277,9 +2277,9 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Remove unused variable.
         /// </summary>
-        internal static string Remove_Unused_Variable {
+        internal static string Remove_unused_variable {
             get {
-                return ResourceManager.GetString("Remove_Unused_Variable", resourceCulture);
+                return ResourceManager.GetString("Remove_unused_variable", resourceCulture);
             }
         }
         

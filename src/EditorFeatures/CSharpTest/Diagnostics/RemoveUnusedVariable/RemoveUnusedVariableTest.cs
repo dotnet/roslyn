@@ -157,5 +157,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnuse
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableFixAll2()
+        {
+            await TestAsync(
+@"class Class
+{
+    void Method()
+    {
+        string a, {|FixAllInDocument:b|};
+    }
+}",
+@"class Class
+{
+    void Method()
+    {
+    }
+}");
+        }
     }
 }
