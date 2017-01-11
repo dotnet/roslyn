@@ -48,13 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!IsAnonymousTypeMemberExpression(expression))
                     {
+                        hasError = true;
                         diagnostics.Add(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, expression.GetLocation());
                     }
 
                     nameToken = expression.ExtractAnonymousTypeMemberName();
                 }
 
-                hasError = hasError || expression.HasErrors;
+                hasError |= expression.HasErrors;
                 boundExpressions[i] = this.BindValue(expression, diagnostics, BindValueKind.RValue);
 
                 //  check the name to be unique
