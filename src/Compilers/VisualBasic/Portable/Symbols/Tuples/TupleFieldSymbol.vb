@@ -6,11 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-    ''' <summary>
-    ''' Represents a non-element field of a tuple type (such as (int, byte).Rest)
-    ''' that is backed by a real field within the tuple underlying type.
-    ''' </summary>
-    Friend Class TupleFieldSymbol
+    Friend MustInherit Class TupleFieldSymbol
         Inherits WrappedFieldSymbol
 
         Protected _containingTuple As TupleTypeSymbol
@@ -117,10 +113,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     End Class
 
     ''' <summary>
-    ''' Represents an element field of a tuple type (such as (int, byte).Item1)
-    ''' that is backed by a real field with the same name within the tuple underlying type.
+    ''' Represents a non-element field of a tuple type (such as (int, byte).Rest)
+    ''' that is backed by a real field within the tuple underlying type.
     ''' </summary>
-    Friend Class TupleElementFieldSymbol
+    Friend NotInheritable Class TupleNonElementFieldSymbol
+        Inherits TupleFieldSymbol
+
+        Public Sub New(container As TupleTypeSymbol, underlyingField As FieldSymbol, tupleElementIndex As Integer)
+            MyBase.New(container, underlyingField, tupleElementIndex)
+        End Sub
+
+        Public Overrides Function GetHashCode() As Integer
+            Return MyBase.GetHashCode()
+        End Function
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            If TypeOf obj IsNot TupleNonElementFieldSymbol Then
+                Return False
+            End If
+            Return MyBase.Equals(obj)
+        End Function
+    End Class
+
+    Friend MustInherit Class TupleElementFieldSymbolBase
         Inherits TupleFieldSymbol
 
         Private _locations As ImmutableArray(Of Location)
@@ -129,14 +144,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' otherwise implicitly declared by compiler
         Private ReadOnly _isImplicitlyDeclared As Boolean
 
-        Private ReadOnly _correspondingDefaultField As TupleElementFieldSymbol
+        Private ReadOnly _correspondingDefaultField As TupleElementFieldSymbolBase
 
         Public Sub New(container As TupleTypeSymbol,
                        underlyingField As FieldSymbol,
                        tupleElementIndex As Integer,
                        location As Location,
                        isImplicitlyDeclared As Boolean,
-                       correspondingDefaultFieldOpt As TupleElementFieldSymbol)
+                       correspondingDefaultFieldOpt As TupleElementFieldSymbolBase)
 
             MyBase.New(container, underlyingField, If(correspondingDefaultFieldOpt Is Nothing, tupleElementIndex << 1, (tupleElementIndex << 1) + 1))
 
@@ -203,11 +218,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     End Class
 
     ''' <summary>
+    ''' Represents an element field of a tuple type (such as (int, byte).Item1)
+    ''' that is backed by a real field with the same name within the tuple underlying type.
+    ''' </summary>
+    Friend NotInheritable Class TupleElementFieldSymbol
+        Inherits TupleElementFieldSymbolBase
+
+        Public Sub New(
+                      container As TupleTypeSymbol,
+                      underlyingField As FieldSymbol,
+                      tupleElementIndex As Integer,
+                      location As Location,
+                      isImplicitlyDeclared As Boolean,
+                      correspondingDefaultFieldOpt As TupleElementFieldSymbolBase)
+            MyBase.New(container, underlyingField, tupleElementIndex, location, isImplicitlyDeclared, correspondingDefaultFieldOpt)
+        End Sub
+
+        Public Overrides Function GetHashCode() As Integer
+            Return MyBase.GetHashCode()
+        End Function
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Return MyBase.Equals(TryCast(obj, TupleElementFieldSymbol))
+        End Function
+    End Class
+
+    ''' <summary>
     ''' Represents an element field of a tuple type (such as (int a, byte b).a, or (int a, byte b).b)
     ''' that is backed by a real field with a different name within the tuple underlying type.
     ''' </summary>
     Friend NotInheritable Class TupleVirtualElementFieldSymbol
-        Inherits TupleElementFieldSymbol
+        Inherits TupleElementFieldSymbolBase
 
         Private _name As String
 
@@ -217,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        tupleElementOrdinal As Integer,
                        location As Location,
                        isImplicitlyDeclared As Boolean,
-                       correspondingDefaultFieldOpt As TupleElementFieldSymbol)
+                       correspondingDefaultFieldOpt As TupleElementFieldSymbolBase)
 
             MyBase.New(container, underlyingField, tupleElementOrdinal, location, isImplicitlyDeclared, correspondingDefaultFieldOpt)
 
@@ -251,5 +292,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return True
             End Get
         End Property
+
+        Public Overrides Function GetHashCode() As Integer
+            Return MyBase.GetHashCode()
+        End Function
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Return MyBase.Equals(TryCast(obj, TupleVirtualElementFieldSymbol))
+        End Function
     End Class
 End Namespace
