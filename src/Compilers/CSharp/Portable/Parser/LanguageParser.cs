@@ -2637,8 +2637,7 @@ parse_member_name:;
                     out BlockSyntax body, out ArrowExpressionClauseSyntax expressionBody, out SyntaxToken semicolon,
                     requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedDeOrConstructor);
 
-                var decl = _syntaxFactory.ConstructorDeclaration(attributes, modifiers.ToList(), name, paramList, initializer, body, expressionBody, semicolon);
-                return CheckForBlockAndExpressionBody(body, expressionBody, decl);
+                return _syntaxFactory.ConstructorDeclaration(attributes, modifiers.ToList(), name, paramList, initializer, body, expressionBody, semicolon);
             }
             finally
             {
@@ -2698,8 +2697,7 @@ parse_member_name:;
 
             var parameterList = _syntaxFactory.ParameterList(openParen, default(SeparatedSyntaxList<ParameterSyntax>), closeParen);
 
-            var decl = _syntaxFactory.DestructorDeclaration(attributes, modifiers.ToList(), tilde, name, parameterList, body, expressionBody, semicolon);
-            return CheckForBlockAndExpressionBody(body, expressionBody, decl);
+            return _syntaxFactory.DestructorDeclaration(attributes, modifiers.ToList(), tilde, name, parameterList, body, expressionBody, semicolon);
         }
 
         /// <summary>
@@ -2752,35 +2750,6 @@ parse_member_name:;
             {
                 semicolon = this.EatTokenWithPrejudice(ErrorCode.ERR_UnexpectedSemicolon);
             }
-        }
-
-        private T CheckForBlockAndExpressionBody<T>(
-            CSharpSyntaxNode block,
-            CSharpSyntaxNode expression,
-            T syntax)
-            where T : CSharpSyntaxNode
-        {
-            if (block != null && expression != null)
-            {
-                ErrorCode code;
-                if (syntax is BaseMethodDeclarationSyntax)
-                {
-                    code = ErrorCode.ERR_BlockBodyAndExpressionBody;
-                }
-                else if (syntax is AccessorDeclarationSyntax)
-                {
-                    code = ErrorCode.ERR_BlockBodyAndExpressionBody;
-                }
-                else
-                {
-                    Debug.Assert(syntax is BasePropertyDeclarationSyntax);
-                    code = ErrorCode.ERR_AccessorListAndExpressionBody;
-                }
-
-                return AddError(syntax, code);
-            }
-
-            return syntax;
         }
 
         private void ParseBodyOrSemicolon(out BlockSyntax body, out SyntaxToken semicolon)
@@ -2895,7 +2864,7 @@ parse_member_name:;
 
                 IsInAsync = false;
 
-                var decl = _syntaxFactory.MethodDeclaration(
+                return _syntaxFactory.MethodDeclaration(
                     attributes,
                     modifiers.ToList(),
                     type,
@@ -2907,8 +2876,6 @@ parse_member_name:;
                     blockBody,
                     expressionBody,
                     semicolon);
-
-                return CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
             }
             finally
             {
@@ -2964,7 +2931,7 @@ parse_member_name:;
             SyntaxToken semicolon;
             this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
 
-            var decl = _syntaxFactory.ConversionOperatorDeclaration(
+            return _syntaxFactory.ConversionOperatorDeclaration(
                 attributes,
                 modifiers.ToList(),
                 style,
@@ -2974,8 +2941,6 @@ parse_member_name:;
                 blockBody,
                 expressionBody,
                 semicolon);
-
-            return CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
         }
 
         private OperatorDeclarationSyntax ParseOperatorDeclaration(
@@ -3097,7 +3062,7 @@ parse_member_name:;
                 opToken = ConvertToMissingWithTrailingTrivia(opToken, SyntaxKind.PlusToken);
             }
 
-            var decl = _syntaxFactory.OperatorDeclaration(
+            return _syntaxFactory.OperatorDeclaration(
                 attributes,
                 modifiers.ToList(),
                 type,
@@ -3107,8 +3072,6 @@ parse_member_name:;
                 blockBody,
                 expressionBody,
                 semicolon);
-
-            return CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
         }
 
         private MemberDeclarationSyntax ParseIndexerDeclaration(
@@ -3166,7 +3129,7 @@ parse_member_name:;
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
 
-            var decl = _syntaxFactory.IndexerDeclaration(
+            return _syntaxFactory.IndexerDeclaration(
                 attributes,
                 modifiers.ToList(),
                 type,
@@ -3176,8 +3139,6 @@ parse_member_name:;
                 accessorList,
                 expressionBody,
                 semicolon);
-
-            return CheckForBlockAndExpressionBody(accessorList, expressionBody, decl);
         }
 
         private PropertyDeclarationSyntax ParsePropertyDeclaration(
@@ -3234,7 +3195,7 @@ parse_member_name:;
                 semicolon = this.EatTokenWithPrejudice(ErrorCode.ERR_UnexpectedSemicolon);
             }
 
-            var decl = _syntaxFactory.PropertyDeclaration(
+            return _syntaxFactory.PropertyDeclaration(
                 attributes,
                 modifiers.ToList(),
                 type,
@@ -3244,8 +3205,6 @@ parse_member_name:;
                 expressionBody,
                 initializer,
                 semicolon);
-
-            return CheckForBlockAndExpressionBody(accessorList, expressionBody, decl);
         }
 
         private AccessorListSyntax ParseAccessorList(bool isEvent)
@@ -3675,8 +3634,7 @@ parse_member_name:;
                     }
                 }
 
-                var decl = _syntaxFactory.AccessorDeclaration(accessorKind, accAttrs, accMods.ToList(), accessorName, blockBody, expressionBody, semicolon);
-                return CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
+                return _syntaxFactory.AccessorDeclaration(accessorKind, accAttrs, accMods.ToList(), accessorName, blockBody, expressionBody, semicolon);
             }
             finally
             {
@@ -8627,7 +8585,7 @@ tryAgain:
             this.Release(ref resetPoint);
 
             identifier = CheckFeatureAvailability(identifier, MessageID.IDS_FeatureLocalFunctions);
-            var decl = _syntaxFactory.LocalFunctionStatement(
+            return _syntaxFactory.LocalFunctionStatement(
                 modifiers,
                 type,
                 identifier,
@@ -8637,9 +8595,6 @@ tryAgain:
                 blockBody,
                 expressionBody,
                 semicolon);
-
-            decl = CheckForBlockAndExpressionBody(blockBody, expressionBody, decl);
-            return decl;
         }
 
         private ExpressionStatementSyntax ParseExpressionStatement()
