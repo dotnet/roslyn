@@ -122,16 +122,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLocalFunctionStatement(node);
         }
 
-        public override void VisitForEachIterationVariable(BoundForEachStatement node)
+        public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
             if (IsInside)
             {
-                if (node.IterationVariableOpt != null)
-                {
-                    _variablesDeclared.Add(node.IterationVariableOpt);
-                }
+                var deconstructionAssignment = node.DeconstructionOpt?.DeconstructionAssignment;
 
-                node.DeconstructionOpt?.DeconstructionAssignment.Left.VisitAllElements((x, self) => self.Visit(x), this);
+                if (deconstructionAssignment == null)
+                {
+                    // regular, not deconstructing, foreach declares exactly one iteration variable
+                    _variablesDeclared.Add(node.IterationVariables.Single());
+                }
+                else
+                {
+                    // deconstruction foreach declares multiple variables
+                   deconstructionAssignment.Left.VisitAllElements((x, self) => self.Visit(x), this);
+                }
             }
         }
 

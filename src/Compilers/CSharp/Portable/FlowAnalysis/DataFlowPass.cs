@@ -1222,16 +1222,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AssignImpl(((BoundRangeVariable)node).Value, value, refKind, written, read);
                     break;
 
-                case BoundKind.ForEachStatement:
-                    {
-                        var iterationVariable = ((BoundForEachStatement)node).IterationVariableOpt;
-                        Debug.Assert((object)iterationVariable != null);
-                        int slot = GetOrCreateSlot(iterationVariable);
-                        if (slot > 0) SetSlotState(slot, written);
-                        if (written) NoteWrite(iterationVariable, value, read);
-                        break;
-                    }
-
                 case BoundKind.BadExpression:
                     {
                         // Sometimes a bad node is not so bad that we cannot analyze it at all.
@@ -1582,6 +1572,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override BoundNode VisitForEachStatement(BoundForEachStatement node)
+        {
+            // NOTE: iteration variables are not declared or assigned
+            //       before the collection expression is evaluated 
+            var result = base.VisitForEachStatement(node);
+            return result;
+        }
+
         public override BoundNode VisitDoStatement(BoundDoStatement node)
         {
             DeclareVariables(node.Locals);
@@ -1595,12 +1593,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             DeclareVariables(node.Locals);
             var result = base.VisitWhileStatement(node);
             ReportUnusedVariables(node.Locals);
-            return result;
-        }
-
-        public override BoundNode VisitForEachStatement(BoundForEachStatement node)
-        {
-            var result = base.VisitForEachStatement(node);
             return result;
         }
 
@@ -2186,14 +2178,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override void VisitForEachIterationVariable(BoundForEachStatement node)
+        public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
-            var local = node.IterationVariableOpt;
-            if ((object)local != null)
+            // declare and assign all iteration variables
+            foreach (var iterationVariable in node.IterationVariables)
             {
-                GetOrCreateSlot(local);
-                Assign(node, value: null);
-                // TODO: node needed? NoteRead(local); // Never warn about unused foreach variables.
+                Debug.Assert((object)iterationVariable != null);
+                int slot = GetOrCreateSlot(iterationVariable);
+                if (slot > 0) SetSlotAssigned(slot);
+                // NOTE: do not report unused iteration variables. They are always considered used.
+                NoteWrite(iterationVariable, null, read: true);
             }
         }
 
