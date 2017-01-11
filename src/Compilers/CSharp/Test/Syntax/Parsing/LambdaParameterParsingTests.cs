@@ -511,10 +511,6 @@ class C {
                                                     N(SyntaxKind.CommaToken);
                                                     M(SyntaxKind.Parameter);
                                                     {
-                                                        M(SyntaxKind.IdentifierName);
-                                                        {
-                                                            M(SyntaxKind.IdentifierToken);
-                                                        }
                                                         M(SyntaxKind.IdentifierToken);
                                                     }
                                                     M(SyntaxKind.CloseParenToken);
