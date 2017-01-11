@@ -2146,6 +2146,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (argumentSyntax.RefOrOutKeyword.Kind() != SyntaxKind.None)
+            {
+                argumentSyntax.Expression.CheckDeconstructionCompatibleArgument(diagnostics);
+            }
+
             return hadError;
         }
 
