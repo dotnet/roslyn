@@ -10836,7 +10836,8 @@ tryAgain:
         {
             bool parentScopeIsInAsync = IsInAsync;
             SyntaxToken asyncToken = null;
-            if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword && PeekToken(1).Kind != SyntaxKind.EqualsGreaterThanToken)
+            if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
+                PeekToken(1).Kind != SyntaxKind.EqualsGreaterThanToken)
             {
                 asyncToken = this.EatContextualToken(SyntaxKind.AsyncKeyword);
                 asyncToken = CheckFeatureAvailability(asyncToken, MessageID.IDS_FeatureAsync);
@@ -10877,17 +10878,14 @@ tryAgain:
 
         private CSharpSyntaxNode ParseLambdaBody()
         {
-            CSharpSyntaxNode body;
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
             {
-                body = this.ParseBlock();
+                return this.ParseBlock();
             }
             else
             {
-                body = this.ParsePossibleRefExpression();
+                return this.ParsePossibleRefExpression();
             }
-
-            return body;
         }
 
         private ParameterListSyntax ParseLambdaParameterList()
