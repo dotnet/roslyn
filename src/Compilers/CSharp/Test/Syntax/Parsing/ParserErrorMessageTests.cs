@@ -2097,7 +2097,7 @@ namespace x
     }
 }
 ";
-            // TODO: this appears to be a severe regression from Dev10, which neatly reported 3 errors.
+
             ParseAndValidate(text, TestOptions.Regular,
                 // (7,21): error CS1031: Type expected
                 //             e = new base;   // CS1031, not a type
@@ -2133,7 +2133,7 @@ namespace x
     }
 }
 ";
-            // TODO: this appears to be a severe regression from Dev10, which neatly reported 3 errors.
+
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (7,26): error CS8124: Tuple must contain at least two elements.
                 //             var e = new ();
