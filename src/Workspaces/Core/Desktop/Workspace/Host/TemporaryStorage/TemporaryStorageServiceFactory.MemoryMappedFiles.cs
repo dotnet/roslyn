@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Host
             private void ForceCompactingGC()
             {
                 // repeated GC.Collect / WaitForPendingFinalizers till memory freed delta is super small, ignore the return value
-                GC.GetTotalMemory(true);
+                GC.GetTotalMemory(forceFullCollection:true);
 
                 // compact the LOH
                 GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
