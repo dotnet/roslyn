@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -111,8 +113,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public ISymbol Resolve(SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var node = root.FindNode(this.Span);
-            return semanticModel.GetDeclaredSymbol(node, cancellationToken);
+            if (root.FullSpan.Contains(this.Span))
+            {
+                var node = root.FindNode(this.Span);
+                return semanticModel.GetDeclaredSymbol(node, cancellationToken);
+            }
+            else
+            {
+                var message =
+$@"Invalid span in {nameof(DeclaredSymbolInfo)}.
+{nameof(this.Span)} = {this.Span}
+{nameof(root.FullSpan)} = {root.FullSpan}";
+                FatalError.ReportWithoutCrash(new InvalidOperationException(message));
+                return null;
+            }
         }
     }
 }
