@@ -2375,5 +2375,174 @@ class C
                 Assert.Equal(symbol, model.GetSymbolInfo(refs[0]).Symbol);
             });
         }
+
+        [Fact]
+        [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
+        public void CallFromDifferentSwitchSection_01()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        Test(string.Empty);
+    }
+
+    static void Test(object o)
+    {
+        switch (o)
+        {
+            case string x:
+                Assign();
+                Print();
+                break;
+            case int x:
+                void Assign() { x = 5; }
+                void Print() => System.Console.WriteLine(x);
+                break;
+        }
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "5");
+        }
+
+        [Fact]
+        [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
+        public void CallFromDifferentSwitchSection_02()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        Test(string.Empty);
+    }
+
+    static void Test(object o)
+    {
+        switch (o)
+        {
+            case int x:
+                void Assign() { x = 5; }
+                void Print() => System.Console.WriteLine(x);
+                break;
+            case string x:
+                Assign();
+                Print();
+                break;
+        }
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "5");
+        }
+
+        [Fact]
+        [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
+        public void CallFromDifferentSwitchSection_03()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        Test(string.Empty);
+    }
+
+    static void Test(object o)
+    {
+        switch (o)
+        {
+            case string x:
+                Assign();
+                System.Action p = Print;
+                p();
+                break;
+            case int x:
+                void Assign() { x = 5; }
+                void Print() => System.Console.WriteLine(x);
+                break;
+        }
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "5");
+        }
+
+        [Fact]
+        [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
+        public void CallFromDifferentSwitchSection_04()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        Test(string.Empty);
+    }
+
+    static void Test(object o)
+    {
+        switch (o)
+        {
+            case int x:
+                void Assign() { x = 5; }
+                void Print() => System.Console.WriteLine(x);
+                break;
+            case string x:
+                Assign();
+                System.Action p = Print;
+                p();
+                break;
+        }
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "5");
+        }
+
+        [Fact]
+        [WorkItem(15536, "https://github.com/dotnet/roslyn/issues/15536")]
+        public void CallFromDifferentSwitchSection_05()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        Test(string.Empty);
+    }
+
+    static void Test(object o)
+    {
+        switch (o)
+        {
+            case string x:
+                Local1();
+                break;
+             case int x:
+                void Local1() => Local2(x = 5);
+                break;
+             case char x:
+                void Local2(int y)
+                {
+                    System.Console.WriteLine(x = 'a');
+                    System.Console.WriteLine(y);
+                }
+                break;
+        }
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: 
+@"a
+5");
+        }
     }
 }
