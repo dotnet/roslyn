@@ -150,6 +150,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
+    <None Include="..\..\Compilers\Core\MSBuildTask\Microsoft.CSharp.Core.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\Compilers\Core\MSBuildTask\Microsoft.VisualBasic.Core.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

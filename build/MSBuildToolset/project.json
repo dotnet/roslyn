@@ -8,9 +8,9 @@
       "include": [ "csc", "vbc" ]
   },
   "dependencies": {
-    "Microsoft.Build": "15.1.0-preview-000370-00",
-    "Microsoft.Build.Runtime": "15.1.0-preview-000370-00",
-    "Microsoft.Build.Tasks.Core": "15.1.0-preview-000370-00",
+    "Microsoft.Build": "15.1.0-preview-000458-02",
+    "Microsoft.Build.Runtime": "15.1.0-preview-000458-02",
+    "Microsoft.Build.Tasks.Core": "15.1.0-preview-000458-02",
     "Microsoft.Net.Compilers.netcore": "2.0.0-rc2-61102-09",
     "Microsoft.NuGet.Build.Tasks": "0.1.0",
     "Microsoft.CodeAnalysis.Build.Tasks": "2.0.0-rc2-61102-09",
