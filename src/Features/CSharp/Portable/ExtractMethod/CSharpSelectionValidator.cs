@@ -77,14 +77,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             // Warn if local functions are in selection since data flow analysis
             // cannot correctly analyze them
             // https://github.com/dotnet/roslyn/issues/14214
-            if (SpanContainsLocalFunction(selectionInfo.FinalSpan, model, root))
+            if (SpanInvolvesLocalFunction(selectionInfo.FinalSpan, model, root))
             {
                 selectionInfo = selectionInfo.WithStatus(s => s.With(
                     OperationStatusFlag.Succeeded | OperationStatusFlag.BestEffort,
-                    CSharpFeaturesResources.Local_func_in_span));
+                    CSharpFeaturesResources.Warning_Extracting_a_local_function_reference_may_produce_invalid_code));
                 var commonRoot = selectionInfo.CommonRootFromOriginalSpan;
                 var annotated = commonRoot.WithAdditionalAnnotations(
-                        WarningAnnotation.Create(CSharpFeaturesResources.Local_func_in_span));
+                        WarningAnnotation.Create(CSharpFeaturesResources.Warning_Extracting_a_local_function_reference_may_produce_invalid_code));
                 doc = await doc.WithSyntaxRootAsync(
                     root.ReplaceNode(commonRoot, annotated),
                     cancellationToken).ConfigureAwait(false);
@@ -106,9 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private static bool SpanContainsLocalFunction(TextSpan finalSpan, SemanticModel model, SyntaxNode root)
+        private static bool SpanInvolvesLocalFunction(TextSpan finalSpan, SemanticModel model, SyntaxNode root)
         {
-            var nodes = root.DescendantNodes().Where(n => finalSpan.Contains(n.Span));
+            var nodes = root.DescendantNodes(finalSpan).Where(n => finalSpan.Contains(n.Span));
             foreach (var node in nodes)
             {
                 if (node.IsKind(SyntaxKind.LocalFunctionStatement))
