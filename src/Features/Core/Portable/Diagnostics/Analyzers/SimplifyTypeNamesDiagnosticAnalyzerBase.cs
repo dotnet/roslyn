@@ -71,16 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             }
         }
 
-        public bool OpenFileOnly(Workspace workspace)
-        {
-            var preferTypeKeywordInDeclarationOption = workspace.Options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
-            var preferTypeKeywordInMemberAccessOption = workspace.Options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
-
-            return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
-                     preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
-        }
+        public bool OpenFileOnly(Workspace workspace) => false;
 
         protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
 

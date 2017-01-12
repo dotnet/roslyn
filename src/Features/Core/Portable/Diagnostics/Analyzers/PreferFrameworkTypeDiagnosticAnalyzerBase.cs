@@ -46,16 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         private PerLanguageOption<CodeStyleOption<bool>> GetOptionForMemberAccessContext =>
             CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
 
-        public bool OpenFileOnly(Workspace workspace)
-        {
-            var preferTypeKeywordInDeclarationOption = workspace.Options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
-            var preferTypeKeywordInMemberAccessOption = workspace.Options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
-
-            return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
-                     preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
-        }
+        public bool OpenFileOnly(Workspace workspace) => false;
 
         protected abstract string GetLanguageName();
 
@@ -69,9 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         protected abstract bool IsInMemberAccessOrCrefReferenceContext(TExpressionSyntax node);
 
         public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest);
-        }
+            => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest);
 
         protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
