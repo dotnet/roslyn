@@ -387,8 +387,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  SyntaxKind.GetAccessorStatement,
                                  SyntaxKind.AddHandlerAccessorStatement,
                                  SyntaxKind.RemoveHandlerAccessorStatement,
-                                 SyntaxKind.RaiseEventAccessorStatement
-                                ' Default values are not valid (and not bound) for lambda parameters or property accessors
+                                 SyntaxKind.RaiseEventAccessorStatement,
+                                 SyntaxKind.OperatorStatement
+                                ' Default values are not valid (and not bound) for these types of statements
                                 Return Nothing
 
                             Case Else
