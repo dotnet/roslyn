@@ -224,6 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var oldMethod = _containingMemberOrLambda;
                 _containingMemberOrLambda = match;
 
+                foreach (var parameter in node.ParameterList.Parameters)
+                {
+                    Visit(parameter.Default);
+                }
+
                 if (body != null)
                 {
                     Binder binder = match.IsGenericMethod
