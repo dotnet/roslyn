@@ -7393,7 +7393,7 @@ class Test
     {
         v = v + i;
     }
-}");
+}", withWarning: true);
         }
 
         [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
@@ -7434,7 +7434,7 @@ class Test
     {
         return v + i;
     }
-}");
+}", withWarning: true);
         }
 
         [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
@@ -7475,7 +7475,7 @@ class Test
     {
         return v = v + i;
     }
-}");
+}", withWarning: true);
         }
 
         [WorkItem(540333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540333")]
@@ -10293,7 +10293,7 @@ class C
     {
         Local();
     }
-}");
+}", withWarning: true);
         }
 
         [Fact]
@@ -10322,7 +10322,7 @@ class C
     {
         Local();
     }
-}");
+}", withWarning: true);
         }
 
         [Fact]
@@ -10375,7 +10375,7 @@ class C
         int x = 0;
         x++;
     }
-}");
+}", withWarning: true);
         }
 
 
