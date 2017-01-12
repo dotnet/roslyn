@@ -42,7 +42,7 @@ public static class EnumerableExtensions
 {
     static void Main(string[] args)
     {
-        GetLeaves<object>(new List<object>(), list => null);
+        Console.WriteLine(GetLeaves<object>(new List<object>(), list => null) == null);
     }
     public static IEnumerable<T> GetLeaves<T>(T root, Func<T, IEnumerable<T>> getChildren)
     {
@@ -62,7 +62,7 @@ public static class EnumerableExtensions
         }
     }
 }";
-            VerifyOutput(src, "");
+            VerifyOutput(src, "true");
         }
 
         [Fact]
