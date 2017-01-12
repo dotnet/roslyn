@@ -7359,7 +7359,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug3790()
         {
-            var code = @"class Test
+            var code = @"
+class Test
 {
     void method()
     {
@@ -7373,14 +7374,34 @@ class Program
         }
     }
 }";
-            await ExpectExtractMethodToFailAsync(code);
+            await TestExtractMethodAsync(code, @"
+class Test
+{
+    void method()
+    {
+        static void Main(string[] args)
+        {
+            int v = 0;
+            for(int i=0 ; i<5; i++)
+            {
+                NewMethod();
+            }
+        }
+    }
+
+    private static void NewMethod()
+    {
+        v = v + i;
+    }
+}");
         }
 
         [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug3790_1()
         {
-            var code = @"class Test
+            var code = @"
+class Test
 {
     void method()
     {
@@ -7394,14 +7415,34 @@ class Program
         }
     }
 }";
-            await ExpectExtractMethodToFailAsync(code);
+            await TestExtractMethodAsync(code, @"
+class Test
+{
+    void method()
+    {
+        static void Main(string[] args)
+        {
+            int v = 0;
+            for(int i=0 ; i<5; i++)
+            {
+                v = NewMethod();
+            }
+        }
+    }
+
+    private static int NewMethod()
+    {
+        return v + i;
+    }
+}");
         }
 
         [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task Bug3790_2()
         {
-            var code = @"class Test
+            var code = @"
+class Test
 {
     void method()
     {
@@ -7415,7 +7456,26 @@ class Program
         }
     }
 }";
-            await ExpectExtractMethodToFailAsync(code);
+            await TestExtractMethodAsync(code, @"
+class Test
+{
+    void method()
+    {
+        static void Main(string[] args)
+        {
+            int v = 0;
+            for(int i=0 ; i<5; i++)
+            {
+                i = NewMethod();
+            }
+        }
+    }
+
+    private static int NewMethod()
+    {
+        return v = v + i;
+    }
+}");
         }
 
         [WorkItem(540333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540333")]
