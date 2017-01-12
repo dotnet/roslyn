@@ -598,7 +598,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or it might not; if it is not then we do not want to report an error. If it is, then
             // we want to treat the declaration as an explicitly typed declaration.
 
-            TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out alias);
+            RefKind refKind;
+            TypeSymbol declType = BindType(typeSyntax.SkipRef(out refKind), diagnostics, out isVar, out alias);
             Debug.Assert((object)declType != null || isVar);
 
             if (isVar)
