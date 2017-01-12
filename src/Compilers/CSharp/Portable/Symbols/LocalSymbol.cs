@@ -315,6 +315,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue);
 
+        public bool IsRef => RefKind == RefKind.Ref;
+
         internal abstract RefKind RefKind
         {
             get;
