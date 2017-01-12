@@ -202,40 +202,9 @@
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="ManagedEsent" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.Elfie" />
-    <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader" />
-    <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.PortablePdb" />
     <!-- Visual Studio ships with some, but not all, of the assemblies in Microsoft.Composition, but we need them all -->
     <NuGetPackageToIncludeInVsix Include="Microsoft.Composition" />
-    <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
-    <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
-    <NuGetPackageToIncludeInVsix Include="System.Collections" />
-    <NuGetPackageToIncludeInVsix Include="System.Collections.Concurrent" />
-    <NugetPackageToIncludeInVsix Include="System.Diagnostics.Contracts" />
-    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Tools" />
-    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.FileVersionInfo" />
-    <NuGetPackageToIncludeInVsix Include="System.IO" />
-    <NuGetPackageToIncludeInVsix Include="System.IO.Compression" />
-    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem" />
-    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.Primitives" />
-    <NuGetPackageToIncludeInVsix Include="System.Linq.Expressions" />
-    <NuGetPackageToIncludeInVsix Include="System.Linq.Parallel" />
-    <NuGetPackageToIncludeInVsix Include="System.ObjectModel" />
-    <NuGetPackageToIncludeInVsix Include="System.Runtime.InteropServices.RuntimeInformation" />
-    <NuGetPackageToIncludeInVsix Include="System.Runtime.Numerics" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Algorithms" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Encoding" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Primitives" />
-    <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.X509Certificates" />
-    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding" />
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
-    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.Extensions" />
-    <NuGetPackageToIncludeInVsix Include="System.Text.RegularExpressions" />
-    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Parallel" />
-    <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
-    <NuGetPackageToIncludeInVsix Include="System.Xml.ReaderWriter" />
-    <NuGetPackageToIncludeInVsix Include="System.Xml.XDocument" />
-    <NuGetPackageToIncludeInVsix Include="System.Xml.XmlDocument" />
-    <NuGetPackageToIncludeInVsix Include="System.Xml.XPath.XDocument" />
   </ItemGroup>
   <ItemGroup>
     <VSIXSourceItem Include="$(OutputPath)Microsoft.DiaSymReader.Native.amd64.dll" />
