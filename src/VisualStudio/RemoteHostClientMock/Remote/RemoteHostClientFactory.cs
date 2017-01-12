@@ -16,20 +16,13 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.Remote
     {
         public async Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
-            try
+            // this is the point where we can create different kind of remote host client in future (cloud or etc)
+            if (workspace.Options.GetOption(RemoteHostClientFactoryOptions.RemoteHost_InProc))
             {
-                // this is the point where we can create different kind of remote host client in future (cloud or etc)
-                if (workspace.Options.GetOption(RemoteHostClientFactoryOptions.RemoteHost_InProc))
-                {
-                    return await InProcRemoteHostClient.CreateAsync(workspace, cancellationToken).ConfigureAwait(false);
-                }
+                return await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
 
-                return await ServiceHubRemoteHostClient.CreateAsync(workspace, cancellationToken).ConfigureAwait(false);
-            }
-            catch
-            {
-                return null;
-            }
+            return await ServiceHubRemoteHostClient.CreateAsync(workspace, cancellationToken).ConfigureAwait(false);
         }
     }
 }

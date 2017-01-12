@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// This will be called by ServiceHub/JsonRpc framework
         /// </summary>
-        public async Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, byte[] solutionChecksum, string streamName)
+        public async Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string streamName)
         {
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectIdDebugName, CancellationToken))
             {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var optionSet = await RoslynServices.AssetService.GetAssetAsync<OptionSet>(arguments.GetOptionSetChecksum(), CancellationToken).ConfigureAwait(false);
 
                     // entry point for diagnostic service
-                    var solution = await GetSolutionAsync().ConfigureAwait(false);
+                    var solution = await GetSolutionWithSpecificOptionsAsync(optionSet).ConfigureAwait(false);
 
                     var projectId = arguments.GetProjectId();
                     var analyzers = await GetHostAnalyzerReferences(arguments.GetHostAnalyzerChecksums()).ConfigureAwait(false);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_SerializeDiagnosticResultAsync, GetResultLogInfo, result, CancellationToken))
             using (var stream = await DirectStream.GetAsync(streamName, CancellationToken).ConfigureAwait(false))
             {
-                using (var writer = new ObjectWriter(stream))
+                using (var writer = new StreamObjectWriter(stream))
                 {
                     DiagnosticResultSerializer.Serialize(writer, result, CancellationToken);
                 }

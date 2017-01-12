@@ -5,6 +5,7 @@ Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -87,7 +88,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             End Select
         End Function
 
-        Friend Overrides Function AddImports(document As Document, snippetNode As XElement, placeSystemNamespaceFirst As Boolean, cancellationToken As CancellationToken) As Document
+        Friend Overrides Function AddImports(document As Document,
+                                             position As Integer,
+                                             snippetNode As XElement,
+                                             placeSystemNamespaceFirst As Boolean,
+                                             cancellationToken As CancellationToken) As Document
             Dim importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName))
             If importsNode Is Nothing OrElse
                Not importsNode.HasElements() Then

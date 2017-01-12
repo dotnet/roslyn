@@ -190,12 +190,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 //// enable preview diagnostics
                 previewWorkspace.EnableDiagnostic();
 
-                var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpans(workspace);
+                var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<IErrorTag>(workspace);
                 const string AnalzyerCount = "Analyzer Count: ";
                 Assert.Equal(AnalzyerCount + 1, AnalzyerCount + diagnosticsAndErrorsSpans.Item1.Length);
 
                 const string SquigglesCount = "Squiggles Count: ";
-                Assert.Equal(SquigglesCount + 1, SquigglesCount + diagnosticsAndErrorsSpans.Item2.Count);
+                Assert.Equal(SquigglesCount + 1, SquigglesCount + diagnosticsAndErrorsSpans.Item2.Length);
             }
         }
 

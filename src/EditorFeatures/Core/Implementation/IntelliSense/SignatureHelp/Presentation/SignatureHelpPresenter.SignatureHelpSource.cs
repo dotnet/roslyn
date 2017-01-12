@@ -13,8 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             public void AugmentSignatureHelpSession(ISignatureHelpSession session, IList<ISignature> signatures)
             {
                 AssertIsForeground();
-                SignatureHelpPresenterSession presenterSession;
-                if (!session.Properties.TryGetProperty<SignatureHelpPresenterSession>(s_augmentSessionKey, out presenterSession))
+                if (!session.Properties.TryGetProperty<SignatureHelpPresenterSession>(s_augmentSessionKey, out var presenterSession))
                 {
                     return;
                 }

@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     semanticModel, namePosition, s_signatureDisplayFormat);
                 var insertionText = displayText;
 
-                var item = SymbolCompletionItem.Create(
+                var item = SymbolCompletionItem.CreateWithSymbolId(
                     displayText,
                     insertionText: insertionText,
                     symbol: member,
@@ -116,8 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             if (ch == '(')
             {
-                string insertionText;
-                if (selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, out insertionText))
+                if (selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, out var insertionText))
                 {
                     return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
                 }

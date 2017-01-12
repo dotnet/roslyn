@@ -155,8 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         private static void FireCodeMarkers<T>(Dictionary<FunctionId, List<T>> map, FunctionId functionId, Func<T, int> getter)
         {
-            List<T> items;
-            if (!map.TryGetValue(functionId, out items))
+            if (!map.TryGetValue(functionId, out var items))
             {
                 return;
             }

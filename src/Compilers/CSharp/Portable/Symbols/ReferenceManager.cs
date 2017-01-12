@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 try
                 {
-                    IDictionary<ValueTuple<string, string>, MetadataReference> boundReferenceDirectiveMap;
+                    IDictionary<(string, string), MetadataReference> boundReferenceDirectiveMap;
                     ImmutableArray<MetadataReference> boundReferenceDirectives;
                     ImmutableArray<AssemblyData> referencedAssemblies;
                     ImmutableArray<PEModule> modules; // To make sure the modules are not collected ahead of time.
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         out modules,
                         resolutionDiagnostics);
 
-                    var assemblyBeingBuiltData = new AssemblyDataForAssemblyBeingBuilt(new AssemblyIdentity(name: SimpleAssemblyName), referencedAssemblies, modules);
+                    var assemblyBeingBuiltData = new AssemblyDataForAssemblyBeingBuilt(new AssemblyIdentity(name: SimpleAssemblyName, noThrow:true), referencedAssemblies, modules);
                     var explicitAssemblyData = referencedAssemblies.Insert(0, assemblyBeingBuiltData);
 
                     // Let's bind all the references and resolve missing one (if resolver is available)

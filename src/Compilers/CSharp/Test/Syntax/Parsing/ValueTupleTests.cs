@@ -5,16 +5,19 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
     public class ValueTupleTests : ParsingTests
     {
+        public ValueTupleTests(ITestOutputHelper output) : base(output) { }
+
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
             return SyntaxFactory.ParseSyntaxTree(text, options: options);
         }
-        
+
         [Fact]
         public void SimpleTuple()
         {
@@ -362,10 +365,7 @@ class C
                                                         {
                                                             N(SyntaxKind.StringKeyword);
                                                         }
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken);
-                                                        }
+                                                        N(SyntaxKind.IdentifierToken);
                                                     }
                                                     N(SyntaxKind.CommaToken);
                                                     N(SyntaxKind.TupleElement);
@@ -399,10 +399,7 @@ class C
                                                         {
                                                             N(SyntaxKind.IntKeyword);
                                                         }
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken);
-                                                        }
+                                                        N(SyntaxKind.IdentifierToken);
                                                     }
                                                     N(SyntaxKind.CloseParenToken);
                                                 }
@@ -495,6 +492,215 @@ class C
             EOF();
         }
 
+        [Fact]
+        public void TupleTypeWithTooFewElements()
+        {
+            var tree = UsingTree(@"
+class C
+{
+    void M(int x, () y, (int a) z) { }
+}", options: TestOptions.Regular);
+
+            tree.GetDiagnostics().Verify(
+                // (4,20): error CS8124: Tuple must contain at least two elements.
+                //     void M(int x, () y, (int a) z) { }
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 20),
+                // (4,31): error CS8124: Tuple must contain at least two elements.
+                //     void M(int x, () y, (int a) z) { }
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 31)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.TupleType);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    M(SyntaxKind.TupleElement);
+                                    {
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                    M(SyntaxKind.CommaToken);
+                                    M(SyntaxKind.TupleElement);
+                                    {
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.TupleType);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.TupleElement);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                    M(SyntaxKind.CommaToken);
+                                    M(SyntaxKind.TupleElement);
+                                    {
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.IdentifierToken, "z");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TupleExpressionWithTooFewElements()
+        {
+            var tree = UsingTree(@"
+class C
+{
+    object x = ((Alice: 1), ());
+}", options: TestOptions.Regular);
+
+            tree.GetDiagnostics().Verify(
+                // (4,26): error CS8124: Tuple must contain at least two elements.
+                //     object x = ((Alice: 1), ());
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 26),
+                // (4,30): error CS1525: Invalid expression term ')'
+                //     object x = ((Alice: 1), ());
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(4, 30)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.TupleExpression);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.TupleExpression);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.Argument);
+                                                {
+                                                    N(SyntaxKind.NameColon);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "Alice");
+                                                        }
+                                                        N(SyntaxKind.ColonToken);
+                                                    }
+                                                    N(SyntaxKind.NumericLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                                    }
+                                                }
+                                                M(SyntaxKind.CommaToken);
+                                                M(SyntaxKind.Argument);
+                                                {
+                                                    M(SyntaxKind.IdentifierName);
+                                                    {
+                                                        M(SyntaxKind.IdentifierToken);
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.ParenthesizedExpression);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                M(SyntaxKind.IdentifierName);
+                                                {
+                                                    M(SyntaxKind.IdentifierToken);
+                                                }
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         [Fact, WorkItem(13667, "https://github.com/dotnet/roslyn/issues/13667")]
         public void MissingShortTupleErrorWhenWarningPresent()
         {
@@ -506,25 +712,13 @@ class Program
 }
 ";
             ParseAndValidate(test,
-                // (4,16): error CS8124: Tuple must contain at least two elements.
-                //     object a = (x: 3l);
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(x: 3l)").WithLocation(4, 16),
                 // (4,21): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
                 //     object a = (x: 3l);
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 21)
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 21),
+                // (4,22): error CS8124: Tuple must contain at least two elements.
+                //     object a = (x: 3l);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 22)
                 );
         }
-
-        #region "Helpers"
-
-        public static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
-        {
-            var parsedTree = ParseWithRoundTripCheck(text);
-            var actualErrors = parsedTree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
-        }
-
-        #endregion "Helpers"
-
     }
 }

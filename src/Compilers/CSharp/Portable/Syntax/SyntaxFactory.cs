@@ -1365,20 +1365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="trivias">A sequence of trivia.</param>
         public static SyntaxTriviaList TriviaList(IEnumerable<SyntaxTrivia> trivias)
-        {
-            if (trivias == null)
-            {
-                return default(SyntaxTriviaList);
-            }
-
-            SyntaxTriviaListBuilder builder = SyntaxTriviaListBuilder.Create();
-            foreach (SyntaxTrivia trivia in trivias)
-            {
-                builder.Add(trivia);
-            }
-
-            return builder.ToList();
-        }
+            => SyntaxTriviaListBuilder.Create(trivias);
 
         /// <summary>
         /// Creates an empty separated list.

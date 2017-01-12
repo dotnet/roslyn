@@ -211,15 +211,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
                 return result;
             }
 
-            IVsHierarchy parentHierarchy;
-            if (hierarchy.TryGetParentHierarchy(out parentHierarchy) && !(parentHierarchy is IVsSolution))
+            if (hierarchy.TryGetParentHierarchy(out var parentHierarchy) && !(parentHierarchy is IVsSolution))
             {
                 var builder = SharedPools.Default<StringBuilder>().AllocateAndClear();
+                builder.Append(result);
 
                 while (parentHierarchy != null && !(parentHierarchy is IVsSolution))
                 {
-                    string parentName;
-                    if (parentHierarchy.TryGetName(out parentName))
+                    if (parentHierarchy.TryGetName(out var parentName))
                     {
                         builder.Insert(0, parentName + "\\");
                     }

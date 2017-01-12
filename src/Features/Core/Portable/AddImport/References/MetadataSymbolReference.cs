@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -22,11 +25,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             protected override string TryGetDescription(
-                Project project, SyntaxNode node, SemanticModel semanticModel)
+                Document document, SyntaxNode node, 
+                SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 // If 'TryGetDescription' returns 'null' then that means that we don't actually want to add a reference
                 // in this case.  As such, just continue to return the 'null' outwards.
-                var description = base.TryGetDescription(project, node, semanticModel);
+                var description = base.TryGetDescription(document, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
                     return null;
@@ -43,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override CodeActionPriority GetPriority(Document document)
                 => CodeActionPriority.Low;
 
-            protected override Glyph? GetGlyph(Document document) => Glyph.AddReference;
+            protected override ImmutableArray<string> GetTags(Document document) => WellKnownTagArrays.AddReference;
 
             public override bool Equals(object obj)
             {

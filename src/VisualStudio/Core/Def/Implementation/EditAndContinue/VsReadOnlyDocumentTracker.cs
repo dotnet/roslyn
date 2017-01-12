@@ -91,9 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             if (project?.EditAndContinueImplOpt != null)
             {
-                SessionReadOnlyReason sessionReason;
-                ProjectReadOnlyReason projectReason;
-                SetReadOnly(document.Id, _encService.IsProjectReadOnly(document.Project.Id, out sessionReason, out projectReason) && AllowsReadOnly(document.Id));
+                SetReadOnly(document.Id, _encService.IsProjectReadOnly(document.Project.Id, out var sessionReason, out var projectReason) && AllowsReadOnly(document.Id));
             }
         }
 
@@ -127,9 +125,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         private void SetReadOnlyFlag(IVsTextBuffer buffer, bool value)
         {
-            uint oldFlags;
             uint newFlags;
-            buffer.GetStateFlags(out oldFlags);
+            buffer.GetStateFlags(out var oldFlags);
             if (value)
             {
                 newFlags = oldFlags | (uint)BUFFERSTATEFLAGS.BSF_USER_READONLY;
@@ -155,8 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 return null;
             }
 
-            SourceText text;
-            if (!doc.TryGetText(out text))
+            if (!doc.TryGetText(out var text))
             {
                 // TODO: should not happen since the document is open (see bug 896058)
                 return null;

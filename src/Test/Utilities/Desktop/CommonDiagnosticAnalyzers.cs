@@ -385,6 +385,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerWithDisabledRules : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+                "ID1",
+                "Title1",
+                "Message1",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: false);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(_ => { }, SymbolKind.NamedType);
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class EnsureNoMergedNamespaceSymbolAnalyzer : DiagnosticAnalyzer
         {
             public const string DiagnosticId = nameof(DiagnosticId);

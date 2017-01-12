@@ -157,10 +157,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static ITypeSymbol GetType(Compilation compilation, ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IFieldSymbol field) => field.Type,
-                (IPropertySymbol property) => property.Type,
-                (ISymbol _) => compilation.GetSpecialType(SpecialType.System_Object));
+            switch (symbol)
+            {
+                case IFieldSymbol field: return field.Type;
+                case IPropertySymbol property: return property.Type;
+                default: return compilation.GetSpecialType(SpecialType.System_Object);
+            }
         }
 
         private static bool HasExistingBaseEqualsMethod(INamedTypeSymbol containingType, CancellationToken cancellationToken)

@@ -6,14 +6,14 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Undo;
-using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -30,22 +30,19 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(VisualStudioWorkspaceImpl))]
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
-        private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigableItemsPresenters;
+        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
         private readonly IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> _referencedSymbolsPresenters;
-        private readonly IEnumerable<Lazy<INavigableDefinitionProvider>> _externalDefinitionProviders;
 
         [ImportingConstructor]
         private RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
-            [ImportMany] IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemsPresenters,
+            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             [ImportMany] IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> referencedSymbolsPresenters,
-            [ImportMany] IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
             : base(exportProvider.AsExportProvider())
         {
-            _navigableItemsPresenters = navigableItemsPresenters;
+            _streamingPresenters = streamingPresenters;
             _referencedSymbolsPresenters = referencedSymbolsPresenters;
-            _externalDefinitionProviders = externalDefinitionProviders;
 
             foreach (var providerFactory in documentOptionsProviderFactories)
             {
@@ -135,17 +132,17 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         internal override IInvisibleEditor OpenInvisibleEditor(IVisualStudioHostDocument hostDocument)
         {
-            // We need to ensure the file is saved, only if a global undo transaction is open
             var globalUndoService = this.Services.GetService<IGlobalUndoService>();
-            var needsSave = globalUndoService.IsGlobalTransactionOpen(this);
-
             var needsUndoDisabled = false;
+
+            // Do not save the file if is open and there is not a global undo transaction.
+            var needsSave = globalUndoService.IsGlobalTransactionOpen(this) || !hostDocument.IsOpen;
             if (needsSave)
             {
                 if (this.CurrentSolution.ContainsDocument(hostDocument.Id))
                 {
                     // Disable undo on generated documents
-                    needsUndoDisabled = this.Services.GetService<IGeneratedCodeRecognitionService>().IsGeneratedCode(this.CurrentSolution.GetDocument(hostDocument.Id));
+                    needsUndoDisabled = this.CurrentSolution.GetDocument(hostDocument.Id).IsGeneratedCode();
                 }
                 else
                 {
@@ -184,22 +181,23 @@ namespace Microsoft.VisualStudio.LanguageServices
             return true;
         }
 
-        public override bool TryGoToDefinition(ISymbol symbol, Project project, CancellationToken cancellationToken)
+        public override bool TryGoToDefinition(
+            ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!_navigableItemsPresenters.Any())
+            if (!_streamingPresenters.Any())
             {
                 return false;
             }
 
-            ISymbol searchSymbol;
-            Project searchProject;
-            if (!TryResolveSymbol(symbol, project, cancellationToken, out searchSymbol, out searchProject))
+            if (!TryResolveSymbol(symbol, project, cancellationToken, 
+                    out var searchSymbol, out var searchProject))
             {
                 return false;
             }
 
             return GoToDefinitionHelpers.TryGoToDefinition(
-                searchSymbol, searchProject, _externalDefinitionProviders, _navigableItemsPresenters, cancellationToken: cancellationToken);
+                searchSymbol, searchProject, 
+                _streamingPresenters, cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
@@ -209,9 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return false;
             }
 
-            ISymbol searchSymbol;
-            Project searchProject;
-            if (!TryResolveSymbol(symbol, project, cancellationToken, out searchSymbol, out searchProject))
+            if (!TryResolveSymbol(symbol, project, cancellationToken, out var searchSymbol, out var searchProject))
             {
                 return false;
             }
@@ -235,7 +231,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
             var service = this.Services.GetService<IDefinitionsAndReferencesFactory>();
-            var definitionsAndReferences = service.CreateDefinitionsAndReferences(solution, referencedSymbols);
+            var definitionsAndReferences = service.CreateDefinitionsAndReferences(
+                solution, referencedSymbols, includeHiddenLocations: false);
 
             foreach (var presenter in _referencedSymbolsPresenters)
             {

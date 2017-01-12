@@ -91,9 +91,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
                             metadataReferencesCount,
                             documentsCount,
                             additionalDocumentsCount);
-
-                        Inputs existingInputs;
-                        if (!_items.TryGetValue(projectId, out existingInputs) ||
+                        if (!_items.TryGetValue(projectId, out var existingInputs) ||
                             !existingInputs.Equals(newInputs))
                         {
                             _items[projectId] = newInputs;

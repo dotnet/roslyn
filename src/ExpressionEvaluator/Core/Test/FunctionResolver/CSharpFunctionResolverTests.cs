@@ -3,19 +3,15 @@
 using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
-    public class CSharpFunctionResolverTests : CSharpTestBase
+    public class CSharpFunctionResolverTests : FunctionResolverTestBase
     {
         [Fact]
         public void OnLoad()
@@ -30,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             var module = new Module(compilation.EmitToArray());
             using (var process = new Process())
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 var request = new Request(null, MemberSignatureParser.Parse("C.F"));
                 resolver.EnableResolution(process, request);
                 VerifySignatures(request);
@@ -61,7 +57,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 }";
             var bytesA = CreateCompilationWithMscorlib(sourceA).EmitToArray();
             var bytesB = CreateCompilationWithMscorlib(sourceB).EmitToArray();
-            var resolver = new Resolver();
+            var resolver = Resolver.CSharpResolver;
 
             // Two modules loaded before two global requests,
             // ... resolver enabled.
@@ -174,7 +170,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                 VerifySignatures(requestG);
             }
 
-            // Two modules after after two requests for same module,
+            // Two modules after two requests for same module,
             // ... resolver enabled.
             moduleA = new Module(bytesA, name: "A.dll");
             moduleB = new Module(bytesB, name: "B.dll");
@@ -220,6 +216,70 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             }
         }
 
+        /// <summary>
+        /// Should only handle requests with expected
+        /// language id or default language id.
+        /// </summary>
+        [WorkItem(15119, "https://github.com/dotnet/roslyn/issues/15119")]
+        [Fact]
+        public void LanguageId()
+        {
+            var source =
+@"class C
+{
+    static void F() { }
+}";
+            var bytes = CreateCompilationWithMscorlib(source).EmitToArray();
+            var resolver = Resolver.CSharpResolver;
+            var csharpLanguageId = Guid.Parse("3f5162f8-07c6-11d3-9053-00c04fa302a1");
+            var vbLanguageId = Guid.Parse("3a12d0b8-c26c-11d0-b442-00a0244a1dd2");
+            var cppLanguageId = Guid.Parse("3a12d0b7-c26c-11d0-b442-00a0244a1dd2");
+
+            // Module loaded before requests.
+            var module = new Module(bytes);
+            using (var process = new Process(module))
+            {
+                var requestDefaultId = new Request(null, MemberSignatureParser.Parse("F"), Guid.Empty);
+                var requestMethodId = new Request(null, MemberSignatureParser.Parse("F"), DkmLanguageId.MethodId);
+                var requestCSharp = new Request(null, MemberSignatureParser.Parse("F"), csharpLanguageId);
+                var requestVB = new Request(null, MemberSignatureParser.Parse("F"), vbLanguageId);
+                var requestCPP = new Request(null, MemberSignatureParser.Parse("F"), cppLanguageId);
+                resolver.EnableResolution(process, requestDefaultId);
+                VerifySignatures(requestDefaultId, "C.F()");
+                resolver.EnableResolution(process, requestMethodId);
+                VerifySignatures(requestMethodId);
+                resolver.EnableResolution(process, requestCSharp);
+                VerifySignatures(requestCSharp, "C.F()");
+                resolver.EnableResolution(process, requestVB);
+                VerifySignatures(requestVB);
+                resolver.EnableResolution(process, requestCPP);
+                VerifySignatures(requestCPP);
+            }
+
+            // Module loaded after requests.
+            module = new Module(bytes);
+            using (var process = new Process())
+            {
+                var requestDefaultId = new Request(null, MemberSignatureParser.Parse("F"), Guid.Empty);
+                var requestMethodId = new Request(null, MemberSignatureParser.Parse("F"), DkmLanguageId.MethodId);
+                var requestCSharp = new Request(null, MemberSignatureParser.Parse("F"), csharpLanguageId);
+                var requestVB = new Request(null, MemberSignatureParser.Parse("F"), vbLanguageId);
+                var requestCPP = new Request(null, MemberSignatureParser.Parse("F"), cppLanguageId);
+                resolver.EnableResolution(process, requestCPP);
+                resolver.EnableResolution(process, requestVB);
+                resolver.EnableResolution(process, requestCSharp);
+                resolver.EnableResolution(process, requestMethodId);
+                resolver.EnableResolution(process, requestDefaultId);
+                process.AddModule(module);
+                resolver.OnModuleLoad(process, module);
+                VerifySignatures(requestDefaultId, "C.F()");
+                VerifySignatures(requestMethodId);
+                VerifySignatures(requestCSharp, "C.F()");
+                VerifySignatures(requestVB);
+                VerifySignatures(requestCPP);
+            }
+        }
+
         [Fact]
         public void MissingMetadata()
         {
@@ -245,7 +305,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
             using (var process = new Process())
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 var requestAll = new Request(null, MemberSignatureParser.Parse("F1"));
                 var requestA = new Request("A.dll", MemberSignatureParser.Parse("F2"));
                 var requestB = new Request("B.dll", MemberSignatureParser.Parse("F3"));
@@ -346,7 +406,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             using (var process = new Process(new Module(imageA, nameA + ".dll"), new Module(imageB, nameB + ".exe")))
             {
                 var signature = MemberSignatureParser.Parse("F");
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
 
                 // No module name.
                 var request = new Request("", signature);
@@ -394,7 +454,7 @@ class B
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F", "B.F(A)", "B.F(A[])", "B.F(A[,,])", "B.F(A[][,,])", "B.F(A[,,][])", "B.F(A[][][])");
                 Resolve(process, resolver, "F(A)", "B.F(A)");
                 Resolve(process, resolver, "F(A[])", "B.F(A[])");
@@ -421,7 +481,7 @@ class B
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeDebugDll);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F", "C.F(System.Int32*[])", "C.F(System.Int32**)");
                 Resolve(process, resolver, "F(int)");
                 Resolve(process, resolver, "F(int*)");
@@ -446,7 +506,7 @@ class B
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F", "S.F(System.Nullable<S>)", "S.F(System.Nullable<System.Int32>[])");
                 Resolve(process, resolver, "F(S)");
                 Resolve(process, resolver, "F(S?)", "S.F(System.Nullable<S>)");
@@ -469,7 +529,7 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F", "C.F(out, ref)", "C.F(ref out, ref ref)");
                 Assert.Null(MemberSignatureParser.Parse("F(ref, out)"));
                 Assert.Null(MemberSignatureParser.Parse("F(ref ref, out out)"));
@@ -478,6 +538,40 @@ class C
                 Resolve(process, resolver, "F(ref @out, @ref)");
                 Resolve(process, resolver, "F(ref @out, out @ref)", "C.F(ref out, ref ref)");
                 Resolve(process, resolver, "F(out @out, ref @ref)", "C.F(ref out, ref ref)");
+            }
+        }
+
+        [Fact]
+        public void Methods()
+        {
+            var source =
+@"abstract class A
+{
+    abstract internal object F();
+}
+class B
+{
+    object F() => null;
+}
+class C
+{
+    static object F() => null;
+}
+interface I
+{
+    object F();
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            using (var process = new Process(new Module(compilation.EmitToArray())))
+            {
+                var resolver = Resolver.CSharpResolver;
+                Resolve(process, resolver, "F", "B.F()", "C.F()");
+                Resolve(process, resolver, "A.F");
+                Resolve(process, resolver, "B.F", "B.F()");
+                Resolve(process, resolver, "B.F()", "B.F()");
+                Resolve(process, resolver, "B.F(object)");
+                Resolve(process, resolver, "B.F<T>");
+                Resolve(process, resolver, "C.F", "C.F()");
             }
         }
 
@@ -508,7 +602,7 @@ interface I
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "P", "B.get_P()", "B.set_P(System.Object)", "C.get_P()", "D.set_P(System.Int32)");
                 Resolve(process, resolver, "A.P");
                 Resolve(process, resolver, "B.P", "B.get_P()", "B.set_P(System.Object)");
@@ -551,7 +645,7 @@ class D
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "A", "A..ctor()", "A..ctor(System.Object)", "D.get_A()");
                 Resolve(process, resolver, "A.A", "A..ctor()", "A..ctor(System.Object)");
                 Resolve(process, resolver, "B", "B..ctor()");
@@ -590,7 +684,7 @@ class B : A<int>
                 // "A<T>.F" will bind to A.F() and A<T>.F(), and "A.F" will bind to A.F()
                 // and A<T>.F. However, Dev14 does expect method type parameters to
                 // match. Here, we expect both type and method parameters to match.
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "A.F", "A.F()");
                 Resolve(process, resolver, "A.F<U>()", "A.F<T>()");
                 Resolve(process, resolver, "A.F<T>", "A.F<T>()");
@@ -630,7 +724,7 @@ namespace N
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F", "N.B.F()", "N.M.A<T>.F()");
                 Resolve(process, resolver, "A<T>.F", "N.M.A<T>.F()");
                 Resolve(process, resolver, "N.A<T>.F");
@@ -677,7 +771,7 @@ namespace N
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
                 // See comment in GenericMethods regarding differences with Dev14.
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F", "B.F()", "A.B.F()", "N.A<T>.B<U>.F()");
                 Resolve(process, resolver, "F<T>", "A.B<T>.F<U>()", "N.A<T>.B.F<U>()");
                 Resolve(process, resolver, "A.F");
@@ -733,7 +827,7 @@ class A<T>
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F", "A.B.C.F(A.B.C)", "A.B.C.F(A.B<A.B.T>.C)", "A.B<T>.C.F(A.B<T>.C)", "A.B<T>.C.F(A.B.C)", "A<T>.B.C.F(A<T>.B.C)", "A<T>.B.C.F(A.B<T>.C)");
                 Resolve(process, resolver, "F(C)", "A.B.C.F(A.B.C)", "A.B.C.F(A.B<A.B.T>.C)", "A.B<T>.C.F(A.B.C)");
                 Resolve(process, resolver, "F(B.C)", "A.B.C.F(A.B.C)", "A.B<T>.C.F(A.B.C)");
@@ -789,7 +883,7 @@ namespace B
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F(C)", "B.C.F(B.C)", "B.C.F(A3.B.C)", "A1.B.C.F(A1.B.C)", "A2.B.C.F(A2.B.C)", "A2.B.C.F(A1.B.C)", "A3.B.C.F(A3.B.C)", "A3.B.C.F(A2.B.C)");
                 Resolve(process, resolver, "B.C.F(B.C)", "B.C.F(B.C)", "B.C.F(A3.B.C)", "A1.B.C.F(A1.B.C)", "A2.B.C.F(A2.B.C)", "A2.B.C.F(A1.B.C)", "A3.B.C.F(A3.B.C)", "A3.B.C.F(A2.B.C)");
                 Resolve(process, resolver, "B.C.F(A1.B.C)", "A1.B.C.F(A1.B.C)", "A2.B.C.F(A1.B.C)");
@@ -822,7 +916,7 @@ class A<T>
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F<T>", "A.B<T>.F<U>(A.B<T>)", "A.B<T>.F<U>(A.B<U>)", "A<T>.B<U>.F<V>(T)", "A<T>.B<U>.F<V>(A<U>)", "A<T>.B<U>.F<V>(A<T>.B<V>)");
                 Resolve(process, resolver, "B<T>.F<U>", "A.B<T>.F<U>(A.B<T>)", "A.B<T>.F<U>(A.B<U>)", "A<T>.B<U>.F<V>(T)", "A<T>.B<U>.F<V>(A<U>)", "A<T>.B<U>.F<V>(A<T>.B<V>)");
                 Resolve(process, resolver, "F<T>(B<T>)", "A.B<T>.F<U>(A.B<U>)");
@@ -836,6 +930,71 @@ class A<T>
                 Resolve(process, resolver, "B<V>.F<U>(B<U>)", "A.B<T>.F<U>(A.B<U>)");
                 Resolve(process, resolver, "A<X>.B<Y>.F<Z>(X)", "A<T>.B<U>.F<V>(T)");
                 Resolve(process, resolver, "A<X>.B<Y>.F<Z>(B<Z>)", "A<T>.B<U>.F<V>(A<T>.B<V>)");
+            }
+        }
+
+        [Fact]
+        public void DifferentCase_MethodsAndProperties()
+        {
+            var source =
+@"class A
+{
+    static void method() { }
+    static void Method(object o) { }
+    object property => null;
+}
+class B
+{
+    static void Method() { }
+    object Property { get; set; }
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            using (var process = new Process(new Module(compilation.EmitToArray())))
+            {
+                var resolver = Resolver.CSharpResolver;
+                Resolve(process, resolver, "method", "A.method()");
+                Resolve(process, resolver, "Method", "A.Method(System.Object)", "B.Method()");
+                Resolve(process, resolver, "property", "A.get_property()");
+                Resolve(process, resolver, "Property", "B.get_Property()", "B.set_Property(System.Object)");
+                Resolve(process, resolver, "PROPERTY");
+                Resolve(process, resolver, "get_property", "A.get_property()");
+                Resolve(process, resolver, "GET_PROPERTY");
+            }
+        }
+
+        [Fact]
+        public void DifferentCase_NamespacesAndTypes()
+        {
+            var source =
+@"namespace one.two
+{
+    class THREE
+    {
+        static void Method(THREE t) { }
+    }
+}
+namespace One.Two
+{
+    class Three
+    {
+        static void Method(Three t) { }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            using (var process = new Process(new Module(compilation.EmitToArray())))
+            {
+                var resolver = Resolver.CSharpResolver;
+                Resolve(process, resolver, "Method", "One.Two.Three.Method(One.Two.Three)", "one.two.THREE.Method(one.two.THREE)");
+                Resolve(process, resolver, "Three.Method", "One.Two.Three.Method(One.Two.Three)");
+                Resolve(process, resolver, "three.Method");
+                Resolve(process, resolver, "Method(three)");
+                Resolve(process, resolver, "THREE.Method(THREE)", "one.two.THREE.Method(one.two.THREE)");
+                Resolve(process, resolver, "One.Two.Three.Method", "One.Two.Three.Method(One.Two.Three)");
+                Resolve(process, resolver, "ONE.TWO.THREE.Method");
+                Resolve(process, resolver, "Method(One.Two.Three)", "One.Two.Three.Method(One.Two.Three)");
+                Resolve(process, resolver, "Method(one.two.THREE)", "one.two.THREE.Method(one.two.THREE)");
+                Resolve(process, resolver, "Method(one.two.Three)");
+                Resolve(process, resolver, "THREE", "one.two.THREE..ctor()");
             }
         }
 
@@ -868,7 +1027,7 @@ namespace N
             var bytesB = compilationB.EmitToArray();
             using (var process = new Process(new Module(bytesA), new Module(bytesB)))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F<T, U>", "A<T>.B<U>.F<V, W>()", "D<T>.F<U, V>(N.C<A<U>.B<V>[]>)");
                 Resolve(process, resolver, "F<T, U>(C)"); // No type argument for C<>
                 Resolve(process, resolver, "F<T, U>(C<T>)"); // Incorrect type argument for C<>
@@ -897,7 +1056,7 @@ namespace N
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Assert.Null(MemberSignatureParser.Parse("public"));
                 Assert.Null(MemberSignatureParser.Parse("namespace.@struct.@public"));
                 Assert.Null(MemberSignatureParser.Parse("@namespace.struct.@public"));
@@ -918,7 +1077,7 @@ namespace N
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Assert.Null(MemberSignatureParser.Parse("F<out>"));
                 Assert.Null(MemberSignatureParser.Parse("F<in>"));
                 Assert.Null(MemberSignatureParser.Parse("class<@in>.F<@out>"));
@@ -949,7 +1108,7 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Assert.Null(MemberSignatureParser.Parse("F(struct)"));
                 Assert.Null(MemberSignatureParser.Parse("F(namespace.@struct)"));
                 Resolve(process, resolver, "F(@struct)", "C.F(namespace.struct)");
@@ -977,7 +1136,7 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Assert.Null(MemberSignatureParser.Parse("F(@class<base>)"));
                 Assert.Null(MemberSignatureParser.Parse("F(@class<this.@base>)"));
                 Assert.Null(MemberSignatureParser.Parse("F(@class<@this.base>)"));
@@ -1001,7 +1160,7 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F", "C.F(object)", "C.F(Object)", "C.F(System.Object)");
                 Resolve(process, resolver, "F(object)", "C.F(System.Object)");
                 Resolve(process, resolver, "F(Object)", "C.F(Object)", "C.F(System.Object)");
@@ -1028,7 +1187,7 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F(bool, char, sbyte, byte)", "C.F(System.Boolean, System.Char, System.SByte, System.Byte)");
                 Resolve(process, resolver, "F(System.Int16, System.UInt16, System.Int32, System.UInt32)", "C.F(System.Int16, System.UInt16, System.Int32, System.UInt32)");
                 Resolve(process, resolver, "F(C<UInt32, Int64, UInt64, Single>)", "C.F(C<System.UInt32, System.Int64, System.UInt64, System.Single>)");
@@ -1051,7 +1210,7 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F(object)");
                 Resolve(process, resolver, "F(IntPtr)", "C.F(System.IntPtr)");
                 Resolve(process, resolver, "F(UIntPtr)", "C.F(System.UIntPtr)");
@@ -1076,7 +1235,7 @@ class C
             var compilation = CreateCompilationWithMscorlib(source, references: new[] { CSharpRef, SystemCoreRef });
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F", "C.F(System.Object)", "C.F(C<System.Object[]>)");
                 Resolve(process, resolver, "F(object)", "C.F(System.Object)");
                 Resolve(process, resolver, "F(C<object[]>)", "C.F(C<System.Object[]>)");
@@ -1096,7 +1255,7 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F", "C.F()");
             }
         }
@@ -1116,7 +1275,7 @@ class C
             var compilation = CreateCompilationWithMscorlib46(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F", "C.F()");
             }
         }
@@ -1141,7 +1300,7 @@ namespace N
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "C.F(C)", "C.F(N.C)", "C.F(C)", "N.C.F(N.C)", "N.C.F(C)");
                 Resolve(process, resolver, "C.F(N.C)", "C.F(N.C)", "N.C.F(N.C)");
                 Resolve(process, resolver, "global::C.F(C)", "C.F(N.C)", "C.F(C)"); // Dev14 does not bind global::
@@ -1173,7 +1332,7 @@ namespace N
             var bytesB = compilationB.EmitToArray();
             using (var process = new Process(new Module(bytesB)))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F", "B.F(System.Object)", "B.F([notsupported])");
                 Resolve(process, resolver, "F(A<object>)");
             }
@@ -1199,7 +1358,7 @@ class B
             var compilation = CreateCompilationWithMscorlib(source);
             using (var process = new Process(new Module(compilation.EmitToArray())))
             {
-                var resolver = new Resolver();
+                var resolver = Resolver.CSharpResolver;
                 Resolve(process, resolver, "F", "B.F()");
             }
         }
@@ -1208,193 +1367,7 @@ class B
         {
             var signature = MemberSignatureParser.Parse(str);
             Assert.NotNull(signature);
-            var request = new Request(null, signature);
-            resolver.EnableResolution(process, request);
-            VerifySignatures(request, expectedSignatures);
-        }
-
-        private static void VerifySignatures(Request request, params string[] expectedSignatures)
-        {
-            var actualSignatures = request.GetResolvedAddresses().Select(a => GetMethodSignature(a.Module, a.Token));
-            AssertEx.Equal(expectedSignatures, actualSignatures);
-        }
-
-        private static string GetMethodSignature(Module module, int token)
-        {
-            var reader = module.GetMetadataInternal();
-            return GetMethodSignature(reader, MetadataTokens.MethodDefinitionHandle(token));
-        }
-
-        private static string GetMethodSignature(MetadataReader reader, MethodDefinitionHandle handle)
-        {
-            var methodDef = reader.GetMethodDefinition(handle);
-            var builder = new StringBuilder();
-            var typeDef = reader.GetTypeDefinition(methodDef.GetDeclaringType());
-            var allTypeParameters = typeDef.GetGenericParameters();
-            AppendTypeName(builder, reader, typeDef);
-            builder.Append('.');
-            builder.Append(reader.GetString(methodDef.Name));
-            var methodTypeParameters = methodDef.GetGenericParameters();
-            AppendTypeParameters(builder, DecodeTypeParameters(reader, offset: 0, typeParameters: methodTypeParameters));
-            var decoder = new MetadataDecoder(
-                reader,
-                GetTypeParameterNames(reader, allTypeParameters),
-                0,
-                GetTypeParameterNames(reader, methodTypeParameters));
-            try
-            {
-                AppendParameters(builder, decoder.DecodeParameters(methodDef));
-            }
-            catch (NotSupportedException)
-            {
-                builder.Append("([notsupported])");
-            }
-            return builder.ToString();
-        }
-
-        private static ImmutableArray<string> GetTypeParameterNames(MetadataReader reader, GenericParameterHandleCollection handles)
-        {
-            return ImmutableArray.CreateRange(handles.Select(h => reader.GetString(reader.GetGenericParameter(h).Name)));
-        }
-
-        private static void AppendTypeName(StringBuilder builder, MetadataReader reader, TypeDefinition typeDef)
-        {
-            var declaringTypeHandle = typeDef.GetDeclaringType();
-            int declaringTypeArity;
-            if (declaringTypeHandle.IsNil)
-            {
-                declaringTypeArity = 0;
-                var namespaceName = reader.GetString(typeDef.Namespace);
-                if (!string.IsNullOrEmpty(namespaceName))
-                {
-                    builder.Append(namespaceName);
-                    builder.Append('.');
-                }
-            }
-            else
-            {
-                var declaringType = reader.GetTypeDefinition(declaringTypeHandle);
-                declaringTypeArity = declaringType.GetGenericParameters().Count;
-                AppendTypeName(builder, reader, declaringType);
-                builder.Append('.');
-            }
-            var typeName = reader.GetString(typeDef.Name);
-            int index = typeName.IndexOf('`');
-            if (index >= 0)
-            {
-                typeName = typeName.Substring(0, index);
-            }
-            builder.Append(typeName);
-            AppendTypeParameters(builder, DecodeTypeParameters(reader, declaringTypeArity, typeDef.GetGenericParameters()));
-        }
-
-        private static void AppendTypeParameters(StringBuilder builder, ImmutableArray<string> typeParameters)
-        {
-            if (typeParameters.Length > 0)
-            {
-                builder.Append('<');
-                AppendCommaSeparatedList(builder, typeParameters, (b, t) => b.Append(t));
-                builder.Append('>');
-            }
-        }
-
-        private static void AppendParameters(StringBuilder builder, ImmutableArray<ParameterSignature> parameters)
-        {
-            builder.Append('(');
-            AppendCommaSeparatedList(builder, parameters, AppendParameter);
-            builder.Append(')');
-        }
-
-        private static void AppendParameter(StringBuilder builder, ParameterSignature signature)
-        {
-            if (signature.IsByRef)
-            {
-                builder.Append("ref ");
-            }
-            AppendType(builder, signature.Type);
-        }
-
-        private static void AppendType(StringBuilder builder, TypeSignature signature)
-        {
-            switch (signature.Kind)
-            {
-                case TypeSignatureKind.GenericType:
-                    {
-                        var genericName = (GenericTypeSignature)signature;
-                        AppendType(builder, genericName.QualifiedName);
-                        AppendTypeArguments(builder, genericName.TypeArguments);
-                    }
-                    break;
-                case TypeSignatureKind.QualifiedType:
-                    {
-                        var qualifiedName = (QualifiedTypeSignature)signature;
-                        var qualifier = qualifiedName.Qualifier;
-                        if (qualifier != null)
-                        {
-                            AppendType(builder, qualifier);
-                            builder.Append('.');
-                        }
-                        builder.Append(qualifiedName.Name);
-                    }
-                    break;
-                case TypeSignatureKind.ArrayType:
-                    {
-                        var arrayType = (ArrayTypeSignature)signature;
-                        AppendType(builder, arrayType.ElementType);
-                        builder.Append('[');
-                        builder.Append(',', arrayType.Rank - 1);
-                        builder.Append(']');
-                    }
-                    break;
-                case TypeSignatureKind.PointerType:
-                    AppendType(builder, ((PointerTypeSignature)signature).PointedAtType);
-                    builder.Append('*');
-                    break;
-                default:
-                    throw new System.NotImplementedException();
-            }
-        }
-
-        private static void AppendTypeArguments(StringBuilder builder, ImmutableArray<TypeSignature> typeArguments)
-        {
-            if (typeArguments.Length > 0)
-            {
-                builder.Append('<');
-                AppendCommaSeparatedList(builder, typeArguments, AppendType);
-                builder.Append('>');
-            }
-        }
-
-        private static void AppendCommaSeparatedList<T>(StringBuilder builder, ImmutableArray<T> items, Action<StringBuilder, T> appendItem)
-        {
-            bool any = false;
-            foreach (var item in items)
-            {
-                if (any)
-                {
-                    builder.Append(", ");
-                }
-                appendItem(builder, item);
-                any = true;
-            }
-        }
-
-        private static ImmutableArray<string> DecodeTypeParameters(MetadataReader reader, int offset, GenericParameterHandleCollection typeParameters)
-        {
-            int arity = typeParameters.Count - offset;
-            Debug.Assert(arity >= 0);
-            if (arity == 0)
-            {
-                return ImmutableArray<string>.Empty;
-            }
-            var builder = ImmutableArray.CreateBuilder<string>(arity);
-            for (int i = 0; i < arity; i++)
-            {
-                var handle = typeParameters[offset + i];
-                var typeParameter = reader.GetGenericParameter(handle);
-                builder.Add(reader.GetString(typeParameter.Name));
-            }
-            return builder.ToImmutable();
+            Resolve(process, resolver, signature, expectedSignatures);
         }
     }
 }

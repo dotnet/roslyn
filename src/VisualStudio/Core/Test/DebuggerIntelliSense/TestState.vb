@@ -66,7 +66,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 GetService(Of IEditorOperationsFactoryService)(),
                 UndoHistoryRegistry,
                 GetService(Of IInlineRenameService)(),
-                GetService(Of IWaitIndicator)(),
                 New TestCompletionPresenter(Me),
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
                 GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())

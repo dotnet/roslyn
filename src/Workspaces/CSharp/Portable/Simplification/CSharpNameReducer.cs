@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             if (node.Kind() == SyntaxKind.QualifiedCref)
             {
                 var crefSyntax = (QualifiedCrefSyntax)node;
-                CrefSyntax crefReplacement;
-
-                if (!crefSyntax.TryReduceOrSimplifyExplicitName(semanticModel, out crefReplacement, out issueSpan, optionSet, cancellationToken))
+                if (!crefSyntax.TryReduceOrSimplifyExplicitName(semanticModel, out var crefReplacement, out issueSpan, optionSet, cancellationToken))
                 {
                     return node;
                 }
@@ -41,8 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             else
             {
                 var expressionSyntax = (ExpressionSyntax)node;
-                ExpressionSyntax expressionReplacement;
-                if (!expressionSyntax.TryReduceOrSimplifyExplicitName(semanticModel, out expressionReplacement, out issueSpan, optionSet, cancellationToken))
+                if (!expressionSyntax.TryReduceOrSimplifyExplicitName(semanticModel, out var expressionReplacement, out issueSpan, optionSet, cancellationToken))
                 {
                     return node;
                 }

@@ -263,8 +263,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     if (newLocation.IsInSource)
                     {
-                        Location oldLocation;
-                        if (reverseMappedLocations.TryGetValue(newLocation, out oldLocation))
+                        if (reverseMappedLocations.TryGetValue(newLocation, out var oldLocation))
                         {
                             conflictResolution.AddOrReplaceRelatedLocation(new RelatedLocation(oldLocation.SourceSpan, conflictResolution.OldSolution.GetDocument(oldLocation.SourceTree).Id, RelatedLocationType.UnresolvableConflict));
                         }

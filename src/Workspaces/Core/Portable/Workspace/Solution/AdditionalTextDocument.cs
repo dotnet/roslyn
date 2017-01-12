@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public override SourceText GetText(CancellationToken cancellationToken = default(CancellationToken))
         {
-            var text = _document.GetText(cancellationToken);
+            var text = _document.GetTextSynchronously(cancellationToken);
             return text;
         }
     }

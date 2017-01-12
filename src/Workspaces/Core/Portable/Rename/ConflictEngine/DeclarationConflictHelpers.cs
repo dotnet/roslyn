@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             foreach (var signature in GetAllSignatures(renamedMethod, trimOptionalParameters))
             {
-                IMethodSymbol conflictingSymbol;
-
-                if (signatureToConflictingMember.TryGetValue(signature, out conflictingSymbol))
+                if (signatureToConflictingMember.TryGetValue(signature, out var conflictingSymbol))
                 {
                     if (!(conflictingSymbol.PartialDefinitionPart != null && conflictingSymbol.PartialDefinitionPart == renamedMethod) &&
                         !(conflictingSymbol.PartialImplementationPart != null && conflictingSymbol.PartialImplementationPart == renamedMethod))

@@ -139,8 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
 
         public static bool AllowsTelemetry(DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, ProjectId projectIdOpt)
         {
-            StrongBox<bool> value;
-            if (s_telemetryCache.TryGetValue(analyzer, out value))
+            if (s_telemetryCache.TryGetValue(analyzer, out var value))
             {
                 return value.Value;
             }

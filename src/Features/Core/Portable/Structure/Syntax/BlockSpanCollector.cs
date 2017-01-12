@@ -59,8 +59,7 @@ namespace Microsoft.CodeAnalysis.Structure
 
         private void GetBlockSpans(SyntaxNode node)
         {
-            ImmutableArray<AbstractSyntaxStructureProvider> providers;
-            if (_nodeProviderMap.TryGetValue(node.GetType(), out providers))
+            if (_nodeProviderMap.TryGetValue(node.GetType(), out var providers))
             {
                 foreach (var provider in providers)
                 {
@@ -82,9 +81,7 @@ namespace Microsoft.CodeAnalysis.Structure
             foreach (var trivia in triviaList)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-
-                ImmutableArray<AbstractSyntaxStructureProvider> providers;
-                if (_triviaProviderMap.TryGetValue(trivia.RawKind, out providers))
+                if (_triviaProviderMap.TryGetValue(trivia.RawKind, out var providers))
                 {
                     foreach (var provider in providers)
                     {

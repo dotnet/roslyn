@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
             var syncObject = service.GetRemotableData(checksum, CancellationToken.None);
 
             using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new ObjectWriter(stream))
+            using (var writer = new StreamObjectWriter(stream))
             {
                 // serialize asset to bits
                 await syncObject.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
-                using (var reader = new ObjectReader(stream))
+                using (var reader = StreamObjectReader.TryGetReader(stream))
                 {
                     // deserialize bits to object
                     var serializer = syncService.Serializer_TestOnly;

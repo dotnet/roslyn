@@ -1149,7 +1149,102 @@ class Program
 }
 ";
             // Native print "++ ++ EX 2"
-            CompileAndVerify(source, expectedOutput: " ++ EX 1");
+            var verifier = CompileAndVerify(source, expectedOutput: " ++ EX 1");
+
+            // must not load "<>4__this"
+            verifier.VerifyIL("Program.test.<Foo>d__1.System.Collections.IEnumerator.MoveNext()", @"
+{
+  // Code size      101 (0x65)
+  .maxstack  2
+  .locals init (bool V_0,
+                int V_1)
+  .try
+  {
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      ""int Program.test.<Foo>d__1.<>1__state""
+    IL_0006:  stloc.1
+    IL_0007:  ldloc.1
+    IL_0008:  brfalse.s  IL_0012
+    IL_000a:  ldloc.1
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq.s      IL_0033
+    IL_000e:  ldc.i4.0
+    IL_000f:  stloc.0
+    IL_0010:  leave.s    IL_0063
+    IL_0012:  ldarg.0
+    IL_0013:  ldc.i4.m1
+    IL_0014:  stfld      ""int Program.test.<Foo>d__1.<>1__state""
+    IL_0019:  ldarg.0
+    IL_001a:  ldc.i4.s   -3
+    IL_001c:  stfld      ""int Program.test.<Foo>d__1.<>1__state""
+    IL_0021:  ldarg.0
+    IL_0022:  ldnull
+    IL_0023:  stfld      ""object Program.test.<Foo>d__1.<>2__current""
+    IL_0028:  ldarg.0
+    IL_0029:  ldc.i4.1
+    IL_002a:  stfld      ""int Program.test.<Foo>d__1.<>1__state""
+    IL_002f:  ldc.i4.1
+    IL_0030:  stloc.0
+    IL_0031:  leave.s    IL_0063
+    IL_0033:  ldarg.0
+    IL_0034:  ldc.i4.s   -3
+    IL_0036:  stfld      ""int Program.test.<Foo>d__1.<>1__state""
+    .try
+    {
+      IL_003b:  ldc.i4.0
+      IL_003c:  stloc.0
+      IL_003d:  leave.s    IL_004a
+    }
+    catch object
+    {
+      IL_003f:  pop
+      IL_0040:  leave.s    IL_0042
+    }
+    IL_0042:  ldarg.0
+    IL_0043:  call       ""void Program.test.<Foo>d__1.<>m__Finally1()""
+    IL_0048:  br.s       IL_0052
+    IL_004a:  ldarg.0
+    IL_004b:  call       ""void Program.test.<Foo>d__1.<>m__Finally1()""
+    IL_0050:  leave.s    IL_0063
+    IL_0052:  leave.s    IL_005b
+  }
+  fault
+  {
+    IL_0054:  ldarg.0
+    IL_0055:  call       ""void Program.test.<Foo>d__1.Dispose()""
+    IL_005a:  endfinally
+  }
+  IL_005b:  ldarg.0
+  IL_005c:  call       ""void Program.test.<Foo>d__1.Dispose()""
+  IL_0061:  ldc.i4.1
+  IL_0062:  stloc.0
+  IL_0063:  ldloc.0
+  IL_0064:  ret
+}
+");
+
+            // must load "<>4__this"
+            verifier.VerifyIL("Program.test.<Foo>d__1.<>m__Finally1()", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.m1
+  IL_0002:  stfld      ""int Program.test.<Foo>d__1.<>1__state""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""Program.test Program.test.<Foo>d__1.<>4__this""
+  IL_000d:  ldstr      ""++ ""
+  IL_0012:  call       ""void System.Console.Write(string)""
+  IL_0017:  dup
+  IL_0018:  ldfld      ""int Program.test.count""
+  IL_001d:  ldc.i4.1
+  IL_001e:  add
+  IL_001f:  stfld      ""int Program.test.count""
+  IL_0024:  newobj     ""System.Exception..ctor()""
+  IL_0029:  throw
+}
+");
+
         }
 
         [Fact, WorkItem(530587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530587")]

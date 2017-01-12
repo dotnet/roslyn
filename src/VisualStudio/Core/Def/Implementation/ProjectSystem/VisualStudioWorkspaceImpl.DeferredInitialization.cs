@@ -32,8 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ProjectTracker = new VisualStudioProjectTracker(serviceProvider, workspace.Services);
 
                 // Ensure the document tracking service is initialized on the UI thread
-                var documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
-                var documentProvider = new RoslynDocumentProvider(ProjectTracker, serviceProvider, documentTrackingService);
+                var documentTrackingService = (VisualStudioDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();
+                var documentProvider = new DocumentProvider(ProjectTracker, serviceProvider, documentTrackingService);
                 var metadataReferenceProvider = workspace.Services.GetService<VisualStudioMetadataReferenceManager>();
                 var ruleSetFileProvider = workspace.Services.GetService<VisualStudioRuleSetManager>();
                 ProjectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider);
@@ -59,8 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var solution = (IVsSolution3)DeferredState.ServiceProvider.GetService(typeof(SVsSolution));
                 if (solution != null)
                 {
-                    string name;
-                    if (ErrorHandler.Succeeded(solution.GetUniqueUINameOfProject(hierarchy, out name)) && name != null)
+                    if (ErrorHandler.Succeeded(solution.GetUniqueUINameOfProject(hierarchy, out string name)) && name != null)
                     {
                         return name;
                     }

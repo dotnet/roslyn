@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public async Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
-            IIncrementalAnalyzer analyzer;
-            if (TryGetAnalyzer(document.Project, out analyzer))
+            if (TryGetAnalyzer(document.Project, out var analyzer))
             {
                 await analyzer.DocumentOpenAsync(document, cancellationToken).ConfigureAwait(false);
             }
@@ -41,8 +40,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public async Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
-            IIncrementalAnalyzer analyzer;
-            if (TryGetAnalyzer(document.Project, out analyzer))
+            if (TryGetAnalyzer(document.Project, out var analyzer))
             {
                 await analyzer.DocumentResetAsync(document, cancellationToken).ConfigureAwait(false);
             }
@@ -50,8 +48,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public async Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
         {
-            IIncrementalAnalyzer analyzer;
-            if (TryGetAnalyzer(document.Project, out analyzer))
+            if (TryGetAnalyzer(document.Project, out var analyzer))
             {
                 await analyzer.DocumentCloseAsync(document, cancellationToken).ConfigureAwait(false);
             }
@@ -65,8 +62,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            IIncrementalAnalyzer analyzer;
-            if (TryGetAnalyzer(document.Project, out analyzer))
+            if (TryGetAnalyzer(document.Project, out var analyzer))
             {
                 await analyzer.AnalyzeSyntaxAsync(document, reasons, cancellationToken).ConfigureAwait(false);
             }
@@ -74,8 +70,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            IIncrementalAnalyzer analyzer;
-            if (TryGetAnalyzer(document.Project, out analyzer))
+            if (TryGetAnalyzer(document.Project, out var analyzer))
             {
                 await analyzer.AnalyzeDocumentAsync(document, bodyOpt, reasons, cancellationToken).ConfigureAwait(false);
             }
@@ -83,8 +78,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            IIncrementalAnalyzer analyzer;
-            if (TryGetAnalyzer(project, out analyzer))
+            if (TryGetAnalyzer(project, out var analyzer))
             {
                 await analyzer.AnalyzeProjectAsync(project, semanticsChanged, reasons, cancellationToken).ConfigureAwait(false);
             }
@@ -92,8 +86,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         private bool TryGetAnalyzer(Project project, out IIncrementalAnalyzer analyzer)
         {
-            Lazy<IIncrementalAnalyzer> lazyAnalyzer;
-            if (!this.Analyzers.TryGetValue(project.Language, out lazyAnalyzer))
+            if (!this.Analyzers.TryGetValue(project.Language, out var lazyAnalyzer))
             {
                 analyzer = null;
                 return false;

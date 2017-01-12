@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -19,9 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         public class RemoteHostClientService : ForegroundThreadAffinitizedObject, IRemoteHostClientService
         {
+            private readonly IAsynchronousOperationListener _listener;
             private readonly Workspace _workspace;
             private readonly IDiagnosticAnalyzerService _analyzerService;
-            private readonly IEditorOptions _globalEditorOptions;
 
             private readonly object _gate;
 
@@ -30,19 +30,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private Task<RemoteHostClient> _instanceTask;
 
             public RemoteHostClientService(
+                IAsynchronousOperationListener listener,
                 Workspace workspace,
-                IDiagnosticAnalyzerService analyzerService,
-                IEditorOptions globalEditorOptions) :
+                IDiagnosticAnalyzerService analyzerService) :
                 base()
             {
                 _gate = new object();
 
+                _listener = listener;
                 _workspace = workspace;
                 _analyzerService = analyzerService;
-                _globalEditorOptions = globalEditorOptions;
             }
 
             public Workspace Workspace => _workspace;
+            public IAsynchronousOperationListener Listener => _listener;
 
             public void Enable()
             {
@@ -159,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_AddGlobalAssetsAsync, cancellationToken))
                 {
                     var snapshotService = _workspace.Services.GetService<ISolutionSynchronizationService>();
-                    var assetBuilder = new CustomAssetBuilder(_workspace.CurrentSolution);
+                    var assetBuilder = new CustomAssetBuilder(_workspace);
 
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
                     {

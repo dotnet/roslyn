@@ -19,7 +19,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    internal abstract partial class AbstractUseExpressionBodyCodeFixProvider<TDeclaration> : CodeFixProvider
+    internal abstract partial class AbstractUseExpressionBodyCodeFixProvider<TDeclaration> : 
+        SyntaxEditorBasedCodeFixProvider
         where TDeclaration : SyntaxNode
     {
         private readonly Option<CodeStyleOption<bool>> _option;
@@ -40,8 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             _useBlockBodyTitle = useBlockBodyTitle;
         }
 
-        public sealed override FixAllProvider GetFixAllProvider() => new UseExpressionBodyFixAllProvider(this);
-
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
@@ -57,34 +56,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return SpecializedTasks.EmptyTask;
         }
 
-        private Task<Document> FixAsync(
-            Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            return FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
-        }
-
-        private async Task<Document> FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-            var options = document.Project.Solution.Workspace.Options;
-            var preferExpressionBody = document.Project.Solution.Workspace.Options.GetOption(_option).Value;
+            var options = document.Project.Solution.Options;
+            var preferExpressionBody = options.GetOption(_option).Value;
 
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(root, editor, diagnostic, options, preferExpressionBody, cancellationToken);
+                AddEdits(editor, diagnostic, options, preferExpressionBody, cancellationToken);
             }
 
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
+            return SpecializedTasks.EmptyTask;
         }
 
         private void AddEdits(
-            SyntaxNode root, SyntaxEditor editor, Diagnostic diagnostic,
-            OptionSet options, bool preferExpressionBody, CancellationToken cancellationToken)
+            SyntaxEditor editor, Diagnostic diagnostic,
+            OptionSet options, bool preferExpressionBody,
+            CancellationToken cancellationToken)
         {
             var declarationLocation = diagnostic.AdditionalLocations[0];
             var declaration = (TDeclaration)declarationLocation.FindNode(cancellationToken);

@@ -362,5 +362,108 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestDefiniteAssignment1()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        [|var|] x = o as string;
+        if (x != null && x.Length > 0)
+        {
+        }
+        else if (x != null)
+        {
+        }
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestDefiniteAssignment2()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        [|var|] x = o as string;
+        if (x != null && x.Length > 0)
+        {
+        }
+
+        Console.WriteLine(x);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestDefiniteAssignment3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        [|var|] x = o as string;
+        if (x != null && x.Length > 0)
+        {
+        }
+
+        x = null;
+        Console.WriteLine(x);
+    }
+}",
+
+@"class C
+{
+    void M()
+    {
+        if (o is string x && x.Length > 0)
+        {
+        }
+
+        x = null;
+        Console.WriteLine(x);
+    }
+}");
+        }
+
+        [WorkItem(15957, "https://github.com/dotnet/roslyn/issues/15957")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestTrivia1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(object y)
+    {
+        if (y != null)
+        {
+        }
+
+        [|var|] x = o as string;
+        if (x != null)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M(object y)
+    {
+        if (y != null)
+        {
+        }
+
+        if (o is string x)
+        {
+        }
+    }
+}", compareTokens: false);
+        }
+        }
 }

@@ -3,14 +3,14 @@
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
+Imports Microsoft.CodeAnalysis.CSharp.AddImport
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.IncrementalCaches
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.UnitTests
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
+Imports Microsoft.CodeAnalysis.VisualBasic.AddImport
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
 

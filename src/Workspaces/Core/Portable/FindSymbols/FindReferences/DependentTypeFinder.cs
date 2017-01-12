@@ -244,45 +244,63 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // This is only necessary if we started with a metadata type.
             if (searchInMetadata)
             {
-                var foundMetadataTypes = await FindAllMatchingMetadataTypesInProjectAsync(
-                    currentMetadataTypes, project, metadataTypeMatches, 
+                var foundMetadataTypes = CreateSymbolAndProjectIdSet();
+
+                try
+                {
+                    await AddAllMatchingMetadataTypesInProjectAsync(
+                        currentMetadataTypes, project, metadataTypeMatches,
+                        foundMetadataTypes, cancellationToken).ConfigureAwait(false);
+
+                    foreach (var foundTypeAndProjectId in foundMetadataTypes)
+                    {
+                        var foundType = foundTypeAndProjectId.Symbol;
+                        Debug.Assert(foundType.Locations.Any(s_isInMetadata));
+
+                        // Add to the result list.
+                        result.Add(foundTypeAndProjectId);
+
+                        if (transitive && shouldContinueSearching(foundType))
+                        {
+                            currentMetadataTypes.Add(foundTypeAndProjectId);
+                            currentSourceAndMetadataTypes.Add(foundTypeAndProjectId);
+                        }
+                    }
+                }
+                finally
+                {
+                    s_setPool.ClearAndFree(foundMetadataTypes);
+                }
+            }
+
+            // Now search the project and see what source types we can find.
+            var foundSourceTypes = CreateSymbolAndProjectIdSet();
+            try
+            {
+                await AddSourceTypesInProjectAsync(
+                    currentSourceAndMetadataTypes, project,
+                    sourceTypeImmediatelyMatches,
+                    shouldContinueSearching,
+                    transitive, foundSourceTypes,
                     cancellationToken).ConfigureAwait(false);
 
-                foreach (var foundTypeAndProjectId in foundMetadataTypes)
+                foreach (var foundTypeAndProjectId in foundSourceTypes)
                 {
                     var foundType = foundTypeAndProjectId.Symbol;
-                    Debug.Assert(foundType.Locations.Any(s_isInMetadata));
+                    Debug.Assert(foundType.Locations.All(s_isInSource));
 
                     // Add to the result list.
                     result.Add(foundTypeAndProjectId);
 
                     if (transitive && shouldContinueSearching(foundType))
                     {
-                        currentMetadataTypes.Add(foundTypeAndProjectId);
                         currentSourceAndMetadataTypes.Add(foundTypeAndProjectId);
                     }
                 }
             }
-
-            // Now search the project and see what source types we can find.
-            var foundSourceTypes = await FindSourceTypesInProjectAsync(
-                currentSourceAndMetadataTypes, project, 
-                sourceTypeImmediatelyMatches,
-                shouldContinueSearching,
-                transitive, cancellationToken).ConfigureAwait(false);
-
-            foreach (var foundTypeAndProjectId in foundSourceTypes)
+            finally
             {
-                var foundType = foundTypeAndProjectId.Symbol;
-                Debug.Assert(foundType.Locations.All(s_isInSource));
-
-                // Add to the result list.
-                result.Add(foundTypeAndProjectId);
-
-                if (transitive && shouldContinueSearching(foundType))
-                {
-                    currentSourceAndMetadataTypes.Add(foundTypeAndProjectId);
-                }
+                s_setPool.ClearAndFree(foundSourceTypes);
             }
         }
 
@@ -400,19 +418,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                                  .ToList();
         }
 
-        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindAllMatchingMetadataTypesInProjectAsync(
+        private static async Task AddAllMatchingMetadataTypesInProjectAsync(
             SymbolAndProjectIdSet metadataTypes,
             Project project,
             Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> metadataTypeMatches,
+            SymbolAndProjectIdSet result,
             CancellationToken cancellationToken)
         {
             if (metadataTypes.Count == 0)
             {
-                return ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>.Empty;
+                return;
             }
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var result = CreateSymbolAndProjectIdSet();
 
             // Seed the current set of types we're searching for with the types we were given.
             var currentTypes = metadataTypes;
@@ -435,8 +453,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Now keep looping, using the set we found to spawn the next set of searches.
                 currentTypes = immediateDerivedTypes;
             }
-
-            return ToImmutableAndFree(result);
         }
 
         private static async Task FindImmediateMatchingMetadataTypesInMetadataReferenceAsync(
@@ -521,12 +537,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindSourceTypesInProjectAsync(
+        private static async Task AddSourceTypesInProjectAsync(
             SymbolAndProjectIdSet sourceAndMetadataTypes,
             Project project,
             Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
+            SymbolAndProjectIdSet finalResult,
             CancellationToken cancellationToken)
         {
             // We're going to be sweeping over this project over and over until we reach a 
@@ -534,9 +551,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // models and DeclaredSymbolInfo for hte documents we look at.
             // Because we're only processing a project at a time, this is not an issue.
             var cachedModels = new ConcurrentSet<SemanticModel>();
-            var cachedInfos = new ConcurrentSet<IDeclarationInfo>();
-
-            var finalResult = CreateSymbolAndProjectIdSet();
+            var cachedInfos = new ConcurrentSet<SyntaxTreeIndex>();
 
             var typesToSearchFor = CreateSymbolAndProjectIdSet();
             typesToSearchFor.AddAll(sourceAndMetadataTypes);
@@ -566,23 +581,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var task in tasks)
                 {
                     var result = await task.ConfigureAwait(false);
-                    if (result != null)
+                    foreach (var derivedType in result)
                     {
-                        foreach (var derivedType in result)
+                        if (finalResult.Add(derivedType))
                         {
-                            if (finalResult.Add(derivedType))
+                            if (transitive && shouldContinueSearching(derivedType.Symbol))
                             {
-                                if (transitive && shouldContinueSearching(derivedType.Symbol))
-                                {
-                                    typesToSearchFor.Add(derivedType);
-                                }
+                                typesToSearchFor.Add(derivedType);
                             }
                         }
                     }
+
+                    s_setPool.ClearAndFree(result);
                 }
             }
-
-            return ToImmutableAndFree(finalResult);
         }
 
         private static bool ImmediatelyDerivesOrImplementsFrom(
@@ -604,16 +616,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyInheritingTypesInDocumentAsync(
+        private static async Task<SymbolAndProjectIdSet> FindImmediatelyInheritingTypesInDocumentAsync(
             Document document,
             SymbolAndProjectIdSet typesToSearchFor,
             InheritanceQuery inheritanceQuery,
             ConcurrentSet<SemanticModel> cachedModels, 
-            ConcurrentSet<IDeclarationInfo> cachedInfos, 
+            ConcurrentSet<SyntaxTreeIndex> cachedInfos, 
             Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> typeImmediatelyMatches,
             CancellationToken cancellationToken)
         {
-            var declarationInfo = await document.GetDeclarationInfoAsync(cancellationToken).ConfigureAwait(false);
+            var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
             cachedInfos.Add(declarationInfo);
 
             var result = CreateSymbolAndProjectIdSet();
@@ -626,7 +638,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     typeImmediatelyMatches, result, cancellationToken).ConfigureAwait(false);
             }
 
-            return ToImmutableAndFree(result);
+            return result;
         }
 
         private static async Task ProcessSymbolInfo(
@@ -646,7 +658,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 (inheritanceQuery.DerivesFromSystemValueType && info.Kind == DeclaredSymbolInfoKind.Struct) ||
                 (inheritanceQuery.DerivesFromSystemMulticastDelegate && info.Kind == DeclaredSymbolInfoKind.Delegate))
             {
-                var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+                var symbol = await TryResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
                 if (symbol != null)
                 {
                     result.Add(SymbolAndProjectId.Create(symbol, projectId));
@@ -659,7 +671,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Also, we can't just look for an empty inheritance list.  We may have 
                 // something like: "class C : IFoo".  This type derives from object, despite
                 // having a non-empty list.
-                var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+                var symbol = await TryResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
                 if (symbol?.BaseType?.SpecialType == SpecialType.System_Object)
                 {
                     result.Add(SymbolAndProjectId.Create(symbol, projectId));
@@ -668,7 +680,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             else if (AnyInheritanceNamesMatch(info, inheritanceQuery.TypeNames))
             {
                 // Looks like we have a potential match.  Actually check if the symbol is viable.
-                var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+                var symbol = await TryResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
                 if (symbol != null)
                 {
                     if (typeImmediatelyMatches(typesToSearchFor, symbol))
@@ -693,13 +705,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static async Task<ISymbol> ResolveAsync(
+        private static async Task<ISymbol> TryResolveAsync(
             Document document, DeclaredSymbolInfo info, ConcurrentSet<SemanticModel> cachedModels, 
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             cachedModels.Add(semanticModel);
-            return info.Resolve(semanticModel, cancellationToken);
+            return info.TryResolve(semanticModel, cancellationToken);
         }
 
         private class InheritanceQuery

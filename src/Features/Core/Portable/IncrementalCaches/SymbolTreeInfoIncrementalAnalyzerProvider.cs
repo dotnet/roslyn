@@ -146,11 +146,9 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 var key = GetReferenceKey(reference);
                 if (key != null)
                 {
-                    MetadataInfo metadataInfo;
-                    if (_metadataPathToInfo.TryGetValue(key, out metadataInfo))
+                    if (_metadataPathToInfo.TryGetValue(key, out var metadataInfo))
                     {
-                        DateTime writeTime;
-                        if (TryGetLastWriteTime(key, out writeTime) && writeTime == metadataInfo.TimeStamp)
+                        if (TryGetLastWriteTime(key, out var writeTime) && writeTime == metadataInfo.TimeStamp)
                         {
                             return metadataInfo.SymbolTreeInfo;
                         }
@@ -168,8 +166,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             public async Task<SymbolTreeInfo> TryGetSourceSymbolTreeInfoAsync(
                 Project project, CancellationToken cancellationToken)
             {
-                ProjectInfo projectInfo;
-                if (_projectToInfo.TryGetValue(project.Id, out projectInfo))
+                if (_projectToInfo.TryGetValue(project.Id, out var projectInfo))
                 {
                     var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
                     if (version == projectInfo.VersionStamp)
@@ -230,9 +227,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // (The latter happens when something happens to the project like metadata 
                 // changing on disk).
                 var version = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
-                ProjectInfo projectInfo;
-                if (!_projectToInfo.TryGetValue(project.Id, out projectInfo) || projectInfo.VersionStamp != version)
+                if (!_projectToInfo.TryGetValue(project.Id, out var projectInfo) || projectInfo.VersionStamp != version)
                 {
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
@@ -268,15 +263,13 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                DateTime lastWriteTime;
-                if (!TryGetLastWriteTime(key, out lastWriteTime))
+                if (!TryGetLastWriteTime(key, out var lastWriteTime))
                 {
                     // Couldn't get the write time.  Just ignore this reference.
                     return;
                 }
 
-                MetadataInfo metadataInfo;
-                if (!_metadataPathToInfo.TryGetValue(key, out metadataInfo) || metadataInfo.TimeStamp == lastWriteTime)
+                if (!_metadataPathToInfo.TryGetValue(key, out var metadataInfo) || metadataInfo.TimeStamp == lastWriteTime)
                 {
                     var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
                         project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -294,8 +287,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             public override void RemoveProject(ProjectId projectId)
             {
-                ProjectInfo info;
-                _projectToInfo.TryRemove(projectId, out info);
+                _projectToInfo.TryRemove(projectId, out var info);
 
                 RemoveMetadataReferences(projectId);
             }
@@ -309,8 +301,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                         if (kvp.Value.ReferencingProjects.Count == 0)
                         {
                             // This metadata dll isn't referenced by any project.  We can just dump it.
-                            MetadataInfo unneeded;
-                            _metadataPathToInfo.TryRemove(kvp.Key, out unneeded);
+                            _metadataPathToInfo.TryRemove(kvp.Key, out var unneeded);
                         }
                     }
                 }

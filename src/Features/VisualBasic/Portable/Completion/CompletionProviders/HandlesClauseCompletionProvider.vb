@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
 
-            Return SymbolCompletionItem.Create(
+            Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayAndInsertionText.Item1,
                 insertionText:=displayAndInsertionText.Item2,
                 symbol:=symbol,
@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetDisplayAndInsertionText(
-                symbol As ISymbol, context As SyntaxContext) As ValueTuple(Of String, String)
+                symbol As ISymbol, context As SyntaxContext) As (displayText As String, insertionText As String)
 
             Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
         End Function

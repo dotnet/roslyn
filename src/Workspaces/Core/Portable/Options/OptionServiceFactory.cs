@@ -181,8 +181,7 @@ namespace Microsoft.CodeAnalysis.Options
                 public override object GetOption(OptionKey optionKey)
                 {
                     // If we already know the document specific value, we're done
-                    object value;
-                    if (_values.TryGetValue(optionKey, out value))
+                    if (_values.TryGetValue(optionKey, out var value))
                     {
                         return value;
                     }

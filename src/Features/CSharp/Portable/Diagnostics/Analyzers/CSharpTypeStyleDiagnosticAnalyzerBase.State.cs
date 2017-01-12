@@ -97,12 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             private bool IsInferredPredefinedType(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                TypeSyntax typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
+                var typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
 
-                return typeSyntax != null
-                     ? typeSyntax.IsTypeInferred(semanticModel) &&
-                        semanticModel.GetTypeInfo(typeSyntax).Type?.IsSpecialType() == true
-                     : false;
+                return typeSyntax != null &&
+                    typeSyntax.IsTypeInferred(semanticModel) &&
+                    semanticModel.GetTypeInfo(typeSyntax).Type?.IsSpecialType() == true;
             }
 
             private TypeSyntax GetTypeSyntaxFromDeclaration(SyntaxNode declarationStatement)

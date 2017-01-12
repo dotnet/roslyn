@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <StartupObject />
@@ -19,6 +20,10 @@
       <Project>{7a4b2176-7bfd-4b75-a61a-e25a1fdd0a1e}</Project>
       <Name>CSharpCompilerTestUtilities.Desktop</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj">
+      <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f9}</Project>
+      <Name>CSharpCompilerTestUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
       <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
       <Name>CSharpInteractiveEditorFeatures</Name>
@@ -26,6 +31,10 @@
     <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj">
+      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
+      <Name>TestUtilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
@@ -127,10 +136,6 @@
       <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
       <Name>ServiceHub</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
-      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
-      <Name>VisualStudioEditor</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj">
       <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
       <Name>WorkspacesTestUtilities</Name>
@@ -139,14 +144,15 @@
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{AC2BCEFB-9298-4621-AC48-1FF5E639E48D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.CSharp.UnitTests</AssemblyName>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="PresentationCore" />
@@ -219,9 +225,12 @@
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
     <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
     <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests.cs" />
+    <Compile Include="Diagnostics\NamingStyles\EditorConfigNamingStyleParserTests.cs" />
     <Compile Include="Diagnostics\NamingStyles\NamingStylesTests_OptionSets.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.cs" />
     <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.cs" />
+    <Compile Include="Extensions\ContextQuery\IsPossibleDeconstructionDesignationTests.cs" />
+    <Compile Include="Extensions\ContextQuery\PossibleTupleContextTests.cs" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.cs" />
     <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />
@@ -275,10 +284,10 @@
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests_Dialog.cs" />
     <Compile Include="Diagnostics\GenerateVariable\GenerateVariableTests.cs" />
     <Compile Include="Diagnostics\HideBase\HideBaseTests.cs" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests.cs" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests.cs" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests.cs" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
+    <Compile Include="ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />
+    <Compile Include="ImplementInterface\ImplementInterfaceTests.cs" />
     <Compile Include="Diagnostics\Iterator\AddYieldTests.cs" />
     <Compile Include="Diagnostics\Iterator\ChangeToIEnumerableTests.cs" />
     <Compile Include="Diagnostics\MockDiagnosticAnalyzerTests.cs" />
@@ -333,9 +342,11 @@
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests.cs" />
     <Compile Include="Structure\ArrowExpressionClauseStructureTests.cs" />
     <Compile Include="Structure\InitializerExpressionStructureTests.cs" />
+    <Compile Include="SuggestionTags\SuggestionTagProducerTests.cs" />
     <Compile Include="UseCollectionInitializer\UseCollectionInitializerTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.cs" />
+    <Compile Include="UseExplicitTupleName\UseExplicitTupleNameTests.cs" />
     <Compile Include="UseNullPropagation\UseNullPropagationTests.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests_FixAllTests.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests.cs" />
@@ -448,7 +459,6 @@
     <Compile Include="TypeInferrer\TypeInferrerTests.Delegate.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.cs" />
     <Compile Include="Workspaces\WorkspaceTests.cs" />
-    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="PerfTests\CSharpPerfFindRefs.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

@@ -160,8 +160,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     return;
                 }
 
-                List<Diagnostic> diagnosticsForSymbol;
-                if (!diagnosticsMapBuilder.TryGetValue(targetSymbol, out diagnosticsForSymbol))
+                if (!diagnosticsMapBuilder.TryGetValue(targetSymbol, out var diagnosticsForSymbol))
                 {
                     diagnosticsForSymbol = new List<Diagnostic>();
                     diagnosticsMapBuilder.Add(targetSymbol, diagnosticsForSymbol);

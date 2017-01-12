@@ -109,12 +109,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public sealed override IEnumerable<string> LinkedAssembliesDebugInfo => SpecializedCollections.EmptyEnumerable<string>();
 
         // C# currently doesn't emit compilation level imports (TODO: scripting).
-        public override ImmutableArray<Cci.UsedNamespaceOrType> GetImports() => ImmutableArray<Cci.UsedNamespaceOrType>.Empty;
+        public sealed override ImmutableArray<Cci.UsedNamespaceOrType> GetImports() => ImmutableArray<Cci.UsedNamespaceOrType>.Empty;
 
         // C# doesn't allow to define default namespace for compilation.
-        public override string DefaultNamespace => null;
+        public sealed override string DefaultNamespace => null;
 
-        protected override IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics)
+        protected sealed override IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics)
         {
             ImmutableArray<ModuleSymbol> modules = SourceModule.ContainingAssembly.Modules;
 
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        public override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()
+        public sealed override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()
         {
             var result = new MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation>();
 
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return false;
         }
 
-        internal override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes()
+        internal sealed override ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes()
         {
             if (EmitOptions.EmitMetadataOnly)
             {
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        public override ImmutableArray<Cci.ExportedType> GetExportedTypes(DiagnosticBag diagnostics)
+        public sealed override ImmutableArray<Cci.ExportedType> GetExportedTypes(DiagnosticBag diagnostics)
         {
             Debug.Assert(HaveDeterminedTopLevelTypes);
 
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (wellKnownAttributeData?.ForwardedTypes?.Count > 0)
             {
                 // (type, index of the parent exported type in builder, or -1 if the type is a top-level type)
-                var stack = ArrayBuilder<ValueTuple<NamedTypeSymbol, int>>.GetInstance();
+                var stack = ArrayBuilder<(NamedTypeSymbol type, int parentIndex)>.GetInstance();
 
                 foreach (NamedTypeSymbol forwardedType in wellKnownAttributeData.ForwardedTypes)
                 {
@@ -569,13 +569,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     // Return all nested types.
                     // Note the order: depth first, children in reverse order (to match dev10, not a requirement).
                     Debug.Assert(stack.Count == 0);
-                    stack.Push(ValueTuple.Create(originalDefinition, -1));
+                    stack.Push((originalDefinition, -1));
 
                     while (stack.Count > 0)
                     {
-                        var entry = stack.Pop();
-                        NamedTypeSymbol type = entry.Item1;
-                        int parentIndex = entry.Item2;
+                        var (type, parentIndex) = stack.Pop();
 
                         // In general, we don't want private types to appear in the ExportedTypes table.
                         // BREAK: dev11 emits these types.  The problem was discovered in dev10, but failed
@@ -595,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         ImmutableArray<NamedTypeSymbol> nested = type.GetTypeMembers(); // Ordered.
                         for (int i = nested.Length - 1; i >= 0; i--)
                         {
-                            stack.Push(ValueTuple.Create(nested[i], index));
+                            stack.Push((nested[i], index));
                         }
                     }
                 }
@@ -1075,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        internal override Cci.IMethodReference Translate(MethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
+        internal sealed override Cci.IMethodReference Translate(MethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
         {
             return Translate(symbol, null, diagnostics, null, needDeclaration);
         }

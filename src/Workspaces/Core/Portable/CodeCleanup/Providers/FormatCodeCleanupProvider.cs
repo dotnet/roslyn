@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         public async Task<Document> CleanupAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
         {
             // If the old text already exists, use the fast path for formatting.
-            SourceText oldText;
-            if (document.TryGetText(out oldText))
+            if (document.TryGetText(out var oldText))
             {
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var textChanges = await Formatter.GetFormattedTextChangesAsync(root, spans, document.Project.Solution.Workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -38,8 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, IEnumerable<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
         {
             // If the old text already exists, use the fast path for formatting.
-            SourceText oldText;
-            if (root.SyntaxTree != null && root.SyntaxTree.TryGetText(out oldText))
+            if (root.SyntaxTree != null && root.SyntaxTree.TryGetText(out var oldText))
             {
                 var changes = await Formatter.GetFormattedTextChangesAsync(root, spans, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
 

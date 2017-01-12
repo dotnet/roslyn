@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         public PopulateSwitchDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.PopulateSwitchDiagnosticId,
-                  s_localizableTitle, s_localizableMessage)
+                   s_localizableTitle, s_localizableMessage)
         {
         }
 
@@ -43,9 +43,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var switchBlock = switchOperation.Syntax;
             var tree = switchBlock.SyntaxTree;
 
-            bool missingCases;
-            bool missingDefaultCase;
-            if (SwitchIsIncomplete(switchOperation, out missingCases, out missingDefaultCase) &&
+            if (SwitchIsIncomplete(switchOperation, out var missingCases, out var missingDefaultCase) &&
                 !tree.OverlapsHiddenPosition(switchBlock.Span, context.CancellationToken))
             {
                 Debug.Assert(missingCases || missingDefaultCase);

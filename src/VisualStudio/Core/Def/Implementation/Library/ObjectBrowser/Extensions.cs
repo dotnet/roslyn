@@ -103,15 +103,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 return result;
             }
 
-            IVsHierarchy parentHierarchy;
-            if (hierarchy.TryGetParentHierarchy(out parentHierarchy) && !(parentHierarchy is IVsSolution))
+            if (hierarchy.TryGetParentHierarchy(out var parentHierarchy) && !(parentHierarchy is IVsSolution))
             {
                 var builder = new StringBuilder(result);
 
                 while (parentHierarchy != null && !(parentHierarchy is IVsSolution))
                 {
-                    string parentName;
-                    if (parentHierarchy.TryGetName(out parentName))
+                    if (parentHierarchy.TryGetName(out var parentName))
                     {
                         builder.Insert(0, parentName + "\\");
                     }

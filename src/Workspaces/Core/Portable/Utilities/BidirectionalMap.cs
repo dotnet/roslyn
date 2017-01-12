@@ -48,8 +48,7 @@ namespace Roslyn.Utilities
 
         public IBidirectionalMap<TKey, TValue> RemoveKey(TKey key)
         {
-            TValue value;
-            if (!_forwardMap.TryGetValue(key, out value))
+            if (!_forwardMap.TryGetValue(key, out var value))
             {
                 return this;
             }
@@ -61,8 +60,7 @@ namespace Roslyn.Utilities
 
         public IBidirectionalMap<TKey, TValue> RemoveValue(TValue value)
         {
-            TKey key;
-            if (!_backwardMap.TryGetValue(value, out key))
+            if (!_backwardMap.TryGetValue(value, out var key))
             {
                 return this;
             }
@@ -114,8 +112,7 @@ namespace Roslyn.Utilities
 
         public TValue GetValueOrDefault(TKey key)
         {
-            TValue result;
-            if (TryGetValue(key, out result))
+            if (TryGetValue(key, out var result))
             {
                 return result;
             }
@@ -125,8 +122,7 @@ namespace Roslyn.Utilities
 
         public TKey GetKeyOrDefault(TValue value)
         {
-            TKey result;
-            if (TryGetKey(value, out result))
+            if (TryGetKey(value, out var result))
             {
                 return result;
             }

@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             }
 
             var type = methodSymbol.ReturnType;
-
-            INamedTypeSymbol ienumerableSymbol, ienumerableGenericSymbol;
-            if (!TryGetIEnumerableSymbols(model, out ienumerableSymbol, out ienumerableGenericSymbol))
+            if (!TryGetIEnumerableSymbols(model, out var ienumerableSymbol, out var ienumerableGenericSymbol))
             {
                 return null;
             }

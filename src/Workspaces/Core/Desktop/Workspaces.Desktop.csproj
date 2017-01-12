@@ -1,27 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{2E87FA96-50BB-4607-8676-46521599F998}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Workspaces.Desktop</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <DefineConstants>$(DefineConstants);WORKSPACE_DESKTOP</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DefineConstants>$(DefineConstants);WORKSPACE_DESKTOP</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineConstants>$(DefineConstants);WORKSPACE_DESKTOP</DefineConstants>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
@@ -79,7 +76,6 @@
     <Compile Include="Workspace\CommandLineProject.cs" />
     <Compile Include="Workspace\Esent\EsentLogger.cs" />
     <Compile Include="Workspace\Esent\EsentPersistentStorage.cs" />
-    <Compile Include="Workspace\Esent\EsentPersistentStorage_IdentifierTable.cs" />
     <Compile Include="Workspace\Esent\EsentStorage.AbstractTable.cs" />
     <Compile Include="Workspace\Esent\EsentStorage.AbstractTableAccessor.cs" />
     <Compile Include="Workspace\Esent\EsentStorage.cs" />
@@ -111,7 +107,6 @@
     <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoader.CSharpProjectFile.cs" />
     <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoaderFactory.cs" />
     <Compile Include="Workspace\MSBuild\MSBuildWorkspace.cs" />
-    <Compile Include="Workspace\MSBuild\ProjectFile\BuildTargets.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\DocumentFileInfo.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFile.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\IProjectFileLoader.cs" />
@@ -140,21 +135,23 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Next" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.ServiceHub" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
+    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
-    <InternalsVisibleTo Include="MonoDevelop.Ide" />
-    <InternalsVisibleTo Include="MonoDevelop.Refactoring" />
-    <InternalsVisibleTo Include="MonoDevelop.CSharpBinding" />
-    <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" />
-    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.Ide" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.Refactoring" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.CSharpBinding" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />

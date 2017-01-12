@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         {
             var code =
 @"[|clas|]s Class1 { }
-class Class2 { }";
+ class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
 
             var expectedDocumentName = "Class1.cs";
@@ -323,6 +323,43 @@ class Class2 { }";
 @"namespace N1
 {
     partial class Class1 
+    {
+        class Class2
+        {
+        }
+    }
+}";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveNestedTypePreserveModifiers()
+        {
+            var code =
+@"namespace N1
+{
+    abstract class Class1 
+    {
+        [||]class Class2 { }
+    }
+    
+}";
+
+            var codeAfterMove =
+@"namespace N1
+{
+    abstract partial class Class1
+    {
+
+    }
+}";
+
+            var expectedDocumentName = "Class2.cs";
+
+            var destinationDocumentText =
+@"namespace N1
+{
+    abstract partial class Class1 
     {
         class Class2
         {
@@ -746,6 +783,44 @@ partial class Outer {
 }";
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WorkItem(16283, "https://github.com/dotnet/roslyn/issues/16283")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestLeadingTrivia1()
+        {
+            var code =
+@"
+class Outer
+{
+    class Inner1
+    {
+    }
+
+    [|class|] Inner2
+    {
+    }
+}";
+            var codeAfterMove = @"
+partial class Outer
+{
+    class Inner1
+    {
+    }
+}";
+
+            var expectedDocumentName = "Inner2.cs";
+            var destinationDocumentText = @"
+partial class Outer
+{
+    class Inner2
+    {
+    }
+}";
+
+            await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText,
+                compareTokens: false);
         }
     }
 }

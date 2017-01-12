@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -39,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = loweredReceiver.Type;
 
             // Check trivial case
-            if (loweredReceiver.IsDefaultValue())
+            if (loweredReceiver.IsDefaultValue() && receiverType.IsReferenceType)
             {
                 return _factory.Default(node.Type);
             }

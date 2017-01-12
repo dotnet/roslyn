@@ -71,6 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ImmutableArray<CustomModifier> TypeCustomModifiers { get; }
 
         /// <summary>
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        /// </summary>
+        public abstract ImmutableArray<CustomModifier> RefCustomModifiers { get; }
+
+        /// <summary>
         /// The parameters of this property. If this property has no parameters, returns
         /// an empty list. Parameters are only present on indexers, or on some properties
         /// imported from a COM interface.
@@ -152,6 +157,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (object)property.GetMethod == null;
             }
         }
+
+        /// <summary>
+        /// True if the property itself is excluded from code covarage instrumentation.
+        /// True for source properties marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
+        /// </summary>
+        internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
 
         /// <summary>
         /// True if this symbol has a special name (metadata flag SpecialName is set).
@@ -333,6 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check return type, custom modifiers and parameters:
             if (DeriveUseSiteDiagnosticFromType(ref result, this.Type) ||
+                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers) ||
                 DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.TypeCustomModifiers) ||
                 DeriveUseSiteDiagnosticFromParameters(ref result, this.Parameters))
             {
@@ -345,6 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
                 if (this.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
+                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.RefCustomModifiers, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.TypeCustomModifiers, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.Parameters, this, ref unificationCheckedTypes))
                 {
@@ -460,6 +473,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ImmutableArray<CustomModifier> IPropertySymbol.TypeCustomModifiers
         {
             get { return this.TypeCustomModifiers; }
+        }
+
+        ImmutableArray<CustomModifier> IPropertySymbol.RefCustomModifiers
+        {
+            get { return this.RefCustomModifiers; }
         }
 
         #endregion

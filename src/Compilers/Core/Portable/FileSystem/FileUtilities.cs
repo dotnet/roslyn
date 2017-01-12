@@ -368,7 +368,7 @@ namespace Roslyn.Utilities
             }
             catch (Exception e)
             {
-                throw new IOException(e.Message);
+                throw new IOException(e.Message, e);
             }
         }
 

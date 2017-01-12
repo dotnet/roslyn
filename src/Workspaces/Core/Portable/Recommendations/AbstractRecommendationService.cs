@@ -81,33 +81,16 @@ namespace Microsoft.CodeAnalysis.Recommendations
         protected static ImmutableArray<ISymbol> SuppressDefaultTupleElements(
             INamespaceOrTypeSymbol container, ImmutableArray<ISymbol> symbols)
         {
-            if (container?.IsType != true)
+            var namedType = container as INamedTypeSymbol;
+            if (namedType?.IsTupleType != true)
             {
+                // container is not a tuple
                 return symbols;
             }
 
-            var type = (ITypeSymbol)container;
-            if (!type.IsTupleType)
-            {
-                return symbols;
-            }
-
-            var tuple = (INamedTypeSymbol)type;
-            var elementNames = tuple.TupleElementNames;
-            if (elementNames.IsDefault)
-            {
-                return symbols;
-            }
-
-            // TODO This should be revised once we have a good public API for tuple fields
-            // See https://github.com/dotnet/roslyn/issues/13229
-            var fieldsToRemove = elementNames.Select((n, i) => IsFriendlyName(i, n) ? "Item" + (i + 1) : null)
-                .Where(n => n != null).Concat("Rest").ToSet();
-
-            return symbols.WhereAsArray(
-                s => s.Kind != SymbolKind.Field ||
-                     elementNames.Contains(s.Name) || 
-                     !fieldsToRemove.Contains(s.Name));
+            //return tuple elements followed by other members that are not fields
+            return ImmutableArray<ISymbol>.CastUp(namedType.TupleElements).
+                Concat(symbols.WhereAsArray(s => s.Kind != SymbolKind.Field));
         }
 
         private static bool IsFriendlyName(int i, string elementName)

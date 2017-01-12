@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                    generalDiagnosticOption, warningLevel,
                    specificDiagnosticOptions, concurrentBuild, deterministic,
                    currentLocalTime: default(DateTime),
-                   extendedCustomDebugInformation: true,
                    debugPlusMode: false,
                    xmlReferenceResolver: xmlReferenceResolver,
                    sourceReferenceResolver: sourceReferenceResolver,
@@ -104,7 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool concurrentBuild,
             bool deterministic,
             DateTime currentLocalTime,
-            bool extendedCustomDebugInformation,
             bool debugPlusMode,
             XmlReferenceResolver xmlReferenceResolver,
             SourceReferenceResolver sourceReferenceResolver,
@@ -118,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, publicSign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
-                   concurrentBuild, deterministic, currentLocalTime, extendedCustomDebugInformation, debugPlusMode, xmlReferenceResolver,
+                   concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver,
                    sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
                    strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions)
         {
@@ -147,7 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             concurrentBuild: other.ConcurrentBuild,
             deterministic: other.Deterministic,
             currentLocalTime: other.CurrentLocalTime,
-            extendedCustomDebugInformation: other.ExtendedCustomDebugInformation,
             debugPlusMode: other.DebugPlusMode,
             xmlReferenceResolver: other.XmlReferenceResolver,
             sourceReferenceResolver: other.SourceReferenceResolver,
@@ -410,16 +407,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { CurrentLocalTime_internal_protected_set = value };
         }
 
-        internal CSharpCompilationOptions WithExtendedCustomDebugInformation(bool extendedCustomDebugInformation)
-        {
-            if (extendedCustomDebugInformation == this.ExtendedCustomDebugInformation)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { ExtendedCustomDebugInformation_internal_protected_set = extendedCustomDebugInformation };
-        }
-
         internal CSharpCompilationOptions WithDebugPlusMode(bool debugPlusMode)
         {
             if (debugPlusMode == this.DebugPlusMode)
@@ -559,11 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ModuleName != null)
             {
-                Exception e = MetadataHelpers.CheckAssemblyOrModuleName(ModuleName, nameof(ModuleName));
-                if (e != null)
-                {
-                    builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOption, e.Message));
-                }
+                MetadataHelpers.CheckAssemblyOrModuleName(ModuleName, MessageProvider.Instance, (int)ErrorCode.ERR_BadModuleName, builder);
             }
 
             if (!OutputKind.IsValid())
@@ -790,7 +773,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                    specificDiagnosticOptions, concurrentBuild,
                    deterministic: deterministic,
                    currentLocalTime: default(DateTime),
-                   extendedCustomDebugInformation: true,
                    debugPlusMode: false,
                    xmlReferenceResolver: xmlReferenceResolver,
                    sourceReferenceResolver: sourceReferenceResolver,

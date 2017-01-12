@@ -112,14 +112,14 @@ class Z
     int a;
     string b;
 
-    public Z(string b)
-    {
-        this.b = b;
-    }
-
     public Z(int a)
     {
         this.a = a;
+    }
+
+    public Z(string b)
+    {
+        this.b = b;
     }
 }",
 index: 0);

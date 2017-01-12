@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 
                 if (expectedOutputMarkup != null)
                 {
-                    string expectedOutput;
-                    IList<TextSpan> expectedSpans;
-                    MarkupTestFile.GetSpans(expectedOutputMarkup, out expectedOutput, out expectedSpans);
+                    MarkupTestFile.GetSpans(expectedOutputMarkup, out var expectedOutput, out IList<TextSpan> expectedSpans);
 
                     Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
                     Assert.Equal(expectedSpans.Single().Start, view.Caret.Position.BufferPosition.Position);
@@ -91,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingAfterString()
+        public async Task TestMissingAfterString_1()
         {
             await TestNotHandledAsync(
 @"class C
@@ -104,7 +102,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-        public async Task TestMissingAfterInterpolatedString()
+        public async Task TestMissingAfterString_2()
+        {
+            await TestNotHandledAsync(
+@"class C
+{
+    void M()
+    {
+        var v = """" [||];
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public async Task TestMissingAfterString_3()
+        {
+            await TestNotHandledAsync(
+@"class C
+{
+    void M()
+    {
+        var v = """"[||]
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public async Task TestMissingAfterString_4()
+        {
+            await TestNotHandledAsync(
+@"class C
+{
+    void M()
+    {
+        var v = """" [||]
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public async Task TestMissingAfterInterpolatedString_1()
         {
             await TestNotHandledAsync(
 @"class C
@@ -112,6 +149,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     void M()
     {
         var v = $""""[||];
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public async Task TestMissingAfterInterpolatedString_2()
+        {
+            await TestNotHandledAsync(
+@"class C
+{
+    void M()
+    {
+        var v = $"""" [||];
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public async Task TestMissingAfterInterpolatedString_3()
+        {
+            await TestNotHandledAsync(
+@"class C
+{
+    void M()
+    {
+        var v = $""""[||]
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public async Task TestMissingAfterInterpolatedString_4()
+        {
+            await TestNotHandledAsync(
+@"class C
+{
+    void M()
+    {
+        var v = $"""" [||]
     }
 }");
         }

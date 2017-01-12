@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         protected override IComparer<SyntaxNode> GetMemberComparer()
-        {
-            return CSharpDeclarationComparer.Instance;
-        }
+            => CSharpDeclarationComparer.WithoutNamesInstance;
 
         protected override AbstractImportsAdder CreateImportsAdder(
             Document document)
@@ -548,8 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 BlockSyntax newBlock;
                 if (options.BeforeThisLocation != null)
                 {
-                    IEnumerable<SyntaxTrivia> strippedTrivia;
-                    var newContainingStatement = containingStatement.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(out strippedTrivia);
+                    var newContainingStatement = containingStatement.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(out var strippedTrivia);
 
                     newStatements[0] = newStatements[0].WithLeadingTrivia(strippedTrivia);
 

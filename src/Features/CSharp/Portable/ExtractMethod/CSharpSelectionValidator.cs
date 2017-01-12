@@ -431,7 +431,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // make sure this method doesn't have return type.
-            return method.ReturnType.TypeSwitch((PredefinedTypeSyntax p) => p.Keyword.Kind() == SyntaxKind.VoidKeyword);
+            return method.ReturnType is PredefinedTypeSyntax p &&
+                p.Keyword.Kind() == SyntaxKind.VoidKeyword;
         }
 
         private static TextSpan GetAdjustedSpan(SourceText text, TextSpan textSpan)

@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return;
             }
 
-            DashboardAdornmentManager manager;
-            if (textView.Properties.TryGetProperty(typeof(DashboardAdornmentManager), out manager))
+            if (textView.Properties.TryGetProperty(typeof(DashboardAdornmentManager), out DashboardAdornmentManager manager))
             {
                 manager.Dispose();
                 textView.Properties.RemoveProperty(typeof(DashboardAdornmentManager));

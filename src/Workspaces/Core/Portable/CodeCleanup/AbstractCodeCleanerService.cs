@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 var newNodeAndAnnotations = AnnotateNodeForTextSpans(syntaxFactsService, root, normalizedSpan, cancellationToken);
 
                 // If it urns out we don't need to annotate anything since all spans are merged to one span that covers the whole node...
-                if (newNodeAndAnnotations.Item1 == null)
+                if (newNodeAndAnnotations.newNode == null)
                 {
                     // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
                     return await IterateAllCodeCleanupProvidersAsync(document, document, n => SpecializedCollections.SingletonEnumerable(n.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
@@ -57,11 +57,14 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 var model = await document.GetSemanticModelForSpanAsync(spans.Collapse(), cancellationToken).ConfigureAwait(false);
 
                 // Replace the initial node and document with the annotated node.
-                var annotatedRoot = newNodeAndAnnotations.Item1;
+                var annotatedRoot = newNodeAndAnnotations.newNode;
                 var annotatedDocument = document.WithSyntaxRoot(annotatedRoot);
 
                 // Run the actual cleanup.
-                return await IterateAllCodeCleanupProvidersAsync(document, annotatedDocument, r => GetTextSpansFromAnnotation(r, newNodeAndAnnotations.Item2, cancellationToken), codeCleaners, cancellationToken).ConfigureAwait(false);
+                return await IterateAllCodeCleanupProvidersAsync(
+                    document, annotatedDocument,
+                    r => GetTextSpansFromAnnotation(r, newNodeAndAnnotations.annotations, cancellationToken),
+                    codeCleaners, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -92,39 +95,45 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 var newNodeAndAnnotations = AnnotateNodeForTextSpans(syntaxFactsService, root, normalizedSpan, cancellationToken);
 
                 // If it urns out we don't need to annotate anything since all spans are merged to one span that covers the whole node...
-                if (newNodeAndAnnotations.Item1 == null)
+                if (newNodeAndAnnotations.newNode == null)
                 {
                     // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
                     return await IterateAllCodeCleanupProvidersAsync(root, root, n => SpecializedCollections.SingletonEnumerable(n.FullSpan), workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Replace the initial node and document with the annotated node.
-                var annotatedRoot = newNodeAndAnnotations.Item1;
+                var annotatedRoot = newNodeAndAnnotations.newNode;
 
                 // Run the actual cleanup.
-                return await IterateAllCodeCleanupProvidersAsync(root, annotatedRoot, r => GetTextSpansFromAnnotation(r, newNodeAndAnnotations.Item2, cancellationToken), workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
+                return await IterateAllCodeCleanupProvidersAsync(
+                    root, annotatedRoot, 
+                    r => GetTextSpansFromAnnotation(r, newNodeAndAnnotations.annotations, cancellationToken),
+                    workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private IEnumerable<TextSpan> GetTextSpansFromAnnotation(SyntaxNode node, List<ValueTuple<SyntaxAnnotation, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
+        private IEnumerable<TextSpan> GetTextSpansFromAnnotation(
+            SyntaxNode node,
+            List<(SyntaxAnnotation previousAnnotation, SyntaxAnnotation nextAnnotation)> annotations,
+            CancellationToken cancellationToken)
         {
             // Now try to retrieve the text span from the annotations injected into the node.
             foreach (var annotationPair in annotations)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var previousMarkerAnnotation = annotationPair.Item1;
-                var nextMarkerAnnotation = annotationPair.Item2;
+                var previousMarkerAnnotation = annotationPair.previousAnnotation;
+                var nextMarkerAnnotation = annotationPair.nextAnnotation;
 
                 var previousTokenMarker = SpanMarker.FromAnnotation(previousMarkerAnnotation);
                 var nextTokenMarker = SpanMarker.FromAnnotation(nextMarkerAnnotation);
 
                 var previousTokens = node.GetAnnotatedNodesAndTokens(previousMarkerAnnotation).Where(n => n.IsToken).Select(n => n.AsToken());
                 var nextTokens = node.GetAnnotatedNodesAndTokens(nextMarkerAnnotation).Where(n => n.IsToken).Select(n => n.AsToken());
-
+                
                 // Check whether we can use the tokens we got back from the node.
-                TextSpan span;
-                if (TryGetTextSpanFromAnnotation(previousTokenMarker, nextTokenMarker, node, previousTokens, nextTokens, out span))
+                if (TryGetTextSpanFromAnnotation(previousTokenMarker, nextTokenMarker, node, previousTokens, nextTokens,
+                        out var span))
                 {
                     yield return span;
                 }
@@ -254,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// Inject annotations into the node so that it can re-calculate spans for each code cleaner after each tree transformation.
         /// </summary>
-        private ValueTuple<SyntaxNode, List<ValueTuple<SyntaxAnnotation, SyntaxAnnotation>>> AnnotateNodeForTextSpans(
+        private (SyntaxNode newNode, List<(SyntaxAnnotation previous, SyntaxAnnotation next)> annotations) AnnotateNodeForTextSpans(
             ISyntaxFactsService syntaxFactsService, SyntaxNode root, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
         {
             // Get spans where the tokens around the spans are not overlapping with the spans.
@@ -262,22 +271,19 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
             // Build token annotation map
             var tokenAnnotationMap = new Dictionary<SyntaxToken, List<SyntaxAnnotation>>();
-            var annotations = new List<ValueTuple<SyntaxAnnotation, SyntaxAnnotation>>();
+            var annotations = new List<(SyntaxAnnotation previous, SyntaxAnnotation next)>();
             foreach (var span in nonOverlappingSpans)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                SyntaxToken previousToken;
-                SyntaxToken startToken;
-                SyntaxToken endToken;
-                SyntaxToken nextToken;
-                GetTokensAroundSpan(root, span, out previousToken, out startToken, out endToken, out nextToken);
+                GetTokensAroundSpan(root, span, 
+                    out var previousToken, out var startToken, out var endToken, out var nextToken);
 
                 // Create marker to insert
-                SpanMarker startMarker = new SpanMarker(type: (previousToken.RawKind == 0) ? SpanMarkerType.BeginningOfFile : SpanMarkerType.Normal,
+                var startMarker = new SpanMarker(type: (previousToken.RawKind == 0) ? SpanMarkerType.BeginningOfFile : SpanMarkerType.Normal,
                                                         oppositeMarkerType: (nextToken.RawKind == 0) ? SpanMarkerType.EndOfFile : SpanMarkerType.Normal);
 
-                SpanMarker endMarker = new SpanMarker(type: (nextToken.RawKind == 0) ? SpanMarkerType.EndOfFile : SpanMarkerType.Normal,
+                var endMarker = new SpanMarker(type: (nextToken.RawKind == 0) ? SpanMarkerType.EndOfFile : SpanMarkerType.Normal,
                                                       oppositeMarkerType: (previousToken.RawKind == 0) ? SpanMarkerType.BeginningOfFile : SpanMarkerType.Normal);
 
                 // Set proper tokens
@@ -289,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 tokenAnnotationMap.GetOrAdd(nextToken, _ => new List<SyntaxAnnotation>()).Add(endMarker.Annotation);
 
                 // Remember markers
-                annotations.Add(new ValueTuple<SyntaxAnnotation, SyntaxAnnotation>(startMarker.Annotation, endMarker.Annotation));
+                annotations.Add((startMarker.Annotation, endMarker.Annotation));
             }
 
             // Do a quick check.
@@ -297,12 +303,12 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             if (CleanupWholeNode(annotations))
             {
                 // This will indicate that no annotation is needed.
-                return default(ValueTuple<SyntaxNode, List<ValueTuple<SyntaxAnnotation, SyntaxAnnotation>>>);
+                return default((SyntaxNode, List<(SyntaxAnnotation, SyntaxAnnotation)>));
             }
 
             // Inject annotations
             var newNode = InjectAnnotations(root, tokenAnnotationMap);
-            return ValueTuple.Create(newNode, annotations);
+            return (newNode, annotations);
         }
 
         /// <summary>
@@ -318,13 +324,10 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             foreach (var span in spans)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                var spanAlignedToTokens = GetSpanAlignedToTokens(syntaxFactsService, root, span, out var startToken, out var endToken);
 
-                SyntaxToken startToken;
-                SyntaxToken endToken;
-                TextSpan spanAlignedToTokens = GetSpanAlignedToTokens(syntaxFactsService, root, span, out startToken, out endToken);
-
-                SyntaxToken previousToken = startToken.GetPreviousToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
-                SyntaxToken nextToken = endToken.GetNextToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
+                var previousToken = startToken.GetPreviousToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
+                var nextToken = endToken.GetNextToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
 
                 // Make sure the previous and next tokens we found do not overlap with any existing spans. If they do, merge two spans.
                 previousToken = (previousToken.RawKind == 0) ? root.GetFirstToken(includeZeroWidth: true) : previousToken;
@@ -418,15 +421,15 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             return token;
         }
 
-        private bool CleanupWholeNode(List<ValueTuple<SyntaxAnnotation, SyntaxAnnotation>> annotations)
+        private bool CleanupWholeNode(List<(SyntaxAnnotation previous, SyntaxAnnotation next)> annotations)
         {
             if (annotations.Count != 1)
             {
                 return false;
             }
 
-            var startMarker = SpanMarker.FromAnnotation(annotations[0].Item1);
-            var endMarker = SpanMarker.FromAnnotation(annotations[0].Item2);
+            var startMarker = SpanMarker.FromAnnotation(annotations[0].previous);
+            var endMarker = SpanMarker.FromAnnotation(annotations[0].next);
 
             return startMarker.Type == SpanMarkerType.BeginningOfFile && endMarker.Type == SpanMarkerType.EndOfFile;
         }

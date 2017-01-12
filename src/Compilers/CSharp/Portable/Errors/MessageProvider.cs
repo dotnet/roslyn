@@ -259,5 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var node = (AttributeSyntax)attributeSyntax;
             diagnostics.Add(ErrorCode.ERR_AttributeParameterRequired2, node.Name.Location, parameterName1, parameterName2);
         }
+
+        public override int ERR_BadAssemblyName => (int)ErrorCode.ERR_BadAssemblyName;
     }
 }

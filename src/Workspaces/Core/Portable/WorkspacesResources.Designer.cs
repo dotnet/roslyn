@@ -377,20 +377,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;, it has no deserialization reader..
+        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;..
         /// </summary>
-        internal static string Cannot_deserialize_type_0_it_has_no_deserialization_reader {
+        internal static string Cannot_deserialize_type_0 {
             get {
-                return ResourceManager.GetString("Cannot_deserialize_type_0_it_has_no_deserialization_reader", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;, no binder supplied..
-        /// </summary>
-        internal static string Cannot_deserialize_type_0_no_binder_supplied {
-            get {
-                return ResourceManager.GetString("Cannot_deserialize_type_0_no_binder_supplied", resourceCulture);
+                return ResourceManager.GetString("Cannot_deserialize_type_0", resourceCulture);
             }
         }
         
@@ -419,6 +410,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Cannot_open_project_0_because_the_language_1_is_not_supported {
             get {
                 return ResourceManager.GetString("Cannot_open_project_0_because_the_language_1_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot serialize type &apos;{0}&apos;..
+        /// </summary>
+        internal static string Cannot_serialize_type_0 {
+            get {
+                return ResourceManager.GetString("Cannot_serialize_type_0", resourceCulture);
             }
         }
         
@@ -513,6 +513,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deserialization reader for &apos;{0}&apos; read incorrect number of values..
+        /// </summary>
+        internal static string Deserialization_reader_for_0_read_incorrect_number_of_values {
+            get {
+                return ResourceManager.GetString("Deserialization_reader_for_0_read_incorrect_number_of_values", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Destination location was from a different tree..
         /// </summary>
         internal static string Destination_location_was_from_a_different_tree {
@@ -603,20 +612,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ends with Async.
-        /// </summary>
-        internal static string Ends_with_Async {
-            get {
-                return ResourceManager.GetString("Ends_with_Async", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Enum.
         /// </summary>
         internal static string Enum {
             get {
                 return ResourceManager.GetString("Enum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error.
+        /// </summary>
+        internal static string Error {
+            get {
+                return ResourceManager.GetString("Error", resourceCulture);
             }
         }
         
@@ -864,6 +873,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Missing prefix: &apos;{0}&apos;.
+        /// </summary>
+        internal static string Missing_prefix_colon_0 {
+            get {
+                return ResourceManager.GetString("Missing_prefix_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing suffix: &apos;{0}&apos;.
+        /// </summary>
+        internal static string Missing_suffix_colon_0 {
+            get {
+                return ResourceManager.GetString("Missing_suffix_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name can be simplified..
         /// </summary>
         internal static string Name_can_be_simplified {
@@ -909,21 +936,30 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Non-Field Members.
+        /// </summary>
+        internal static string Non_Field_Members {
+            get {
+                return ResourceManager.GetString("Non_Field_Members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to None.
+        /// </summary>
+        internal static string None {
+            get {
+                return ResourceManager.GetString("None", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Option &apos;{0}&apos; has an unsupported type to use with {1}. You should specify a parsing function..
         /// </summary>
         internal static string Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_function {
             get {
                 return ResourceManager.GetString("Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_funct" +
                         "ion", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Non-Field Members.
-        /// </summary>
-        internal static string Non_Field_Members {
-            get {
-                return ResourceManager.GetString("Non_Field_Members", resourceCulture);
             }
         }
         
@@ -1145,6 +1181,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Suggestion.
+        /// </summary>
+        internal static string Suggestion {
+            get {
+                return ResourceManager.GetString("Suggestion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Supplied diagnostic cannot be null..
         /// </summary>
         internal static string Supplied_diagnostic_cannot_be_null {
@@ -1168,6 +1213,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Temporary_storage_cannot_be_written_more_than_once {
             get {
                 return ResourceManager.GetString("Temporary_storage_cannot_be_written_more_than_once", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The first word, &apos;{0}&apos;, must begin with a lower case character.
+        /// </summary>
+        internal static string The_first_word_0_must_begin_with_a_lower_case_character {
+            get {
+                return ResourceManager.GetString("The_first_word_0_must_begin_with_a_lower_case_character", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The first word, &apos;{0}&apos;, must begin with an upper case character.
+        /// </summary>
+        internal static string The_first_word_0_must_begin_with_an_upper_case_character {
+            get {
+                return ResourceManager.GetString("The_first_word_0_must_begin_with_an_upper_case_character", resourceCulture);
             }
         }
         
@@ -1280,11 +1343,56 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{0}&apos; cannot be written, it does not implement IObjectWritable.
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; is not understood by the serialization binder..
         /// </summary>
-        internal static string The_type_0_cannot_be_written_it_does_not_implement_IObjectWritable {
+        internal static string The_type_0_is_not_understood_by_the_serialization_binder {
             get {
-                return ResourceManager.GetString("The_type_0_cannot_be_written_it_does_not_implement_IObjectWritable", resourceCulture);
+                return ResourceManager.GetString("The_type_0_is_not_understood_by_the_serialization_binder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These non-leading words must begin with a lowercase letter: {0}.
+        /// </summary>
+        internal static string These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0 {
+            get {
+                return ResourceManager.GetString("These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These non-leading words must begin with an upper case letter: {0}.
+        /// </summary>
+        internal static string These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0 {
+            get {
+                return ResourceManager.GetString("These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These words cannot contain lower case characters: {0}.
+        /// </summary>
+        internal static string These_words_cannot_contain_lower_case_characters_colon_0 {
+            get {
+                return ResourceManager.GetString("These_words_cannot_contain_lower_case_characters_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These words cannot contain upper case characters: {0}.
+        /// </summary>
+        internal static string These_words_cannot_contain_upper_case_characters_colon_0 {
+            get {
+                return ResourceManager.GetString("These_words_cannot_contain_upper_case_characters_colon_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These words must begin with upper case characters: {0}.
+        /// </summary>
+        internal static string These_words_must_begin_with_upper_case_characters_colon_0 {
+            get {
+                return ResourceManager.GetString("These_words_must_begin_with_upper_case_characters_colon_0", resourceCulture);
             }
         }
         

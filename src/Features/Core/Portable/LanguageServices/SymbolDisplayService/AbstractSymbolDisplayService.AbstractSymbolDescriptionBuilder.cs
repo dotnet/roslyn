@@ -616,8 +616,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 var partsList = partsArray.Flatten().ToList();
                 if (partsList.Count > 0)
                 {
-                    IList<SymbolDisplayPart> existingParts;
-                    if (!_groupMap.TryGetValue(group, out existingParts))
+                    if (!_groupMap.TryGetValue(group, out var existingParts))
                     {
                         existingParts = new List<SymbolDisplayPart>();
                         _groupMap.Add(group, existingParts);

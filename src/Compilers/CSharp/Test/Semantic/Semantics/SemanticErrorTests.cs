@@ -15738,8 +15738,15 @@ public class C
     public static void Test(int age , string Name)
     { }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = 1740, Line = 6, Column = 29 } });
+            var compilation = CSharpTestBase.CreateCompilationWithMscorlib(text);
+            compilation.VerifyDiagnostics(
+                // (6,29): error CS1740: Named argument 'Name' cannot be specified multiple times
+                //             Test(Name: "5", Name: "");
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "Name").WithArguments("Name").WithLocation(6, 29),
+                // (6,13): error CS7036: There is no argument given that corresponds to the required formal parameter 'age' of 'C.Test(int, string)'
+                //             Test(Name: "5", Name: "");
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("age", "C.Test(int, string)").WithLocation(6, 13)
+                );
         }
 
         [Fact]
@@ -23267,6 +23274,45 @@ class Program
                 // (4,19): error CS0161: 'Program.M(object, object)': not all code paths return a value
                 //     static object M(object obj, object value)
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("Program.M(object, object)").WithLocation(4, 19));
+        }
+
+        [Fact]
+        public void ThrowInExpressionTree()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        static bool b = true;
+        static object o = string.Empty;
+        static void Main(string[] args)
+        {
+            Expression<Func<object>> e1 = () => o ?? throw null;
+            Expression<Func<object>> e2 = () => b ? throw null : o;
+            Expression<Func<object>> e3 = () => b ? o : throw null;
+            Expression<Func<object>> e4 = () => throw null;
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (13,54): error CS8188: An expression tree may not contain a throw-expression.
+                //             Expression<Func<object>> e1 = () => o ?? throw null;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsThrowExpression, "throw null").WithLocation(13, 54),
+                // (14,53): error CS8188: An expression tree may not contain a throw-expression.
+                //             Expression<Func<object>> e2 = () => b ? throw null : o;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsThrowExpression, "throw null").WithLocation(14, 53),
+                // (15,57): error CS8188: An expression tree may not contain a throw-expression.
+                //             Expression<Func<object>> e3 = () => b ? o : throw null;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsThrowExpression, "throw null").WithLocation(15, 57),
+                // (16,49): error CS8188: An expression tree may not contain a throw-expression.
+                //             Expression<Func<object>> e4 = () => throw null;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsThrowExpression, "throw null").WithLocation(16, 49)
+                );
         }
     }
 }

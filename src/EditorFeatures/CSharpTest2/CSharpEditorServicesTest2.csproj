@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <StartupObject />
@@ -130,11 +131,6 @@
     <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj">
       <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
       <Name>TestUtilities</Name>
-      <Aliases>TestUtilitiesPortable</Aliases>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
-      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
-      <Name>VisualStudioEditor</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj">
       <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
@@ -144,16 +140,15 @@
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{16E93074-4252-466C-89A3-3B905ABAF779}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.CSharp2.UnitTests</AssemblyName>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="PresentationCore" />

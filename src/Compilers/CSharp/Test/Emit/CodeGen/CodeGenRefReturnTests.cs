@@ -140,17 +140,48 @@ class Program
     {
         return ref P;
     }
+
+    public static void Main()
+    {
+        var local = 42;   // must be real local
+        P = local;
+        P = local;  // assign again, should not use stack local
+        System.Console.WriteLine(P);
+    }
 }
 ";
 
-            CompileAndVerifyRef(text).VerifyIL("Program.M()", @"
+            var v = CompileAndVerifyRef(text, expectedOutput: "42");
+
+            v.VerifyIL("Program.M()", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  call       ""ref int Program.P.get""
   IL_0005:  ret
 }");
+
+            v.VerifyIL("Program.Main()", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (int V_0) //local
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  call       ""ref int Program.P.get""
+  IL_0008:  ldloc.0
+  IL_0009:  stind.i4
+  IL_000a:  call       ""ref int Program.P.get""
+  IL_000f:  ldloc.0
+  IL_0010:  stind.i4
+  IL_0011:  call       ""ref int Program.P.get""
+  IL_0016:  ldind.i4
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
+}");
+
         }
+
 
         [Fact]
         public void RefReturnClassInstanceProperty()
@@ -2486,5 +2517,80 @@ public class A<T>
                 );
         }
 
+        [Fact]
+        public void ThrowRefReturn()
+        {
+            var text = @"using System;
+class Program
+{
+    static ref int P1 { get => throw new E(1); }
+    static ref int P2 => throw new E(2);
+    static ref int M() => throw new E(3);
+
+    public static void Main()
+    {
+        ref int L() => throw new E(4);
+        D d = () => throw new E(5);
+
+        try { ref int x = ref P1; }  catch (E e) { Console.Write(e.Value); }
+        try { ref int x = ref P2; }  catch (E e) { Console.Write(e.Value); }
+        try { ref int x = ref M(); } catch (E e) { Console.Write(e.Value); }
+        try { ref int x = ref L(); } catch (E e) { Console.Write(e.Value); }
+        try { ref int x = ref d(); } catch (E e) { Console.Write(e.Value); }
+    }
+}
+delegate ref int D();
+class E : Exception
+{
+    public int Value;
+    public E(int value) { this.Value = value; }
+}
+";
+            var v = CompileAndVerify(text, expectedOutput: "12345");
+        }
+
+        [Fact]
+        public void NoRefThrow()
+        {
+            var text = @"using System;
+class Program
+{
+    static ref int P1 { get => ref throw new E(1); }
+    static ref int P2 => ref throw new E(2);
+    static ref int M() => ref throw new E(3);
+
+    public static void Main()
+    {
+        ref int L() => ref throw new E(4);
+        D d = () => ref throw new E(5);
+        L();
+        d();
+    }
+}
+delegate ref int D();
+class E : Exception
+{
+    public int Value;
+    public E(int value) { this.Value = value; }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (4,36): error CS8115: A throw expression is not allowed in this context.
+                //     static ref int P1 { get => ref throw new E(1); }
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(4, 36),
+                // (5,30): error CS8115: A throw expression is not allowed in this context.
+                //     static ref int P2 => ref throw new E(2);
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(5, 30),
+                // (6,31): error CS8115: A throw expression is not allowed in this context.
+                //     static ref int M() => ref throw new E(3);
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(6, 31),
+                // (10,28): error CS8115: A throw expression is not allowed in this context.
+                //         ref int L() => ref throw new E(4);
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(10, 28),
+                // (11,25): error CS8115: A throw expression is not allowed in this context.
+                //         D d = () => ref throw new E(5);
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(11, 25)
+                );
+        }
     }
 }

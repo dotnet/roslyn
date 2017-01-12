@@ -659,7 +659,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)_innermostFramePointer != null)
             {
                 proxies.TryGetValue(_innermostFramePointer, out oldInnermostFrameProxy);
-                if (_analysis.NeedsParentFrame.Contains(node))
+                if (_analysis.NeedsParentFrame.Contains(node) &&
+                    // If the frame pointer is a struct type that means the frame is a struct
+                    // passed by-ref to a local function. Capturing parent frames for local
+                    // functions is performed in RemapLambdaOrLocalFunction, rather than here
+                    // (since struct frame pointers should never be captured, but instead be
+                    // passed in a list to the needed local functions).
+                    !(_innermostFramePointer.Kind == SymbolKind.Local &&
+                      ((LocalSymbol)_innermostFramePointer).Type.IsValueType))
                 {
                     var capturedFrame = LambdaCapturedVariable.Create(frame, _innermostFramePointer, ref _synthesizedFieldNameIdDispenser);
                     FieldSymbol frameParent = capturedFrame.AsMember(frameType);
@@ -883,12 +890,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Method.MethodKind == MethodKind.LocalFunction)
             {
-                var rewrittenArguments = this.VisitList(node.Arguments);
-
                 var withArguments = node.Update(
                     node.ReceiverOpt,
                     node.Method,
-                    rewrittenArguments,
+                    this.VisitList(node.Arguments),
                     node.ArgumentNamesOpt,
                     node.ArgumentRefKindsOpt,
                     node.IsDelegateCall,
@@ -896,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.InvokedAsExtensionMethod,
                     node.ArgsToParamsOpt,
                     node.ResultKind,
-                    node.Type);
+                    this.VisitType(node.Type));
 
                 return PartiallyLowerLocalFunctionReference(withArguments);
             }
@@ -1140,7 +1145,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
             {
-                return PartiallyLowerLocalFunctionReference(node);
+                var rewritten = node.Update(
+                    node.Argument,
+                    node.MethodOpt,
+                    node.IsExtensionMethod,
+                    this.VisitType(node.Type));
+
+                return PartiallyLowerLocalFunctionReference(rewritten);
             }
             return base.VisitDelegateCreationExpression(node);
         }
@@ -1170,7 +1181,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.ConversionKind == ConversionKind.MethodGroup &&
                 conversion.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
             {
-                return PartiallyLowerLocalFunctionReference(conversion);
+                var rewritten = conversion.Update(
+                    conversion.Operand,
+                    conversion.Conversion,
+                    conversion.IsBaseConversion,
+                    conversion.Checked,
+                    conversion.ExplicitCastInCode,
+                    conversion.ConstantValueOpt,
+                    this.VisitType(conversion.Type));
+
+                return PartiallyLowerLocalFunctionReference(rewritten);
             }
             return base.VisitConversion(conversion);
         }

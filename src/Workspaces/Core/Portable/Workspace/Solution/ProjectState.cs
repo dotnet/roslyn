@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<DocumentId, DocumentState> documentStates,
             ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates,
             AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
-            AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion,
-            ValueSource<ProjectStateChecksums> lazyChecksums)
+            AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion)
         {
             _projectInfo = projectInfo;
             _solutionServices = solutionServices;
@@ -55,8 +54,6 @@ namespace Microsoft.CodeAnalysis
             _lazyLatestDocumentVersion = lazyLatestDocumentVersion;
             _lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
 
-            // for now, let it re-calculate if anything changed.
-            // TODO: optimize this so that we only re-calcuate checksums that are actually changed
             _lazyChecksums = new AsyncLazy<ProjectStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
@@ -90,8 +87,6 @@ namespace Microsoft.CodeAnalysis
             _lazyLatestDocumentVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(docStates, additionalDocStates, c), cacheResult: true);
             _lazyLatestDocumentTopLevelChangeVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(docStates, additionalDocStates, c), cacheResult: true);
 
-            // for now, let it re-calculate if anything changed.
-            // TODO: optimize this so that we only re-calcuate checksums that are actually changed
             _lazyChecksums = new AsyncLazy<ProjectStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
@@ -149,8 +144,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<DocumentId, DocumentState> newDocumentStates,
             ImmutableDictionary<DocumentId, TextDocumentState> newAdditionalDocumentStates)
         {
-            VersionStamp oldVersion;
-            if (_lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out oldVersion))
+            if (_lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out var oldVersion))
             {
                 return new AsyncLazy<VersionStamp>(c => ComputeTopLevelChangeTextVersionAsync(oldVersion, newDocument, c), cacheResult: true);
             }
@@ -319,15 +313,13 @@ namespace Microsoft.CodeAnalysis
 
         public DocumentState GetDocumentState(DocumentId documentId)
         {
-            DocumentState state;
-            _documentStates.TryGetValue(documentId, out state);
+            _documentStates.TryGetValue(documentId, out var state);
             return state;
         }
 
         public TextDocumentState GetAdditionalDocumentState(DocumentId documentId)
         {
-            TextDocumentState state;
-            _additionalDocumentStates.TryGetValue(documentId, out state);
+            _additionalDocumentStates.TryGetValue(documentId, out var state);
             return state;
         }
 
@@ -338,10 +330,8 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<DocumentId, DocumentState> documentStates = null,
             ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates = null,
             AsyncLazy<VersionStamp> latestDocumentVersion = null,
-            AsyncLazy<VersionStamp> latestDocumentTopLevelChangeVersion = null,
-            ValueSource<ProjectStateChecksums> lazyChecksums = null)
+            AsyncLazy<VersionStamp> latestDocumentTopLevelChangeVersion = null)
         {
-            // for now, re-calculate all checksums when anything changed
             return new ProjectState(
                 projectInfo ?? _projectInfo,
                 _languageServices,
@@ -351,8 +341,7 @@ namespace Microsoft.CodeAnalysis
                 documentStates ?? _documentStates,
                 additionalDocumentStates ?? _additionalDocumentStates,
                 latestDocumentVersion ?? _lazyLatestDocumentVersion,
-                latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion,
-                lazyChecksums ?? _lazyChecksums);
+                latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion);
         }
 
         public ProjectState UpdateName(string name)
@@ -606,12 +595,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newDocumentStates = this.DocumentStates.SetItem(newDocument.Id, newDocument);
-
-            AsyncLazy<VersionStamp> dependentDocumentVersion;
-            AsyncLazy<VersionStamp> dependentSemanticVersion;
             GetLatestDependentVersions(
                 newDocumentStates, _additionalDocumentStates, oldDocument, newDocument, recalculateDependentVersions, textChanged,
-                out dependentDocumentVersion, out dependentSemanticVersion);
+                out var dependentDocumentVersion, out var dependentSemanticVersion);
 
             return this.With(
                 documentStates: newDocumentStates,
@@ -630,12 +616,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newDocumentStates = this.AdditionalDocumentStates.SetItem(newDocument.Id, newDocument);
-
-            AsyncLazy<VersionStamp> dependentDocumentVersion;
-            AsyncLazy<VersionStamp> dependentSemanticVersion;
             GetLatestDependentVersions(
                 _documentStates, newDocumentStates, oldDocument, newDocument, recalculateDependentVersions, textChanged,
-                out dependentDocumentVersion, out dependentSemanticVersion);
+                out var dependentDocumentVersion, out var dependentSemanticVersion);
 
             return this.With(
                 additionalDocumentStates: newDocumentStates,
@@ -655,17 +638,14 @@ namespace Microsoft.CodeAnalysis
 
             if (recalculateDependentVersions)
             {
-                VersionStamp oldVersion;
-                if (oldDocument.TryGetTextVersion(out oldVersion))
+                if (oldDocument.TryGetTextVersion(out var oldVersion))
                 {
-                    VersionStamp documentVersion;
-                    if (!_lazyLatestDocumentVersion.TryGetValue(out documentVersion) || documentVersion == oldVersion)
+                    if (!_lazyLatestDocumentVersion.TryGetValue(out var documentVersion) || documentVersion == oldVersion)
                     {
                         recalculateDocumentVersion = true;
                     }
 
-                    VersionStamp semanticVersion;
-                    if (!_lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out semanticVersion) || semanticVersion == oldVersion)
+                    if (!_lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out var semanticVersion) || semanticVersion == oldVersion)
                     {
                         recalculateSemanticVersion = true;
                     }

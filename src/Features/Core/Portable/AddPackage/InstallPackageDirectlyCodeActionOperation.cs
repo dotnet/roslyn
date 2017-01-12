@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
         private readonly string _source;
         private readonly string _packageName;
         private readonly string _versionOpt;
+        private readonly bool _includePrerelease;
         private readonly bool _isLocal;
         private readonly List<string> _projectsWithMatchingVersion;
 
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             string source,
             string packageName,
             string versionOpt,
+            bool includePrerelease,
             bool isLocal)
         {
             _installerService = installerService;
@@ -37,7 +39,9 @@ namespace Microsoft.CodeAnalysis.AddPackage
             _source = source;
             _packageName = packageName;
             _versionOpt = versionOpt;
+            _includePrerelease = includePrerelease;
             _isLocal = isLocal;
+
             if (versionOpt != null)
             {
                 const int projectsToShow = 5;
@@ -59,10 +63,12 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
         internal override bool ApplyDuringTests => true;
 
-        internal override bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        internal override bool TryApply(
+            Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             return _installerService.TryInstallPackage(
-                workspace, _document.Id, _source, _packageName, _versionOpt, cancellationToken);
+                workspace, _document.Id, _source, _packageName, 
+                _versionOpt, _includePrerelease, cancellationToken);
         }
     }
 }

@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             F.Assignment(F.Local(resultVariable, True), F.Me),
                             If(Method.IsShared OrElse Method.MeParameter.Type.IsReferenceType,
                                     F.Goto(thisInitialized),
-                                    DirectCast(F.Block(), BoundStatement))
+                                    DirectCast(F.StatementList(), BoundStatement))
                         ),
                     elseClause:=
                         F.Assignment(F.Local(resultVariable, True), F.[New](StateMachineType.Constructor, F.Literal(0)))

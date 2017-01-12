@@ -14,14 +14,17 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(symbol.IsTupleType);
                 visitor.WriteSymbolKey(symbol.TupleUnderlyingType);
-                visitor.WriteStringArray(symbol.TupleElementNames);
 
+                var friendlyNames = ArrayBuilder<String>.GetInstance();
                 var locations = ArrayBuilder<Location>.GetInstance();
-                for (var i = 0; i < symbol.TupleElementTypes.Length; i++)
+
+                foreach (var element in symbol.TupleElements)
                 {
-                    locations.Add(symbol.GetMembers("Item" + (i + 1)).FirstOrDefault()?.Locations.FirstOrDefault());
+                    friendlyNames.Add(element.IsImplicitlyDeclared ? null : element.Name);
+                    locations.Add(element.Locations.FirstOrDefault());
                 }
 
+                visitor.WriteStringArray(friendlyNames.ToImmutableAndFree());
                 visitor.WriteLocationArray(locations.ToImmutableAndFree());
             }
 

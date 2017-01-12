@@ -20,6 +20,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         public async Task<ReferenceCount> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults,
             CancellationToken cancellationToken)
         {
+            if (syntaxNode == null)
+            {
+                return null;
+            }
+
             var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (remoteHostClient == null)
             {
@@ -37,6 +42,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             CancellationToken cancellationToken)
         {
+            if (syntaxNode == null)
+            {
+                return null;
+            }
+
             var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (remoteHostClient == null)
             {
@@ -54,6 +64,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         public async Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             CancellationToken cancellationToken)
         {
+            if (syntaxNode == null)
+            {
+                return null;
+            }
+
             var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (remoteHostClient == null)
             {
@@ -71,6 +86,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         public async Task<string> GetFullyQualifiedName(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             CancellationToken cancellationToken)
         {
+            if (syntaxNode == null)
+            {
+                return null;
+            }
+
             var remoteHostClient = await solution.Workspace.Services.GetService<IRemoteHostClientService>().GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (remoteHostClient == null)
             {

@@ -274,8 +274,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind())
             {
                 case SyntaxKind.ExpressionStatement:
-                case SyntaxKind.WhileStatement:
-                case SyntaxKind.DoStatement:
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:
@@ -588,9 +586,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeSymbol BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)
         {
             Debug.Assert(
-                declarationNode.Kind() == SyntaxKind.SingleVariableDesignation ||
+                declarationNode is VariableDesignationSyntax ||
                 declarationNode.Kind() == SyntaxKind.VariableDeclaration ||
-                declarationNode.Kind() == SyntaxKind.DeclarationExpression);
+                declarationNode.Kind() == SyntaxKind.DeclarationExpression ||
+                declarationNode.Kind() == SyntaxKind.DiscardDesignation);
 
             // If the type is "var" then suppress errors when binding it. "var" might be a legal type
             // or it might not; if it is not then we do not want to report an error. If it is, then
@@ -882,11 +881,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
-                && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
-                && declTypeOpt.IsRestrictedType())
+            if (CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declTypeOpt, localDiagnostics, typeSyntax))
             {
-                Error(localDiagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declTypeOpt);
                 hasErrors = true;
             }
 
@@ -1715,7 +1711,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             var op1 = BindValue(node.Left, diagnostics, BindValueKind.Assignment); // , BIND_MEMBERSET);
             var op2 = BindValue(node.Right, diagnostics, BindValueKind.RValue); // , BIND_RVALUEREQUIRED);
 
+            if (op1.Kind == BoundKind.DiscardExpression)
+            {
+                op1 = InferTypeForDiscard((BoundDiscardExpression)op1, op2, diagnostics);
+            }
+
             return BindAssignment(node, op1, op2, diagnostics);
+        }
+
+        private BoundExpression InferTypeForDiscard(BoundDiscardExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
+        {
+            if (op2.Type == null)
+            {
+                return op1.FailInference(this, diagnostics);
+            }
+            else
+            {
+                return op1.SetInferredType(op2.Type);
+            }
         }
 
         private BoundAssignmentOperator BindAssignment(SyntaxNode node, BoundExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
@@ -1848,6 +1861,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.OutVariablePendingInference:
                 case BoundKind.OutDeconstructVarPendingInference:
                     Debug.Assert(valueKind == BindValueKind.RefOrOut);
+                    return expr;
+
+                case BoundKind.DiscardExpression:
+                    Debug.Assert(valueKind == BindValueKind.Assignment || valueKind == BindValueKind.RefOrOut);
                     return expr;
             }
 
@@ -3548,7 +3565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((object)returnType != null)
             {
-                if ((refKind != RefKind.None) != (returnRefKind != RefKind.None))
+                if ((refKind != RefKind.None) != (returnRefKind != RefKind.None) && expression.Kind != BoundKind.ThrowExpression)
                 {
                     var errorCode = refKind != RefKind.None
                         ? ErrorCode.ERR_MustNotHaveRefReturn

@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport;
+using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.SpellCheck;

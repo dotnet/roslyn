@@ -9,6 +9,61 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllInDocument1()
+        {
+            var input = @"
+class Program1
+{
+    static void Main()
+    {
+        {|FixAllInDocument:if|} (true) if (true) return;
+    }
+}
+";
+
+            var expected = @"
+class Program1
+{
+    static void Main()
+    {
+        if (true) { if (true) { return; } }
+    }
+}
+";
+
+            await TestAsync(input, expected);
+        }
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllInDocument2()
+        {
+            var input = @"
+class Program1
+{
+    static void Main()
+    {
+        if (true) {|FixAllInDocument:if|} (true) return;
+    }
+}
+";
+
+            var expected = @"
+class Program1
+{
+    static void Main()
+    {
+        if (true) { if (true) { return; } }
+    }
+}
+";
+
+            await TestAsync(input, expected);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
         {
             var input = @"

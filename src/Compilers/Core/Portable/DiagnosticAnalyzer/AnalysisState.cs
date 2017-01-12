@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly HashSet<SyntaxTree> _treesWithGeneratedSourceEvents;
         private readonly HashSet<ISymbol> _partialSymbolsWithGeneratedSourceEvents;
         private readonly CompilationData _compilationData;
+        private readonly CompilationOptions _compilationOptions;
         private bool _compilationStartGenerated;
         private bool _compilationEndGenerated;
 
@@ -63,11 +64,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ObjectPool<HashSet<CompilationEvent>> _compilationEventsPool;
         private readonly HashSet<CompilationEvent> _pooledEventsWithAnyActionsSet;
 
-        public AnalysisState(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationData compilationData)
+        public AnalysisState(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationData compilationData, CompilationOptions compilationOptions)
         {
             _gate = new object();
             _analyzerStateMap = CreateAnalyzerStateMap(analyzers, out _analyzerStates);
             _compilationData = compilationData;
+            _compilationOptions = compilationOptions;
             _pendingSourceEvents = new Dictionary<SyntaxTree, HashSet<CompilationEvent>>();
             _pendingNonSourceEvents = new HashSet<CompilationEvent>();
             _lazyAnalyzerActionCountsMap = null;
@@ -402,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerActionCounts>();
                 foreach (var analyzer in _analyzerStateMap.Keys)
                 {
-                    var actionCounts = await driver.GetAnalyzerActionCountsAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                    var actionCounts = await driver.GetAnalyzerActionCountsAsync(analyzer, _compilationOptions, cancellationToken).ConfigureAwait(false);
                     builder.Add(analyzer, actionCounts);
                 }
 

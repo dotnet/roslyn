@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     }
 
                     cancellationToken.ThrowIfCancellationRequested();
-                    var declarationInfo = await document.GetDeclarationInfoAsync(cancellationToken).ConfigureAwait(false);
+                    var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
 
                     foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
                     {

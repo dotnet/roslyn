@@ -1,4 +1,4 @@
-@echo off
+@if not defined EchoOn @echo off
 
 :: Prefer building with Dev15 and try the simple route first (we may be running from a DevCmdPrompt already)
 set CommonToolsDir=%VS150COMNTOOLS%

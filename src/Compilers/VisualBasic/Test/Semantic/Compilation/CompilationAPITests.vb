@@ -43,28 +43,60 @@ BC37257: Option 'CryptoKeyFile' must be an absolute path.
 
         <WorkItem(538778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538778")>
         <WorkItem(537623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537623")>
+        <WorkItem(233669, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=233669")>
         <Fact>
         Public Sub CompilationName()
             ' report an error, rather then silently ignoring the directory
             ' (see cli partition II 22.30) 
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("C:/foo/Test.exe"))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("C:\foo\Test.exe"))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("\foo/Test.exe"))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("C:Test.exe"))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("Te" & ChrW(0) & "st.exe"))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("  " & vbTab & "  "))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create(ChrW(&HD800)))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create(""))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create(" a"))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("\u2000a")) ' // U+2000 is whitespace
+            VisualBasicCompilation.Create("C:/foo/Test.exe").AssertTheseEmitDiagnostics(
+                <expected>
+BC30420: 'Sub Main' was not found in 'C:/foo/Test.exe'.
+BC37283: Invalid assembly name: Name contains invalid characters.
+                </expected>)
+            VisualBasicCompilation.Create("C:\foo\Test.exe", options:=TestOptions.ReleaseDll).AssertTheseDeclarationDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name contains invalid characters.
+                </expected>)
+            VisualBasicCompilation.Create("\foo/Test.exe", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name contains invalid characters.
+                </expected>)
+            VisualBasicCompilation.Create("C:Test.exe", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name contains invalid characters.
+                </expected>)
+            VisualBasicCompilation.Create("Te" & ChrW(0) & "st.exe", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name contains invalid characters.
+                </expected>)
+            VisualBasicCompilation.Create("  " & vbTab & "  ", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name cannot start with whitespace.
+                </expected>)
+            VisualBasicCompilation.Create(ChrW(&HD800), options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name contains invalid characters.
+                </expected>)
+            VisualBasicCompilation.Create("", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name cannot be empty.
+                </expected>)
+            VisualBasicCompilation.Create(" a", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics(
+                <expected>
+BC37283: Invalid assembly name: Name cannot start with whitespace.
+                </expected>)
+            VisualBasicCompilation.Create("\u2000a", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics( ' // U+2000 is whitespace
+                <expected>
+BC37283: Invalid assembly name: Name contains invalid characters.
+                </expected>)
 
             ' other characters than directory separators are ok:
-            VisualBasicCompilation.Create(";,*?<>#!@&")
-            VisualBasicCompilation.Create("foo")
-            VisualBasicCompilation.Create(".foo")
-            VisualBasicCompilation.Create("foo ") ' can end with whitespace
-            VisualBasicCompilation.Create("....")
-            VisualBasicCompilation.Create(Nothing)
+            VisualBasicCompilation.Create(";,*?<>#!@&", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
+            VisualBasicCompilation.Create("foo", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
+            VisualBasicCompilation.Create(".foo", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
+            VisualBasicCompilation.Create("foo ", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics() ' can end with whitespace
+            VisualBasicCompilation.Create("....", options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
+            VisualBasicCompilation.Create(Nothing, options:=TestOptions.ReleaseDll).AssertTheseEmitDiagnostics()
         End Sub
 
         <Fact>
@@ -1271,8 +1303,8 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
 
             Assert.True(tupleWithoutNames.IsTupleType)
             Assert.Equal("(System.Int32, System.String)", tupleWithoutNames.ToTestDisplayString())
-            Assert.True(tupleWithoutNames.TupleElementNames.IsDefault)
-            Assert.Equal({"System.Int32", "System.String"}, tupleWithoutNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.True(tupleWithoutNames.TupleElements.All(Function(e) e.IsImplicitlyDeclared))
+            Assert.Equal({"System.Int32", "System.String"}, tupleWithoutNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
             Assert.Equal(CInt(SymbolKind.NamedType), CInt(tupleWithoutNames.Kind))
         End Sub
 
@@ -1287,8 +1319,8 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
 
             Assert.True(tupleWithNames.IsTupleType)
             Assert.Equal("(Alice As System.Int32, Bob As System.String)", tupleWithNames.ToTestDisplayString())
-            Assert.Equal({"Alice", "Bob"}, tupleWithNames.TupleElementNames)
-            Assert.Equal({"System.Int32", "System.String"}, tupleWithNames.TupleElementTypes.Select(Function(t) t.ToTestDisplayString()))
+            Assert.Equal({"Alice", "Bob"}, tupleWithNames.TupleElements.SelectAsArray(Function(e) e.Name))
+            Assert.Equal({"System.Int32", "System.String"}, tupleWithNames.TupleElements.Select(Function(t) t.Type.ToTestDisplayString()))
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind)
         End Sub
 
@@ -1491,14 +1523,14 @@ End Class
 
             ' equivalent of vbc with no /moduleassemblyname specified:
             Dim c = VisualBasicCompilation.Create(assemblyName:=Nothing, options:=TestOptions.ReleaseModule, syntaxTrees:={Parse(source)}, references:={MscorlibRef})
-            c.VerifyDiagnostics()
+            c.VerifyEmitDiagnostics()
             Assert.Null(c.AssemblyName)
             Assert.Equal("?", c.Assembly.Name)
             Assert.Equal("?", c.Assembly.Identity.Name)
 
             ' no name is allowed for assembly as well, although it isn't useful:
             c = VisualBasicCompilation.Create(assemblyName:=Nothing, options:=TestOptions.ReleaseModule, syntaxTrees:={Parse(source)}, references:={MscorlibRef})
-            c.VerifyDiagnostics()
+            c.VerifyEmitDiagnostics()
             Assert.Null(c.AssemblyName)
             Assert.Equal("?", c.Assembly.Name)
             Assert.Equal("?", c.Assembly.Identity.Name)

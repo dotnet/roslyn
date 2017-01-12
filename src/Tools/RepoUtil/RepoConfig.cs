@@ -80,19 +80,18 @@ namespace RepoUtil
             var fixedPackagesList = ImmutableArray.CreateBuilder<NuGetPackage>();
             foreach (var prop in fixedPackages.Properties())
             {
-                if (prop.Value.Type == JTokenType.String)
+                var token = prop.Value;
+                var name = prop.Name;
+                if (token.Type == JTokenType.Array)
                 {
-                    var version = (string)prop.Value;
-                    var nugetRef = new NuGetPackage(prop.Name, version);
-                    fixedPackagesList.Add(nugetRef);
+                    foreach (var fixedPackage in (JArray)token)
+                    {
+                        fixedPackagesList.Add(ParseFixedPackage(name, fixedPackage));
+                    }
                 }
                 else
                 {
-                    foreach (var version in ((JArray)prop.Value).Values<string>())
-                    {
-                        var nugetRef = new NuGetPackage(prop.Name, version);
-                        fixedPackagesList.Add(nugetRef);
-                    }
+                    fixedPackagesList.Add(ParseFixedPackage(name, token));
                 }
             }
 
@@ -126,6 +125,22 @@ namespace RepoUtil
                 nuspecExcludes,
                 projectJsonExcludes,
                 msbuildGenerateData);
+        }
+
+        private static NuGetPackage ParseFixedPackage(string name, JToken token)
+        {
+            if (token.Type == JTokenType.String)
+            {
+                var version = (string)token;
+                return new NuGetPackage(name, version);
+            }
+            else
+            {
+                var objectPackage = (JObject)token;
+                return new NuGetPackage(name,
+                    (string)objectPackage["version"],
+                    (string)objectPackage["generateName"]);
+            }
         }
 
         private static GenerateData? ReadGenerateData(JObject obj, string propName)

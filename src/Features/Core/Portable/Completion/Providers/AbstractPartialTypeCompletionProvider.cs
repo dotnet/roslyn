@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var displayAndInsertionText = GetDisplayAndInsertionText(symbol, context);
 
-            return SymbolCompletionItem.Create(
+            return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayAndInsertionText.Item1,
                 insertionText: displayAndInsertionText.Item2,
                 symbol: symbol,
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
-        protected abstract ValueTuple<string, string> GetDisplayAndInsertionText(INamedTypeSymbol symbol, SyntaxContext context);
+        protected abstract (string displayText, string insertionText) GetDisplayAndInsertionText(INamedTypeSymbol symbol, SyntaxContext context);
 
         protected virtual IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(SyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
         {

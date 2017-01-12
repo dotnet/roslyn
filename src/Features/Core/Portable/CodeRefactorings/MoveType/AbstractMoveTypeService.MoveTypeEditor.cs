@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -217,7 +218,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     var symbol = (ITypeSymbol)State.SemanticDocument.SemanticModel.GetDeclaredSymbol(node, CancellationToken);
                     if (!semanticFacts.IsPartial(symbol, CancellationToken))
                     {
-                        documentEditor.SetModifiers(node, DeclarationModifiers.Partial);
+                        documentEditor.SetModifiers(node, 
+                            documentEditor.Generator.GetModifiers(node) | DeclarationModifiers.Partial);
                     }
 
                     if (removeAttributesAndComments)
@@ -226,6 +228,30 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                         documentEditor.RemoveAllComments(node);
                     }
                 }
+
+                documentEditor.ReplaceNode(State.TypeNode,
+                    (currentNode, generator) =>
+                    {
+                        var currentTypeNode = (TTypeDeclarationSyntax)currentNode;
+
+                        // Trim leading whitespace from the type so we don't have excessive
+                        // leading blank lines.
+                        return RemoveLeadingWhitespace(currentTypeNode);
+                    });
+            }
+
+            private TTypeDeclarationSyntax RemoveLeadingWhitespace(
+                TTypeDeclarationSyntax currentTypeNode)
+            {
+                var syntaxFacts = State.SemanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                var leadingTrivia = currentTypeNode.GetLeadingTrivia();
+                var afterWhitespace = leadingTrivia.SkipWhile(
+                    t => syntaxFacts.IsWhitespaceTrivia(t) || syntaxFacts.IsEndOfLineTrivia(t));
+
+                var withoutLeadingWhitespace = currentTypeNode.WithLeadingTrivia(afterWhitespace);
+                return withoutLeadingWhitespace.ReplaceToken(
+                    withoutLeadingWhitespace.GetFirstToken(),
+                    withoutLeadingWhitespace.GetFirstToken().WithAdditionalAnnotations(Formatter.Annotation));
             }
         }
     }

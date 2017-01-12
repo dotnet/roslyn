@@ -25,15 +25,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static string GetBeforeCaretText(CompletionItem item)
         {
-            string beforeCaretText;
-            item.Properties.TryGetValue("BeforeCaretText", out beforeCaretText);
+            item.Properties.TryGetValue("BeforeCaretText", out var beforeCaretText);
             return beforeCaretText;
         }
 
         public static string GetAfterCaretText(CompletionItem item)
         {
-            string afterCaretText;
-            item.Properties.TryGetValue("AfterCaretText", out afterCaretText);
+            item.Properties.TryGetValue("AfterCaretText", out var afterCaretText);
             return afterCaretText;
         }
     }

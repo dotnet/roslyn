@@ -42,8 +42,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
-            var options = syntaxContext.Options.GetOptionSet();
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
+            var options = syntaxContext.Options;
+            var syntaxTree = syntaxContext.Node.SyntaxTree;
+            var cancellationToken = syntaxContext.CancellationToken;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+            
+            var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
@@ -140,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // Put a diagnostic with the appropriate severity on the declaration-statement itself.
             syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptorWithSeverity(severity),
+                GetDescriptorWithSeverity(severity),
                 localDeclarationStatement.GetLocation(),
                 additionalLocations));
         }

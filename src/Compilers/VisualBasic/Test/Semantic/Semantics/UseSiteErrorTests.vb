@@ -675,5 +675,38 @@ BC30652: Reference required to assembly 'mincorlib, Version=0.0.0.0, Culture=neu
             Assert.Equal(TypeKind.Interface, compilation7.GetTypeByMetadataName("I1").TypeKind)
         End Sub
 
+        <Fact, WorkItem(15435, "https://github.com/dotnet/roslyn/issues/15435")>
+        Public Sub TestGettingAssemblyIdsFromDiagnostic1()
+            Dim source =
+            <compilation>
+                <file name="a.vb">
+Class C
+    Inherits ILErrors.ClassMethods
+
+    Public Overrides Function ReturnType1() As Integer
+        Return 0
+    End Function
+
+    Public Overrides Function ReturnType2() As Integer()
+        Return Nothing
+    End Function
+End Class
+    </file>
+            </compilation>
+
+            Dim compilation = CompileWithMissingReference(source)
+            Dim Diagnostics = compilation.GetDiagnostics()
+            Assert.True(Diagnostics.Any(Function(d) d.Code = ERRID.ERR_UnreferencedAssembly3))
+
+            For Each d In Diagnostics
+                If d.Code = ERRID.ERR_UnreferencedAssembly3 Then
+                    Dim actualAssemblyId = compilation.GetUnreferencedAssemblyIdentities(d).Single()
+                    Dim expectedAssemblyId As AssemblyIdentity = Nothing
+                    AssemblyIdentity.TryParseDisplayName("Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", expectedAssemblyId)
+
+                    Assert.Equal(actualAssemblyId, expectedAssemblyId)
+                End If
+            Next
+        End Sub
     End Class
 End Namespace

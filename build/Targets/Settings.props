@@ -1,17 +1,23 @@
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <Import Project="Versions.props"/>
+  <Import Project="Versions.props" />
 
   <PropertyGroup>
+    <JenkinsBuild>false</JenkinsBuild>
+    <JenkinsBuild Condition="'$(JENKINS_HOME)' != ''">true</JenkinsBuild>
+    <DeveloperBuild>false</DeveloperBuild>
+    <DeveloperBuild Condition="'$(OfficialBuild)' != 'true' AND '$(JenkinsBuild)' != 'true'">true</DeveloperBuild>
+
     <ProjectDir>$(MSBuildThisFileDirectory)..\..\</ProjectDir>
     <NuGetToolPath>$(ProjectDir)nuget.exe</NuGetToolPath>
     <ToolsetPackagesDir>$(ProjectDir)build\ToolsetPackages\</ToolsetPackagesDir>
     <ToolsetPackagesSemaphore>$(ToolsetPackagesDir)toolsetpackages.semaphore</ToolsetPackagesSemaphore>
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == ''">$(NUGET_PACKAGES)</NuGetPackageRoot> <!-- Respect environment variable if set -->
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and '$(OS)' == 'Windows_NT'">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and '$(OS)' != 'Windows_NT'">$(HOME)\.nuget\packages</NuGetPackageRoot>
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
     <ToolsetCompilerPackageVersion>2.0.0-rc2-61102-09</ToolsetCompilerPackageVersion>
+    <VSIXExpInstallerPackageName>RoslynTools.Microsoft.VSIXExpInstaller</VSIXExpInstallerPackageName>
+    <VSIXExpInstallerPackageVersion>0.2.1-beta</VSIXExpInstallerPackageVersion>
     <RoslynDiagnosticsNugetPackageVersion>1.2.0-beta2</RoslynDiagnosticsNugetPackageVersion>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\$(RoslynDiagnosticsNugetPackageVersion)\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <RoslynBuildUtilFilePath>$(NuGetPackageRoot)\Roslyn.Build.Util\0.9.4-portable\lib\dotnet\Roslyn.MSBuild.Util.dll</RoslynBuildUtilFilePath>
@@ -24,7 +30,7 @@
     <BaseIntermediateOutputPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\Binaries\Obj\$(MSBuildProjectName)'))\</BaseIntermediateOutputPath>
 
     <!-- Workaround until we move to Microsoft.Net.Compilers.nupkg with this fix: https://github.com/dotnet/roslyn/commit/05c12ebfcdd08a02dbceded5327a8da7a7df23be:
-         Use the Microsoft.Net.Compilers.props file with the fix checked into the repo instead of the one that comes along with the nuget package: 
+         Use the Microsoft.Net.Compilers.props file with the fix checked into the repo instead of the one that comes along with the nuget package:
          $(NuGetPackageRoot)\Microsoft.Net.Compilers\$(ToolsetCompilerPackageVersion)\build\Microsoft.Net.Compilers.props -->
     <ToolsetCompilerPropsFilePath>$(MSBuildThisFileDirectory)Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
 
@@ -42,9 +48,18 @@
     <CompilerGeneratorToolsDir>$(OutDir)Exes\DeployCompilerGeneratorToolsRuntime\</CompilerGeneratorToolsDir>
     <MSBuildAssemblyNameFragment>Core</MSBuildAssemblyNameFragment>
 
-    <!-- To copy .dll.config and .exe.config files of the referenced projects to the output dir 
+    <!-- To copy .dll.config and .exe.config files of the referenced projects to the output dir
          (see https://github.com/Microsoft/msbuild/issues/1307) -->
     <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.dll.config;.exe.config</AllowedReferenceRelatedFileExtensions>
+
+    <!-- This controls the places MSBuild will consult to resolve assembly references.  This is 
+         kept as minimal as possible to make our build reliable from machine to machine.  Global
+         locations such as GAC, AssemblyFoldersEx, etc ... are deliberately removed from this 
+         list as they will not be the same from machine to machine -->
+    <AssemblySearchPaths>
+      {TargetFrameworkDirectory};
+      {RawFileName};
+    </AssemblySearchPaths>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
@@ -53,29 +68,21 @@
     <DebugType>pdbonly</DebugType>
     <UseSharedCompilation>true</UseSharedCompilation>
 
-    <!-- This is a really hacky way to detect whether we are on a legacy or a willow based VS install.
-         Basically, we check for a registry key that will only exist in legacy VS installs, and assume
-         we are a willow based installation if our VSVersion is 15.0 and the registry key doesn't exist. -->
-    <IsVSBeforeDev15Preview4 Condition="'$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\15.0@InstallDir)' != ''">true</IsVSBeforeDev15Preview4>
-    <IsVSBeforeDev15Preview4 Condition="'$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\15.0@InstallDir)' != ''">true</IsVSBeforeDev15Preview4>
-    <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
-    <IsVSBeforeDev15Preview4 Condition="'$(IsVSBeforeDev15Preview4)' == 'true' AND Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\devenv.isolation.ini')">false</IsVSBeforeDev15Preview4>
+    <!-- Presently our code can build on machines with Dev14 or Dev15 but only successfully deploy
+         in the Dev15 environment.  -->
     <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
     <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
+    <DeployExtension Condition="'$(IsDev15RC)' != 'true' OR '$(VisualStudioVersion)' != '15.0'">false</DeployExtension>
+    <VisualStudioBuildToolsVersion>15.0.25929-RC2</VisualStudioBuildToolsVersion>
+
+    <!-- For the moment our Dev14 VSI suites must continue to use the Dev14 SDK. -->
+    <VisualStudioBuildToolsVersion Condition="'$(IsDev14VsiBuild)' == 'true'">14.3.25420</VisualStudioBuildToolsVersion>
   </PropertyGroup>
 
   <!-- Unix specific settings -->
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <!-- Point to the reference assemblies on unix -->
     <TargetFrameworkRootPath>$(MSBuildBinPath)\reference-assemblies\Framework</TargetFrameworkRootPath>
-
-    <!-- The /publicsign argument is required for the compiler, but the current MSBuild
-         build task can't be redirected and even if it could the new build task is not
-         built against the xplat MSBuild references so it can't be loaded properly. Providing
-         a response file works around the problem by directly adding the public sign argument
-         to all unix compilations. This shouldn't present a problem as it's impossible to
-         fully sign on unix at the moment anyway. Tracked by #7756. -->
-    <CompilerResponseFile>$(MSBuildThisFileDirectory)..\unix\extra_unix_args.rsp</CompilerResponseFile>
 
     <DebugType>portable</DebugType>
   </PropertyGroup>
@@ -98,7 +105,7 @@
     <DevEnvDir>$(DevEnvDir)\..\IDE</DevEnvDir>
     <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
     <CSharpCoreTargetsPath>$(BootstrapBuildPath)\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
     <VisualBasicCoreTargetsPath>$(BootstrapBuildPath)\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
@@ -187,35 +194,11 @@
     </When>
   </Choose>
 
-  <!-- Visual Studio specific properties -->
-  <Choose>
-    <When Condition="'$(VisualStudioVersion)' == '15.0' AND '$(IsVSBeforeDev15Preview4)' == 'true'">
-      <PropertyGroup>
-        <VisualStudioBuildToolsVersion>15.0.25201-dev15preview2</VisualStudioBuildToolsVersion>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(VisualStudioVersion)' == '15.0' AND '$(IsDev15RC)' == 'true'">
-      <PropertyGroup>
-        <VisualStudioBuildToolsVersion>15.0.25825-RC</VisualStudioBuildToolsVersion>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(VisualStudioVersion)' == '15.0'">
-      <PropertyGroup>
-        <VisualStudioBuildToolsVersion>15.0.25604-Preview4</VisualStudioBuildToolsVersion>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <VisualStudioBuildToolsVersion>14.3.25420</VisualStudioBuildToolsVersion>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
-
   <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
     <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
   </ItemGroup>
 
-  <!-- During bootstrap builds it's important to load our bootstrap tasks before doing any 
+  <!-- During bootstrap builds it's important to load our bootstrap tasks before doing any
        other imports (which could load a same named DLL) -->
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc"
              AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
@@ -227,10 +210,10 @@
              AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
 
-  <!-- 
-    Roslyn uses the WriteCodeFragment task to output generated assembly attributes.  In MSBuild 14.0 update 1 this task 
+  <!--
+    Roslyn uses the WriteCodeFragment task to output generated assembly attributes.  In MSBuild 14.0 update 1 this task
     produces non-deterministic output.  This is fixed in update 2 but until that is released we use a hand patched
-    version of the Task that is deterministic.  
+    version of the Task that is deterministic.
 
     MSBuild bug: https://github.com/Microsoft/msbuild/issues/408
     Bug tracking removing this: https://github.com/dotnet/roslyn/issues/8421
@@ -250,6 +233,6 @@
 
   <ImportGroup Label="WindowsImports" Condition="'$(OS)' != 'Windows_NT'">
     <!-- NuGet props aren't imported by default on *nix so we do that here -->
-    <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.props" Condition="'$(OS)' != 'Windows_NT'" />
+    <Import Project="$(MSBuildBinPath)\Microsoft.NuGet.props" Condition="'$(OS)' != 'Windows_NT'" />
   </ImportGroup>
 </Project>

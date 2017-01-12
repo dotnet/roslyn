@@ -7,12 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -45,11 +45,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Contract.ThrowIfNull(provider);
             Contract.ThrowIfNull(codeAction);
 
-            this.SourceProvider = sourceProvider;
-            this.Workspace = workspace;
-            this.SubjectBuffer = subjectBuffer;
-            this.Provider = provider;
-            this.CodeAction = codeAction;
+            SourceProvider = sourceProvider;
+            Workspace = workspace;
+            SubjectBuffer = subjectBuffer;
+            Provider = provider;
+            CodeAction = codeAction;
         }
 
         internal virtual CodeActionPriority Priority => CodeAction.Priority;
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public virtual bool TryGetTelemetryId(out Guid telemetryId)
         {
-            telemetryId = new Guid(GetTelemetryPrefix(this.CodeAction), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            telemetryId = new Guid(GetTelemetryPrefix(CodeAction), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
             return true;
         }
 
@@ -90,89 +90,58 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public void Invoke(CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
-            
-            // Create a task to do the actual async invocation of this action.
-            // For testing purposes mark that we still have an outstanding async 
-            // operation so that we don't try to validate things too soon.
-            var asyncToken = SourceProvider.OperationListener.BeginAsyncOperation(GetType().Name + "." + nameof(Invoke));
-            var task = YieldThenInvokeAsync(cancellationToken);
-            task.CompletesAsyncOperation(asyncToken);
+            // WaitIndicator cannot be used with async/await. Even though we call async methods later in this call chain, do not await them.
+            SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
+            {
+                using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, waitContext.CancellationToken))
+                {
+                    InnerInvoke(waitContext.ProgressTracker, linkedSource.Token);
+                }
+            });
         }
 
-        private async Task YieldThenInvokeAsync(CancellationToken cancellationToken)
+        protected virtual void InnerInvoke(IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
+            AssertIsForeground();
 
-            // Always wrap whatever we're doing in a threaded wait dialog.
-            using (var context = this.SourceProvider.WaitIndicator.StartWait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true))
-            using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, context.CancellationToken))
+            var snapshot = SubjectBuffer.CurrentSnapshot;
+            using (new CaretPositionRestorer(SubjectBuffer, EditHandler.AssociatedViewService))
             {
-                // Yield the UI thread so that the light bulb can be dismissed.  This is necessary
-                // as some code actions may be long running, and we don't want the light bulb to
-                // stay on screen.
-                await Task.Yield();
-
-                this.AssertIsForeground();
-
-                // Then proceed and actually do the invoke.
-                await InvokeAsync(context.ProgressTracker, linkedSource.Token).ConfigureAwait(true);
+                Func<Document> getFromDocument = () => SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                InvokeCore(getFromDocument, progressTracker, cancellationToken);
             }
         }
 
-        protected virtual async Task InvokeAsync( 
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
-        {
-            this.AssertIsForeground();
-
-            var snapshot = this.SubjectBuffer.CurrentSnapshot;
-
-            using (new CaretPositionRestorer(this.SubjectBuffer, this.EditHandler.AssociatedViewService))
-            {
-                Func<Document> getFromDocument = () => this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                await InvokeCoreAsync(getFromDocument, progressTracker, cancellationToken).ConfigureAwait(true);
-            }
-        }
-
-        protected async Task InvokeCoreAsync(
+        protected void InvokeCore(
             Func<Document> getFromDocument, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
+            AssertIsForeground();
 
-            var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
-            await extensionManager.PerformActionAsync(Provider, async () =>
+            var extensionManager = Workspace.Services.GetService<IExtensionManager>();
+            extensionManager.PerformAction(Provider, () =>
             {
-                await InvokeWorkerAsync(getFromDocument, progressTracker, cancellationToken).ConfigureAwait(false);
-            }).ConfigureAwait(true);
+                InvokeWorker(getFromDocument, progressTracker, cancellationToken);
+            });
         }
 
-        private async Task InvokeWorkerAsync(
+        private void InvokeWorker(
             Func<Document> getFromDocument, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
+            AssertIsForeground();
             IEnumerable<CodeActionOperation> operations = null;
-
-            // NOTE: As mentioned above, we want to avoid computing the operations on the UI thread.
-            // However, for CodeActionWithOptions, GetOptions() might involve spinning up a dialog
-            // to compute the options and must be done on the UI thread.
-            var actionWithOptions = this.CodeAction as CodeActionWithOptions;
-            if (actionWithOptions != null)
+            if (CodeAction is CodeActionWithOptions actionWithOptions)
             {
                 var options = actionWithOptions.GetOptions(cancellationToken);
                 if (options != null)
                 {
-                    // ConfigureAwait(true) so we come back to the same thread as 
-                    // we do all application on the UI thread.
-                    operations = await GetOperationsAsync(actionWithOptions, options, cancellationToken).ConfigureAwait(true);
-                    this.AssertIsForeground();
+                    // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
+                    operations = GetOperationsAsync(actionWithOptions, options, cancellationToken).WaitAndGetResult(cancellationToken);
                 }
             }
             else
             {
-                // ConfigureAwait(true) so we come back to the same thread as 
-                // we do all application on the UI thread.
-                operations = await GetOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(true);
-                this.AssertIsForeground();
+                // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
+                operations = GetOperationsAsync(progressTracker, cancellationToken).WaitAndGetResult(cancellationToken);
             }
 
             if (operations != null)
@@ -181,11 +150,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // We'll now show progress as we apply the action.
                 progressTracker.Clear();
 
-                // ConfigureAwait(true) so we come back to the same thread as 
-                // we do all application on the UI thread.
-                await EditHandler.ApplyAsync(Workspace, getFromDocument(), 
-                    operations.ToImmutableArray(), CodeAction.Title, 
-                    progressTracker, cancellationToken).ConfigureAwait(true);
+                // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
+                EditHandler.ApplyAsync(Workspace, getFromDocument(),
+                    operations.ToImmutableArray(), CodeAction.Title,
+                    progressTracker, cancellationToken).Wait(cancellationToken);
             }
         }
 
@@ -195,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 // Underscores will become an accelerator in the VS smart tag.  So we double all
                 // underscores so they actually get represented as an underscore in the UI.
-                var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
+                var extensionManager = Workspace.Services.GetService<IExtensionManager>();
                 var text = extensionManager.PerformFunction(Provider, () => CodeAction.Title, defaultValue: string.Empty);
                 return text.Replace("_", "__");
             }
@@ -238,10 +206,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             get
             {
-                if (CodeAction.Glyph.HasValue)
+                var tags = CodeAction.Tags;
+                if (tags.Length > 0)
                 {
-                    var imageService = Workspace.Services.GetService<IImageMonikerService>();
-                    return imageService.GetImageMoniker((Glyph)CodeAction.Glyph.Value);
+                    foreach (var service in SourceProvider.ImageMonikerServices)
+                    {
+                        if (service.Value.TryGetImageMoniker(tags, out var moniker) &&
+                            !moniker.IsNullImage())
+                        {
+                            return moniker;
+                        }
+                    }
                 }
 
                 return default(ImageMoniker);

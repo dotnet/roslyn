@@ -250,7 +250,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(operand != null && operandType != (object)null);
 
             var typeSyntax = node.Type;
-            var identifier = node.Identifier;
 
             bool isVar;
             AliasSymbol aliasOpt;
@@ -277,6 +276,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                    isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
             }
 
+            switch (node.Designation.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    break;
+                case SyntaxKind.DiscardDesignation:
+                    return new BoundDeclarationPattern(node, null, boundDeclType, isVar, hasErrors);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Designation.Kind());
+            }
+
+            var designation = (SingleVariableDesignationSyntax)node.Designation;
+            var identifier = designation.Identifier;
             SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
 
             if (localSymbol != (object)null)
@@ -291,13 +302,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Check for variable declaration errors.
                 hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
-                if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
-                    && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
-                    && declType.IsRestrictedType()
-                    && !hasErrors)
+                if (!hasErrors)
                 {
-                    Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declType);
-                    hasErrors = true;
+                    hasErrors = CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
                 }
 
                 return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);
@@ -306,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We should have the right binder in the chain for a script or interactive, so we use the field for the pattern.
                 Debug.Assert(node.SyntaxTree.Options.Kind != SourceCodeKind.Regular);
-                GlobalExpressionVariable expressionVariableField = LookupDeclaredField(node);
+                GlobalExpressionVariable expressionVariableField = LookupDeclaredField(designation);
                 DiagnosticBag tempDiagnostics = DiagnosticBag.GetInstance();
                 expressionVariableField.SetType(declType, tempDiagnostics);
                 tempDiagnostics.Free();

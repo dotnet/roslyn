@@ -1939,9 +1939,9 @@ class MyClass
                 ' Get cached project diagnostics.
                 Dim diagnostics = diagnosticService.GetCachedDiagnosticsAsync(workspace, project.Id).WaitAndGetResult(CancellationToken.None)
 
-                ' different behavior between v1 and v2. in v2. in v2, solution crawler never creates non-local hidden diagnostics.
+                ' in v2, solution crawler never creates non-local hidden diagnostics.
                 ' v2 still creates those for LB and explicit queries such as FixAll.
-                Dim expectedCount = If(workspace.Options.GetOption(InternalDiagnosticsOptions.UseDiagnosticEngineV2), 0, 1)
+                Dim expectedCount = 0
                 Assert.Equal(expectedCount, diagnostics.Count())
 
                 ' Get diagnostics explicitly

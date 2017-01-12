@@ -647,6 +647,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             CreateErrorType("ref"));
                     }
 
+                case SyntaxKind.DeclarationExpression:
+                    return BindDeclarationExpression((DeclarationExpressionSyntax)node, diagnostics);
+
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable
                     // that a non-parser syntax tree could reach this point with an unexpected
@@ -689,17 +692,76 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var binaryParent = (BinaryExpressionSyntax)parent;
                         return node == binaryParent.Right;
                     }
-                case SyntaxKind.ArrowExpressionClause: // =>
-                    {
-                        var arrowClauseParent = (ArrowExpressionClauseSyntax)parent;
-                        return node == arrowClauseParent.Expression;
-                    }
+                case SyntaxKind.ArrowExpressionClause:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                    return true;
                 // We do not support && and || because
                 // 1. The precedence would not syntactically allow it
                 // 2. It isn't clear what the semantics should be
                 // 3. It isn't clear what use cases would motivate us to change the precedence to support it
                 default:
                     return false;
+            }
+        }
+
+        // Bind a declaration expression where it isn't permitted.
+        private BoundExpression BindDeclarationExpression(DeclarationExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            // This is an error, as declaration expressions are handled specially in every context in which
+            // they are permitted. So we have a context in which they are *not* permitted. Nevertheless, we
+            // bind it and then give one nice message.
+
+            bool isVar;
+            bool isConst = false;
+            AliasSymbol alias;
+            TypeSymbol declType = BindVariableType(node.Designation, diagnostics, node.Type, ref isConst, out isVar, out alias);
+            Error(diagnostics, ErrorCode.ERR_DeclarationExpressionNotPermitted, node);
+            return BindDeclarationVariables(declType, node.Designation, node, diagnostics);
+        }
+
+        /// <summary>
+        /// Bind a declaration variable where it isn't permitted. The caller is expected to produce a diagnostic.
+        /// </summary>
+        private BoundExpression BindDeclarationVariables(TypeSymbol declType, VariableDesignationSyntax node, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            declType = declType ?? CreateErrorType("var");
+            switch (node.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    {
+                        var single = (SingleVariableDesignationSyntax)node;
+                        var result = BindDeconstructionVariable(declType, single, syntax, diagnostics);
+                        return result;
+                    }
+                case SyntaxKind.DiscardDesignation:
+                    {
+                        var discarded = (DiscardDesignationSyntax)node;
+                        return BindDiscardExpression(discarded, declType);
+                    }
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                    {
+                        var tuple = (ParenthesizedVariableDesignationSyntax)node;
+                        var builder = ArrayBuilder<BoundExpression>.GetInstance(tuple.Variables.Count);
+                        foreach (var n in tuple.Variables)
+                        {
+                            builder.Add(BindDeclarationVariables(declType, n, n, diagnostics));
+                        }
+                        var subExpressions = builder.ToImmutableAndFree();
+
+                        // We will not check constraints at this point as this code path
+                        // is failure-only and the caller is expected to produce a diagnostic.
+                        var tupleType = TupleTypeSymbol.Create(
+                            null,
+                            subExpressions.SelectAsArray(e => e.Type),
+                            default(ImmutableArray<Location>),
+                            default(ImmutableArray<string>),
+                            Compilation,
+                            shouldCheckConstraints: false);
+                        return new BoundTupleLiteral(node, default(ImmutableArray<string>), subExpressions, tupleType);
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
         }
 
@@ -756,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression boundArgument = BindValue(argumentSyntax.Expression, diagnostics, BindValueKind.RValue);
                 boundArguments.Add(boundArgument);
 
-                var elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, ref hasErrors);
+                var elementType = boundArgument.Type;
                 elementTypes.Add(elementType);
 
                 if ((object)elementType == null)
@@ -777,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasNaturalType)
             {
-                tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNamesArray, this.Compilation, node, diagnostics);
+                tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNamesArray, this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true);
             }
             else
             {
@@ -785,36 +847,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundTupleLiteral(node, elementNamesArray, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors);
-        }
-
-        /// <summary>
-        /// Returns the type to be used as a field type; generates errors in case the type is not
-        /// supported for tuple type fields.
-        /// </summary>
-        private TypeSymbol GetTupleFieldType(BoundExpression expression, CSharpSyntaxNode errorSyntax, DiagnosticBag diagnostics, ref bool hasError)
-        {
-            TypeSymbol expressionType = expression.Type;
-
-            if (!expression.HasAnyErrors)
-            {
-                if (expression.HasExpressionType())
-                {
-                    if (expressionType.SpecialType == SpecialType.System_Void)
-                    {
-                        expressionType = CreateErrorType(SyntaxFacts.GetText(SyntaxKind.VoidKeyword));
-
-                        hasError = true;
-                        Error(diagnostics, ErrorCode.ERR_FieldCantHaveVoidType, errorSyntax);
-                    }
-                    else if (expressionType.IsRestrictedType())
-                    {
-                        hasError = true;
-                        Error(diagnostics, ErrorCode.ERR_FieldCantBeRefAny, errorSyntax, expressionType);
-                    }
-                }
-            }
-
-            return expressionType;
         }
 
         private BoundExpression BindRefValue(RefValueExpressionSyntax node, DiagnosticBag diagnostics)
@@ -1142,6 +1174,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                if (node.IsKind(SyntaxKind.IdentifierName) && FallBackOnDiscard((IdentifierNameSyntax)node, diagnostics))
+                {
+                    return new BoundDiscardExpression(node, type: null);
+                }
+
                 // Otherwise, the simple-name is undefined and a compile-time error occurs.
                 expression = BadExpression(node);
                 if (lookupResult.Error != null)
@@ -1164,6 +1201,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             lookupResult.Free();
             return expression;
+        }
+
+        /// <summary>
+        /// Is this is an _ identifier in a context where discards are allowed?
+        /// </summary>
+        private static bool FallBackOnDiscard(IdentifierNameSyntax node, DiagnosticBag diagnostics)
+        {
+            if (node.Identifier.ContextualKind() != SyntaxKind.UnderscoreToken)
+            {
+                return false;
+            }
+
+            CSharpSyntaxNode containingDeconstruction = node.GetContainingDeconstruction();
+            bool isDiscard = containingDeconstruction != null || IsOutVarDiscardIdentifier(node);
+            if (isDiscard)
+            {
+                CheckFeatureAvailability(node.Location, MessageID.IDS_FeatureTuples, diagnostics);
+            }
+
+            return isDiscard;
+        }
+
+        private static bool IsOutVarDiscardIdentifier(SimpleNameSyntax node)
+        {
+            Debug.Assert(node.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
+
+            CSharpSyntaxNode parent = node.Parent;
+            return (parent?.Kind() == SyntaxKind.Argument &&
+                ((ArgumentSyntax)parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword);
         }
 
         private BoundExpression SynthesizeMethodGroupReceiver(CSharpSyntaxNode syntax, ArrayBuilder<Symbol> members)
@@ -2096,12 +2162,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindOutVariableArgument(DeclarationExpressionSyntax declarationExpression, DiagnosticBag diagnostics)
         {
             TypeSyntax typeSyntax = declarationExpression.Type;
-            var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
+            VariableDesignationSyntax designation = declarationExpression.Designation;
+            switch (designation.Kind())
+            {
+                case SyntaxKind.DiscardDesignation:
+                    {
+                        bool isVar;
+                        bool isConst = false;
+                        AliasSymbol alias;
+                        TypeSymbol declType = BindVariableType(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
+                        Debug.Assert(isVar == ((object)declType == null));
+
+                        return new BoundDiscardExpression(declarationExpression, declType);
+                    }
+                case SyntaxKind.SingleVariableDesignation:
+                    return BindOutVariableDeclarationArgument(declarationExpression, diagnostics);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(designation.Kind());
+            }
+        }
+
+        private BoundExpression BindOutVariableDeclarationArgument(
+             DeclarationExpressionSyntax declarationExpression,
+             DiagnosticBag diagnostics)
+        {
             bool isVar;
+            var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
+            TypeSyntax typeSyntax = declarationExpression.Type;
 
             // Is this a local?
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
-
             if ((object)localSymbol != null)
             {
                 if (InConstructorInitializer || InFieldInitializer)
@@ -2120,14 +2210,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new OutVariablePendingInference(declarationExpression, localSymbol, null);
                 }
 
-                if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
-                    && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
-                    && declType.IsRestrictedType())
-                {
-                    Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, typeSyntax, declType);
-                }
+                CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
 
-                return new BoundLocal(declarationExpression, localSymbol, constantValueOpt: null, type: declType);
+                return new BoundLocal(declarationExpression, localSymbol, isDeclaration:true, constantValueOpt: null, type: declType);
             }
 
             // Is this a field?
@@ -2159,14 +2244,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         expressionVariableField, null, LookupResultKind.Viable, fieldType);
         }
 
+        /// <summary>
+        /// Returns true if a bad special by ref local was found.
+        /// </summary>
+        internal static bool CheckRestrictedTypeInAsync(Symbol containingSymbol, TypeSymbol type, DiagnosticBag diagnostics, SyntaxNode syntax)
+        {
+            if (containingSymbol.Kind == SymbolKind.Method
+                && ((MethodSymbol)containingSymbol).IsAsync
+                && type.IsRestrictedType())
+            {
+                Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, syntax, type);
+                return true;
+            }
+            return false;
+        }
+
         internal GlobalExpressionVariable LookupDeclaredField(SingleVariableDesignationSyntax variableDesignator)
         {
             return LookupDeclaredField(variableDesignator, variableDesignator.Identifier.ValueText);
-        }
-
-        internal GlobalExpressionVariable LookupDeclaredField(DeclarationPatternSyntax variable)
-        {
-            return LookupDeclaredField(variable, variable.Identifier.ValueText);
         }
 
         internal GlobalExpressionVariable LookupDeclaredField(SyntaxNode node, string identifier)
@@ -2259,8 +2354,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         hadError = true;
                     }
-
-                    boundArgumentExpression = ToBadExpression(boundArgumentExpression);
                 }
 
                 result.Names.Add(nameColonSyntax.Name);
@@ -2274,8 +2367,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, argumentSyntax);
                     hadError = true;
                 }
-
-                boundArgumentExpression = ToBadExpression(boundArgumentExpression);
 
                 result.Names.Add(null);
             }
@@ -2344,6 +2435,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
                     arguments[arg] = ((OutDeconstructVarPendingInference)argument).SetInferredType(parameterType, success: true);
+                }
+                else if (argument.Kind == BoundKind.DiscardExpression && !argument.HasExpressionType())
+                {
+                    TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
+                    Debug.Assert((object)parameterType != null);
+                    arguments[arg] = ((BoundDiscardExpression)argument).SetInferredType(parameterType);
                 }
             }
         }
@@ -5201,7 +5298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (searchExtensionMethodsIfNecessary)
                 {
-                    return new BoundMethodGroup(
+                    var boundMethodGroup = new BoundMethodGroup(
                         node,
                         typeArguments,
                         boundLeft,
@@ -5209,6 +5306,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         lookupResult.Symbols.All(s => s.Kind == SymbolKind.Method) ? lookupResult.Symbols.SelectAsArray(s_toMethodSymbolFunc) : ImmutableArray<MethodSymbol>.Empty,
                         lookupResult,
                         flags);
+
+                    if (!boundMethodGroup.HasErrors && boundMethodGroup.ResultKind == LookupResultKind.Empty && typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadArity, node, rightName, MessageID.IDS_MethodGroup.Localize(), typeArgumentsSyntax.Count);
+                    }
+
+                    return boundMethodGroup;
                 }
 
                 this.BindMemberAccessReportError(node, right, rightName, boundLeft, lookupResult.Error, diagnostics);
@@ -6171,6 +6275,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return ((OutVariablePendingInference)index).FailInference(this, diagnostics);
             }
+            else if (index.Kind == BoundKind.DiscardExpression && !index.HasExpressionType())
+            {
+                return ((BoundDiscardExpression)index).FailInference(this, diagnostics);
+            }
 
             var result =
                 TryImplicitConversionToArrayIndex(index, SpecialType.System_Int32, node, diagnostics) ??
@@ -6778,7 +6886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var accessType = access.Type;
 
             // access cannot have no type
-            if (accessType == null)
+            if ((object)accessType == null)
             {
                 return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
             }
@@ -6945,7 +7053,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = receiver.Type;
 
             // Can't dot into the null literal or anything that has no type
-            if (receiverType == null)
+            if ((object)receiverType == null)
             {
                 Error(diagnostics, ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), operatorToken.Text, receiver.Display);
                 return BadExpression(receiverSyntax, receiver);

@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
             {
-                ImmutableArray<Diagnostic> diagnostics;
-                if (_documentDiagnosticsMap.TryGetValue(document, out diagnostics))
+                if (_documentDiagnosticsMap.TryGetValue(document, out var diagnostics))
                 {
                     return Task.FromResult<IEnumerable<Diagnostic>>(diagnostics);
                 }
@@ -80,8 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
             {
-                ImmutableArray<Diagnostic> diagnostics;
-                if (_projectDiagnosticsMap.TryGetValue(project, out diagnostics))
+                if (_projectDiagnosticsMap.TryGetValue(project, out var diagnostics))
                 {
                     return Task.FromResult<IEnumerable<Diagnostic>>(diagnostics);
                 }

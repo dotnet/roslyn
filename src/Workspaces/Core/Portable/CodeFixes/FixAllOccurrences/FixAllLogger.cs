@@ -126,11 +126,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }));
         }
 
-        public static void LogFixesToMergeStats(ConcurrentBag<CodeAction> fixesToMerge)
+        public static void LogFixesToMergeStats(int count)
         {
             Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesComputation_Merge, KeyValueLogMessage.Create(m =>
             {
-                m[s_totalFixesToMerge] = fixesToMerge.Count;
+                m[s_totalFixesToMerge] = count;
             }));
         }
     }

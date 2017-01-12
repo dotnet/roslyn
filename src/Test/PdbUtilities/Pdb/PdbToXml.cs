@@ -158,6 +158,7 @@ namespace Roslyn.Test.PdbUtilities
 
             var documents = _symReader.GetDocuments();
             var documentIndex = BuildDocumentIndex(documents);
+            var methodTokenMap = BuildMethodTokenMap();
 
             if ((_options & PdbToXmlOptions.ExcludeDocuments) == 0)
             {
@@ -167,26 +168,26 @@ namespace Roslyn.Test.PdbUtilities
             if ((_options & PdbToXmlOptions.ExcludeMethods) == 0)
             {
                 WriteEntryPoint();
-                WriteAllMethods(methodHandles, documentIndex);
+                WriteAllMethods(methodHandles, methodTokenMap, documentIndex);
                 WriteAllMethodSpans();
             }
 
             _writer.WriteEndElement();
         }
 
-        private void WriteAllMethods(IEnumerable<MethodDefinitionHandle> methodHandles, IReadOnlyDictionary<string, int> documentIndex)
+        private void WriteAllMethods(IEnumerable<MethodDefinitionHandle> methodHandles, ImmutableArray<MethodDefinitionHandle> tokenMap, IReadOnlyDictionary<string, int> documentIndex)
         {
             _writer.WriteStartElement("methods");
 
             foreach (var methodHandle in methodHandles)
             {
-                WriteMethod(methodHandle, documentIndex);
+                WriteMethod(methodHandle, tokenMap, documentIndex);
             }
 
             _writer.WriteEndElement();
         }
 
-        private void WriteMethod(MethodDefinitionHandle methodHandle, IReadOnlyDictionary<string, int> documentIndex)
+        private void WriteMethod(MethodDefinitionHandle methodHandle, ImmutableArray<MethodDefinitionHandle> tokenMap, IReadOnlyDictionary<string, int> documentIndex)
         {
             int token = _metadataReader.GetToken(methodHandle);
             ISymUnmanagedMethod method = _symReader.GetMethod(token);
@@ -226,7 +227,11 @@ namespace Roslyn.Test.PdbUtilities
             }
 
             _writer.WriteStartElement("method");
-            WriteMethodAttributes(token, isReference: false);
+
+            int methodRowId = MetadataTokens.GetRowNumber(methodHandle);
+            int tokenToDisplay = (methodRowId <= tokenMap.Length) ? MetadataTokens.GetToken(tokenMap[methodRowId - 1]) : token;
+
+            WriteMethodAttributes(tokenToDisplay, isReference: false);
 
             if (cdi != null)
             {
@@ -1086,12 +1091,12 @@ namespace Roslyn.Test.PdbUtilities
             fixed (byte* sigPtr = signature.ToArray())
             {
                 var sigReader = new BlobReader(sigPtr, signature.Length);
-                var decoder = new SignatureDecoder<string>(ConstantSignatureVisualizer.Instance, _metadataReader);
+                var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, _metadataReader, genericContext: null);
                 return decoder.DecodeType(ref sigReader, allowTypeSpecifications: true);
             }
         }
 
-        private sealed class ConstantSignatureVisualizer : ISignatureTypeProvider<string>
+        private sealed class ConstantSignatureVisualizer : ISignatureTypeProvider<string, object>
         {
             public static readonly ConstantSignatureVisualizer Instance = new ConstantSignatureVisualizer();
 
@@ -1111,23 +1116,23 @@ namespace Roslyn.Test.PdbUtilities
                 return "method-ptr";
             }
 
-            public string GetGenericInstance(string genericType, ImmutableArray<string> typeArguments)
+            public string GetGenericInstantiation(string genericType, ImmutableArray<string> typeArguments)
             {
                 // using {} since the result is embedded in XML
                 return genericType + "{" + string.Join(", ", typeArguments) + "}";
             }
 
-            public string GetGenericMethodParameter(int index)
+            public string GetGenericMethodParameter(object genericContext, int index)
             {
                 return "!!" + index;
             }
 
-            public string GetGenericTypeParameter(int index)
+            public string GetGenericTypeParameter(object genericContext, int index)
             {
                 return "!" + index;
             }
 
-            public string GetModifiedType(MetadataReader reader, bool isRequired, string modifier, string unmodifiedType)
+            public string GetModifiedType(string modifier, string unmodifiedType, bool isRequired)
             {
                 return (isRequired ? "modreq" : "modopt") + "(" + modifier + ") " + unmodifiedType;
             }
@@ -1166,10 +1171,10 @@ namespace Roslyn.Test.PdbUtilities
                 return typeRef.Namespace.IsNil ? name : reader.GetString(typeRef.Namespace) + "." + name;
             }
 
-            public string GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle, byte rawTypeKind)
+            public string GetTypeFromSpecification(MetadataReader reader, object genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
             {
                 var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(handle).Signature);
-                return new SignatureDecoder<string>(Instance, reader).DecodeType(ref sigReader);
+                return new SignatureDecoder<string, object>(Instance, reader, genericContext).DecodeType(ref sigReader);
             }
         }
 
@@ -1261,6 +1266,21 @@ namespace Roslyn.Test.PdbUtilities
             }
 
             _writer.WriteEndElement(); // sequencepoints
+        }
+
+        private unsafe ImmutableArray<MethodDefinitionHandle> BuildMethodTokenMap()
+        {
+            if (!(_symReader is ISymUnmanagedReader4 symReader4) ||
+                symReader4.GetPortableDebugMetadata(out byte* metadata, out int size) != 0)
+            {
+                return ImmutableArray<MethodDefinitionHandle>.Empty;
+            }
+
+            var reader = new MetadataReader(metadata, size);
+
+            return (from handle in reader.GetEditAndContinueMapEntries()
+                    where handle.Kind == HandleKind.MethodDebugInformation
+                    select MetadataTokens.MethodDefinitionHandle(MetadataTokens.GetRowNumber(handle))).ToImmutableArray();
         }
 
         private IReadOnlyDictionary<string, int> BuildDocumentIndex(IReadOnlyList<ISymUnmanagedDocument> documents)

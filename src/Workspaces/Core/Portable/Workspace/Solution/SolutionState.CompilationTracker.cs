@@ -156,10 +156,7 @@ namespace Microsoft.CodeAnalysis
 
             public CompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
             {
-                ProjectState inProgressProject;
-                Compilation inProgressCompilation;
-
-                GetPartialCompilationState(solution, docState.Id, out inProgressProject, out inProgressCompilation, cancellationToken);
+                GetPartialCompilationState(solution, docState.Id, out var inProgressProject, out var inProgressCompilation, cancellationToken);
 
                 if (!inProgressCompilation.SyntaxTrees.Contains(tree))
                 {
@@ -300,8 +297,7 @@ namespace Microsoft.CodeAnalysis
 
             public Task<Compilation> GetCompilationAsync(SolutionState solution, CancellationToken cancellationToken)
             {
-                Compilation compilation;
-                if (this.TryGetCompilation(out compilation))
+                if (this.TryGetCompilation(out var compilation))
                 {
                     // PERF: This is a hot code path and Task<TResult> isn't cheap,
                     // so cache the completed tasks to reduce allocations. We also
@@ -726,11 +722,10 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    Compilation compilation;
 
                     // if we already have the compilation and its right kind then use it.
                     if (this.ProjectState.LanguageServices == fromProject.LanguageServices
-                        && this.TryGetCompilation(out compilation))
+                        && this.TryGetCompilation(out var compilation))
                     {
                         return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
                     }
@@ -762,10 +757,8 @@ namespace Microsoft.CodeAnalysis
             public MetadataReference GetPartialMetadataReference(SolutionState solution, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
             {
                 var state = this.ReadState();
-
                 // get compilation in any state it happens to be in right now.
-                Compilation compilation;
-                if (state.Compilation.TryGetValue(out compilation)
+                if (state.Compilation.TryGetValue(out var compilation)
                     && compilation != null
                     && this.ProjectState.LanguageServices == fromProject.LanguageServices)
                 {
@@ -790,12 +783,9 @@ namespace Microsoft.CodeAnalysis
 
                         // get or build compilation up to declaration state. this compilation will be used to provide live xml doc comment
                         var declarationCompilation = await this.GetOrBuildDeclarationCompilationAsync(solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                        MetadataReference reference;
-
                         solution.Workspace.LogTestMessage($"Looking for a cached skeleton assembly for {projectReference.ProjectId} before taking the lock...");
 
-                        if (!MetadataOnlyReference.TryGetReference(solution, projectReference, declarationCompilation, version, out reference))
+                        if (!MetadataOnlyReference.TryGetReference(solution, projectReference, declarationCompilation, version, out var reference))
                         {
                             // using async build lock so we don't get multiple consumers attempting to build metadata-only images for the same compilation.
                             using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))

@@ -74,9 +74,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             var newSolution = await Renamer.RenameSymbolAsync(solution, methodSymbol, newName, solution.Options, cancellationToken).ConfigureAwait(false);
             var newDocument = newSolution.GetDocument(document.Id);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            SyntaxNode newNode;
-            if (syntaxPath.TryResolve(newRoot, out newNode))
+            if (syntaxPath.TryResolve(newRoot, out SyntaxNode newNode))
             {
                 var semanticModel = await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var newMethod = (IMethodSymbol)semanticModel.GetDeclaredSymbol(newNode, cancellationToken);

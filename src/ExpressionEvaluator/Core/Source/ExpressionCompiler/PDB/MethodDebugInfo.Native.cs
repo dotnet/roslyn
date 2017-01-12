@@ -62,17 +62,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return None;
             }
 
-            var symReader4 = symReader as ISymUnmanagedReader4;
-            if (symReader4 != null) // TODO: VB Portable PDBs
+            if (symReader is ISymUnmanagedReader5 symReader5)
             {
-                byte* metadata;
-                int size;
-
-                // TODO: version
-                int hr = symReader4.GetPortableDebugMetadata(out metadata, out size);
+                int hr = symReader5.GetPortableDebugMetadataByVersion(methodVersion, out byte* metadata, out int size);
                 SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
 
-                if (metadata != null)
+                if (hr == 0)
                 {
                     var mdReader = new MetadataReader(metadata, size);
                     try

@@ -3,9 +3,9 @@
 Imports System.Reflection
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.CSharp.CodeFixes.AddMissingReference
+Imports Microsoft.CodeAnalysis.CSharp.AddMissingReference
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddMissingReference
+Imports Microsoft.CodeAnalysis.VisualBasic.AddMissingReference
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReference
     Public Class AddMissingReferenceTests

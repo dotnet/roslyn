@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         void ICommandHandler<ToggleCompletionModeCommandArgs>.ExecuteCommand(ToggleCompletionModeCommandArgs args, Action nextHandler)
         {
-            Workspace workspace;
-
-            if (Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
+            if (Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
             {
                 var newState = !workspace.Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
                 workspace.Options = workspace.Options.WithChangedOption(EditorCompletionOptions.UseSuggestionMode, newState);

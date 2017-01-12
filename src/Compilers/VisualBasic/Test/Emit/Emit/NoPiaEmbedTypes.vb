@@ -1033,9 +1033,10 @@ End Class
                                                            Assert.Equal(TypeAttributes.Public Or TypeAttributes.SequentialLayout Or TypeAttributes.Class Or TypeAttributes.Sealed Or TypeAttributes.AnsiClass Or TypeAttributes.BeforeFieldInit, test2.TypeDefFlags)
 
                                                            attributes = test2.GetAttributes()
-                                                           Assert.Equal(2, attributes.Length)
+                                                           Assert.Equal(3, attributes.Length)
                                                            Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", attributes(0).ToString())
                                                            Assert.Equal("System.Runtime.InteropServices.TypeIdentifierAttribute(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"", ""Test2"")", attributes(1).ToString())
+                                                           Assert.Equal("System.Runtime.InteropServices.ComVisibleAttribute(True)", attributes(2).ToString())
 
                                                            Dim itest3 = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("ITest3")
                                                            Assert.Equal(TypeKind.Interface, itest3.TypeKind)
@@ -1093,9 +1094,10 @@ End Class
                                                            Assert.Equal(TypeAttributes.Public Or TypeAttributes.AutoLayout Or TypeAttributes.Class Or TypeAttributes.Sealed Or TypeAttributes.AnsiClass, test9.TypeDefFlags)
 
                                                            attributes = test9.GetAttributes()
-                                                           Assert.Equal(2, attributes.Length)
+                                                           Assert.Equal(3, attributes.Length)
                                                            Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", attributes(0).ToString())
                                                            Assert.Equal("System.Runtime.InteropServices.TypeIdentifierAttribute(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"", ""Test9"")", attributes(1).ToString())
+                                                           Assert.Equal("System.Runtime.InteropServices.ComVisibleAttribute(True)", attributes(2).ToString())
 
                                                            Dim fieldToEmit = test9.GetFieldsToEmit().ToArray().AsImmutableOrNull()
                                                            Assert.Equal(3, fieldToEmit.Length)
@@ -1298,7 +1300,7 @@ End Class
 
                                                            Dim signatureHeader As SignatureHeader = Nothing
                                                            Dim mrEx As BadImageFormatException = Nothing
-                                                           Dim paramInfo = New MetadataDecoder(DirectCast([module], PEModuleSymbol), itest17).GetSignatureForMethod(gapMethodDef, allowByRefReturn:=False, signatureHeader:=signatureHeader, metadataException:=mrEx)
+                                                           Dim paramInfo = New MetadataDecoder(DirectCast([module], PEModuleSymbol), itest17).GetSignatureForMethod(gapMethodDef, signatureHeader:=signatureHeader, metadataException:=mrEx)
                                                            Assert.Null(mrEx)
                                                            Assert.Equal(CByte(SignatureCallingConvention.Default) Or CByte(SignatureAttributes.Instance), signatureHeader.RawValue)
                                                            Assert.Equal(1, paramInfo.Length)
@@ -3751,7 +3753,7 @@ End Class
 ]]></file>
                            </compilation>
             Dim errors = <errors>
-BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
 </errors>
 
             Dim piaCompilation1 = CreateCompilationWithMscorlib(pia1)
@@ -3813,7 +3815,7 @@ End Class
 ]]></file>
                            </compilation>
             Dim errors = <errors>
-BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
         o.M2()
         ~~~~~~
 </errors>
@@ -3945,7 +3947,7 @@ End Class
 ]]></file>
                            </compilation>
             Dim errors = <errors>
-BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
 </errors>
 
             Dim piaCompilation1 = CreateCompilationWithMscorlib(pia1)
@@ -3977,6 +3979,89 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
             CompileAndVerify(compilation4)
+        End Sub
+
+        <Fact>
+        Public Sub ErrorType_Tuple()
+            Dim pia1 = <compilation>
+                           <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Runtime.InteropServices
+Imports System.Runtime.CompilerServices
+
+<Assembly: ImportedFromTypeLib("GeneralPIA1.dll")>
+<Assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58257")>
+
+<ComImport>
+<Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58279")>
+Public Interface ITest33
+End Interface
+]]></file>
+                       </compilation>
+            Dim piaCompilation1 = CreateCompilationWithMscorlib(pia1, options:=TestOptions.ReleaseDll)
+            CompileAndVerify(piaCompilation1)
+
+            Dim pia2 = <compilation>
+                           <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Runtime.InteropServices
+Imports System.Runtime.CompilerServices
+Imports System.Collections.Generic
+
+<assembly: ImportedFromTypeLib("GeneralPIA2.dll")>
+<assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58290")>
+
+<ComImport>
+<Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58280")>
+Public Interface ITest34
+    Function M() As List(Of (ITest33, ITest33))
+End Interface
+]]></file>
+                       </compilation>
+            Dim piaCompilation2 = CreateCompilationWithMscorlib(
+                pia2, options:=TestOptions.ReleaseDll,
+                references:={piaCompilation1.EmitToImageReference(embedInteropTypes:=True), ValueTupleRef, SystemRuntimeFacadeRef})
+            CompileAndVerify(piaCompilation2)
+
+            Dim consumer = <compilation>
+                               <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+
+Public MustInherit Class UsePia5
+    Implements ITest34
+End Class
+            ]]></file>
+                           </compilation>
+            Dim expected = <errors>
+BC36924: Type 'List(Of ValueTuple(Of ITest33, ITest33))' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
+    Implements ITest34
+               ~~~~~~~
+                           </errors>
+
+            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
+                consumer, options:=TestOptions.ReleaseDll,
+                references:={piaCompilation2.ToMetadataReference(embedInteropTypes:=True), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef})
+            VerifyEmitDiagnostics(compilation1, expected)
+            VerifyEmitMetadataOnlyDiagnostics(compilation1, expected)
+
+            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(
+                consumer, options:=TestOptions.ReleaseDll,
+                references:={piaCompilation2.EmitToImageReference(embedInteropTypes:=True), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef})
+            VerifyEmitDiagnostics(compilation2, expected)
+            VerifyEmitMetadataOnlyDiagnostics(compilation2, expected)
+
+            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(
+                consumer, options:=TestOptions.ReleaseDll,
+                references:={piaCompilation2.ToMetadataReference(), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef})
+            VerifyEmitDiagnostics(compilation3, expected)
+            VerifyEmitMetadataOnlyDiagnostics(compilation3, expected)
+
+            Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
+                consumer, options:=TestOptions.ReleaseDll,
+                references:={piaCompilation2.EmitToImageReference(), piaCompilation1.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef})
+            VerifyEmitDiagnostics(compilation4, expected)
+            VerifyEmitMetadataOnlyDiagnostics(compilation4, expected)
         End Sub
 
         <Fact()>
@@ -4017,7 +4102,7 @@ End Class
 ]]></file>
                            </compilation>
             Dim errors = <errors>
-BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
         o.M2()
         ~~~~~~
 </errors>

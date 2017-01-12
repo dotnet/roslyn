@@ -33,6 +33,10 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly PerLanguageOption<bool> HighlightMatchingPortionsOfCompletionListItems = new PerLanguageOption<bool>(nameof(CompletionOptions), nameof(HighlightMatchingPortionsOfCompletionListItems), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightMatchingPortionsOfCompletionListItems"));
 
+        public static readonly PerLanguageOption<bool> BlockForCompletionItems = new PerLanguageOption<bool>(
+            nameof(CompletionOptions), nameof(BlockForCompletionItems), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{BlockForCompletionItems}"));
+
         public static IEnumerable<PerLanguageOption<bool>> GetDev15CompletionOptions()
         {
             yield return ShowCompletionItemFilters;

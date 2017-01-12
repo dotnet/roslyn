@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>
-    </RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Features</AssemblyName>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
@@ -34,24 +34,14 @@
       <Name>BasicWorkspace</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <Optimize>false</Optimize>
-    <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.Features.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-    <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.Features.xml</DocumentationFile>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
-    <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
@@ -60,17 +50,13 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />
     <Import Include="Microsoft.CodeAnalysis.Shared.Utilities" />
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Extensions" />
-    <Import Include="Microsoft.VisualBasic" />
     <Import Include="Roslyn.Utilities" />
-    <Import Include="System" />
-    <Import Include="System.Collections.Generic" />
-    <Import Include="System.Diagnostics" />
-    <Import Include="System.Linq" />
     <Import Include="System.Threading.Tasks" />
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
@@ -78,10 +64,11 @@
     <Compile Include="..\..\..\Compilers\VisualBasic\Portable\Syntax\LambdaUtilities.vb">
       <Link>InternalUtilities\LambdaUtilities.vb</Link>
     </Compile>
+    <Compile Include="AddPackage\VisualBasicAddSpecificPackageCodeFixProvider.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.vb" />
     <Compile Include="ChangeSignature\UnifiedArgumentSyntax.vb" />
     <Compile Include="ChangeSignature\VisualBasicChangeSignatureService.vb" />
-    <Compile Include="CodeFixes\AddImport\VisualBasicAddImportCodeFixProvider.vb" />
+    <Compile Include="AddImport\VisualBasicAddImportCodeFixProvider.vb" />
     <Compile Include="CodeFixes\CorrectNextControlVariable\CorrectNextControlVariableCodeFixProvider.CodeAction.vb" />
     <Compile Include="CodeFixes\CorrectNextControlVariable\CorrectNextControlVariableCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateParameterizedMember\GenerateConversionCodeFixProvider.vb" />
@@ -101,8 +88,7 @@
     <Compile Include="CodeFixes\GenerateParameterizedMember\GenerateParameterizedMemberCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateType\GenerateTypeCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateVariable\GenerateVariableCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\ImplementAbstractClass\ImplementAbstractClassCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\ImplementInterface\ImplementInterfaceCodeFixProvider.vb" />
+    <Compile Include="ImplementAbstractClass\VisualBasicImplementAbstractClassCodeFixProvider.vb" />
     <Compile Include="CodeFixes\IncorrectExitContinue\IncorrectExitContinueCodeFixProvider.AddKeywordCodeAction.vb" />
     <Compile Include="CodeFixes\IncorrectExitContinue\IncorrectExitContinueCodeFixProvider.ReplaceKeywordCodeAction.vb" />
     <Compile Include="CodeFixes\IncorrectExitContinue\IncorrectExitContinueCodeFixProvider.ReplaceTokenKeywordCodeAction.vb" />
@@ -112,6 +98,7 @@
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.AddOverloads.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
+    <Compile Include="ImplementInterface\VisualBasicImplementInterfaceCodeFixProvider.vb" />
     <Compile Include="Structure\Providers\CollectionInitializerStructureProvider.vb" />
     <Compile Include="Structure\Providers\ObjectCreationInitializerStructureProvider.vb" />
     <Compile Include="QualifyMemberAccess\VisualBasicQualifyMemberAccessCodeFixProvider.vb" />

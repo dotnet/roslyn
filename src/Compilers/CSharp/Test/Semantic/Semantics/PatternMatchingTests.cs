@@ -837,20 +837,57 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput:
-@"1
-3
-5
-2
-4
-6
-7
-8
-10
-9
-11
-12
-");
+            compilation.VerifyDiagnostics(
+                // (14,47): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   from x2 in new[] { 2 is var y2 && Print(y2) ? 1 : 0}
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y2").WithLocation(14, 47),
+                // (16,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                        on 4 is var y4 && Print(y4) ? 1 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y4").WithLocation(16, 36),
+                // (17,43): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           equals 5 is var y5 && Print(y5) ? 1 : 0
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y5").WithLocation(17, 43),
+                // (18,34): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   where 6 is var y6 && Print(y6)
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y6").WithLocation(18, 34),
+                // (19,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   orderby 7 is var y7 && Print(y7), 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y7").WithLocation(19, 36),
+                // (20,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                           8 is var y8 && Print(y8) 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y8").WithLocation(20, 36),
+                // (22,32): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   by 10 is var y10 && Print(y10)
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y10").WithLocation(22, 32),
+                // (21,34): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   group 9 is var y9 && Print(y9) 
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y9").WithLocation(21, 34),
+                // (24,39): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   let x11 = 11 is var y11 && Print(y11)
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y11").WithLocation(24, 39),
+                // (25,36): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                //                   select 12 is var y12 && Print(y12);
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "y12").WithLocation(25, 36)
+                );
+
+            // Because expression variables are not permitted in query clauses (https://github.com/dotnet/roslyn/issues/15910)
+            // this program cannot be run. However, once we allow that (https://github.com/dotnet/roslyn/issues/15619)
+            // the program wil be capable of being run. In that case the following (commented code) would test for the expected output.
+
+//            CompileAndVerify(compilation, expectedOutput:
+//@"1
+//3
+//5
+//2
+//4
+//6
+//7
+//8
+//10
+//9
+//11
+//12
+//");
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1292,7 +1329,7 @@ b");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
@@ -1342,7 +1379,7 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
@@ -1453,7 +1490,7 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
@@ -1519,19 +1556,19 @@ f");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
 
-            var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
+            var x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
             Assert.Equal(1, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForDeclarationPattern(model, x2Decl[0], x2Ref);
 
-            var x3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
+            var x3Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
             var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(2, x3Ref.Length);
@@ -1603,13 +1640,13 @@ f");
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
 
-            var x2Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
+            var x2Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x2").ToArray();
             var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").ToArray();
             Assert.Equal(1, x2Decl.Length);
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForDeclarationPattern(model, x2Decl[0], x2Ref);
 
-            var x3Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
+            var x3Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x3").ToArray();
             var x3Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x3").ToArray();
             Assert.Equal(1, x3Decl.Length);
             Assert.Equal(2, x3Ref.Length);
@@ -1632,8 +1669,6 @@ public class X
             System.Console.WriteLine(x1);
             f = false;
         }
-
-        System.Console.WriteLine(x1);
     }
 
     static bool Dummy(bool x, object y, object z) 
@@ -1647,7 +1682,6 @@ public class X
             CompileAndVerify(compilation, expectedOutput:
 @"1
 1
-2
 2");
 
             var tree = compilation.SyntaxTrees.Single();
@@ -1656,7 +1690,7 @@ public class X
             var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
-            Assert.Equal(3, x1Ref.Length);
+            Assert.Equal(2, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
         }
 
@@ -1706,6 +1740,170 @@ public class X
         }
 
         [Fact]
+        public void While_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        int f = 1;
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        while (Dummy(f < 3, f is var x1, x1))
+        {
+            l.Add(() => System.Console.WriteLine(x1));
+            f++;
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+2
+3
+--
+1
+2
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void While_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        int f = 1;
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        while (Dummy(f < 3, f is var x1, x1, l, () => System.Console.WriteLine(x1)))
+        {
+            f++;
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z, System.Collections.Generic.List<System.Action> l, System.Action d) 
+    {
+        l.Add(d);
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+2
+3
+--
+1
+2
+3
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void While_05()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        int f = 1;
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        while (Dummy(f < 3, f is var x1, x1, l, () => System.Console.WriteLine(x1)))
+        {
+            l.Add(() => System.Console.WriteLine(x1));
+            f++;
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z, System.Collections.Generic.List<System.Action> l, System.Action d) 
+    {
+        l.Add(d);
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+2
+3
+--
+1
+1
+2
+2
+3
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
         public void Do_01()
         {
             var source =
@@ -1721,8 +1919,6 @@ public class X
             f = false;
         }
         while (Dummy(f, (f ? 1 : 2) is var x1, x1));
-
-        System.Console.WriteLine(x1);
     }
 
     static bool Dummy(bool x, object y, object z) 
@@ -1733,8 +1929,7 @@ public class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            CompileAndVerify(compilation, expectedOutput: @"2
-2");
+            CompileAndVerify(compilation, expectedOutput: @"2");
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1742,7 +1937,7 @@ public class X
             var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
             var x1Ref = GetReferences(tree, "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
-            Assert.Equal(2, x1Ref.Length);
+            Assert.Equal(1, x1Ref.Length);
             VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
         }
 
@@ -1794,6 +1989,59 @@ public class X
         }
 
         [Fact]
+        public void Do_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        int f = 1;
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        do
+        {
+            ;
+        }
+        while (Dummy(f < 3, (f++) is var x1, x1, l, () => System.Console.WriteLine(x1)));
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z, System.Collections.Generic.List<System.Action> l, System.Action d) 
+    {
+        l.Add(d);
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: @"1
+2
+3
+--
+1
+2
+3");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
         public void For_01()
         {
             var source =
@@ -1806,7 +2054,7 @@ public class X
 
         for (Dummy(f, (f ? 10 : 20) is var x0, x0); 
              Dummy(f, (f ? 1 : 2) is var x1, x1); 
-             Dummy(f, (f ? 100 : 200) is var x2, x2))
+             Dummy(f, (f ? 100 : 200) is var x2, x2), Dummy(true, null, x2))
         {
             System.Console.WriteLine(x0);
             System.Console.WriteLine(x1);
@@ -1828,7 +2076,258 @@ public class X
 10
 1
 200
+200
 2");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x0Decl = GetPatternDeclarations(tree, "x0").Single();
+            var x0Ref = GetReferences(tree, "x0").ToArray();
+            Assert.Equal(2, x0Ref.Length);
+            VerifyModelForDeclarationPattern(model, x0Decl, x0Ref);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+
+            var x2Decl = GetPatternDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
+        }
+
+        [Fact]
+        public void For_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        bool f = true;
+
+        for (Dummy(f, (f ? 10 : 20) is var x0, x0); 
+             Dummy(f, (f ? 1 : 2) is var x1, x1); 
+             f = false, Dummy(f, (f ? 100 : 200) is var x2, x2), Dummy(true, null, x2))
+        {
+            System.Console.WriteLine(x0);
+            System.Console.WriteLine(x1);
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"10
+1
+10
+1
+200
+200
+2");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x0Decl = GetPatternDeclarations(tree, "x0").Single();
+            var x0Ref = GetReferences(tree, "x0").ToArray();
+            Assert.Equal(2, x0Ref.Length);
+            VerifyModelForDeclarationPattern(model, x0Decl, x0Ref);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
+
+            var x2Decl = GetPatternDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
+        }
+
+        [Fact]
+        public void For_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        for (bool f = 1 is var x0; Dummy(x0 < 3, x0*10 is var x1, x1); x0++)
+        {
+            l.Add(() => System.Console.WriteLine(""{0} {1}"", x0, x1));
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z) 
+    {
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"10
+20
+30
+--
+3 10
+3 20
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x0Decl = GetPatternDeclarations(tree, "x0").ToArray();
+            var x0Ref = GetReferences(tree, "x0").ToArray();
+            Assert.Equal(1, x0Decl.Length);
+            Assert.Equal(4, x0Ref.Length);
+            VerifyModelForDeclarationPattern(model, x0Decl[0], x0Ref);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void For_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        for (bool f = 1 is var x0; Dummy(x0 < 3, x0*10 is var x1, x1, l, () => System.Console.WriteLine(""{0} {1}"", x0, x1)); x0++)
+        {
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z, System.Collections.Generic.List<System.Action> l, System.Action d) 
+    {
+        l.Add(d);
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"10
+20
+30
+--
+3 10
+3 20
+3 30
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x0Decl = GetPatternDeclarations(tree, "x0").ToArray();
+            var x0Ref = GetReferences(tree, "x0").ToArray();
+            Assert.Equal(1, x0Decl.Length);
+            Assert.Equal(4, x0Ref.Length);
+            VerifyModelForDeclarationPattern(model, x0Decl[0], x0Ref);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
+        }
+
+        [Fact]
+        public void For_05()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        var l = new System.Collections.Generic.List<System.Action>();
+
+        for (bool f = 1 is var x0; Dummy(x0 < 3, x0*10 is var x1, x1, l, () => System.Console.WriteLine(""{0} {1}"", x0, x1)); x0++)
+        {
+            l.Add(() => System.Console.WriteLine(""{0} {1}"", x0, x1));
+        }
+
+        System.Console.WriteLine(""--"");
+
+        foreach (var d in l)
+        {
+            d();
+        }
+    }
+
+    static bool Dummy(bool x, object y, object z, System.Collections.Generic.List<System.Action> l, System.Action d) 
+    {
+        l.Add(d);
+        System.Console.WriteLine(z);
+        return x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"10
+20
+30
+--
+3 10
+3 10
+3 20
+3 20
+3 30
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x0Decl = GetPatternDeclarations(tree, "x0").ToArray();
+            var x0Ref = GetReferences(tree, "x0").ToArray();
+            Assert.Equal(1, x0Decl.Length);
+            Assert.Equal(5, x0Ref.Length);
+            VerifyModelForDeclarationPattern(model, x0Decl[0], x0Ref);
+
+            var x1Decl = GetPatternDeclarations(tree, "x1").ToArray();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(1, x1Decl.Length);
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl[0], x1Ref);
         }
 
         [Fact]
@@ -2096,7 +2595,7 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
@@ -2141,7 +2640,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
@@ -2185,7 +2684,7 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
@@ -2237,7 +2736,7 @@ throw 2");
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(2, x1Decl.Length);
             Assert.Equal(2, x1Ref.Length);
@@ -2426,7 +2925,7 @@ a:      Test1(2 is var x1);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
@@ -2473,7 +2972,7 @@ a:          Test2(2 is var x1, x1);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<DeclarationPatternSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Identifier.ValueText == "x1").ToArray();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
             Assert.Equal(1, x1Decl.Length);
             Assert.Equal(1, x1Ref.Length);
@@ -3063,6 +3562,126 @@ public class Program
                 );
         }
 
+        [Fact, WorkItem(15956, "https://github.com/dotnet/roslyn/issues/15956")]
+        public void ThrowExpressionWithNullableDecimal()
+        {
+            var source = @"
+using System;
+public class ITest
+{
+    public decimal Test() => 1m;
+}
+
+public class TestClass
+{
+    public void Test(ITest test)
+    {
+        var result = test?.Test() ?? throw new Exception();
+    }
+}";
+            // DEBUG
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
+
+            var verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("TestClass.Test", @"{
+    // Code size       18 (0x12)
+    .maxstack  1
+    .locals init (decimal V_0, //result
+                    decimal V_1)
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  brtrue.s   IL_000a
+    IL_0004:  newobj     ""System.Exception..ctor()""
+    IL_0009:  throw
+    IL_000a:  ldarg.1
+    IL_000b:  call       ""decimal ITest.Test()""
+    IL_0010:  stloc.0
+    IL_0011:  ret
+}");
+
+            // RELEASE
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
+
+            verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("TestClass.Test", @"{
+    // Code size       17 (0x11)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.1
+    IL_000a:  call       ""decimal ITest.Test()""
+    IL_000f:  pop
+    IL_0010:  ret
+}");
+        }
+
+        [Fact, WorkItem(15956, "https://github.com/dotnet/roslyn/issues/15956")]
+        public void ThrowExpressionWithNullableDateTime()
+        {
+            var source = @"
+using System;
+public class ITest
+{
+    public DateTime Test() => new DateTime(2008, 5, 1, 8, 30, 52);
+}
+
+public class TestClass
+{
+    public void Test(ITest test)
+    {
+        var result = test?.Test() ?? throw new Exception();
+    }
+}";
+            // DEBUG
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
+
+            var verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("TestClass.Test", @"{
+    // Code size       18 (0x12)
+    .maxstack  1
+    .locals init (System.DateTime V_0, //result
+                    System.DateTime V_1)
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  brtrue.s   IL_000a
+    IL_0004:  newobj     ""System.Exception..ctor()""
+    IL_0009:  throw
+    IL_000a:  ldarg.1
+    IL_000b:  call       ""System.DateTime ITest.Test()""
+    IL_0010:  stloc.0
+    IL_0011:  ret
+}");
+
+            
+            // RELEASE
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
+
+            verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("TestClass.Test", @"{
+    // Code size       17 (0x11)
+    .maxstack  1
+    IL_0000:  ldarg.1
+    IL_0001:  brtrue.s   IL_0009
+    IL_0003:  newobj     ""System.Exception..ctor()""
+    IL_0008:  throw
+    IL_0009:  ldarg.1
+    IL_000a:  call       ""System.DateTime ITest.Test()""
+    IL_000f:  pop
+    IL_0010:  ret
+}");
+    
+        }
+
         [Fact]
         public void ThrowExpressionForParameterValidation()
         {
@@ -3490,6 +4109,214 @@ public class C
             var x2Ref = GetReferences(tree, "x2").Single();
             VerifyModelForDeclarationPattern(model, x2Decl, x2Ref);
             Assert.Equal("System.Collections.Generic.IEnumerable<System.String>", model.GetTypeInfo(x2Ref).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DiscardInPattern()
+        {
+            var source =
+@"
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        int i = 3;
+        Write($""is int _: {i is int _}, "");
+        Write($""is var _: {i is var _}, "");
+        switch (3)
+        {
+            case int _:
+                Write(""case int _, "");
+                break;
+        }
+        switch (3L)
+        {
+            case var _:
+                Write(""case var _"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "is int _: True, is var _: True, case int _, case var _");
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var discard1 = GetDiscardDesignations(tree).First();
+            Assert.Null(model.GetDeclaredSymbol(discard1));
+            var declaration1 = (DeclarationPatternSyntax)discard1.Parent;
+            Assert.Equal("int _", declaration1.ToString());
+            Assert.Null(model.GetTypeInfo(declaration1).Type);
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration1.Type).Type.ToTestDisplayString());
+
+            var discard2 = GetDiscardDesignations(tree).Skip(1).First();
+            Assert.Null(model.GetDeclaredSymbol(discard2));
+            Assert.Null(model.GetSymbolInfo(discard2).Symbol);
+            var declaration2 = (DeclarationPatternSyntax)discard2.Parent;
+            Assert.Equal("var _", declaration2.ToString());
+            Assert.Null(model.GetTypeInfo(declaration2).Type);
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration2.Type).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(declaration2).Symbol);
+
+            var discard3 = GetDiscardDesignations(tree).Skip(2).First();
+            Assert.Null(model.GetDeclaredSymbol(discard3));
+            var declaration3 = (DeclarationPatternSyntax)discard3.Parent;
+            Assert.Equal("int _", declaration3.ToString());
+            Assert.Null(model.GetTypeInfo(declaration3).Type);
+            Assert.Equal("System.Int32", model.GetTypeInfo(declaration3.Type).Type.ToTestDisplayString());
+
+            var discard4 = GetDiscardDesignations(tree).Skip(3).First();
+            Assert.Null(model.GetDeclaredSymbol(discard4));
+            var declaration4 = (DeclarationPatternSyntax)discard4.Parent;
+            Assert.Equal("var _", declaration4.ToString());
+            Assert.Null(model.GetTypeInfo(declaration4).Type);
+            Assert.Equal("System.Int64", model.GetTypeInfo(declaration4.Type).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void UnderscoreInPattern()
+        {
+            var source =
+@"
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        int i = 3;
+        if (i is int _) { Write(_); }
+        if (i is var _) { Write(_); }
+        switch (3)
+        {
+            case int _:
+                Write(_);
+                break;
+        }
+        switch (3)
+        {
+            case var _:
+                Write(_);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (8,33): error CS0103: The name '_' does not exist in the current context
+                //         if (i is int _) { Write(_); }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(8, 33),
+                // (9,33): error CS0103: The name '_' does not exist in the current context
+                //         if (i is var _) { Write(_); }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(9, 33),
+                // (13,23): error CS0103: The name '_' does not exist in the current context
+                //                 Write(_);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(13, 23),
+                // (19,23): error CS0103: The name '_' does not exist in the current context
+                //                 Write(_);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(19, 23)
+                );
+        }
+
+        [Fact]
+        public void PointerTypeInPattern()
+        {
+            // pointer types are not supported in patterns. Therefore an attempt to use
+            // a pointer type will be interpreted by the parser as a multiplication
+            // (i.e. an expression that is a constant pattern rather than a declaration
+            // pattern)
+            var source =
+@"
+public class var {}
+unsafe public class Typ
+{
+    public static void Main(int* a, var* c, Typ* e)
+    {
+        {
+            if (a is int* b) {}
+            if (c is var* d) {}
+            if (e is Typ* f) {}
+        }
+        {
+            switch (a) { case int* b: break; }
+            switch (c) { case var* d: break; }
+            switch (e) { case Typ* f: break; }
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugDll);
+            compilation.VerifyDiagnostics(
+                //             if (a is int* b) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(8, 22),
+                // (13,31): error CS1525: Invalid expression term 'int'
+                //             switch (a) { case int* b: break; }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(13, 31),
+                // (5,37): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
+                //     public static void Main(int* a, var* c, Typ* e)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "var*").WithArguments("var").WithLocation(5, 37),
+                // (5,45): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Typ')
+                //     public static void Main(int* a, var* c, Typ* e)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "Typ*").WithArguments("Typ").WithLocation(5, 45),
+                // (8,27): error CS0103: The name 'b' does not exist in the current context
+                //             if (a is int* b) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(8, 27),
+                // (9,22): error CS0119: 'var' is a type, which is not valid in the given context
+                //             if (c is var* d) {}
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "var").WithArguments("var", "type").WithLocation(9, 22),
+                // (9,27): error CS0103: The name 'd' does not exist in the current context
+                //             if (c is var* d) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(9, 27),
+                // (10,22): error CS0119: 'Typ' is a type, which is not valid in the given context
+                //             if (e is Typ* f) {}
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Typ").WithArguments("Typ", "type").WithLocation(10, 22),
+                // (10,27): error CS0103: The name 'f' does not exist in the current context
+                //             if (e is Typ* f) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(10, 27),
+                // (13,36): error CS0103: The name 'b' does not exist in the current context
+                //             switch (a) { case int* b: break; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(13, 36),
+                // (14,31): error CS0119: 'var' is a type, which is not valid in the given context
+                //             switch (c) { case var* d: break; }
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "var").WithArguments("var", "type").WithLocation(14, 31),
+                // (14,36): error CS0103: The name 'd' does not exist in the current context
+                //             switch (c) { case var* d: break; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(14, 36),
+                // (15,31): error CS0119: 'Typ' is a type, which is not valid in the given context
+                //             switch (e) { case Typ* f: break; }
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Typ").WithArguments("Typ", "type").WithLocation(15, 31),
+                // (15,36): error CS0103: The name 'f' does not exist in the current context
+                //             switch (e) { case Typ* f: break; }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(15, 36)
+                );
+        }
+
+        [Fact]
+        public void MultiplyInPattern()
+        {
+            // pointer types are not supported in patterns. Therefore an attempt to use
+            // a pointer type will be interpreted by the parser as a multiplication
+            // (i.e. an expression that is a constant pattern rather than a declaration
+            // pattern)
+            var source =
+@"
+public class Program
+{
+    public static void Main()
+    {
+        const int two = 2;
+        const int three = 3;
+        int six = two * three;
+        System.Console.WriteLine(six is two * three);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: "True");
         }
     }
 }

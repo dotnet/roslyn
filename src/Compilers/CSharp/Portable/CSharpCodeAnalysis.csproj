@@ -1,9 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{B501A547-C911-4A05-AC6E-274A50DFF30E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
@@ -16,6 +17,8 @@
     <SyntaxDefinition>$(MSBuildThisFileDirectory)Syntax\Syntax.xml</SyntaxDefinition>
     <CodeAnalysisRuleSet>..\CSharpCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\DeployCompilerGeneratorToolsRuntime\DeployCompilerGeneratorToolsRuntime.csproj">
       <Project>{6da08f12-32f2-4dd9-bbad-982eb71a2c9b}</Project>
@@ -73,6 +76,7 @@
     <Compile Include="Binder\EarlyWellKnownAttributeBinder.cs" />
     <Compile Include="Binder\EmbeddedStatementBinder.cs" />
     <Compile Include="Binder\ExecutableCodeBinder.cs" />
+    <Compile Include="Binder\ExpressionListVariableBinder.cs" />
     <Compile Include="Binder\ExtensionMethodScope.cs" />
     <Compile Include="Binder\FixedStatementBinder.cs" />
     <Compile Include="Binder\ForEachEnumeratorInfo.cs" />
@@ -173,6 +177,7 @@
     <Compile Include="BoundTree\DecisionTreeBuilder.cs" />
     <Compile Include="BoundTree\Expression.cs" />
     <Compile Include="BoundTree\DeconstructionVariablePendingInference.cs" />
+    <Compile Include="BoundTree\BoundDiscardExpression.cs" />
     <Compile Include="BoundTree\OutVariablePendingInference.cs" />
     <Compile Include="BoundTree\OutDeconstructVarPendingInference.cs" />
     <Compile Include="BoundTree\PseudoVariableExpressions.cs" />
@@ -497,6 +502,7 @@
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TemplateSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.ToStringMethodSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TypeParameterSymbol.cs" />
+    <Compile Include="Symbols\DiscardSymbol.cs" />
     <Compile Include="Symbols\Metadata\PE\TupleTypeDecoder.cs" />
     <Compile Include="Symbols\Source\GlobalExpressionVariable.cs" />
     <Compile Include="Symbols\Tuples\TupleEventSymbol.cs" />
@@ -516,7 +522,6 @@
     <Compile Include="Symbols\Attributes\WellKnownAttributeData\PropertyEarlyWellKnownAttributeData.cs" />
     <Compile Include="Symbols\Attributes\WellKnownAttributeData\TypeWellKnownAttributeData.cs" />
     <Compile Include="Symbols\BaseTypeAnalysis.cs" />
-    <Compile Include="Symbols\ByRefReturnErrorTypeSymbol.cs" />
     <Compile Include="Symbols\Compilation_WellKnownMembers.cs" />
     <Compile Include="Symbols\CompletionPart.cs" />
     <Compile Include="Symbols\ConstantValueUtils.cs" />
@@ -749,6 +754,7 @@
     <Compile Include="Syntax\CSharpSyntaxTree.DebuggerSyntaxTree.cs" />
     <Compile Include="Syntax\IdentifierNameSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\CSharpSyntaxNodeCache.cs" />
+    <Compile Include="Syntax\InternalSyntax\TypeSyntax.cs" />
     <Compile Include="Syntax\PropertyDeclarationSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\DirectiveTriviaSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\IdentifierNameSyntax.cs" />

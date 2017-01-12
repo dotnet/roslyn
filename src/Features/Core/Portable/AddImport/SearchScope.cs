@@ -64,8 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     return symbols.SelectAsArray(s =>
                     {
-                        double matchCost;
-                        var areSimilar = similarityChecker.AreSimilar(s.Name, out matchCost);
+                        var areSimilar = similarityChecker.AreSimilar(s.Name, out var matchCost);
 
                         Debug.Assert(areSimilar);
                         return SymbolResult.Create(s.Name, nameNode, s, matchCost);

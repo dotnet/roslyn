@@ -19,12 +19,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal partial class CSharpAsAndNullCheckCodeFixProvider : CodeFixProvider
+    internal partial class CSharpAsAndNullCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineAsTypeCheckId);
-
-        public override FixAllProvider GetFixAllProvider() => new InlineTypeCheckFixAllProvider(this);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -34,31 +32,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             return SpecializedTasks.EmptyTask;
         }
 
-        private Task<Document> FixAsync(
-            Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected override Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            return FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
-        }
-
-        private async Task<Document> FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(root, editor, diagnostic, cancellationToken);
+                AddEdits(editor, diagnostic, cancellationToken);
             }
 
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
+            return SpecializedTasks.EmptyTask;
         }
 
         private void AddEdits(
-            SyntaxNode root, 
             SyntaxEditor editor, 
             Diagnostic diagnostic, 
             CancellationToken cancellationToken)
@@ -70,26 +57,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             var localDeclaration = (LocalDeclarationStatementSyntax)localDeclarationLocation.FindNode(cancellationToken);
             var ifStatement = (IfStatementSyntax)ifStatementLocation.FindNode(cancellationToken);
-            var condition = (BinaryExpressionSyntax)conditionLocation.FindNode(cancellationToken);
+            var conditionPart = (BinaryExpressionSyntax)conditionLocation.FindNode(cancellationToken);
             var asExpression = (BinaryExpressionSyntax)asExpressionLocation.FindNode(cancellationToken);
 
-            var updatedCondition = SyntaxFactory.IsPatternExpression(
+            var updatedConditionPart = SyntaxFactory.IsPatternExpression(
                 asExpression.Left, SyntaxFactory.DeclarationPattern(
                     ((TypeSyntax)asExpression.Right).WithoutTrivia(),
-                    Extensions.SyntaxTokenExtensions.WithoutTrivia(
-                        localDeclaration.Declaration.Variables[0].Identifier)));
+                    SyntaxFactory.SingleVariableDesignation(
+                        localDeclaration.Declaration.Variables[0].Identifier.WithoutTrivia())));
 
-            var trivia = localDeclaration.GetLeadingTrivia().Concat(localDeclaration.GetTrailingTrivia())
-                                         .Where(t => t.IsSingleOrMultiLineComment())
-                                         .SelectMany(t => ImmutableArray.Create(t, SyntaxFactory.ElasticCarriageReturnLineFeed))
-                                         .ToImmutableArray();
+            var finalCondition = ifStatement.Condition.ReplaceNode(conditionPart, updatedConditionPart);
 
-            var updatedIfStatement = ifStatement.ReplaceNode(condition, updatedCondition)
-                                                .WithPrependedLeadingTrivia(trivia)
-                                                .WithAdditionalAnnotations(Formatter.Annotation);
-
-            editor.RemoveNode(localDeclaration);
-            editor.ReplaceNode(ifStatement, updatedIfStatement);
+            // Keep the trivia on the node we're removing.  But format the next statement so 
+            // they look ok when they move to it.
+            var removeOptions = localDeclaration.GetTrailingTrivia().Any(t => t.IsRegularOrDocComment())
+                ? SyntaxRemoveOptions.KeepLeadingTrivia | SyntaxRemoveOptions.KeepTrailingTrivia
+                : SyntaxRemoveOptions.KeepLeadingTrivia;
+            editor.RemoveNode(localDeclaration, removeOptions);
+            editor.ReplaceNode(ifStatement, (i, g) =>
+            {
+                var currentIf = (IfStatementSyntax)i;
+                var updatedIf = currentIf.ReplaceNode(currentIf.Condition, finalCondition);
+                return updatedIf.WithAdditionalAnnotations(Formatter.Annotation);
+            });
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

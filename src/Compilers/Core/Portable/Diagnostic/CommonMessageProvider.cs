@@ -225,5 +225,7 @@ namespace Microsoft.CodeAnalysis
 
         public abstract void ReportAttributeParameterRequired(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName);
         public abstract void ReportAttributeParameterRequired(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, string parameterName1, string parameterName2);
+
+        public abstract int ERR_BadAssemblyName { get; }
     }
 }

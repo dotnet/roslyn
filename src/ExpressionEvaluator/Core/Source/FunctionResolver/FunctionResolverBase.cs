@@ -11,17 +11,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         where TModule : class
         where TRequest : class
     {
-        internal void EnableResolution(TProcess process, TRequest request)
-        {
-            ResolveRequest(process, request);
-        }
-
-        internal void OnModuleLoad(TProcess process, TModule module)
-        {
-            var requests = GetRequests(process);
-            ResolveRequests(process, module, requests);
-        }
-
         internal abstract bool ShouldEnableFunctionResolver(TProcess process);
         internal abstract IEnumerable<TModule> GetAllModules(TProcess process);
         internal abstract string GetModuleName(TModule module);
@@ -29,10 +18,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract TRequest[] GetRequests(TProcess process);
         internal abstract string GetRequestModuleName(TRequest request);
         internal abstract RequestSignature GetParsedSignature(TRequest request);
-        internal abstract void OnFunctionResolved(TModule module, TRequest request, int token, int version, int ilOffset);
+        internal abstract bool IgnoreCase { get; }
+        internal abstract Guid GetLanguageId(TRequest request);
+        internal abstract Guid LanguageId { get; }
 
-        private void ResolveRequest(TProcess process, TRequest request)
+        internal void EnableResolution(TProcess process, TRequest request, OnFunctionResolvedDelegate<TModule, TRequest> onFunctionResolved)
         {
+            if (!ShouldHandleRequest(request))
+            {
+                return;
+            }
+
             var moduleName = GetRequestModuleName(request);
             var signature = GetParsedSignature(request);
             if (signature == null)
@@ -51,6 +47,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
                     checkEnabled = false;
                 }
+
                 if (!ShouldModuleHandleRequest(module, moduleName))
                 {
                     continue;
@@ -60,12 +57,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
-                var resolver = new MetadataResolver<TProcess, TModule, TRequest>(this, process, module, reader);
+                var resolver = CreateMetadataResolver(process, module, reader, onFunctionResolved);
                 resolver.Resolve(request, signature);
             }
         }
 
-        private void ResolveRequests(TProcess process, TModule module, TRequest[] requests)
+        internal void OnModuleLoad(TProcess process, TModule module, OnFunctionResolvedDelegate<TModule, TRequest> onFunctionResolved)
         {
             if (!ShouldEnableFunctionResolver(process))
             {
@@ -73,9 +70,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             MetadataResolver<TProcess, TModule, TRequest> resolver = null;
+            var requests = GetRequests(process);
 
             foreach (var request in requests)
             {
+                if (!ShouldHandleRequest(request))
+                {
+                    continue;
+                }
+
                 var moduleName = GetRequestModuleName(request);
                 if (!ShouldModuleHandleRequest(module, moduleName))
                 {
@@ -95,11 +98,30 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         return;
                     }
-                    resolver = new MetadataResolver<TProcess, TModule, TRequest>(this, process, module, reader);
+                    resolver = CreateMetadataResolver(process, module, reader, onFunctionResolved);
                 }
 
                 resolver.Resolve(request, signature);
             }
+        }
+
+        private MetadataResolver<TProcess, TModule, TRequest> CreateMetadataResolver(
+            TProcess process,
+            TModule module,
+            MetadataReader reader,
+            OnFunctionResolvedDelegate<TModule, TRequest> onFunctionResolved)
+        {
+            return new MetadataResolver<TProcess, TModule, TRequest>(process, module, reader, IgnoreCase, onFunctionResolved);
+        }
+
+        private bool ShouldHandleRequest(TRequest request)
+        {
+            var languageId = GetLanguageId(request);
+            if (languageId == Guid.Empty)
+            {
+                return true;
+            }
+            return languageId == LanguageId;
         }
 
         private bool ShouldModuleHandleRequest(TModule module, string moduleName)

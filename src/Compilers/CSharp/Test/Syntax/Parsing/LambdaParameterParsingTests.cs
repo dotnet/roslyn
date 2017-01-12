@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LambdaParameterParsingTests : ParsingTests
     {
+        public LambdaParameterParsingTests(ITestOutputHelper output) : base(output) { }
+
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
             return SyntaxFactory.ParseSyntaxTree(text, options: options);
@@ -543,54 +543,39 @@ class C {
         public void HangingLambdaParsing_Bug14167()
         {
             var tree = UsingNode(@"(int a, int b Main();");
-            N(SyntaxKind.ParenthesizedLambdaExpression);
+            N(SyntaxKind.TupleExpression);
             {
-                N(SyntaxKind.ParameterList);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.Argument);
                 {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.DeclarationExpression);
                     {
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
                     }
-                    N(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.DeclarationExpression);
                     {
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "b");
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.SingleVariableDesignation);
                         {
-                            N(SyntaxKind.IdentifierToken, "Main");
+                            N(SyntaxKind.IdentifierToken, "b");
                         }
-                        M(SyntaxKind.IdentifierToken);
                     }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
-                    {
-                        N(SyntaxKind.TupleType);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.CloseParenToken);
                 }
-                M(SyntaxKind.EqualsGreaterThanToken);
-                M(SyntaxKind.IdentifierName);
-                {
-                    M(SyntaxKind.IdentifierToken);
-                }
+                M(SyntaxKind.CloseParenToken);
             }
             EOF();
         }

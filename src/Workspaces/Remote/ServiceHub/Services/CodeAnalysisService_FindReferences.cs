@@ -10,9 +10,7 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteSymbolFinder
     {
-        public async Task FindReferencesAsync(
-            SerializableSymbolAndProjectId symbolAndProjectIdArg, SerializableDocumentId[] documentArgs, 
-            byte[] solutionChecksum)
+        public async Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, SerializableDocumentId[] documentArgs)
         {
             var solution = await GetSolutionAsync().ConfigureAwait(false);
 
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 _service = service;
             }
 
-            public Task OnStartedAsync() 
+            public Task OnStartedAsync()
                 => _service.Rpc.InvokeAsync(nameof(OnStartedAsync));
 
             public Task OnCompletedAsync()
@@ -46,11 +44,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 => _service.Rpc.InvokeAsync(nameof(ReportProgressAsync), current, maximum);
 
             public Task OnFindInDocumentStartedAsync(Document document)
-                => _service.Rpc.InvokeAsync(nameof(OnFindInDocumentStartedAsync), 
+                => _service.Rpc.InvokeAsync(nameof(OnFindInDocumentStartedAsync),
                     SerializableDocumentId.Dehydrate(document));
 
             public Task OnFindInDocumentCompletedAsync(Document document)
-                => _service.Rpc.InvokeAsync(nameof(OnFindInDocumentCompletedAsync), 
+                => _service.Rpc.InvokeAsync(nameof(OnFindInDocumentCompletedAsync),
                     SerializableDocumentId.Dehydrate(document));
 
             public Task OnDefinitionFoundAsync(SymbolAndProjectId definition)

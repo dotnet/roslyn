@@ -78,6 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnostics = DiagnosticBag.GetInstance();
 
+            ScopeBinder = binder;
+
+            binder = binder.WithUnsafeRegionIfNecessary(syntax.Modifiers);
+
             if (_syntax.TypeParameterList != null)
             {
                 binder = new WithMethodTypeParametersBinder(this, binder);
@@ -102,10 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Binder that owns the scope for the local function symbol, namely the scope where the
         /// local function is declared.
         /// </summary>
-        internal Binder ScopeBinder => _syntax.TypeParameterList == null
-            ? _binder
-            : _binder.Next; // If there are type parameters, this binder is wrapped
-                            // in a WithMethodTypeParametersBinder
+        internal Binder ScopeBinder { get; }
 
         internal void GrabDiagnostics(DiagnosticBag addTo)
         {
@@ -156,7 +157,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnostics = DiagnosticBag.GetInstance();
             SyntaxToken arglistToken;
-            var parameters = ParameterHelpers.MakeParameters(_binder, this, _syntax.ParameterList, true, out arglistToken, diagnostics, true);
+            var parameters = ParameterHelpers.MakeParameters(
+                _binder,
+                this,
+                _syntax.ParameterList,
+                allowRefOrOut: true,
+                arglistToken: out arglistToken,
+                diagnostics: diagnostics,
+                beStrict: true);
+
             var isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             if (IsAsync && diagnostics.IsEmptyWithoutResolution)
             {
@@ -266,6 +275,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool GenerateDebugInfo => true;
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
         internal override MethodImplAttributes ImplementationAttributes => default(MethodImplAttributes);
 

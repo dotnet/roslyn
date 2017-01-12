@@ -3,9 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
                 AddReferences("System.Linq").
                 AddReferences("System.Linq");
 
-            Assert.Equal(5, options.MetadataReferences.Length);
+            Assert.Equal(GacFileResolver.IsAvailable ? 5 : 28, options.MetadataReferences.Length);
         }
 
         [Fact]
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         {
             var moduleRef = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleCS00).GetReference();
 
-            var options = ScriptOptions.Default;
+            var options = ScriptOptions.Default.WithReferences(ImmutableArray<MetadataReference>.Empty);
             Assert.Throws<ArgumentNullException>("references", () => options.AddReferences((MetadataReference[])null));
             Assert.Throws<ArgumentNullException>("references[0]", () => options.AddReferences(new MetadataReference[] { null }));
 
@@ -54,15 +53,17 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         [Fact]
         public void WithReferences()
         {
-            var options = ScriptOptions.Default.WithReferences("System.Linq", "system.linq");
+            var empty = ScriptOptions.Default.WithReferences(ImmutableArray<MetadataReference>.Empty);
+
+            var options = empty.WithReferences("System.Linq", "system.linq");
             Assert.Equal(2, options.MetadataReferences.Length);
 
-            options = ScriptOptions.Default.WithReferences(typeof(int).GetTypeInfo().Assembly, typeof(int).GetTypeInfo().Assembly);
+            options = empty.WithReferences(typeof(int).GetTypeInfo().Assembly, typeof(int).GetTypeInfo().Assembly);
             Assert.Equal(2, options.MetadataReferences.Length);
 
             var assemblyRef = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.Methods.CSMethods).GetReference();
 
-            options = ScriptOptions.Default.WithReferences(assemblyRef, assemblyRef);
+            options = empty.WithReferences(assemblyRef, assemblyRef);
             Assert.Equal(2, options.MetadataReferences.Length);
         }
 
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         {
             var moduleRef = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleCS00).GetReference();
 
-            var options = ScriptOptions.Default;
+            var options = ScriptOptions.Default.WithReferences(ImmutableArray<MetadataReference>.Empty);
             Assert.Throws<ArgumentNullException>("references", () => options.WithReferences((MetadataReference[])null));
             Assert.Throws<ArgumentNullException>("references", () => options.WithReferences((IEnumerable<MetadataReference>)null));
             Assert.Throws<ArgumentNullException>("references", () => options.WithReferences(default(ImmutableArray<MetadataReference>)));

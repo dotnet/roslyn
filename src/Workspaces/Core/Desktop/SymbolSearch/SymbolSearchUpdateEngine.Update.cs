@@ -562,6 +562,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     try
                     {
                         await action().ConfigureAwait(false);
+                        return;
                     }
                     catch (Exception e)
                     {

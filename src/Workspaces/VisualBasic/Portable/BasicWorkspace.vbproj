@@ -1,9 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Workspaces</AssemblyName>
@@ -26,16 +27,8 @@
       <Name>Workspaces</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <Optimize>false</Optimize>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features" />
@@ -43,7 +36,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
-    <InternalsVisibleTo Include="MonoDevelop.VBNetBinding" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
@@ -55,6 +48,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddImports\VisualBasicAddImportsService.vb" />
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionService.Rewriter.vb" />
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionService.vb" />
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionServiceFactory.vb" />
@@ -269,6 +263,9 @@
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Diagnostics\VisualBasicDiagnosticPropertiesService.vb" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

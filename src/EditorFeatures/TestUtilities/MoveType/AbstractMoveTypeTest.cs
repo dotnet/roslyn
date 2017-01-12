@@ -39,10 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                     var documentId = workspace.Documents[0].Id;
                     var documentName = workspace.Documents[0].Name;
-
-                    string expectedText;
-                    TextSpan span;
-                    MarkupTestFile.GetSpan(expectedCode, out expectedText, out span);
+                    MarkupTestFile.GetSpan(expectedCode, out var expectedText, out var span);
 
                     var codeActionTitle = string.Format(RenameTypeCodeActionTitle, expectedText.Substring(span.Start, span.Length));
 

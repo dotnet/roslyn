@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         private TodoCommentIncrementalAnalyzer TryGetAnalyzer(Workspace workspace)
         {
-            TodoCommentIncrementalAnalyzer analyzer;
-            if (s_analyzers.TryGetValue(workspace, out analyzer))
+            if (s_analyzers.TryGetValue(workspace, out var analyzer))
             {
                 return analyzer;
             }

@@ -36,9 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
             _foregroundNotificationService.RegisterNotification(() =>
             {
-                IVsWindowFrame frame;
-                IVsInfoBarUIFactory factory;
-                if (TryGetInfoBarData(out frame, out factory))
+                if (TryGetInfoBarData(out var frame, out var factory))
                 {
                     CreateInfoBar(factory, frame, message, items);
                 }
@@ -50,11 +48,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             frame = null;
             factory = null;
             var monitorSelectionService = _serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-            object value = null;
 
             // We want to get whichever window is currently in focus (including toolbars) as we could have had an exception thrown from the error list or interactive window
             if (monitorSelectionService != null &&
-               ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out value)))
+               ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out object value)))
             {
                 frame = value as IVsWindowFrame;
             }
@@ -69,8 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private void CreateInfoBar(IVsInfoBarUIFactory factory, IVsWindowFrame frame, string message, ErrorReportingUI[] items)
         {
-            object unknown;
-            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out unknown)))
+            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out var unknown)))
             {
                 return;
             }
@@ -105,9 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 actionItems.ToArray(),
                 KnownMonikers.StatusInformation,
                 isCloseButtonVisible: true);
-
-            IVsInfoBarUIElement infoBarUI;
-            if (!TryCreateInfoBarUI(factory, infoBarModel, out infoBarUI))
+            if (!TryCreateInfoBarUI(factory, infoBarModel, out var infoBarUI))
             {
                 return;
             }
@@ -123,9 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     infoBarUI.Unadvise(infoBarCookie.Value);
                 }
             });
-
-            uint cookie;
-            infoBarUI.Advise(eventSink, out cookie);
+            infoBarUI.Advise(eventSink, out var cookie);
             infoBarCookie = cookie;
 
             var host = (IVsInfoBarHost)unknown;

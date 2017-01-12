@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -166,8 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 foreach (var d in _workspace.GetOpenDocumentIds())
                 {
                     var document = _baseSolution.GetDocument(d);
-                    SourceText text;
-                    Contract.ThrowIfFalse(document.TryGetText(out text));
+                    Contract.ThrowIfFalse(document.TryGetText(out var text));
                     Contract.ThrowIfNull(text);
 
                     var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var asyncToken = _asyncListener.BeginAsyncOperation("UpdateReferencesTask");
             _allRenameLocationsTask = allRenameLocationsTask;
             allRenameLocationsTask.SafeContinueWith(
-                t => RaiseSessionSpansUpdated(t.Result.Locations),
+                t => RaiseSessionSpansUpdated(t.Result.Locations.ToImmutableArray()),
                 _cancellationTokenSource.Token,
                 TaskContinuationOptions.OnlyOnRanToCompletion,
                 ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public IInlineRenameUndoManager UndoManager { get; }
 
-        public event EventHandler<IList<InlineRenameLocation>> ReferenceLocationsChanged;
+        public event EventHandler<ImmutableArray<InlineRenameLocation>> ReferenceLocationsChanged;
         public event EventHandler<IInlineRenameReplacementInfo> ReplacementsComputed;
         public event EventHandler ReplacementTextChanged;
 
@@ -341,14 +341,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        private void RaiseSessionSpansUpdated(IList<InlineRenameLocation> locations)
+        private void RaiseSessionSpansUpdated(ImmutableArray<InlineRenameLocation> locations)
         {
             AssertIsForeground();
             SetReferenceLocations(locations);
             ReferenceLocationsChanged?.Invoke(this, locations);
         }
 
-        private void SetReferenceLocations(IEnumerable<InlineRenameLocation> locations)
+        private void SetReferenceLocations(ImmutableArray<InlineRenameLocation> locations)
         {
             AssertIsForeground();
 
@@ -672,9 +672,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         internal bool TryGetContainingEditableSpan(SnapshotPoint point, out SnapshotSpan editableSpan)
         {
             editableSpan = default(SnapshotSpan);
-
-            OpenTextBufferManager bufferManager;
-            if (!_openTextBuffers.TryGetValue(point.Snapshot.TextBuffer, out bufferManager))
+            if (!_openTextBuffers.TryGetValue(point.Snapshot.TextBuffer, out var bufferManager))
             {
                 return false;
             }

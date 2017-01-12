@@ -32,6 +32,7 @@
         <dependency id="System.Runtime"                                version="$SystemRuntimeVersion$"/>
         <dependency id="System.Runtime.Extensions"                     version="$SystemRuntimeExtensionsVersion$"/>
         <dependency id="System.Runtime.InteropServices"                version="$SystemRuntimeInteropServicesVersion$"/>
+        <dependency id="System.Runtime.InteropServices.RuntimeInformation" version="$SystemRuntimeInteropServicesRuntimeInformationVersion$"/>
         <dependency id="System.Runtime.Numerics"                       version="$SystemRuntimeNumericsVersion$"/>
         <dependency id="System.Security.Cryptography.Algorithms"       version="$SystemSecurityCryptographyAlgorithmsVersion$"/>
         <dependency id="System.Security.Cryptography.Encoding"         version="$SystemSecurityCryptographyEncodingVersion$"/>
@@ -43,6 +44,7 @@
         <dependency id="System.Threading.Tasks"                        version="$SystemThreadingTasksVersion$"/>
         <dependency id="System.Threading.Tasks.Parallel"               version="$SystemThreadingTasksParallelVersion$"/>
         <dependency id="System.Threading.Thread"                       version="$SystemThreadingThreadVersion$" exclude="Compile" />
+        <dependency id="System.ValueTuple"                             version="$SystemValueTupleVersion$" />
         <dependency id="System.Xml.ReaderWriter"                       version="$SystemXmlReaderWriterVersion$"/>
         <dependency id="System.Xml.XDocument"                          version="$SystemXmlXDocumentVersion$"/>
         <dependency id="System.Xml.XmlDocument"                        version="$SystemXmlXmlDocumentVersion$" exclude="Compile" />

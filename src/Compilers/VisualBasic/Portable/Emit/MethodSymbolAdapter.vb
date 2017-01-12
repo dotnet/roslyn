@@ -172,6 +172,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property ISignatureRefCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.ISignature.RefCustomModifiers
+            Get
+                Return Me.RefCustomModifiers.As(Of Cci.ICustomModifier)
+            End Get
+        End Property
+
         Private ReadOnly Property ISignatureReturnValueIsByRef As Boolean Implements Cci.ISignature.ReturnValueIsByRef
             Get
                 Return ReturnsByRef

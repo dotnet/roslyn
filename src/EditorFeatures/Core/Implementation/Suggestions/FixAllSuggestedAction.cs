@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return _fixedDiagnostic.GetHashCode().ToString(CultureInfo.InvariantCulture);
         }
 
-        protected override async Task InvokeAsync(
+        protected override void InnerInvoke(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
             using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesSession, cancellationToken))
             {
-                await base.InvokeAsync(progressTracker, cancellationToken).ConfigureAwait(false);
+                base.InnerInvoke(progressTracker, cancellationToken);
             }
         }
     }

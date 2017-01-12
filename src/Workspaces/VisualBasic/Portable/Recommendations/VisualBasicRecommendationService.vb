@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             cancellationToken As CancellationToken
         ) As ImmutableArray(Of ISymbol)
 
-            Dim leftExpression = node.GetExpressionOfMemberAccessExpression()
+            Dim leftExpression = node.GetExpressionOfMemberAccessExpression(allowImplicitTarget:=True)
             If leftExpression Is Nothing Then
                 Return ImmutableArray(Of ISymbol).Empty
             End If
