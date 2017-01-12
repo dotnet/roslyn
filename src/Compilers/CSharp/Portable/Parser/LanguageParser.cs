@@ -3218,9 +3218,6 @@ parse_member_name:;
                 var builder = _pool.Allocate<AccessorDeclarationSyntax>();
                 try
                 {
-                    bool hasGetOrAdd = false;
-                    bool hasSetOrRemove = false;
-
                     while (true)
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
@@ -3229,7 +3226,7 @@ parse_member_name:;
                         }
                         else if (this.IsPossibleAccessor())
                         {
-                            var acc = this.ParseAccessorDeclaration(isEvent, ref hasGetOrAdd, ref hasSetOrRemove);
+                            var acc = this.ParseAccessorDeclaration(isEvent);
                             builder.Add(acc);
                         }
                         else if (this.SkipBadAccessorListTokens(ref openBrace, builder,
@@ -3502,12 +3499,9 @@ parse_member_name:;
             }
         }
 
-        private AccessorDeclarationSyntax ParseAccessorDeclaration(
-            bool isEvent,
-            ref bool hasGetOrAdd,
-            ref bool hasSetOrRemove)
+        private AccessorDeclarationSyntax ParseAccessorDeclaration(bool isEvent)
         {
-            if (this.IsIncrementalAndFactoryContextMatches && CanReuseAccessorDeclaration(isEvent))
+            if (this.IsIncrementalAndFactoryContextMatches && CanReuseAccessorDeclaration())
             {
                 return (AccessorDeclarationSyntax)this.EatNode();
             }
@@ -3527,114 +3521,91 @@ parse_member_name:;
                     }
                 }
 
-                bool validAccName;
-                SyntaxToken accessorName;
-                SyntaxKind accessorKind;
+                var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
+                    isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
+                var accessorKind = GetAccessorKind(accessorName);
 
-                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                // Only convert the identifier to a keyword if it's a valid one.  Otherwise any
+                // other contextual keyword (like 'partial') will be converted into a keyword
+                // and will be invalid.
+                if (accessorKind == SyntaxKind.UnknownAccessorDeclaration)
                 {
-                    accessorName = this.EatToken();
-
-                    // Only convert the identifier to a keyword if it's a valid one.  Otherwise any
-                    // other contextual keyword (like 'partial') will be converted into a keyword
-                    // and will be invalid.
-                    switch (accessorName.ContextualKind)
+                    // We'll have an UnknownAccessorDeclaration either because we didn't have
+                    // an IdentifierToken or because we have an IdentifierToken which is not
+                    // add/remove/get/set.  In the former case, we'll already have reported
+                    // an error and will have a missing token.  But in the latter case we need 
+                    // to report that the identifier is incorrect.
+                    if (!accessorName.IsMissing)
                     {
-                        case SyntaxKind.GetKeyword:
-                        case SyntaxKind.SetKeyword:
-                        case SyntaxKind.AddKeyword:
-                        case SyntaxKind.RemoveKeyword:
-                            accessorName = ConvertToKeyword(accessorName);
-                            break;
-                    }
-
-                    if (isEvent)
-                    {
-                        bool isAdd = IsNameAdd(accessorName);
-                        bool isRemove = IsNameRemove(accessorName);
-                        validAccName = isAdd || isRemove;
-                        if (!validAccName)
-                        {
-                            accessorName = this.AddError(accessorName, ErrorCode.ERR_AddOrRemoveExpected);
-                            accessorKind = SyntaxKind.UnknownAccessorDeclaration;
-                        }
-                        else
-                        {
-                            if ((isAdd && hasGetOrAdd) || (isRemove && hasSetOrRemove))
-                            {
-                                accessorName = this.AddError(accessorName, ErrorCode.ERR_DuplicateAccessor);
-                            }
-
-                            hasGetOrAdd |= isAdd;
-                            hasSetOrRemove |= isRemove;
-                            accessorKind = isRemove ? SyntaxKind.RemoveAccessorDeclaration : SyntaxKind.AddAccessorDeclaration;
-                        }
+                        accessorName = this.AddError(accessorName,
+                            isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
                     }
                     else
                     {
-                        // Regular property
-                        bool isGet = IsNameGet(accessorName);
-                        bool isSet = IsNameSet(accessorName);
-                        validAccName = isGet || isSet;
-                        if (!validAccName)
-                        {
-                            accessorName = this.AddError(accessorName, ErrorCode.ERR_GetOrSetExpected);
-                            accessorKind = SyntaxKind.UnknownAccessorDeclaration;
-                        }
-                        else
-                        {
-                            if ((isGet && hasGetOrAdd) || (isSet && hasSetOrRemove))
-                            {
-                                accessorName = this.AddError(accessorName, ErrorCode.ERR_DuplicateAccessor);
-                            }
-
-                            hasGetOrAdd |= isGet;
-                            hasSetOrRemove |= isSet;
-                            accessorKind = isSet ? SyntaxKind.SetAccessorDeclaration : SyntaxKind.GetAccessorDeclaration;
-                        }
+                        Debug.Assert(accessorName.ContainsDiagnostics);
                     }
                 }
                 else
                 {
-                    validAccName = false;
-                    accessorName = SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken);
-                    accessorName = this.AddError(accessorName, isEvent ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
-                    accessorKind = SyntaxKind.UnknownAccessorDeclaration;
+                    accessorName = ConvertToKeyword(accessorName);
                 }
 
                 BlockSyntax blockBody = null;
                 ArrowExpressionClauseSyntax expressionBody = null;
-
                 SyntaxToken semicolon = null;
+
                 bool currentTokenIsSemicolon = this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
                 bool currentTokenIsArrow = this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken;
                 bool currentTokenIsOpenBraceToken = this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
 
-                if (!currentTokenIsArrow && !currentTokenIsSemicolon && !currentTokenIsOpenBraceToken && validAccName && !IsTerminator())
+                if (currentTokenIsOpenBraceToken || currentTokenIsArrow)
                 {
-                    // if there is no body, we "expect" a block for an accessor.
-                    blockBody = this.ParseBlock(isMethodBody: true, isAccessorBody: true);
+                    this.ParseBlockAndExpressionBodiesWithSemicolon(
+                        out blockBody, out expressionBody, out semicolon,
+                        requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedAccessor);
                 }
-                else if (currentTokenIsOpenBraceToken || currentTokenIsArrow)
+                else if (currentTokenIsSemicolon)
                 {
-                    this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon,
-                                                                    requestedExpressionBodyFeature: MessageID.IDS_FeatureExpressionBodiedAccessor);
-                }
-                else if (currentTokenIsSemicolon || validAccName)
-                {
-                    semicolon = this.EatToken(SyntaxKind.SemicolonToken,
-                                        IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor)
-                                            ? ErrorCode.ERR_SemiOrLBraceOrArrowExpected
-                                            : ErrorCode.ERR_SemiOrLBraceExpected
-                                );
+                    semicolon = EatAccessorSemicolon();
 
-                    if (isEvent)
+                    if (accessorKind == SyntaxKind.AddAccessorDeclaration ||
+                        accessorKind == SyntaxKind.RemoveAccessorDeclaration)
                     {
                         semicolon = this.AddError(semicolon, ErrorCode.ERR_AddRemoveMustHaveBody);
                     }
                 }
+                else
+                {
+                    // We didn't get something we recognized.  If we got an accessor type we 
+                    // recognized (i.e. get/set/add/remove) then try to parse out a block.
+                    // Only do this if it doesn't seem like we're at the end of the accessor/property.
+                    // for example, if we have "get set", don't actually try to parse out the 
+                    // block.  Otherwise we'll consume the 'set'.  In that case, just end the
+                    // current accessor with a semicolon so we can properly consume the next
+                    // in the calling method's loop.
+                    if (accessorKind != SyntaxKind.UnknownAccessorDeclaration)
+                    {
+                        if (!IsTerminator())
+                        {
+                            blockBody = this.ParseBlock(isMethodBody: true, isAccessorBody: true);
+                        }
+                        else
+                        {
+                            semicolon = EatAccessorSemicolon();
+                        }
+                    }
+                    else
+                    {
+                        // Don't bother eating anything if we didn't even have a valid accessor.
+                        // It will just lead to more errors.  Note: we will have already produced
+                        // a good error by now.
+                        Debug.Assert(accessorName.ContainsDiagnostics);
+                    }
+                }
 
-                return _syntaxFactory.AccessorDeclaration(accessorKind, accAttrs, accMods.ToList(), accessorName, blockBody, expressionBody, semicolon);
+                return _syntaxFactory.AccessorDeclaration(
+                    accessorKind, accAttrs, accMods.ToList(), accessorName,
+                    blockBody, expressionBody, semicolon);
             }
             finally
             {
@@ -3643,27 +3614,34 @@ parse_member_name:;
             }
         }
 
-        private bool CanReuseAccessorDeclaration(bool isEvent)
+        private SyntaxToken EatAccessorSemicolon()
+            => this.EatToken(SyntaxKind.SemicolonToken,
+                IsFeatureEnabled(MessageID.IDS_FeatureExpressionBodiedAccessor)
+                    ? ErrorCode.ERR_SemiOrLBraceOrArrowExpected
+                    : ErrorCode.ERR_SemiOrLBraceExpected);
+
+        private SyntaxKind GetAccessorKind(SyntaxToken accessorName)
         {
-            var parent = GetOldParent(this.CurrentNode);
+            switch (accessorName.ContextualKind)
+            {
+                case SyntaxKind.GetKeyword: return SyntaxKind.GetAccessorDeclaration;
+                case SyntaxKind.SetKeyword: return SyntaxKind.SetAccessorDeclaration;
+                case SyntaxKind.AddKeyword: return SyntaxKind.AddAccessorDeclaration;
+                case SyntaxKind.RemoveKeyword: return SyntaxKind.RemoveAccessorDeclaration;
+            }
+
+            return SyntaxKind.UnknownAccessorDeclaration;
+        }
+
+        private bool CanReuseAccessorDeclaration()
+        {
             switch (this.CurrentNodeKind)
             {
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
-                    if (isEvent && parent != null && parent.Kind() == SyntaxKind.EventDeclaration)
-                    {
-                        return true;
-                    }
-
-                    break;
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
-                    if (!isEvent && parent != null && parent.Kind() == SyntaxKind.PropertyDeclaration)
-                    {
-                        return true;
-                    }
-
-                    break;
+                    return true;
             }
 
             return false;

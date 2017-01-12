@@ -1383,25 +1383,44 @@ namespace x {
 
 public class Container
 {
-    public int Prop1{ protected get{return 1;} set {} protected get { return 1;}  }
-    public static int Prop2{ get{return 1;} internal set {} internal set{} }
-    public int this[int i]{ protected get{return 1;} internal set {} protected get { return 1;} internal set {}  }
+    public int Prop1 {
+        protected get { return 1; }
+        set {}
+        protected get { return 1; }
+    }
+    public static int Prop2 {
+        get { return 1; }
+        internal set {}
+        internal set {}
+    }
+    public int this[int i] {
+        protected get { return 1; }
+        internal set {}
+        protected get { return 1; }
+        internal set {} 
+    }
 }
 ";
 
-            ParseAndValidate(test,
-    // (5,65): error CS1007: Property accessor already defined
-    //     public int Prop1{ protected get{return 1;} set {} protected get { return 1;}  }
-    Diagnostic(ErrorCode.ERR_DuplicateAccessor, "get"),
-    // (6,70): error CS1007: Property accessor already defined
-    //     public static int Prop2{ get{return 1;} internal set {} internal set{} }
-    Diagnostic(ErrorCode.ERR_DuplicateAccessor, "set"),
-    // (7,80): error CS1007: Property accessor already defined
-    //     public int this[int i]{ protected get{return 1;} internal set {} protected get { return 1;} internal set {}  }
-    Diagnostic(ErrorCode.ERR_DuplicateAccessor, "get"),
-    // (7,106): error CS1007: Property accessor already defined
-    //     public int this[int i]{ protected get{return 1;} internal set {} protected get { return 1;} internal set {}  }
-    Diagnostic(ErrorCode.ERR_DuplicateAccessor, "set"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (8,19): error CS1007: Property accessor already defined
+                //         protected get { return 1; }
+                Diagnostic(ErrorCode.ERR_DuplicateAccessor, "get").WithLocation(8, 19),
+                // (13,18): error CS1007: Property accessor already defined
+                //         internal set {}
+                Diagnostic(ErrorCode.ERR_DuplicateAccessor, "set").WithLocation(13, 18),
+                // (18,19): error CS1007: Property accessor already defined
+                //         protected get { return 1; }
+                Diagnostic(ErrorCode.ERR_DuplicateAccessor, "get").WithLocation(18, 19),
+                // (19,18): error CS1007: Property accessor already defined
+                //         internal set {} 
+                Diagnostic(ErrorCode.ERR_DuplicateAccessor, "set").WithLocation(19, 18),
+                // (15,16): error CS0274: Cannot specify accessibility modifiers for both accessors of the property or indexer 'Container.this[int]'
+                //     public int this[int i] {
+                Diagnostic(ErrorCode.ERR_DuplicatePropertyAccessMods, "this").WithArguments("Container.this[int]").WithLocation(15, 16),
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1));
         }
 
         [Fact]
@@ -2606,15 +2625,12 @@ return 1;
 ";
 
             ParseAndValidate(test,
-    // (7,9): error CS1055: An add or remove accessor expected
-    //         return value; 
-    Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "return"),
-    // (7,16): error CS1055: An add or remove accessor expected
-    //         return value; 
-    Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "value"),
-    // (7,21): error CS0073: An add or remove accessor must have a body
-    //         return value; 
-    Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"));
+                // (7,9): error CS1055: An add or remove accessor expected
+                //         return value; 
+                Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "return"),
+                // (7,16): error CS1055: An add or remove accessor expected
+                //         return value; 
+                Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "value"));
         }
 
         [WorkItem(536956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536956")]
