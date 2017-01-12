@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // exact match.
                 var escapedName = parameter.Name.ToIdentifierToken().ToString();
 
-                context.AddItem(SymbolCompletionItem.Create(
+                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: escapedName + ColonString,
                     insertionText: null,
                     symbol: parameter,

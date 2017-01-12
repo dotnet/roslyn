@@ -1,5 +1,6 @@
 ﻿{
   "dependencies": {
+    "System.Threading.Tasks.Dataflow": "4.5.24",
     "Newtonsoft.Json": "8.0.3",
     "Moq": "4.2.1402.2112",
     "Microsoft.VisualStudio.Composition": "14.2.19-pre",
@@ -22,6 +23,9 @@
     "RoslynDependencies.Microsoft.VisualStudio.Platform.VSEditor": "14.3.25407",
     "Microsoft.VisualStudio.InteractiveWindow": "2.0.0-beta5-60820-04",
     "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.25802-alpha",
+    "Microsoft.VisualStudio.Utilities": "15.0.25726-Preview5",
+    "Microsoft.VisualStudio.Validation": "15.0.55-pre",
+    "Microsoft.VisualStudio.Threading": "15.0.109-pre",
     "RoslynDependencies.Microsoft.VisualStudio.GraphModel": {
         "version": "14.3.25407",
         "include": "none"

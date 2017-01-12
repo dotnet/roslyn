@@ -158,6 +158,7 @@ namespace Roslyn.Test.PdbUtilities
 
             var documents = _symReader.GetDocuments();
             var documentIndex = BuildDocumentIndex(documents);
+            var methodTokenMap = BuildMethodTokenMap();
 
             if ((_options & PdbToXmlOptions.ExcludeDocuments) == 0)
             {
@@ -167,26 +168,26 @@ namespace Roslyn.Test.PdbUtilities
             if ((_options & PdbToXmlOptions.ExcludeMethods) == 0)
             {
                 WriteEntryPoint();
-                WriteAllMethods(methodHandles, documentIndex);
+                WriteAllMethods(methodHandles, methodTokenMap, documentIndex);
                 WriteAllMethodSpans();
             }
 
             _writer.WriteEndElement();
         }
 
-        private void WriteAllMethods(IEnumerable<MethodDefinitionHandle> methodHandles, IReadOnlyDictionary<string, int> documentIndex)
+        private void WriteAllMethods(IEnumerable<MethodDefinitionHandle> methodHandles, ImmutableArray<MethodDefinitionHandle> tokenMap, IReadOnlyDictionary<string, int> documentIndex)
         {
             _writer.WriteStartElement("methods");
 
             foreach (var methodHandle in methodHandles)
             {
-                WriteMethod(methodHandle, documentIndex);
+                WriteMethod(methodHandle, tokenMap, documentIndex);
             }
 
             _writer.WriteEndElement();
         }
 
-        private void WriteMethod(MethodDefinitionHandle methodHandle, IReadOnlyDictionary<string, int> documentIndex)
+        private void WriteMethod(MethodDefinitionHandle methodHandle, ImmutableArray<MethodDefinitionHandle> tokenMap, IReadOnlyDictionary<string, int> documentIndex)
         {
             int token = _metadataReader.GetToken(methodHandle);
             ISymUnmanagedMethod method = _symReader.GetMethod(token);
@@ -226,7 +227,11 @@ namespace Roslyn.Test.PdbUtilities
             }
 
             _writer.WriteStartElement("method");
-            WriteMethodAttributes(token, isReference: false);
+
+            int methodRowId = MetadataTokens.GetRowNumber(methodHandle);
+            int tokenToDisplay = (methodRowId <= tokenMap.Length) ? MetadataTokens.GetToken(tokenMap[methodRowId - 1]) : token;
+
+            WriteMethodAttributes(tokenToDisplay, isReference: false);
 
             if (cdi != null)
             {
@@ -1261,6 +1266,21 @@ namespace Roslyn.Test.PdbUtilities
             }
 
             _writer.WriteEndElement(); // sequencepoints
+        }
+
+        private unsafe ImmutableArray<MethodDefinitionHandle> BuildMethodTokenMap()
+        {
+            if (!(_symReader is ISymUnmanagedReader4 symReader4) ||
+                symReader4.GetPortableDebugMetadata(out byte* metadata, out int size) != 0)
+            {
+                return ImmutableArray<MethodDefinitionHandle>.Empty;
+            }
+
+            var reader = new MetadataReader(metadata, size);
+
+            return (from handle in reader.GetEditAndContinueMapEntries()
+                    where handle.Kind == HandleKind.MethodDebugInformation
+                    select MetadataTokens.MethodDefinitionHandle(MetadataTokens.GetRowNumber(handle))).ToImmutableArray();
         }
 
         private IReadOnlyDictionary<string, int> BuildDocumentIndex(IReadOnlyList<ISymUnmanagedDocument> documents)

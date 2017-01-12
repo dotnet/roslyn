@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         workspaceKinds: new string[] { WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.AnyCodeRoslynWorkspace })]
     internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
     {
-        private readonly ConditionalWeakTable<Workspace, BaseDiagnosticIncrementalAnalyzer> _map;
-        private readonly ConditionalWeakTable<Workspace, BaseDiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
+        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map;
+        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
 
         private DiagnosticAnalyzerService()
         {
-            _map = new ConditionalWeakTable<Workspace, BaseDiagnosticIncrementalAnalyzer>();
+            _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
         }
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return GetOrCreateIncrementalAnalyzer(workspace);
         }
 
-        private BaseDiagnosticIncrementalAnalyzer GetOrCreateIncrementalAnalyzer(Workspace workspace)
+        private DiagnosticIncrementalAnalyzer GetOrCreateIncrementalAnalyzer(Workspace workspace)
         {
             return _map.GetValue(workspace, _createIncrementalAnalyzer);
         }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private BaseDiagnosticIncrementalAnalyzer CreateIncrementalAnalyzerCallback(Workspace workspace)
+        private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzerCallback(Workspace workspace)
         {
             // subscribe to active context changed event for new workspace
             workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;

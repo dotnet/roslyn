@@ -7769,14 +7769,64 @@ fourth]]>)
 
         <Fact()>
         <WorkItem(13277, "https://github.com/dotnet/roslyn/issues/13277")>
+        <WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")>
         Public Sub CreateTupleTypeSymbol_UnderlyingTypeIsError()
 
-            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef})
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef, TestReferences.SymbolsTests.netModule.netModule1})
 
             Dim intType As TypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
             Dim vt2 = comp.CreateErrorTypeSymbol(Nothing, "ValueTuple", 2).Construct(intType, intType)
 
             Assert.Throws(Of ArgumentException)(Function() comp.CreateTupleTypeSymbol(underlyingType:=vt2))
+
+            Dim csComp = CreateCSharpCompilation("")
+            Assert.Throws(Of ArgumentNullException)(Sub() comp.CreateErrorTypeSymbol(Nothing, Nothing, 2))
+            Assert.Throws(Of ArgumentException)(Sub() comp.CreateErrorTypeSymbol(Nothing, "a", -1))
+            Assert.Throws(Of ArgumentException)(Sub() comp.CreateErrorTypeSymbol(csComp.GlobalNamespace, "a", 1))
+
+            Assert.Throws(Of ArgumentNullException)(Sub() comp.CreateErrorNamespaceSymbol(Nothing, "a"))
+            Assert.Throws(Of ArgumentNullException)(Sub() comp.CreateErrorNamespaceSymbol(csComp.GlobalNamespace, Nothing))
+            Assert.Throws(Of ArgumentException)(Sub() comp.CreateErrorNamespaceSymbol(csComp.GlobalNamespace, "a"))
+
+            Dim ns = comp.CreateErrorNamespaceSymbol(comp.GlobalNamespace, "a")
+            Assert.Equal("a", ns.ToTestDisplayString())
+            Assert.False(ns.IsGlobalNamespace)
+            Assert.Equal(NamespaceKind.Compilation, ns.NamespaceKind)
+            Assert.Same(comp.GlobalNamespace, ns.ContainingSymbol)
+            Assert.Same(comp.GlobalNamespace.ContainingAssembly, ns.ContainingAssembly)
+            Assert.Same(comp.GlobalNamespace.ContainingModule, ns.ContainingModule)
+
+            ns = comp.CreateErrorNamespaceSymbol(comp.Assembly.GlobalNamespace, "a")
+            Assert.Equal("a", ns.ToTestDisplayString())
+            Assert.False(ns.IsGlobalNamespace)
+            Assert.Equal(NamespaceKind.Assembly, ns.NamespaceKind)
+            Assert.Same(comp.Assembly.GlobalNamespace, ns.ContainingSymbol)
+            Assert.Same(comp.Assembly.GlobalNamespace.ContainingAssembly, ns.ContainingAssembly)
+            Assert.Same(comp.Assembly.GlobalNamespace.ContainingModule, ns.ContainingModule)
+
+            ns = comp.CreateErrorNamespaceSymbol(comp.SourceModule.GlobalNamespace, "a")
+            Assert.Equal("a", ns.ToTestDisplayString())
+            Assert.False(ns.IsGlobalNamespace)
+            Assert.Equal(NamespaceKind.Module, ns.NamespaceKind)
+            Assert.Same(comp.SourceModule.GlobalNamespace, ns.ContainingSymbol)
+            Assert.Same(comp.SourceModule.GlobalNamespace.ContainingAssembly, ns.ContainingAssembly)
+            Assert.Same(comp.SourceModule.GlobalNamespace.ContainingModule, ns.ContainingModule)
+
+            ns = comp.CreateErrorNamespaceSymbol(comp.CreateErrorNamespaceSymbol(comp.GlobalNamespace, "a"), "b")
+            Assert.Equal("a.b", ns.ToTestDisplayString())
+
+            ns = comp.CreateErrorNamespaceSymbol(comp.GlobalNamespace, "")
+            Assert.Equal("", ns.ToTestDisplayString())
+            Assert.False(ns.IsGlobalNamespace)
+
+            vt2 = comp.CreateErrorTypeSymbol(comp.CreateErrorNamespaceSymbol(comp.GlobalNamespace, "System"), "ValueTuple", 2).Construct(intType, intType)
+            Assert.Equal("(System.Int32, System.Int32)", comp.CreateTupleTypeSymbol(underlyingType:=vt2).ToTestDisplayString())
+
+            vt2 = comp.CreateErrorTypeSymbol(comp.CreateErrorNamespaceSymbol(comp.Assembly.GlobalNamespace, "System"), "ValueTuple", 2).Construct(intType, intType)
+            Assert.Equal("(System.Int32, System.Int32)", comp.CreateTupleTypeSymbol(underlyingType:=vt2).ToTestDisplayString())
+
+            vt2 = comp.CreateErrorTypeSymbol(comp.CreateErrorNamespaceSymbol(comp.SourceModule.GlobalNamespace, "System"), "ValueTuple", 2).Construct(intType, intType)
+            Assert.Equal("(System.Int32, System.Int32)", comp.CreateTupleTypeSymbol(underlyingType:=vt2).ToTestDisplayString())
         End Sub
 
         <Fact>

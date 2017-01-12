@@ -18,6 +18,9 @@
     "Microsoft.VisualStudio.Text.Logic": "14.3.25407", 
     "Microsoft.VisualStudio.Text.Data": "14.3.25407", 
     "Microsoft.VisualStudio.Text.UI": "14.3.25407",
+    "Microsoft.VisualStudio.Utilities": "14.3.25407",
+    "Microsoft.VisualStudio.Validation": "14.1.111",
+    "Microsoft.VisualStudio.Threading": "14.1.111",
     "Microsoft.Build": {
       "generateName": "Microsoft.Build.14",
       "version": "14.3.0"

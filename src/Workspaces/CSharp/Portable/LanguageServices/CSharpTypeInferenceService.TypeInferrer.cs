@@ -218,6 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ForEachStatementSyntax forEachStatement: return InferTypeInForEachStatement(forEachStatement, previousToken: token);
                     case ForStatementSyntax forStatement: return InferTypeInForStatement(forStatement, previousToken: token);
                     case IfStatementSyntax ifStatement: return InferTypeInIfStatement(ifStatement, token);
+                    case ImplicitArrayCreationExpressionSyntax implicitArray: return InferTypeInImplicitArrayCreation(implicitArray, token);
                     case InitializerExpressionSyntax initializerExpression: return InferTypeInInitializerExpression(initializerExpression, previousToken: token);
                     case LockStatementSyntax lockStatement: return InferTypeInLockStatement(lockStatement, token);
                     case MemberAccessExpressionSyntax memberAccessExpression: return InferTypeInMemberAccessExpression(memberAccessExpression, previousToken: token);
@@ -367,8 +368,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //
                 // In both these cases, we simply back up before the 'new' if it follows an equals
                 // and start the inference again.
+                //
+                // Analogously, but in a method call:
+                //      Test(new $$
+                //      o = s
+                // or:
+                //      Test(1, new $$
+                //      o = s
+                // The new is part of the assignment to o but the user is really trying to 
+                // add a parameter to the method call.
                 if (previousToken.Kind() == SyntaxKind.NewKeyword &&
-                    previousToken.GetPreviousToken().Kind() == SyntaxKind.EqualsToken)
+                    previousToken.GetPreviousToken().IsKind(SyntaxKind.EqualsToken, SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
                 {
                     return InferTypes(previousToken.SpanStart);
                 }
@@ -894,6 +904,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var otherSideTypes = GetTypes(otherSide);
                 if (otherSideTypes.Any())
                 {
+                    // Don't infer delegate types except in assignments. They're unlikely to be what the
+                    // user needs and can cause lambda suggestion mode while
+                    // typing type arguments:
+                    // https://github.com/dotnet/roslyn/issues/14492
+                    if (!(binop is AssignmentExpressionSyntax))
+                    {
+                        otherSideTypes = otherSideTypes.Where(t => !t.InferredType.IsDelegateType());
+                    }
+
                     return otherSideTypes;
                 }
 
@@ -1196,6 +1215,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Boolean)));
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInImplicitArrayCreation(ImplicitArrayCreationExpressionSyntax implicitArray, SyntaxToken previousToken)
+            {
+                return InferTypes(implicitArray.SpanStart);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInInitializerExpression(
