@@ -157,6 +157,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnostics = DiagnosticBag.GetInstance();
             SyntaxToken arglistToken;
+
+            foreach (var param in _syntax.ParameterList.Parameters)
+            {
+                foreach (var attrList in param.AttributeLists)
+                {
+                    diagnostics.Add(ErrorCode.ERR_AttributesInLocalFuncDecl, attrList.Location);
+                }
+            }
+
             var parameters = ParameterHelpers.MakeParameters(
                 _binder,
                 this,
@@ -348,6 +357,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = identifier.GetLocation();
                 var name = identifier.ValueText;
 
+                foreach (var attr in parameter.AttributeLists)
+                {
+                    diagnostics.Add(ErrorCode.ERR_AttributesInLocalFuncDecl, attr.Location);
+                }
+
                 foreach (var @param in result)
                 {
                     if (name == @param.Name)
@@ -370,6 +384,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ordinal,
                         ImmutableArray.Create(location),
                         ImmutableArray.Create(parameter.GetReference()));
+
+                // Force attribute binding for diagnostics
+                typeParameter.GetAttributesBag(diagnostics);
 
                 result.Add(typeParameter);
             }

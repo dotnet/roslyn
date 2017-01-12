@@ -5002,4 +5002,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadAssemblyName" xml:space="preserve">
     <value>Invalid assembly name: {0}</value>
   </data>
+  <data name="ERR_AttributesInLocalFuncDecl" xml:space="preserve">
+    <value>Attributes are not allowed on local function parameters or type parameters</value>
+  </data>
 </root>

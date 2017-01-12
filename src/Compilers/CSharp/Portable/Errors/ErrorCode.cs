@@ -1452,6 +1452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionVariableInQueryClause = 8201,
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
+        ERR_AttributesInLocalFuncDecl = 8204
         #endregion more stragglers for C# 7
     }
 }

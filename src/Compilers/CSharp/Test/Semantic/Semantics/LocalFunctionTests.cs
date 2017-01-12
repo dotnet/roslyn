@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System;
-using Xunit;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -31,6 +30,116 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
+        [Fact]
+        public void LocalFunctionAttributeOnTypeParameter()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+class C
+{
+    public void M()
+    {
+        void Local<[A, B, CLSCompliant, D]T>() { }
+        Local<int>();
+    }
+}");
+            var comp = CreateCompilationWithMscorlib(tree);
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A, B, CLSCompliant, D]").WithLocation(7, 20),
+                // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
+                // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
+                // (7,24): error CS0246: The type or namespace name 'BAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("BAttribute").WithLocation(7, 24),
+                // (7,24): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 24),
+                // (7,41): error CS0246: The type or namespace name 'DAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("DAttribute").WithLocation(7, 41),
+                // (7,41): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(7, 41),
+                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
+
+            var localDecl = tree.FindNodeOrTokenByKind(SyntaxKind.LocalFunctionStatement);
+            var model = comp.GetSemanticModel(tree);
+            var localSymbol = Assert.IsType<LocalFunctionSymbol>(model.GetDeclaredSymbol(localDecl.AsNode()));
+            var typeParam = localSymbol.TypeParameters.Single();
+            var attrs = typeParam.GetAttributes();
+
+            Assert.True(attrs[0].AttributeClass.IsErrorType());
+            Assert.True(attrs[1].AttributeClass.IsErrorType());
+            Assert.False(attrs[2].AttributeClass.IsErrorType());
+            Assert.Equal(comp.GlobalNamespace
+                             .GetMember<NamespaceSymbol>("System")
+                             .GetMember<NamedTypeSymbol>("CLSCompliantAttribute"),
+                attrs[2].AttributeClass);
+            Assert.True(attrs[3].AttributeClass.IsErrorType());
+        }
+
+        [Fact]
+        public void LocalFunctionAttributeOnParameters()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+class C
+{
+    public void M()
+    {
+        void Local([A, B]int x, [CLSCompliant]string s = """") { }
+        Local(0);
+    }
+}");
+            var comp = CreateCompilationWithMscorlib(tree);
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A, B]").WithLocation(7, 20),
+                // (7,33): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CLSCompliant]").WithLocation(7, 33),
+                // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
+                // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
+                // (7,24): error CS0246: The type or namespace name 'BAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("BAttribute").WithLocation(7, 24),
+                // (7,24): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 24),
+                // (7,34): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 34));
+
+            var localDecl = tree.FindNodeOrTokenByKind(SyntaxKind.LocalFunctionStatement);
+            var model = comp.GetSemanticModel(tree);
+            var localSymbol = Assert.IsType<LocalFunctionSymbol>(model.GetDeclaredSymbol(localDecl.AsNode()));
+            var param = localSymbol.Parameters[0];
+            var attrs = param.GetAttributes();
+
+            Assert.True(attrs[0].AttributeClass.IsErrorType());
+            Assert.True(attrs[1].AttributeClass.IsErrorType());
+
+            param = localSymbol.Parameters[1];
+            attrs = param.GetAttributes();
+            Assert.Equal(comp.GlobalNamespace
+                             .GetMember<NamespaceSymbol>("System")
+                             .GetMember<NamedTypeSymbol>("CLSCompliantAttribute"),
+                attrs[0].AttributeClass);
+        }
+
         [Fact]
         public void TypeParameterBindingScope()
         {
@@ -530,6 +639,35 @@ class Program
         }
 
         [Fact]
+        public void CallerMemberName()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Runtime.CompilerServices;
+class C
+{
+    static void Main()
+    {
+        void CallerMemberName([CallerMemberName] string s = null)
+        {
+            Console.Write(s);
+        }
+        void LocalFuncName()
+        {
+            CallerMemberName();
+        }
+        LocalFuncName();
+        Console.Write(' ');
+        CallerMemberName();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,31): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void CallerMemberName([CallerMemberName] string s = null)
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CallerMemberName]").WithLocation(8, 31));
+        }
+
+        [Fact]
         public void BadCallerMemberName()
         {
             var source = @"
@@ -549,9 +687,12 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (9,32): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
-    //         void CallerMemberName([CallerMemberName] int s = 2)
-    Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32)
+                // (9,31): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void CallerMemberName([CallerMemberName] int s = 2)
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CallerMemberName]").WithLocation(9, 31),
+                // (9,32): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
+                //         void CallerMemberName([CallerMemberName] int s = 2)
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32)
     );
         }
         [WorkItem(10708, "https://github.com/dotnet/roslyn/issues/10708")]
