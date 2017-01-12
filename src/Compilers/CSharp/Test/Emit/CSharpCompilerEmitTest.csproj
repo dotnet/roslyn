@@ -134,6 +134,7 @@
     <Compile Include="Emit\DynamicAnalysis\DynamicInstrumentationTests.cs" />
     <Compile Include="Emit\EditAndContinue\AssemblyReferencesTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueClosureTests.cs" />
+    <Compile Include="Emit\EditAndContinue\EditAndContinuePdbTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTestBase.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueTests.cs" />
     <Compile Include="Emit\EditAndContinue\EditAndContinueStateMachineTests.cs" />

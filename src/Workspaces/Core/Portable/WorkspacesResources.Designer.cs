@@ -612,15 +612,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ends with Async.
-        /// </summary>
-        internal static string Ends_with_Async {
-            get {
-                return ResourceManager.GetString("Ends_with_Async", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Enum.
         /// </summary>
         internal static string Enum {

@@ -15,6 +15,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
+    using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     internal partial class ServiceHubRemoteHostClient : RemoteHostClient
@@ -46,23 +47,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // Create a workspace host to hear about workspace changes.  We'll 
                 // remote those changes over to the remote side when they happen.
-                RegisterWorkspaceHost(workspace, instance);
+                await RegisterWorkspaceHostAsync(workspace, instance).ConfigureAwait(false);
 
                 // return instance
                 return instance;
             }
         }
 
-        private static void RegisterWorkspaceHost(Workspace workspace, RemoteHostClient client)
+        private static Task RegisterWorkspaceHostAsync(Workspace workspace, RemoteHostClient client)
         {
             var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (vsWorkspace == null)
             {
-                return;
+                return Task.CompletedTask;
             }
 
-            vsWorkspace.ProjectTracker.RegisterWorkspaceHost(
-                new WorkspaceHost(vsWorkspace, client));
+            // RegisterWorkspaceHost is required to be called from UI thread so push the code
+            // to UI thread to run. 
+            return Task.Factory.SafeStartNew(() =>
+            {
+                vsWorkspace.ProjectTracker.RegisterWorkspaceHost(new WorkspaceHost(vsWorkspace, client));
+            }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler);
         }
 
         private ServiceHubRemoteHostClient(

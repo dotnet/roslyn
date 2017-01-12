@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        netModules As ImmutableArray(Of PEModule))
 
             Debug.Assert(compilation IsNot Nothing)
-            Debug.Assert(Not String.IsNullOrWhiteSpace(assemblySimpleName))
+            Debug.Assert(assemblySimpleName IsNot Nothing)
             Debug.Assert(Not String.IsNullOrWhiteSpace(moduleName))
             Debug.Assert(Not netModules.IsDefault)
 
@@ -1193,8 +1193,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     diagnostics.Add(ERRID.WRN_DelaySignButNoKey, NoLocation.Singleton)
                 End If
 
-                If DeclaringCompilation.Options.PublicSign AndAlso Not Identity.HasPublicKey Then
-                    diagnostics.Add(ERRID.ERR_PublicSignNoKey, NoLocation.Singleton)
+                If DeclaringCompilation.Options.PublicSign Then
+                    If DeclaringCompilation.Options.OutputKind.IsNetModule() Then
+                        diagnostics.Add(ERRID.ERR_PublicSignNetModule, NoLocation.Singleton)
+                    ElseIf Not Identity.HasPublicKey Then
+                        diagnostics.Add(ERRID.ERR_PublicSignNoKey, NoLocation.Singleton)
+                    End If
                 End If
 
                 ' If the options and attributes applied on the compilation imply real signing,
@@ -1273,6 +1277,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' Comment in similar section for CryptoKeyContainer is applicable here as well.
                         diagnostics.Add(ERRID.ERR_CmdOptionConflictsSource, NoLocation.Singleton, AttributeDescription.AssemblyKeyFileAttribute.FullName, "CryptoKeyFile")
                     End If
+                End If
+            ElseIf _compilation.Options.PublicSign Then
+                If Me.AssemblyKeyContainerAttributeSetting IsNot CommonAssemblyWellKnownAttributeData.StringMissingValue Then
+                    diagnostics.Add(ERRID.WRN_AttributeIgnoredWhenPublicSigning, NoLocation.Singleton, AttributeDescription.AssemblyKeyNameAttribute.FullName)
+                End If
+
+                If Me.AssemblyKeyFileAttributeSetting IsNot CommonAssemblyWellKnownAttributeData.StringMissingValue Then
+                    diagnostics.Add(ERRID.WRN_AttributeIgnoredWhenPublicSigning, NoLocation.Singleton, AttributeDescription.AssemblyKeyFileAttribute.FullName)
                 End If
             End If
         End Sub

@@ -185,6 +185,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
+        public static void TestParametersAreCamelCaseRule()
+        {
+            var dictionary = new Dictionary<string, object>()
+            {
+                ["dotnet_naming_rule.parameters_are_camel_case.severity"] = "suggestion",
+                ["dotnet_naming_rule.parameters_are_camel_case.symbols"] = "parameters",
+                ["dotnet_naming_rule.parameters_are_camel_case.style"] = "camel_case_style",
+                ["dotnet_naming_symbols.parameters.applicable_kinds"] = "parameter",
+                ["dotnet_naming_style.camel_case_style.capitalization"] = "camel_case",
+            };
+
+            var result = ParseDictionary(dictionary);
+            Assert.Single(result.NamingRules);
+            var namingRule = result.NamingRules.Single();
+            Assert.Single(result.NamingStyles);
+            var namingStyle = result.NamingStyles.Single();
+            Assert.Single(result.SymbolSpecifications);
+
+            var symbolSpec = result.SymbolSpecifications.Single();
+            Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
+            Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
+            Assert.Equal(DiagnosticSeverity.Info, namingRule.EnforcementLevel);
+
+            Assert.Equal("parameters", symbolSpec.Name);
+            var expectedApplicableSymbolKindList = new[] { new SymbolKindOrTypeKind(SymbolKind.Parameter) };
+            AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
+
+            Assert.Equal("camel_case_style", namingStyle.Name);
+            Assert.Equal("", namingStyle.Prefix);
+            Assert.Equal("", namingStyle.Suffix);
+            Assert.Equal("", namingStyle.WordSeparator);
+            Assert.Equal(Capitalization.CamelCase, namingStyle.CapitalizationScheme);
+        }
+
+        [Fact]
         public static void TestNoRulesAreReturned()
         {
             var dictionary = new Dictionary<string, object>()

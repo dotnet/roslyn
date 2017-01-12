@@ -2623,7 +2623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (used)
             {
                 // default type parameter values must be emitted as 'initobj' regardless of constraints
-                if (!type.IsTypeParameter())
+                if (!type.IsTypeParameter() && type.SpecialType != SpecialType.System_Decimal)
                 {
                     var constantValue = type.GetDefaultValue();
                     if (constantValue != null)

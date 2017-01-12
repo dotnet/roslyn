@@ -518,10 +518,6 @@
     <value>Delegate</value>
     <comment>{locked} unless the capitalization should be handled differently</comment>
   </data>
-  <data name="Ends_with_Async" xml:space="preserve">
-    <value>Ends with Async</value>
-    <comment>{locked:async}</comment>
-  </data>
   <data name="Enum" xml:space="preserve">
     <value>Enum</value>
     <comment>{locked} unless the capitalization should be handled differently</comment>
