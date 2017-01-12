@@ -8406,5 +8406,49 @@ class MyAttribute : System.Attribute
 
             CompileAndVerify(source, symbolValidator: attributeValidator);
         }
+
+        [Fact, WorkItem(10639, "https://github.com/dotnet/roslyn/issues/10639")]
+        public void UsingStaticDirectiveDoesNotIgnoreObsoleteAttribute()
+        {
+            var source = @"
+using System;
+using static TestError;
+using static TestWarning;
+
+[Obsolete (""Broken Error Class"", true)]
+static class TestError
+{
+    public static void TestErrorFunc()
+    {
+
+    }
+}
+
+[Obsolete (""Broken Warning Class"", false)]
+static class TestWarning
+{
+    public static void TestWarningFunc()
+    {
+
+    }
+}
+
+class Test
+{
+    public static void Main()
+    {
+        TestErrorFunc();
+        TestWarningFunc();
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,14): error CS0619: 'TestError' is obsolete: 'Broken Error Class'
+                // using static TestError;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "TestError").WithArguments("TestError", "Broken Error Class").WithLocation(3, 14),
+                // (4,14): warning CS0618: 'TestWarning' is obsolete: 'Broken Warning Class'
+                // using static TestWarning;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "TestWarning").WithArguments("TestWarning", "Broken Warning Class").WithLocation(4, 14));
+        }
     }
 }

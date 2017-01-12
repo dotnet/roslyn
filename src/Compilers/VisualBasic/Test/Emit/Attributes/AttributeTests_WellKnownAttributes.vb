@@ -5208,5 +5208,43 @@ End Class
             CompileAndVerify(CreateCompilationWithMscorlib45AndVBRuntime(source), symbolValidator:=attributeValidator)
         End Sub
 
+        <Fact, WorkItem(10639, "https://github.com/dotnet/roslyn/issues/10639")>
+        Public Sub UsingStaticDirectiveDoesNotIgnoreObsoleteAttribute()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System
+Imports TestAssembly.TestError
+Imports TestAssembly.TestWarning
+
+<Obsolete("Broken Error Class", True)>
+Public Class TestError
+    Public Shared Sub TestErrorFunc()
+    End Sub
+End Class
+
+<Obsolete("Broken Warning Class", False)>
+Public Class TestWarning
+    Public Shared Sub TestWarningFunc()
+    End Sub
+End Class
+
+Public Module Test
+    Public Sub Main()
+        TestErrorFunc()
+        TestWarningFunc()
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:="TestAssembly")
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, options)
+
+            compilation.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_UseOfObsoleteSymbol2, "TestAssembly.TestError").WithArguments("TestAssembly.TestError", "Broken Error Class").WithLocation(2, 9),
+                Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "TestAssembly.TestWarning").WithArguments("TestAssembly.TestWarning", "Broken Warning Class").WithLocation(3, 9))
+        End Sub
     End Class
 End Namespace

@@ -217,6 +217,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
+                                    Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, importedType, usingDirective.Name, importedType.ContainingSymbol, BinderFlags.None);
+
                                     uniqueUsings.Add(importedType);
                                     usings.Add(new NamespaceOrTypeAndUsingDirective(importedType, usingDirective));
                                 }
