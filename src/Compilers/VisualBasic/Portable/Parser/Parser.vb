@@ -6136,7 +6136,7 @@ checkNullable:
             If token.Kind = SyntaxKind.IdentifierToken Then
                 Return Scanner.IsContextualKeyword(token, kinds)
             Else
-                Return IsToken(token, kinds)
+                Return kinds.Contains(token.Kind)
             End If
         End Function
 

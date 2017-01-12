@@ -1779,7 +1779,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseUsingStatement() As UsingStatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.UsingKeyword, $"{NameOf(ParseUsingStatement} called on wrong token")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.UsingKeyword, $"{NameOf(ParseUsingStatement)} called on wrong token")
 
             Dim usingKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
