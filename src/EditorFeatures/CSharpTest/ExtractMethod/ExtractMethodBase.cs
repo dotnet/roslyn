@@ -77,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             bool temporaryFailing = false,
             bool allowMovingDeclaration = true,
             bool dontPutOutOrRefOnStruct = true,
-            CSharpParseOptions parseOptions = null,
-            bool withWarning = false)
+            CSharpParseOptions parseOptions = null)
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(codeWithMarker, parseOptions: parseOptions))
             {
@@ -88,8 +87,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 var tree = await ExtractMethodAsync(
                     workspace, testDocument, allowMovingDeclaration: allowMovingDeclaration,
                     dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
-
-                Assert.Equal(withWarning, tree.GetAnnotatedNodes(WarningAnnotation.Kind).Any());
 
                 using (var edit = subjectBuffer.CreateEdit())
                 {
