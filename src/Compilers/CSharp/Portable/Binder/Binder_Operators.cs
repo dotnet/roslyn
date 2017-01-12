@@ -2621,6 +2621,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
             var operand = BindValue(node.Left, diagnostics, BindValueKind.RValue);
             var operandHasErrors = IsOperandErrors(node, ref operand, diagnostics);
+            if ((object)operand.Type == null)
+            {
+                if (!operandHasErrors)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadIsPatternExpression, node.Left.Location, operand.Display);
+                    operandHasErrors = true;
+                }
+
+                operand = ToBadExpression(operand);
+            }
 
             // try binding as a type, but back off to binding as an expression if that does not work.
             AliasSymbol alias;
