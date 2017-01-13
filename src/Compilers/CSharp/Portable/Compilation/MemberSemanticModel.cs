@@ -1670,6 +1670,7 @@ done:
                         {
                             return GetBindableSyntaxNode(tmp);
                         }
+
                         break;
 
                     case SyntaxKind.AnonymousObjectMemberDeclarator:
