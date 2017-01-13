@@ -80,6 +80,7 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Compile Include="CodeGeneration\SymbolEditorTests.cs" />
     <Compile Include="CodeGeneration\SyntaxGeneratorTests.cs" />
