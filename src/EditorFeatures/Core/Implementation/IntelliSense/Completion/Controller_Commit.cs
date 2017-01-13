@@ -156,12 +156,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 for (var i = versions.Count - 1; i >= 0; i--)
                 {
                     var version = versions[i];
+                    foreach (var change in version.Changes)
                     {
-                        foreach (var change in version.Changes)
-                        {
-                            textEdit.Replace(change.NewSpan, change.OldText);
-                        }
-
+                        textEdit.Replace(change.NewSpan, change.OldText);
                     }
                 }
                 textEdit.Apply();
