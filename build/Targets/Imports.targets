@@ -90,12 +90,6 @@
   </Choose>
 
   <Choose>
-    <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND '$(OS)' != 'Windows_NT'">
-      <PropertyGroup>
-        <!-- https://github.com/Microsoft/msbuild/issues/1533 -->
-        <MSBuildTargetsFilePath>$(MSBuildExtensionsPath32)\Extensions\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
-      </PropertyGroup>
-    </When>
     <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">
       <PropertyGroup>
         <MSBuildTargetsFilePath>$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
