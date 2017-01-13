@@ -28,7 +28,7 @@ using Roslyn.VisualStudio.Setup;
 //[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.FileSystem.DriveInfo.dll")] - removed because project has no dependency.
 [assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.FileSystem.Primitives.dll")]
 //[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.IO.Pipes.dll")] - removed because project has no dependency.
-[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Runtime.InteropServices.RuntimeInformation.dll")]
+//[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Runtime.InteropServices.RuntimeInformation.dll")] - removed because project has no dependency.
 //[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.AccessControl.dll")] - removed because project has no dependency.
 //[assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Claims.dll")] - removed because project has no dependency.
 [assembly: ProvideCodeBase(CodeBase = "$PackageFolder$\\System.Security.Cryptography.Algorithms.dll")]

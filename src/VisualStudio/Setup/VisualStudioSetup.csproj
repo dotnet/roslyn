@@ -220,7 +220,6 @@
     <NuGetPackageToIncludeInVsix Include="System.Linq.Expressions" />
     <NuGetPackageToIncludeInVsix Include="System.Linq.Parallel" />
     <NuGetPackageToIncludeInVsix Include="System.ObjectModel" />
-    <NuGetPackageToIncludeInVsix Include="System.Runtime.InteropServices.RuntimeInformation" />
     <NuGetPackageToIncludeInVsix Include="System.Runtime.Numerics" />
     <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Algorithms" />
     <NuGetPackageToIncludeInVsix Include="System.Security.Cryptography.Encoding" />
