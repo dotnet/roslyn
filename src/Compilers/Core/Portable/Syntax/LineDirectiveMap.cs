@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
         // entry for the file. This always starts with the null mapped that maps line 0 to line 0.
         private LineMappingEntry[] CreateEntryMap(SyntaxTree tree, IList<TDirective> directives)
         {
-            var entries = new LineMappingEntry[directives.Count() + 1];
+            var entries = new LineMappingEntry[directives.Count + 1];
             var current = InitializeFirstEntry();
             var index = 0;
             entries[index] = current;
