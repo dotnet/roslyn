@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 9.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -127,9 +128,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
                 End Select
             End Function
 
-            Protected Overrides Iterator Function GetLogicalOrExpressionOperands(node As ExpressionSyntax) As IEnumerable(Of ExpressionSyntax)
+            Protected Overrides Iterator Function GetLogicalOrOperands(node As ExpressionSyntax) As IEnumerable(Of ExpressionSyntax)
                 node = node.WalkDownParentheses
-                While node.IsKind(SyntaxKind.OrElseExpression)
+                While node.IsKind(SyntaxKind.OrElseExpression) Or node.IsKind(SyntaxKind.OrExpression)
                     Dim binaryExpression = DirectCast(node, BinaryExpressionSyntax)
                     Yield binaryExpression.Right.WalkDownParentheses
                     node = binaryExpression.Left.WalkDownParentheses
@@ -139,43 +140,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
             End Function
 
             Protected Overrides Function CanConvertIfToSwitch(ifStatement As ExecutableStatementSyntax) As Boolean
-                Return TypeOf ifStatement Is SingleLineIfStatementSyntax OrElse TypeOf ifStatement Is MultiLineIfBlockSyntax
+                Select Case ifStatement.Kind
+                    Case SyntaxKind.MultiLineIfBlock,
+                         SyntaxKind.SingleLineIfStatement
+                        Return True
+                    Case Else
+                        Return False
+                End Select
             End Function
 
             Protected Overrides Iterator Function GetIfElseStatementChain(node As ExecutableStatementSyntax) _
-                As IEnumerable(Of (SyntaxList(Of StatementSyntax), ExpressionSyntax))
-                Do
-                    Dim elseBody As SyntaxList(Of StatementSyntax) ?
-                    Dim singleLineIf = TryCast(node, SingleLineIfStatementSyntax)
-                    If singleLineIf IsNot Nothing Then
-                        Yield (singleLineIf.Statements, singleLineIf.Condition)
-                        elseBody = singleLineIf.ElseClause?.Statements
-                    Else
-                        Dim multiLineIf = DirectCast(node, MultiLineIfBlockSyntax)
-                        Yield (multiLineIf.Statements, multiLineIf.IfStatement.Condition)
-                        For Each item In multiLineIf.ElseIfBlocks
-                            Yield (item.Statements, item.ElseIfStatement.Condition)
-                        Next
-                        elseBody = multiLineIf.ElseBlock?.Statements
-                    End If
+                As IEnumerable(Of (ExpressionSyntax, SyntaxList(Of StatementSyntax)))
+                Dim elseBlockStatements As SyntaxList(Of StatementSyntax) ?
 
-                    If elseBody Is Nothing AndAlso
-                        Not AnalyzeControlFlow(node.GetStatements)?.EndPointIsReachable = True Then
-                        Dim nextStatement = TryCast(singleLineIf.GetNextNonEmptyStatement, ExecutableStatementSyntax)
-                        If CanConvertIfToSwitch(nextStatement) Then
-                            node = nextStatement
-                            _numberOfSubsequentIfStatementsToRemove += 1
-                            Continue Do
-                        End If
-                    Else
-                        Yield (elseBody.GetValueOrDefault(), Nothing)
-                    End If
-                    Exit Do
-                Loop
+                Dim singleLineIf = TryCast(node, SingleLineIfStatementSyntax)
+                If singleLineIf IsNot Nothing Then
+                    Yield (singleLineIf.Condition, singleLineIf.Statements)
+                    elseBlockStatements = singleLineIf.ElseClause?.Statements
+                Else
+                    Dim multiLineIf = DirectCast(node, MultiLineIfBlockSyntax)
+                    Yield (multiLineIf.IfStatement.Condition, multiLineIf.Statements)
+                    For Each elseIfBlock In multiLineIf.ElseIfBlocks
+                        Yield (elseIfBlock.ElseIfStatement.Condition, elseIfBlock.Statements)
+                    Next
+
+                    elseBlockStatements = multiLineIf.ElseBlock?.Statements
+                End If
+
+                If elseBlockStatements.HasValue Then
+                    Yield (Nothing, elseBlockStatements.Value)
+                End If
             End Function
 
             Private Function AnalyzeControlFlow(statements As SyntaxList(Of StatementSyntax)) As ControlFlowAnalysis
                 Return If(statements.IsEmpty, Nothing, _semanticModel.AnalyzeControlFlow(statements.First(), statements.Last()))
+            End Function
+
+            Protected Overrides Function EndPointIsReachable(ifStatement As ExecutableStatementSyntax) As Boolean
+                Return If(AnalyzeControlFlow(ifStatement.GetStatements())?.EndPointIsReachable, False)
+            End Function
+
+            Protected Overrides Function UnwrapCast(expression As ExpressionSyntax) As ExpressionSyntax
+                Return expression
             End Function
         End Class
     End Class

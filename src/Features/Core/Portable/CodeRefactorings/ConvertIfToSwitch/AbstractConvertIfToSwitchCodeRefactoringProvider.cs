@@ -49,8 +49,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
         {
             protected readonly ISyntaxFactsService _syntaxFacts;
             protected readonly SemanticModel _semanticModel;
-            protected int _numberOfSubsequentIfStatementsToRemove = 0;
+            private int _numberOfSubsequentIfStatementsToRemove = -1;
             private TExpressionSyntax _switchExpression;
+            private Optional<TStatementSyntax> _switchDefaultBodyOpt;
 
             public Analyzer(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel)
             {
@@ -80,43 +81,69 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                     return;
                 }
 
-                if (!CanConvertIfToSwitch(ifStatement))
+                var switchSections = GetSections(ifStatement).ToList();
+                if (switchSections.Count == 0)
                 {
                     return;
                 }
 
-                var switchDefaultBody = default(TStatementSyntax);
-                var switchSections = new List<(IEnumerable<IPattern<TSwitchLabelSyntax>>, TStatementSyntax)>();
+                context.RegisterRefactoring(new MyCodeAction(Title, c =>
+                    UpdateDocumentAsync(root, document, ifStatement, switchSections)));
+            }
 
-                // Iterate over if-else statement chain.
-                foreach (var (body, condition) in GetIfElseStatementChain(ifStatement))
+            private IEnumerable<(IEnumerable<IPattern<TSwitchLabelSyntax>>, TStatementSyntax)> GetSections(
+                TIfStatementSyntax rootIfStatement)
+            {
+                // Iterate over subsequent if-statements whose endpoint is unreachable.
+                foreach (var ifStatement in GetSubsequentIfStatements(rootIfStatement))
                 {
-                    if (condition == null)
+                    if (!CanConvertIfToSwitch(ifStatement))
                     {
-                        switchDefaultBody = body;
-                        break;
+                        yield break;
                     }
 
-                    var operands = GetLogicalOrExpressionOperands(condition);
-                    var patterns = new List<IPattern<TSwitchLabelSyntax>>();
+                    var sectionList = new List<(IEnumerable<IPattern<TSwitchLabelSyntax>>, TStatementSyntax)>();
 
-                    // Iterate over "||" or "OrElse" operands. operands to make a case label per each condition.
-                    foreach (var operand in operands.Reverse())
+                    // Iterate over if-else statement chain.
+                    foreach (var (condition, statement) in GetIfElseStatementChain(ifStatement))
                     {
-                        var pattern = CreatePatternFromExpression(operand);
-                        if (pattern == null)
+                        // If there is no condition, we have reached the "else" part.
+                        if (condition == null)
                         {
-                            return;
+                            _switchDefaultBodyOpt = statement;
+                            break;
                         }
 
-                        patterns.Add(pattern);
+                        var patternList = new List<IPattern<TSwitchLabelSyntax>>();
+
+                        // Iterate over "||" or "OrElse" operands to make a case label per each condition.
+                        var patterns = GetLogicalOrOperands(condition).Reverse().Select(CreatePatternFromExpression);
+                        foreach (var pattern in patterns)
+                        {
+                            // If we could not create a pattern from the condition, we stop.
+                            if (pattern == null)
+                            {
+                                yield break;
+                            }
+
+                            patternList.Add(pattern);
+                        }
+
+                        sectionList.Add((patternList, statement));
                     }
 
-                    switchSections.Add((patterns, body));
-                }
+                    foreach (var section in sectionList)
+                    {
+                        yield return section;
+                    }
 
-                context.RegisterRefactoring(new MyCodeAction(Title, c =>
-                    UpdateDocumentAsync(root, document, ifStatement, switchDefaultBody, switchSections)));
+                    _numberOfSubsequentIfStatementsToRemove++;
+
+                    if (_switchDefaultBodyOpt.HasValue || EndPointIsReachable(ifStatement))
+                    {
+                        yield break;
+                    }
+                }
             }
 
             protected bool SetInitialOrIsEquivalentToSwitchExpression(TExpressionSyntax expression)
@@ -125,11 +152,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                 // we will assume that the first expression is the one.
                 if (_switchExpression == null)
                 {
-                    _switchExpression = expression;
+                    _switchExpression = UnwrapCast(expression);
                     return true;
                 }
 
-                return _syntaxFacts.AreEquivalent(expression, _switchExpression);
+                return _syntaxFacts.AreEquivalent(UnwrapCast(expression), _switchExpression);
             }
 
             private bool IsConstant(TExpressionSyntax node)
@@ -149,31 +176,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                 return constant != null;
             }
 
-            private IEnumerable<SyntaxNode> GetSubsequentIfStatements(SyntaxNode currentStatement)
+            private IEnumerable<TIfStatementSyntax> GetSubsequentIfStatements(TIfStatementSyntax currentStatement)
             {
-                for (int i = 0; i < _numberOfSubsequentIfStatementsToRemove; ++i)
+                do
                 {
-                    yield return currentStatement = _syntaxFacts.GetNextStatement(currentStatement);
+                    yield return currentStatement;
+                    currentStatement = _syntaxFacts.GetNextExecutableStatement(currentStatement) as TIfStatementSyntax;
                 }
+                while (currentStatement != null);
             }
-
-            protected abstract bool CanConvertIfToSwitch(TIfStatementSyntax ifStatement);
-
-            protected abstract IEnumerable<TExpressionSyntax> GetLogicalOrExpressionOperands(TExpressionSyntax syntaxNode);
-
-            protected abstract IEnumerable<(TStatementSyntax, TExpressionSyntax)> GetIfElseStatementChain(TIfStatementSyntax ifStatement);
-
-            protected abstract IPattern<TSwitchLabelSyntax> CreatePatternFromExpression(TExpressionSyntax operand);
-
-            protected abstract IEnumerable<SyntaxNode> GetSwitchSectionBody(TStatementSyntax switchDefaultBody);
-
-            protected abstract string Title { get; }
 
             private Task<Document> UpdateDocumentAsync(
                 SyntaxNode root,
                 Document document,
                 TIfStatementSyntax ifStatement,
-                TStatementSyntax switchDefaultBody,
                 IEnumerable<(IEnumerable<IPattern<TSwitchLabelSyntax>> patterns, TStatementSyntax statement)> sections)
             {
                 var generator = SyntaxGenerator.GetGenerator(document);
@@ -182,17 +198,35 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                         labels: s.patterns.Select(p => p.CreateSwitchLabel()),
                         statements: GetSwitchSectionBody(s.statement))).ToList();
 
-                if (switchDefaultBody?.Equals(default(TStatementSyntax)) == false)
+                if (_switchDefaultBodyOpt.HasValue)
                 {
-                    sectionList.Add(generator.DefaultSwitchSection(GetSwitchSectionBody(switchDefaultBody)));
+                    sectionList.Add(generator.DefaultSwitchSection(GetSwitchSectionBody(_switchDefaultBodyOpt.Value)));
                 }
 
                 var ifSpan = ifStatement.Span;
                 var @switch = generator.SwitchStatement(_switchExpression, sectionList);
-                root = root.RemoveNodes(GetSubsequentIfStatements(ifStatement), SyntaxRemoveOptions.KeepNoTrivia);
+                var nodesToRemove = GetSubsequentIfStatements(ifStatement)
+                    .Skip(1).Take(_numberOfSubsequentIfStatementsToRemove);
+                root = root.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia);
                 root = root.ReplaceNode(root.FindNode(ifSpan), @switch);
                 return Task.FromResult(document.WithSyntaxRoot(root));
             }
+
+            protected abstract TExpressionSyntax UnwrapCast(TExpressionSyntax expression);
+
+            protected abstract bool EndPointIsReachable(TIfStatementSyntax ifStatement);
+
+            protected abstract bool CanConvertIfToSwitch(TIfStatementSyntax ifStatement);
+
+            protected abstract IEnumerable<TExpressionSyntax> GetLogicalOrOperands(TExpressionSyntax syntaxNode);
+
+            protected abstract IEnumerable<(TExpressionSyntax, TStatementSyntax)> GetIfElseStatementChain(TIfStatementSyntax ifStatement);
+
+            protected abstract IPattern<TSwitchLabelSyntax> CreatePatternFromExpression(TExpressionSyntax operand);
+
+            protected abstract IEnumerable<SyntaxNode> GetSwitchSectionBody(TStatementSyntax switchDefaultBody);
+
+            protected abstract string Title { get; }
         }
 
         protected sealed class MyCodeAction : CodeAction.DocumentChangeAction

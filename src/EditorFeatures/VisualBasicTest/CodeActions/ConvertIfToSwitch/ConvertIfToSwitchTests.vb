@@ -249,5 +249,117 @@ End Class",
     End Function
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        Public Async Function TestSubsequentIfStatements_04() As Task
+            Await TestAsync(
+"Class C
+    Function M(i As Integer) As Integer
+        [||]If i = 10 Then Return 5
+        If i = 20 Then Return 6
+        If i = i Then Return 0
+        Return 7
+    End Function
+End Class",
+"Class C
+    Function M(i As Integer) As Integer
+        Select i
+            Case 10
+                Return 5
+            Case 20
+                Return 6
+        End Select
+        If i = i Then Return 0
+        Return 7
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        Public Async Function TestSubsequentIfStatements_05() As Task
+            Await TestAsync(
+"Class C
+    Function M(i As Integer) As Integer
+        [||]If i = 10 Then Return 5
+        If i = 20 Then
+            Return 6
+        ElseIf i = 30 Then
+            Return 7
+        End If
+        If i = i Then Return 0
+        Return 8
+    End Function
+End Class",
+"Class C
+    Function M(i As Integer) As Integer
+        Select i
+            Case 10
+                Return 5
+            Case 20
+                Return 6
+            Case 30
+                Return 7
+        End Select
+        If i = i Then Return 0
+        Return 8
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        Public Async Function TestSubsequentIfStatements_06() As Task
+            Await TestAsync(
+"Class C
+    Function M(i As Integer) As Integer
+        [||]If i = 10 Then Return 5
+        If i = 20 Then
+            Return 6
+        ElseIf i = i Then
+            Return 7
+        End If
+        If i = 5 Then Return 0
+        Return 8
+    End Function
+End Class",
+"Class C
+    Function M(i As Integer) As Integer
+        Select i
+            Case 10
+                Return 5
+        End Select
+        If i = 20 Then
+            Return 6
+        ElseIf i = i Then
+            Return 7
+        End If
+        If i = 5 Then Return 0
+        Return 8
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        Public Async Function TestExitWhile() As Task
+            Await TestAsync(
+"Class C
+    Sub M(i As Integer)
+        While i = i
+            [||]If i = 10 Then
+                Exit While
+            End If
+        End While
+    End Sub
+End Class",
+"Class C
+    Sub M(i As Integer)
+        While i = i
+            Select i
+                Case 10
+                    Exit While
+            End Select
+        End While
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

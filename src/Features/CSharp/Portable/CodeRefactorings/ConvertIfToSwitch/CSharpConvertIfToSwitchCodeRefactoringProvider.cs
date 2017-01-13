@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
             protected override bool CanConvertIfToSwitch(IfStatementSyntax ifStatement)
                 => !_semanticModel.AnalyzeControlFlow(ifStatement).ExitPoints.Any(n => n.IsKind(SyntaxKind.BreakStatement));
 
-            protected override IEnumerable<ExpressionSyntax> GetLogicalOrExpressionOperands(
+            protected override IEnumerable<ExpressionSyntax> GetLogicalOrOperands(
                 ExpressionSyntax syntaxNode)
             {
                 syntaxNode = syntaxNode.WalkDownParentheses();
@@ -157,35 +157,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                 yield return syntaxNode;
             }
 
-            protected override IEnumerable<(StatementSyntax, ExpressionSyntax)> GetIfElseStatementChain(IfStatementSyntax currentStatement)
+            protected override IEnumerable<(ExpressionSyntax, StatementSyntax)> GetIfElseStatementChain(IfStatementSyntax currentStatement)
             {
-                StatementSyntax elseBody;
+                StatementSyntax elseClauseStatement;
                 do
                 {
-                    yield return (currentStatement.Statement, currentStatement.Condition);
-                    elseBody = currentStatement.Else?.Statement;
-
-                    var elseIfStatement = elseBody as IfStatementSyntax;
-
-                    // When there is no 'else' part and the last if-statement has an unreachable endpoint,
-                    // we look for a subsequent if-statement that is also safe to be converted to switch.
-                    // Thereafter, all conditions turn to case labels in a single switch-statement.
-                    if (elseIfStatement == null
-                        && !_semanticModel.AnalyzeControlFlow(currentStatement.Statement).EndPointIsReachable
-                        && currentStatement.GetNextStatement() is IfStatementSyntax nextStatement
-                        && CanConvertIfToSwitch(nextStatement))
-                    {
-                        _numberOfSubsequentIfStatementsToRemove++;
-                        currentStatement = nextStatement;
-                    }
-                    else
-                    {
-                        currentStatement = elseIfStatement;
-                    }
+                    yield return (currentStatement.Condition, currentStatement.Statement);
+                    elseClauseStatement = currentStatement.Else?.Statement;
+                    currentStatement = elseClauseStatement as IfStatementSyntax;
                 }
                 while (currentStatement != null);
 
-                yield return (elseBody, null);
+                if (elseClauseStatement != null)
+                {
+                    yield return (null, elseClauseStatement);
+                }
             }
 
             private static ExpressionSyntax GetLeftmostCondition(ExpressionSyntax syntaxNode)
@@ -242,6 +228,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertIfToSwitch
                     {
                         yield return SyntaxFactory.BreakStatement();
                     }
+                }
+            }
+
+            protected override bool EndPointIsReachable(IfStatementSyntax ifStatement)
+                => _semanticModel.AnalyzeControlFlow(ifStatement.Statement).EndPointIsReachable;
+
+            protected override ExpressionSyntax UnwrapCast(ExpressionSyntax expression)
+            {
+                switch (expression)
+                {
+                    case BinaryExpressionSyntax binaryExpression
+                        when expression.IsKind(SyntaxKind.AsExpression):
+                        return binaryExpression.Left;
+
+                    case CastExpressionSyntax castExpression:
+                        return castExpression.Expression;
+
+                    default:
+                        return expression;
                 }
             }
         }

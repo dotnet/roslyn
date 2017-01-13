@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
-        public async Task TestSubsequentIfStatementsWithUnreachableEndPoint_01()
+        public async Task TestSubsequentIfStatements_01()
         {
             await TestAsync(
 @"class C
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
-        public async Task TestSubsequentIfStatementsWithUnreachableEndPoint_02()
+        public async Task TestSubsequentIfStatements_02()
         {
             await TestAsync(
 @"class C
@@ -577,10 +577,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
-        public async Task TestSubsequentIfStatementsWithUnreachableEndPoint_03()
+        public async Task TestSubsequentIfStatements_03()
         {
             await TestAsync(
-        @"class C
+@"class C
 {
     int M(int? i)
     {
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
     }
 }",
-        @"class C
+@"class C
 {
     int M(int? i)
     {
@@ -608,6 +608,164 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             if (i == 1) return 6;
             return 7;
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestSubsequentIfStatements_04()
+        {
+            await TestAsync(
+@"class C
+{
+    string M(object i)
+    {
+        [||]if (i == null || i as string == """") return null;
+        if ((string)i == ""0"") return i as string;
+        else return i.ToString();
+    }
+}",
+@"class C
+{
+    string M(object i)
+    {
+        switch (i)
+        {
+            case null:
+            case """":
+                return null;
+            case ""0"":
+                return i as string;
+            default:
+                return i.ToString();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestSubsequentIfStatements_05()
+        {
+            await TestAsync(
+@"class C
+{
+    int M(int i)
+    {
+        [||]if (i == 10) return 5;
+        if (i == 20) return 6;
+        if (i == i) return 0;
+        reuturn 7;
+    }
+}",
+@"class C
+{
+    int M(int i)
+    {
+        switch (i)
+        {
+            case 10:
+                return 5;
+            case 20:
+                return 6;
+        }
+        if (i == i) return 0;
+        reuturn 7;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestSubsequentIfStatements_06()
+        {
+            await TestAsync(
+@"class C
+{
+    int M(int i)
+    {
+        [||]if (i == 10)
+        {
+            return 5;
+        }
+        else if (i == 20)
+        {
+            return 6;
+        }
+        if (i == i) 
+        {
+            return 0;
+        }
+        reuturn 7;
+    }
+}",
+@"class C
+{
+    int M(int i)
+    {
+        switch (i)
+        {
+            case 10:
+                return 5;
+            case 20:
+                return 6;
+        }
+        if (i == i) 
+        {
+            return 0;
+        }
+        reuturn 7;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestSubsequentIfStatements_07()
+        {
+            await TestAsync(
+@"class C
+{
+    int M(int i)
+    {
+        [||]if (i == 5)
+        {
+            return 4;
+        }
+        if (i == 10)
+        {
+            return 5;
+        }
+        else if (i == i)
+        {
+            return 6;
+        }
+        else
+        {
+            return 0;
+        }
+        reuturn 7;
+    }
+}",
+@"class C
+{
+    int M(int i)
+    {
+        switch (i)
+        {
+            case 5:
+                return 4;
+        }
+        if (i == 10)
+        {
+            return 5;
+        }
+        else if (i == i)
+        {
+            return 6;
+        }
+        else
+        {
+            return 0;
+        }
+        reuturn 7;
     }
 }");
         }

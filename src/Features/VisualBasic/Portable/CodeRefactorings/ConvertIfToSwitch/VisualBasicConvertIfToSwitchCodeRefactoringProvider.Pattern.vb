@@ -19,7 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ConvertIfToSwitch
                         {SyntaxKind.LessThanToken, (SyntaxKind.CaseLessThanClause, SyntaxKind.GreaterThanToken)},
                         {SyntaxKind.GreaterThanToken, (SyntaxKind.CaseGreaterThanClause, SyntaxKind.LessThanToken)},
                         {SyntaxKind.LessThanEqualsToken, (SyntaxKind.CaseLessThanOrEqualClause, SyntaxKind.GreaterThanEqualsToken)},
-                        {SyntaxKind.GreaterThanEqualsToken, (SyntaxKind.CaseGreaterThanOrEqualClause, SyntaxKind.LessThanEqualsToken)}
+                        {SyntaxKind.GreaterThanEqualsToken, (SyntaxKind.CaseGreaterThanOrEqualClause, SyntaxKind.LessThanEqualsToken)},
+                        {SyntaxKind.LessThanGreaterThanToken, (SyntaxKind.CaseNotEqualsClause, SyntaxKind.LessThanGreaterThanToken)}
                     }
 
                 Friend Sub New(constant As ExpressionSyntax, inverted As Boolean, operatorTokenKind As SyntaxKind)

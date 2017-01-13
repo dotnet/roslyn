@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             SyntaxNode root, SyntaxNode contextNode, 
             out SyntaxNode newRoot, out SyntaxNode newContextNode);
 
-        SyntaxNode GetNextStatement(SyntaxNode statement);
+        SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
     }
 
     [Flags]

@@ -1621,8 +1621,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             name = memberAccess.Name
         End Sub
 
-        Public Function GetNextStatement(statement As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetNextStatement
-            return DirectCast(statement, StatementSyntax).GetNextNonEmptyStatement()
+        Public Function GetNextExecutableStatement(statement As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetNextExecutableStatement
+            Return DirectCast(statement, StatementSyntax).GetNextStatement()?.FirstAncestorOrSelf(Of ExecutableStatementSyntax)
         End Function
     End Class
 End Namespace
