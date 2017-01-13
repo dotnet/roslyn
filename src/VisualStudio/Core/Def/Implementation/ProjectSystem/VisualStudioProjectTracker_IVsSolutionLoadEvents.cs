@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -281,8 +282,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // NOTE: ImmutableProjects might contain projects for other languages like
                 // Xaml, or Typescript where the project file ends up being identical.
                 var referencedProject = ImmutableProjects.SingleOrDefault(
-                    p => (p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
-                         && StringComparer.OrdinalIgnoreCase.Equals(p.ProjectFilePath, projectReferencePath));
+                    p => ProjectMatchesPath(p, projectReferencePath));
                 if (referencedProject == null)
                 {
                     referencedProject = GetOrCreateProjectFromArgumentsAndReferences(
@@ -356,6 +356,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             return (AbstractProject)projectContext;
+        }
+
+        private static bool ProjectMatchesPath(AbstractProject project, string path)
+        {
+            if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+            {
+                return false;
+            }
+
+            if (!StringComparer.OrdinalIgnoreCase.Equals(project.ProjectFilePath, path))
+            {
+                return false;
+            }
+
+            // Note: In Web Application Projects we might have several projects with the same "project file path"
+            // One will be for the project itself, and there will be an additional one for each open aspx/cshtml/vbhtml file.
+            // We only want to match the *main* project, so avoid any projects that have a "Contained" document.
+            return !project.GetCurrentDocuments().Any(doc => doc is ContainedDocument);
         }
 
         private static string GetLanguageOfProject(string projectFilename)
