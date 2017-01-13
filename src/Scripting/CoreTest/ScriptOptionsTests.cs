@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -150,10 +151,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         }
 
         [Fact]
-        public void WithPdb_SetsEmitPdb()
+        public void WithDebugInformation_SetsEmitDebugInformation_SetsDebugInformation()
         {
-            var options = ScriptOptions.Default.WithPdb(true);
-            Assert.Equal(true, options.EmitPdb);
+            var format = DebugInformationFormat.Pdb;
+            var options = ScriptOptions.Default.WithDebugInformation(format);
+            Assert.Equal(true, options.EmitDebugInformation);
+            Assert.Equal(format, options.DebugInformationFormat);
         }
     }
 }
