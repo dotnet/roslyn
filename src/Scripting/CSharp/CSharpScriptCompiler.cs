@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
                     mainTypeName: null,
                     scriptClassName: submissionTypeName,
                     usings: script.Options.Imports,
-                    optimizationLevel: script.Options.EmitDebugInformation ? OptimizationLevel.Debug : OptimizationLevel.Release,
+                    optimizationLevel: OptimizationLevel.Debug, // TODO
                     checkOverflow: false,                       // TODO
                     allowUnsafe: true,                          // TODO
                     platform: Platform.AnyCpu,
