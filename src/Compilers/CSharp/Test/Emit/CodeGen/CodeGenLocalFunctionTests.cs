@@ -42,8 +42,22 @@ public static class EnumerableExtensions
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(GetLeaves<object>(new List<object>(), list => null) == null);
+        GetLeaves<object>(new List<object>(), list => null);
+
+        var results = GetLeaves<object>(
+            new object[] {
+                new[] { ""a"", ""b""},
+                new[] { ""c"" },
+                new[] { new[] { ""d"" } }
+            }, node => node is string ? null : (IEnumerable<object>)node);
+
+        foreach (var i in results)
+        {
+            Console.WriteLine(i);
+        }
     }
+
+
     public static IEnumerable<T> GetLeaves<T>(T root, Func<T, IEnumerable<T>> getChildren)
     {
         return GetLeaves(root);
@@ -53,7 +67,7 @@ public static class EnumerableExtensions
             var children = getChildren(node);
             if (children == null)
             {
-                return null;
+                return new[] { node };
             }
             else
             {
@@ -62,7 +76,10 @@ public static class EnumerableExtensions
         }
     }
 }";
-            VerifyOutput(src, "true");
+            VerifyOutput(src, @"a
+b
+c
+d");
         }
 
         [Fact]
