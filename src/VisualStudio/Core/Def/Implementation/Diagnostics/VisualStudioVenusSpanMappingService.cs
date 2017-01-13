@@ -67,19 +67,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private TextLineCollection GetTextLines(DocumentId currentDocumentId, Location location)
         {
+            // normal case - all C# and VB should hit this
             if (location.SourceTree != null)
             {
-                // normal case - all C# and VB should hit this
                 return location.SourceTree.GetText().Lines;
             }
 
+            // special case for typescript and etc that don't use our compilations.
             var filePath = location.GetLineSpan().Path;
             if (filePath != null)
             {
-                // special case for typescript and etc that don't use our compilations.
+                // as a sanity check, make sure given location is on the current document
+                // we do the check down the stack for C# and VB using SyntaxTree in location
+                // but for typescript and other, we don't have the tree, so adding this as
+                // sanity check. later we could convert this to Contract to crash VS and
+                // know about the issue.
                 var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath);
-
-                // make sure we are dealing with right document
                 if (documentIds.Contains(currentDocumentId))
                 {
                     // text most likely already read in
