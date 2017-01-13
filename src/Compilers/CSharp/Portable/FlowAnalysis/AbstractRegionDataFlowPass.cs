@@ -11,10 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     // Any fix to one should be applied to the other.
     internal class AbstractRegionDataFlowPass : DataFlowPass
     {
-        // Local functions currently don't implement data-flows-out properly
-        // so we currently fail the analysis if we see a local function.
-        // See https://github.com/dotnet/roslyn/issues/14214
-        private bool _badRegion = false;
+        private bool _hasLocalFunction = false;
 
         internal AbstractRegionDataFlowPass(
             CSharpCompilation compilation,
@@ -38,7 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             MakeSlots(MethodParameters);
             if ((object)MethodThisParameter != null) GetOrCreateSlot(MethodThisParameter);
             var result = base.Scan(ref badRegion);
-            badRegion = badRegion || _badRegion;
+
+            // Local functions currently don't implement data-flows-out properly
+            // so we currently fail the analysis if we see a local function.
+            // See https://github.com/dotnet/roslyn/issues/14214
+            badRegion = badRegion || _hasLocalFunction;
             return result;
         }
 
@@ -50,27 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            _badRegion = true;
+            _hasLocalFunction = true;
             MakeSlots(node.Symbol.Parameters);
             return base.VisitLocalFunctionStatement(node);
-        }
-
-        public override BoundNode VisitCall(BoundCall node)
-        {
-            if (node.Method.MethodKind == MethodKind.LocalFunction)
-            {
-                _badRegion = true;
-            }
-            return base.VisitCall(node);
-        }
-
-        public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
-        {
-            if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
-            {
-                _badRegion = true;
-            }
-            return base.VisitDelegateCreationExpression(node);
         }
 
         public override BoundNode VisitConversion(BoundConversion node)
@@ -78,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.ConversionKind == ConversionKind.MethodGroup &&
                 node.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
             {
-                _badRegion = true;
+                _hasLocalFunction = true;
             }
             return base.VisitConversion(node);
         }
