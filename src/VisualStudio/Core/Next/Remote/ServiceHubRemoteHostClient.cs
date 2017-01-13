@@ -54,20 +54,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
-        private static Task RegisterWorkspaceHostAsync(Workspace workspace, RemoteHostClient client)
+        private static async Task RegisterWorkspaceHostAsync(Workspace workspace, RemoteHostClient client)
         {
             var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (vsWorkspace == null)
             {
-                return Task.CompletedTask;
+                return;
             }
+
+            // don't block UI thread while initialize workspace host
+            var host = new WorkspaceHost(vsWorkspace, client);
+            await host.InitializeAsync().ConfigureAwait(false);
 
             // RegisterWorkspaceHost is required to be called from UI thread so push the code
             // to UI thread to run. 
-            return Task.Factory.SafeStartNew(() =>
+            await Task.Factory.SafeStartNew(() =>
             {
-                vsWorkspace.ProjectTracker.RegisterWorkspaceHost(new WorkspaceHost(vsWorkspace, client));
-            }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler);
+                vsWorkspace.ProjectTracker.RegisterWorkspaceHost(host);
+            }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
         }
 
         private ServiceHubRemoteHostClient(
