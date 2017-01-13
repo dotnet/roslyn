@@ -92,6 +92,11 @@ namespace Microsoft.CodeAnalysis.Scripting
         public ImmutableArray<string> Imports { get; private set; }
 
         /// <summary>
+        /// Specifies whether PDBs for debugging should be emitted.
+        /// </summary>
+        public bool EmitPdb { get; private set; } = false;
+
+        /// <summary>
         /// The path to the script source if it originated from a file, empty otherwise.
         /// </summary>
         public string FilePath { get; private set; }
@@ -282,5 +287,11 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
         public ScriptOptions AddImports(params string[] imports) =>
             AddImports((IEnumerable<string>)imports);
+
+        /// <summary>
+        /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="MetadataResolver"/>.
+        /// </summary>
+        public ScriptOptions WithPdb() =>
+            new ScriptOptions(this) { EmitPdb = !EmitPdb };
     }
 }

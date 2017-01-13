@@ -58,6 +58,11 @@ namespace Roslyn.Utilities
                     .GetDeclaredMethod("Load", typeof(byte[]))
                     .CreateDelegate<Func<byte[], Assembly>>();
 
+                internal static readonly Func<byte[], byte[], Assembly> Load_bytes_with_Pdb = Type
+                    .GetTypeInfo()
+                    .GetDeclaredMethod("Load", typeof(byte[]), typeof(byte[]))
+                    .CreateDelegate<Func<byte[], byte[], Assembly>>();
+
                 internal static readonly Func<string, Assembly> LoadFile = Type
                     .GetTypeInfo()
                     .GetDeclaredMethod("LoadFile", typeof(string))
@@ -123,6 +128,16 @@ namespace Roslyn.Utilities
                 }
 
                 return _Assembly.Load_bytes(peImage);
+            }
+
+            internal static Assembly LoadAssembly(byte[] peImage, byte[] pdbImage)
+            {
+                if (_Assembly.Load_bytes == null)
+                {
+                    throw new PlatformNotSupportedException();
+                }
+
+                return _Assembly.Load_bytes_with_Pdb(peImage, pdbImage);
             }
 
             internal static Assembly LoadAssembly(string path)

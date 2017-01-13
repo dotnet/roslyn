@@ -121,10 +121,11 @@ namespace Microsoft.CodeAnalysis.Scripting
             var entryPoint = compilation.GetEntryPoint(cancellationToken);
 
             using (var peStream = new MemoryStream())
+            using (var pdbStream = new MemoryStream())
             {
                 var emitResult = compilation.Emit(
                     peStream: peStream,
-                    pdbStream: null,
+                    pdbStream: pdbStream,
                     xmlDocumentationStream: null,
                     win32Resources: null,
                     manifestResources: null,
@@ -151,8 +152,9 @@ namespace Microsoft.CodeAnalysis.Scripting
                 }
 
                 peStream.Position = 0;
+                pdbStream.Position = 0;
 
-                var assembly = _assemblyLoader.LoadAssemblyFromStream(peStream, pdbStream: null);
+                var assembly = _assemblyLoader.LoadAssemblyFromStream(peStream, pdbStream);
                 var runtimeEntryPoint = GetEntryPointRuntimeMethod(entryPoint, assembly, cancellationToken);
 
                 return runtimeEntryPoint.CreateDelegate<Func<object[], Task<T>>>();

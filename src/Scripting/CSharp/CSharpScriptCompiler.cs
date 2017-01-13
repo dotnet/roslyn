@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting;
@@ -10,6 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
 {
     internal sealed class CSharpScriptCompiler : ScriptCompiler
     {
+        private bool _emitPdb = false;
+
         public static readonly ScriptCompiler Instance = new CSharpScriptCompiler();
 
         private static readonly CSharpParseOptions s_defaultOptions = new CSharpParseOptions(kind: SourceCodeKind.Script);
@@ -21,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
         public override DiagnosticFormatter DiagnosticFormatter => CSharpDiagnosticFormatter.Instance;
 
         public override StringComparer IdentifierComparer => StringComparer.Ordinal;
+
+        public override bool EmitPdb => _emitPdb;
 
         public override bool IsCompleteSubmission(SyntaxTree tree) => SyntaxFactory.IsCompleteSubmission(tree);
 
@@ -35,13 +40,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
                 previousSubmission = (CSharpCompilation)script.Previous.GetCompilation();
             }
 
+            _emitPdb = script.Options.EmitPdb;
+
             var diagnostics = DiagnosticBag.GetInstance();
             var references = script.GetReferencesForCompilation(MessageProvider.Instance, diagnostics);
 
             // TODO: report diagnostics
             diagnostics.Free();
 
-            var tree = SyntaxFactory.ParseSyntaxTree(script.Code, s_defaultOptions, script.Options.FilePath);
+            var tree = SyntaxFactory.ParseSyntaxTree(script.Code, s_defaultOptions, script.Options.FilePath, encoding: Encoding.UTF8);
 
             string assemblyName, submissionTypeName;
             script.Builder.GenerateSubmissionId(out assemblyName, out submissionTypeName);
@@ -55,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
                     mainTypeName: null,
                     scriptClassName: submissionTypeName,
                     usings: script.Options.Imports,
-                    optimizationLevel: OptimizationLevel.Debug, // TODO
+                    optimizationLevel: EmitPdb ? OptimizationLevel.Debug : OptimizationLevel.Release,
                     checkOverflow: false,                       // TODO
                     allowUnsafe: true,                          // TODO
                     platform: Platform.AnyCpu,

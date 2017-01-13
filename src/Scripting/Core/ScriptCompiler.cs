@@ -15,5 +15,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         public abstract SyntaxTree ParseSubmission(SourceText text, CancellationToken cancellationToken);
         public abstract bool IsCompleteSubmission(SyntaxTree tree);
+
+        public abstract bool EmitPdb { get; }
     }
 }

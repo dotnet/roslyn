@@ -1,0 +1,2 @@
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.EmitPdb.get -> bool
+Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithPdb() -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
