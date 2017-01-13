@@ -148,5 +148,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             options.WithImports("b\0lah");
             options.WithImports(".blah");
         }
+
+        [Fact]
+        public void WithPdb_SetsEmitPdb()
+        {
+            var options = ScriptOptions.Default.WithPdb(true);
+            Assert.Equal(true, options.EmitPdb);
+        }
     }
 }

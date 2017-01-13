@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
                 diagnostics.Clear();
 
-                var executor = Build<T>(compilation, diagnostics, cancellationToken);
+                var executor = Build<T>(compilation, diagnostics, compiler.EmitPdb, cancellationToken);
 
                 // emit can fail due to compilation errors or because there is nothing to emit:
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
@@ -115,13 +115,13 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         private Func<object[], Task<T>> Build<T>(
             Compilation compilation,
-            DiagnosticBag diagnostics,
+            DiagnosticBag diagnostics, bool emitPdb,
             CancellationToken cancellationToken)
         {
             var entryPoint = compilation.GetEntryPoint(cancellationToken);
 
             using (var peStream = new MemoryStream())
-            using (var pdbStream = new MemoryStream())
+            using (var pdbStream = emitPdb ? new MemoryStream() : null)
             {
                 var emitResult = compilation.Emit(
                     peStream: peStream,
@@ -152,7 +152,11 @@ namespace Microsoft.CodeAnalysis.Scripting
                 }
 
                 peStream.Position = 0;
-                pdbStream.Position = 0;
+
+                if (pdbStream != null)
+                {
+                    pdbStream.Position = 0;
+                }
 
                 var assembly = _assemblyLoader.LoadAssemblyFromStream(peStream, pdbStream);
                 var runtimeEntryPoint = GetEntryPointRuntimeMethod(entryPoint, assembly, cancellationToken);

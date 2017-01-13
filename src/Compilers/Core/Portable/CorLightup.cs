@@ -132,7 +132,7 @@ namespace Roslyn.Utilities
 
             internal static Assembly LoadAssembly(byte[] peImage, byte[] pdbImage)
             {
-                if (_Assembly.Load_bytes == null)
+                if (_Assembly.Load_bytes_with_Pdb == null)
                 {
                     throw new PlatformNotSupportedException();
                 }

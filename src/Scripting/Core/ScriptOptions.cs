@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
-using Roslyn.Utilities;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -97,6 +97,11 @@ namespace Microsoft.CodeAnalysis.Scripting
         public bool EmitPdb { get; private set; } = false;
 
         /// <summary>
+        /// Specifies the encoding to be used for the code.
+        /// </summary>
+        public Encoding Encoding { get; private set; } = Encoding.UTF8;
+
+        /// <summary>
         /// The path to the script source if it originated from a file, empty otherwise.
         /// </summary>
         public string FilePath { get; private set; }
@@ -128,6 +133,8 @@ namespace Microsoft.CodeAnalysis.Scripting
                    metadataResolver: other.MetadataResolver,
                    sourceResolver: other.SourceResolver)
         {
+            EmitPdb = other.EmitPdb;
+            Encoding = other.Encoding;
         }
 
         // a reference to an assembly should by default be equivalent to #r, which applies recursive global alias:
@@ -289,9 +296,15 @@ namespace Microsoft.CodeAnalysis.Scripting
             AddImports((IEnumerable<string>)imports);
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="MetadataResolver"/>.
+        /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="EmitPdb"/>.
         /// </summary>
-        public ScriptOptions WithPdb() =>
-            new ScriptOptions(this) { EmitPdb = !EmitPdb };
+        public ScriptOptions WithPdb(bool emitPdb) =>
+            new ScriptOptions(this) { EmitPdb = emitPdb };
+
+        /// <summary>
+        /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="Encoding"/>.
+        /// </summary>
+        public ScriptOptions WithEncoding(Encoding encoding) =>
+            new ScriptOptions(this) { Encoding = encoding };
     }
 }
