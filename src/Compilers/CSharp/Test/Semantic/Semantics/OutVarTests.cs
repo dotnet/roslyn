@@ -4109,6 +4109,7 @@ True");
         }
 
         [Fact]
+        [WorkItem(14214, "https://github.com/dotnet/roslyn/issues/14214")]
         public void Scope_ExpressionBodiedLocalFunctions_01()
         {
             var source =
@@ -4217,49 +4218,52 @@ public class X
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
+            // Data flow for the following disabled due to https://github.com/dotnet/roslyn/issues/14214
+
             var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
             var x3Ref = GetReferences(tree, "x3").Single();
-            VerifyModelForOutVar(model, x3Decl, x3Ref);
+
+            VerifyModelForOutVarWithoutDataFlow(model, x3Decl, x3Ref);
 
             var x4Decl = GetOutVarDeclarations(tree, "x4").Single();
             var x4Ref = GetReferences(tree, "x4").Single();
-            VerifyModelForOutVar(model, x4Decl, x4Ref);
+            VerifyModelForOutVarWithoutDataFlow(model, x4Decl, x4Ref);
 
             var x5Decl = GetOutVarDeclarations(tree, "x5").ToArray();
             var x5Ref = GetReferences(tree, "x5").Single();
             Assert.Equal(2, x5Decl.Length);
-            VerifyModelForOutVar(model, x5Decl[0], x5Ref);
+            VerifyModelForOutVarWithoutDataFlow(model, x5Decl[0], x5Ref);
             VerifyModelForOutVarDuplicateInSameScope(model, x5Decl[1]);
 
             var x6Decl = GetOutVarDeclarations(tree, "x6").ToArray();
             var x6Ref = GetReferences(tree, "x6").ToArray();
             Assert.Equal(2, x6Decl.Length);
             Assert.Equal(2, x6Ref.Length);
-            VerifyModelForOutVar(model, x6Decl[0], x6Ref[0]);
-            VerifyModelForOutVar(model, x6Decl[1], x6Ref[1]);
+            VerifyModelForOutVarWithoutDataFlow(model, x6Decl[0], x6Ref[0]);
+            VerifyModelForOutVarWithoutDataFlow(model, x6Decl[1], x6Ref[1]);
 
             var x7Decl = GetOutVarDeclarations(tree, "x7").Single();
             var x7Ref = GetReferences(tree, "x7").ToArray();
             Assert.Equal(3, x7Ref.Length);
             VerifyNotInScope(model, x7Ref[0]);
-            VerifyModelForOutVar(model, x7Decl, x7Ref[1]);
+            VerifyModelForOutVarWithoutDataFlow(model, x7Decl, x7Ref[1]);
             VerifyNotInScope(model, x7Ref[2]);
 
             var x11Decl = GetOutVarDeclarations(tree, "x11").Single();
             var x11Ref = GetReferences(tree, "x11").ToArray();
             Assert.Equal(2, x11Ref.Length);
             VerifyNotAnOutLocal(model, x11Ref[0]);
-            VerifyModelForOutVar(model, x11Decl, x11Ref[1]);
+            VerifyModelForOutVarWithoutDataFlow(model, x11Decl, x11Ref[1]);
 
             var x12Decl = GetOutVarDeclarations(tree, "x12").Single();
             var x12Ref = GetReferences(tree, "x12").ToArray();
             Assert.Equal(2, x12Ref.Length);
-            VerifyModelForOutVar(model, x12Decl, x12Ref[0]);
+            VerifyModelForOutVarWithoutDataFlow(model, x12Decl, x12Ref[0]);
             VerifyNotAnOutLocal(model, x12Ref[1]);
 
             var x13Decl = GetOutVarDeclarations(tree, "x13").Single();
             var x13Ref = GetReferences(tree, "x13").Single();
-            VerifyModelForOutVar(model, x13Decl, x13Ref);
+            VerifyModelForOutVarWithoutDataFlow(model, x13Decl, x13Ref);
         }
 
         [Fact]
