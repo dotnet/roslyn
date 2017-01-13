@@ -717,13 +717,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol alias;
             TypeSymbol declType = BindVariableType(node.Designation, diagnostics, node.Type, ref isConst, out isVar, out alias);
             Error(diagnostics, ErrorCode.ERR_DeclarationExpressionNotPermitted, node);
-            return BindDeclarationVariables(declType, node.Designation, diagnostics);
+            return BindDeclarationVariables(declType, node.Designation, node, diagnostics);
         }
 
         /// <summary>
         /// Bind a declaration variable where it isn't permitted. The caller is expected to produce a diagnostic.
         /// </summary>
-        private BoundExpression BindDeclarationVariables(TypeSymbol declType, VariableDesignationSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindDeclarationVariables(TypeSymbol declType, VariableDesignationSyntax node, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             declType = declType ?? CreateErrorType("var");
             switch (node.Kind())
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SingleVariableDesignation:
                     {
                         var single = (SingleVariableDesignationSyntax)node;
-                        var result = BindDeconstructionVariable(declType, single, diagnostics);
+                        var result = BindDeconstructionVariable(declType, single, syntax, diagnostics);
                         return result;
                     }
                 case SyntaxKind.DiscardDesignation:
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var builder = ArrayBuilder<BoundExpression>.GetInstance(tuple.Variables.Count);
                         foreach (var n in tuple.Variables)
                         {
-                            builder.Add(BindDeclarationVariables(declType, n, diagnostics));
+                            builder.Add(BindDeclarationVariables(declType, n, n, diagnostics));
                         }
                         var subExpressions = builder.ToImmutableAndFree();
 
@@ -2173,7 +2173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeSymbol declType = BindVariableType(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
                         Debug.Assert(isVar == ((object)declType == null));
 
-                        return new BoundDiscardExpression((DiscardDesignationSyntax)designation, declType);
+                        return new BoundDiscardExpression(declarationExpression, declType);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     return BindOutVariableDeclarationArgument(declarationExpression, diagnostics);
@@ -2928,11 +2928,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (typeSyntax.Kind() != SyntaxKind.ArrayType)
             {
-                // If the syntax node comes from the parser, it should already have ERR_BadStackAllocExpr.
-                if (!typeSyntax.ContainsDiagnostics)
-                {
-                    Error(diagnostics, ErrorCode.ERR_BadStackAllocExpr, typeSyntax);
-                }
+                Error(diagnostics, ErrorCode.ERR_BadStackAllocExpr, typeSyntax);
+
                 return new BoundBadExpression(
                     node,
                     LookupResultKind.NotCreatable, //in this context, anyway

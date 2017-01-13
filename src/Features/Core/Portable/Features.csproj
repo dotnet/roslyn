@@ -59,6 +59,10 @@
     <InternalsVisibleToMonodevelop Include="MonoDevelop.Refactoring" />
     <InternalsVisibleToMonodevelop Include="MonoDevelop.CSharpBinding" />
     <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.Ide.Tests" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.Refactoring.Tests" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.CSharpBinding.Tests" />
+    <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding.Tests" />
     <InternalsVisibleToTest Include="Roslyn.DebuggerVisualizers" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
@@ -106,6 +110,7 @@
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
+    <Compile Include="Completion\Providers\AbstractCrefCompletionProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\AbstractConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\SymbolAnalysisContextExtensions.cs" />
@@ -364,7 +369,6 @@
     <Compile Include="Diagnostics\BuildToolId.cs" />
     <Compile Include="Diagnostics\HostAnalyzerManager.cs" />
     <Compile Include="Diagnostics\Analyzers\IDEDiagnosticIds.cs" />
-    <Compile Include="Diagnostics\BaseDiagnosticIncrementalAnalyzer.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.cs" />
     <Compile Include="Diagnostics\Log\DiagnosticAnalyzerLogger.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService.cs" />

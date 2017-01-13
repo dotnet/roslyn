@@ -118,6 +118,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsSkippedTokensTrivia(SyntaxNode node);
 
+        bool IsWhitespaceTrivia(SyntaxTrivia trivia);
+        bool IsEndOfLineTrivia(SyntaxTrivia trivia);
+
         SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node);
 
         SyntaxNode GetExpressionOfElementAccessExpression(SyntaxNode node);

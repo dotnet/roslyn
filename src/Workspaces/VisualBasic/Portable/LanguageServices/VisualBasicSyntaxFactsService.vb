@@ -1624,5 +1624,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function GetNextExecutableStatement(statement As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetNextExecutableStatement
             Return DirectCast(statement, StatementSyntax).GetNextStatement()?.FirstAncestorOrSelf(Of ExecutableStatementSyntax)
         End Function
+                                        
+        Public Function IsWhitespaceTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsWhitespaceTrivia
+            Return trivia.IsWhitespace()
+        End Function
+
+        Public Function IsEndOfLineTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsEndOfLineTrivia
+            Return trivia.IsEndOfLine()
+        End Function
     End Class
 End Namespace

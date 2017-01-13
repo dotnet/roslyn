@@ -116,10 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.DestructorDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.ParameterList);
+                            SyntaxKind.IdentifierToken);
         }
 
         [Fact]
@@ -135,10 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.DestructorDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.ParameterList);
+                            SyntaxKind.IdentifierToken);
         }
 
         [Fact]

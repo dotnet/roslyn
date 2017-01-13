@@ -1811,6 +1811,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetNextExecutableStatement(SyntaxNode statement)
             => ((StatementSyntax)statement).GetNextStatement();
 
+        public bool IsWhitespaceTrivia(SyntaxTrivia trivia)
+            => trivia.IsWhitespace();
+
+        public bool IsEndOfLineTrivia(SyntaxTrivia trivia)
+            => trivia.IsEndOfLine();
+
         private class AddFirstMissingCloseBaceRewriter: CSharpSyntaxRewriter
         {
             private readonly SyntaxNode _contextNode; 

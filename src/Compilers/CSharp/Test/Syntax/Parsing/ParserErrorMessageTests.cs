@@ -494,6 +494,7 @@ public class Test
 ";
             CreateCompilationWithMscorlib(test).VerifyDiagnostics(
                 // (5,22): error CS0401: The new() constraint must be the last constraint specified
+                // class C<T> where T : new(), IA // CS0401 - should be T : IA, new()
                 Diagnostic(ErrorCode.ERR_NewBoundMustBeLast, "new").WithLocation(5, 22));
         }
 
@@ -1382,25 +1383,44 @@ namespace x {
 
 public class Container
 {
-    public int Prop1{ protected get{return 1;} set {} protected get { return 1;}  }
-    public static int Prop2{ get{return 1;} internal set {} internal set{} }
-    public int this[int i]{ protected get{return 1;} internal set {} protected get { return 1;} internal set {}  }
+    public int Prop1 {
+        protected get { return 1; }
+        set {}
+        protected get { return 1; }
+    }
+    public static int Prop2 {
+        get { return 1; }
+        internal set {}
+        internal set {}
+    }
+    public int this[int i] {
+        protected get { return 1; }
+        internal set {}
+        protected get { return 1; }
+        internal set {} 
+    }
 }
 ";
 
-            ParseAndValidate(test,
-    // (5,65): error CS1007: Property accessor already defined
-    //     public int Prop1{ protected get{return 1;} set {} protected get { return 1;}  }
-    Diagnostic(ErrorCode.ERR_DuplicateAccessor, "get"),
-    // (6,70): error CS1007: Property accessor already defined
-    //     public static int Prop2{ get{return 1;} internal set {} internal set{} }
-    Diagnostic(ErrorCode.ERR_DuplicateAccessor, "set"),
-    // (7,80): error CS1007: Property accessor already defined
-    //     public int this[int i]{ protected get{return 1;} internal set {} protected get { return 1;} internal set {}  }
-    Diagnostic(ErrorCode.ERR_DuplicateAccessor, "get"),
-    // (7,106): error CS1007: Property accessor already defined
-    //     public int this[int i]{ protected get{return 1;} internal set {} protected get { return 1;} internal set {}  }
-    Diagnostic(ErrorCode.ERR_DuplicateAccessor, "set"));
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (8,19): error CS1007: Property accessor already defined
+                //         protected get { return 1; }
+                Diagnostic(ErrorCode.ERR_DuplicateAccessor, "get").WithLocation(8, 19),
+                // (13,18): error CS1007: Property accessor already defined
+                //         internal set {}
+                Diagnostic(ErrorCode.ERR_DuplicateAccessor, "set").WithLocation(13, 18),
+                // (18,19): error CS1007: Property accessor already defined
+                //         protected get { return 1; }
+                Diagnostic(ErrorCode.ERR_DuplicateAccessor, "get").WithLocation(18, 19),
+                // (19,18): error CS1007: Property accessor already defined
+                //         internal set {} 
+                Diagnostic(ErrorCode.ERR_DuplicateAccessor, "set").WithLocation(19, 18),
+                // (15,16): error CS0274: Cannot specify accessibility modifiers for both accessors of the property or indexer 'Container.this[int]'
+                //     public int this[int i] {
+                Diagnostic(ErrorCode.ERR_DuplicatePropertyAccessMods, "this").WithArguments("Container.this[int]").WithLocation(15, 16),
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1));
         }
 
         [Fact]
@@ -1824,6 +1844,22 @@ namespace x
 ";
 
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "ii"));
+        }
+
+        [Fact]
+        public void CS1019ERR_OvlUnaryOperatorExpected2()
+        {
+            var test = @"
+class C
+{
+    public static implicit operator int(C c1, C c2) => 0;
+}
+";
+
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (4,40): error CS1019: Overloadable unary operator expected
+                //     public static implicit operator int(C c1, C c2) => 0;
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "(C c1, C c2)").WithLocation(4, 40));
         }
 
         [WorkItem(906502, "DevDiv/Personal")]
@@ -2589,15 +2625,12 @@ return 1;
 ";
 
             ParseAndValidate(test,
-    // (7,9): error CS1055: An add or remove accessor expected
-    //         return value; 
-    Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "return"),
-    // (7,16): error CS1055: An add or remove accessor expected
-    //         return value; 
-    Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "value"),
-    // (7,21): error CS0073: An add or remove accessor must have a body
-    //         return value; 
-    Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"));
+                // (7,9): error CS1055: An add or remove accessor expected
+                //         return value; 
+                Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "return"),
+                // (7,16): error CS1055: An add or remove accessor expected
+                //         return value; 
+                Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "value"));
         }
 
         [WorkItem(536956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536956")]
@@ -3894,19 +3927,28 @@ public class Test
 }
 ";
             // Extra errors
-            ParseAndValidate(test,
-                // (6,29): error CS1575: A stackalloc expression requires [] after type
-                //         int *p = stackalloc int (30); 
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int"),
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
                 // (6,33): error CS1002: ; expected
                 //         int *p = stackalloc int (30); 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "("),
-                // (7,30): error CS1575: A stackalloc expression requires [] after type
-                //         int *pp = stackalloc int 30; 
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int"),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(6, 33),
                 // (7,34): error CS1002: ; expected
                 //         int *pp = stackalloc int 30; 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "30"));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "30").WithLocation(7, 34),
+                // (4,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     unsafe public static int Main()
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Main").WithLocation(4, 30),
+                // (6,29): error CS1575: A stackalloc expression requires [] after type
+                //         int *p = stackalloc int (30); 
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(6, 29),
+                // (6,33): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         int *p = stackalloc int (30); 
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(30)").WithLocation(6, 33),
+                // (7,30): error CS1575: A stackalloc expression requires [] after type
+                //         int *pp = stackalloc int 30; 
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(7, 30),
+                // (7,34): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         int *pp = stackalloc int 30; 
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "30").WithLocation(7, 34));
         }
 
         [WorkItem(906993, "DevDiv/Personal")]

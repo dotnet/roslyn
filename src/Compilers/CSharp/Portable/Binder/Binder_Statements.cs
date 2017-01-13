@@ -489,6 +489,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             localSymbol.GrabDiagnostics(diagnostics);
 
+            Symbol.CheckForBlockAndExpressionBody(
+                node.Body, node.ExpressionBody, node, diagnostics);
+
             return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
         }
 
@@ -3574,7 +3577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((object)returnType != null)
             {
-                if ((refKind != RefKind.None) != (returnRefKind != RefKind.None))
+                if ((refKind != RefKind.None) != (returnRefKind != RefKind.None) && expression.Kind != BoundKind.ThrowExpression)
                 {
                     var errorCode = refKind != RefKind.None
                         ? ErrorCode.ERR_MustNotHaveRefReturn

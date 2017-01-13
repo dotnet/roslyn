@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             SymbolKind.Method,
             SymbolKind.NamedType,
             SymbolKind.Namespace,
-            SymbolKind.Property);
+            SymbolKind.Property,
+            SymbolKind.Parameter);
 
         public bool OpenFileOnly(Workspace workspace) => true;
 

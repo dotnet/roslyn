@@ -565,5 +565,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             return underlyingParameters.SelectAsArray((p, c) => new EmbeddedParameter(c, p), containingPropertyOrMethod);
         }
+
+        protected override CSharpAttributeData CreateCompilerGeneratedAttribute()
+        {
+            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            var compilation = ModuleBeingBuilt.Compilation;
+            return compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor);
+        }
+
+        protected override CSharpAttributeData CreateComVisibleAttribute()
+        {
+            var compilation = ModuleBeingBuilt.Compilation;
+            return compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_InteropServices_ComVisibleAttribute__ctor,
+                                                      ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean),
+                                                                                              TypedConstantKind.Primitive,
+                                                                                              value:true)), 
+                                                      isOptionalUse:true);
+        }
     }
 }
