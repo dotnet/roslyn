@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         }
 
         /// <exception cref="CompilationErrorException">Compilation has errors.</exception>
-        internal Func<object[], Task<T>> CreateExecutor<T>(ScriptCompiler compiler, Compilation compilation, CancellationToken cancellationToken)
+        internal Func<object[], Task<T>> CreateExecutor<T>(ScriptCompiler compiler, Compilation compilation, ScriptOptions scriptOptions, CancellationToken cancellationToken)
         {
             var diagnostics = DiagnosticBag.GetInstance();
             try
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
                 diagnostics.Clear();
 
-                var executor = Build<T>(compilation, diagnostics, compiler.EmitPdb, cancellationToken);
+                var executor = Build<T>(compilation, diagnostics, scriptOptions, cancellationToken);
 
                 // emit can fail due to compilation errors or because there is nothing to emit:
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
@@ -115,21 +115,28 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         private Func<object[], Task<T>> Build<T>(
             Compilation compilation,
-            DiagnosticBag diagnostics, bool emitPdb,
+            DiagnosticBag diagnostics, ScriptOptions scriptOptions,
             CancellationToken cancellationToken)
         {
             var entryPoint = compilation.GetEntryPoint(cancellationToken);
 
             using (var peStream = new MemoryStream())
-            using (var pdbStream = emitPdb ? new MemoryStream() : null)
+            using (var pdbStream = scriptOptions.EmitDebugInformation ? new MemoryStream() : null)
             {
+                var emitOptions = EmitOptions.Default;
+
+                if (scriptOptions.EmitDebugInformation)
+                {
+                    emitOptions = emitOptions.WithDebugInformationFormat(scriptOptions.DebugInformationFormat.Value);
+                }
+
                 var emitResult = compilation.Emit(
                     peStream: peStream,
                     pdbStream: pdbStream,
                     xmlDocumentationStream: null,
                     win32Resources: null,
                     manifestResources: null,
-                    options: EmitOptions.Default,
+                    options: emitOptions,
                     cancellationToken: cancellationToken);
 
                 diagnostics.AddRange(emitResult.Diagnostics);

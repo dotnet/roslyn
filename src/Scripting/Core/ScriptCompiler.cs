@@ -3,6 +3,7 @@
 using System;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Scripting
@@ -15,7 +16,5 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         public abstract SyntaxTree ParseSubmission(SourceText text, CancellationToken cancellationToken);
         public abstract bool IsCompleteSubmission(SyntaxTree tree);
-
-        public virtual bool EmitPdb { get; } = false;
     }
 }

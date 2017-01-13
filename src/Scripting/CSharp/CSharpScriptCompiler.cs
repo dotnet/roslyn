@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
 {
     internal sealed class CSharpScriptCompiler : ScriptCompiler
     {
-        private bool _emitPdb = false;
-
         public static readonly ScriptCompiler Instance = new CSharpScriptCompiler();
 
         private static readonly CSharpParseOptions s_defaultOptions = new CSharpParseOptions(kind: SourceCodeKind.Script);
@@ -24,8 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
         public override DiagnosticFormatter DiagnosticFormatter => CSharpDiagnosticFormatter.Instance;
 
         public override StringComparer IdentifierComparer => StringComparer.Ordinal;
-
-        public override bool EmitPdb => _emitPdb;
 
         public override bool IsCompleteSubmission(SyntaxTree tree) => SyntaxFactory.IsCompleteSubmission(tree);
 
@@ -39,8 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
             {
                 previousSubmission = (CSharpCompilation)script.Previous.GetCompilation();
             }
-
-            _emitPdb = script.Options.EmitPdb;
 
             var diagnostics = DiagnosticBag.GetInstance();
             var references = script.GetReferencesForCompilation(MessageProvider.Instance, diagnostics);
@@ -62,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
                     mainTypeName: null,
                     scriptClassName: submissionTypeName,
                     usings: script.Options.Imports,
-                    optimizationLevel: EmitPdb ? OptimizationLevel.Debug : OptimizationLevel.Release,
+                    optimizationLevel: script.Options.EmitDebugInformation ? OptimizationLevel.Debug : OptimizationLevel.Release,
                     checkOverflow: false,                       // TODO
                     allowUnsafe: true,                          // TODO
                     platform: Platform.AnyCpu,

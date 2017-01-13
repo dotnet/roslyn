@@ -12,6 +12,7 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
+    using Microsoft.CodeAnalysis.Emit;
     using static ParameterValidationHelpers;
 
     /// <summary>
@@ -92,9 +93,14 @@ namespace Microsoft.CodeAnalysis.Scripting
         public ImmutableArray<string> Imports { get; private set; }
 
         /// <summary>
-        /// Specifies whether PDBs for debugging should be emitted.
+        /// Specifies whether debugging symbols should be emitted.
         /// </summary>
-        public bool EmitPdb { get; private set; } = false;
+        public bool EmitDebugInformation => DebugInformationFormat != null;
+
+        /// <summary>
+        /// <see cref="DebugInformationFormat"/> to be used for debugging symbols if needed
+        /// </summary>
+        public DebugInformationFormat? DebugInformationFormat { get; private set; } = null;
 
         /// <summary>
         /// Specifies the encoding to be used for the code.
@@ -133,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                    metadataResolver: other.MetadataResolver,
                    sourceResolver: other.SourceResolver)
         {
-            EmitPdb = other.EmitPdb;
+            DebugInformationFormat = other.DebugInformationFormat;
             Encoding = other.Encoding;
         }
 
@@ -296,10 +302,10 @@ namespace Microsoft.CodeAnalysis.Scripting
             AddImports((IEnumerable<string>)imports);
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="EmitPdb"/>.
+        /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="DebugInformationFormat"/>.
         /// </summary>
-        public ScriptOptions WithPdb(bool emitPdb) =>
-            new ScriptOptions(this) { EmitPdb = emitPdb };
+        public ScriptOptions WithDebugInformation(DebugInformationFormat pdbFormat) =>
+            new ScriptOptions(this) { DebugInformationFormat = pdbFormat };
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="Encoding"/>.
