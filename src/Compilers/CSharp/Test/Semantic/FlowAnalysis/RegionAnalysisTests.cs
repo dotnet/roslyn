@@ -5226,6 +5226,48 @@ class C
 }");
             Assert.False(results.Succeeded);
         }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions7()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        void Local() { }
+
+        /*<bind>*/
+        var a = (Action)Local;
+        /*</bind>*/
+    }
+}");
+            Assert.False(results.Succeeded);
+        }
+
+        [Fact]
+        public void RegionAnalysisLocalFunctions8()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+class C
+{
+    static void Main()
+    {
+        int x = 0;
+        void Local() { x++; }
+        Local();
+
+        /*<bind>*/
+        x++;
+        x = M(x + 1);
+        /*</bind>*/
+    }
+
+    int M(int i) => i;
+}");
+            Assert.True(results.Succeeded);
+        }
         #endregion
     }
 }

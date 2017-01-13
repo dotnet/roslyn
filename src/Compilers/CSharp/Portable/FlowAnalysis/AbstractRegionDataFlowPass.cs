@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     // Any fix to one should be applied to the other.
     internal class AbstractRegionDataFlowPass : DataFlowPass
     {
-        private bool _hasLocalFunction = false;
+        private bool _interactsWithLocalFunction = false;
 
         internal AbstractRegionDataFlowPass(
             CSharpCompilation compilation,
@@ -39,7 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Local functions currently don't implement data-flows-out properly
             // so we currently fail the analysis if we see a local function.
             // See https://github.com/dotnet/roslyn/issues/14214
-            badRegion = badRegion || _hasLocalFunction;
+            _interactsWithLocalFunction |= RegionInsideLocalFunction();
+            badRegion = badRegion || _interactsWithLocalFunction;
+
             return result;
         }
 
@@ -51,19 +54,65 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            _hasLocalFunction = true;
+            if (IsInside)
+            {
+                _interactsWithLocalFunction = true;
+            }
             MakeSlots(node.Symbol.Parameters);
             return base.VisitLocalFunctionStatement(node);
         }
 
         public override BoundNode VisitConversion(BoundConversion node)
         {
-            if (node.ConversionKind == ConversionKind.MethodGroup &&
+            if (IsInside &&
+                node.ConversionKind == ConversionKind.MethodGroup &&
                 node.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
             {
-                _hasLocalFunction = true;
+                _interactsWithLocalFunction = true;
             }
             return base.VisitConversion(node);
+        }
+
+        public override BoundNode VisitCall(BoundCall node)
+        {
+            if (IsInside && node.Method.MethodKind == MethodKind.LocalFunction)
+            {
+                _interactsWithLocalFunction = true;
+            }
+            return base.VisitCall(node);
+        }
+
+        public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
+        {
+            if (IsInside && node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
+            {
+                _interactsWithLocalFunction = true;
+            }
+            return base.VisitDelegateCreationExpression(node);
+        }
+
+        public override BoundNode VisitMethodGroup(BoundMethodGroup node)
+        {
+            if (IsInside &&
+                node.Methods.Length == 1 &&
+                node.Methods[0].MethodKind == MethodKind.LocalFunction)
+            {
+                _interactsWithLocalFunction = true;
+            }
+            return base.VisitMethodGroup(node);
+        }
+
+        private bool RegionInsideLocalFunction()
+        {
+            // Grab the first node and check its ancestors for a local function
+            foreach (var ancestor in firstInRegion.Syntax.Ancestors())
+            {
+                if (ancestor.IsKind(SyntaxKind.LocalFunctionStatement))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private void MakeSlots(ImmutableArray<ParameterSymbol> parameters)
