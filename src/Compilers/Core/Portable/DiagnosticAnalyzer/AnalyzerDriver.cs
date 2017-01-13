@@ -80,11 +80,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Dictionary<SyntaxTree, ImmutableHashSet<ISymbol>> _lazyGeneratedCodeSymbolsMap;
 
         /// <summary>
-        /// Lazily populated dictionary indicating whether a source file has any hidden regions - we populate it lazily to avoid realizing all syntax trees in the compilation upfront.
-        /// </summary>
-        private Dictionary<SyntaxTree, bool> _lazyTreesWithHiddenRegionsMap;
-
-        /// <summary>
         /// Symbol for <see cref="System.CodeDom.Compiler.GeneratedCodeAttribute"/>.
         /// </summary>
         private INamedTypeSymbol _generatedCodeAttribute;
@@ -160,7 +155,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _treatAllCodeAsNonGeneratedCode = ShouldTreatAllCodeAsNonGeneratedCode(unsuppressedAnalyzers, _generatedCodeAnalysisFlagsMap);
                     _lazyGeneratedCodeFilesMap = _treatAllCodeAsNonGeneratedCode ? null : new Dictionary<SyntaxTree, bool>();
                     _lazyGeneratedCodeSymbolsMap = _treatAllCodeAsNonGeneratedCode ? null : new Dictionary<SyntaxTree, ImmutableHashSet<ISymbol>>();
-                    _lazyTreesWithHiddenRegionsMap = _treatAllCodeAsNonGeneratedCode ? null : new Dictionary<SyntaxTree, bool>();
                     _generatedCodeAttribute = analyzerExecutor.Compilation?.GetTypeByMetadataName("System.CodeDom.Compiler.GeneratedCodeAttribute");
 
                     _symbolActionsByKind = MakeSymbolActionsByKind();
@@ -1317,23 +1311,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(tree != null);
 
-            if (_treatAllCodeAsNonGeneratedCode)
-            {
-                return false;
-            }
-
-            Debug.Assert(_lazyTreesWithHiddenRegionsMap != null);
-
-            lock (_lazyTreesWithHiddenRegionsMap)
-            {
-                bool hasHiddenRegions;
-                if (!_lazyTreesWithHiddenRegionsMap.TryGetValue(tree, out hasHiddenRegions))
-                {
-                    hasHiddenRegions = tree.HasHiddenRegions();
-                }
-
-                return hasHiddenRegions;
-            }
+            return _treatAllCodeAsNonGeneratedCode ? false : tree.HasHiddenRegions();
         }
 
         internal async Task<AnalyzerActionCounts> GetAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, CompilationOptions compilationOptions, CancellationToken cancellationToken)

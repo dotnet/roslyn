@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis
     internal abstract partial class LineDirectiveMap<TDirective>
         where TDirective : SyntaxNode
     {
-        protected readonly LineMappingEntry[] Entries;
+        protected readonly ImmutableArray<LineMappingEntry> Entries;
 
         // Get all active #line directives under trivia into the list, in source code order.
         protected abstract bool ShouldAddDirective(TDirective directive);
@@ -34,11 +35,11 @@ namespace Microsoft.CodeAnalysis
         {
             // Accumulate all the directives, in source code order
             var syntaxRoot = (SyntaxNodeOrToken)syntaxTree.GetRoot();
-            IEnumerable<TDirective> directives = syntaxRoot.GetDirectives<TDirective>(filter: ShouldAddDirective);
+            IList<TDirective> directives = syntaxRoot.GetDirectives<TDirective>(filter: ShouldAddDirective);
             Debug.Assert(directives != null);
 
             // Create the entry map.
-            this.Entries = CreateEntryMap(syntaxTree.GetText(), directives);
+            this.Entries = CreateEntryMap(syntaxTree, directives);
         }
 
         // Given a span and a default file name, return a FileLinePositionSpan that is the mapped
@@ -96,35 +97,37 @@ namespace Microsoft.CodeAnalysis
         // Find the index of the line mapped entry with the largest unmapped line number <= lineNumber.
         protected int FindEntryIndex(int lineNumber)
         {
-            int r = Array.BinarySearch(this.Entries, new LineMappingEntry(lineNumber));
+            int r = ImmutableArray.BinarySearch(this.Entries, new LineMappingEntry(lineNumber));
             return r >= 0 ? r : ((~r) - 1);
         }
 
         // Given the ordered list of all directives in the file, return the ordered line mapping
         // entry for the file. This always starts with the null mapped that maps line 0 to line 0.
-        private LineMappingEntry[] CreateEntryMap(SourceText sourceText, IEnumerable<TDirective> directives)
+        private ImmutableArray<LineMappingEntry> CreateEntryMap(SyntaxTree tree, IList<TDirective> directives)
         {
-            var entries = new LineMappingEntry[directives.Count() + 1];
+            var entries = ArrayBuilder<LineMappingEntry>.GetInstance(directives.Count + 1);
             var current = InitializeFirstEntry();
-            var index = 0;
-            entries[index] = current;
+            entries.Add(current);
 
-            foreach (var directive in directives)
+            if (directives.Count > 0)
             {
-                current = GetEntry(directive, sourceText, current);
-                ++index;
-                entries[index] = current;
+                var sourceText = tree.GetText();
+                foreach (var directive in directives)
+                {
+                    current = GetEntry(directive, sourceText, current);
+                    entries.Add(current);
+                }
             }
 
 #if DEBUG
             // Make sure the entries array is correctly sorted. 
-            for (int i = 0; i < entries.Length - 1; ++i)
+            for (int i = 0; i < entries.Count - 1; ++i)
             {
                 Debug.Assert(entries[i].CompareTo(entries[i + 1]) < 0);
             }
 #endif
 
-            return entries;
+            return entries.ToImmutableAndFree();
         }
     }
 }
