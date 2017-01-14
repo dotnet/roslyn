@@ -78,7 +78,7 @@ namespace Roslyn.Utilities
 
             _writer = new BinaryWriter(stream, Encoding.UTF8);
             _referenceMap = new ReferenceMap(knownObjects);
-            _binder = binder ?? NullObjectBinder.Empty;
+            _binder = binder;
             _recursive = recursive;
             _cancellationToken = cancellationToken;
 
@@ -936,7 +936,7 @@ namespace Roslyn.Utilities
                 _writer.Write((byte)EncodingKind.Type);
 
                 TypeKey key;
-                if (!_binder.TryGetTypeKey(type, out key))
+                if (_binder == null || !_binder.TryGetTypeKey(type, out key))
                 {
                     throw NoSerializationTypeException(type.FullName);
                 }
@@ -984,7 +984,7 @@ namespace Roslyn.Utilities
             else
             {
                 Action<ObjectWriter, object> typeWriter;
-                if (!_binder.TryGetWriter(instance, out typeWriter))
+                if (_binder == null || !_binder.TryGetWriter(instance, out typeWriter))
                 {
                     throw NoSerializationWriterException(instance.GetType().FullName);
                 }
