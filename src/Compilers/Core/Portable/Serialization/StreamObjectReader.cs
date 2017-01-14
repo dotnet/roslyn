@@ -89,7 +89,7 @@ namespace Roslyn.Utilities
 
             _reader = new BinaryReader(stream, Encoding.UTF8);
             _referenceMap = new ReferenceMap(knownObjects);
-            _binder = binder ?? FixedObjectBinder.Empty;
+            _binder = binder ?? NullObjectBinder.Empty;
             _cancellationToken = cancellationToken;
 
             if (!_recursive)

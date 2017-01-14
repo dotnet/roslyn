@@ -78,7 +78,7 @@ namespace Roslyn.Utilities
 
             _writer = new BinaryWriter(stream, Encoding.UTF8);
             _referenceMap = new ReferenceMap(knownObjects);
-            _binder = binder ?? FixedObjectBinder.Empty;
+            _binder = binder ?? NullObjectBinder.Empty;
             _recursive = recursive;
             _cancellationToken = cancellationToken;
 
