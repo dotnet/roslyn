@@ -4318,5 +4318,51 @@ public class Program
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: "True");
         }
+
+        [Fact]
+        [WorkItem(336030, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/336030")]
+        public void NullOperand()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        System.Console.Write(null is Missing x);
+        System.Console.Write(null is Missing);
+        switch(null)
+        {
+            case Missing:
+            case Missing y:
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
+                //         System.Console.Write(null is Missing x);
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(6, 30),
+                // (6,38): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(null is Missing x);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(6, 38),
+                // (7,30): error CS8117: Invalid operand for pattern match; value required, but found 'null'.
+                //         System.Console.Write(null is Missing);
+                Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("null").WithLocation(7, 30),
+                // (7,38): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(null is Missing);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(7, 38),
+                // (8,16): error CS8119: The switch expression must be a value; found <null>.
+                //         switch(null)
+                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "null").WithArguments("<null>").WithLocation(8, 16),
+                // (10,18): error CS0103: The name 'Missing' does not exist in the current context
+                //             case Missing:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(10, 18),
+                // (11,18): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
+                //             case Missing y:
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18)
+                );
+        }
     }
 }

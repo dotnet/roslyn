@@ -131,6 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool wasExpression,
             bool wasSwitchCase)
         {
+            Debug.Assert((object)operandType != null);
+
             var expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             ConstantValue constantValueOpt = null;
             var convertedExpression = ConvertPatternExpression(operandType, patternExpression, expression, ref constantValueOpt, diagnostics);

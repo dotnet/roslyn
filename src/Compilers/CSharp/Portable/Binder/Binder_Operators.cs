@@ -2628,14 +2628,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tempBag = DiagnosticBag.GetInstance();
             targetType = BindType(node.Right, tempBag, out alias);
 
+            var operandType = operand.Type;
             if (targetType?.IsErrorType() == true && tempBag.HasAnyResolvedErrors() &&
                     ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
             {
                 // it did not bind as a type; try binding as a constant expression pattern
+
+                if ((object)operandType == null)
+                {
+                    operandType = CreateErrorType();
+                    // value expected
+                    diagnostics.Add(ErrorCode.ERR_BadIsPatternExpression, node.Left.Location, node.Left);
+                }
+
                 bool wasExpression;
                 var tempBag2 = DiagnosticBag.GetInstance();
                 var boundConstantPattern = BindConstantPattern(
-                    node.Right, operand, operand.Type, node.Right, node.Right.HasErrors, tempBag2, out wasExpression, wasSwitchCase: false);
+                    node.Right, operand, operandType, node.Right, node.Right.HasErrors, tempBag2, out wasExpression, wasSwitchCase: false);
                 if (wasExpression)
                 {
                     tempBag.Free();
@@ -2695,7 +2704,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     );
             }
 
-            var operandType = operand.Type;
             Debug.Assert((object)operandType != null);
             if (operandType.TypeKind == TypeKind.Dynamic)
             {
