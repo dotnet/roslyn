@@ -383,6 +383,7 @@
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.DeclarationInfo.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.IdentifierInfo.cs" />
+    <Compile Include="NamingStyles\Serialization\NamingStylePreferencesExtensions.cs" />
     <Compile Include="PatternMatching\PatternMatch.cs" />
     <Compile Include="PatternMatching\PatternMatcher.cs" />
     <Compile Include="PatternMatching\PatternMatcher.Segment.cs" />
