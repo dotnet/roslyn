@@ -26,7 +26,7 @@ namespace Roslyn.Utilities
     internal sealed partial class StreamObjectWriter : ObjectWriter, IDisposable
     {
         private readonly BinaryWriter _writer;
-        private readonly ObjectBinder _binder;
+        private readonly ObjectBinder _binderOpt;
         private readonly bool _recursive;
         private readonly CancellationToken _cancellationToken;
 
@@ -78,7 +78,7 @@ namespace Roslyn.Utilities
 
             _writer = new BinaryWriter(stream, Encoding.UTF8);
             _referenceMap = new ReferenceMap(knownObjects);
-            _binder = binder;
+            _binderOpt = binder;
             _recursive = recursive;
             _cancellationToken = cancellationToken;
 
@@ -935,12 +935,12 @@ namespace Roslyn.Utilities
 
                 _writer.Write((byte)EncodingKind.Type);
 
-                if (_binder == null)
+                if (_binderOpt == null)
                 {
                     throw NoSerializationTypeException(type.FullName);
                 }
 
-                var key = _binder.GetAndRecordTypeKey(type);
+                var key = _binderOpt.GetAndRecordTypeKey(type);
 
                 this.WriteStringValue(key.AssemblyName);
                 this.WriteStringValue(key.TypeName);
@@ -985,7 +985,7 @@ namespace Roslyn.Utilities
             else
             {
                 Action<ObjectWriter, object> typeWriter;
-                if (_binder == null || !_binder.TryGetWriter(instance, out typeWriter))
+                if (_binderOpt == null || !_binderOpt.TryGetWriter(instance, out typeWriter))
                 {
                     throw NoSerializationWriterException(instance.GetType().FullName);
                 }

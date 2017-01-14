@@ -36,7 +36,7 @@ namespace Roslyn.Utilities
         internal const byte VersionByte2 = 0b00000001;
 
         private readonly BinaryReader _reader;
-        private readonly ObjectBinder _binder;
+        private readonly ObjectBinder _binderOpt;
         private readonly bool _recursive;
         private readonly CancellationToken _cancellationToken;
 
@@ -89,7 +89,7 @@ namespace Roslyn.Utilities
 
             _reader = new BinaryReader(stream, Encoding.UTF8);
             _referenceMap = new ReferenceMap(knownObjects);
-            _binder = binder;
+            _binderOpt = binder;
             _cancellationToken = cancellationToken;
 
             if (!_recursive)
@@ -982,7 +982,7 @@ namespace Roslyn.Utilities
                     var typeName = this.ReadStringValue();
 
                     Type type;
-                    if (_binder == null || !_binder.TryGetType(new TypeKey(assemblyName, typeName), out type))
+                    if (_binderOpt == null || !_binderOpt.TryGetType(new TypeKey(assemblyName, typeName), out type))
                     {
                         throw NoSerializationTypeException(typeName);
                     }
@@ -1060,7 +1060,7 @@ namespace Roslyn.Utilities
                     Type type = this.ReadType();
 
                     Func<ObjectReader, object> typeReader;
-                    if (_binder == null || !_binder.TryGetReader(type, out typeReader))
+                    if (_binderOpt == null || !_binderOpt.TryGetReader(type, out typeReader))
                     {
                         throw NoSerializationReaderException(type.FullName);
                     }
