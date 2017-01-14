@@ -36,14 +36,15 @@ namespace Roslyn.Utilities
         internal const byte VersionByte2 = 0b00000001;
 
         private readonly BinaryReader _reader;
-        private readonly ObjectBinder _binder;
+        private readonly ObjectBinder _binderOpt;
         private readonly bool _recursive;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
         /// Map of reference id's to deserialized objects.
         /// </summary>
-        private readonly ReferenceMap _referenceMap;
+        private readonly ReaderReferenceMap<object> _objectReferenceMap;
+        private readonly ReaderReferenceMap<string> _stringReferenceMap;
 
         /// <summary>
         /// Stack of values used to construct objects and arrays
@@ -88,8 +89,9 @@ namespace Roslyn.Utilities
             _recursive = IsRecursive(stream);
 
             _reader = new BinaryReader(stream, Encoding.UTF8);
-            _referenceMap = new ReferenceMap(knownObjects);
-            _binder = binder ?? FixedObjectBinder.Empty;
+            _objectReferenceMap = new ReaderReferenceMap<object>(knownObjects);
+            _stringReferenceMap = new ReaderReferenceMap<string>(knownObjects);
+            _binderOpt = binder;
             _cancellationToken = cancellationToken;
 
             if (!_recursive)
@@ -142,7 +144,8 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
-            _referenceMap.Dispose();
+            _objectReferenceMap.Dispose();
+            _stringReferenceMap.Dispose();
 
             if (!_recursive)
             {
@@ -417,11 +420,14 @@ namespace Roslyn.Utilities
                 case EncodingKind.StringRef_1Byte:
                 case EncodingKind.StringRef_2Bytes:
                     return Variant.FromString(ReadStringValue(kind));
-                case EncodingKind.Object:
                 case EncodingKind.ObjectRef_4Bytes:
+                    return Variant.FromObject(_objectReferenceMap.GetValue(_reader.ReadInt32()));
                 case EncodingKind.ObjectRef_1Byte:
+                    return Variant.FromObject(_objectReferenceMap.GetValue(_reader.ReadByte()));
                 case EncodingKind.ObjectRef_2Bytes:
-                    return ReadObject(kind);
+                    return Variant.FromObject(_objectReferenceMap.GetValue(_reader.ReadUInt16()));
+                case EncodingKind.Object:
+                    return ReadObject();
                 case EncodingKind.Type:
                 case EncodingKind.TypeRef_4Bytes:
                 case EncodingKind.TypeRef_1Byte:
@@ -552,16 +558,16 @@ namespace Roslyn.Utilities
         /// <summary>
         /// An reference-id to object map, that can share base data efficiently.
         /// </summary>
-        private class ReferenceMap
+        private class ReaderReferenceMap<T> where T : class
         {
             private readonly ObjectData _baseData;
             private readonly int _baseDataCount;
-            private readonly List<object> _values;
+            private readonly List<T> _values;
 
-            internal static readonly ObjectPool<List<object>> s_objectListPool
-                = new ObjectPool<List<object>>(() => new List<object>(20));
+            internal static readonly ObjectPool<List<T>> s_objectListPool
+                = new ObjectPool<List<T>>(() => new List<T>(20));
 
-            public ReferenceMap(ObjectData baseData)
+            public ReaderReferenceMap(ObjectData baseData)
             {
                 _baseData = baseData;
                 _baseDataCount = baseData != null ? _baseData.Objects.Length : 0;
@@ -580,18 +586,18 @@ namespace Roslyn.Utilities
                 return _baseDataCount + _values.Count - 1;
             }
 
-            public void SetValue(int referenceId, object value)
+            public void SetValue(int referenceId, T value)
             {
                 _values[referenceId - _baseDataCount] = value;
             }
 
-            public object GetValue(int referenceId)
+            public T GetValue(int referenceId)
             {
                 if (_baseData != null)
                 {
                     if (referenceId < _baseDataCount)
                     {
-                        return _baseData.Objects[referenceId];
+                        return (T)_baseData.Objects[referenceId];
                     }
                     else
                     {
@@ -645,13 +651,13 @@ namespace Roslyn.Utilities
             switch (kind)
             {
                 case EncodingKind.StringRef_1Byte:
-                    return (string)_referenceMap.GetValue(_reader.ReadByte());
+                    return _stringReferenceMap.GetValue(_reader.ReadByte());
 
                 case EncodingKind.StringRef_2Bytes:
-                    return (string)_referenceMap.GetValue(_reader.ReadUInt16());
+                    return _stringReferenceMap.GetValue(_reader.ReadUInt16());
 
                 case EncodingKind.StringRef_4Bytes:
-                    return (string)_referenceMap.GetValue(_reader.ReadInt32());
+                    return _stringReferenceMap.GetValue(_reader.ReadInt32());
 
                 case EncodingKind.StringUtf16:
                 case EncodingKind.StringUtf8:
@@ -664,7 +670,7 @@ namespace Roslyn.Utilities
 
         private unsafe string ReadStringLiteral(EncodingKind kind)
         {
-            int id = _referenceMap.GetNextReferenceId();
+            int id = _stringReferenceMap.GetNextReferenceId();
             string value;
             if (kind == EncodingKind.StringUtf8)
             {
@@ -681,7 +687,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            _referenceMap.SetValue(id, value);
+            _stringReferenceMap.SetValue(id, value);
             return value;
         }
 
@@ -710,8 +716,8 @@ namespace Roslyn.Utilities
             // SUBTLE: If it was a primitive array, only the EncodingKind byte of the element type was written, instead of encoding as a type.
             var elementKind = (EncodingKind)_reader.ReadByte();
 
-            Type elementType;
-            if (StreamObjectWriter.s_reverseTypeMap.TryGetValue(elementKind, out elementType))
+            var elementType = StreamObjectWriter.s_reverseTypeMap[(int)elementKind];
+            if (elementType != null)
             {
                 return Variant.FromArray(this.ReadPrimitiveTypeArrayElements(elementType, elementKind, length));
             }
@@ -758,7 +764,7 @@ namespace Roslyn.Utilities
 
         private Array ReadPrimitiveTypeArrayElements(Type type, EncodingKind kind, int length)
         {
-            Debug.Assert(StreamObjectWriter.s_reverseTypeMap[kind] == type);
+            Debug.Assert(StreamObjectWriter.s_reverseTypeMap[(int)kind] == type);
 
             // optimizations for supported array type by binary reader
             if (type == typeof(byte))
@@ -968,26 +974,26 @@ namespace Roslyn.Utilities
             switch (kind)
             {
                 case EncodingKind.TypeRef_1Byte:
-                    return (Type)_referenceMap.GetValue(_reader.ReadByte());
+                    return (Type)_objectReferenceMap.GetValue(_reader.ReadByte());
 
                 case EncodingKind.TypeRef_2Bytes:
-                    return (Type)_referenceMap.GetValue(_reader.ReadUInt16());
+                    return (Type)_objectReferenceMap.GetValue(_reader.ReadUInt16());
 
                 case EncodingKind.TypeRef_4Bytes:
-                    return (Type)_referenceMap.GetValue(_reader.ReadInt32());
+                    return (Type)_objectReferenceMap.GetValue(_reader.ReadInt32());
 
                 case EncodingKind.Type:
-                    int id = _referenceMap.GetNextReferenceId();
+                    int id = _objectReferenceMap.GetNextReferenceId();
                     var assemblyName = this.ReadStringValue();
                     var typeName = this.ReadStringValue();
 
                     Type type;
-                    if (!_binder.TryGetType(new TypeKey(assemblyName, typeName), out type))
+                    if (_binderOpt == null || !_binderOpt.TryGetType(new TypeKey(assemblyName, typeName), out type))
                     {
                         throw NoSerializationTypeException(typeName);
                     }
 
-                    _referenceMap.SetValue(id, type);
+                    _objectReferenceMap.SetValue(id, type);
                     return type;
 
                 default:
@@ -1043,53 +1049,39 @@ namespace Roslyn.Utilities
             throw ExceptionUtilities.UnexpectedValue(enumType);
         }
 
-        private Variant ReadObject(EncodingKind kind)
+        private Variant ReadObject()
         {
-            switch (kind)
+            int id = _objectReferenceMap.GetNextReferenceId();
+
+            Type type = this.ReadType();
+
+            Func<ObjectReader, object> typeReader;
+            if (_binderOpt == null || !_binderOpt.TryGetReader(type, out typeReader))
             {
-                case EncodingKind.ObjectRef_4Bytes:
-                    return Variant.FromObject(_referenceMap.GetValue(_reader.ReadInt32()));
-                case EncodingKind.ObjectRef_1Byte:
-                    return Variant.FromObject(_referenceMap.GetValue(_reader.ReadByte()));
-                case EncodingKind.ObjectRef_2Bytes:
-                    return Variant.FromObject(_referenceMap.GetValue(_reader.ReadUInt16()));
+                throw NoSerializationReaderException(type.FullName);
+            }
 
-                case EncodingKind.Object:
-                    int id = _referenceMap.GetNextReferenceId();
+            if (_recursive)
+            {
+                // recursive: read and construct instance immediately from member elements encoding next in the stream
+                var instance = typeReader(this);
+                _objectReferenceMap.SetValue(id, instance);
+                return Variant.FromObject(instance);
+            }
+            else
+            {
+                uint memberCount = this.ReadCompressedUInt();
 
-                    Type type = this.ReadType();
-
-                    Func<ObjectReader, object> typeReader;
-                    if (!_binder.TryGetReader(type, out typeReader))
-                    {
-                        throw NoSerializationReaderException(type.FullName);
-                    }
-
-                    if (_recursive)
-                    {
-                        // recursive: read and construct instance immediately from member elements encoding next in the stream
-                        var instance = typeReader(this);
-                        _referenceMap.SetValue(id, instance);
-                        return Variant.FromObject(instance);
-                    }
-                    else 
-                    {
-                        uint memberCount = this.ReadCompressedUInt();
-
-                        if (memberCount == 0)
-                        {
-                            return ConstructObject(type, (int)memberCount, typeReader, id);
-                        }
-                        else
-                        {
-                            // non-recursive: remember construction information to invoke later when member elements available on the stack
-                            _constructionStack.Push(Construction.CreateObjectConstruction(type, (int)memberCount, _valueStack.Count, typeReader, id));
-                            return Variant.None;
-                        }
-                    }
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
+                if (memberCount == 0)
+                {
+                    return ConstructObject(type, (int)memberCount, typeReader, id);
+                }
+                else
+                {
+                    // non-recursive: remember construction information to invoke later when member elements available on the stack
+                    _constructionStack.Push(Construction.CreateObjectConstruction(type, (int)memberCount, _valueStack.Count, typeReader, id));
+                    return Variant.None;
+                }
             }
         }
 
@@ -1114,7 +1106,7 @@ namespace Roslyn.Utilities
                 throw DeserializationReadIncorrectNumberOfValuesException(type.Name);
             }
 
-            _referenceMap.SetValue(id, instance);
+            _objectReferenceMap.SetValue(id, instance);
 
             return Variant.FromObject(instance);
         }

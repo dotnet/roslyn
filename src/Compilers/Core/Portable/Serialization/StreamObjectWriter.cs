@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -14,6 +13,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
+    using System.Collections.Immutable;
 #if COMPILERCORE
     using Resources = CodeAnalysisResources;
 #else
@@ -26,14 +26,17 @@ namespace Roslyn.Utilities
     internal sealed partial class StreamObjectWriter : ObjectWriter, IDisposable
     {
         private readonly BinaryWriter _writer;
-        private readonly ObjectBinder _binder;
+        private readonly ObjectBinder _binderOpt;
         private readonly bool _recursive;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Map of serialized object's reference ids.
+        /// Map of serialized object's reference ids.  The object-reference-map uses refernece equality
+        /// for performance.  While the string-reference-map uses value-equality for greater cache hits 
+        /// and reuse.
         /// </summary>
-        private readonly ReferenceMap _referenceMap;
+        private readonly WriterReferenceMap _objectReferenceMap;
+        private readonly WriterReferenceMap _stringReferenceMap;
 
         /// <summary>
         /// The stack of values (object members or array elements) in order to be emitted.
@@ -77,8 +80,9 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _writer = new BinaryWriter(stream, Encoding.UTF8);
-            _referenceMap = new ReferenceMap(knownObjects);
-            _binder = binder ?? FixedObjectBinder.Empty;
+            _objectReferenceMap = new WriterReferenceMap(knownObjects, valueEquality: false);
+            _stringReferenceMap = new WriterReferenceMap(knownObjects, valueEquality: true);
+            _binderOpt = binder;
             _recursive = recursive;
             _cancellationToken = cancellationToken;
 
@@ -105,7 +109,8 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
-            _referenceMap.Dispose();
+            _objectReferenceMap.Dispose();
+            _stringReferenceMap.Dispose();
 
             if (!_recursive)
             {
@@ -190,6 +195,7 @@ namespace Roslyn.Utilities
 
         public override void WriteValue(object value)
         {
+            Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
             if (_recursive)
             {
                 WriteVariant(Variant.FromBoxedObject(value));
@@ -450,65 +456,79 @@ namespace Roslyn.Utilities
         /// <summary>
         /// An object reference to reference-id map, that can share base data efficiently.
         /// </summary>
-        private class ReferenceMap
+        private class WriterReferenceMap
         {
-            private readonly ImmutableDictionary<object, int> _baseMap;
+            private readonly Dictionary<object, int> _baseMap;
             private readonly Dictionary<object, int> _valueToIdMap;
+            private readonly bool _valueEquality;
             private int _nextId;
 
-            // note: uses value equality so strings get unified for better compaction
-            private static readonly ObjectPool<Dictionary<object, int>> s_dictionaryPool =
+            private static readonly ObjectPool<Dictionary<object, int>> s_referenceDictionaryPool =
+                new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128, ReferenceEqualityComparer.Instance));
+
+            private static readonly ObjectPool<Dictionary<object, int>> s_valueDictionaryPool =
                 new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128));
 
-            private ReferenceMap(ImmutableDictionary<object, int> baseMap)
+            private WriterReferenceMap(Dictionary<object, int> baseMap, bool valueEquality)
             {
                 _baseMap = baseMap;
-                _valueToIdMap = s_dictionaryPool.Allocate();
+                _valueEquality = valueEquality;
+                _valueToIdMap = GetDictionaryPool().Allocate();
                 _nextId = _baseMap != null ? _baseMap.Count : 0;
             }
 
-            public ReferenceMap(ObjectData data)
-                : this(data != null ? GetBaseMap(data) : null)
+            private ObjectPool<Dictionary<object, int>> GetDictionaryPool()
+                => _valueEquality ? s_valueDictionaryPool : s_referenceDictionaryPool;
+
+            public WriterReferenceMap(ObjectData data, bool valueEquality)
+                : this(data != null ? GetBaseMap(data, valueEquality) : null, valueEquality)
             {
             }
 
-            private static readonly ConditionalWeakTable<ObjectData, ImmutableDictionary<object, int>> s_baseDataMap
-                = new ConditionalWeakTable<ObjectData, ImmutableDictionary<object, int>>();
+            private static readonly ConditionalWeakTable<ObjectData, Dictionary<object, int>> s_referenceBaseDataMap
+                = new ConditionalWeakTable<ObjectData, Dictionary<object, int>>();
 
-            private static ImmutableDictionary<object, int> GetBaseMap(ObjectData data)
+            private static readonly ConditionalWeakTable<ObjectData, Dictionary<object, int>> s_valueBaseDataMap
+                = new ConditionalWeakTable<ObjectData, Dictionary<object, int>>();
+
+            private static Dictionary<object, int> GetBaseMap(ObjectData data, bool valueEquality)
             {
-                ImmutableDictionary<object, int> baseData;
-                if (!s_baseDataMap.TryGetValue(data, out baseData))
+                var dataMap = valueEquality ? s_valueBaseDataMap : s_referenceBaseDataMap;
+
+                Dictionary<object, int> baseData;
+                if (!dataMap.TryGetValue(data, out baseData))
                 {
-                    baseData = s_baseDataMap.GetValue(data, CreateBaseMap);
+                    baseData = dataMap.GetValue(data, CreateBaseMap);
                 }
 
                 return baseData;
             }
 
-            private static ImmutableDictionary<object, int> CreateBaseMap(ObjectData data)
+            private static Dictionary<object, int> CreateBaseMap(ObjectData data)
             {
-                var builder = ImmutableDictionary<object, int>.Empty.ToBuilder();
+                var builder = new Dictionary<object, int>();
                 for (int i = 0; i < data.Objects.Length; i++)
                 {
                     builder.Add(data.Objects[i], i);
                 }
 
-                return builder.ToImmutable();
+                return builder;
             }
 
             public void Dispose()
             {
+                var pool = GetDictionaryPool();
+
                 // If the map grew too big, don't return it to the pool.
                 // When testing with the Roslyn solution, this dropped only 2.5% of requests.
                 if (_valueToIdMap.Count > 1024)
                 {
-                    s_dictionaryPool.ForgetTrackedObject(_valueToIdMap);
+                    pool.ForgetTrackedObject(_valueToIdMap);
                 }
                 else
                 {
                     _valueToIdMap.Clear();
-                    s_dictionaryPool.Free(_valueToIdMap);
+                    pool.Free(_valueToIdMap);
                 }
             }
 
@@ -573,7 +593,7 @@ namespace Roslyn.Utilities
             else
             {
                 int id;
-                if (_referenceMap.TryGetReferenceId(value, out id))
+                if (_stringReferenceMap.TryGetReferenceId(value, out id))
                 {
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
@@ -594,7 +614,7 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    _referenceMap.Add(value);
+                    _stringReferenceMap.Add(value);
 
                     if (value.IsValidUnicodeString())
                     {
@@ -910,7 +930,7 @@ namespace Roslyn.Utilities
         private void WriteType(Type type)
         {
             int id;
-            if (_referenceMap.TryGetReferenceId(type, out id))
+            if (_objectReferenceMap.TryGetReferenceId(type, out id))
             {
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
@@ -931,15 +951,16 @@ namespace Roslyn.Utilities
             }
             else
             {
-                _referenceMap.Add(type);
+                _objectReferenceMap.Add(type);
 
                 _writer.Write((byte)EncodingKind.Type);
 
-                TypeKey key;
-                if (!_binder.TryGetTypeKey(type, out key))
+                if (_binderOpt == null)
                 {
                     throw NoSerializationTypeException(type.FullName);
                 }
+
+                var key = _binderOpt.GetAndRecordTypeKey(type);
 
                 this.WriteStringValue(key.AssemblyName);
                 this.WriteStringValue(key.TypeName);
@@ -962,7 +983,7 @@ namespace Roslyn.Utilities
 
             // write object ref if we already know this instance
             int id;
-            if (_referenceMap.TryGetReferenceId(instance, out id))
+            if (_objectReferenceMap.TryGetReferenceId(instance, out id))
             {
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
@@ -984,7 +1005,7 @@ namespace Roslyn.Utilities
             else
             {
                 Action<ObjectWriter, object> typeWriter;
-                if (!_binder.TryGetWriter(instance, out typeWriter))
+                if (_binderOpt == null || !_binderOpt.TryGetWriter(instance, out typeWriter))
                 {
                     throw NoSerializationWriterException(instance.GetType().FullName);
                 }
@@ -1026,7 +1047,7 @@ namespace Roslyn.Utilities
 
         private void WriteObjectHeader(object instance, uint memberCount)
         {
-            _referenceMap.Add(instance);
+            _objectReferenceMap.Add(instance);
 
             _writer.Write((byte)EncodingKind.Object);
 
@@ -1050,27 +1071,44 @@ namespace Roslyn.Utilities
         }
 
         // we have s_typeMap and s_reversedTypeMap since there is no bidirectional map in compiler
-        internal static readonly ImmutableDictionary<Type, EncodingKind> s_typeMap = ImmutableDictionary.CreateRange<Type, EncodingKind>(
-            new KeyValuePair<Type, EncodingKind>[]
-            {
-                KeyValuePair.Create(typeof(bool), EncodingKind.BooleanType),
-                KeyValuePair.Create(typeof(char), EncodingKind.Char),
-                KeyValuePair.Create(typeof(string), EncodingKind.StringType),
-                KeyValuePair.Create(typeof(sbyte), EncodingKind.Int8),
-                KeyValuePair.Create(typeof(short), EncodingKind.Int16),
-                KeyValuePair.Create(typeof(int), EncodingKind.Int32),
-                KeyValuePair.Create(typeof(long), EncodingKind.Int64),
-                KeyValuePair.Create(typeof(byte), EncodingKind.UInt8),
-                KeyValuePair.Create(typeof(ushort), EncodingKind.UInt16),
-                KeyValuePair.Create(typeof(uint), EncodingKind.UInt32),
-                KeyValuePair.Create(typeof(ulong), EncodingKind.UInt64),
-                KeyValuePair.Create(typeof(float), EncodingKind.Float4),
-                KeyValuePair.Create(typeof(double), EncodingKind.Float8),
-                KeyValuePair.Create(typeof(decimal), EncodingKind.Decimal),
-            });
+        // Note: s_typeMap is effectively immutable.  However, for maxiumum perf we use mutable types because
+        // they are used in hotspots.
+        internal static readonly Dictionary<Type, EncodingKind> s_typeMap;
 
-        internal static readonly ImmutableDictionary<EncodingKind, Type> s_reverseTypeMap 
-            = s_typeMap.ToImmutableDictionary(kv => kv.Value, kv => kv.Key);
+        /// <summary>
+        /// Indexed by EncodingKind.
+        /// </summary>
+        internal static readonly ImmutableArray<Type> s_reverseTypeMap;
+
+        static StreamObjectWriter()
+        {
+            s_typeMap = new Dictionary<Type, EncodingKind>
+            {
+                { typeof(bool), EncodingKind.BooleanType },
+                { typeof(char), EncodingKind.Char },
+                { typeof(string), EncodingKind.StringType },
+                { typeof(sbyte), EncodingKind.Int8 },
+                { typeof(short), EncodingKind.Int16 },
+                { typeof(int), EncodingKind.Int32 },
+                { typeof(long), EncodingKind.Int64 },
+                { typeof(byte), EncodingKind.UInt8 },
+                { typeof(ushort), EncodingKind.UInt16 },
+                { typeof(uint), EncodingKind.UInt32 },
+                { typeof(ulong), EncodingKind.UInt64 },
+                { typeof(float), EncodingKind.Float4 },
+                { typeof(double), EncodingKind.Float8 },
+                { typeof(decimal), EncodingKind.Decimal },
+            };
+
+            var temp = new Type[(int)EncodingKind.Last];
+
+            foreach (var kvp in s_typeMap)
+            {
+                temp[(int)kvp.Value] = kvp.Key;
+            }
+
+            s_reverseTypeMap = ImmutableArray.Create(temp);
+        }
 
         /// <summary>
         /// byte marker mask for encoding compressed uint 
@@ -1420,7 +1458,10 @@ namespace Roslyn.Utilities
             /// <summary>
             /// The string type
             /// </summary>
-            StringType
+            StringType,
+
+
+            Last = StringType + 1,
         }
 
         internal enum VariantKind
@@ -1445,16 +1486,16 @@ namespace Roslyn.Utilities
             BoxedEnum,
             DateTime,
             Array,
-            Type
+            Type,
         }
 
         internal struct Variant
         {
             public readonly VariantKind Kind;
-            private readonly decimal _image;
+            private readonly long _image;
             private readonly object _instance;
 
-            private Variant(VariantKind kind, decimal image, object instance = null)
+            private Variant(VariantKind kind, long image, object instance = null)
             {
                 Kind = kind;
                 _image = image;
@@ -1506,7 +1547,7 @@ namespace Roslyn.Utilities
 
             public static Variant FromUInt64(ulong value)
             {
-                return new Variant(VariantKind.UInt64, value);
+                return new Variant(VariantKind.UInt64, unchecked((long)value));
             }
 
             public static Variant FromSingle(float value)
@@ -1531,7 +1572,7 @@ namespace Roslyn.Utilities
 
             public static Variant FromDecimal(Decimal value)
             {
-                return new Variant(VariantKind.Decimal, value);
+                return new Variant(VariantKind.Decimal, image: 0, instance: value);
             }
 
             public static Variant FromBoxedEnum(object value)
@@ -1604,31 +1645,31 @@ namespace Roslyn.Utilities
             public long AsInt64()
             {
                 Debug.Assert(Kind == VariantKind.Int64);
-                return (long)_image;
+                return _image;
             }
 
             public ulong AsUInt64()
             {
                 Debug.Assert(Kind == VariantKind.UInt64);
-                return (ulong)_image;
+                return unchecked((ulong)_image);
             }
 
             public decimal AsDecimal()
             {
                 Debug.Assert(Kind == VariantKind.Decimal);
-                return _image;
+                return (decimal)_instance;
             }
 
             public float AsSingle()
             {
                 Debug.Assert(Kind == VariantKind.Float4);
-                return (float)BitConverter.Int64BitsToDouble((long)_image);
+                return (float)BitConverter.Int64BitsToDouble(_image);
             }
 
             public double AsDouble()
             {
                 Debug.Assert(Kind == VariantKind.Float8);
-                return BitConverter.Int64BitsToDouble((long)_image);
+                return BitConverter.Int64BitsToDouble(_image);
             }
 
             public char AsChar()
@@ -1658,7 +1699,7 @@ namespace Roslyn.Utilities
             public DateTime AsDateTime()
             {
                 Debug.Assert(Kind == VariantKind.DateTime);
-                return DateTime.FromBinary((long)_image);
+                return DateTime.FromBinary(_image);
             }
 
             public Type AsType()
@@ -1673,6 +1714,8 @@ namespace Roslyn.Utilities
                 return (Array)_instance;
             }
 
+            private static readonly PropertyInfo s_getTypeCode = typeof(Type).GetRuntimeProperty("TypeCode");
+
             public static Variant FromBoxedObject(object value)
             {
                 if (value == null)
@@ -1683,72 +1726,36 @@ namespace Roslyn.Utilities
                 {
                     var type = value.GetType();
                     var typeInfo = type.GetTypeInfo();
+                    Debug.Assert(!typeInfo.IsEnum, "Enums should not be written with WriteObject.  Write them out as integers instead.");
 
-                    if (typeInfo.IsEnum)
+                    // Perf: Note that JIT optimizes each expression value.GetType() == typeof(T) to a single register comparison.
+                    // Also the checks are sorted by commonality of the checked types.
+
+                    // The primitive types are Boolean, Byte, SByte, Int16, UInt16, Int32, UInt32, Int64, UInt64, IntPtr, UIntPtr, Char, Double, and Single.
+                    if (typeInfo.IsPrimitive)
                     {
-                        return FromBoxedEnum(value);
+                        // Note: int, double, bool, char, have been chosen to go first as they're they
+                        // common values of literals in code, and so would be hte likely hits if we do
+                        // have a primitive type we're serializing out.
+                        if (value.GetType() == typeof(int)) { return FromInt32((int)value); }
+                        if (value.GetType() == typeof(double)) { return FromDouble((double)value); }
+                        if (value.GetType() == typeof(bool)) { return FromBoolean((bool)value); }
+                        if (value.GetType() == typeof(char)) { return FromChar((char)value); }
+                        if (value.GetType() == typeof(byte)) { return FromByte((byte)value); }
+                        if (value.GetType() == typeof(short)) { return FromInt16((short)value); }
+                        if (value.GetType() == typeof(long)) { return FromInt64((long)value); }
+                        if (value.GetType() == typeof(sbyte)) { return FromSByte((sbyte)value); }
+                        if (value.GetType() == typeof(float)) { return FromSingle((float)value); }
+                        if (value.GetType() == typeof(ushort)) { return FromUInt16((ushort)value); }
+                        if (value.GetType() == typeof(uint)) { return FromUInt32((uint)value); }
+                        if (value.GetType() == typeof(ulong)) { return FromUInt64((ulong)value); }
                     }
-                    else if (type == typeof(bool))
-                    {
-                        return FromBoolean((bool)value);
-                    }
-                    else if (type == typeof(int))
-                    {
-                        return FromInt32((int)value);
-                    }
-                    else if (type == typeof(string))
-                    {
-                        return FromString((string)value);
-                    }
-                    else if (type == typeof(short))
-                    {
-                        return FromInt16((short)value);
-                    }
-                    else if (type == typeof(long))
-                    {
-                        return FromInt64((long)value);
-                    }
-                    else if (type == typeof(char))
-                    {
-                        return FromChar((char)value);
-                    }
-                    else if (type == typeof(sbyte))
-                    {
-                        return FromSByte((sbyte)value);
-                    }
-                    else if (type == typeof(byte))
-                    {
-                        return FromByte((byte)value);
-                    }
-                    else if (type == typeof(ushort))
-                    {
-                        return FromUInt16((ushort)value);
-                    }
-                    else if (type == typeof(uint))
-                    {
-                        return FromUInt32((uint)value);
-                    }
-                    else if (type == typeof(ulong))
-                    {
-                        return FromUInt64((ulong)value);
-                    }
-                    else if (type == typeof(decimal))
-                    {
-                        return FromDecimal((decimal)value);
-                    }
-                    else if (type == typeof(float))
-                    {
-                        return FromSingle((float)value);
-                    }
-                    else if (type == typeof(double))
-                    {
-                        return FromDouble((double)value);
-                    }
-                    else if (type == typeof(DateTime))
-                    {
-                        return FromDateTime((DateTime)value);
-                    }
-                    else if (type.IsArray)
+
+                    if (value.GetType() == typeof(decimal)) { return FromDecimal((decimal)value); }
+                    if (value.GetType() == typeof(DateTime)) { return FromDateTime((DateTime)value); }
+                    if (value.GetType() == typeof(string)) { return FromString((string)value); }
+
+                    if (type.IsArray)
                     {
                         var instance = (Array)value;
 
@@ -1759,14 +1766,10 @@ namespace Roslyn.Utilities
 
                         return Variant.FromArray(instance);
                     }
-                    else if (value is Type)
-                    {
-                        return Variant.FromType((Type)value);
-                    }
-                    else
-                    {
-                        return Variant.FromObject(value);
-                    }
+
+                    return value is Type t
+                        ? Variant.FromType(t)
+                        : Variant.FromObject(value);
                 }
             }
 

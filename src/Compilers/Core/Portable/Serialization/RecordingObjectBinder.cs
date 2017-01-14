@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -17,15 +18,17 @@ namespace Roslyn.Utilities
     /// </remarks>
     internal sealed class RecordingObjectBinder : ObjectBinder
     {
-        private readonly ConcurrentDictionary<TypeKey, Type> _typeMap =
-            new ConcurrentDictionary<TypeKey, Type>();
+        private readonly Dictionary<TypeKey, Type> _typeMap_mustLock = new Dictionary<TypeKey, Type>();
 
         private readonly ConcurrentDictionary<Type, Func<ObjectReader, object>> _readerMap =
-            new ConcurrentDictionary<Type, Func<ObjectReader, object>>();
+            new ConcurrentDictionary<Type, Func<ObjectReader, object>>(concurrencyLevel: 2, capacity: 64);
 
         public override bool TryGetType(TypeKey key, out Type type)
         {
-            return _typeMap.TryGetValue(key, out type);
+            lock (_typeMap_mustLock)
+            {
+                return _typeMap_mustLock.TryGetValue(key, out type);
+            }
         }
 
         public override bool TryGetTypeKey(Type type, out TypeKey key)
@@ -56,7 +59,10 @@ namespace Roslyn.Utilities
         {
             if (type != null)
             {
-                _typeMap.TryAdd(key, type);
+                lock (_typeMap_mustLock)
+                {
+                    _typeMap_mustLock[key] = type;
+                }
             }
         }
 
@@ -74,7 +80,12 @@ namespace Roslyn.Utilities
                     {
                         if (_readerMap.ContainsKey(type))
                         {
-                            Debug.Assert(_typeMap.ContainsKey(key));
+#if DEBUG
+                            lock (_typeMap_mustLock)
+                            {
+                                Debug.Assert(_typeMap_mustLock.ContainsKey(key));
+                            }
+#endif
                         }
                         else
                         {

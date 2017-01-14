@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private void RoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction, bool recursive)
         {
             var stream = new MemoryStream();
-            var binder = new RecordingObjectBinder();
+            var binder = new ObjectBinder();
             var writer = new StreamObjectWriter(stream, binder: binder, recursive: recursive);
 
             writeAction(writer);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private T RoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
         {
             var stream = new MemoryStream();
-            var binder = new RecordingObjectBinder();
+            var binder = new ObjectBinder();
             var writer = new StreamObjectWriter(stream, binder: binder, recursive: recursive);
 
             writeAction(writer, value);
@@ -83,7 +83,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private T RoundTripValue<T>(T value, bool recursive)
         {
-            return RoundTrip(value, (w, v) => w.WriteValue(v), r => (T)r.ReadValue(), recursive);
+            return RoundTrip(value, 
+                (w, v) =>
+                {
+                    if (v != null && v.GetType().IsEnum)
+                    {
+                        w.WriteInt64(Convert.ToInt64((object)v));
+                    }
+                    else
+                    {
+                        w.WriteValue(v);
+                    }
+                },
+                r => value != null && value.GetType().IsEnum 
+                    ? (T)Enum.ToObject(typeof(T), r.ReadInt64()) 
+                    : (T)r.ReadValue(), recursive);
         }
 
         private void TestRoundTripValue<T>(T value, bool recursive)
@@ -142,12 +156,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             private TypeWithOneMember(ObjectReader reader)
             {
-                _member = (T)reader.ReadValue();
+                _member = typeof(T).IsEnum 
+                    ? (T)Enum.ToObject(typeof(T), reader.ReadInt64())
+                    : (T)reader.ReadValue();
             }
 
             void IObjectWritable.WriteTo(ObjectWriter writer)
             {
-                writer.WriteValue(_member);
+                if (typeof(T).IsEnum)
+                {
+                    writer.WriteInt64(Convert.ToInt64(_member));
+                }
+                else
+                {
+                    writer.WriteValue(_member);
+                }
             }
 
             Func<ObjectReader, object> IObjectReadable.GetReader() => (r) => new TypeWithOneMember<T>(r);
@@ -645,6 +668,60 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void TestInt64Values()
+        {
+            TestRoundTripValue<Int64>(0);
+            TestRoundTripValue<Int64>(1);
+            TestRoundTripValue<Int64>(2);
+            TestRoundTripValue<Int64>(3);
+            TestRoundTripValue<Int64>(4);
+            TestRoundTripValue<Int64>(5);
+            TestRoundTripValue<Int64>(6);
+            TestRoundTripValue<Int64>(7);
+            TestRoundTripValue<Int64>(8);
+            TestRoundTripValue<Int64>(9);
+            TestRoundTripValue<Int64>(10);
+            TestRoundTripValue<Int64>(-1);
+            TestRoundTripValue<Int64>(Byte.MinValue);
+            TestRoundTripValue<Int64>(Byte.MaxValue);
+            TestRoundTripValue<Int64>(Int16.MinValue);
+            TestRoundTripValue<Int64>(Int16.MaxValue);
+            TestRoundTripValue<Int64>(UInt16.MinValue);
+            TestRoundTripValue<Int64>(UInt16.MaxValue);
+            TestRoundTripValue<Int64>(Int32.MinValue);
+            TestRoundTripValue<Int64>(Int32.MaxValue);
+            TestRoundTripValue<Int64>(UInt32.MinValue);
+            TestRoundTripValue<Int64>(UInt32.MaxValue);
+            TestRoundTripValue<Int64>(Int64.MinValue);
+            TestRoundTripValue<Int64>(Int64.MaxValue);
+        }
+
+        [Fact]
+        public void TestUInt64Values()
+        {
+            TestRoundTripValue<UInt64>(0);
+            TestRoundTripValue<UInt64>(1);
+            TestRoundTripValue<UInt64>(2);
+            TestRoundTripValue<UInt64>(3);
+            TestRoundTripValue<UInt64>(4);
+            TestRoundTripValue<UInt64>(5);
+            TestRoundTripValue<UInt64>(6);
+            TestRoundTripValue<UInt64>(7);
+            TestRoundTripValue<UInt64>(8);
+            TestRoundTripValue<UInt64>(9);
+            TestRoundTripValue<UInt64>(10);
+            TestRoundTripValue<UInt64>(Byte.MinValue);
+            TestRoundTripValue<UInt64>(Byte.MaxValue);
+            TestRoundTripValue<UInt64>(UInt16.MinValue);
+            TestRoundTripValue<UInt64>(UInt16.MaxValue);
+            TestRoundTripValue<UInt64>(Int32.MaxValue);
+            TestRoundTripValue<UInt64>(UInt32.MinValue);
+            TestRoundTripValue<UInt64>(UInt32.MaxValue);
+            TestRoundTripValue<UInt64>(UInt64.MinValue);
+            TestRoundTripValue<UInt64>(UInt64.MaxValue);
+        }
+
+        [Fact]
         public void TestPrimitiveMemberValues()
         {
             TestRoundTripMember(true);
@@ -814,15 +891,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.WriteValue("\uDC00\uD800"); // invalid surrogate pair
             writer.WriteValue("\uD800"); // incomplete surrogate pair
             writer.WriteValue(null);
-            writer.WriteValue(ConsoleColor.Cyan);
-            writer.WriteValue(EByte.Value);
-            writer.WriteValue(ESByte.Value);
-            writer.WriteValue(EShort.Value);
-            writer.WriteValue(EUShort.Value);
-            writer.WriteValue(EInt.Value);
-            writer.WriteValue(EUInt.Value);
-            writer.WriteValue(ELong.Value);
-            writer.WriteValue(EULong.Value);
+            unchecked
+            {
+                writer.WriteInt64((long)ConsoleColor.Cyan);
+                writer.WriteInt64((long)EByte.Value);
+                writer.WriteInt64((long)ESByte.Value);
+                writer.WriteInt64((long)EShort.Value);
+                writer.WriteInt64((long)EUShort.Value);
+                writer.WriteInt64((long)EInt.Value);
+                writer.WriteInt64((long)EUInt.Value);
+                writer.WriteInt64((long)ELong.Value);
+                writer.WriteInt64((long)EULong.Value);
+            }
             writer.WriteValue(typeof(object));
             writer.WriteValue(_testNow);
         }
@@ -850,15 +930,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("\uDC00\uD800", (String)reader.ReadValue()); // invalid surrogate pair
             Assert.Equal("\uD800", (String)reader.ReadValue()); // incomplete surrogate pair
             Assert.Equal(null, reader.ReadValue());
-            Assert.Equal(ConsoleColor.Cyan, reader.ReadValue());
-            Assert.Equal(EByte.Value, reader.ReadValue());
-            Assert.Equal(ESByte.Value, reader.ReadValue());
-            Assert.Equal(EShort.Value, reader.ReadValue());
-            Assert.Equal(EUShort.Value, reader.ReadValue());
-            Assert.Equal(EInt.Value, reader.ReadValue());
-            Assert.Equal(EUInt.Value, reader.ReadValue());
-            Assert.Equal(ELong.Value, reader.ReadValue());
-            Assert.Equal(EULong.Value, reader.ReadValue());
+
+            unchecked
+            {
+                Assert.Equal((long)ConsoleColor.Cyan, reader.ReadInt64());
+                Assert.Equal((long)EByte.Value, reader.ReadInt64());
+                Assert.Equal((long)ESByte.Value, reader.ReadInt64());
+                Assert.Equal((long)EShort.Value, reader.ReadInt64());
+                Assert.Equal((long)EUShort.Value, reader.ReadInt64());
+                Assert.Equal((long)EInt.Value, reader.ReadInt64());
+                Assert.Equal((long)EUInt.Value, reader.ReadInt64());
+                Assert.Equal((long)ELong.Value, reader.ReadInt64());
+                Assert.Equal((long)EULong.Value, reader.ReadInt64());
+            }
+
             Assert.Equal(typeof(object), (Type)reader.ReadValue());
             Assert.Equal(_testNow, (DateTime)reader.ReadValue());
         }
@@ -977,7 +1062,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     instances.Add(new TypeWithTwoMembers<int, string>(i, i.ToString()));
                 }
 
-                var binder = new RecordingObjectBinder();
+                var binder = new ObjectBinder();
                 var writer = new StreamObjectWriter(stream, binder: binder);
                 // Write each instance twice. The second time around, they'll become ObjectRefs
                 for (int pass = 0; pass < 2; pass++)
