@@ -61,14 +61,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var syntaxFactory = document.GetLanguageService<SyntaxGenerator>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
+            var method = (IMethodSymbol)member;
             return CodeGenerationSymbolFactory.CreateMethodSymbol(attributes: new List<AttributeData>(),
                 accessibility: Accessibility.NotApplicable,
                 modifiers: MemberInsertionCompletionItem.GetModifiers(item),
                 returnType: semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
+                returnsByRef: method.ReturnsByRef,
                 explicitInterfaceSymbol: null,
                 name: member.Name,
-                typeParameters: ((IMethodSymbol)member).TypeParameters,
-                parameters: member.GetParameters().Select(p => CodeGenerationSymbolFactory.CreateParameterSymbol(p.GetAttributes(), p.RefKind, p.IsParams, p.Type, p.Name)).ToList(),
+                typeParameters: method.TypeParameters,
+                parameters: method.Parameters.Select(p => CodeGenerationSymbolFactory.CreateParameterSymbol(p.GetAttributes(), p.RefKind, p.IsParams, p.Type, p.Name)).ToList(),
                 statements: syntaxFactory.CreateThrowNotImplementedStatementBlock(semanticModel.Compilation));
         }
 

@@ -209,6 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
                             accessibility: default(Accessibility),
                             modifiers: default(DeclarationModifiers),
                             returnType: typeToGenerateIn,
+                            returnsByRef: false,
                             explicitInterfaceSymbol: null,
                             name: null,
                             typeParameters: SpecializedCollections.EmptyList<ITypeParameterSymbol>(),

@@ -142,6 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                             accessibility:=Nothing,
                             modifiers:=Nothing,
                             returnType:=typeToGenerateIn,
+                            returnsByRef:=False,
                             explicitInterfaceSymbol:=Nothing,
                             name:=Nothing,
                             typeParameters:=SpecializedCollections.EmptyList(Of ITypeParameterSymbol),
