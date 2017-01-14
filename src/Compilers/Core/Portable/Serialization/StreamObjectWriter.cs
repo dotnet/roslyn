@@ -935,11 +935,12 @@ namespace Roslyn.Utilities
 
                 _writer.Write((byte)EncodingKind.Type);
 
-                TypeKey key;
-                if (_binder == null || !_binder.TryGetTypeKey(type, out key))
+                if (_binder == null)
                 {
                     throw NoSerializationTypeException(type.FullName);
                 }
+
+                var key = _binder.GetAndRecordTypeKey(type);
 
                 this.WriteStringValue(key.AssemblyName);
                 this.WriteStringValue(key.TypeName);

@@ -38,7 +38,6 @@
     <Compile Include="Serialization\ObjectData.cs" />
     <Compile Include="Serialization\ObjectReader.cs" />
     <Compile Include="Serialization\ObjectWriter.cs" />
-    <Compile Include="Serialization\RecordingObjectBinder.cs" />
     <Compile Include="Serialization\StreamObjectReader.cs" />
     <Compile Include="Serialization\StreamObjectWriter.cs" />
     <Compile Include="Serialization\TypeKey.cs" />
