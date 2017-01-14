@@ -28,14 +28,10 @@ namespace Roslyn.Utilities
         /// Returns false if no type corresponds to the key.
         /// </summary>
         public bool TryGetType(TypeKey key, out Type type)
-        {
-            return _typeMap.TryGetValue(key, out type);
-        }
+            => _typeMap.TryGetValue(key, out type);
 
         public bool TryGetReader(Type type, out Func<ObjectReader, object> reader)
-        {
-            return _readerMap.TryGetValue(type, out reader);
-        }
+            => _readerMap.TryGetValue(type, out reader);
 
         private void RecordType(Type type, TypeKey key)
         {
@@ -78,17 +74,20 @@ namespace Roslyn.Utilities
             return key;
         }
 
+        private static readonly Action<ObjectWriter, object> s_writer
+            = (w, i) => ((IObjectWritable)i).WriteTo(w);
+
         /// <summary>
         /// Gets a function that writes an object's members to a <see cref="ObjectWriter"/>.
         /// Returns false if the type cannot be serialized.
         /// </summary>
-        public bool TryGetWriter(Object instance, out Action<ObjectWriter, Object> writer)
+        public bool TryGetWriter(Object instance, out Action<ObjectWriter, object> writer)
         {
             RecordReader(instance);
 
             if (instance is IObjectWritable)
             {
-                writer = (w, i) => ((IObjectWritable)i).WriteTo(w); // static delegate should be cached
+                writer = s_writer;
                 return true;
             }
             else
