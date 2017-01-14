@@ -7087,5 +7087,57 @@ withScriptOption: true);
 parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TupleRefReturnProperties()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    public void Foo()
+    {
+        ref int i = ref this.[|Bar|];
+    }
+}",
+@"
+using System;
+class C
+{
+    public ref int Bar => throw new NotImplementedException();
+
+    public void Foo()
+    {
+        ref int i = ref this.Bar;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TupleRefWithField()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    public void Foo()
+    {
+        ref int i = ref this.[|bar|];
+    }
+}",
+@"
+using System;
+class C
+{
+    private int bar;
+
+    public void Foo()
+    {
+        ref int i = ref this.bar;
+    }
+}");
+        }
     }
 }
