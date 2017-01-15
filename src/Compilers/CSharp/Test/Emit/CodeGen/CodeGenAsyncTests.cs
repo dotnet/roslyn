@@ -4830,5 +4830,57 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await task; }").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(62, 37));
         }
 
+        [Fact, WorkItem(16493, "https://github.com/dotnet/roslyn/issues/16493")]
+        public void Test()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+
+public class TypeParametersProvider<T>
+{
+    public async ValueTask Method()
+    {
+        await Task.Delay(5);
+        return;
+    }
+
+    [AsyncMethodBuilder(typeof(AsyncValueTaskMethodBuilder))]
+    public struct ValueTask
+    {
+    }
+}
+
+public class AsyncValueTaskMethodBuilder
+{
+    public TypeParametersProvider<int>.ValueTask Task { get => default(TypeParametersProvider<int>.ValueTask); }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public static AsyncValueTaskMethodBuilder Create() { return default(AsyncValueTaskMethodBuilder); }
+    public void SetException(Exception exception) { }
+    public void SetResult() { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public class AsyncMethodBuilderAttribute : System.Attribute
+    {
+        public AsyncMethodBuilderAttribute(Type type) { }
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyEmitDiagnostics(
+                // (8,28): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     public async ValueTask Method()
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "Method").WithLocation(8, 28),
+                // (11,9): error CS0126: An object of a type convertible to 'TypeParametersProvider<T>.ValueTask' is required
+                //         return;
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("TypeParametersProvider<T>.ValueTask").WithLocation(11, 9)
+                );
+        }
     }
 }
