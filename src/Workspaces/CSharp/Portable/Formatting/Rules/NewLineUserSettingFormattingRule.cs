@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // * { - in the anonymous Method context
+            // * { - in the local function context
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent.IsKind(SyntaxKind.LocalFunctionStatement))
             {
                 if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInMethods))
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInMethods))
                 {
-                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLinesIfOnSingleLine);
+                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
                 else
                 {
