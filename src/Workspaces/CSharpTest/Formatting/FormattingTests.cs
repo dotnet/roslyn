@@ -1446,6 +1446,10 @@ class foo{int x = 0;}", false, changingOptions);
         {
         };
 
+        async void LocalFunction()
+        {
+        }
+
         try
         {
         }
@@ -1504,6 +1508,9 @@ else
 var obj1 = new foo         
             {
                             };
+
+        async void LocalFunction() {
+        }
 
            try
         {
@@ -1569,6 +1576,9 @@ public class foo : System.Object
         var obj1 = new foo {
         };
 
+        async void LocalFunction() {
+        }
+
         try {
         }
         catch (Exception e) {
@@ -1616,6 +1626,10 @@ else
 var obj1 = new foo         
             {
                             };
+
+        async void LocalFunction() 
+            {
+    }
 
            try
         {
