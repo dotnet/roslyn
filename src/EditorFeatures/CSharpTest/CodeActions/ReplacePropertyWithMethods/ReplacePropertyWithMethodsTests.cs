@@ -966,7 +966,7 @@ compareTokens: false);
     public abstract void SetProp(dynamic i);
 }");
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
         public async Task TestTrivia1()
         {
@@ -1140,6 +1140,38 @@ compareTokens: false);
     {
         SetProp(GetProp() * (GetProp() + 1));
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        [WorkItem(16157, "https://github.com/dotnet/roslyn/issues/16157")]
+        public async Task TestWithConditionalBinding1()
+        {
+            await TestAsync(
+@"public class Foo
+{
+    public bool [||]Any { get; } // Replace 'Any' with method
+
+    public static void Bar()
+    {
+        var foo = new Foo();
+        bool f = foo?.Any == true;
+    }
+}",
+@"public class Foo
+{
+	private readonly bool any;
+
+	public bool GetAny()
+	{
+		return any;
+	}
+
+	public static void Bar()
+	{
+		var foo = new Foo();
+		bool f = foo?.GetAny() == true;
+	}
 }");
         }
     }

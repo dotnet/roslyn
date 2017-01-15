@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Execution;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
@@ -12,9 +15,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     {
         public bool ReportSuppressedDiagnostics;
         public bool LogAnalyzerExecutionTime;
-        public ProjectId ProjectId;
-        public Checksum OptionSetChecksum;
-        public Checksum[] HostAnalyzerChecksums;
+        public Guid ProjectIdGuid;
+        public string ProjectIdDebugName;
+        public byte[] OptionSetChecksumBytes;
+        public byte[][] HostAnalyzerChecksumsByteArray;
         public string[] AnalyzerIds;
 
         public DiagnosticArguments()
@@ -25,18 +29,23 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             bool reportSuppressedDiagnostics,
             bool logAnalyzerExecutionTime,
             ProjectId projectId,
-            Checksum optionSetChecksum,
-            ImmutableArray<Checksum> hostAnalyzerChecksums,
+            byte[] optionSetChecksum,
+            ImmutableArray<byte[]> hostAnalyzerChecksums,
             string[] analyzerIds)
         {
             ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
             LogAnalyzerExecutionTime = logAnalyzerExecutionTime;
 
-            ProjectId = projectId;
+            ProjectIdGuid = projectId.Id;
+            ProjectIdDebugName = projectId.DebugName;
 
-            OptionSetChecksum = optionSetChecksum;
-            HostAnalyzerChecksums = hostAnalyzerChecksums.ToArray();
+            OptionSetChecksumBytes = optionSetChecksum;
+            HostAnalyzerChecksumsByteArray = hostAnalyzerChecksums.ToArray();
             AnalyzerIds = analyzerIds;
         }
+
+        public ProjectId GetProjectId() => ProjectId.CreateFromSerialized(ProjectIdGuid, ProjectIdDebugName);
+        public IEnumerable<Checksum> GetHostAnalyzerChecksums() => HostAnalyzerChecksumsByteArray.Select(b => new Checksum(b));
+        public Checksum GetOptionSetChecksum() => new Checksum(OptionSetChecksumBytes);
     }
 }

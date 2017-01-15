@@ -1,5 +1,7 @@
 {
-  "dependencies": { },
+  "dependencies": {
+    "System.ValueTuple": "4.3.0"
+  },
   "frameworks": {
     "netstandard1.3": {
       "imports": [ "portable-net45+win8", "dotnet" ]

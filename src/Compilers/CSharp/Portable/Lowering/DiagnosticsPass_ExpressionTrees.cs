@@ -682,5 +682,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return base.VisitTupleLiteral(node);
         }
+
+        public override BoundNode VisitThrowExpression(BoundThrowExpression node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsThrowExpression, node);
+            }
+
+            return base.VisitThrowExpression(node);
+        }
     }
 }

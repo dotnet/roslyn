@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -35,15 +36,23 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         {
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-        public bool OpenFileOnly(Workspace workspace) => false;
+        public override bool OpenFileOnly(Workspace workspace) => false;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode, SyntaxKind.Argument);
+        {
+            context.RegisterCompilationStartAction(compilationContext =>
+            {
+                var compilation = compilationContext.Compilation;
+                var expressionTypeOpt = compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+                compilationContext.RegisterSyntaxNodeAction(
+                    syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionTypeOpt), SyntaxKind.Argument);
+            });
+        }
 
-        private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context)
+        private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol expressionTypeOpt)
         {
             var argumentNode = (ArgumentSyntax)context.Node;
             var csOptions = (CSharpParseOptions)context.Node.SyntaxTree.Options;
@@ -52,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // out-vars are not supported prior to C# 7.0.
                 return;
             }
+
             var options = context.Options;
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
@@ -162,6 +172,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var enclosingBlockOfLocalStatement = localStatement.Parent as BlockSyntax;
             if (enclosingBlockOfLocalStatement == null)
             {
+                return;
+            }
+
+            if (argumentExpression.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken))
+            {
+                // out-vars are not allowed inside expression-trees.  So don't offer to
+                // fix if we're inside one.
                 return;
             }
 

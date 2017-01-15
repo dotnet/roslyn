@@ -1139,5 +1139,34 @@ class C
     }
 }");
         }
+
+        [WorkItem(16028, "https://github.com/dotnet/roslyn/issues/16028")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestExpressionTree1()
+        {
+            await TestMissingAsync(
+@"
+using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        int [|result|];
+        Method(() => GetValue(out result));
+    }
+
+    public static void GetValue(out int result)
+    {
+        result = 0;
+    }
+
+    public static void Method(Expression<Action> expression)
+    {
+
+    }
+}");
+        }
     }
 }

@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 ' If previousToken has trailing WhitespaceTrivia, strip off the trailing WhitespaceTrivia from the lastToken.
                 Dim lastTrailingTrivia = lastToken.TrailingTrivia
                 If prevTrailingTrivia.Any(SyntaxKind.WhitespaceTrivia) Then
-                    lastTrailingTrivia = lastTrailingTrivia.WithoutLeadingWhitespace()
+                    lastTrailingTrivia = lastTrailingTrivia.WithoutLeadingWhitespaceOrEndOfLine()
                 End If
 
                 ' get the trivia and attach it to the last token
