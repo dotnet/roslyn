@@ -4318,5 +4318,26 @@ public class Program
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: "True");
         }
+
+        [Fact]
+        public void ColorColorConstantPattern()
+        {
+            var source =
+@"
+class Foo {
+  public Color Color { get; }
+
+  public void M(object o) {
+    if (o is Color.Constant) { }
+  }
+}
+
+class Color {
+  public const string Constant = ""abc"";
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics();
+        }
     }
 }
