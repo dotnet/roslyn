@@ -456,7 +456,7 @@ End Class",
 Imports System
 
 Class A
-    Friend field As Integer
+    Public ReadOnly Property field As Integer
 End Class
 Class B
     Public Sub Foo(ByRef d As Integer)
