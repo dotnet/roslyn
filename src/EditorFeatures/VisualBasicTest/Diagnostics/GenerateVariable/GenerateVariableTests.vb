@@ -457,6 +457,10 @@ Imports System
 
 Class A
     Public ReadOnly Property field As Integer
+        Get
+            Throw New NotImplementedException()
+        End Get
+    End Property
 End Class
 Class B
     Public Sub Foo(ByRef d As Integer)
