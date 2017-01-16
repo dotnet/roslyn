@@ -296,7 +296,7 @@ class Class
 using System;
 class Class
 {
-    public ref int foo { get => throw new NotImplementedException(); }
+    public ref int foo => throw new NotImplementedException();
 
     void Method(ref int i)
     {
