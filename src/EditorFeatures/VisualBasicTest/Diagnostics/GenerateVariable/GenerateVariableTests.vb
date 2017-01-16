@@ -439,7 +439,10 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Async Function TestGeneratePropertyInByRefProperty() As Task
             Await TestAsync(
-"Class A
+"
+Imports System
+
+Class A
 End Class
 Class B
     Public Sub Foo(ByRef d As Integer)
@@ -449,7 +452,10 @@ Class B
         Foo(s.[|field|])
     End Sub
 End Class",
-"Class A
+"
+Imports System
+
+Class A
     Friend field As Integer
 End Class
 Class B
