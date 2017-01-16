@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             bool isParams,
             bool isExtensionMethodThis,
-            DiagnosticBag diagnostics,
-            bool beStrict)
+            DiagnosticBag diagnostics)
         {
             var name = identifier.ValueText;
             var locations = ImmutableArray.Create<Location>(new SourceLocation(identifier));
@@ -60,22 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, locations);
             }
 
-            if (beStrict)
-            {
-                return new SourceStrictComplexParameterSymbol(
-                    diagnostics,
-                    context,
-                    owner,
-                    ordinal,
-                    parameterType,
-                    refKind,
-                    name,
-                    locations,
-                    syntax.GetReference(),
-                    ConstantValue.Unset,
-                    isParams,
-                    isExtensionMethodThis);
-            }
+            var useExistingBinder = owner is MethodSymbol method && method.MethodKind == MethodKind.LocalFunction;
 
             return new SourceComplexParameterSymbol(
                 owner,
@@ -87,7 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.GetReference(),
                 ConstantValue.Unset,
                 isParams,
-                isExtensionMethodThis);
+                isExtensionMethodThis,
+                parameterBinderOpt: useExistingBinder ? context : null);
         }
 
         protected SourceParameterSymbol(
@@ -158,6 +143,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
             state.DefaultForceComplete(this);
+        }
+
+        internal virtual void GetDeclarationDiagnostics(DiagnosticBag diagnosticsOpt = null)
+        {
+            // Force attributes
+            GetAttributesBag(diagnosticsOpt);
         }
 
         /// <summary>

@@ -119,6 +119,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // force lazy init
             ComputeParameters();
 
+            foreach (var param in _lazyParametersAndDiagnostics.Parameters)
+            {
+                ((SourceParameterSymbol)param).GetDeclarationDiagnostics(addTo);
+            }
+
             foreach (var p in _syntax.ParameterList.Parameters)
             {
                 if (p.IsArgList)
@@ -184,8 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _syntax.ParameterList,
                 allowRefOrOut: true,
                 arglistToken: out arglistToken,
-                diagnostics: diagnostics,
-                beStrict: true);
+                diagnostics: diagnostics);
 
             var isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             if (IsAsync && diagnostics.IsEmptyWithoutResolution)

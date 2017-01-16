@@ -130,8 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ParameterListSyntax,
                 true,
                 out arglistToken,
-                diagnostics,
-                false);
+                diagnostics);
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
             {
