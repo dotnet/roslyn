@@ -53,8 +53,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 if (_generateProperty)
                 {
-                    var getAccessor = CreateAccessor(cancellationToken);
-                    var setAccessor = _isReadonly || _returnsByRef ? null : CreateAccessor(cancellationToken);
+                    var getAccessor = CreateAccessor(DetermineMaximalAccessibility(_state), cancellationToken);
+                    var setAccessor = _isReadonly || _returnsByRef 
+                        ? null 
+                        : CreateAccessor(DetermineMinimalAccessibility(_state), cancellationToken);
 
                     var result = await CodeGenerator.AddPropertyDeclarationAsync(
                         _document.Project.Solution,
@@ -98,11 +100,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            private IMethodSymbol CreateAccessor(CancellationToken cancellationToken)
+            private IMethodSymbol CreateAccessor(
+                Accessibility accessibility, CancellationToken cancellationToken)
             {
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     attributes: null,
-                    accessibility: DetermineMaximalAccessibility(_state),
+                    accessibility: accessibility,
                     statements: GenerateStatements(cancellationToken));
             }
 
