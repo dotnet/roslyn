@@ -499,6 +499,47 @@ end class
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionOnDeconstructDeclare() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class C {
+                C() {
+                    var (a, b) $$= new C();
+                }
+
+                public void [|Deconstruct|](out int a, out int b) => a = b = 1;
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionOnDeconstructAssign() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class C {
+                C() {
+                    int a, b;
+                    (a, b) $$= new C();
+                }
+
+                public void [|Deconstruct|](out int a, out int b) => a = b = 1;
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCSharpGotoDefinitionOnLocalVariable1() As Task
             Dim workspace =
 <Workspace>

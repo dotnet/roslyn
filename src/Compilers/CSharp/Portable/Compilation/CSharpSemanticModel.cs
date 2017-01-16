@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// returned instead. To get information about aliases, call GetAliasInfo.
         /// 
         /// If binding the type name C in the expression "new C(...)" the actual constructor bound to
-        /// will be returned (or all constructor if overload resolution failed). This occurs as long as C
+        /// will be returned (or all constructors if overload resolution failed). This occurs as long as C
         /// unambiguously binds to a single type that has a constructor. If C ambiguously binds to multiple
         /// types, or C binds to a static class, then type(s) are returned.
         /// </summary>
@@ -3192,6 +3192,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.DeconstructionAssignmentOperator:
+                    {
+                        var deconstruct = ((BoundDeconstructionAssignmentOperator)boundNode).DeconstructSteps.FirstOrDefault()?.DeconstructInvocationOpt;
+
+                        // TODO(slaks): Merge in subsequent steps.
+                        // This is necessary to catch rename conflicts in nested deconstructions.
+                        if (deconstruct != null)
+                            return GetSemanticSymbols(deconstruct, boundNodeForSyntacticParent, binderOpt, options, out isDynamic, out resultKind, out memberGroup);
+                    }
+                    break;
                 default:
                     {
                         var symbol = boundNode.ExpressionSymbol;
