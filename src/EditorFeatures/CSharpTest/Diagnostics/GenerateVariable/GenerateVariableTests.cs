@@ -258,17 +258,51 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestInRefCodeActionCount()
+        public async Task TestGenerateFieldInRef()
         {
-            await TestExactActionSetOfferedAsync(
+            await TestAsync(
 @"class Class
 {
     void Method(ref int i)
     {
-        Method(ref [|foo|]);
+        Method(ref this.[|foo|]);
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_1_0, "foo", "Class"), string.Format(FeaturesResources.Generate_local_0, "foo") });
+@"class Class
+{
+    private int foo;
+
+    void Method(ref int i)
+    {
+        Method(ref this.[|foo|]);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGeneratePropertyInRef()
+        {
+            await TestAsync(
+@"
+using System;
+class Class
+{
+    void Method(ref int i)
+    {
+        Method(ref this.[|foo|]);
+    }
+}",
+@"
+using System;
+class Class
+{
+    internal ref int foo { get => throw new NotImplementedException(); }
+
+    void Method(ref int i)
+    {
+        Method(ref this.foo);
+    }
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
