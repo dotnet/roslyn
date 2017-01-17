@@ -136,15 +136,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                 var isInConflictLambdaBody = false;
                 var lambdas = node.GetAncestorsOrThis(n => n is SimpleLambdaExpressionSyntax || n is ParenthesizedLambdaExpressionSyntax);
-                if (lambdas.Count() != 0)
+                foreach (var lambda in lambdas)
                 {
-                    foreach (var lambda in lambdas)
+                    if (_conflictLocations.Any(cf => cf.Contains(lambda.Span)))
                     {
-                        if (_conflictLocations.Any(cf => cf.Contains(lambda.Span)))
-                        {
-                            isInConflictLambdaBody = true;
-                            break;
-                        }
+                        isInConflictLambdaBody = true;
+                        break;
                     }
                 }
 
@@ -185,6 +182,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         node is XmlNameAttributeSyntax ||
                         node is TypeConstraintSyntax ||
                         node is BaseTypeSyntax);
+            }
+
+            public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
+            {
+
+                const string deconstructMethodName = "Deconstruct";
+                var result = base.VisitAssignmentExpression(node);
+                if (_isProcessingComplexifiedSpans ||
+                    // This is only relevant when renaming to or from Deconstruct().
+                    (_replacementText != deconstructMethodName && _originalText != deconstructMethodName))
+                    return result;
+
+                // Link the = token to the Deconstruct() method to make sure its binding doesn't change.
+                var deconstructSymbols = (_speculativeModel ?? _semanticModel).GetSemanticInfo(
+                        node.OperatorToken, _solution.Workspace, _cancellationToken).ReferencedSymbols;
+                // Even if there aren't any symbols, show a conflict if this rename makes it bind.
+                var renameDeclarationLocations = ConflictResolver.CreateDeclarationLocationAnnotationsAsync(
+                    _solution, deconstructSymbols, _cancellationToken).WaitAndGetResult_CanCallOnBackground(_cancellationToken);
+
+                return _renameAnnotations.WithAdditionalAnnotations(result, new RenameActionAnnotation(
+                    node.OperatorToken.Span,
+                    isRenameLocation: false,
+                    prefix: null,
+                    suffix: null,
+                    renameDeclarationLocations: renameDeclarationLocations,
+                    isOriginalTextLocation: false,
+                    isNamespaceDeclarationReference: false,
+                    isInvocationExpression: true,
+                    isMemberGroupReference: false));
             }
 
             public override SyntaxToken VisitToken(SyntaxToken token)

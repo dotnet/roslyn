@@ -8,7 +8,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     /// This annotation will be used by rename to mark all places where it needs to rename an identifier (token replacement) and where to 
     /// check if the semantics have been changes (conflict detection).
     /// </summary>
-    /// <remarks>This annotation should be put on tokens only.</remarks>
     internal class RenameActionAnnotation : RenameAnnotation
     {
         /// <summary>
