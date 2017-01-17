@@ -3208,14 +3208,14 @@ class C : Base {
         <WorkItem(16102, "https://github.com/dotnet/roslyn/issues/16102")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub TestConflictFromAddingDeconstruct()
-            Using result = RenameEngineResult.Create(_outputHelper,
+            Using RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document FilePath="Test.cs"><![CDATA[
 class C  {
     C() {
         // This is an error until the rename.
-        var (a, b) {|conflict:=|} new C();
+        var (a, b) = new C();
     }
 
     void [|$$Deconstruct2|](out string a, out int b) { a = null; b = 0; }
@@ -3225,7 +3225,7 @@ class C  {
                     </Project>
                 </Workspace>, renameTo:="Deconstruct")
 
-                result.AssertLabeledSpansAre("conflict", type:=RelatedLocationType.UnresolvedConflict)
+                ' Don't show conflicts for errors in the old solution that now bind in the new solution.
             End Using
         End Sub
 
