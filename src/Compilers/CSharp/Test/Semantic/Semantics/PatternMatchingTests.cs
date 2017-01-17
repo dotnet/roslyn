@@ -4324,20 +4324,29 @@ public class Program
         {
             var source =
 @"
-class Foo {
-  public Color Color { get; }
+public class Program
+{
+    public static Color Color { get; }
 
-  public void M(object o) {
-    if (o is Color.Constant) { }
-  }
+    public static void M(object o)
+    {
+        System.Console.WriteLine(o is Color.Constant);
+    }
+
+    public static void Main()
+    {
+        M(Color.Constant);
+    }
 }
 
-class Color {
-  public const string Constant = ""abc"";
+public class Color
+{
+    public const string Constant = ""abc"";
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: "True");
         }
     }
 }
