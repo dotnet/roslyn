@@ -689,11 +689,74 @@ i", options);
         }
 
         [Fact]
-        public async Task ScriptOptionsConfiguredForDebuggingResultInPdbEmitted()
+        public async Task Pdb_CodeFromFile_WithEmitDebugInformation_WithoutFileEncoding_CompilationErrorException()
         {
             try
             {
-                var opts = ScriptOptions.Default.WithEmitDebugInformation(true);
+                var testFilePath = Path.Combine("TestFiles", "debug.csx");
+                var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath(testFilePath).WithFileEncoding(null);
+                var script = await CSharpScript.RunAsync(File.ReadAllText(testFilePath), opts);
+            }
+            catch (CompilationErrorException ex)
+            {
+                Assert.EndsWith("error CS8055: Cannot emit debug information for a source text without encoding.", ex.Message);
+            }
+        }
+
+        [Fact]
+        public async Task Pdb_CodeFromFile_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
+        {
+            try
+            {
+                var testFilePath = Path.Combine("TestFiles", "debug.csx");
+                var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath(testFilePath).WithFileEncoding(Encoding.UTF8);
+                var script = await CSharpScript.RunAsync(File.ReadAllText(testFilePath), opts);
+            }
+            catch (Exception ex)
+            {
+                // line information is only available when PDBs have been emitted
+                Assert.EndsWith("debug.csx:line 1", GetStackTraceLine(ex, 0));
+            }
+        }
+
+        [Fact]
+        public async Task Pdb_CodeFromFile_WithoutEmitDebugInformation_WithoutFileEncoding_ResultInPdbNotEmitted()
+        {
+            try
+            {
+                var testFilePath = Path.Combine("TestFiles", "debug.csx");
+                var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath(testFilePath).WithFileEncoding(null);
+                var script = await CSharpScript.RunAsync(File.ReadAllText(testFilePath), opts);
+            }
+            catch (Exception ex)
+            {
+                // line information is only available when PDBs have been emitted
+                Assert.Equal("at Submission#0.<<Initialize>>d__0.MoveNext()", GetStackTraceLine(ex, 0));
+            }
+        }
+
+        [Fact]
+        public async Task Pdb_CodeFromFile_WithoutEmitDebugInformation_WithFileEncoding_ResultInPdbNotEmitted()
+        {
+            try
+            {
+                var testFilePath = Path.Combine("TestFiles", "debug.csx");
+                var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath(testFilePath).WithFileEncoding(Encoding.UTF8);
+                var script = await CSharpScript.RunAsync(File.ReadAllText(testFilePath), opts);
+            }
+            catch (Exception ex)
+            {
+                // line information is only available when PDBs have been emitted
+                Assert.Equal("at Submission#0.<<Initialize>>d__0.MoveNext()", GetStackTraceLine(ex, 0));
+            }
+        }
+
+        [Fact]
+        public async Task Pdb_InlineCode_WithEmitDebugInformation_WithoutFileEncoding_ResultInPdbEmitted()
+        {
+            try
+            {
+                var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(null);
                 var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
             }
             catch (Exception ex)
@@ -704,11 +767,42 @@ i", options);
         }
 
         [Fact]
-        public async Task ScriptOptionsNotConfiguredForDebuggingResultInPdbNotEmitted()
+        public async Task Pdb_InlineCode_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
             try
             {
-                var script = await CSharpScript.RunAsync("throw new System.Exception();", ScriptOptions.Default);
+                var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(Encoding.UTF8);
+                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
+            }
+            catch (Exception ex)
+            {
+                // line information is only available when PDBs have been emitted
+                Assert.Equal("at Submission#0.<<Initialize>>d__0.MoveNext() in :line 1", GetStackTraceLine(ex, 0));
+            }
+        }
+
+        [Fact]
+        public async Task Pdb_InlineCode_WithoutEmitDebugInformation_WithoutFileEncoding_ResultInPdbNotEmitted()
+        {
+            try
+            {
+                var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFileEncoding(null);
+                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
+            }
+            catch (Exception ex)
+            {
+                // line information is only available when PDBs have been emitted
+                Assert.Equal("at Submission#0.<<Initialize>>d__0.MoveNext()", GetStackTraceLine(ex, 0));
+            }
+        }
+
+        [Fact]
+        public async Task Pdb_InlineCode_WithoutEmitDebugInformation_WithFileEncoding_ResultInPdbNotEmitted()
+        {
+            try
+            {
+                var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFileEncoding(Encoding.UTF8);
+                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
             }
             catch (Exception ex)
             {
