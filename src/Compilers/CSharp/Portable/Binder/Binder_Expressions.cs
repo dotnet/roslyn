@@ -634,14 +634,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RefType:
                     {
                         var firstToken = node.GetFirstToken();
-                        diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken);
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken.ValueText);
                         return new BoundTypeExpression(node, null, CreateErrorType("ref"));
                     }
 
                 case SyntaxKind.RefExpression:
                     {
                         var firstToken = node.GetFirstToken();
-                        diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken);
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken.ValueText);
                         return new BoundBadExpression(
                             node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty,
                             CreateErrorType("ref"));
