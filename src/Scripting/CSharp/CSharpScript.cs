@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Scripting;
@@ -24,6 +25,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
         public static Script<T> Create<T>(string code, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
         {
             return Script.CreateInitialScript<T>(CSharpScriptCompiler.Instance, code, options, globalsType, assemblyLoader);
+        }
+
+        #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        /// <summary>
+        /// Create a new C# script.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> representing the source code of the script.</param>
+        /// <param name="options">The script options.</param>
+        /// <param name="globalsType">Type of global object.</param>
+        /// <param name="assemblyLoader">Custom  assembly loader.</param>
+        /// <typeparam name="T">The return type of the script</typeparam>
+        public static Script<T> Create<T>(Stream stream, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
+        {
+            return Script.CreateInitialScript<T>(CSharpScriptCompiler.Instance, stream, options, globalsType, assemblyLoader);
         }
 
         /// <summary>

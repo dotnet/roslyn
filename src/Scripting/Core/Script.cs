@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Text;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -27,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private Compilation _lazyCompilation;
 
-        internal Script(ScriptCompiler compiler, ScriptBuilder builder, string code, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
+        internal Script(ScriptCompiler compiler, ScriptBuilder builder, SourceText sourceText, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
         {
-            Debug.Assert(code != null);
+            Debug.Assert(sourceText != null);
             Debug.Assert(options != null);
             Debug.Assert(compiler != null);
             Debug.Assert(builder != null);
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             Compiler = compiler;
             Builder = builder;
             Previous = previousOpt;
-            Code = code;
+            SourceText = sourceText;
             Options = options;
             GlobalsType = globalsTypeOpt;
         }
@@ -45,6 +47,11 @@ namespace Microsoft.CodeAnalysis.Scripting
         internal static Script<T> CreateInitialScript<T>(ScriptCompiler compiler, string codeOpt, ScriptOptions optionsOpt, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoaderOpt)
         {
             return new Script<T>(compiler, new ScriptBuilder(assemblyLoaderOpt ?? new InteractiveAssemblyLoader()), codeOpt ?? "", optionsOpt ?? ScriptOptions.Default, globalsTypeOpt, previousOpt: null);
+        }
+
+        internal static Script<T> CreateInitialScript<T>(ScriptCompiler compiler, Stream codeStream, ScriptOptions optionsOpt, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoaderOpt)
+        {
+            return new Script<T>(compiler, new ScriptBuilder(assemblyLoaderOpt ?? new InteractiveAssemblyLoader()), codeStream, optionsOpt ?? ScriptOptions.Default, globalsTypeOpt, previousOpt: null);
         }
 
         /// <summary>
@@ -62,7 +69,12 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// The source code of the script.
         /// </summary>
-        public string Code { get; }
+        public string Code => SourceText.ToString();
+
+        /// <summary>
+        /// The <see cref="SourceText"/> of the script.
+        /// </summary>
+        public SourceText SourceText { get; }
 
         /// <summary>
         /// The type of an object whose members can be accessed by the script as global variables.
@@ -86,11 +98,25 @@ namespace Microsoft.CodeAnalysis.Scripting
         public Script<object> ContinueWith(string code, ScriptOptions options = null) =>
             ContinueWith<object>(code, options);
 
+        #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        /// <summary>
+        /// Continues the script with given <see cref="Stream"/> representing code.
+        /// </summary>
+        public Script<object> ContinueWith(Stream codeStream, ScriptOptions options = null) =>
+            ContinueWith<object>(codeStream, options);
+
         /// <summary>
         /// Continues the script with given code snippet.
         /// </summary>
         public Script<TResult> ContinueWith<TResult>(string code, ScriptOptions options = null) =>
             new Script<TResult>(Compiler, Builder, code ?? "", options ?? InheritOptions(Options), GlobalsType, this);
+
+        #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        /// <summary>
+        /// Continues the script with given <see cref="Stream"/> representing code.
+        /// </summary>
+        public Script<TResult> ContinueWith<TResult>(Stream codeStream, ScriptOptions options = null) =>
+            new Script<TResult>(Compiler, Builder, codeStream, options ?? InheritOptions(Options), GlobalsType, this);
 
         private static ScriptOptions InheritOptions(ScriptOptions previous)
         {
@@ -279,7 +305,12 @@ namespace Microsoft.CodeAnalysis.Scripting
         private Func<object[], Task<T>> _lazyExecutor;
 
         internal Script(ScriptCompiler compiler, ScriptBuilder builder, string code, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
-            : base(compiler, builder, code, options, globalsTypeOpt, previousOpt)
+            : base(compiler, builder, SourceText.From(code, options.FileEncoding), options, globalsTypeOpt, previousOpt)
+        {
+        }
+
+        internal Script(ScriptCompiler compiler, ScriptBuilder builder, Stream codeStream, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
+            : base(compiler, builder, SourceText.From(codeStream, options.FileEncoding), options, globalsTypeOpt, previousOpt)
         {
         }
 
