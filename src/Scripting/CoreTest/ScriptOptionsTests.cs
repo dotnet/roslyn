@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
+using System.Text;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Test.Utilities;
@@ -150,11 +151,34 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             options.WithImports(".blah");
         }
 
-        [Fact]
-        public void WithDebugInformation_SetsEmitDebugInformation()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void WithEmitDebugInformation_SetsEmitDebugInformation(bool emitDebugInformation)
         {
-            var options = ScriptOptions.Default.WithDebugInformation();
-            Assert.Equal(true, options.EmitDebugInformation);
+            var options = ScriptOptions.Default.WithEmitDebugInformation(emitDebugInformation);
+            Assert.Equal(emitDebugInformation, options.EmitDebugInformation);
+        }
+
+        [Fact]
+        public void WithEmitDebugInformation_SameValueTwice_DoesNotCreateNewInstance()
+        {
+            var options = ScriptOptions.Default.WithEmitDebugInformation(true);
+            Assert.Same(options, options.WithEmitDebugInformation(true));
+        }
+
+        [Fact]
+        public void WithFileEncoding_SetsWithFileEncoding()
+        {
+            var options = ScriptOptions.Default.WithFileEncoding(Encoding.ASCII);
+            Assert.Equal(Encoding.ASCII, options.FileEncoding);
+        }
+
+        [Fact]
+        public void WithFileEncoding_SameValueTwice_DoesNotCreateNewInstance()
+        {
+            var options = ScriptOptions.Default.WithFileEncoding(Encoding.ASCII);
+            Assert.Same(options, options.WithFileEncoding(Encoding.ASCII));
         }
     }
 }

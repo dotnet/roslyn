@@ -11,6 +11,7 @@ using Roslyn.Utilities;
 using Xunit;
 using System.IO;
 using System.Globalization;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -692,13 +693,13 @@ i", options);
         {
             try
             {
-                var opts = ScriptOptions.Default.WithDebugInformation();
+                var opts = ScriptOptions.Default.WithEmitDebugInformation(true);
                 var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
             }
             catch (Exception ex)
             {
                 // line information is only available when PDBs have been emitted
-                Assert.Contains("at Submission#0.<<Initialize>>d__0.MoveNext() in :line 1", ex.StackTrace);
+                Assert.Equal("at Submission#0.<<Initialize>>d__0.MoveNext() in :line 1", GetStackTraceLine(ex, 0));
             }
         }
 
@@ -712,7 +713,7 @@ i", options);
             catch (Exception ex)
             {
                 // line information is only available when PDBs have been emitted
-                Assert.DoesNotContain("at Submission#0.<<Initialize>>d__0.MoveNext() in :line 1", ex.StackTrace);
+                Assert.Equal("at Submission#0.<<Initialize>>d__0.MoveNext()", GetStackTraceLine(ex, 0));
             }
         }
 
@@ -767,6 +768,19 @@ i", options);
                 stream.Position = 0;
                 return stream;
             }
+        }
+
+        private string GetStackTraceLine(Exception ex, int index)
+        {
+            if (ex == null || ex.StackTrace == null) return null;
+
+            var stackTrace = ex.StackTrace?.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            if (stackTrace.Length >= index)
+            {
+                return stackTrace[index].Trim();
+            }
+
+            return null;
         }
     }
 }

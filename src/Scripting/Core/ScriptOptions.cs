@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.Scripting
             references: GetDefaultMetadataReferences(),
             namespaces: ImmutableArray<string>.Empty,
             metadataResolver: RuntimeMetadataReferenceResolver.Default,
-            sourceResolver: SourceFileResolver.Default);
+            sourceResolver: SourceFileResolver.Default,
+            emitDebugInformation: false,
+            fileEncoding: null);
 
         private static ImmutableArray<MetadataReference> GetDefaultMetadataReferences()
         {
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Specifies the encoding to be used when debugging scripts loaded from a file, or that will be saved to a file for debugging purposes.
         /// </summary>
-        public Encoding FileEncoding { get; private set; } = Encoding.UTF8;
+        public Encoding FileEncoding { get; private set; }
 
         /// <summary>
         /// The path to the script source if it originated from a file, empty otherwise.
@@ -112,7 +114,9 @@ namespace Microsoft.CodeAnalysis.Scripting
             ImmutableArray<MetadataReference> references,
             ImmutableArray<string> namespaces,
             MetadataReferenceResolver metadataResolver,
-            SourceReferenceResolver sourceResolver)
+            SourceReferenceResolver sourceResolver,
+            bool emitDebugInformation,
+            Encoding fileEncoding)
         {
             Debug.Assert(filePath != null);
             Debug.Assert(!references.IsDefault);
@@ -125,6 +129,8 @@ namespace Microsoft.CodeAnalysis.Scripting
             Imports = namespaces;
             MetadataResolver = metadataResolver;
             SourceResolver = sourceResolver;
+            EmitDebugInformation = emitDebugInformation;
+            FileEncoding = fileEncoding;
         }
 
         private ScriptOptions(ScriptOptions other)
@@ -132,10 +138,10 @@ namespace Microsoft.CodeAnalysis.Scripting
                    references: other.MetadataReferences,
                    namespaces: other.Imports,
                    metadataResolver: other.MetadataResolver,
-                   sourceResolver: other.SourceResolver)
+                   sourceResolver: other.SourceResolver,
+                   emitDebugInformation: other.EmitDebugInformation,
+                   fileEncoding: other.FileEncoding)
         {
-            EmitDebugInformation = other.EmitDebugInformation;
-            FileEncoding = other.FileEncoding;
         }
 
         // a reference to an assembly should by default be equivalent to #r, which applies recursive global alias:
@@ -299,13 +305,13 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with debugging information enabled.
         /// </summary>
-        public ScriptOptions WithDebugInformation() =>
-            new ScriptOptions(this) { EmitDebugInformation = true };
+        public ScriptOptions WithEmitDebugInformation(bool emitDebugInformation) =>
+            emitDebugInformation == EmitDebugInformation ? this : new ScriptOptions(this) { EmitDebugInformation = emitDebugInformation };
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="FileEncoding"/>.
         /// </summary>
-        public ScriptOptions WithFileEncoding(Encoding encoding) =>
-            new ScriptOptions(this) { FileEncoding = encoding };
+        public ScriptOptions WithFileEncoding(Encoding encoding) => 
+            encoding == FileEncoding ? this : new ScriptOptions(this) { FileEncoding = encoding };
     }
 }

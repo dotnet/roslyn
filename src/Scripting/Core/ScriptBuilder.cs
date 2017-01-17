@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         }
 
         /// <exception cref="CompilationErrorException">Compilation has errors.</exception>
-        internal Func<object[], Task<T>> CreateExecutor<T>(ScriptCompiler compiler, Compilation compilation, ScriptOptions scriptOptions, CancellationToken cancellationToken)
+        internal Func<object[], Task<T>> CreateExecutor<T>(ScriptCompiler compiler, Compilation compilation, bool emitDebugInformation, CancellationToken cancellationToken)
         {
             var diagnostics = DiagnosticBag.GetInstance();
             try
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
                 diagnostics.Clear();
 
-                var executor = Build<T>(compilation, diagnostics, scriptOptions.EmitDebugInformation, cancellationToken);
+                var executor = Build<T>(compilation, diagnostics, emitDebugInformation, cancellationToken);
 
                 // emit can fail due to compilation errors or because there is nothing to emit:
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);

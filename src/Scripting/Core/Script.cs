@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (_lazyExecutor == null)
             {
-                Interlocked.CompareExchange(ref _lazyExecutor, Builder.CreateExecutor<T>(Compiler, GetCompilation(), Options, cancellationToken), null);
+                Interlocked.CompareExchange(ref _lazyExecutor, Builder.CreateExecutor<T>(Compiler, GetCompilation(), Options.EmitDebugInformation, cancellationToken), null);
             }
 
             return _lazyExecutor;

@@ -149,7 +149,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 references: ImmutableArray.CreateRange(resolvedReferences),
                 namespaces: CommandLineHelpers.GetImports(arguments),
                 metadataResolver: metadataResolver,
-                sourceResolver: sourceResolver);
+                sourceResolver: sourceResolver,
+                emitDebugInformation: false,
+                fileEncoding: null);
         }
 
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
