@@ -698,7 +698,7 @@ i", options);
             catch (Exception ex)
             {
                 // line information is only available when PDBs have been emitted
-                Assert.Contains(":line 1", ex.StackTrace);
+                Assert.Contains("at Submission#0.<<Initialize>>d__0.MoveNext() in :line 1", ex.StackTrace);
             }
         }
 
@@ -712,7 +712,7 @@ i", options);
             catch (Exception ex)
             {
                 // line information is only available when PDBs have been emitted
-                Assert.DoesNotContain(":line 1", ex.StackTrace);
+                Assert.DoesNotContain("at Submission#0.<<Initialize>>d__0.MoveNext() in :line 1", ex.StackTrace);
             }
         }
 
