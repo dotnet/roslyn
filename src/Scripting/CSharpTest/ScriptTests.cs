@@ -693,9 +693,8 @@ i", options);
         {
             try
             {
-                var testFilePath = Path.Combine("TestFiles", "debug.csx");
-                var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath(testFilePath).WithFileEncoding(null);
-                var script = await CSharpScript.RunAsync(File.ReadAllText(testFilePath), opts);
+                var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx").WithFileEncoding(null);
+                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
             }
             catch (CompilationErrorException ex)
             {
@@ -708,9 +707,8 @@ i", options);
         {
             try
             {
-                var testFilePath = Path.Combine("TestFiles", "debug.csx");
-                var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath(testFilePath).WithFileEncoding(Encoding.UTF8);
-                var script = await CSharpScript.RunAsync(File.ReadAllText(testFilePath), opts);
+                var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
+                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
             }
             catch (Exception ex)
             {
@@ -724,9 +722,8 @@ i", options);
         {
             try
             {
-                var testFilePath = Path.Combine("TestFiles", "debug.csx");
-                var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath(testFilePath).WithFileEncoding(null);
-                var script = await CSharpScript.RunAsync(File.ReadAllText(testFilePath), opts);
+                var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath("debug.csx").WithFileEncoding(null);
+                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
             }
             catch (Exception ex)
             {
@@ -740,9 +737,8 @@ i", options);
         {
             try
             {
-                var testFilePath = Path.Combine("TestFiles", "debug.csx");
-                var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath(testFilePath).WithFileEncoding(Encoding.UTF8);
-                var script = await CSharpScript.RunAsync(File.ReadAllText(testFilePath), opts);
+                var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
+                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
             }
             catch (Exception ex)
             {

@@ -75,9 +75,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
-    <None Include="TestFiles\debug.csx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
