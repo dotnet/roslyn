@@ -53,6 +53,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
             return Create<object>(code, options, globalsType, assemblyLoader);
         }
 
+        #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        /// <summary>
+        /// Create a new C# script.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> representing the source code of the script.</param>
+        /// <param name="options">The script options.</param>
+        /// <param name="globalsType">Type of global object.</param>
+        /// <param name="assemblyLoader">Custom  assembly loader.</param>
+        public static Script<object> Create(Stream stream, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
+        {
+            return Create<object>(stream, options, globalsType, assemblyLoader);
+        }
+
         /// <summary>
         /// Run a C# script.
         /// </summary>

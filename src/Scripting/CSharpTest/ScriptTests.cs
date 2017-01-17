@@ -31,6 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         }
 
         [Fact]
+        public void TestCreateFromStreamScript()
+        {
+            var script = CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("1 + 2")));
+            Assert.Equal("1 + 2", script.Code);
+        }
+
+        [Fact]
         public async Task TestGetCompilation()
         {
             var state = await CSharpScript.RunAsync("1 + 2", globals: new ScriptTests());
@@ -39,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         }
 
         [Fact]
-        public async Task TestGetCompilation_SourceText()
+        public async Task TestGetCompilationSourceText()
         {
             var state = await CSharpScript.RunAsync("1 + 2", globals: new ScriptTests());
             var compilation = state.Script.GetCompilation();
@@ -80,6 +87,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         public async Task TestCreateAndRunScript()
         {
             var script = CSharpScript.Create("1 + 2");
+            var state = await script.RunAsync();
+            Assert.Same(script, state.Script);
+            Assert.Equal(3, state.ReturnValue);
+        }
+
+        [Fact]
+        public async Task TestCreateFromStreamAndRunScript()
+        {
+            var script = CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("1 + 2")));
             var state = await script.RunAsync();
             Assert.Same(script, state.Script);
             Assert.Equal(3, state.ReturnValue);
