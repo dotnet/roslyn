@@ -39,6 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         }
 
         [Fact]
+        public async Task TestGetCompilation_SourceText()
+        {
+            var state = await CSharpScript.RunAsync("1 + 2", globals: new ScriptTests());
+            var compilation = state.Script.GetCompilation();
+            Assert.Equal(state.Script.SourceText, compilation.SyntaxTrees.First().GetText());
+        }
+
+        [Fact]
         public void TestCreateScriptDelegate()
         {
             // create a delegate for the entire script

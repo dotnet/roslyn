@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Scripting
             return new Script<T>(compiler, new ScriptBuilder(assemblyLoaderOpt ?? new InteractiveAssemblyLoader()), codeOpt ?? "", optionsOpt ?? ScriptOptions.Default, globalsTypeOpt, previousOpt: null);
         }
 
-        internal static Script<T> CreateInitialScript<T>(ScriptCompiler compiler, Stream codeStream, ScriptOptions optionsOpt, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoaderOpt)
+        internal static Script<T> CreateInitialScript<T>(ScriptCompiler compiler, Stream stream, ScriptOptions optionsOpt, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoaderOpt)
         {
-            return new Script<T>(compiler, new ScriptBuilder(assemblyLoaderOpt ?? new InteractiveAssemblyLoader()), codeStream, optionsOpt ?? ScriptOptions.Default, globalsTypeOpt, previousOpt: null);
+            return new Script<T>(compiler, new ScriptBuilder(assemblyLoaderOpt ?? new InteractiveAssemblyLoader()), stream, optionsOpt ?? ScriptOptions.Default, globalsTypeOpt, previousOpt: null);
         }
 
         /// <summary>
@@ -102,8 +102,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Continues the script with given <see cref="Stream"/> representing code.
         /// </summary>
-        public Script<object> ContinueWith(Stream codeStream, ScriptOptions options = null) =>
-            ContinueWith<object>(codeStream, options);
+        public Script<object> ContinueWith(Stream stream, ScriptOptions options = null) =>
+            ContinueWith<object>(stream, options);
 
         /// <summary>
         /// Continues the script with given code snippet.
@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Continues the script with given <see cref="Stream"/> representing code.
         /// </summary>
-        public Script<TResult> ContinueWith<TResult>(Stream codeStream, ScriptOptions options = null) =>
-            new Script<TResult>(Compiler, Builder, codeStream, options ?? InheritOptions(Options), GlobalsType, this);
+        public Script<TResult> ContinueWith<TResult>(Stream stream, ScriptOptions options = null) =>
+            new Script<TResult>(Compiler, Builder, stream, options ?? InheritOptions(Options), GlobalsType, this);
 
         private static ScriptOptions InheritOptions(ScriptOptions previous)
         {
@@ -309,8 +309,13 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
         }
 
-        internal Script(ScriptCompiler compiler, ScriptBuilder builder, Stream codeStream, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
-            : base(compiler, builder, SourceText.From(codeStream, options.FileEncoding), options, globalsTypeOpt, previousOpt)
+        internal Script(ScriptCompiler compiler, ScriptBuilder builder, Stream stream, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
+            : base(compiler, builder, SourceText.From(stream, options.FileEncoding), options, globalsTypeOpt, previousOpt)
+        {
+        }
+
+        internal Script(ScriptCompiler compiler, ScriptBuilder builder, SourceText sourceText, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
+            : base(compiler, builder, sourceText, options, globalsTypeOpt, previousOpt)
         {
         }
 
@@ -318,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         public new Script<T> WithOptions(ScriptOptions options)
         {
-            return (options == Options) ? this : new Script<T>(Compiler, Builder, Code, options, GlobalsType, Previous);
+            return (options == Options) ? this : new Script<T>(Compiler, Builder, SourceText, options, GlobalsType, Previous);
         }
 
         internal override Script WithOptionsInternal(ScriptOptions options) => WithOptions(options);
