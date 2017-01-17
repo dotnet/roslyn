@@ -95,8 +95,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                 TIfStatementSyntax rootIfStatement)
             {
                 // Iterate over subsequent if-statements whose endpoint is unreachable.
-                foreach (var ifStatement in GetSubsequentIfStatements(rootIfStatement))
+                foreach (var statement in GetSubsequentStatements(rootIfStatement))
                 {
+                    if (!(statement is TIfStatementSyntax ifStatement))
+                    {
+                        yield break;
+                    }
+
                     if (!CanConvertIfToSwitch(ifStatement))
                     {
                         yield break;
@@ -105,12 +110,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                     var sectionList = new List<(IEnumerable<IPattern<TSwitchLabelSyntax>>, TStatementSyntax)>();
 
                     // Iterate over if-else statement chain.
-                    foreach (var (condition, statement) in GetIfElseStatementChain(ifStatement))
+                    foreach (var (condition, body) in GetIfElseStatementChain(ifStatement))
                     {
                         // If there is no condition, we have reached the "else" part.
                         if (condition == null)
                         {
-                            _switchDefaultBodyOpt = statement;
+                            _switchDefaultBodyOpt = body;
                             break;
                         }
 
@@ -129,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                             patternList.Add(pattern);
                         }
 
-                        sectionList.Add((patternList, statement));
+                        sectionList.Add((patternList, body));
                     }
 
                     foreach (var section in sectionList)
@@ -176,12 +181,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
                 return constant != null;
             }
 
-            private IEnumerable<TIfStatementSyntax> GetSubsequentIfStatements(TIfStatementSyntax currentStatement)
+            private IEnumerable<SyntaxNode> GetSubsequentStatements(SyntaxNode currentStatement)
             {
                 do
                 {
                     yield return currentStatement;
-                    currentStatement = _syntaxFacts.GetNextExecutableStatement(currentStatement) as TIfStatementSyntax;
+                    currentStatement = _syntaxFacts.GetNextExecutableStatement(currentStatement);
                 }
                 while (currentStatement != null);
             }
@@ -205,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertIfToSwitch
 
                 var ifSpan = ifStatement.Span;
                 var @switch = generator.SwitchStatement(_switchExpression, sectionList);
-                var nodesToRemove = GetSubsequentIfStatements(ifStatement)
+                var nodesToRemove = GetSubsequentStatements(ifStatement)
                     .Skip(1).Take(_numberOfSubsequentIfStatementsToRemove);
                 root = root.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia);
                 root = root.ReplaceNode(root.FindNode(ifSpan), @switch);
