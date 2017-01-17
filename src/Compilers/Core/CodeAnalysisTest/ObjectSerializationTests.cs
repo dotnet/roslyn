@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private void RoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction, bool recursive)
         {
             var stream = new MemoryStream();
-            var binder = new RecordingObjectBinder();
+            var binder = new ObjectBinder();
             var writer = new StreamObjectWriter(stream, binder: binder, recursive: recursive);
 
             writeAction(writer);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private T RoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
         {
             var stream = new MemoryStream();
-            var binder = new RecordingObjectBinder();
+            var binder = new ObjectBinder();
             var writer = new StreamObjectWriter(stream, binder: binder, recursive: recursive);
 
             writeAction(writer, value);
@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     instances.Add(new TypeWithTwoMembers<int, string>(i, i.ToString()));
                 }
 
-                var binder = new RecordingObjectBinder();
+                var binder = new ObjectBinder();
                 var writer = new StreamObjectWriter(stream, binder: binder);
                 // Write each instance twice. The second time around, they'll become ObjectRefs
                 for (int pass = 0; pass < 2; pass++)
