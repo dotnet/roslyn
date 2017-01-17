@@ -687,6 +687,35 @@ i", options);
             Assert.Equal(0, result);
         }
 
+        [Fact]
+        public async Task ScriptOptionsConfiguredForDebuggingResultInPdbEmitted()
+        {
+            try
+            {
+                var opts = ScriptOptions.Default.WithDebugInformation();
+                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
+            }
+            catch (Exception ex)
+            {
+                // line information is only available when PDBs have been emitted
+                Assert.Contains(":line 1", ex.StackTrace);
+            }
+        }
+
+        [Fact]
+        public async Task ScriptOptionsNotConfiguredForDebuggingResultInPdbNotEmitted()
+        {
+            try
+            {
+                var script = await CSharpScript.RunAsync("throw new System.Exception();", ScriptOptions.Default);
+            }
+            catch (Exception ex)
+            {
+                // line information is only available when PDBs have been emitted
+                Assert.DoesNotContain(":line 1", ex.StackTrace);
+            }
+        }
+
         [WorkItem(12348, "https://github.com/dotnet/roslyn/issues/12348")]
         [Fact]
         public async Task StreamWithOffset()
