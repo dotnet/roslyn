@@ -151,12 +151,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         }
 
         [Fact]
-        public void WithDebugInformation_SetsEmitDebugInformation_SetsDebugInformation()
+        public void WithDebugInformation_SetsEmitDebugInformation()
         {
-            var format = DebugInformationFormat.Pdb;
-            var options = ScriptOptions.Default.WithDebugInformation(format);
+            var options = ScriptOptions.Default.WithDebugInformation();
             Assert.Equal(true, options.EmitDebugInformation);
-            Assert.Equal(format, options.DebugInformationFormat);
         }
     }
 }

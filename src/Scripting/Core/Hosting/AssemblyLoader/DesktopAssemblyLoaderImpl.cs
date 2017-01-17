@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             byte[] peImage = new byte[peStream.Length];
             peStream.TryReadAll(peImage, 0, peImage.Length);
 
-            if (pdbStream != null) {
+            if (pdbStream != null)
+            {
                 byte[] pdbImage = new byte[pdbStream.Length];
                 pdbStream.TryReadAll(pdbImage, 0, pdbImage.Length);
 

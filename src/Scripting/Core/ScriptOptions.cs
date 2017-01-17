@@ -7,12 +7,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using System.Text;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
-    using Microsoft.CodeAnalysis.Emit;
     using static ParameterValidationHelpers;
 
     /// <summary>
@@ -95,17 +95,12 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Specifies whether debugging symbols should be emitted.
         /// </summary>
-        public bool EmitDebugInformation => DebugInformationFormat != null;
+        public bool EmitDebugInformation { get; private set; } = false;
 
         /// <summary>
-        /// <see cref="DebugInformationFormat"/> to be used for debugging symbols if needed
+        /// Specifies the encoding to be used when debugging scripts loaded from a file, or that will be saved to a file for debugging purposes.
         /// </summary>
-        public DebugInformationFormat? DebugInformationFormat { get; private set; } = null;
-
-        /// <summary>
-        /// Specifies the encoding to be used for the code.
-        /// </summary>
-        public Encoding Encoding { get; private set; } = Encoding.UTF8;
+        public Encoding FileEncoding { get; private set; } = Encoding.UTF8;
 
         /// <summary>
         /// The path to the script source if it originated from a file, empty otherwise.
@@ -139,8 +134,8 @@ namespace Microsoft.CodeAnalysis.Scripting
                    metadataResolver: other.MetadataResolver,
                    sourceResolver: other.SourceResolver)
         {
-            DebugInformationFormat = other.DebugInformationFormat;
-            Encoding = other.Encoding;
+            EmitDebugInformation = other.EmitDebugInformation;
+            FileEncoding = other.FileEncoding;
         }
 
         // a reference to an assembly should by default be equivalent to #r, which applies recursive global alias:
@@ -302,15 +297,15 @@ namespace Microsoft.CodeAnalysis.Scripting
             AddImports((IEnumerable<string>)imports);
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="DebugInformationFormat"/>.
+        /// Creates a new <see cref="ScriptOptions"/> with debugging information enabled.
         /// </summary>
-        public ScriptOptions WithDebugInformation(DebugInformationFormat pdbFormat) =>
-            new ScriptOptions(this) { DebugInformationFormat = pdbFormat };
+        public ScriptOptions WithDebugInformation() =>
+            new ScriptOptions(this) { EmitDebugInformation = true };
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="Encoding"/>.
+        /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="FileEncoding"/>.
         /// </summary>
-        public ScriptOptions WithEncoding(Encoding encoding) =>
-            new ScriptOptions(this) { Encoding = encoding };
+        public ScriptOptions WithFileEncoding(Encoding encoding) =>
+            new ScriptOptions(this) { FileEncoding = encoding };
     }
 }

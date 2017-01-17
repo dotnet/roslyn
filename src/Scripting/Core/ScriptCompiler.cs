@@ -3,7 +3,6 @@
 using System;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Scripting

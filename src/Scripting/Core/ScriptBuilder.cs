@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
                 diagnostics.Clear();
 
-                var executor = Build<T>(compilation, diagnostics, scriptOptions, cancellationToken);
+                var executor = Build<T>(compilation, diagnostics, scriptOptions.EmitDebugInformation, cancellationToken);
 
                 // emit can fail due to compilation errors or because there is nothing to emit:
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
@@ -115,24 +115,25 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         private Func<object[], Task<T>> Build<T>(
             Compilation compilation,
-            DiagnosticBag diagnostics, ScriptOptions scriptOptions,
+            DiagnosticBag diagnostics, 
+            bool emitDebugInformation,
             CancellationToken cancellationToken)
         {
             var entryPoint = compilation.GetEntryPoint(cancellationToken);
 
             using (var peStream = new MemoryStream())
-            using (var pdbStream = scriptOptions.EmitDebugInformation ? new MemoryStream() : null)
+            using (var pdbStreamOpt = emitDebugInformation ? new MemoryStream() : null)
             {
                 var emitOptions = EmitOptions.Default;
 
-                if (scriptOptions.EmitDebugInformation)
+                if (emitDebugInformation)
                 {
-                    emitOptions = emitOptions.WithDebugInformationFormat(scriptOptions.DebugInformationFormat.Value);
+                    emitOptions = emitOptions.WithDebugInformationFormat(PdbHelpers.GetPlatformSpecificDebugInformationFormat());
                 }
 
                 var emitResult = compilation.Emit(
                     peStream: peStream,
-                    pdbStream: pdbStream,
+                    pdbStream: pdbStreamOpt,
                     xmlDocumentationStream: null,
                     win32Resources: null,
                     manifestResources: null,
@@ -160,12 +161,12 @@ namespace Microsoft.CodeAnalysis.Scripting
 
                 peStream.Position = 0;
 
-                if (pdbStream != null)
+                if (pdbStreamOpt != null)
                 {
-                    pdbStream.Position = 0;
+                    pdbStreamOpt.Position = 0;
                 }
 
-                var assembly = _assemblyLoader.LoadAssemblyFromStream(peStream, pdbStream);
+                var assembly = _assemblyLoader.LoadAssemblyFromStream(peStream, pdbStreamOpt);
                 var runtimeEntryPoint = GetEntryPointRuntimeMethod(entryPoint, assembly, cancellationToken);
 
                 return runtimeEntryPoint.CreateDelegate<Func<object[], Task<T>>>();
