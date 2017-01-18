@@ -73,6 +73,7 @@
     <Compile Include="CodeStyle\EditorConfigCodeStyleParserTests.cs" />
     <Compile Include="DependentTypeFinderTests.cs" />
     <Compile Include="EditorConfigStorageLocation\EditorConfigStorageLocationTests.cs" />
+    <Compile Include="Differencing\LongestCommonSubsequenceTests.cs" />
     <Compile Include="Editting\SyntaxEditorTests.cs" />
     <Compile Include="Execution\Extensions.cs" />
     <Compile Include="Execution\SnapshotSerializationTestBase.cs" />
