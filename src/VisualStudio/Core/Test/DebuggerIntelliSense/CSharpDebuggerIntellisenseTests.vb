@@ -667,6 +667,36 @@ $$</Document>
             End Using
         End Sub
 
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        Public Async Function BuilderSettingRetainedBetweenComputations() As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>$$</Document>
+                               <Document>class Program
+{
+    static void Main(string[] args)
+    [|{|]
+
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, False)
+                state.SendTypeChars("args")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Equal("args", state.GetCurrentViewLineText())
+                Await state.AssertCompletionSession()
+                Assert.NotNull(state.CurrentCompletionPresenterSession.SuggestionModeItem)
+                state.SendToggleCompletionMode()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Null(state.CurrentCompletionPresenterSession.SuggestionModeItem)
+                state.SendTypeChars(".")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.Null(state.CurrentCompletionPresenterSession.SuggestionModeItem)
+            End Using
+        End Function
+
         Private Async Function VerifyCompletionAndDotAfter(item As String, state As TestState) As Task
             state.SendTypeChars(item)
             Await state.WaitForAsynchronousOperationsAsync()
