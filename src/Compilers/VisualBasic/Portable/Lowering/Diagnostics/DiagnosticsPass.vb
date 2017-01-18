@@ -22,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _containingSymbol As MethodSymbol
         Private _withExpressionPlaceholderMap As Dictionary(Of BoundValuePlaceholderBase, BoundWithStatement)
         Private _expressionsBeingVisited As Stack(Of BoundExpression)
+        Private _insideNameof As Boolean = False
 
         Private _inExpressionLambda As Boolean
 
@@ -71,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' is a QueryLambda, before we reach parameter's container. 
                     If Binder.IsTopMostEnclosingLambdaAQueryLambda(_containingSymbol, parameterSymbolContainingSymbol) Then
                         Binder.ReportDiagnostic(Me._diagnostics, node.Syntax, ERRID.ERR_CannotLiftByRefParamQuery1, parameterSymbol.Name)
-                    Else
+                    ElseIf Not Me._insideNameof Then
                         Binder.ReportDiagnostic(Me._diagnostics, node.Syntax, ERRID.ERR_CannotLiftByRefParamLambda1, parameterSymbol.Name)
                     End If
                 End If
@@ -101,6 +102,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetMeAccessError() As ERRID
+
+
+
             Dim meParameter As ParameterSymbol = Me._containingSymbol.MeParameter
             If meParameter IsNot Nothing AndAlso meParameter.IsByRef Then
                 If _containingSymbol.MethodKind = MethodKind.LambdaMethod Then
@@ -181,6 +185,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return Nothing
+        End Function
+
+        Public Overrides Function VisitNameOfOperator(node As BoundNameOfOperator) As BoundNode
+            _insideNameof = True
+            Dim r = MyBase.VisitNameOfOperator(node)
+            _insideNameof = False
+            Return r
         End Function
 
         Public Overrides Function Visit(node As BoundNode) As BoundNode
