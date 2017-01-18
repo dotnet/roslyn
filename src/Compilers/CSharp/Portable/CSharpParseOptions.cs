@@ -56,26 +56,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // We test the mapped value, LanguageVersion, rather than the parameter, languageVersion,
             // which has not had "Latest" mapped to the latest version yet.
-            if (!LanguageVersion.IsValid())
-            {
-                throw new ArgumentOutOfRangeException(nameof(languageVersion));
-            }
+            if (!LanguageVersion.IsValid()) throw new ArgumentOutOfRangeException(nameof(languageVersion));
+            
+            if (!kind.IsValid())  throw new ArgumentOutOfRangeException(nameof(kind));
+            
+            ValidatePreprocessorSymbols( preprocessorSymbols);
+        }
 
-            if (!kind.IsValid())
-            {
-                throw new ArgumentOutOfRangeException(nameof(kind));
-            }
-
-            if (preprocessorSymbols != null)
-            {
-                foreach (var preprocessorSymbol in preprocessorSymbols)
-                {
-                    if (!SyntaxFacts.IsValidIdentifier(preprocessorSymbol))
-                    {
-                        throw new ArgumentException(nameof(preprocessorSymbol));
-                    }
-                }
-            }
+        internal void ValidatePreprocessorSymbols(IEnumerable<string> preprocessorSymbols)
+        {
+            if (preprocessorSymbols == null) return;
+            
+            foreach (var preprocessorSymbol in preprocessorSymbols)
+               if (!SyntaxFacts.IsValidIdentifier(preprocessorSymbol))  throw new ArgumentException(nameof(preprocessorSymbol));
+            
         }
 
         internal CSharpParseOptions(
@@ -86,11 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableDictionary<string, string> features)
             : this(languageVersion, documentationMode, kind, preprocessorSymbols)
         {
-            if (features == null)
-            {
-                throw new ArgumentNullException(nameof(features));
-            }
-
+            if (features == null)  throw new ArgumentNullException(nameof(features));
+            
             _features = features;
         }
 
@@ -112,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableDictionary<string, string> features)
             : base(kind, documentationMode)
         {
+            ValidatePreprocessorSymbols( preprocessorSymbols);
             Debug.Assert(!preprocessorSymbols.IsDefault);
             this.SpecifiedLanguageVersion = languageVersion;
             this.LanguageVersion = languageVersion.MapSpecifiedToEffectiveVersion();
@@ -123,32 +115,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new CSharpParseOptions WithKind(SourceCodeKind kind)
         {
-            if (kind == this.Kind)
-            {
-                return this;
-            }
-
-            if (!kind.IsValid())
-            {
-                throw new ArgumentOutOfRangeException(nameof(kind));
-            }
+            if (kind == this.Kind)  return this;
+            
+            if (!kind.IsValid())  throw new ArgumentOutOfRangeException(nameof(kind));
 
             return new CSharpParseOptions(this) { Kind = kind };
         }
 
         public CSharpParseOptions WithLanguageVersion(LanguageVersion version)
         {
-            if (version == this.SpecifiedLanguageVersion)
-            {
-                return this;
-            }
-
+            if (version == this.SpecifiedLanguageVersion)  return this;
+            
             var effectiveLanguageVersion = version.MapSpecifiedToEffectiveVersion();
-            if (!effectiveLanguageVersion.IsValid())
-            {
-                throw new ArgumentOutOfRangeException(nameof(version));
-            }
-
+            if (!effectiveLanguageVersion.IsValid())    throw new ArgumentOutOfRangeException(nameof(version));
+            
             return new CSharpParseOptions(this) { SpecifiedLanguageVersion = version, LanguageVersion = effectiveLanguageVersion };
         }
 
@@ -164,31 +144,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public CSharpParseOptions WithPreprocessorSymbols(ImmutableArray<string> symbols)
         {
-            if (symbols.IsDefault)
-            {
-                symbols = ImmutableArray<string>.Empty;
-            }
+            symbols = (symbols.IsDefault) ? ImmutableArray<string>.Empty : symbols;
+ 
+            if (symbols.Equals(this.PreprocessorSymbols))  return this;
 
-            if (symbols.Equals(this.PreprocessorSymbols))
-            {
-                return this;
-            }
+            ValidatePreprocessorSymbols( symbols);
 
             return new CSharpParseOptions(this) { PreprocessorSymbols = symbols };
         }
 
         public new CSharpParseOptions WithDocumentationMode(DocumentationMode documentationMode)
         {
-            if (documentationMode == this.DocumentationMode)
-            {
-                return this;
-            }
-
-            if (!documentationMode.IsValid())
-            {
-                throw new ArgumentOutOfRangeException(nameof(documentationMode));
-            }
-
+            if (documentationMode == this.DocumentationMode)  return this;
+ 
+            if (!documentationMode.IsValid())  throw new ArgumentOutOfRangeException(nameof(documentationMode));
+           
             return new CSharpParseOptions(this) { DocumentationMode = documentationMode };
         }
 
@@ -212,10 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public new CSharpParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>> features)
         {
-            if (features == null)
-            {
-                throw new ArgumentNullException(nameof(features));
-            }
+            if (features == null)  throw new ArgumentNullException(nameof(features));
 
             return new CSharpParseOptions(this) { _features = features.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase) };
         }
@@ -231,10 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsFeatureEnabled(MessageID feature)
         {
             string featureFlag = feature.RequiredFeature();
-            if (featureFlag != null)
-            {
-                return Features.ContainsKey(featureFlag);
-            }
+            if (featureFlag != null)    return Features.ContainsKey(featureFlag);
+            
             LanguageVersion availableVersion = LanguageVersion;
             LanguageVersion requiredVersion = feature.RequiredVersion();
             return availableVersion >= requiredVersion;
@@ -247,15 +212,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool Equals(CSharpParseOptions other)
         {
-            if (object.ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (!base.EqualsHelper(other))
-            {
-                return false;
-            }
+            if (object.ReferenceEquals(this, other))  return true;
+            
+            if (!base.EqualsHelper(other))  return false;           
 
             return this.SpecifiedLanguageVersion == other.SpecifiedLanguageVersion;
         }
