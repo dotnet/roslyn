@@ -1,4 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
 using System;
 using System.Collections.Immutable;
@@ -44,14 +45,9 @@ namespace Microsoft.CodeAnalysis.Scripting
             GlobalsType = globalsTypeOpt;
         }
 
-        internal static Script<T> CreateInitialScript<T>(ScriptCompiler compiler, string codeOpt, ScriptOptions optionsOpt, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoaderOpt)
+        internal static Script<T> CreateInitialScript<T>(ScriptCompiler compiler, SourceText sourceText, ScriptOptions optionsOpt, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoaderOpt)
         {
-            return new Script<T>(compiler, new ScriptBuilder(assemblyLoaderOpt ?? new InteractiveAssemblyLoader()), codeOpt ?? "", optionsOpt ?? ScriptOptions.Default, globalsTypeOpt, previousOpt: null);
-        }
-
-        internal static Script<T> CreateInitialScript<T>(ScriptCompiler compiler, Stream code, ScriptOptions optionsOpt, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoaderOpt)
-        {
-            return new Script<T>(compiler, new ScriptBuilder(assemblyLoaderOpt ?? new InteractiveAssemblyLoader()), code, optionsOpt ?? ScriptOptions.Default, globalsTypeOpt, previousOpt: null);
+            return new Script<T>(compiler, new ScriptBuilder(assemblyLoaderOpt ?? new InteractiveAssemblyLoader()), sourceText, optionsOpt ?? ScriptOptions.Default, globalsTypeOpt, previousOpt: null);
         }
 
         /// <summary>
@@ -74,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// The <see cref="SourceText"/> of the script.
         /// </summary>
-        public SourceText SourceText { get; }
+        internal SourceText SourceText { get; }
 
         /// <summary>
         /// The type of an object whose members can be accessed by the script as global variables.
@@ -98,7 +94,6 @@ namespace Microsoft.CodeAnalysis.Scripting
         public Script<object> ContinueWith(string code, ScriptOptions options = null) =>
             ContinueWith<object>(code, options);
 
-        #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Continues the script with given <see cref="Stream"/> representing code.
         /// </summary>
@@ -111,16 +106,15 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Continues the script with given code snippet.
         /// </summary>
         public Script<TResult> ContinueWith<TResult>(string code, ScriptOptions options = null) =>
-            new Script<TResult>(Compiler, Builder, code ?? "", options ?? InheritOptions(Options), GlobalsType, this);
+            new Script<TResult>(Compiler, Builder, SourceText.From(code ?? "", options?.FileEncoding ?? Options.FileEncoding), options ?? InheritOptions(Options), GlobalsType, this);
 
-        #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Continues the script with given <see cref="Stream"/> representing code.
         /// </summary>
         /// <exception cref="ArgumentNullException">Stream is null.</exception>
         /// <exception cref="ArgumentException">Stream is not readable or seekable.</exception>
         public Script<TResult> ContinueWith<TResult>(Stream code, ScriptOptions options = null) =>
-            new Script<TResult>(Compiler, Builder, code, options ?? InheritOptions(Options), GlobalsType, this);
+            new Script<TResult>(Compiler, Builder, SourceText.From(code, options?.FileEncoding ?? Options.FileEncoding), options ?? InheritOptions(Options), GlobalsType, this);
 
         private static ScriptOptions InheritOptions(ScriptOptions previous)
         {
@@ -307,16 +301,6 @@ namespace Microsoft.CodeAnalysis.Scripting
     {
         private ImmutableArray<Func<object[], Task>> _lazyPrecedingExecutors;
         private Func<object[], Task<T>> _lazyExecutor;
-
-        internal Script(ScriptCompiler compiler, ScriptBuilder builder, string code, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
-            : base(compiler, builder, SourceText.From(code, options.FileEncoding), options, globalsTypeOpt, previousOpt)
-        {
-        }
-
-        internal Script(ScriptCompiler compiler, ScriptBuilder builder, Stream code, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
-            : base(compiler, builder, SourceText.From(code, options.FileEncoding), options, globalsTypeOpt, previousOpt)
-        {
-        }
 
         internal Script(ScriptCompiler compiler, ScriptBuilder builder, SourceText sourceText, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
             : base(compiler, builder, sourceText, options, globalsTypeOpt, previousOpt)

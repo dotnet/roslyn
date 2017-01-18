@@ -1,4 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
 using System;
 using System.IO;
@@ -6,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting
 {
@@ -24,10 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
         /// <typeparam name="T">The return type of the script</typeparam>
         public static Script<T> Create<T>(string code, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
         {
-            return Script.CreateInitialScript<T>(CSharpScriptCompiler.Instance, code, options, globalsType, assemblyLoader);
+            return Script.CreateInitialScript<T>(CSharpScriptCompiler.Instance, SourceText.From(code, options?.FileEncoding), options, globalsType, assemblyLoader);
         }
 
-        #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Create a new C# script.
         /// </summary>
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
         /// <exception cref="ArgumentException">Stream is not readable or seekable.</exception>
         public static Script<T> Create<T>(Stream code, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
         {
-            return Script.CreateInitialScript<T>(CSharpScriptCompiler.Instance, code, options, globalsType, assemblyLoader);
+            return Script.CreateInitialScript<T>(CSharpScriptCompiler.Instance, SourceText.From(code, options?.FileEncoding), options, globalsType, assemblyLoader);
         }
 
         /// <summary>
@@ -55,7 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
             return Create<object>(code, options, globalsType, assemblyLoader);
         }
 
-        #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Create a new C# script.
         /// </summary>
