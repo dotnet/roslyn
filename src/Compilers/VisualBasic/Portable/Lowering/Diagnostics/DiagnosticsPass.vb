@@ -102,9 +102,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetMeAccessError() As ERRID
-
-
-
             Dim meParameter As ParameterSymbol = Me._containingSymbol.MeParameter
             If meParameter IsNot Nothing AndAlso meParameter.IsByRef Then
                 If _containingSymbol.MethodKind = MethodKind.LambdaMethod Then
