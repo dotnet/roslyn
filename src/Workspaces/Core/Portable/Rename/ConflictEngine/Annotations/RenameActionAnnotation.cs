@@ -53,11 +53,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// </summary>
         public readonly bool IsMemberGroupReference;
 
-        /// <summary>
-        /// States if this token is annotated as a part of the Invocation Expression that needs to be checked for the Conflicts
-        /// </summary>
-        public readonly bool IsInvocationExpression;
-
         public RenameActionAnnotation(
             TextSpan originalSpan,
             bool isRenameLocation,
@@ -66,7 +61,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             bool isOriginalTextLocation,
             RenameDeclarationLocationReference[] renameDeclarationLocations,
             bool isNamespaceDeclarationReference,
-            bool isInvocationExpression,
             bool isMemberGroupReference)
         {
             this.OriginalSpan = originalSpan;
@@ -76,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             this.RenameDeclarationLocationReferences = renameDeclarationLocations;
             this.IsOriginalTextLocation = isOriginalTextLocation;
             this.IsNamespaceDeclarationReference = isNamespaceDeclarationReference;
-            this.IsInvocationExpression = isInvocationExpression;
             this.IsMemberGroupReference = isMemberGroupReference;
         }
     }

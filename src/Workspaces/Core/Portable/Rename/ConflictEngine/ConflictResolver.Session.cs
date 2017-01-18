@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                     await CheckForConflictAsync(conflictResolution, renamedSymbolInNewSolution, newDocument, conflictAnnotation, newReferencedSymbols).ConfigureAwait(false);
                             }
 
-                            if (!hasConflict && !conflictAnnotation.IsInvocationExpression)
+                            if (!hasConflict)
                             {
                                 hasConflict = LocalVariableConflictPerLanguage((SyntaxToken)tokenOrNode, newDocument, newReferencedSymbols);
                             }
@@ -595,20 +595,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private IEnumerable<ISymbol> GetSymbolsInNewSolution(Document newDocument, SemanticModel newDocumentSemanticModel, RenameActionAnnotation conflictAnnotation, SyntaxNodeOrToken tokenOrNode)
             {
                 var newReferencedSymbols = RenameUtilities.GetSymbolsTouchingPosition(tokenOrNode.Span.Start, newDocumentSemanticModel, newDocument.Project.Solution.Workspace, _cancellationToken);
-
-                if (conflictAnnotation.IsInvocationExpression)
-                {
-                    IEnumerable<ISymbol> invocationReferencedSymbols = null;
-                    if (tokenOrNode.IsNode)
-                    {
-                        invocationReferencedSymbols = SymbolsForEnclosingInvocationExpressionWorker((SyntaxNode)tokenOrNode, newDocumentSemanticModel, _cancellationToken);
-                    }
-
-                    if (invocationReferencedSymbols != null)
-                    {
-                        newReferencedSymbols = invocationReferencedSymbols;
-                    }
-                }
 
                 // if there are more than one symbol, then remove the alias symbols.
                 // When using (not declaring) an alias, the alias symbol and the target symbol are returned

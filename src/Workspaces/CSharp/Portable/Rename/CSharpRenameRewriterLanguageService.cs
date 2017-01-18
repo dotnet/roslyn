@@ -211,7 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     renameDeclarationLocations: renameDeclarationLocations,
                     isOriginalTextLocation: false,
                     isNamespaceDeclarationReference: false,
-                    isInvocationExpression: true,
                     isMemberGroupReference: false));
             }
 
@@ -431,7 +430,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                                 renameDeclarationLocations: renameDeclarationLocations,
                                 isOriginalTextLocation: isOldText,
                                 isNamespaceDeclarationReference: isNamespaceDeclarationReference,
-                                isInvocationExpression: false,
                                 isMemberGroupReference: isMemberGroupReference);
 
                     newToken = _renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = token.Span });
@@ -512,7 +510,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                                                 renameDeclarationLocations: renameDeclarationLocations,
                                                 isOriginalTextLocation: false,
                                                 isNamespaceDeclarationReference: false,
-                                                isInvocationExpression: true,
                                                 isMemberGroupReference: false);
 
                     return renameAnnotation;
