@@ -534,9 +534,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public void PushMethod(IMethodSymbol method)
-            {
-                _methodSymbolStack.Add(method);
-            }
+                => _methodSymbolStack.Add(method);
 
             public void PopMethod(IMethodSymbol method)
             {

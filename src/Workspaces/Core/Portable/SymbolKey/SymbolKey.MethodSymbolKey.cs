@@ -184,10 +184,10 @@ namespace Microsoft.CodeAnalysis
                     // the parameters (and possibly the return type).  This is more complicated 
                     // because those symbols might refer to method type parameters.  In order
                     // for resolution to work on those type parameters, we have to keep track
-                    // in the reader that we're on this specific method.
+                    // in the reader that we're resolving this method. 
 
-                    // Restore our position to right before the list of parameters.
-                    // Also set the current method so that we can properly resolve
+                    // Restore our position to right before the list of parameters.  Also, push
+                    // this method into our method-resolution-stack so that we can properly resolve
                     // method type parameter ordinals.
                     reader.Position = beforeParametersPosition;
                     reader.PushMethod(method);
