@@ -3199,7 +3199,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // TODO(slaks): Merge in subsequent steps.
                         // This is necessary to catch rename conflicts in nested deconstructions.
                         if (deconstruct != null)
+                        {
                             return GetSemanticSymbols(deconstruct, boundNodeForSyntacticParent, binderOpt, options, out isDynamic, out resultKind, out memberGroup);
+                        }
                     }
                     break;
                 default:

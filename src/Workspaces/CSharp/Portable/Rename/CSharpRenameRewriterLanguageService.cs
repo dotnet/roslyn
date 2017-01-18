@@ -192,7 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 if (_isProcessingComplexifiedSpans ||
                     // This is only relevant when renaming to or from Deconstruct().
                     (_replacementText != deconstructMethodName && _originalText != deconstructMethodName))
+                {
                     return result;
+                }
 
                 // Link the = token to the Deconstruct() method to make sure its binding doesn't change.
                 var deconstructSymbols = (_speculativeModel ?? _semanticModel).GetSemanticInfo(
@@ -635,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     if (newToken.IsVerbatimIdentifier())
                     {
-                        // a reference location should always be tried to be unescaped, whether it was escaped before rename 
+                        // a reference location should always be tried to be unescaped, whether it was escaped before rename
                         // or the replacement itself is escaped.
                         newToken = newToken.WithAdditionalAnnotations(Simplifier.Annotation);
                     }
@@ -819,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
 
                 // If we're contained in a named type (we may be a named type ourself!) then we have a
-                // conflict.  NOTE(cyrusn): This does not apply to enums. 
+                // conflict.  NOTE(cyrusn): This does not apply to enums.
                 if (renamedSymbol.ContainingSymbol is INamedTypeSymbol &&
                     renamedSymbol.ContainingType.Name == renamedSymbol.Name &&
                     renamedSymbol.ContainingType.TypeKind != TypeKind.Enum)
@@ -852,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     conflicts.AddRange(DeclarationConflictHelpers.GetMembersWithConflictingSignatures((IMethodSymbol)renamedSymbol, trimOptionalParameters: false).Select(t => reverseMappedLocations[t]));
 
                     // we allow renaming overrides of VB property accessors with parameters in C#.
-                    // VB has a special rule that properties are not allowed to have the same name as any of the parameters. 
+                    // VB has a special rule that properties are not allowed to have the same name as any of the parameters.
                     // Because this declaration in C# affects the property declaration in VB, we need to check this VB rule here in C#.
                     var properties = new List<ISymbol>();
                     foreach (var referencedSymbol in referencedSymbols)
@@ -870,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
                 else if (renamedSymbol.Kind == SymbolKind.Alias)
                 {
-                    // in C# there can only be one using with the same alias name in the same block (top of file of namespace). 
+                    // in C# there can only be one using with the same alias name in the same block (top of file of namespace).
                     // It's ok to redefine the alias in different blocks.
                     var location = renamedSymbol.Locations.Single();
                     var token = await location.SourceTree.GetTouchingTokenAsync(location.SourceSpan.Start, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
@@ -1063,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                             }
                             else if (symbol.Name == "GetEnumerator")
                             {
-                                // we are a bit pessimistic here. 
+                                // we are a bit pessimistic here.
                                 // To be sure we would need to check if the returned type is having a MoveNext and Current as required by foreach
                                 if (!method.ReturnsVoid &&
                                     !method.Parameters.Any())
@@ -1221,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 escapedIdentifier = "@" + replacementText;
             }
 
-            // Make sure we got an identifier. 
+            // Make sure we got an identifier.
             if (!syntaxFactsService.IsValidIdentifier(escapedIdentifier))
             {
                 // We still don't have an identifier, so let's fail
