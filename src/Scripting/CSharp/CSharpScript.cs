@@ -31,14 +31,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
         /// <summary>
         /// Create a new C# script.
         /// </summary>
-        /// <param name="stream">The <see cref="Stream"/> representing the source code of the script.</param>
+        /// <param name="code">The <see cref="Stream"/> representing the source code of the script.</param>
         /// <param name="options">The script options.</param>
         /// <param name="globalsType">Type of global object.</param>
         /// <param name="assemblyLoader">Custom  assembly loader.</param>
         /// <typeparam name="T">The return type of the script</typeparam>
-        public static Script<T> Create<T>(Stream stream, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
+        /// <exception cref="ArgumentNullException">Stream is null.</exception>
+        /// <exception cref="ArgumentException">Stream is not readable or seekable.</exception>
+        public static Script<T> Create<T>(Stream code, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
         {
-            return Script.CreateInitialScript<T>(CSharpScriptCompiler.Instance, stream, options, globalsType, assemblyLoader);
+            return Script.CreateInitialScript<T>(CSharpScriptCompiler.Instance, code, options, globalsType, assemblyLoader);
         }
 
         /// <summary>
@@ -57,13 +59,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
         /// <summary>
         /// Create a new C# script.
         /// </summary>
-        /// <param name="stream">The <see cref="Stream"/> representing the source code of the script.</param>
+        /// <param name="code">The <see cref="Stream"/> representing the source code of the script.</param>
         /// <param name="options">The script options.</param>
         /// <param name="globalsType">Type of global object.</param>
         /// <param name="assemblyLoader">Custom  assembly loader.</param>
-        public static Script<object> Create(Stream stream, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
+        /// <exception cref="ArgumentNullException">Stream is null.</exception>
+        /// <exception cref="ArgumentException">Stream is not readable or seekable.</exception>
+        public static Script<object> Create(Stream code, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
         {
-            return Create<object>(stream, options, globalsType, assemblyLoader);
+            return Create<object>(code, options, globalsType, assemblyLoader);
         }
 
         /// <summary>

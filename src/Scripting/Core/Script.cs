@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Scripting
             return new Script<T>(compiler, new ScriptBuilder(assemblyLoaderOpt ?? new InteractiveAssemblyLoader()), codeOpt ?? "", optionsOpt ?? ScriptOptions.Default, globalsTypeOpt, previousOpt: null);
         }
 
-        internal static Script<T> CreateInitialScript<T>(ScriptCompiler compiler, Stream stream, ScriptOptions optionsOpt, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoaderOpt)
+        internal static Script<T> CreateInitialScript<T>(ScriptCompiler compiler, Stream code, ScriptOptions optionsOpt, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoaderOpt)
         {
-            return new Script<T>(compiler, new ScriptBuilder(assemblyLoaderOpt ?? new InteractiveAssemblyLoader()), stream, optionsOpt ?? ScriptOptions.Default, globalsTypeOpt, previousOpt: null);
+            return new Script<T>(compiler, new ScriptBuilder(assemblyLoaderOpt ?? new InteractiveAssemblyLoader()), code, optionsOpt ?? ScriptOptions.Default, globalsTypeOpt, previousOpt: null);
         }
 
         /// <summary>
@@ -102,8 +102,10 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Continues the script with given <see cref="Stream"/> representing code.
         /// </summary>
-        public Script<object> ContinueWith(Stream stream, ScriptOptions options = null) =>
-            ContinueWith<object>(stream, options);
+        /// <exception cref="ArgumentNullException">Stream is null.</exception>
+        /// <exception cref="ArgumentException">Stream is not readable or seekable.</exception>
+        public Script<object> ContinueWith(Stream code, ScriptOptions options = null) =>
+            ContinueWith<object>(code, options);
 
         /// <summary>
         /// Continues the script with given code snippet.
@@ -115,8 +117,10 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Continues the script with given <see cref="Stream"/> representing code.
         /// </summary>
-        public Script<TResult> ContinueWith<TResult>(Stream stream, ScriptOptions options = null) =>
-            new Script<TResult>(Compiler, Builder, stream, options ?? InheritOptions(Options), GlobalsType, this);
+        /// <exception cref="ArgumentNullException">Stream is null.</exception>
+        /// <exception cref="ArgumentException">Stream is not readable or seekable.</exception>
+        public Script<TResult> ContinueWith<TResult>(Stream code, ScriptOptions options = null) =>
+            new Script<TResult>(Compiler, Builder, code, options ?? InheritOptions(Options), GlobalsType, this);
 
         private static ScriptOptions InheritOptions(ScriptOptions previous)
         {
@@ -309,8 +313,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
         }
 
-        internal Script(ScriptCompiler compiler, ScriptBuilder builder, Stream stream, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
-            : base(compiler, builder, SourceText.From(stream, options.FileEncoding), options, globalsTypeOpt, previousOpt)
+        internal Script(ScriptCompiler compiler, ScriptBuilder builder, Stream code, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
+            : base(compiler, builder, SourceText.From(code, options.FileEncoding), options, globalsTypeOpt, previousOpt)
         {
         }
 
