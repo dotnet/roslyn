@@ -11,11 +11,11 @@ namespace Roslyn.VisualStudio.Setup
     /// It's just a wrapper for <see cref="ProvideBindingRedirectionAttribute"/> that sets all the defaults rather than duplicating them.
     /// </summary>
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-    internal sealed class ProvideRoslynBindingRedirectionAttribute : RegistrationAttribute
+    internal sealed class ProvideDependencyBindingRedirectionAttribute : RegistrationAttribute
     {
         private readonly ProvideBindingRedirectionAttribute _redirectionAttribute;
 
-        public ProvideRoslynBindingRedirectionAttribute(string fileName)
+        public ProvideDependencyBindingRedirectionAttribute(string fileName)
         {
             // ProvideBindingRedirectionAttribute is sealed, so we can't inherit from it to provide defaults.
             // Instead, we'll do more of an aggregation pattern here.
