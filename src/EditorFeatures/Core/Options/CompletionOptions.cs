@@ -10,5 +10,10 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
         [ExportOption]
         public static readonly Option<bool> UseSuggestionMode = new Option<bool>(FeatureName, nameof(UseSuggestionMode), defaultValue: false);
+
+        // Default into suggestion mode in the watch/immediate windows but respect the
+        // user's preferences if they switch away from it.
+        [ExportOption]
+        public static readonly Option<bool> UseSuggestionMode_Debugger = new Option<bool>(FeatureName, nameof(UseSuggestionMode_Debugger), defaultValue: true);
     }
 }
