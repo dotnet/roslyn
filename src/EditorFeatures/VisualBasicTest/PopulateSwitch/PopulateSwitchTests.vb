@@ -42,6 +42,35 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
+        Public Async Function OnlyOnFirstToken() As Task
+            Dim markup =
+<File>
+Enum MyEnum
+    Fizz
+    Buzz
+    FizzBuzz
+End Enum
+Class Foo
+    Sub Bar()
+        Dim e = MyEnum.Fizz
+        Select Case [||]e
+            Case MyEnum.Fizz
+                Exit Select
+            Case MyEnum.Buzz
+                Exit Select
+            Case MyEnum.FizzBuzz
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+    End Sub
+End Class
+</File>
+
+            Await TestMissingAsync(markup)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)>
         Public Async Function AllMembersAndElseExist() As Task
             Dim markup =
 <File>

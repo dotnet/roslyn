@@ -45,6 +45,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
+        public async Task OnlyOnFirstToken()
+        {
+            await TestMissingAsync(
+@"namespace ConsoleApplication1
+{
+    enum MyEnum
+    {
+        Fizz,
+        Buzz,
+        FizzBuzz
+    }
+
+    class MyClass
+    {
+        void Method()
+        {
+            var e = MyEnum.Fizz;
+            switch ([||]e)
+            {
+                case MyEnum.Fizz:
+                case MyEnum.Buzz:
+                default:
+                    break;
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         public async Task AllMembersAndDefaultExist()
         {
             await TestMissingAsync(
