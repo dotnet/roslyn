@@ -518,10 +518,13 @@ namespace Microsoft.CodeAnalysis.Execution
                 writer.WriteString(nameof(AnalyzerFileReference));
                 writer.WriteInt32((int)SerializationKinds.FilePath);
 
-                if (!checksum)
+                if (checksum)
                 {
                     // we don't write full path when creating checksum
-                    writer.WriteString(file.FullPath);
+                    // make sure we always normalize assemblyPath to lower case since it comes from Assembly.Location
+                    // unlike FullPath which comes from string
+                    writer.WriteString(assemblyPath.ToLowerInvariant());
+                    return;
                 }
 
                 // TODO: remove this kind of host specific knowledge from common layer.
@@ -531,6 +534,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 // snapshot version for analyzer (since it is based on shadow copy)
                 // we can't send over bits and load analyer from memory (image) due to CLR not being able
                 // to find satellite dlls for analyzers.
+                writer.WriteString(file.FullPath);
                 writer.WriteString(assemblyPath);
                 return;
             }
