@@ -20,16 +20,16 @@ namespace Microsoft.CodeAnalysis
             private readonly CommonCompiler _compiler;
             private readonly string _filePath;
             private Stream _streamToDispose;
-            private readonly Action<Exception, string> _exceptionHandler;
+            private readonly DiagnosticBag _diagnostics;
 
             internal CompilerEmitStreamProvider(
                 CommonCompiler compiler,
                 string filePath,
-                Action<Exception, string> exceptionHandler)
+                DiagnosticBag diagnostics)
             {
                 _compiler = compiler;
                 _filePath = filePath;
-                _exceptionHandler = exceptionHandler;
+                _diagnostics = diagnostics;
             }
 
             public void Dispose()
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e)
                 {
-                    _exceptionHandler(e, _filePath);
+                    ReportOpenFileDiagnostic(_diagnostics, e);
                 }
             }
 

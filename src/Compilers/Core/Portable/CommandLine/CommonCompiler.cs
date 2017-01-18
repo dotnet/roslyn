@@ -587,8 +587,8 @@ namespace Microsoft.CodeAnalysis
                 var finalXmlFilePath = Arguments.DocumentationPath;
 
                 var diagnosticBag = DiagnosticBag.GetInstance();
-                bool streamDisposalFailure = false;
-                NoThrowStreamDisposer? sourceLinkStreamDisposerOpt = null;
+                NoThrowStreamDisposer sourceLinkStreamDisposerOpt = null;
+                Action<Exception, string, TextWriter> reportExceptionDelegate = ReportExceptionAsDiagnostic;
 
                 try
                 {
@@ -623,11 +623,9 @@ namespace Microsoft.CodeAnalysis
                         {
                             sourceLinkStreamDisposerOpt = new NoThrowStreamDisposer(
                                 sourceLinkStreamOpt,
-                                e =>
-                                {
-                                    streamDisposalFailure = true;
-                                    ReportExceptionAsDiagnostic(e, Arguments.SourceLink, consoleOutput);
-                                });
+                                Arguments.SourceLink,
+                                consoleOutput,
+                                reportExceptionDelegate);
                         }
                     }
 
@@ -658,7 +656,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 // NOTE: as native compiler does, we generate the documentation file
                                 // NOTE: 'in place', replacing the contents of the file if it exists
-                                NoThrowStreamDisposer? xmlStreamDisposerOpt = null;
+                                NoThrowStreamDisposer xmlStreamDisposerOpt = null;
 
                                 if (finalXmlFilePath != null)
                                 {
@@ -676,11 +674,9 @@ namespace Microsoft.CodeAnalysis
                                     xmlStreamOpt.SetLength(0);
                                     xmlStreamDisposerOpt = new NoThrowStreamDisposer(
                                         xmlStreamOpt,
-                                        e =>
-                                        {
-                                            streamDisposalFailure = true;
-                                            ReportExceptionAsDiagnostic(e, finalXmlFilePath, consoleOutput);
-                                        });
+                                        finalXmlFilePath,
+                                        consoleOutput,
+                                        reportExceptionDelegate);
                                 }
 
                                 using (xmlStreamDisposerOpt)
@@ -702,7 +698,7 @@ namespace Microsoft.CodeAnalysis
                                     }
                                 }
 
-                                if (streamDisposalFailure)
+                                if (xmlStreamDisposerOpt?.Failed == true)
                                 {
                                     return Failed;
                                 }
@@ -738,19 +734,9 @@ namespace Microsoft.CodeAnalysis
                         {
                             bool emitPdbFile = Arguments.EmitPdb && emitOptions.DebugInformationFormat != Emit.DebugInformationFormat.Embedded;
 
-                            using (var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath,
-                                (e, filePath) =>
-                                {
-                                    streamDisposalFailure = true;
-                                    ReportExceptionAsDiagnostic(e, filePath, consoleOutput);
-                                }))
+                            using (var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath, diagnosticBag))
                             using (var pdbStreamProviderOpt = emitPdbFile
-                                ? new CompilerEmitStreamProvider(this, finalPdbFilePath,
-                                    (e, filePath) =>
-                                    {
-                                        streamDisposalFailure = true;
-                                        ReportExceptionAsDiagnostic(e, filePath, consoleOutput);
-                                    })
+                                ? new CompilerEmitStreamProvider(this, finalPdbFilePath, diagnosticBag)
                                 : null)
                             {
                                 success = compilation.SerializeToPeStream(
@@ -771,11 +757,6 @@ namespace Microsoft.CodeAnalysis
                                     touchedFilesLogger.AddWritten(finalPeFilePath);
                                 }
                             }
-
-                            if (streamDisposalFailure)
-                            {
-                                return Failed;
-                            }
                         }
                     }
 
@@ -791,7 +772,7 @@ namespace Microsoft.CodeAnalysis
                     sourceLinkStreamDisposerOpt?.Dispose();
                 }
 
-                if (streamDisposalFailure)
+                if (sourceLinkStreamDisposerOpt?.Failed == true)
                 {
                     return Failed;
                 }
