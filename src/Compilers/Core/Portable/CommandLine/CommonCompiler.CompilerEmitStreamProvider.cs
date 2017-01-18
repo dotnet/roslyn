@@ -20,16 +20,28 @@ namespace Microsoft.CodeAnalysis
             private readonly CommonCompiler _compiler;
             private readonly string _filePath;
             private Stream _streamToDispose;
+            private readonly Action<Exception, string> _exceptionHandler;
 
-            internal CompilerEmitStreamProvider(CommonCompiler compiler, string filePath)
+            internal CompilerEmitStreamProvider(
+                CommonCompiler compiler,
+                string filePath,
+                Action<Exception, string> exceptionHandler)
             {
                 _compiler = compiler;
                 _filePath = filePath;
+                _exceptionHandler = exceptionHandler;
             }
 
             public void Dispose()
             {
-                _streamToDispose?.Dispose();
+                try
+                {
+                    _streamToDispose?.Dispose();
+                }
+                catch (Exception e)
+                {
+                    _exceptionHandler(e, _filePath);
+                }
             }
 
             public override Stream Stream => null;
