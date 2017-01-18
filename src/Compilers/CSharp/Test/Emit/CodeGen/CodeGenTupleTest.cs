@@ -21747,5 +21747,124 @@ class C
             var tupleType = model.GetTypeInfo(tuple);
             Assert.Equal("(System.Int32 Alice, ?)", tupleType.Type.ToTestDisplayString());
         }
+
+        [Fact]
+        [WorkItem(168348, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=168348")]
+        void Test()
+        {
+            string source = @"
+using System;
+
+public class List<T>
+{
+    const int defaultCapacity = 4;
+    T[] items;
+    int count;
+    public List(int capacity = defaultCapacity)
+    {
+        items = new T[capacity];
+    }
+    public int Count
+    {
+        get { return count; }
+    }
+    public int Capacity
+    {
+        get
+        {
+            return items.Length;
+        }
+        set
+        {
+            if (value < count) value = count;
+            if (value != items.Length)
+            {
+                T[] newItems = new T[value];
+                Array.Copy( items, 0, newItems, 0, count );
+                items = newItems;
+            }
+        }
+    }
+
+    public T this[int index]
+    {
+        get
+        {
+            return items[index];
+        }
+        set
+        {
+            items[index] = value;
+            OnChanged( );
+        }
+    }
+
+    public void Add(T item)
+    {
+        if (count == Capacity) Capacity = count * 2;
+        items[count] = item;
+        count++;
+        OnChanged( );
+    }
+    protected virtual void OnChanged()
+    {
+        if (Changed != null) Changed( this, EventArgs.Empty );
+    }
+    public override bool Equals(object other)
+    {
+        return Equals( this, other as List<T> );
+    }
+    static bool Equals(List<T> a, List<T> b)
+    {
+        if (a == null) return b == null;
+        if (b == null || a.count != b.count) return false;
+        for (int i = 0; i < a.count; i++)
+        {
+            if (!object.Equals( a.items[i], b.items[i] ))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public event EventHandler Changed;
+
+    public static bool operator ==(List<T> a, List<T> b)
+    {
+        return Equals( a, b );
+    }
+    public static bool operator !=(List<T> a, List<T> b)
+    {
+        return !Equals( a, b );
+    }
+}
+
+class Test
+{
+    static void Main()
+    {
+        List<int> a = new List<int>( );
+        a.Add( 1 );
+        a.Add( 2 );
+        List<int> b = new List<int>( );
+        b.Add( 1 );
+        b.Add( 2 );
+        Console.WriteLine( a == b ); // Outputs True
+        b.Add(3);
+        Console.WriteLine(a == b); // Outputs False
+    }
+} ";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (4,14): warning CS0659: 'List<T>' overrides Object.Equals(object o) but does not override Object.GetHashCode()
+                // public class List<T>
+                Diagnostic(ErrorCode.WRN_EqualsWithoutGetHashCode, "List").WithArguments("List<T>").WithLocation(4, 14),
+                // (4,14): warning CS0661: 'List<T>' defines operator == or operator != but does not override Object.GetHashCode()
+                // public class List<T>
+                Diagnostic(ErrorCode.WRN_EqualityOpWithoutGetHashCode, "List").WithArguments("List<T>").WithLocation(4, 14)
+                );
+            CompileAndVerify(comp, expectedOutput: "");
+        }
     }
 }
