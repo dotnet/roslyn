@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis
                 // method type parameter in our parameter-list or return type, we won't recurse
                 // into it, but will instead only write out the type parameter ordinal.  This
                 // happens with cases like Foo<T>(T t);
-                Debug.Assert(!visitor.WritingSignature);
-                visitor.WritingSignature = true;
+                visitor.PushMethod(symbol);
 
                 visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
 
@@ -101,8 +100,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Done writing the signature.  Go back to normal mode.
-                Debug.Assert(visitor.WritingSignature);
-                visitor.WritingSignature = false;
+                visitor.PopMethod(symbol);
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
@@ -191,14 +189,11 @@ namespace Microsoft.CodeAnalysis
                     // Also set the current method so that we can properly resolve
                     // method type parameter ordinals.
                     reader.Position = beforeParametersPosition;
-
-                    Debug.Assert(reader.CurrentMethod == null);
-                    reader.CurrentMethod = method;
+                    reader.PushMethod(method);
 
                     var result = Resolve(reader, isPartialMethodImplementationPart, method);
 
-                    Debug.Assert(reader.CurrentMethod == method);
-                    reader.CurrentMethod = null;
+                    reader.PopMethod(method);
 
                     if (result != null)
                     {

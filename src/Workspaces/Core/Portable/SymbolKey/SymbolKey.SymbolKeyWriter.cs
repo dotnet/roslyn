@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -61,7 +62,8 @@ namespace Microsoft.CodeAnalysis
 
             public Compilation Compilation { get; private set; }
             public CancellationToken CancellationToken { get; private set; }
-            public bool WritingSignature;
+
+            private List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
 
             internal int _nestingCount;
             private int _nextId;
@@ -80,6 +82,7 @@ namespace Microsoft.CodeAnalysis
             {
                 _symbolToId.Clear();
                 _stringBuilder.Clear();
+                _methodSymbolStack.Clear();
                 Compilation = null;
                 CancellationToken = default(CancellationToken);
                 _nestingCount = 0;
@@ -148,8 +151,8 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
-                var shouldWriteOrdinal = ShouldWriteTypeParameterOrdinal(symbol);
                 int id;
+                var shouldWriteOrdinal = ShouldWriteTypeParameterOrdinal(symbol, out var methodIndex);
                 if (!shouldWriteOrdinal)
                 {
                     if (_symbolToId.TryGetValue(symbol, out id))
@@ -494,10 +497,10 @@ namespace Microsoft.CodeAnalysis
                 // If it's a reference to a method type parameter, and we're currently writing
                 // out a signture, then only write out the ordinal of type parameter.  This 
                 // helps prevent recursion problems in cases like "Foo<T>(T t).
-                if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol))
+                if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol, out int methodIndex))
                 {
                     WriteType(SymbolKeyType.TypeParameterOrdinal);
-                    TypeParameterOrdinalSymbolKey.Create(typeParameterSymbol, this);
+                    TypeParameterOrdinalSymbolKey.Create(typeParameterSymbol, methodIndex, this);
                 }
                 else
                 {
@@ -507,11 +510,39 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            private bool ShouldWriteTypeParameterOrdinal(ISymbol symbol)
+            public bool ShouldWriteTypeParameterOrdinal(ISymbol symbol, out int methodIndex)
             {
-                return WritingSignature &&
-                    symbol.Kind == SymbolKind.TypeParameter &&
-                    ((ITypeParameterSymbol)symbol).TypeParameterKind != TypeParameterKind.Type;
+                if (symbol.Kind == SymbolKind.TypeParameter)
+                {
+                    var typeParameter = (ITypeParameterSymbol)symbol;
+                    if (typeParameter.TypeParameterKind == TypeParameterKind.Method)
+                    {
+                        for (int i = 0, n = _methodSymbolStack.Count; i < n; i++)
+                        {
+                            var method = _methodSymbolStack[i];
+                            if (typeParameter.DeclaringMethod.Equals(method))
+                            {
+                                methodIndex = i;
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                methodIndex = -1;
+                return false;
+            }
+
+            public void PushMethod(IMethodSymbol method)
+            {
+                _methodSymbolStack.Add(method);
+            }
+
+            public void PopMethod(IMethodSymbol method)
+            {
+                Contract.ThrowIfTrue(_methodSymbolStack.Count == 0);
+                Contract.ThrowIfFalse(method.Equals(_methodSymbolStack.Last()));
+                _methodSymbolStack.RemoveAt(_methodSymbolStack.Count - 1);
             }
         }
     }
