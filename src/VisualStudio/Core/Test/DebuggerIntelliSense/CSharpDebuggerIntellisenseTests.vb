@@ -682,7 +682,7 @@ $$</Document>
                            </Project>
                        </Workspace>
 
-            Using state = TestState.CreateCSharpTestState(text, False)
+            Using state = TestState.CreateCSharpTestState(text, isImmediateWindow:=False)
                 state.SendTypeChars("args")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("args", state.GetCurrentViewLineText())
