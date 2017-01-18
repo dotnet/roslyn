@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis
                     visitor.WriteSymbolKey(null);
                 }
 
-                // Done writing the signature.  Go back to normal mode.
+                // Done writing the signature of this method.  Remove it from the set of methods
+                // we're writing signatures for.
                 visitor.PopMethod(symbol);
             }
 
