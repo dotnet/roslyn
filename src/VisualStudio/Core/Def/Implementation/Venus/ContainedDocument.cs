@@ -125,9 +125,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             if (projectionBuffer != null)
             {
                 // For TypeScript hosted in HTML the source buffers will have type names
-                // HTMLX and TypeScript. RazorCSharp has an HTMLX base type but should 
-                // not be associated with the HTML host type. Use ContentType.TypeName 
-                // instead of ContentType.IsOfType for HTMLX to ensure the Razor host 
+                // HTMLX and TypeScript. RazorCSharp has an HTMLX base type but should
+                // not be associated with the HTML host type. Use ContentType.TypeName
+                // instead of ContentType.IsOfType for HTMLX to ensure the Razor host
                 // type is identified correctly.
                 if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(HTML) ||
                     string.Compare(HTMLX, b.ContentType.TypeName, StringComparison.OrdinalIgnoreCase) == 0))
@@ -755,7 +755,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 var currentVisibleSpanIndex = 0;
                 foreach (var change in changes)
                 {
-                    // Find the next visible span that either overlaps or intersects with 
+                    // Find the next visible span that either overlaps or intersects with
                     while (currentVisibleSpanIndex < visibleSpansInOriginal.Count &&
                            visibleSpansInOriginal[currentVisibleSpanIndex].End < change.Span.Start)
                     {
@@ -776,7 +776,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     affectedSpans.Add(currentVisibleSpanIndex);
                 }
 
-                edit.Apply();
+                edit.ApplyAndCancelOnException();
             }
         }
 
