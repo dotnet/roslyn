@@ -4296,6 +4296,40 @@ unsafe public class Typ
         }
 
         [Fact]
+        [WorkItem(16513, "https://github.com/dotnet/roslyn/issues/16513")]
+        public void OrderOfPatternOperands()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        object c = new C();
+        Console.WriteLine(c is 3);
+        c = 2;
+        Console.WriteLine(c is 3);
+        c = 3;
+        Console.WriteLine(c is 3);
+    }
+}
+class C
+{
+    override public bool Equals(object other)
+    {
+        return other is int x;
+    }
+    override public int GetHashCode() => 0;
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: @"False
+False
+True");
+        }
+
+        [Fact]
         public void MultiplyInPattern()
         {
             // pointer types are not supported in patterns. Therefore an attempt to use
