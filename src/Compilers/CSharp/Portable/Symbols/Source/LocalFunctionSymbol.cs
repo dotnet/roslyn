@@ -166,10 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var param in _syntax.ParameterList.Parameters)
             {
-                foreach (var attrList in param.AttributeLists)
-                {
-                    diagnostics.Add(ErrorCode.ERR_AttributesInLocalFuncDecl, attrList.Location);
-                }
+                ReportAnyAttributes(diagnostics, param.AttributeLists);
             }
 
             var parameters = ParameterHelpers.MakeParameters(
@@ -188,6 +185,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             var value = new ParametersAndDiagnostics(parameters, isVararg, diagnostics.ToReadOnlyAndFree());
             Interlocked.CompareExchange(ref _lazyParametersAndDiagnostics, value, null);
+        }
+
+        private static void ReportAnyAttributes(DiagnosticBag diagnostics, SyntaxList<AttributeListSyntax> attributes)
+        {
+            foreach (var attrList in attributes)
+            {
+                diagnostics.Add(ErrorCode.ERR_AttributesInLocalFuncDecl, attrList.Location);
+            }
         }
 
         public override TypeSymbol ReturnType
@@ -364,10 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = identifier.GetLocation();
                 var name = identifier.ValueText;
 
-                foreach (var attr in parameter.AttributeLists)
-                {
-                    diagnostics.Add(ErrorCode.ERR_AttributesInLocalFuncDecl, attr.Location);
-                }
+                ReportAnyAttributes(diagnostics, parameter.AttributeLists);
 
                 foreach (var @param in result)
                 {
