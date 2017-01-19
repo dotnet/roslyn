@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis
 
             if (arity < 0)
             {
-                throw new ArgumentException(nameof(arity));
+                throw new ArgumentException($"{nameof(arity)} must be >= 0", nameof(arity));
             }
 
             return CommonCreateErrorTypeSymbol(container, name, arity);

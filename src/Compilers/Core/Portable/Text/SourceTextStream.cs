@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Text
                 // The buffer must be able to hold at least one character from the 
                 // SourceText stream.  Returning 0 for that case isn't correct because
                 // that indicates end of stream vs. insufficient buffer. 
-                throw new ArgumentException(nameof(count));
+                throw new ArgumentException($"{nameof(count)} must be less than {_minimumTargetBufferCount}", nameof(count));
             }
 
             int originalCount = count;
