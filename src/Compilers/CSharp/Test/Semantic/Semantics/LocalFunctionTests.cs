@@ -86,6 +86,7 @@ class C
                              .GetMember<NamedTypeSymbol>("CLSCompliantAttribute"),
                 attrs[2].AttributeClass);
             Assert.True(attrs[3].AttributeClass.IsErrorType());
+            comp.DeclarationDiagnostics.Verify();
         }
 
         [Fact]
@@ -141,6 +142,7 @@ class C
                              .GetMember<NamespaceSymbol>("System")
                              .GetMember<NamedTypeSymbol>("CLSCompliantAttribute"),
                 attrs[0].AttributeClass);
+            comp.DeclarationDiagnostics.Verify();
         }
 
         [Fact]
