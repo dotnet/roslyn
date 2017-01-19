@@ -138,6 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return node.Update(newLocals, newLocalFunctions, newStatements);
         }
 
+        public override abstract BoundNode VisitScope(BoundScope node);
+
         public override BoundNode VisitSequence(BoundSequence node)
         {
             var newLocals = RewriteLocals(node.Locals);
