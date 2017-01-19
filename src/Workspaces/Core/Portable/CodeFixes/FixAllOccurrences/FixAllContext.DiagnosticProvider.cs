@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 FixAllContext fixAllContext)
             {
                 var result = await GetDocumentDiagnosticsToFixWorkerAsync(fixAllContext).ConfigureAwait(false);
+
+                // Filter out any documents that we don't have any diagnostics for.
                 return result.Where(kvp => !kvp.Value.IsDefaultOrEmpty).ToImmutableDictionary();
             }
 
