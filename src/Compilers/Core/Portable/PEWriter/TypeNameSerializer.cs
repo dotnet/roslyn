@@ -56,30 +56,6 @@ namespace Microsoft.Cci
                 goto done;
             }
 
-            IManagedPointerTypeReference reference = typeReference as IManagedPointerTypeReference;
-            if (reference != null)
-            {
-                typeReference = reference.GetTargetType(context);
-                bool isAssemQual = false;
-                AppendSerializedTypeName(sb, typeReference, ref isAssemQual, context);
-                sb.Append('&');
-                goto done;
-            }
-
-            INamespaceTypeReference namespaceType = typeReference.AsNamespaceTypeReference;
-            if (namespaceType != null)
-            {
-                var name = namespaceType.NamespaceName;
-                if (name.Length != 0)
-                {
-                    sb.Append(name);
-                    sb.Append('.');
-                }
-
-                sb.Append(GetMangledAndEscapedName(namespaceType));
-                goto done;
-            }
-
             if (typeReference.IsTypeSpecification())
             {
                 ITypeReference uninstantiatedTypeReference = typeReference.GetUninstantiatedGenericType(context);
@@ -176,13 +152,6 @@ namespace Microsoft.Cci
                 return;
             }
 
-            IManagedPointerTypeReference reference = typeReference as IManagedPointerTypeReference;
-            if (reference != null)
-            {
-                AppendAssemblyQualifierIfNecessary(sb, reference.GetTargetType(context), out isAssemQualified, context);
-                return;
-            }
-
             isAssemQualified = false;
             IAssemblyReference referencedAssembly = null;
             INamespaceTypeReference namespaceType = typeReference.AsNamespaceTypeReference;
@@ -246,13 +215,6 @@ namespace Microsoft.Cci
                 if (pointer != null)
                 {
                     typeReference = pointer.GetTargetType(context);
-                    continue;
-                }
-
-                IManagedPointerTypeReference reference = typeReference as IManagedPointerTypeReference;
-                if (reference != null)
-                {
-                    typeReference = reference.GetTargetType(context);
                     continue;
                 }
 
