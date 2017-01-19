@@ -1594,6 +1594,51 @@ Class C
 End Class")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Async Function TestImplementThroughMemberEvent() As Task
+            Await TestAsync("
+Imports System.ComponentModel
+
+Class Worker
+	Implements INotifyPropertyChanged
+
+	Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
+End Class
+
+Class Boss
+	Implements [|INotifyPropertyChanged|]
+
+	Private worker As Worker
+End Class", "
+Imports System.ComponentModel
+
+Class Worker
+	Implements INotifyPropertyChanged
+
+	Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
+End Class
+
+Class Boss
+	Implements INotifyPropertyChanged
+
+	Private worker As Worker
+
+	Public Custom Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
+
+		AddHandler(value As PropertyChangedEventHandler)
+			AddHandler DirectCast(worker, INotifyPropertyChanged).PropertyChanged, value
+		End AddHandler
+
+		RemoveHandler(value As PropertyChangedEventHandler)
+			RemoveHandler DirectCast(worker, INotifyPropertyChanged).PropertyChanged, value
+		End RemoveHandler
+
+		RaiseEvent(sender As Object, e As PropertyChangedEventArgs)
+		End RaiseEvent
+	End Event
+End Class", index:=1)
+        End Function
+
         <WorkItem(543588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543588")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestNameSimplifyGenericType() As Task

@@ -2543,7 +2543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private class AddMissingTokensRewriter : CSharpSyntaxRewriter
         {
             private readonly bool _recurse;
-            private bool firstVisit = true;
+            private bool _firstVisit = true;
 
             public AddMissingTokensRewriter(bool recurse)
             {
@@ -2552,12 +2552,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
-                if (!_recurse && !firstVisit)
+                if (!_recurse && !_firstVisit)
                 {
                     return node;
                 }
 
-                firstVisit = false;
+                _firstVisit = false;
                 return base.Visit(node);
             }
 
@@ -3453,6 +3453,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         #endregion
 
         #region Statements and Expressions
+
+        public override SyntaxNode AddEventHandler(SyntaxNode @event, SyntaxNode handler)
+        {
+            return SyntaxFactory.AssignmentExpression(SyntaxKind.AddAssignmentExpression, (ExpressionSyntax)@event, Parenthesize(handler));
+        }
+
+        public override SyntaxNode RemoveEventHandler(SyntaxNode @event, SyntaxNode handler)
+        {
+            return SyntaxFactory.AssignmentExpression(SyntaxKind.SubtractAssignmentExpression, (ExpressionSyntax)@event, Parenthesize(handler));
+        }
 
         public override SyntaxNode AwaitExpression(SyntaxNode expression)
         {

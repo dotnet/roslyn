@@ -7,15 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
-using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
@@ -270,6 +266,112 @@ End Namespace";
                     returnType: typeof(int),
                     modifiers: new DeclarationModifiers(isSealed: true),
                     parameters: Parameters(Parameter(typeof(string), "s")));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddEvent()
+            {
+                var input = "Class [|C|] \n End Class";
+                var expected = "Class C \n Public Event E As Action \n End Class";
+                await TestAddEventAsync(input, expected,
+                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddEventWithAccessorAndImplementsClause()
+            {
+                var input = "Class [|C|] \n End Class";
+                var expected = @"
+Class C
+	Public Custom Event E As ComponentModel.PropertyChangedEventHandler Implements ComponentModel.INotifyPropertyChanged.PropertyChanged
+
+		AddHandler ( value As ComponentModel . PropertyChangedEventHandler )
+		End AddHandler
+
+		RemoveHandler ( value As ComponentModel . PropertyChangedEventHandler ) 
+		End RemoveHandler
+
+		RaiseEvent ( sender As Object , e As ComponentModel . PropertyChangedEventArgs ) 
+		End RaiseEvent
+	End Event
+End Class";
+                Func<SemanticModel, IEventSymbol> getExplicitInterfaceEvent = semanticModel =>
+                        {
+                            var parameterSymbols = SpecializedCollections.EmptyList<AttributeData>();
+                            return new CodeGenerationEventSymbol(GetTypeSymbol(typeof(System.ComponentModel.INotifyPropertyChanged))(semanticModel), null,
+                                Accessibility.Public,
+                                default(DeclarationModifiers),
+                                GetTypeSymbol(typeof(System.ComponentModel.PropertyChangedEventHandler))(semanticModel),
+                                null,
+                                nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null);
+                        };
+                await TestAddEventAsync(input, expected,
+                    addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(SpecializedCollections.EmptyList<AttributeData>(), Accessibility.NotApplicable, SpecializedCollections.EmptyList<SyntaxNode>()),
+                    explicitInterfaceSymbol: getExplicitInterfaceEvent,
+                    type: typeof(System.ComponentModel.PropertyChangedEventHandler),
+                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddEventWithAddAccessor()
+            {
+                var input = @"
+Class [|C|]
+End Class";
+                var expected = @"
+Class C
+    Public Custom Event E As Action
+
+        AddHandler(value As Action)
+        End AddHandler
+
+        RemoveHandler(value As Action)
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+
+    End Event
+End Class";
+                await TestAddEventAsync(input, expected,
+                    addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(SpecializedCollections.EmptyList<AttributeData>(), Accessibility.NotApplicable, SpecializedCollections.EmptyList<SyntaxNode>()),
+                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            public async Task AddEventWithAccessors()
+            {
+                var input = @"
+Class [|C|]
+End Class";
+                var expected = @"
+Class C
+    Public Custom Event E As Action
+
+        AddHandler(value As Action)
+            Console.WriteLine(0)
+        End AddHandler
+
+        RemoveHandler(value As Action)
+            Console.WriteLine(1)
+        End RemoveHandler
+
+        RaiseEvent()
+            Console.WriteLine(2)
+        End RaiseEvent
+    End Event
+End Class";
+                var addStatements = new List<SyntaxNode>() { VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(0)") };
+                var removeStatements = new List<SyntaxNode>() { VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(1)") };
+                var raiseStatements = new List<SyntaxNode>() { VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(2)") };
+                await TestAddEventAsync(input, expected,
+                    addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                        SpecializedCollections.EmptyList<AttributeData>(), Accessibility.NotApplicable, addStatements),
+                    removeMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                        SpecializedCollections.EmptyList<AttributeData>(), Accessibility.NotApplicable, removeStatements),
+                    raiseMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                        SpecializedCollections.EmptyList<AttributeData>(), Accessibility.NotApplicable, raiseStatements),
+                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]

@@ -310,6 +310,16 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
+        /// Creates a statement that adds the given handler to the given event.
+        /// </summary>
+        public abstract SyntaxNode AddEventHandler(SyntaxNode @event, SyntaxNode handler);
+
+        /// <summary>
+        /// Creates a statement that removes the given handler from the given event.
+        /// </summary>
+        public abstract SyntaxNode RemoveEventHandler(SyntaxNode @event, SyntaxNode handler);
+
+        /// <summary>
         /// Creates an event declaration.
         /// </summary>
         public abstract SyntaxNode EventDeclaration(
