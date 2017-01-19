@@ -40,7 +40,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsGlobalAttribute(SyntaxNode node);
         bool IsDeclaration(SyntaxNode node);
 
-        bool IsComment(SyntaxTrivia trivia);
+        bool IsRegularComment(SyntaxTrivia trivia);
+        bool IsDocumentationComment(SyntaxTrivia trivia);
+
         bool IsDocumentationComment(SyntaxNode node);
 
         bool IsNumericLiteralExpression(SyntaxNode node);

@@ -12,11 +12,13 @@ namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition
     [ExportWorkspaceService(typeof(IGeneratedCodeRecognitionService)), Shared]
     internal class GeneratedCodeRecognitionService : IGeneratedCodeRecognitionService
     {
+
         public bool IsGeneratedCode(Document document, CancellationToken cancellationToken)
         {
             var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            return GeneratedCodeUtilities.IsGeneratedCode(syntaxTree, syntaxFacts.IsComment, cancellationToken);
+            return GeneratedCodeUtilities.IsGeneratedCode(
+                syntaxTree, t => syntaxFacts.IsRegularComment(t) || syntaxFacts.IsDocumentationComment(t), cancellationToken);
         }
     }
 }

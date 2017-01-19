@@ -1602,8 +1602,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((invocationExpression as InvocationExpressionSyntax)?.ArgumentList.Arguments).Value;
         }
 
-        public bool IsComment(SyntaxTrivia trivia)
-            => trivia.IsRegularOrDocComment();
+        public bool IsRegularComment(SyntaxTrivia trivia)
+            => trivia.IsRegularComment();
+
+        public bool IsDocumentationComment(SyntaxTrivia trivia)
+            => trivia.IsDocComment();
 
         public bool IsDocumentationComment(SyntaxNode node)
             => SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
