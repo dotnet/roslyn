@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            localSymbol.GetDeclarationDiangostics(diagnostics);
+            localSymbol.GetDeclarationDiagnostics(diagnostics);
 
             return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
         }

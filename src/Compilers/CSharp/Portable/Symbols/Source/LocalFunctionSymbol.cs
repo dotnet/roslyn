@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal Binder ScopeBinder { get; }
 
-        internal void GetDeclarationDiangostics(DiagnosticBag addTo)
+        internal void GetDeclarationDiagnostics(DiagnosticBag addTo)
         {
             // Force attribute binding for diagnostics
             foreach (var typeParam in _typeParameters)
