@@ -25,6 +25,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _reference = reference;
             }
 
+            /// <summary>
+            /// If we're adding a metadata-reference, then we always offer to do the add,
+            /// even if there's an existing source-import in the file.
+            /// </summary>
             protected override bool ShouldAddWithExistingImport(Document document) => true;
 
             protected override (string description, bool hasExistingImport) GetDescription(

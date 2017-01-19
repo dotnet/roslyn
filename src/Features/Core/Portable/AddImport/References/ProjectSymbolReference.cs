@@ -39,6 +39,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     : WellKnownTagArrays.AddReference;
             }
 
+            /// <summary>
+            /// If we're adding a reference to another project, it's ok to still add, even if there
+            /// is an existing source-import in the file.  We won't add the import, but we'll still
+            /// add the project-reference.
+            /// </summary>
             protected override bool ShouldAddWithExistingImport(Document document)
                 => document.Project.Id != _project.Id;
 
