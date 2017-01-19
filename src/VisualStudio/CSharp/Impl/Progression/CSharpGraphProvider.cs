@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -11,11 +12,11 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
 {
-    [GraphProvider(Name = "VisualBasicRoslynProvider", ProjectCapability = "VisualBasic")]
-    internal sealed class VisualBasicGraphProvider : AbstractGraphProvider
+    [GraphProvider(Name = "CSharpRoslynProvider", IntellisenseType = Guids.CSharpProjectRootIdString)]
+    internal sealed class CSharpGraphProvider : AbstractGraphProvider
     {
         [ImportingConstructor]
-        public VisualBasicGraphProvider(
+        public CSharpGraphProvider(
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
             IProgressionPrimaryWorkspaceProvider workspaceProvider,

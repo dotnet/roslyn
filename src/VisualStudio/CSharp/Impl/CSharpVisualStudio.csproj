@@ -176,6 +176,7 @@
     <Compile Include="Options\IntelliSenseOptionPageControl.xaml.cs">
       <DependentUpon>IntelliSenseOptionPageControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Progression\CSharpGraphProvider.cs" />
     <Compile Include="Progression\CSharpProgressionLanguageService.cs" />
     <Compile Include="ProjectSystemShim\CSharpProjectShim.cs" />
     <Compile Include="ProjectSystemShim\CSharpProjectShim.ICSCompiler.cs" />
