@@ -1172,6 +1172,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var fullSpan = this.Root.FullSpan;
             var position = node.SpanStart;
+            if (node is StatementSyntax)
+            {
+                // skip zero-width tokens to get the postion, but never get past the end of the node
+                int betterPosition = node.GetFirstToken(includeZeroWidth: false).SpanStart;
+                if (betterPosition < node.Span.End)
+                {
+                    position = betterPosition;
+                }
+            }
 
             if (fullSpan.IsEmpty)
             {

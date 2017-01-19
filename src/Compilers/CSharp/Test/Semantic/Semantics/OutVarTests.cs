@@ -28829,6 +28829,30 @@ public static class S
         }
 
         [Fact]
+        [WorkItem(363727, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/363727")]
+        public void FindCorrectBinderOnEmbeddedStatementWithMissingIdentifier()
+        {
+            var source =
+    @"
+public class C
+{
+    static void M(string x)
+    {
+        if(true)
+            && int.TryParse(x, out int y)) id(iVal);
+        // Note that the embedded statement is parsed as a missing identifier, followed by && with many spaces attached as leading trivia
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "x").Single();
+            Assert.Equal("x", x.ToString());
+            Assert.Equal("System.String x", model.GetSymbolInfo(x).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
         public void DeclarationInLocalFunctionParameterDefault()
         {
             var text = @"
