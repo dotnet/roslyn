@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis
         {
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;
-            for (int i = 0; i < values.Length; i++)
+            foreach (var val in values)
             {
-                builder.Append(values[i].Text);
+                builder.Append(val.Text);
             }
 
             return pooled.ToStringAndFree();
