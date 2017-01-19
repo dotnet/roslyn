@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly LocalFunctionStatementSyntax _syntax;
         private readonly Symbol _containingSymbol;
         private readonly DeclarationModifiers _declarationModifiers;
-        private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
+        private readonly ImmutableArray<LocalFunctionTypeParameterSymbol> _typeParameters;
         private readonly RefKind _refKind;
         private ParametersAndDiagnostics _lazyParametersAndDiagnostics;
         private TypeParameterConstraintsAndDiagnostics _lazyTypeParameterConstraintsAndDiagnostics;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+                _typeParameters = ImmutableArray<LocalFunctionTypeParameterSymbol>.Empty;
             }
 
             if (IsExtensionMethod)
@@ -108,8 +108,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal Binder ScopeBinder { get; }
 
-        internal void GrabDiagnostics(DiagnosticBag addTo)
+        internal void GetDeclarationDiangostics(DiagnosticBag addTo)
         {
+            // Force attribute binding for diagnostics
+            foreach (var typeParam in _typeParameters)
+            {
+                typeParam.GetAttributesBag(addTo);
+            }
+
             // force lazy init
             ComputeParameters();
             ComputeReturnType();
@@ -236,7 +242,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeSymbol> TypeArguments => TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters => _typeParameters;
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters 
+            => _typeParameters.Cast<LocalFunctionTypeParameterSymbol, TypeParameterSymbol>();
 
         public override bool IsExtensionMethod
         {
@@ -346,9 +353,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(DiagnosticBag diagnostics)
+        private ImmutableArray<LocalFunctionTypeParameterSymbol> MakeTypeParameters(DiagnosticBag diagnostics)
         {
-            var result = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+            var result = ArrayBuilder<LocalFunctionTypeParameterSymbol>.GetInstance();
             var typeParameters = _syntax.TypeParameterList.Parameters;
             for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
             {
@@ -384,9 +391,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ordinal,
                         ImmutableArray.Create(location),
                         ImmutableArray.Create(parameter.GetReference()));
-
-                // Force attribute binding for diagnostics
-                typeParameter.GetAttributesBag(diagnostics);
 
                 result.Add(typeParameter);
             }
