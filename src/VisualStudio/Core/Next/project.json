@@ -24,7 +24,6 @@
     "Microsoft.Tpl.Dataflow": "4.5.24",
     "Microsoft.VisualStudio.Diagnostics.PerformanceProvider": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Shell.15.0": "15.0.26014-alpha",
-    "Microsoft.VisualStudio.GraphModel": "15.0.26014-alpha",
   },
   "frameworks": {
     "net46": { }
