@@ -118,8 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                     }
                     else
                     {
-                        VirtualSnapshotPoint unusedStart, unusedEnd;
-                        editorOperations.InsertTextAsBox(text, out unusedStart, out unusedEnd);
+                        editorOperations.InsertTextAsBox(text, out var unusedStart, out var unusedEnd);
                     }
                 }
                 else

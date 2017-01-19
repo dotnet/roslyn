@@ -42,7 +42,7 @@ namespace Roslyn.Hosting.Diagnostics
         /// <summary>
         /// let one such as ETA to set logger for the service layer
         /// </summary>
-        internal static void SetLogger(IOptionService optionsService, string loggerName)
+        internal static void SetLogger(IGlobalOptionService optionsService, string loggerName)
         {
             if (loggerName == null)
             {
@@ -90,12 +90,12 @@ namespace Roslyn.Hosting.Diagnostics
             return (FunctionId)Enum.Parse(typeof(FunctionId), functionId);
         }
 
-        private static ILogger GetLogger(IOptionService optionsService, string loggerName)
+        private static ILogger GetLogger(IGlobalOptionService optionsService, string loggerName)
         {
             switch (loggerName)
             {
                 case "EtwLogger":
-                    return new EtwLogger(Logger.GetLoggingChecker(optionsService));
+                    return new EtwLogger(optionsService);
                 case "TraceLogger":
                     return new TraceLogger(Logger.GetLoggingChecker(optionsService));
                 default:

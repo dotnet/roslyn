@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
@@ -14,13 +15,14 @@ using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
+    using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     internal partial class ServiceHubRemoteHostClient : RemoteHostClient
     {
         private readonly HubClient _hubClient;
         private readonly JsonRpc _rpc;
-        private readonly string _hostGroup;
+        private readonly HostGroup _hostGroup;
 
         public static async Task<RemoteHostClient> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
@@ -30,9 +32,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
                 var current = $"VS ({Process.GetCurrentProcess().Id})";
 
-                var remoteHostStream = await RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, current, cancellationToken).ConfigureAwait(false);
+                var hostGroup = new HostGroup(current);
+                var remoteHostStream = await RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, cancellationToken).ConfigureAwait(false);
 
-                var instance = new ServiceHubRemoteHostClient(workspace, primary, current, remoteHostStream);
+                var instance = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, remoteHostStream);
 
                 // make sure connection is done right
                 var host = await instance._rpc.InvokeAsync<string>(WellKnownRemoteHostServices.RemoteHostService_Connect, current).ConfigureAwait(false);
@@ -44,14 +47,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // Create a workspace host to hear about workspace changes.  We'll 
                 // remote those changes over to the remote side when they happen.
-                RegisterWorkspaceHost(workspace, instance);
+                await RegisterWorkspaceHostAsync(workspace, instance).ConfigureAwait(false);
 
                 // return instance
                 return instance;
             }
         }
 
-        private static void RegisterWorkspaceHost(Workspace workspace, RemoteHostClient client)
+        private static async Task RegisterWorkspaceHostAsync(Workspace workspace, RemoteHostClient client)
         {
             var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (vsWorkspace == null)
@@ -59,12 +62,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return;
             }
 
-            vsWorkspace.ProjectTracker.RegisterWorkspaceHost(
-                new WorkspaceHost(vsWorkspace, client));
+            // don't block UI thread while initialize workspace host
+            var host = new WorkspaceHost(vsWorkspace, client);
+            await host.InitializeAsync().ConfigureAwait(false);
+
+            // RegisterWorkspaceHost is required to be called from UI thread so push the code
+            // to UI thread to run. 
+            await Task.Factory.SafeStartNew(() =>
+            {
+                vsWorkspace.ProjectTracker.RegisterWorkspaceHost(host);
+            }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
         }
 
         private ServiceHubRemoteHostClient(
-            Workspace workspace, HubClient hubClient, string hostGroup, Stream stream) :
+            Workspace workspace, HubClient hubClient, HostGroup hostGroup, Stream stream) :
             base(workspace)
         {
             _hubClient = hubClient;
@@ -103,18 +114,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             Disconnected();
         }
 
-        private static async Task<Stream> RequestServiceAsync(HubClient client, string serviceName, string hostGroup, CancellationToken cancellationToken = default(CancellationToken))
+        private static async Task<Stream> RequestServiceAsync(HubClient client, string serviceName, HostGroup hostGroup, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // we can remove these once whole system moved to new servicehub API
-            try
+            const int max_retry = 10;
+            const int retry_delayInMS = 50;
+
+            // call to get service can fail due to this bug - devdiv#288961
+            // until root cause is fixed, we decide to have retry rather than fail right away
+            for (var i = 0; i < max_retry; i++)
             {
-                var descriptor = new ServiceDescriptor(serviceName) { HostGroup = new HostGroup(hostGroup) };
-                return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                try
+                {
+                    var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
+                    return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
+                }
+                catch (RemoteInvocationException ex)
+                {
+                    // RequestServiceAsync should never fail unless service itself is actually broken.
+                    // right now, we know only 1 case where it can randomly fail. but there might be more cases so 
+                    // adding non fatal watson here.
+                    FatalError.ReportWithoutCrash(ex);
+                }
+
+                // wait for retry_delayInMS before next try
+                await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
             }
-            catch
-            {
-                return await client.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
-            }
+
+            return Contract.FailWithReturn<Stream>("Fail to get service. look FatalError.s_reportedException for more detail");
         }
     }
 }

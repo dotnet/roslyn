@@ -293,5 +293,56 @@ class C
     }
 }");
         }
+
+        [WorkItem(15505, "https://github.com/dotnet/roslyn/issues/15505")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestOtherValueIsNotNull1()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        var v = [||]o == null ? 0 : o.ToString();
+    }
+}");
+        }
+
+        [WorkItem(15505, "https://github.com/dotnet/roslyn/issues/15505")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestOtherValueIsNotNull2()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        var v = [||]o != null ? o.ToString() : 0;
+    }
+}");
+        }
+
+        [WorkItem(16287, "https://github.com/dotnet/roslyn/issues/16287")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestMethodGroup()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class D
+{
+    void Foo()
+    {
+        var c = new C();
+        Action<string> a = [||]c != null ? c.M : (Action<string>)null;
+    }
+}
+class C { public void M(string s) { } }");
+        }
     }
 }

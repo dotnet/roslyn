@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             var singleSpan = selectedSpans.Single();
-            SnapshotSpan containingSpan;
-            if (_renameService.ActiveSession.TryGetContainingEditableSpan(singleSpan.Start, out containingSpan) &&
+            if (_renameService.ActiveSession.TryGetContainingEditableSpan(singleSpan.Start, out var containingSpan) &&
                 containingSpan.Contains(singleSpan))
             {
                 actionIfInsideActiveSpan(containingSpan);

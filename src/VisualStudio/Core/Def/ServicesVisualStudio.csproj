@@ -1,25 +1,27 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{86FD5B9A-4FA0-4B10-B59F-CFAF077A859C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices</AssemblyName>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <!-- This project includes the VS SDK targets so we can produce a .pkgdef, but should not produce a .vsix or anything related to it -->
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <CreateVsixContainer>false</CreateVsixContainer>
     <DeployExtension>false</DeployExtension>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <!-- We need to mark our NuGet.VisualStudio package reference as EmbedInteropTypes.  However,
        as this package comes from project.json there is no way to do that in the json file.
        To deal with that, we write this target which finds that added package, removes it from
@@ -117,6 +119,12 @@
     <Compile Include="Implementation\Extensions\VisualStudioWorkspaceImplExtensions.cs" />
     <Compile Include="Implementation\Options\LanguageSettingsPersister.cs" />
     <Compile Include="Implementation\ProjectSystem\Interop\IVsUndoState.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AbstractAddDocumentUndoUnit.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AbstractRemoveDocumentUndoUnit.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AddAdditionalDocumentUndoUnit.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AddDocumentUndoUnit.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.RemoveAdditionalDocumentUndoUnit.cs" />
+    <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.RemoveDocumentUndoUnit.cs" />
     <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.cs" />
     <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.RemoteHostClientService.cs" />
     <Compile Include="Implementation\Remote\RemoteHostClientServiceFactory.SolutionChecksumUpdater.cs" />
@@ -165,7 +173,6 @@
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptions.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioNavigationOptionsProvider.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
-    <Compile Include="IRoslynTelemetrySetup.cs" />
     <Compile Include="Packaging\Interop\SVsRemoteControlService.cs" />
     <Compile Include="Packaging\IPackageServicesProxy.cs" />
     <Compile Include="Storage\VisualStudioPersistentStorageLocationService.cs" />
@@ -214,10 +221,6 @@
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Dependencies\VisualStudio\VisualStudio.csproj">
-      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
-      <Name>VisualStudio</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
@@ -293,16 +296,7 @@
     <InternalsVisibleToFSharp Include="FSharp.LanguageService" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="microsoft.msxml, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -316,18 +310,6 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="UIAutomationProvider" />
     <Reference Include="UIAutomationTypes" />
-    <Reference Include="VSLangProj, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="VSLangProj80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="VSLangProj140, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="VsWebSite.Interop, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
@@ -670,7 +652,6 @@
     <Compile Include="Implementation\Workspace\VisualStudioSymbolNavigationServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioTextUndoHistoryWorkspaceServiceFactory.cs" />
     <Compile Include="Progression\GraphNodeCreation.cs" />
-    <Compile Include="RoslynDocumentProvider.cs" />
     <Compile Include="Utilities\SpanExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

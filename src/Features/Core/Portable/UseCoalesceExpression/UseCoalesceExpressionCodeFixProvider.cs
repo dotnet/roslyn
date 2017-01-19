@@ -8,9 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.FixAllOccurrences;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -18,12 +18,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    internal class UseCoalesceExpressionCodeFixProvider : CodeFixProvider
+    internal class UseCoalesceExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId);
 
-        public override FixAllProvider GetFixAllProvider() => new UseCoalesceExpressionFixAllProvider(this);
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -33,68 +34,54 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             return SpecializedTasks.EmptyTask;
         }
 
-        private Task<Document> FixAsync(
-            Document document,
-            Diagnostic diagnostic,
-            CancellationToken cancellationToken)
-        {
-            return FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
-        }
-
-        private async Task<Document> FixAllAsync(
-            Document document,
-            ImmutableArray<Diagnostic> diagnostics,
-            CancellationToken cancellationToken)
+        protected override Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-            var generator = editor.Generator;
 
             foreach (var diagnostic in diagnostics)
             {
-                var conditionalExpression = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-                var conditionalPartHigh = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
-                var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
-
-                SyntaxNode condition, whenTrue, whenFalse;
-                syntaxFacts.GetPartsOfConditionalExpression(
-                    conditionalExpression, out condition, out whenTrue, out whenFalse);
-
-                var conditionalPartLow = syntaxFacts.WalkDownParentheses(conditionalPartHigh);
-                editor.ReplaceNode(conditionalExpression,
-                    (c, g) => {
-                        SyntaxNode currentCondition, currentWhenTrue, currentWhenFalse;
-                        syntaxFacts.GetPartsOfConditionalExpression(
-                            c, out currentCondition, out currentWhenTrue, out currentWhenFalse);
-
-                        return whenPart == whenTrue
-                            ? g.CoalesceExpression(conditionalPartLow, syntaxFacts.WalkDownParentheses(currentWhenTrue))
-                            : g.CoalesceExpression(conditionalPartLow, syntaxFacts.WalkDownParentheses(currentWhenFalse));
-                    });
+                cancellationToken.ThrowIfCancellationRequested();
+                ApplyEdit(editor, syntaxFacts, diagnostic);
             }
 
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
+            return SpecializedTasks.EmptyTask;
         }
 
-        private class UseCoalesceExpressionFixAllProvider : DocumentBasedFixAllProvider
+        private static void ApplyEdit(SyntaxEditor editor, ISyntaxFactsService syntaxFacts, Diagnostic diagnostic)
         {
-            private readonly UseCoalesceExpressionCodeFixProvider _provider;
+            var root = editor.OriginalRoot;
+            var conditionalExpression = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
+            var conditionalPartHigh = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
+            var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
+            syntaxFacts.GetPartsOfConditionalExpression(
+                conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
 
-            public UseCoalesceExpressionFixAllProvider(UseCoalesceExpressionCodeFixProvider provider)
-            {
-                _provider = provider;
-            }
+            var conditionalPartLow = syntaxFacts.WalkDownParentheses(conditionalPartHigh);
+            editor.ReplaceNode(conditionalExpression,
+                (c, g) =>
+                {
+                    syntaxFacts.GetPartsOfConditionalExpression(
+                        c, out var currentCondition, out var currentWhenTrue, out var currentWhenFalse);
 
-            protected override Task<Document> FixDocumentAsync(
-                Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
-            {
-                var filteredDiagnostics = diagnostics.WhereAsArray(
-                    d => !d.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary));
-                return _provider.FixAllAsync(document, filteredDiagnostics, cancellationToken);
-            }
+                    var coalesceExpression = GetCoalesceExpression(
+                        syntaxFacts, g, whenPart, whenTrue, conditionalPartLow, 
+                        currentWhenTrue, currentWhenFalse);
+
+                    return coalesceExpression.WithAdditionalAnnotations(Formatter.Annotation);
+                });
+        }
+
+        private static SyntaxNode GetCoalesceExpression(
+            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, 
+            SyntaxNode whenPart, SyntaxNode whenTrue, 
+            SyntaxNode conditionalPartLow, 
+            SyntaxNode currentWhenTrue, SyntaxNode currentWhenFalse)
+        {
+            return whenPart == whenTrue
+                ? generator.CoalesceExpression(conditionalPartLow, syntaxFacts.WalkDownParentheses(currentWhenTrue))
+                : generator.CoalesceExpression(conditionalPartLow, syntaxFacts.WalkDownParentheses(currentWhenFalse));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

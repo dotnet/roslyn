@@ -167,14 +167,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Function MakeParameterSymbol(ordinal As Integer, name As String, sourceParameter As ParameterSymbol) As ParameterSymbol
-            Return New SynthesizedParameterSymbolWithCustomModifiers(
+            Return SynthesizedParameterSymbol.Create(
                 Me,
                 sourceParameter.Type,
                 ordinal,
                 sourceParameter.IsByRef,
                 name,
                 sourceParameter.CustomModifiers,
-                sourceParameter.CountOfCustomModifiersPrecedingByRef)
+                sourceParameter.RefCustomModifiers)
         End Function
 
         Public Overrides ReadOnly Property MethodKind As MethodKind
@@ -296,6 +296,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Property
 
         Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return ImmutableArray(Of CustomModifier).Empty
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
                 Return ImmutableArray(Of CustomModifier).Empty
             End Get

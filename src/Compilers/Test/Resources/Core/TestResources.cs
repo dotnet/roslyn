@@ -385,6 +385,9 @@ namespace TestResources.SymbolsTests
 
         private static byte[] s_modoptTests;
         public static byte[] ModoptTests => ResourceLoader.GetOrCreateResource(ref s_modoptTests, "SymbolsTests.CustomModifiers.ModoptTests.dll");
+
+        private static byte[] s_genericMethodWithModifiers;
+        public static byte[] GenericMethodWithModifiers => ResourceLoader.GetOrCreateResource(ref s_genericMethodWithModifiers, "SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll");
     }
 
     public static class Cyclic

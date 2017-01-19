@@ -262,21 +262,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerRefOutDifference: true,
             considerCustomModifiers: false);
 
-        /// <summary>
-        /// This instance is used as a key in the lambda return type inference.
-        /// We basically only interested in parameters since inference will set the return type to null.
-        /// </summary>
-        public static readonly MemberSignatureComparer LambdaReturnInferenceCacheComparer = new MemberSignatureComparer(
-            considerName: false,                // valid invoke is always called "Invoke"
-            considerExplicitlyImplementedInterfaces: false,
-            considerReturnType: true,           // to differentiate Task types
-            considerTypeConstraints: false,     // valid invoke is never generic
-            considerCallingConvention: false,   // valid invoke is never static
-            considerRefOutDifference: true,
-            considerCustomModifiers: true,
-            ignoreDynamic: false,
-            ignoreTupleNames: false);
-
         // Compare the "unqualified" part of the member name (no explicit part)
         private readonly bool _considerName;
 
@@ -456,8 +441,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     RefKind refKind;
                     TypeSymbol returnType;
-                    ImmutableArray<CustomModifier> returnTypeCustomModifiers;
-                    member.GetTypeOrReturnType(out refKind, out returnType, out returnTypeCustomModifiers);
+                    ImmutableArray<CustomModifier> customModifiers_Ignored;
+                    member.GetTypeOrReturnType(out refKind, out returnType, out customModifiers_Ignored, out customModifiers_Ignored);
 
                     hash = Hash.Combine((int)refKind, hash);
 
@@ -487,12 +472,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind1;
             TypeSymbol unsubstitutedReturnType1;
             ImmutableArray<CustomModifier> returnTypeCustomModifiers1;
-            member1.GetTypeOrReturnType(out refKind1, out unsubstitutedReturnType1, out returnTypeCustomModifiers1);
+            ImmutableArray<CustomModifier> refCustomModifiers1;
+            member1.GetTypeOrReturnType(out refKind1, out unsubstitutedReturnType1, out returnTypeCustomModifiers1, out refCustomModifiers1);
 
             RefKind refKind2;
             TypeSymbol unsubstitutedReturnType2;
             ImmutableArray<CustomModifier> returnTypeCustomModifiers2;
-            member2.GetTypeOrReturnType(out refKind2, out unsubstitutedReturnType2, out returnTypeCustomModifiers2);
+            ImmutableArray<CustomModifier> refCustomModifiers2;
+            member2.GetTypeOrReturnType(out refKind2, out unsubstitutedReturnType2, out returnTypeCustomModifiers2, out refCustomModifiers2);
 
             // short-circuit type map building in the easiest cases
             if ((refKind1 != RefKind.None) != (refKind2 != RefKind.None))
@@ -508,22 +495,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (isVoid1)
-            {
-                if (considerCustomModifiers && !returnTypeCustomModifiers1.SequenceEqual(returnTypeCustomModifiers2))
-                {
-                    return false;
-                }
-
-                return true;
-            }
-
             var returnType1 = SubstituteType(typeMap1, new TypeWithModifiers(unsubstitutedReturnType1, returnTypeCustomModifiers1));
             var returnType2 = SubstituteType(typeMap2, new TypeWithModifiers(unsubstitutedReturnType2, returnTypeCustomModifiers2));
 
             // the runtime compares custom modifiers using (effectively) SequenceEqual
             return considerCustomModifiers ?
-                returnType1.Equals(returnType2, TypeCompareKind.ConsiderEverything.AddIgnoreDynamic(ignoreDynamic).AddIgnoreTupleNames(ignoreTupleNames)) :
+                returnType1.Equals(returnType2, TypeCompareKind.ConsiderEverything.AddIgnoreDynamic(ignoreDynamic).AddIgnoreTupleNames(ignoreTupleNames)) &&
+                    SubstituteModifiers(typeMap1, refCustomModifiers1).SequenceEqual(SubstituteModifiers(typeMap2, refCustomModifiers2)) :
                 returnType1.Type.Equals(returnType2.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds.AddIgnoreDynamic(ignoreDynamic).AddIgnoreTupleNames(ignoreTupleNames));
         }
 
@@ -667,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (considerCustomModifiers)
                 {
                     if (!type1.Equals(type2, TypeCompareKind.ConsiderEverything.AddIgnoreDynamic(ignoreDynamic).AddIgnoreTupleNames(ignoreTupleNames)) || 
-                        (param1.CountOfCustomModifiersPrecedingByRef != param2.CountOfCustomModifiersPrecedingByRef))
+                        !SubstituteModifiers(typeMap1, param1.RefCustomModifiers).SequenceEqual(SubstituteModifiers(typeMap2, param2.RefCustomModifiers)))
                     {
                         return false;
                     }
@@ -703,6 +681,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static TypeWithModifiers SubstituteType(TypeMap typeMap, TypeWithModifiers typeSymbol)
         {
             return typeMap == null ? typeSymbol : typeSymbol.SubstituteType(typeMap);
+        }
+
+        private static ImmutableArray<CustomModifier> SubstituteModifiers(TypeMap typeMap, ImmutableArray<CustomModifier> customModifiers)
+        {
+            return typeMap == null ? customModifiers : typeMap.SubstituteCustomModifiers(customModifiers);
         }
 
         private static Cci.CallingConvention GetCallingConvention(Symbol member)

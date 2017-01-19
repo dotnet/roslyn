@@ -195,10 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
                 var commandArgs = new FormatDocumentCommandArgs(view, view.TextBuffer);
                 commandHandler.ExecuteCommand(commandArgs, () => { });
-
-                string expected;
-                int expectedPosition;
-                MarkupTestFile.GetPosition(expectedWithMarker, out expected, out expectedPosition);
+                MarkupTestFile.GetPosition(expectedWithMarker, out var expected, out int expectedPosition);
 
                 Assert.Equal(expected, view.TextSnapshot.GetText());
 
@@ -240,9 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                     commandHandler.ExecuteCommand(commandArgs, () => { });
                 }
 
-                string expected;
-                int expectedPosition;
-                MarkupTestFile.GetPosition(expectedWithMarker, out expected, out expectedPosition);
+                MarkupTestFile.GetPosition(expectedWithMarker, out var expected, out int expectedPosition);
 
                 Assert.Equal(expected, view.TextSnapshot.GetText());
 
@@ -254,9 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
         protected async Task AssertFormatWithBaseIndentAsync(string expected, string markupCode, int baseIndentation)
         {
-            string code;
-            TextSpan span;
-            MarkupTestFile.GetSpan(markupCode, out code, out span);
+            MarkupTestFile.GetSpan(markupCode, out var code, out var span);
 
             await AssertFormatAsync(
                 expected,

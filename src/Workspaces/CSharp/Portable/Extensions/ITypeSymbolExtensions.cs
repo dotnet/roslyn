@@ -6,9 +6,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -132,6 +134,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 default:
                     return false;
             }
+        }
+
+        public static TypeSyntax GenerateTypeSyntaxOrVar(
+            this ITypeSymbol symbol, OptionSet options, bool typeIsApperant)
+        {
+            var useVar = IsVarDesired(symbol, options, typeIsApperant);
+
+            return useVar
+                ? SyntaxFactory.IdentifierName("var")
+                : symbol.GenerateTypeSyntax();
+        }
+
+        private static bool IsVarDesired(ITypeSymbol type, OptionSet options, bool typeIsApperant)
+        {
+            // If they want it for intrinsics, and this is an intrinsic, then use var.
+            if (type.IsSpecialType() == true)
+            {
+                return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
+            }
+
+            // If they want it only for apperant types, then only use "var" if the caller
+            // says the type was apperant.
+            if (typeIsApperant)
+            {
+                return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Value;
+            }
+
+            // If they want "var" whenever possible, then use "var".
+            return  options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Value;
         }
     }
 }

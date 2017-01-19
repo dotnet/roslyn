@@ -2,7 +2,7 @@
 
 ROSLYN_TOOLSET_PATH=$1
 NUGET_EXE=$2
-DOTNET_PATH=$ROSLYN_TOOLSET_PATH/dotnet-cli/dotnet
+DOTNET_PATH=$ROSLYN_TOOLSET_PATH/../dotnet-cli/dotnet
 
 # Workaround, see https://github.com/dotnet/roslyn/issues/10210
 export HOME=$(cd ~ && pwd)

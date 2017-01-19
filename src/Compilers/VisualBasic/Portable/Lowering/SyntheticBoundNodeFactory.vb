@@ -357,6 +357,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Block(locals, ImmutableArray.Create(Of BoundStatement)(statements))
         End Function
 
+        Public Function StatementList() As BoundStatementList
+            Return StatementList(ImmutableArray(Of BoundStatement).Empty)
+        End Function
+
         Public Function StatementList(statements As ImmutableArray(Of BoundStatement)) As BoundStatementList
             Dim boundNode As New BoundStatementList(Syntax, statements)
             boundNode.SetWasCompilerGenerated()

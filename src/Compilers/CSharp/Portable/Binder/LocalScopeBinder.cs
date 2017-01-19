@@ -199,11 +199,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, enclosingBinder.GetBinder(switchStatement.Expression) ?? enclosingBinder);
                         break;
 
-                    case SyntaxKind.WhileStatement:
-                    case SyntaxKind.DoStatement:
                     case SyntaxKind.LockStatement:
                         Binder statementBinder = enclosingBinder.GetBinder(innerStatement);
-                        Debug.Assert(statementBinder != null); // Lock, Do and while loops always have binders.
+                        Debug.Assert(statementBinder != null); // Lock always has a binder.
                         ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, statementBinder);
                         break;
 

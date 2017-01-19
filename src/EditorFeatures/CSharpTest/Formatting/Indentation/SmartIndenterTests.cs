@@ -2570,7 +2570,7 @@ class C
                 expectedIndentation: 8);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/15813"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task DontCreateIndentOperationForBrokenBracketedArgumentList()
         {
             var code = @"
@@ -2583,7 +2583,8 @@ class Program
     }
 }
 ";
-
+            // Need to confirm expected behavior after discard/deconstruction parsing changes
+            // https://github.com/dotnet/roslyn/issues/15813
             await AssertSmartIndentAsync(
                 code,
                 indentationLine: 6,

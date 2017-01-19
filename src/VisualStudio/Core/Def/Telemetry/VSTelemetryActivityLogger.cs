@@ -30,11 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         {
             _service = service;
             _pendingActivities = new ConcurrentDictionary<int, TelemetryActivity>(concurrencyLevel: 2, capacity: 10);
-
-            // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
-            // the background thread then we will experience hangs like we see in this bug:
-            // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=190808
-            var unused = TelemetryHelper.DefaultTelemetrySession;
         }
 
         public bool IsEnabled(FunctionId functionId)
@@ -55,8 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
         {
-            TelemetryActivity activity;
-            if (!_pendingActivities.TryRemove(uniquePairId, out activity))
+            if (!_pendingActivities.TryRemove(uniquePairId, out var activity))
             {
                 Contract.Requires(false, "when can this happen?");
                 return;

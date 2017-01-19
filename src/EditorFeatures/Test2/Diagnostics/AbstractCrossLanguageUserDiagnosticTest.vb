@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 providerAndFixer.Item2.RegisterCodeFixesAsync(context).Wait()
                 If fixes.Any() Then
                     result.Add(Tuple.Create(diagnostic, New CodeFixCollection(
-                                            fixer, diagnostic.Location.SourceSpan, fixes,
+                                            fixer, diagnostic.Location.SourceSpan, fixes.ToImmutableArrayOrEmpty(),
                                             fixAllState:=Nothing, supportedScopes:=Nothing, firstDiagnostic:=Nothing)))
                 End If
             Next

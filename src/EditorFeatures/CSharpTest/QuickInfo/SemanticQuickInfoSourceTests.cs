@@ -2471,7 +2471,7 @@ class D : X$$
     {
         int[] a = n$$ew int[0];
     }
-}");
+}", MainDescription("int[]"));
         }
 
         [WorkItem(539240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")]
@@ -4742,6 +4742,48 @@ class C : I
     }
 }",
                 MainDescription("(int, int) C.Name { get; set; }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRefMethod()
+        {
+            await TestInMethodAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        ref int i = ref $$foo();
+    }
+
+    private static ref int foo()
+    {
+        throw new NotImplementedException();
+    }
+}",
+                MainDescription("ref int Program.foo()"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRefLocal()
+        {
+            await TestInMethodAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        ref int $$i = ref foo();
+    }
+
+    private static ref int foo()
+    {
+        throw new NotImplementedException();
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) ref int i"));
         }
     }
 }

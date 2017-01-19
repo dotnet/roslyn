@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' A sequence with information about namespaces immediately contained within this namespace.
             ' For each pair:
             '    Key - contains simple name of a child namespace.
-            '    Value – contains a sequence similar to the one passed to this function, but
+            '    Value - contains a sequence similar to the one passed to this function, but
             '            calculated for the child namespace. 
             Dim nestedNamespaces As IEnumerable(Of KeyValuePair(Of String, IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle)))) = Nothing
 
@@ -189,13 +189,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         )
             If m_lazyMembers Is Nothing Then
 
-                Dim namespaces = (From child In childNamespaces
-                                  Select New PENestedNamespaceSymbol(child.Key, Me, child.Value))
-
                 Dim members As New Dictionary(Of String, ImmutableArray(Of Symbol))(CaseInsensitiveComparison.Comparer)
 
                 ' Add namespaces
-                For Each ns In namespaces
+                For Each child In childNamespaces
+                    Dim ns = New PENestedNamespaceSymbol(child.Key, Me, child.Value)
                     members.Add(ns.Name, ImmutableArray.Create(Of Symbol)(ns))
                 Next
 

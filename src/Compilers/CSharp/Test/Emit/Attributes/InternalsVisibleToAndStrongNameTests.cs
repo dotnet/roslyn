@@ -423,6 +423,36 @@ public class C {}
             Assert.True(identity.HasPublicKey);
             AssertEx.Equal(identity.PublicKey, s_publicKey);
             Assert.Equal(CorFlags.ILOnly | CorFlags.StrongNameSigned, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
+
+            c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseModule.WithCryptoPublicKey(s_publicKey).WithPublicSign(true));
+
+            c.VerifyDiagnostics(
+                // error CS8201: Public signing is not supported for netmodules.
+                Diagnostic(ErrorCode.ERR_PublicSignNetModule).WithLocation(1, 1)
+            );
+
+            c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseModule.WithCryptoKeyFile(s_publicKeyFile).WithPublicSign(true));
+
+            c.VerifyDiagnostics(
+                // error CS7091: Attribute 'System.Reflection.AssemblyKeyFileAttribute' given in a source file conflicts with option 'CryptoKeyFile'.
+                Diagnostic(ErrorCode.ERR_CmdOptionConflictsSource).WithArguments("System.Reflection.AssemblyKeyFileAttribute", "CryptoKeyFile").WithLocation(1, 1),
+                // error CS8201: Public signing is not supported for netmodules.
+                Diagnostic(ErrorCode.ERR_PublicSignNetModule).WithLocation(1, 1)
+            );
+
+            var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
+
+            string source1 = @"
+[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")] 
+[assembly: System.Reflection.AssemblyKeyFile(@""" + snk.Path + @""")] 
+public class C {}
+";
+
+            c = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseModule.WithCryptoKeyFile(snk.Path).WithPublicSign(true));
+            c.VerifyDiagnostics(
+                // error CS8201: Public signing is not supported for netmodules.
+                Diagnostic(ErrorCode.ERR_PublicSignNetModule).WithLocation(1, 1)
+            );
         }
 
         [Fact, WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
@@ -1927,7 +1957,7 @@ public class C
         public void Bug399()
         {
             // The referenced assembly Signed.dll from the repro steps
-            var signed = CreateMetadataReferenceFromHexGZipImage(@"
+            var signed = DesktopRuntimeUtil.CreateMetadataReferenceFromHexGZipImage(@"
 1f8b0800000000000400f38d9ac0c0ccc0c0c002c4ffff3330ec6080000706c2a00188f9e477f1316ce13cabb883d1e7ac62
 484666b14241517e7a5162ae4272625e5e7e894252aa4251699e42669e828b7fb0426e7e4aaa1e2f2f970ad48c005706061f
 4626869e0db74260e63e606052e466e486388a0922f64f094828c01d26006633419430302068860488f8790f06a0bf1c5a41

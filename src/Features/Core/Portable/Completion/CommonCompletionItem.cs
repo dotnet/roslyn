@@ -60,8 +60,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public static CompletionDescription GetDescription(CompletionItem item)
         {
-            string encodedDescription;
-            if (item.Properties.TryGetValue("Description", out encodedDescription))
+            if (item.Properties.TryGetValue("Description", out var encodedDescription))
             {
                 return DecodeDescription(encodedDescription);
             }

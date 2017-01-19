@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -24,12 +25,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal partial class CSharpInlineDeclarationCodeFixProvider : CodeFixProvider
+    internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId);
-
-        public override FixAllProvider GetFixAllProvider() => new InlineDeclarationFixAllProvider(this);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -39,44 +38,31 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             return SpecializedTasks.EmptyTask;
         }
 
-        private Task<Document> FixAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
-            => FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
-
-        private async Task<Document> FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            // Create an editor to do all the transformations.  This allows us to fix all
-            // the diagnostics in a clean manner.  If we used the normal batch fix provider
-            // then it might fail to apply all the individual text changes as many of the 
-            // changes produced by the diff might end up overlapping others.
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-            var options = document.Project.Solution.Workspace.Options;
+            var options = document.Project.Solution.Options;
 
             // Attempt to use an out-var declaration if that's the style the user prefers.
             // Note: if using 'var' would cause a problem, we will use the actual type
             // of hte local.  This is necessary in some cases (for example, when the
             // type of the out-var-decl affects overload resolution or generic instantiation).
-            var useVarWhenDeclaringLocals = options.GetOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals);
-            var useImplicitTypeForIntrinsicTypes = options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
 
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await AddEditsAsync(document, editor, diagnostic, 
-                    useVarWhenDeclaringLocals, useImplicitTypeForIntrinsicTypes, 
-                    cancellationToken).ConfigureAwait(false);
+                await AddEditsAsync(
+                    document, editor, diagnostic, 
+                    options, cancellationToken).ConfigureAwait(false);
             }
-
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
         }
 
         private async Task AddEditsAsync(
             Document document, SyntaxEditor editor, Diagnostic diagnostic, 
-            bool useVarWhenDeclaringLocals, bool useImplicitTypeForIntrinsicTypes, CancellationToken cancellationToken)
+            OptionSet options, CancellationToken cancellationToken)
         {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Recover the nodes we care about.
@@ -102,7 +88,20 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // the entire local declaration statement.  Note that comments belonging to
                 // this local statement will be moved to be above the statement containing
                 // the out-var. 
-                editor.RemoveNode(declaration.Parent);
+                var localDeclarationStatement = (LocalDeclarationStatementSyntax)declaration.Parent;
+                var block = (BlockSyntax)localDeclarationStatement.Parent;
+                var declarationIndex = block.Statements.IndexOf(localDeclarationStatement);
+
+                // Comments on the local declaration will move to the next statement.  Format it
+                // so that it the comments show up properly.
+                editor.ReplaceNode(
+                    block.Statements[declarationIndex + 1],
+                    (s, g) => s.WithAdditionalAnnotations(Formatter.Annotation));
+
+                var removeOptions = localDeclarationStatement.GetTrailingTrivia().Any(t => t.IsRegularComment())
+                    ? SyntaxRemoveOptions.KeepLeadingTrivia | SyntaxRemoveOptions.KeepTrailingTrivia
+                    : SyntaxRemoveOptions.KeepLeadingTrivia;
+                editor.RemoveNode(localDeclarationStatement, removeOptions);
             }
             else
             {
@@ -135,8 +134,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             // get the type that we want to put in the out-var-decl based on the user's options.
-            // i.e. prefer 'out var' if that is what the user wants.
-            var newType = this.GetDeclarationType(declaration.Type, useVarWhenDeclaringLocals, useImplicitTypeForIntrinsicTypes);
+            // i.e. prefer 'out var' if that is what the user wants.  Note: if we have:
+            //
+            //      Method(out var x)
+            //
+            // Then the type is not-apperant, and we shoudl not use var if the user only wants
+            // it for apperant types
+
+            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+            var newType = local.Type.GenerateTypeSyntaxOrVar(options, typeIsApperant: false);
 
             var declarationExpression = GetDeclarationExpression(
                 sourceText, identifier, newType, singleDeclarator ? null : declarator);
@@ -145,11 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var semanticsChanged = await SemanticsChangedAsync(
                 document, declaration, invocationOrCreation, newType,
                 identifier, declarationExpression, cancellationToken).ConfigureAwait(false);
-            if (semanticsChanged)
+            if (semanticsChanged && newType.IsVar)
             {
                 // Switching to 'var' changed semantics.  Just use the original type of the local.
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
 
                 // If the user originally wrote it something other than 'var', then use what they
                 // wrote.  Otherwise, synthesize the actual type of the local.
@@ -159,22 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             editor.ReplaceNode(identifier, declarationExpression);
-
-            if (declaration.Variables.Count == 1)
-            {
-                // If we're removing the declaration entirely, move the leading/trailing comments it 
-                // had to sit above the statement containing the out-var declaration.
-                var comments = declaration.Parent.GetLeadingTrivia().Concat(declaration.Parent.GetTrailingTrivia())
-                                                                    .Where(t => t.IsSingleOrMultiLineComment())
-                                                                    .SelectMany(t => ImmutableArray.Create(t, SyntaxFactory.ElasticCarriageReturnLineFeed))
-                                                                    .ToImmutableArray();
-                if (comments.Length > 0)
-                {
-                    editor.ReplaceNode(
-                        outArgumentContainingStatement,
-                        (s, g) => s.WithPrependedLeadingTrivia(comments).WithAdditionalAnnotations(Formatter.Annotation));
-                }
-            }
         }
 
         private static DeclarationExpressionSyntax GetDeclarationExpression(
@@ -289,7 +277,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
-                : base(FeaturesResources.Inline_variable_declaration, createChangedDocument)
+                : base(FeaturesResources.Inline_variable_declaration,
+                       createChangedDocument,
+                       FeaturesResources.Inline_variable_declaration)
             {
             }
         }

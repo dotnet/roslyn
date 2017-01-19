@@ -178,19 +178,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 }
             }
 
-#if DEBUG
-            foreach (var project in workspace.CurrentSolution.Projects)
-            {
-                foreach (var document in project.Documents)
-                {
-                    if (documentErrorLookup.Contains(document.Id))
-                    {
-                        document.VerifyNoErrorsAsync("CodeAction introduced error in error-free code", cancellationToken).Wait(cancellationToken);
-                    }
-                }
-            }
-#endif
-
             var updatedSolution = operations.OfType<ApplyChangesOperation>().FirstOrDefault()?.ChangedSolution ?? oldSolution;
             TryStartRenameSession(workspace, oldSolution, updatedSolution, cancellationToken);
         }
@@ -304,9 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     var pathToRenameToken = new SyntaxPath(renameTokenOpt.Value);
                     var latestDocument = workspace.CurrentSolution.GetDocument(documentId);
                     var latestRoot = latestDocument.GetSyntaxRootSynchronously(cancellationToken);
-
-                    SyntaxNodeOrToken resolvedRenameToken;
-                    if (pathToRenameToken.TryResolve(latestRoot, out resolvedRenameToken) &&
+                    if (pathToRenameToken.TryResolve(latestRoot, out var resolvedRenameToken) &&
                         resolvedRenameToken.IsToken)
                     {
                         var editorWorkspace = workspace;

@@ -2,7 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.EncapsulateField
+Imports Microsoft.CodeAnalysis.EncapsulateField
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.EncapsulateField
     Public Class EncapsulateFieldTests

@@ -405,14 +405,14 @@
   <data name="Diagnostic_must_have_span_0" xml:space="preserve">
     <value>Diagnostic must have span '{0}'</value>
   </data>
-  <data name="Cannot_deserialize_type_0_no_binder_supplied" xml:space="preserve">
-    <value>Cannot deserialize type '{0}', no binder supplied.</value>
+  <data name="Cannot_deserialize_type_0" xml:space="preserve">
+    <value>Cannot deserialize type '{0}'.</value>
   </data>
-  <data name="Cannot_deserialize_type_0_it_has_no_deserialization_reader" xml:space="preserve">
-    <value>Cannot deserialize type '{0}', it has no deserialization reader.</value>
+  <data name="Cannot_serialize_type_0" xml:space="preserve">
+    <value>Cannot serialize type '{0}'.</value>
   </data>
-  <data name="The_type_0_cannot_be_written_it_does_not_implement_IObjectWritable" xml:space="preserve">
-    <value>The type '{0}' cannot be written, it does not implement IObjectWritable</value>
+  <data name="The_type_0_is_not_understood_by_the_serialization_binder" xml:space="preserve">
+    <value>The type '{0}' is not understood by the serialization binder.</value>
   </data>
   <data name="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1" xml:space="preserve">
     <value>Label for node '{0}' is invalid, it must be within [0, {1}).</value>
@@ -489,6 +489,9 @@
   <data name="Stream_is_too_long" xml:space="preserve">
     <value>Stream is too long.</value>
   </data>
+  <data name="Deserialization_reader_for_0_read_incorrect_number_of_values" xml:space="preserve">
+    <value>Deserialization reader for '{0}' read incorrect number of values.</value>
+  </data>
   <data name="Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_function" xml:space="preserve">
     <value>Option '{0}' has an unsupported type to use with {1}. You should specify a parsing function.</value>
   </data>
@@ -514,10 +517,6 @@
   <data name="Delegate" xml:space="preserve">
     <value>Delegate</value>
     <comment>{locked} unless the capitalization should be handled differently</comment>
-  </data>
-  <data name="Ends_with_Async" xml:space="preserve">
-    <value>Ends with Async</value>
-    <comment>{locked:async}</comment>
   </data>
   <data name="Enum" xml:space="preserve">
     <value>Enum</value>
@@ -574,5 +573,41 @@
   <data name="Method" xml:space="preserve">
     <value>Method</value>
     <comment>{locked:method} unless the capitalization should be handled differently</comment>
+  </data>
+  <data name="Missing_prefix_colon_0" xml:space="preserve">
+    <value>Missing prefix: '{0}'</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Missing_suffix_colon_0" xml:space="preserve">
+    <value>Missing suffix: '{0}'</value>
+  </data>
+  <data name="These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0" xml:space="preserve">
+    <value>These non-leading words must begin with an upper case letter: {0}</value>
+  </data>
+  <data name="Suggestion" xml:space="preserve">
+    <value>Suggestion</value>
+  </data>
+  <data name="These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0" xml:space="preserve">
+    <value>These non-leading words must begin with a lowercase letter: {0}</value>
+  </data>
+  <data name="These_words_cannot_contain_lower_case_characters_colon_0" xml:space="preserve">
+    <value>These words cannot contain lower case characters: {0}</value>
+  </data>
+  <data name="These_words_cannot_contain_upper_case_characters_colon_0" xml:space="preserve">
+    <value>These words cannot contain upper case characters: {0}</value>
+  </data>
+  <data name="These_words_must_begin_with_upper_case_characters_colon_0" xml:space="preserve">
+    <value>These words must begin with upper case characters: {0}</value>
+  </data>
+  <data name="The_first_word_0_must_begin_with_an_upper_case_character" xml:space="preserve">
+    <value>The first word, '{0}', must begin with an upper case character</value>
+  </data>
+  <data name="The_first_word_0_must_begin_with_a_lower_case_character" xml:space="preserve">
+    <value>The first word, '{0}', must begin with a lower case character</value>
   </data>
 </root>

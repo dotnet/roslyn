@@ -606,15 +606,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             var itemCount = GetItemCount();
             index = 0xffffffffu;
-
-            string matchName;
-            if (ErrorHandler.Failed(pNavInfoNode.get_Name(out matchName)))
+            if (ErrorHandler.Failed(pNavInfoNode.get_Name(out var matchName)))
             {
                 return false;
             }
 
-            uint type;
-            if (ErrorHandler.Failed(pNavInfoNode.get_Type(out type)))
+            if (ErrorHandler.Failed(pNavInfoNode.get_Type(out var type)))
             {
                 return false;
             }
@@ -889,8 +886,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                         return false;
                     }
 
-                    string projectRef;
-                    if (ErrorHandler.Failed(vsSolution.GetProjrefOfProject(hierarchy, out projectRef)))
+                    if (ErrorHandler.Failed(vsSolution.GetProjrefOfProject(hierarchy, out var projectRef)))
                     {
                         return false;
                     }
@@ -925,8 +921,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     return false;
                 }
 
-                string projectRef;
-                if (ErrorHandler.Failed(vsSolution.GetProjrefOfProject(hierarchy, out projectRef)))
+                if (ErrorHandler.Failed(vsSolution.GetProjrefOfProject(hierarchy, out var projectRef)))
                 {
                     return false;
                 }

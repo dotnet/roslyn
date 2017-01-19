@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             foreach (var analyzer in analyzers)
             {
-                var diagIncrementalAnalyzer = analyzer as DiagnosticAnalyzerService.IncrementalAnalyzerDelegatee;
+                var diagIncrementalAnalyzer = analyzer as DiagnosticIncrementalAnalyzer;
                 if (diagIncrementalAnalyzer != null)
                 {
                     diagIncrementalAnalyzer.LogAnalyzerCountSummary();

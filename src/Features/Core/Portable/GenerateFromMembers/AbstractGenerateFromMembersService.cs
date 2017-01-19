@@ -61,9 +61,12 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
 
         private static bool IsWritableFieldOrProperty(ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IFieldSymbol field) => !field.IsConst,
-                (IPropertySymbol property) => property.IsWritableInConstructor());
+            switch (symbol)
+            {
+                case IFieldSymbol field: return !field.IsConst;
+                case IPropertySymbol property: return property.IsWritableInConstructor();
+                default: return false;
+            }
         }
 
         protected static bool IsInstanceFieldOrProperty(ISymbol symbol)

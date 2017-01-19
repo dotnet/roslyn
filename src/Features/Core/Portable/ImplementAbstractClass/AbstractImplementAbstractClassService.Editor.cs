@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -39,26 +41,29 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                     unimplementedMembers,
                     cancellationToken);
 
-                var result = await CodeGenerator.AddMemberDeclarationsAsync(
+                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var insertionBehavior = options.GetOption(ImplementTypeOptions.InsertionBehavior);
+                var groupMembers = insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+
+                return await CodeGenerator.AddMemberDeclarationsAsync(
                     _document.Project.Solution,
                     _state.ClassType,
                     memberDefinitions,
-                    new CodeGenerationOptions(_state.Location.GetLocation()),
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-                return result;
+                    new CodeGenerationOptions(
+                        _state.Location.GetLocation(),
+                        autoInsertionLocation: groupMembers, 
+                        sortMembers: groupMembers),
+                    cancellationToken).ConfigureAwait(false);
             }
 
-            private IList<ISymbol> GenerateMembers(
-                IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers,
+            private ImmutableArray<ISymbol> GenerateMembers(
+                ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
                 CancellationToken cancellationToken)
             {
-                return
-                    unimplementedMembers.SelectMany(t => t.Item2)
-                                        .Select(m => GenerateMember(m, cancellationToken))
-                                        .WhereNotNull()
-                                        .ToList();
+                return unimplementedMembers.SelectMany(t => t.members)
+                                           .Select(m => GenerateMember(m, cancellationToken))
+                                           .WhereNotNull()
+                                           .ToImmutableArray();
             }
 
             private ISymbol GenerateMember(

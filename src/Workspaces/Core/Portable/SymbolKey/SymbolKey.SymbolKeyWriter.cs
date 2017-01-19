@@ -189,8 +189,7 @@ namespace Microsoft.CodeAnalysis
                     // we prevent the recursion, we still hit List<Z> twice.  After writing
                     // the innermost one out, we'll give it a reference ID.  When we
                     // then hit the outermost one, we want to just reuse that one.
-                    int existingId;
-                    if (_symbolToId.TryGetValue(symbol, out existingId))
+                    if (_symbolToId.TryGetValue(symbol, out var existingId))
                     {
                         // While we recursed, we already hit this symbol.  Use its ID as our
                         // ID.
@@ -385,20 +384,30 @@ namespace Microsoft.CodeAnalysis
                     WriteType(SymbolKeyType.ConstructedMethod);
                     ConstructedMethodSymbolKey.Create(methodSymbol, this);
                 }
-                else if (methodSymbol.MethodKind == MethodKind.ReducedExtension)
-                {
-                    WriteType(SymbolKeyType.ReducedExtensionMethod);
-                    ReducedExtensionMethodSymbolKey.Create(methodSymbol, this);
-                }
-                else if (methodSymbol.MethodKind == MethodKind.AnonymousFunction)
-                {
-                    WriteType(SymbolKeyType.AnonymousFunctionOrDelegate);
-                    AnonymousFunctionOrDelegateSymbolKey.Create(methodSymbol, this);
-                }
                 else
                 {
-                    WriteType(SymbolKeyType.Method);
-                    MethodSymbolKey.Create(methodSymbol, this);
+                    switch (methodSymbol.MethodKind)
+                    {
+                        case MethodKind.ReducedExtension:
+                            WriteType(SymbolKeyType.ReducedExtensionMethod);
+                            ReducedExtensionMethodSymbolKey.Create(methodSymbol, this);
+                            break;
+
+                        case MethodKind.AnonymousFunction:
+                            WriteType(SymbolKeyType.AnonymousFunctionOrDelegate);
+                            AnonymousFunctionOrDelegateSymbolKey.Create(methodSymbol, this);
+                            break;
+
+                        case MethodKind.LocalFunction:
+                            WriteType(SymbolKeyType.BodyLevel);
+                            BodyLevelSymbolKey.Create(methodSymbol, this);
+                            break;
+
+                        default:
+                            WriteType(SymbolKeyType.Method);
+                            MethodSymbolKey.Create(methodSymbol, this);
+                            break;
+                    }
                 }
 
                 return null;

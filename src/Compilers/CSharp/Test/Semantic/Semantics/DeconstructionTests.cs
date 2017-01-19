@@ -600,9 +600,12 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,24): error CS1525: Invalid expression term '.'
+                // (6,11): error CS1525: Invalid expression term 'int'
                 //         ((int, string)).ToString();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments(".").WithLocation(6, 24)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 11),
+                // (6,16): error CS1525: Invalid expression term 'string'
+                //         ((int, string)).ToString();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(6, 16)
                 );
         }
 
@@ -1322,9 +1325,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (6,13): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //         var (x1, x2) = Pair.Create(1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "var (x1, x2)").WithArguments("tuples", "7").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(x1, x2)").WithArguments("tuples", "7").WithLocation(6, 13),
                 // (7,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //         (int x3, int x4) = Pair.Create(1, 2);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x3, int x4)").WithArguments("tuples", "7").WithLocation(7, 9),
@@ -1413,27 +1416,6 @@ class C
                 // (7,9): error CS0103: The name 'var' does not exist in the current context
                 //         var (x1, x2);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(8, 9)
-                );
-        }
-
-        [Fact]
-        public void IncompleteDeclarationIsSeenAsTupleType()
-        {
-            string source = @"
-class C
-{
-    static void Main()
-    {
-        (int x1, string x2);
-    }
-}
-";
-
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            comp.VerifyDiagnostics(
-                // (6,28): error CS1001: Identifier expected
-                //         (int x1, string x2);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(6, 28)
                 );
         }
 
@@ -1707,12 +1689,9 @@ class var { }
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,14): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                // (6,13): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 //         var (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x1").WithLocation(6, 14),
-                // (6,18): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
-                //         var (x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x2").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x1, x2)").WithLocation(6, 13),
                 // (6,25): error CS0029: Cannot implicitly convert type 'int' to 'var'
                 //         var (x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "var").WithLocation(6, 25),
@@ -1742,12 +1721,9 @@ class D
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (7,14): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
+                // (7,13): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 //         var (x3, x4) = (3, 4);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x3").WithLocation(7, 14),
-                // (7,18): error CS8136: Deconstruction `var (...)` form disallows a specific type for 'var'.
-                //         var (x3, x4) = (3, 4);
-                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "x4").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x3, x4)").WithLocation(7, 13),
                 // (7,25): error CS0029: Cannot implicitly convert type 'int' to 'D'
                 //         var (x3, x4) = (3, 4);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "D").WithLocation(7, 25),
@@ -1992,8 +1968,7 @@ class C
 }
 ";
             var comp = CompileAndVerify(source, expectedOutput: "42");
-            comp.VerifyDiagnostics(
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2358,6 +2333,7 @@ class C
     {
         var x1 = (1, 2);
         var (x2, x3) = (1, 2);
+        System.Console.Write($""{x1} {x2} {x3}"");
     }
 }
 ";
@@ -2434,7 +2410,7 @@ class C1
         }
 
         [Fact]
-        public void DeclarationCannotBeEmbedded()
+        public void DeconstructionMayBeEmbedded()
         {
             var source = @"
 class C1
@@ -2448,9 +2424,8 @@ class C1
 ";
             var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (7,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                //             var (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "var (x, y) = (1, 2);").WithLocation(7, 13)
+                // this is no longer considered a declaration statement,
+                // but rather is an assignment expression. So no error.
                 );
         }
 
@@ -2551,7 +2526,15 @@ class Program
                 var si = model.GetSymbolInfo(node);
                 var symbol = si.Symbol;
                 if (symbol == null) continue;
-                Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+
+                if (node is DeclarationExpressionSyntax)
+                {
+                    Assert.Equal(SymbolKind.Local, symbol.Kind);
+                }
+                else
+                {
+                    Assert.NotEqual(SymbolKind.Local, symbol.Kind);
+                }
             }
         }
 
@@ -2625,6 +2608,126 @@ class C
                 //         const var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 15)
             );
+        }
+
+        [Fact, WorkItem(15934, "https://github.com/dotnet/roslyn/issues/15934")]
+        public void PointerTypeInDeconstruction()
+        {
+            string source = @"
+unsafe class C
+{
+    static void Main(C c)
+    {
+        (int* x1, int y1) = c;
+        (var* x2, int y2) = c;
+        (int*[] x3, int y3) = c;
+        (var*[] x4, int y4) = c;
+    }
+    public void Deconstruct(out dynamic x, out dynamic y)
+    {
+        x = y = null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                options: TestOptions.UnsafeDebugDll);
+
+            // The precise diagnostics here are not important, and may be sensitive to parser
+            // adjustments. This is a test that we don't crash. The errors here are likely to
+            // change as we adjust the parser and semantic analysis of error cases.
+            comp.VerifyDiagnostics(
+                // (6,10): error CS1525: Invalid expression term 'int'
+                //         (int* x1, int y1) = c;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 10),
+                // (8,10): error CS1525: Invalid expression term 'int'
+                //         (int*[] x3, int y3) = c;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(8, 10),
+                // (8,14): error CS1525: Invalid expression term '['
+                //         (int*[] x3, int y3) = c;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(8, 14),
+                // (8,15): error CS0443: Syntax error; value expected
+                //         (int*[] x3, int y3) = c;
+                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(8, 15),
+                // (8,17): error CS1026: ) expected
+                //         (int*[] x3, int y3) = c;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x3").WithLocation(8, 17),
+                // (8,17): error CS1002: ; expected
+                //         (int*[] x3, int y3) = c;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x3").WithLocation(8, 17),
+                // (8,19): error CS1002: ; expected
+                //         (int*[] x3, int y3) = c;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(8, 19),
+                // (8,19): error CS1513: } expected
+                //         (int*[] x3, int y3) = c;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(8, 19),
+                // (8,27): error CS1002: ; expected
+                //         (int*[] x3, int y3) = c;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(8, 27),
+                // (8,27): error CS1513: } expected
+                //         (int*[] x3, int y3) = c;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 27),
+                // (8,29): error CS1525: Invalid expression term '='
+                //         (int*[] x3, int y3) = c;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(8, 29),
+                // (9,14): error CS1525: Invalid expression term '['
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(9, 14),
+                // (9,15): error CS0443: Syntax error; value expected
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(9, 15),
+                // (9,17): error CS1026: ) expected
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x4").WithLocation(9, 17),
+                // (9,17): error CS1002: ; expected
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x4").WithLocation(9, 17),
+                // (9,19): error CS1002: ; expected
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(9, 19),
+                // (9,19): error CS1513: } expected
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(9, 19),
+                // (9,27): error CS1002: ; expected
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(9, 27),
+                // (9,27): error CS1513: } expected
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(9, 27),
+                // (9,29): error CS1525: Invalid expression term '='
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(9, 29),
+                // (6,15): error CS0103: The name 'x1' does not exist in the current context
+                //         (int* x1, int y1) = c;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 15),
+                // (6,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
+                //         (int* x1, int y1) = c;
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int* x1, int y1)").WithLocation(6, 9),
+                // (7,10): error CS0103: The name 'var' does not exist in the current context
+                //         (var* x2, int y2) = c;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(7, 10),
+                // (7,15): error CS0103: The name 'x2' does not exist in the current context
+                //         (var* x2, int y2) = c;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x2").WithArguments("x2").WithLocation(7, 15),
+                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
+                //         (var* x2, int y2) = c;
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(var* x2, int y2)").WithLocation(7, 9),
+                // (8,17): error CS0103: The name 'x3' does not exist in the current context
+                //         (int*[] x3, int y3) = c;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x3").WithArguments("x3").WithLocation(8, 17),
+                // (9,10): error CS0103: The name 'var' does not exist in the current context
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(9, 10),
+                // (9,17): error CS0103: The name 'x4' does not exist in the current context
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x4").WithArguments("x4").WithLocation(9, 17),
+                // (8,25): warning CS0168: The variable 'y3' is declared but never used
+                //         (int*[] x3, int y3) = c;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y3").WithArguments("y3").WithLocation(8, 25),
+                // (9,25): warning CS0168: The variable 'y4' is declared but never used
+                //         (var*[] x4, int y4) = c;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y4").WithArguments("y4").WithLocation(9, 25)
+                );
         }
     }
 }

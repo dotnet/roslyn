@@ -21,9 +21,9 @@ namespace Roslyn.Test.Utilities.Remote
         private readonly InProcRemoteServices _inprocServices;
         private readonly JsonRpc _rpc;
 
-        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup, CancellationToken cancellationToken)
         {
-            var inprocServices = new InProcRemoteServices();
+            var inprocServices = new InProcRemoteServices(runCacheCleanup);
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
 
@@ -53,6 +53,8 @@ namespace Roslyn.Test.Utilities.Remote
             _rpc.Disconnected += OnRpcDisconnected;
         }
 
+        public AssetStorage AssetStorage => _inprocServices.AssetStorage;
+
         protected override async Task<Session> CreateServiceSessionAsync(string serviceName, PinnedRemotableDataScope snapshot, object callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate snapshot/asset related information
@@ -80,13 +82,47 @@ namespace Roslyn.Test.Utilities.Remote
             Disconnected();
         }
 
+        public class ServiceProvider : IServiceProvider
+        {
+            private static readonly TraceSource s_traceSource = new TraceSource("inprocRemoteClient");
+
+            private readonly AssetStorage _storage;
+
+            public ServiceProvider(bool runCacheCleanup)
+            {
+                _storage = runCacheCleanup ?
+                    new AssetStorage(cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1)) :
+                    new AssetStorage();
+            }
+
+            public AssetStorage AssetStorage => _storage;
+
+            public object GetService(Type serviceType)
+            {
+                if (typeof(TraceSource) == serviceType)
+                {
+                    return s_traceSource;
+                }
+
+                if (typeof(AssetStorage) == serviceType)
+                {
+                    return _storage;
+                }
+
+                throw ExceptionUtilities.UnexpectedValue(serviceType);
+            }
+        }
+
         private class InProcRemoteServices
         {
-            private static readonly IServiceProvider s_serviceProvider = new ServiceProvider();
+            private readonly ServiceProvider _serviceProvider;
 
-            public InProcRemoteServices()
+            public InProcRemoteServices(bool runCacheCleanup)
             {
+                _serviceProvider = new ServiceProvider(runCacheCleanup);
             }
+
+            public AssetStorage AssetStorage => _serviceProvider.AssetStorage;
 
             public Task<Stream> RequestServiceAsync(string serviceName, CancellationToken cancellationToken)
             {
@@ -95,46 +131,26 @@ namespace Roslyn.Test.Utilities.Remote
                     case WellKnownRemoteHostServices.RemoteHostService:
                         {
                             var tuple = FullDuplexStream.CreateStreams();
-                            return Task.FromResult<Stream>(new WrappedStream(new RemoteHostService(tuple.Item1, s_serviceProvider), tuple.Item2));
+                            return Task.FromResult<Stream>(new WrappedStream(new RemoteHostService(tuple.Item1, _serviceProvider), tuple.Item2));
                         }
                     case WellKnownServiceHubServices.CodeAnalysisService:
                         {
                             var tuple = FullDuplexStream.CreateStreams();
-                            return Task.FromResult<Stream>(new WrappedStream(new CodeAnalysisService(tuple.Item1, s_serviceProvider), tuple.Item2));
+                            return Task.FromResult<Stream>(new WrappedStream(new CodeAnalysisService(tuple.Item1, _serviceProvider), tuple.Item2));
                         }
                     case WellKnownServiceHubServices.SnapshotService:
                         {
                             var tuple = FullDuplexStream.CreateStreams();
-                            return Task.FromResult<Stream>(new WrappedStream(new SnapshotService(tuple.Item1, s_serviceProvider), tuple.Item2));
+                            return Task.FromResult<Stream>(new WrappedStream(new SnapshotService(tuple.Item1, _serviceProvider), tuple.Item2));
                         }
                     case WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine:
                         {
                             var tuple = FullDuplexStream.CreateStreams();
-                            return Task.FromResult<Stream>(new WrappedStream(new RemoteSymbolSearchUpdateEngine(tuple.Item1, s_serviceProvider), tuple.Item2));
+                            return Task.FromResult<Stream>(new WrappedStream(new RemoteSymbolSearchUpdateEngine(tuple.Item1, _serviceProvider), tuple.Item2));
                         }
                 }
 
                 throw ExceptionUtilities.UnexpectedValue(serviceName);
-            }
-
-            private class ServiceProvider : IServiceProvider
-            {
-                private static readonly TraceSource s_traceSource = new TraceSource("inprocRemoteClient");
-
-                public object GetService(Type serviceType)
-                {
-                    if (typeof(TraceSource) == serviceType)
-                    {
-                        return s_traceSource;
-                    }
-
-                    if (typeof(AssetStorage) == serviceType)
-                    {
-                        return AssetStorage.Default;
-                    }
-
-                    throw ExceptionUtilities.UnexpectedValue(serviceType);
-                }
             }
 
             private class WrappedStream : Stream

@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Interface IA(Of T As C) : End Interface
             ' Interface IB(Of T As C) : Inherits IA(Of T) : End Interface
             If checkConstraints AndAlso ShouldCheckConstraints Then
-                constructedType.CheckConstraints(syntaxArguments, diagnostics)
+                constructedType.CheckConstraintsForNonTuple(syntaxArguments, diagnostics)
             End If
 
             constructedType = DirectCast(TupleTypeSymbol.TransformToTupleIfCompatible(constructedType), NamedTypeSymbol)
@@ -379,9 +379,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' When we bind generic type reference, we pass through here with symbols for 
                             ' the generic type definition, each type argument and for the final constructed 
                             ' symbol. To avoid reporting duplicate diagnostics in this scenario, report use
-                            ' site errors only on a definition.                            ' 
+                            ' site errors only on a definition.
                             If Not reportedAnError AndAlso Not suppressUseSiteError AndAlso
-                               Not typeSymbol.IsArrayType() AndAlso typeSymbol.IsDefinition Then
+                               Not typeSymbol.IsArrayType() AndAlso Not typeSymbol.IsTupleType AndAlso typeSymbol.IsDefinition Then
                                 ReportUseSiteError(diagBag, typeSyntax, typeSymbol)
                             End If
 
@@ -707,7 +707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim argumentType As TypeSymbol = Nothing
                     Dim name As String = Nothing
-                    Dim nameSyntax As IdentifierNameSyntax = Nothing
+                    Dim nameSyntax As SyntaxToken = Nothing
 
                     If argumentSyntax.Kind = SyntaxKind.TypedTupleElement Then
                         Dim typedElement = DirectCast(argumentSyntax, TypedTupleElementSyntax)
@@ -716,19 +716,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         Dim namedElement = DirectCast(argumentSyntax, NamedTupleElementSyntax)
                         nameSyntax = namedElement.Identifier
-                        name = nameSyntax.Identifier.GetIdentifierText()
+                        name = nameSyntax.GetIdentifierText()
 
-                        argumentType = binder.DecodeIdentifierType(nameSyntax.Identifier, namedElement.AsClause, getRequireTypeDiagnosticInfoFunc:=Nothing, diagBag:=diagnostics)
+                        argumentType = binder.DecodeIdentifierType(nameSyntax, namedElement.AsClause, getRequireTypeDiagnosticInfoFunc:=Nothing, diagBag:=diagnostics)
                     End If
 
                     types.Add(argumentType)
 
-                    If argumentType.IsRestrictedType() Then
-                        Binder.ReportDiagnostic(diagnostics, argumentSyntax, ERRID.ERR_RestrictedType1, argumentType)
-                    End If
-
-
-                    If nameSyntax IsNot Nothing Then
+                    If nameSyntax.Kind() = SyntaxKind.IdentifierToken Then
                         ' validate name if we have one
                         hasExplicitNames = True
                         Binder.CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames)
@@ -757,18 +752,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim locationsArray As ImmutableArray(Of Location) = locations.ToImmutableAndFree()
 
                 If typesArray.Length < 2 Then
-                    elementNames?.Free()
-                    diagnostics.Add(ERRID.ERR_TupleTooFewElements, syntax.GetLocation)
-                    Return ErrorTypeSymbol.UnknownResultType
+                    Throw ExceptionUtilities.UnexpectedValue(typesArray.Length)
                 End If
 
                 Return TupleTypeSymbol.Create(syntax.GetLocation,
-                                            typesArray,
-                                            locationsArray,
-                                            If(elementNames Is Nothing, Nothing, elementNames.ToImmutableAndFree()),
-                                            binder.Compilation,
-                                            syntax,
-                                            diagnostics)
+                                                typesArray,
+                                                locationsArray,
+                                                If(elementNames Is Nothing, Nothing, elementNames.ToImmutableAndFree()),
+                                                binder.Compilation,
+                                                binder.ShouldCheckConstraints,
+                                                syntax,
+                                                diagnostics)
             End Function
 
             Private Shared Sub AnalyzeLookupResultForIllegalBaseTypeReferences(lookupResult As LookupResult,

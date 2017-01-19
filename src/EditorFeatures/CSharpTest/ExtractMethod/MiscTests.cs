@@ -42,10 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
     }
 }";
-
-            var code = default(string);
-            var span = default(TextSpan);
-            MarkupTestFile.GetSpan(markupCode, out code, out span);
+            MarkupTestFile.GetSpan(markupCode, out var code, out var span);
 
             var root = SyntaxFactory.ParseCompilationUnit(code);
             var result = service.SaveTriviaAroundSelection(root, span);
@@ -89,10 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 #endif
 
 }";
-
-            var code = default(string);
-            var span = default(TextSpan);
-            MarkupTestFile.GetSpan(markupCode, out code, out span);
+            MarkupTestFile.GetSpan(markupCode, out var code, out var span);
 
             var root = SyntaxFactory.ParseCompilationUnit(code);
             var result = service.SaveTriviaAroundSelection(root, span);

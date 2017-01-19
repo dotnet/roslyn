@@ -479,11 +479,17 @@
   <data name="Autoselect_disabled_due_to_type_declaration" xml:space="preserve">
     <value>Autoselect disabled due to type declaration.</value>
   </data>
+  <data name="Autoselect_disabled_due_to_possible_deconstruction_declaration" xml:space="preserve">
+    <value>Autoselect disabled due to possible deconstruction declaration.</value>
+  </data>
   <data name="class_name" xml:space="preserve">
     <value>&lt;class name&gt;</value>
   </data>
   <data name="interface_name" xml:space="preserve">
     <value>&lt;interface name&gt;</value>
+  </data>
+  <data name="designation_name" xml:space="preserve">
+    <value>&lt;designation name&gt;</value>
   </data>
   <data name="struct_name" xml:space="preserve">
     <value>&lt;struct name&gt;</value>
@@ -496,5 +502,8 @@
   </data>
   <data name="Add_this" xml:space="preserve">
     <value>Add 'this.'</value>
+  </data>
+  <data name="Warning_Extracting_a_local_function_reference_may_produce_invalid_code" xml:space="preserve">
+    <value>Warning: Extracting a local function reference may produce invalid code</value>
   </data>
 </root>

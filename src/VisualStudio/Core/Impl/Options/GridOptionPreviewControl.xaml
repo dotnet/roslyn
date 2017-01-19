@@ -15,11 +15,17 @@
 
     <Grid>
         <Grid.Resources>
+            <options:ColumnToTabStopConverter x:Key="ColumnToTabStopConverter" />
             <Style x:Key="DataGridStyle" TargetType="DataGrid">
                 <Setter Property="CellStyle">
                     <Setter.Value>
                         <Style TargetType="DataGridCell">
                             <Setter Property="BorderThickness" Value="1" />
+                            <Setter Property="IsTabStop" 
+                                    Value="{Binding 
+                                        Path=Column, 
+                                        Converter={StaticResource ColumnToTabStopConverter},
+                                        RelativeSource={RelativeSource Self}}"/>
                         </Style>
                     </Setter.Value>
                 </Setter>
@@ -82,7 +88,7 @@
             <DataGrid.Columns>
                 <DataGridTextColumn
                     x:Name="description" 
-                    Header="Description"
+                    Header="{x:Static local:GridOptionPreviewControl.DescriptionHeader}"
                     Binding="{Binding Description, Mode=OneWay}" 
                     Width="4.5*"
                     IsReadOnly="True">
@@ -93,12 +99,13 @@
                             <Setter Property="VerticalAlignment" Value="Center"/>
                             <Setter Property="HorizontalAlignment" Value="Left" />
                             <Setter Property="TextWrapping" Value="Wrap" />
+                            <Setter Property="AutomationProperties.Name" Value="{Binding GroupName}" />
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
                 <DataGridTemplateColumn 
                     x:Name="preference" 
-                    Header="Preference"
+                    Header="{x:Static local:GridOptionPreviewControl.PreferenceHeader}"
                     Width="3*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -107,13 +114,19 @@
                                     DisplayMemberPath="Name"
                                     SelectedItem="{Binding SelectedPreference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                     VerticalContentAlignment="Center"
-                                    HorizontalContentAlignment="Left"/>
+                                    HorizontalContentAlignment="Left">
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                            </ComboBox>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn 
                     x:Name="severity" 
-                    Header="Severity"
+                    Header="{x:Static local:GridOptionPreviewControl.SeverityHeader}"
                     Width="2.5*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -142,6 +155,11 @@
                                         </Grid>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
                             </ComboBox>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

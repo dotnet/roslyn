@@ -515,13 +515,13 @@ class Class
         {
         }
 
-        public ExType(string message) : base(message)
-        {
-        }
-
         public ExType(int v)
         {
             this.v = v;
+        }
+
+        public ExType(string message) : base(message)
+        {
         }
 
         public ExType(string message, Exception innerException) : base(message, innerException)
@@ -4397,7 +4397,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new [|Customer|](x: 1, y: ""Hello"") {Name = ""John"",�Age = DateTime.Today};
+        var c = new [|Customer|](x: 1, y: ""Hello"") {Name = ""John"", Age = DateTime.Today};
     }
 }";
 
@@ -4407,7 +4407,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new Customer(x: 1, y: ""Hello"") {Name = ""John"",�Age = DateTime.Today};
+        var c = new Customer(x: 1, y: ""Hello"") {Name = ""John"", Age = DateTime.Today};
     }
 }
 
@@ -4422,8 +4422,8 @@ internal class Customer
         this.y = y;
     }
 
-    public DateTime Age { get; set; }
     public string Name { get; set; }
+    public DateTime Age { get; set; }
 }";
 
             await TestAsync(code, expected, index: 1);
@@ -4439,7 +4439,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new [|Customer|](x: 1, y: ""Hello"") {Name = null,�Age = DateTime.Today};
+        var c = new [|Customer|](x: 1, y: ""Hello"") {Name = null, Age = DateTime.Today};
     }
 }";
 
@@ -4449,7 +4449,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new Customer(x: 1, y: ""Hello"") {Name = null,�Age = DateTime.Today};
+        var c = new Customer(x: 1, y: ""Hello"") {Name = null, Age = DateTime.Today};
     }
 }
 
@@ -4464,8 +4464,8 @@ internal class Customer
         this.y = y;
     }
 
-    public DateTime Age { get; set; }
     public object Name { get; set; }
+    public DateTime Age { get; set; }
 }";
 
             await TestAsync(code, expected, index: 1);
@@ -4481,7 +4481,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new [|Customer|](x: 1, y: ""Hello"") {Name = Foo,�Age = DateTime.Today};
+        var c = new [|Customer|](x: 1, y: ""Hello"") {Name = Foo, Age = DateTime.Today};
     }
 }";
 
@@ -4491,7 +4491,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new Customer(x: 1, y: ""Hello"") {Name = Foo,�Age = DateTime.Today};
+        var c = new Customer(x: 1, y: ""Hello"") {Name = Foo, Age = DateTime.Today};
     }
 }
 
@@ -4506,8 +4506,8 @@ internal class Customer
         this.y = y;
     }
 
-    public DateTime Age { get; set; }
     public object Name { get; set; }
+    public DateTime Age { get; set; }
 }";
 
             await TestAsync(code, expected, index: 1);
@@ -4523,7 +4523,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new [|Customer|] {Name = ""John"",�Age = DateTime.Today};
+        var c = new [|Customer|] {Name = ""John"", Age = DateTime.Today};
     }
 }";
 
@@ -4533,14 +4533,14 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new Customer {Name = ""John"",�Age = DateTime.Today};
+        var c = new Customer {Name = ""John"", Age = DateTime.Today};
     }
 }
 
 internal class Customer
 {
-    public DateTime Age { get; set; }
     public string Name { get; set; }
+    public DateTime Age { get; set; }
 }";
 
             await TestAsync(code, expected, index: 1);

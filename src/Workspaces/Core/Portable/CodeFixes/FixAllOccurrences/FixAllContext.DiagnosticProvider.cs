@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -53,12 +54,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     var document = fixAllContext.Document;
                     var project = fixAllContext.Project;
-                    var generatedCodeServices = project.Solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
 
                     switch (fixAllContext.Scope)
                     {
                         case FixAllScope.Document:
-                            if (document != null && !generatedCodeServices.IsGeneratedCode(document, cancellationToken))
+                            if (document != null && !document.IsGeneratedCode(cancellationToken))
                             {
                                 var documentDiagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false);
                                 var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(document, documentDiagnostics));
@@ -109,14 +109,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         return ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
                     }
 
-                    return await GetDocumentDiagnosticsToFixAsync(allDiagnostics, projectsToFix, generatedCodeServices.IsGeneratedCode, cancellationToken).ConfigureAwait(false);
+                    return await GetDocumentDiagnosticsToFixAsync(
+                        allDiagnostics, projectsToFix, fixAllContext.CancellationToken).ConfigureAwait(false);
                 }
             }
 
             private async static Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
                 ImmutableArray<Diagnostic> diagnostics,
                 ImmutableArray<Project> projects,
-                Func<Document, CancellationToken, bool> isGeneratedCode,
                 CancellationToken cancellationToken)
             {
                 var treeToDocumentMap = await GetTreeToDocumentMapAsync(projects, cancellationToken).ConfigureAwait(false);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var document = documentAndDiagnostics.Key;
-                    if (!isGeneratedCode(document, cancellationToken))
+                    if (!document.IsGeneratedCode(cancellationToken))
                     {
                         var diagnosticsForDocument = documentAndDiagnostics.ToImmutableArray();
                         builder.Add(document, diagnosticsForDocument);
@@ -158,8 +158,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var tree = diagnostic.Location.SourceTree;
                 if (tree != null)
                 {
-                    Document document;
-                    if (treeToDocumentsMap.TryGetValue(tree, out document))
+                    if (treeToDocumentsMap.TryGetValue(tree, out var document))
                     {
                         return document;
                     }

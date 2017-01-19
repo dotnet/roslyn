@@ -14,15 +14,14 @@ using Microsoft.CodeAnalysis.SemanticModelWorkspaceService;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class DocumentExtensions
     {
         public static TLanguageService GetLanguageService<TLanguageService>(this Document document) where TLanguageService : class, ILanguageService
-        {
-            return document?.Project?.LanguageServices?.GetService<TLanguageService>();
-        }
+            => document?.Project?.LanguageServices?.GetService<TLanguageService>();
 
         public static bool IsOpen(this Document document)
         {
@@ -170,10 +169,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static async Task<IDeclarationInfo> GetDeclarationInfoAsync(this Document document, CancellationToken cancellationToken)
-        {
-            return await SyntaxTreeInfo.GetDeclarationInfoAsync(document, cancellationToken).ConfigureAwait(false);
-        }
+        public static Task<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
+            => SyntaxTreeIndex.GetIndexAsync(document, cancellationToken);
 
         /// <summary>
         /// Returns the semantic model for this document that may be produced from partial semantics. The semantic model
@@ -181,9 +178,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static async Task<SemanticModel> GetPartialSemanticModelAsync(this Document document, CancellationToken cancellationToken)
         {
-            Compilation compilation;
-
-            if (document.Project.TryGetCompilation(out compilation))
+            if (document.Project.TryGetCompilation(out var compilation))
             {
                 // We already have a compilation, so at this point it's fastest to just get a SemanticModel
                 return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -193,6 +188,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var frozenDocument = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
                 return await frozenDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        public static bool IsGeneratedCode(this Document document, CancellationToken cancellationToken)
+        {
+            var solution = document.Project.Solution;
+            var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
+            return generatedCodeRecognitionService?.IsGeneratedCode(document, cancellationToken) == true;
         }
     }
 }

@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.FixAllOccurrences;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -18,12 +17,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    internal class UseCoalesceExpressionForNullableCodeFixProvider : CodeFixProvider
+    internal class UseCoalesceExpressionForNullableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceExpressionForNullableDiagnosticId);
 
-        public override FixAllProvider GetFixAllProvider() => new UseCoalesceExpressionForNullableFixAllProvider(this);
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -33,40 +33,26 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             return SpecializedTasks.EmptyTask;
         }
 
-        private Task<Document> FixAsync(
-            Document document,
-            Diagnostic diagnostic,
-            CancellationToken cancellationToken)
-        {
-            return FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
-        }
-
-        private async Task<Document> FixAllAsync(
-            Document document,
-            ImmutableArray<Diagnostic> diagnostics,
-            CancellationToken cancellationToken)
+        protected override Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
             var generator = editor.Generator;
+            var root = editor.OriginalRoot;
 
             foreach (var diagnostic in diagnostics)
             {
                 var conditionalExpression = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
                 var conditionExpression = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
                 var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
-
-                SyntaxNode condition, whenTrue, whenFalse;
                 syntaxFacts.GetPartsOfConditionalExpression(
-                    conditionalExpression, out condition, out whenTrue, out whenFalse);
+                    conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
 
                 editor.ReplaceNode(conditionalExpression,
                     (c, g) => {
-                        SyntaxNode currentCondition, currentWhenTrue, currentWhenFalse;
                         syntaxFacts.GetPartsOfConditionalExpression(
-                            c, out currentCondition, out currentWhenTrue, out currentWhenFalse);
+                            c, out var currentCondition, out var currentWhenTrue, out var currentWhenFalse);
 
                         return whenPart == whenTrue
                             ? g.CoalesceExpression(conditionExpression, syntaxFacts.WalkDownParentheses(currentWhenTrue))
@@ -74,26 +60,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                     });
             }
 
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
-        }
-
-        private class UseCoalesceExpressionForNullableFixAllProvider : DocumentBasedFixAllProvider
-        {
-            private readonly UseCoalesceExpressionForNullableCodeFixProvider _provider;
-
-            public UseCoalesceExpressionForNullableFixAllProvider(UseCoalesceExpressionForNullableCodeFixProvider provider)
-            {
-                _provider = provider;
-            }
-
-            protected override Task<Document> FixDocumentAsync(
-                Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
-            {
-                var filteredDiagnostics = diagnostics.WhereAsArray(
-                    d => !d.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary));
-                return _provider.FixAllAsync(document, filteredDiagnostics, cancellationToken);
-            }
+            return SpecializedTasks.EmptyTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

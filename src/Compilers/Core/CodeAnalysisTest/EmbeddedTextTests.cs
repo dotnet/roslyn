@@ -244,6 +244,17 @@ class Program
             }
         }
 
+        [Fact]
+        public void FromBytes_EncodingFallbackCase()
+        {
+            var source = EncodedStringText.Create(new MemoryStream(new byte[] { 0xA9, 0x0D, 0x0A }), canBeEmbedded: true);
+            var text = EmbeddedText.FromSource("pathToLarge", source);
+
+            Assert.Equal("pathToLarge", text.FilePath);
+            Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
+            AssertEx.Equal(source.GetChecksum(), text.Checksum);
+        }
+
         private byte[] Decompress(IEnumerable<byte> bytes)
         {
             var destination = new MemoryStream();

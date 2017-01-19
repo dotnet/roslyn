@@ -513,12 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // yield |
             // yield r|
 
-            if (targetToken.IsKindOrHasMatchingText(SyntaxKind.YieldKeyword))
-            {
-                return true;
-            }
-
-            return false;
+            return targetToken.IsKindOrHasMatchingText(SyntaxKind.YieldKeyword);
         }
 
         public static bool IsAnyAccessorDeclarationContext(this SyntaxToken targetToken, int position, SyntaxKind kind = SyntaxKind.None)

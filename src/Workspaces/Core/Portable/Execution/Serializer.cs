@@ -25,6 +25,14 @@ namespace Microsoft.CodeAnalysis.Serialization
         private readonly IReferenceSerializationService _hostSerializationService;
         private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
 
+        public Serializer(Solution solution) : this(solution.Workspace)
+        {
+        }
+
+        public Serializer(Workspace workspace) : this(workspace.Services)
+        {
+        }
+
         public Serializer(HostWorkspaceServices workspaceServices)
         {
             _workspaceServices = workspaceServices;

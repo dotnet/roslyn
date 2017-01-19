@@ -33,14 +33,15 @@ namespace Microsoft.CodeAnalysis.VisualBasic
         {
         }
 
-        protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project loadedProject)
+        protected override ProjectFile CreateProjectFile(LoadedProjectInfo info)
         {
-            return new VisualBasicProjectFile(this, loadedProject);
+            return new VisualBasicProjectFile(this, info.Project, info.ErrorMessage);
         }
 
         internal class VisualBasicProjectFile : ProjectFile
         {
-            public VisualBasicProjectFile(VisualBasicProjectFileLoader loader, MSB.Evaluation.Project loadedProject) : base(loader, loadedProject)
+            public VisualBasicProjectFile(VisualBasicProjectFileLoader loader, MSB.Evaluation.Project loadedProject, string errorMessage) 
+                : base(loader, loadedProject, errorMessage)
             {
             }
 
@@ -63,28 +64,32 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             public override async Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken)
             {
                 var compilerInputs = new VisualBasicCompilerInputs(this);
-                var executedProject = await BuildAsync("Vbc", compilerInputs, cancellationToken).ConfigureAwait(false);
+                var buildInfo = await BuildAsync("Vbc", compilerInputs, cancellationToken).ConfigureAwait(false);
 
                 if (!compilerInputs.Initialized)
                 {
-                    InitializeFromModel(compilerInputs, executedProject);
+                    InitializeFromModel(compilerInputs, buildInfo.Project);
                 }
 
-                return CreateProjectFileInfo(compilerInputs, executedProject);
+                return CreateProjectFileInfo(compilerInputs, buildInfo);
             }
 
-            private ProjectFileInfo CreateProjectFileInfo(VisualBasicProjectFileLoader.VisualBasicProjectFile.VisualBasicCompilerInputs compilerInputs, ProjectInstance executedProject)
+            private ProjectFileInfo CreateProjectFileInfo(VisualBasicProjectFileLoader.VisualBasicProjectFile.VisualBasicCompilerInputs compilerInputs, BuildInfo buildInfo)
             {
                 string outputPath = Path.Combine(this.GetOutputDirectory(), compilerInputs.OutputFileName);
                 string assemblyName = this.GetAssemblyName();
+                var documents = buildInfo.Project != null ? this.GetDocuments(compilerInputs.Sources, buildInfo.Project) : SpecializedCollections.EmptyEnumerable<DocumentFileInfo>();
+                var additionalDocuments = buildInfo.Project != null ? this.GetDocuments(compilerInputs.AdditionalFiles, buildInfo.Project) : SpecializedCollections.EmptyEnumerable<DocumentFileInfo>();
+                var projectRefeferences = buildInfo.Project != null ? base.GetProjectReferences(buildInfo.Project) : SpecializedCollections.EmptyEnumerable<ProjectFileReference>();
 
                 return new ProjectFileInfo(
                     outputPath,
                     assemblyName,
                     compilerInputs.CommandLineArgs,
-                    this.GetDocuments(compilerInputs.Sources, executedProject),
-                    this.GetDocuments(compilerInputs.AdditionalFiles, executedProject),
-                    base.GetProjectReferences(executedProject));
+                    documents,
+                    additionalDocuments,
+                    projectRefeferences,
+                    buildInfo.ErrorMessage);
             }
 
             private IEnumerable<DocumentFileInfo> GetDocuments(IEnumerable<ITaskItem> sources, ProjectInstance executedProject)

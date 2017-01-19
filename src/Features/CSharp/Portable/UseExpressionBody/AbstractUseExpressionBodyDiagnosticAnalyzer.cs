@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
     internal abstract class AbstractUseExpressionBodyDiagnosticAnalyzer<TDeclaration> :
-        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+        AbstractCodeStyleDiagnosticAnalyzer
         where TDeclaration : SyntaxNode
     {
         private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private readonly LocalizableString _expressionBodyTitle;
         private readonly LocalizableString _blockBodyTitle;
 
-        public bool OpenFileOnly(Workspace workspace) => true;
+        public override bool OpenFileOnly(Workspace workspace) => false;
 
         protected AbstractUseExpressionBodyDiagnosticAnalyzer(
             string diagnosticId,
@@ -34,14 +34,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             _blockBodyTitle = blockBodyTitle;
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, _syntaxKinds);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var diagnostic = AnalyzeSyntax(context.Options.GetOptionSet(), (TDeclaration)context.Node);
+            var options = context.Options;
+            var syntaxTree = context.Node.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
+            var diagnostic = AnalyzeSyntax(optionSet, (TDeclaration)context.Node);
             if (diagnostic != null)
             {
                 context.ReportDiagnostic(diagnostic);

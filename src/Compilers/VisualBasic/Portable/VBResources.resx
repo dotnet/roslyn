@@ -285,18 +285,6 @@
   <data name="ERR_UnreferencedModuleEvent3" xml:space="preserve">
     <value>Reference required to module '{0}' containing the definition for event '{1}'. Add one to your project.</value>
   </data>
-  <data name="ERR_UnreferencedAssemblyBase3" xml:space="preserve">
-    <value>Reference required to assembly '{0}' containing the base class '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedModuleBase3" xml:space="preserve">
-    <value>Reference required to module '{0}' containing the base class '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedAssemblyImplements3" xml:space="preserve">
-    <value>Reference required to assembly '{0}' containing the implemented interface '{1}'. Add one to your project.</value>
-  </data>
-  <data name="ERR_UnreferencedModuleImplements3" xml:space="preserve">
-    <value>Reference required to module '{0}' containing the implemented interface '{1}'. Add one to your project.</value>
-  </data>
   <data name="ERR_LbExpectedEndIf" xml:space="preserve">
     <value>'#If' block must end with a matching '#End If'.</value>
   </data>
@@ -3476,7 +3464,7 @@
     <value>Type '{0}' cannot be embedded because it has generic argument. Consider disabling the embedding of interop types.</value>
   </data>
   <data name="ERR_CannotUseGenericTypeAcrossAssemblyBoundaries" xml:space="preserve">
-    <value>Type '{0}' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.</value>
+    <value>Type '{0}' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.</value>
   </data>
   <data name="WRN_UseOfObsoleteSymbol2" xml:space="preserve">
     <value>'{0}' is obsolete: '{1}'.</value>
@@ -4352,6 +4340,15 @@
   <data name="ERR_PublicSignNoKey" xml:space="preserve">
     <value>Public sign was specified and requires a public key, but no public key was specified</value>
   </data>
+  <data name="ERR_PublicSignNetModule" xml:space="preserve">
+    <value>Public signing is not supported for netmodules.</value>
+  </data>
+  <data name="WRN_AttributeIgnoredWhenPublicSigning" xml:space="preserve">
+    <value>Attribute '{0}' is ignored when public signing is specified.</value>
+  </data>
+  <data name="WRN_AttributeIgnoredWhenPublicSigning_Title" xml:space="preserve">
+    <value>Attribute is ignored when public signing is specified.</value>
+  </data>
   <data name="WRN_DelaySignButNoKey" xml:space="preserve">
     <value>Delay signing was specified and requires a public key, but no public key was specified.</value>
   </data>
@@ -4847,8 +4844,8 @@
   <data name="ERR_NetModuleNameMismatch" xml:space="preserve">
     <value>Module name '{0}' stored in '{1}' must match its filename.</value>
   </data>
-  <data name="ERR_BadCompilationOption" xml:space="preserve">
-    <value>{0}</value>
+  <data name="ERR_BadModuleName" xml:space="preserve">
+    <value>Invalid module name: {0}</value>
   </data>
   <data name="WRN_AssemblyAttributeFromModuleIsOverridden" xml:space="preserve">
     <value>Attribute '{0}' from module '{1}' will be ignored in favor of the instance appearing in source.</value>
@@ -5460,5 +5457,8 @@
   </data>
   <data name="ERR_DocFileGen" xml:space="preserve">
     <value>Error writing to XML documentation file: {0}</value>
+  </data>
+  <data name="ERR_BadAssemblyName" xml:space="preserve">
+    <value>Invalid assembly name: {0}</value>
   </data>
 </root>

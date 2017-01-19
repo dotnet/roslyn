@@ -13,7 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces
     {
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(new CSharpAddBracesDiagnosticAnalyzer(),
+            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
+                new CSharpAddBracesDiagnosticAnalyzer(),
                 new CSharpAddBracesCodeFixProvider());
         }
 

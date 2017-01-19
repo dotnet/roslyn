@@ -1283,9 +1283,9 @@ class Delta
 
 class Delta
 {
-    private bool v;
     private string v1;
     private int v2;
+    private bool v;
 
     public Delta(string v1, int v2)
     {
@@ -1447,9 +1447,9 @@ class Delta
 
 class Delta
 {
-    private bool v;
     private string v1;
     private int v2;
+    private bool v;
 
     public Delta(string v1, int v2)
     {
@@ -1666,17 +1666,17 @@ struct Apartment
 
 struct Apartment
 {
-    private string v;
     private int v1;
-
-    public Apartment(string v) : this()
-    {
-        this.v = v;
-    }
+    private string v;
 
     public Apartment(int v1)
     {
         this.v1 = v1;
+    }
+
+    public Apartment(string v) : this()
+    {
+        this.v = v;
     }
 }");
         }
@@ -1765,13 +1765,13 @@ class D
     private int u;
     private D v;
 
+    public D(int u)
+    {
+    }
+
     public D(D v)
     {
         this.v = v;
-    }
-
-    public D(int u)
-    {
     }
 }");
         }
@@ -1871,9 +1871,9 @@ class D
 [AttributeUsage(AttributeTargets.Class)]
 class MyAttribute : Attribute
 {
-    private string topic;
     private bool v1;
     private int v2;
+    private string topic;
 
     public MyAttribute(bool v1, int v2, string topic)
     {
@@ -1968,14 +1968,14 @@ class MyAttribute : Attribute
     private int v;
     private bool v1;
 
-    public MyAttribute(bool v1)
-    {
-        this.v1 = v1;
-    }
-
     public MyAttribute(int v)
     {
         this.v = v;
+    }
+
+    public MyAttribute(bool v1)
+    {
+        this.v1 = v1;
     }
 }
 
@@ -2014,21 +2014,21 @@ class D
 [AttributeUsage(AttributeTargets.Class)]
 class MyAttrAttribute : Attribute
 {
-    private int v;
     private bool v1;
     private int v2;
+    private int v;
     private bool v3;
-
-    public MyAttrAttribute(int v, bool v3)
-    {
-        this.v = v;
-        this.v3 = v3;
-    }
 
     public MyAttrAttribute(bool v1, int v2)
     {
         this.v1 = v1;
         this.v2 = v2;
+    }
+
+    public MyAttrAttribute(int v, bool v3)
+    {
+        this.v = v;
+        this.v3 = v3;
     }
 }
 
@@ -2069,9 +2069,8 @@ enum A
 [AttributeUsage(AttributeTargets.Class)]
 class MyAttrAttribute : Attribute
 {
-    private A a1;
     private int[] v1;
-    private string v10;
+    private A a1;
     private bool v2;
     private byte v3;
     private char v4;
@@ -2080,6 +2079,7 @@ class MyAttrAttribute : Attribute
     private long v7;
     private double v8;
     private float v9;
+    private string v10;
 
     public MyAttrAttribute(int[] v1, A a1, bool v2, byte v3, char v4, short v5, int v6, long v7, double v8, float v9, string v10)
     {
@@ -2978,7 +2978,7 @@ parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12182"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped_CSharp6()
         {
@@ -3006,7 +3006,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
 withScriptOption: true);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12182"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument_CSharp6()
         {
@@ -3034,7 +3034,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
 withScriptOption: true);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12182"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped_CSharp6()
         {
@@ -3062,7 +3062,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
 withScriptOption: true);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12182"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [WorkItem(12182, "https://github.com/dotnet/roslyn/issues/12182")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument_CSharp6()
         {

@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis
             return _lazyChecksums.TryGetValue(out stateChecksums);
         }
 
+        public Task<DocumentStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
+        {
+            return _lazyChecksums.GetValueAsync(cancellationToken);
+        }
+
         public async Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
         {
             var collection = await _lazyChecksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -27,7 +32,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var textTask = GetTextAsync(cancellationToken);
 
-                var serializer = new Serializer(solutionServices.Workspace.Services);
+                var serializer = new Serializer(solutionServices.Workspace);
 
                 var infoChecksum = serializer.CreateChecksum(Info.Attributes, cancellationToken);
                 var textChecksum = serializer.CreateChecksum(await textTask.ConfigureAwait(false), cancellationToken);

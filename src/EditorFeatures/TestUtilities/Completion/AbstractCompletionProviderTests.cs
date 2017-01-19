@@ -135,9 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority)
         {
-            string code;
-            int position;
-            MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out code, out position);
+            MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out var code, out int position);
 
             return VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
@@ -146,9 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         protected async Task VerifyCustomCommitProviderAsync(string markupBeforeCommit, string itemToCommit, string expectedCodeAfterCommit, SourceCodeKind? sourceCodeKind = null, char? commitChar = null)
         {
-            string code;
-            int position;
-            MarkupTestFile.GetPosition(markupBeforeCommit.NormalizeLineEndings(), out code, out position);
+            MarkupTestFile.GetPosition(markupBeforeCommit.NormalizeLineEndings(), out var code, out int position);
 
             if (sourceCodeKind.HasValue)
             {
@@ -164,9 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected async Task VerifyProviderCommitAsync(string markupBeforeCommit, string itemToCommit, string expectedCodeAfterCommit,
             char? commitChar, string textTypedSoFar, SourceCodeKind? sourceCodeKind = null)
         {
-            string code;
-            int position;
-            MarkupTestFile.GetPosition(markupBeforeCommit.NormalizeLineEndings(), out code, out position);
+            MarkupTestFile.GetPosition(markupBeforeCommit.NormalizeLineEndings(), out var code, out int position);
 
             expectedCodeAfterCommit = expectedCodeAfterCommit.NormalizeLineEndings();
             if (sourceCodeKind.HasValue)
@@ -332,9 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string expectedCodeAfterCommit,
             char? commitChar = null)
         {
-            int expectedCaretPosition;
-            string actualExpectedCode = null;
-            MarkupTestFile.GetPosition(expectedCodeAfterCommit, out actualExpectedCode, out expectedCaretPosition);
+            MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
             if (commitChar.HasValue && 
                 !Controller.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, commitChar.Value.ToString()))
@@ -371,9 +363,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string expectedCodeAfterCommit,
             char? commitChar = null)
         {
-            int expectedCaretPosition;
-            string actualExpectedCode = null;
-            MarkupTestFile.GetPosition(expectedCodeAfterCommit, out actualExpectedCode, out expectedCaretPosition);
+            MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
             if (commitChar.HasValue &&
                 !Controller.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, commitChar.Value.ToString()))

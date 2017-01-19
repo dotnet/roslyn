@@ -1,13 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -43,17 +44,8 @@
       <Name>EditorFeatures</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-    <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml</DocumentationFile>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Compile Include="AutomaticCompletion\AutomaticLineEnderCommandHandler.vb" />
     <Compile Include="AutomaticCompletion\Sessions\CurlyBraceCompletionSession.vb" />
@@ -100,12 +92,12 @@
     <Compile Include="ExtractInterface\ExtractInterfaceCommandHandler.vb" />
     <Compile Include="ExtractMethod\ExtractMethodCommandHandler.vb" />
     <Compile Include="FindReferences\VisualBasicFindReferencesService.vb" />
+    <Compile Include="FindUsages\VisualBasicFindUsagesService.vb" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatter.vb" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatterCommandHandler.vb" />
     <Compile Include="Formatting\Indentation\SpecialFormattingOperation.vb" />
     <Compile Include="Formatting\Indentation\VisualBasicIndentationService.Indenter.vb" />
     <Compile Include="Formatting\Indentation\VisualBasicIndentationService.vb" />
-    <Compile Include="GoToImplementation\VisualBasicGoToImplementationService.vb" />
     <Compile Include="GoToDefinition\VisualBasicGoToDefinitionService.vb" />
     <Compile Include="Highlighting\KeywordHighlighters\AccessorDeclarationHighlighter.vb" />
     <Compile Include="Highlighting\KeywordHighlighters\ConditionalPreprocessorHighlighter.vb" />

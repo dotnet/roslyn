@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol sourceMethod,
             MethodSymbol destinationMethod,
             out TypeSymbol returnType,
-            out ImmutableArray<CustomModifier> returnTypeCustomModifiers,
+            out CustomModifiersTuple customModifiers,
             out ImmutableArray<ParameterSymbol> parameters,
             bool alsoCopyParamsModifier) // Last since always named.
         {
@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Assert: none of the method's type parameters have been substituted
             Debug.Assert((object)sourceMethod == sourceMethod.ConstructedFrom);
 
-            returnTypeCustomModifiers = sourceMethod.ReturnTypeCustomModifiers;
-
             // For the most part, we will copy custom modifiers by copying types.
             // The only time when this fails is when the type refers to a type parameter
             // owned by the overridden method.  We need to replace all such references
@@ -36,6 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we can perform this mapping positionally, because the method signatures
             // have already been compared.
             MethodSymbol constructedSourceMethod = sourceMethod.ConstructIfGeneric(destinationMethod.TypeArguments);
+
+            customModifiers = CustomModifiersTuple.Create(constructedSourceMethod.ReturnTypeCustomModifiers,
+                                                          destinationMethod.ReturnsByRef ? constructedSourceMethod.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty);
 
             parameters = CopyParameterCustomModifiers(constructedSourceMethod.Parameters, destinationMethod.Parameters, alsoCopyParamsModifier);
 
@@ -100,8 +101,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SourceParameterSymbolBase destinationParameter = (SourceParameterSymbolBase)destinationParameters[i];
                 ParameterSymbol sourceParameter = sourceParameters[i];
 
-                if (sourceParameter.CustomModifiers.Any() || sourceParameter.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: true) ||
-                    destinationParameter.CustomModifiers.Any() || destinationParameter.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: true) || // Could happen if the associated property has custom modifiers.
+                if (sourceParameter.CustomModifiers.Any() || sourceParameter.RefCustomModifiers.Any() ||
+                    sourceParameter.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: true) ||
+                    destinationParameter.CustomModifiers.Any() || destinationParameter.RefCustomModifiers.Any() ||
+                    destinationParameter.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: true) || // Could happen if the associated property has custom modifiers.
                     (alsoCopyParamsModifier && (sourceParameter.IsParams != destinationParameter.IsParams)))
                 {
                     if (builder == null)
@@ -111,8 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     bool newParams = alsoCopyParamsModifier ? sourceParameter.IsParams : destinationParameter.IsParams;
-                    builder.Add(destinationParameter.WithCustomModifiersAndParams(sourceParameter.Type, sourceParameter.CustomModifiers,
-                                                                                  destinationParameter.RefKind != RefKind.None ? sourceParameter.CountOfCustomModifiersPrecedingByRef : (ushort)0,
+                    builder.Add(destinationParameter.WithCustomModifiersAndParams(sourceParameter.Type, 
+                                                                                  sourceParameter.CustomModifiers,
+                                                                                  destinationParameter.RefKind != RefKind.None ? sourceParameter.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty,
                                                                                   newParams));
                 }
                 else if (builder != null)

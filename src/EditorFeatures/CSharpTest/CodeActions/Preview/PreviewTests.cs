@@ -98,9 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         {
             using (var workspace = await CreateWorkspaceFromFileAsync("class D {}", null, null))
             {
-                Document document = null;
-                SolutionPreviewResult previews = null;
-                GetMainDocumentAndPreviews(workspace, out document, out previews);
+                GetMainDocumentAndPreviews(workspace, out var document, out var previews);
 
                 // The changed document comes first.
                 var previewObjects = await previews.GetPreviewsAsync();

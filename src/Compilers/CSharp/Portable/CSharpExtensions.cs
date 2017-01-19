@@ -610,7 +610,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         public static TypeInfo GetTypeInfo(this SemanticModel semanticModel, SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
@@ -1234,9 +1233,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Given a declaration pattern syntax, get the corresponding symbol.
+        /// Given a tuple element syntax, get the corresponding symbol.
         /// </summary>
-        public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, TupleElementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);

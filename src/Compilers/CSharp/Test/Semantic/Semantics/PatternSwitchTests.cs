@@ -1477,12 +1477,6 @@ class Program
                 // (21,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int):
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(21, 24),
-                // (22,32): error CS1003: Syntax error, '=>' expected
-                //             case (int x, int y):
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>", ":").WithLocation(22, 32),
-                // (22,32): error CS1525: Invalid expression term ':'
-                //             case (int x, int y):
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(22, 32),
                 // (23,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(23, 19),
@@ -1498,9 +1492,15 @@ class Program
                 // (23,31): error CS1002: ; expected
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(23, 31),
-                // (24,33): error CS1003: Syntax error, '=>' expected
+                // (24,33): error CS1003: Syntax error, ':' expected
                 //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments("=>", "").WithLocation(24, 33),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(":", "").WithLocation(24, 33),
+                // (24,35): error CS1525: Invalid expression term 'case'
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("case").WithLocation(24, 35),
+                // (24,35): error CS1002: ; expected
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(24, 35),
                 // (25,19): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(25, 19),
@@ -1540,12 +1540,6 @@ class Program
                 // (43,28): error CS1525: Invalid expression term 'int'
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(43, 28),
-                // (44,36): error CS1003: Syntax error, '=>' expected
-                //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(44, 36),
-                // (44,36): error CS1525: Invalid expression term ')'
-                //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(44, 36),
                 // (45,23): error CS1525: Invalid expression term 'int'
                 //             if (o is (int, int) z)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(45, 23),
@@ -1561,15 +1555,15 @@ class Program
                 // (45,34): error CS1513: } expected
                 //             if (o is (int, int) z)) {}
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(45, 34),
-                // (46,37): error CS1003: Syntax error, '=>' expected
+                // (46,37): error CS1026: ) expected
                 //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments("=>", "").WithLocation(46, 37),
-                // (50,54): error CS1003: Syntax error, '=>' expected
-                //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(50, 54),
-                // (50,54): error CS1525: Invalid expression term ')'
-                //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(50, 54),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "c").WithLocation(46, 37),
+                // (46,38): error CS1002: ; expected
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(46, 38),
+                // (46,38): error CS1513: } expected
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(46, 38),
                 // (51,51): error CS1026: ) expected
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "z").WithLocation(51, 51),
@@ -1579,21 +1573,39 @@ class Program
                 // (51,52): error CS1513: } expected
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(51, 52),
-                // (52,55): error CS1003: Syntax error, '=>' expected
+                // (52,55): error CS1026: ) expected
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments("=>", "").WithLocation(52, 55),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "c").WithLocation(52, 55),
+                // (52,56): error CS1002: ; expected
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(52, 56),
+                // (52,56): error CS1513: } expected
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(52, 56),
                 // (21,18): error CS0150: A constant value is expected
                 //             case (int, int):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(21, 18),
-                // (22,18): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (22,19): error CS8185: A declaration is not allowed in this context.
                 //             case (int x, int y):
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(int x, int y)").WithArguments("lambda expression", "object").WithLocation(22, 18),
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(22, 19),
+                // (22,26): error CS8185: A declaration is not allowed in this context.
+                //             case (int x, int y):
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(22, 26),
+                // (22,18): error CS0150: A constant value is expected
+                //             case (int x, int y):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int x, int y)").WithLocation(22, 18),
                 // (23,18): error CS0150: A constant value is expected
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(23, 18),
-                // (24,18): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (24,19): error CS8185: A declaration is not allowed in this context.
                 //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(int a, int b) c").WithArguments("lambda expression", "object").WithLocation(24, 18),
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(24, 19),
+                // (24,26): error CS8185: A declaration is not allowed in this context.
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int b").WithLocation(24, 26),
+                // (24,18): error CS0150: A constant value is expected
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int a, int b)").WithLocation(24, 18),
                 // (25,18): error CS0150: A constant value is expected
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(long, long)").WithLocation(25, 18),
@@ -1618,27 +1630,48 @@ class Program
                 // (43,22): error CS0150: A constant value is expected
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(43, 22),
-                // (44,22): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (44,23): error CS8185: A declaration is not allowed in this context.
                 //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(int x, int y)").WithArguments("lambda expression", "object").WithLocation(44, 22),
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(44, 23),
+                // (44,30): error CS8185: A declaration is not allowed in this context.
+                //             if (o is (int x, int y)) {}
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(44, 30),
+                // (44,22): error CS0150: A constant value is expected
+                //             if (o is (int x, int y)) {}
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int x, int y)").WithLocation(44, 22),
                 // (45,22): error CS0150: A constant value is expected
                 //             if (o is (int, int) z)) {}
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(45, 22),
                 // (45,33): error CS0103: The name 'z' does not exist in the current context
                 //             if (o is (int, int) z)) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(45, 33),
-                // (46,22): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (46,23): error CS8185: A declaration is not allowed in this context.
                 //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(int a, int b) c").WithArguments("lambda expression", "object").WithLocation(46, 22),
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(46, 23),
+                // (46,30): error CS8185: A declaration is not allowed in this context.
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int b").WithLocation(46, 30),
+                // (46,22): error CS0150: A constant value is expected
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int a, int b)").WithLocation(46, 22),
+                // (46,37): error CS0103: The name 'c' does not exist in the current context
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(46, 37),
                 // (49,23): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(49, 23),
                 // (49,37): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(49, 37),
-                // (50,22): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (50,23): error CS8185: A declaration is not allowed in this context.
                 //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(System.Int32 x, System.Int32 y)").WithArguments("lambda expression", "object").WithLocation(50, 22),
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 x").WithLocation(50, 23),
+                // (50,39): error CS8185: A declaration is not allowed in this context.
+                //             if (o is (System.Int32 x, System.Int32 y)) {}
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 y").WithLocation(50, 39),
+                // (50,22): error CS0150: A constant value is expected
+                //             if (o is (System.Int32 x, System.Int32 y)) {}
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.Int32 x, System.Int32 y)").WithLocation(50, 22),
                 // (51,23): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(51, 23),
@@ -1648,15 +1681,30 @@ class Program
                 // (51,51): error CS0103: The name 'z' does not exist in the current context
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(51, 51),
-                // (52,22): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (52,23): error CS8185: A declaration is not allowed in this context.
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(System.Int32 a, System.Int32 b) c").WithArguments("lambda expression", "object").WithLocation(52, 22),
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 a").WithLocation(52, 23),
+                // (52,39): error CS8185: A declaration is not allowed in this context.
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "System.Int32 b").WithLocation(52, 39),
+                // (52,22): error CS0150: A constant value is expected
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(System.Int32 a, System.Int32 b)").WithLocation(52, 22),
+                // (52,55): error CS0103: The name 'c' does not exist in the current context
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(52, 55),
                 // (23,13): error CS0163: Control cannot fall through from one case label ('case (int, int) ') to another
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (int, int) ").WithArguments("case (int, int) ").WithLocation(23, 13),
+                // (24,13): error CS0163: Control cannot fall through from one case label ('case (int a, int b) ') to another
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (int a, int b) ").WithArguments("case (int a, int b) ").WithLocation(24, 13),
                 // (23,29): warning CS0164: This label has not been referenced
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(23, 29),
+                // (24,33): warning CS0164: This label has not been referenced
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(24, 33),
                 // (25,31): warning CS0164: This label has not been referenced
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(25, 31),
@@ -1671,7 +1719,31 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(37, 47),
                 // (39,47): warning CS0164: This label has not been referenced
                 //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(39, 47)
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "d").WithLocation(39, 47),
+                // (44,23): error CS0165: Use of unassigned local variable 'x'
+                //             if (o is (int x, int y)) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(44, 23),
+                // (44,30): error CS0165: Use of unassigned local variable 'y'
+                //             if (o is (int x, int y)) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(44, 30),
+                // (46,23): error CS0165: Use of unassigned local variable 'a'
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int a").WithArguments("a").WithLocation(46, 23),
+                // (46,30): error CS0165: Use of unassigned local variable 'b'
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int b").WithArguments("b").WithLocation(46, 30),
+                // (50,23): error CS0165: Use of unassigned local variable 'x'
+                //             if (o is (System.Int32 x, System.Int32 y)) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 x").WithArguments("x").WithLocation(50, 23),
+                // (50,39): error CS0165: Use of unassigned local variable 'y'
+                //             if (o is (System.Int32 x, System.Int32 y)) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 y").WithArguments("y").WithLocation(50, 39),
+                // (52,23): error CS0165: Use of unassigned local variable 'a'
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 a").WithArguments("a").WithLocation(52, 23),
+                // (52,39): error CS0165: Use of unassigned local variable 'b'
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "System.Int32 b").WithArguments("b").WithLocation(52, 39)
                 );
         }
 

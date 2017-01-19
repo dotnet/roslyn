@@ -336,9 +336,30 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 Debug.Assert(GetTypeKind(x) == GetTypeKind(y));
 
-                if (x.IsTupleType)
+                if (x.IsTupleType || y.IsTupleType)
                 {
-                    return y.IsTupleType && TypeArgumentsAreEquivalent(x.TupleElementTypes, y.TupleElementTypes, equivalentTypesWithDifferingAssemblies);
+                    if (x.IsTupleType != y.IsTupleType)
+                    {
+                        return false;
+                    }
+
+                    var xElements = x.TupleElements;
+                    var yElements = y.TupleElements;
+
+                    if (xElements.Length != yElements.Length)
+                    {
+                        return false;
+                    }
+
+                    for(int i = 0; i < xElements.Length; i++)
+                    {
+                        if (!AreEquivalent(xElements[i].Type, yElements[i].Type, equivalentTypesWithDifferingAssemblies))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
                 }
 
                 if (x.IsDefinition != y.IsDefinition ||

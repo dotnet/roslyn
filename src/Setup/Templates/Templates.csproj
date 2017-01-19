@@ -1,9 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ProjectGuid>{AE95B1D1-5E64-429B-B075-EE491665ECFB}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -16,7 +17,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <DeployVSTemplates>false</DeployVSTemplates>
     <CopyZipOutputToOutputDirectory>false</CopyZipOutputToOutputDirectory>
-    <BaseIntermediateOutputPath>$(BaseIntermediateOutputPath)\$(VersionType)</BaseIntermediateOutputPath>
+    <BaseIntermediateOutputPath>$(BaseIntermediateOutputPath)\$(VersionType)\</BaseIntermediateOutputPath>
     <VsixOutDirSuffix>Roslyn Templates\$(VersionType)</VsixOutDirSuffix>
     <TargetVsixContainerName>$(VsixOutDirSuffix)\Roslyn SDK.vsix</TargetVsixContainerName>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
@@ -25,6 +26,8 @@
     <TargetFrameworkProfile />
     <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <PropertyGroup>
     <StartAction>Program</StartAction>
     <StartProgram>$(DevEnvDir)devenv.exe</StartProgram>
@@ -47,6 +50,7 @@
       <Link>EULA.rtf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <None Include="project.json" />
     <None Include="VisualBasic\Diagnostic\Vsix\Deployment.vbproj" />
     <None Include="VisualBasic\Diagnostic\Vsix\Deployment.vstemplate">
       <SubType>Designer</SubType>
@@ -231,16 +235,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.TemplateWizardInterface, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="System" />
-    <Reference Include="VSLangProj, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="CSharp\Diagnostic\Analyzer\AssemblyInfo.cs" />
@@ -309,22 +304,22 @@
       <VSIXSourceItem Include="@(IntermediateZipProject)">
         <VSIXSubPath>%(IntermediateZipProject.Filename)\%(IntermediateZipProject.Language)\%(IntermediateZipProject.OutputSubPath)\%(IntermediateZipProject.Culture)</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Common\1.0.0\Microsoft.CodeAnalysis.Common.1.0.0.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Common\1.0.1\Microsoft.CodeAnalysis.Common.1.0.1.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.CSharp\1.0.0\Microsoft.CodeAnalysis.CSharp.1.0.0.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.CSharp\1.0.1\Microsoft.CodeAnalysis.CSharp.1.0.1.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.CSharp.Workspaces\1.0.0\Microsoft.CodeAnalysis.CSharp.Workspaces.1.0.0.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.CSharp.Workspaces\1.0.1\Microsoft.CodeAnalysis.CSharp.Workspaces.1.0.1.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Workspaces.Common\1.0.0\Microsoft.CodeAnalysis.Workspaces.Common.1.0.0.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.Workspaces.Common\1.0.1\Microsoft.CodeAnalysis.Workspaces.Common.1.0.1.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.VisualBasic\1.0.0\Microsoft.CodeAnalysis.VisualBasic.1.0.0.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.VisualBasic\1.0.1\Microsoft.CodeAnalysis.VisualBasic.1.0.1.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
-      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.VisualBasic.Workspaces\1.0.0\Microsoft.CodeAnalysis.VisualBasic.Workspaces.1.0.0.nupkg">
+      <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.CodeAnalysis.VisualBasic.Workspaces\1.0.1\Microsoft.CodeAnalysis.VisualBasic.Workspaces.1.0.1.nupkg">
         <VSIXSubPath>Packages</VSIXSubPath>
       </VSIXSourceItem>
       <VSIXSourceItem Include="$(NuGetPackageRoot)\Microsoft.Composition\1.0.27\Microsoft.Composition.1.0.27.nupkg">

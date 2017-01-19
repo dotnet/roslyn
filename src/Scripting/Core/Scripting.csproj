@@ -1,8 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{12A68549-4E8C-42D6-8703-A09335F97997}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Scripting</RootNamespace>
@@ -11,6 +13,7 @@
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -18,50 +21,38 @@
       <Name>CodeAnalysis</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Any CPU' "></PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Any CPU' "></PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
-    <PlatformTarget>ARM</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <!-- Workaround for https://github.com/NuGet/Home/issues/1471 -->
-    <Reference Include="$(NuGetPackageRoot)\System.Runtime.Loader\4.0.0$(CoreFXVersionSuffix)\ref\netstandard1.5\System.Runtime.Loader.dll">
+    <Reference Include="$(NuGetPackageRoot)\System.Runtime.Loader\$(SystemRuntimeLoaderVersion)\ref\netstandard1.5\System.Runtime.Loader.dll">
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
-      <Link>Resolvers\RelativePathResolver.cs</Link>
+      <Link>Hosting\Resolvers\RelativePathResolver.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Shared\CoreClrShim.cs">
       <Link>CoreClrShim.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\ClrGlobalAssemblyCache.cs">
-      <Link>Resolvers\ClrGlobalAssemblyCache.cs</Link>
+      <Link>Hosting\Resolvers\ClrGlobalAssemblyCache.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
-      <Link>Resolvers\FusionAssemblyIdentity.cs</Link>
+      <Link>Hosting\Resolvers\FusionAssemblyIdentity.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
-      <Link>Resolvers\GacFileResolver.cs</Link>
+      <Link>Hosting\Resolvers\GacFileResolver.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
-      <Link>Resolvers\GlobalAssemblyCache.cs</Link>
+      <Link>Hosting\Resolvers\GlobalAssemblyCache.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
-      <Link>Resolvers\GlobalAssemblyCache.Location.cs</Link>
+      <Link>Hosting\Resolvers\GlobalAssemblyCacheLocation.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\MonoGlobalAssemblyCache.cs">
-      <Link>Resolvers\MonoGlobalAssemblyCache.cs</Link>
+      <Link>Hosting\Resolvers\MonoGlobalAssemblyCache.cs</Link>
     </Compile>
     <Compile Include="Hosting\AssemblyLoader\AssemblyAndLocation.cs" />
     <Compile Include="Hosting\AssemblyLoader\AssemblyLoadResult.cs" />

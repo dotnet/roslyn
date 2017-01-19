@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,7 +23,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
-using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -117,12 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
 
             var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
-
-            IVsUIHierarchy hierarchy;
-            uint itemId;
-            IOleServiceProvider localServiceProvider;
-            IVsWindowFrame windowFrame;
-            openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out localServiceProvider, out hierarchy, out itemId, out windowFrame);
+            openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out var localServiceProvider, out var hierarchy, out var itemId, out var windowFrame);
 
             var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
 
@@ -163,23 +156,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             AssertIsForeground();
-
-            IVsHierarchy hierarchy;
-            IVsSymbolicNavigationNotify navigationNotify;
-            string rqname;
-            uint itemID;
             if (!TryGetNavigationAPIRequiredArguments(
-                    symbol, solution, cancellationToken, out hierarchy, out itemID, out navigationNotify, out rqname))
+                    symbol, solution, cancellationToken,
+                    out var hierarchy, out var itemID, out var navigationNotify, out var rqname))
             {
                 return false;
             }
 
-            int navigationHandled;
             int returnCode = navigationNotify.OnBeforeNavigateToSymbol(
                 hierarchy,
                 itemID,
                 rqname,
-                out navigationHandled);
+                out var navigationHandled);
 
             if (returnCode == VSConstants.S_OK && navigationHandled == 1)
             {
@@ -221,30 +209,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             filePath = null;
             lineNumber = 0;
             charOffset = 0;
-
-            IVsHierarchy hierarchy;
-            IVsSymbolicNavigationNotify navigationNotify;
-            string rqname;
-            uint itemID;
             if (!TryGetNavigationAPIRequiredArguments(
-                    symbol, solution, cancellationToken, out hierarchy, out itemID, out navigationNotify, out rqname))
+                    symbol, solution, cancellationToken,
+                    out var hierarchy, out var itemID, out var navigationNotify, out var rqname))
             {
                 return false;
             }
 
-            IVsHierarchy navigateToHierarchy;
-            uint navigateToItem;
-            int wouldNavigate;
             var navigateToTextSpan = new Microsoft.VisualStudio.TextManager.Interop.TextSpan[1];
 
             int queryNavigateStatusCode = navigationNotify.QueryNavigateToSymbol(
                 hierarchy,
                 itemID,
                 rqname,
-                out navigateToHierarchy,
-                out navigateToItem,
+                out var navigateToHierarchy,
+                out var navigateToItem,
                 navigateToTextSpan,
-                out wouldNavigate);
+                out var wouldNavigate);
 
             if (queryNavigateStatusCode == VSConstants.S_OK && wouldNavigate == 1)
             {
@@ -294,9 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // documents we consider to be "generated" to give external language services the best
             // chance of participating.
 
-            var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
-            var generatedDocuments = documents.Where(
-                d => generatedCodeRecognitionService.IsGeneratedCode(d, cancellationToken));
+            var generatedDocuments = documents.Where(d => d.IsGeneratedCode(cancellationToken));
 
             var documentToUse = generatedDocuments.FirstOrDefault() ?? documents.First();
             if (!TryGetVsHierarchyAndItemId(documentToUse, out hierarchy, out itemID))

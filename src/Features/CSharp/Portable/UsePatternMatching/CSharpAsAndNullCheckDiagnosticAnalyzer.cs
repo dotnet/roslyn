@@ -6,6 +6,10 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
@@ -20,9 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     ///     if (o is Type x) ...
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+    internal class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
-        public bool OpenFileOnly(Workspace workspace) => false;
+        public override bool OpenFileOnly(Workspace workspace) => false;
 
         public CSharpAsAndNullCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineAsTypeCheckId,
@@ -36,8 +40,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
-            var options = syntaxContext.Options.GetOptionSet();
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck);
+            var options = syntaxContext.Options;
+            var syntaxTree = syntaxContext.Node.SyntaxTree;
+            var cancellationToken = syntaxContext.CancellationToken;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
+            var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck);
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
@@ -62,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            // We need to find the leftmost expression in teh if-condition.  If this is a
-            // "x != null" expression the we can replace it with "o as Type x".  
+            // We need to find the leftmost expression in the if-condition.  If this is a
+            // "x != null" expression, then we can replace it with "o is Type x".  
             var condition = GetLeftmostCondition(ifStatement.Condition);
             if (!condition.IsKind(SyntaxKind.NotEqualsExpression))
             {
@@ -121,6 +133,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
+            // If we convert this to 'if (o is Type x)' then 'x' will not be definitely assigned 
+            // in the Else branch of the IfStatement, or after the IfStatement.  Make sure 
+            // that doesn't cause definite assignment issues.
+            if (IsAccessedBeforeAssignment(syntaxContext, declarator, ifStatement, cancellationToken))
+            {
+                return;
+            }
+
             // Looks good!
             var additionalLocations = ImmutableArray.Create(
                 localDeclarationStatement.GetLocation(),
@@ -130,9 +150,75 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // Put a diagnostic with the appropriate severity on the declaration-statement itself.
             syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptorWithSeverity(severity),
+                GetDescriptorWithSeverity(severity),
                 localDeclarationStatement.GetLocation(),
                 additionalLocations));
+        }
+
+        private bool IsAccessedBeforeAssignment(
+            SyntaxNodeAnalysisContext syntaxContext,
+            VariableDeclaratorSyntax declarator,
+            IfStatementSyntax ifStatement,
+            CancellationToken cancellationToken)
+        {
+            var semanticModel = syntaxContext.SemanticModel;
+            var localVariable = semanticModel.GetDeclaredSymbol(declarator);
+
+            var isAssigned = false;
+            var isAccessedBeforeAssignment = false;
+
+            CheckDefiniteAssignment(
+                semanticModel, localVariable, ifStatement.Else,
+                out isAssigned, out isAccessedBeforeAssignment,
+                cancellationToken);
+
+            if (isAccessedBeforeAssignment)
+            {
+                return true;
+            }
+
+            var parentBlock = (BlockSyntax)ifStatement.Parent;
+            var ifIndex = parentBlock.Statements.IndexOf(ifStatement);
+            for (int i = ifIndex + 1, n = parentBlock.Statements.Count; i < n; i++)
+            {
+                if (!isAssigned)
+                {
+                    CheckDefiniteAssignment(
+                        semanticModel, localVariable, parentBlock.Statements[i],
+                        out isAssigned, out isAccessedBeforeAssignment,
+                        cancellationToken);
+
+                    if (isAccessedBeforeAssignment)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private void CheckDefiniteAssignment(
+            SemanticModel semanticModel, ISymbol localVariable, SyntaxNode node,
+            out bool isAssigned, out bool isAccessedBeforeAssignment,
+            CancellationToken cancellationToken)
+        {
+            if (node != null)
+            {
+                foreach (var id in node.DescendantNodes().OfType<IdentifierNameSyntax>())
+                {
+                    var symbol = semanticModel.GetSymbolInfo(id, cancellationToken).GetAnySymbol();
+                    if (localVariable.Equals(symbol))
+                    {
+                        isAssigned = id.IsOnlyWrittenTo();
+                        isAccessedBeforeAssignment = !isAssigned;
+                        return;
+                    }
+                }
+            }
+
+            isAssigned = false;
+            isAccessedBeforeAssignment = false;
         }
 
         private BinaryExpressionSyntax GetLeftmostCondition(ExpressionSyntax condition)
@@ -154,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private bool IsNullCheckExpression(ExpressionSyntax left, ExpressionSyntax right) =>
             left.IsKind(SyntaxKind.IdentifierName) && right.IsKind(SyntaxKind.NullLiteralExpression);
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         {
             return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
         }

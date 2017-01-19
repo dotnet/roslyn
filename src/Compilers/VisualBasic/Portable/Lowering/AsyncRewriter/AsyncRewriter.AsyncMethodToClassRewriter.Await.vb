@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     builder.AddStatement(
                         Me.F.If(
                             condition:=Me.F.Convert(Me.F.SpecialType(SpecialType.System_Boolean), rewrittenIsCompleted),
-                            thenClause:=Me.F.Block(),
+                            thenClause:=Me.F.StatementList(),
                             elseClause:=awaitForIncompleteTask))
                 Else
                     ' regular case

@@ -12,7 +12,7 @@ using System.Xml.XPath;
 
 namespace BuildBoss
 {
-    internal sealed class ProjectCheckerUtil
+    internal sealed class ProjectCheckerUtil : ICheckerUtil
     {
         private readonly ProjectData _data;
         private readonly ProjectUtil _projectUtil;
@@ -28,11 +28,12 @@ namespace BuildBoss
             _solutionMap = solutionMap;
         }
 
-        internal bool CheckAll(TextWriter textWriter)
+        public bool Check(TextWriter textWriter)
         {
             var allGood = true;
             if (ProjectType == ProjectFileType.CSharp || ProjectType == ProjectFileType.Basic)
             {
+                // Properties that aren't related to build but instead artifacts of Visual Studio.
                 allGood &= CheckForProperty(textWriter, "RestorePackages");
                 allGood &= CheckForProperty(textWriter, "SolutionDir");
                 allGood &= CheckForProperty(textWriter, "FileAlignment");
@@ -40,13 +41,18 @@ namespace BuildBoss
                 allGood &= CheckForProperty(textWriter, "UpgradeBackupLocation");
                 allGood &= CheckForProperty(textWriter, "OldToolsVersion");
                 allGood &= CheckForProperty(textWriter, "SchemaVersion");
+
+                // Centrally controlled properties
                 allGood &= CheckForProperty(textWriter, "Configuration");
                 allGood &= CheckForProperty(textWriter, "CheckForOverflowUnderflow");
                 allGood &= CheckForProperty(textWriter, "RemoveIntegerChecks");
                 allGood &= CheckForProperty(textWriter, "Deterministic");
                 allGood &= CheckForProperty(textWriter, "HighEntropyVA");
+                allGood &= CheckForProperty(textWriter, "DocumentationFile");
+                
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
+                allGood &= CheckDeploymentSettings(textWriter);
             }
 
             allGood &= CheckTestDeploymentProjects(textWriter);
@@ -63,6 +69,7 @@ namespace BuildBoss
                     textWriter.WriteLine($"\tDo not use {propertyName}");
                     return false;
                 }
+
             }
 
             return true;
@@ -137,6 +144,19 @@ namespace BuildBoss
             allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
             allGood &= CheckTransitiveReferences(textWriter, declaredList);
 
+            return allGood;
+        }
+
+        private bool CheckDeploymentSettings(TextWriter textWriter)
+        {
+            var data = _projectUtil.TryGetRoslynProjectData();
+            if (data?.EffectiveKind == RoslynProjectKind.Custom)
+            {
+                return true;
+            }
+
+            var allGood = CheckForProperty(textWriter, "CopyNuGetImplementations");
+            allGood &= CheckForProperty(textWriter, "UseCommonOutputDirectory");
             return allGood;
         }
 
@@ -312,8 +332,8 @@ namespace BuildBoss
             }
 
             var allGood = true;
-            var data = _projectUtil.GetRoslynProjectData();
-            if (data.DeclaredKind != RoslynProjectKind.DeploymentTest)
+            var data = _projectUtil.TryGetRoslynProjectData();
+            if (data?.DeclaredKind != RoslynProjectKind.DeploymentTest)
             {
                 textWriter.WriteLine("Test deployment project must be marked as <RoslynProjectKind>DeploymentTest</RoslynProjectKind>");
                 allGood = false;

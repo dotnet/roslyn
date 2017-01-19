@@ -228,9 +228,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
 
         private bool CanAccess(FileSystemInfo info)
         {
-            return info.TypeSwitch(
-                (DirectoryInfo d) => CanAccessDirectory(d),
-                (FileInfo f) => CanAccessFile(f));
+            switch (info)
+            {
+                case DirectoryInfo d: return CanAccessDirectory(d);
+                case FileInfo f: return CanAccessFile(f);
+            }
+
+            return false;
         }
 
         private bool CanAccessFile(FileInfo file)

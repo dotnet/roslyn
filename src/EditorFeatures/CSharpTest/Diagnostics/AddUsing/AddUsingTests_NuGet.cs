@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport;
+using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Packaging;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
                 return FlattenActions(actions);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
             public async Task TestSearchPackageSingleName()
             {
                 // Make a loose mock for the installer service.  We don't care what this test
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
                 installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
-                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                     .Returns(true);
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
@@ -81,7 +81,7 @@ class C
 }", systemSpecialCase: false, fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
             public async Task TestSearchPackageMultipleNames()
             {
                 // Make a loose mock for the installer service.  We don't care what this test
@@ -89,7 +89,7 @@ class C
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
                 installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
-                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                     .Returns(true);
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
@@ -110,7 +110,7 @@ class C
 }", systemSpecialCase: false, fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
             public async Task TestMissingIfPackageAlreadyInstalled()
             {
                 // Make a loose mock for the installer service.  We don't care what this test
@@ -133,7 +133,7 @@ class C
 }", fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
             public async Task TestOptionsOffered()
             {
                 // Make a loose mock for the installer service.  We don't care what this test
@@ -178,13 +178,13 @@ index: 2,
 fixProviderData: data);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
             public async Task TestInstallGetsCalledNoVersion()
             {
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
                 installerServiceMock.SetupGet(i => i.IsEnabled).Returns(true);
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
-                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", /*versionOpt*/ null, It.IsAny<CancellationToken>()))
+                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", /*versionOpt*/ null, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                     .Returns(true);
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
@@ -206,7 +206,7 @@ class C
                 installerServiceMock.Verify();
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
             public async Task TestInstallGetsCalledWithVersion()
             {
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
@@ -214,7 +214,7 @@ class C
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
                 installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
                     .Returns(ImmutableArray.Create("1.0"));
-                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<CancellationToken>()))
+                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                     .Returns(true);
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();
@@ -236,7 +236,7 @@ class C
             }
 
             [WorkItem(14516, "https://github.com/dotnet/roslyn/pull/14516")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
             public async Task TestFailedInstallRollsBackFile()
             {
                 var installerServiceMock = new Mock<IPackageInstallerService>(MockBehavior.Loose);
@@ -244,7 +244,7 @@ class C
                 installerServiceMock.SetupGet(i => i.PackageSources).Returns(NugetPackageSources);
                 installerServiceMock.Setup(s => s.GetInstalledVersions("NuGetPackage"))
                     .Returns(ImmutableArray.Create("1.0"));
-                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<CancellationToken>()))
+                installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", "1.0", It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                                     .Returns(false);
 
                 var packageServiceMock = new Mock<ISymbolSearchService>();

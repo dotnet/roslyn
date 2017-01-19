@@ -13,20 +13,20 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal sealed class PopulateSwitchDiagnosticAnalyzer : 
-        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+        AbstractCodeStyleDiagnosticAnalyzer
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Add_missing_cases), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Populate_switch), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
         public PopulateSwitchDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.PopulateSwitchDiagnosticId,
-                  s_localizableTitle, s_localizableMessage)
+                   s_localizableTitle, s_localizableMessage)
         {
         }
 
         #region Interface methods
 
-        public bool OpenFileOnly(Workspace workspace) => false;
+        public override bool OpenFileOnly(Workspace workspace) => false;
 
         private static MethodInfo s_registerMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
 
@@ -43,9 +43,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var switchBlock = switchOperation.Syntax;
             var tree = switchBlock.SyntaxTree;
 
-            bool missingCases;
-            bool missingDefaultCase;
-            if (SwitchIsIncomplete(switchOperation, out missingCases, out missingDefaultCase) &&
+            if (SwitchIsIncomplete(switchOperation, out var missingCases, out var missingDefaultCase) &&
                 !tree.OverlapsHiddenPosition(switchBlock.Span, context.CancellationToken))
             {
                 Debug.Assert(missingCases || missingDefaultCase);
@@ -54,7 +52,10 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     .Add(PopulateSwitchHelpers.MissingDefaultCase, missingDefaultCase.ToString());
 
                 var diagnostic = Diagnostic.Create(
-                    HiddenDescriptor, switchBlock.GetLocation(), properties: properties);
+                    HiddenDescriptor,
+                    switchBlock.GetFirstToken().GetLocation(),
+                    properties: properties,
+                    additionalLocations: new[] { switchBlock.GetLocation() });
                 context.ReportDiagnostic(diagnostic);
             }
         }
@@ -74,6 +75,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             return missingDefaultCase || missingCases;
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

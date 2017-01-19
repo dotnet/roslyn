@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
 using Xunit;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -29,6 +31,168 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
+        [Fact]
+        public void TypeParameterBindingScope()
+        {
+            var src = @"
+class C
+{
+    public void M()
+    {
+        {
+            int T = 0; // Should not have error
+
+            int Local<T>() => 0; // Should conflict with above
+            Local<int>();
+            T++;
+        }
+        {
+            int T<T>() => 0;
+            T<int>();
+        }
+        {
+            int Local<T, T>() => 0;
+            Local<int, int>();
+        }
+    }
+    public void M2<T>()
+    {
+        {
+            int Local<T>() => 0;
+            Local<int>();
+        }
+        {
+            int Local1<V>()
+            {
+                int Local2<V>() => 0;
+                return Local2<int>();
+            }
+            Local1<int>();
+        }
+        {
+            int T() => 0;
+            T();
+        }
+        {
+            int Local1<V>()
+            {
+                int V() => 0;
+                return V();
+            }
+            Local1<int>();
+        }
+        {
+            int Local1<V>()
+            {
+                int Local2<U>()
+                {
+                    // Conflicts with method type parameter
+                    int T() => 0;
+                    return T();
+                }
+                return Local2<int>();
+            }
+            Local1<int>();
+        }
+        {
+            int Local1<V>()
+            {
+                int Local2<U>()
+                {
+                    // Shadows M.2<T>
+                    int Local3<T>() => 0;
+                    return Local3<int>();
+                }
+                return Local2<int>();
+            }
+            Local1<int>();
+        }
+    }
+    public void V<V>() { }
+}
+";
+            var comp = CreateCompilationWithMscorlib(src);
+            comp.VerifyDiagnostics(
+                // (9,23): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int Local<T>() => 0; // Should conflict with above
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(9, 23),
+                // (14,19): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             int T<T>() => 0;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(14, 19),
+                // (18,26): error CS0692: Duplicate type parameter 'T'
+                //             int Local<T, T>() => 0;
+                Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(18, 26),
+                // (25,23): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'C.M2<T>()'
+                //             int Local<T>() => 0;
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(25, 23),
+                // (31,28): warning CS0693: Type parameter 'V' has the same name as the type parameter from outer type 'Local1<V>()'
+                //                 int Local2<V>() => 0;
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "V").WithArguments("V", "Local1<V>()").WithLocation(31, 28),
+                // (37,17): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //             int T() => 0;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(37, 17),
+                // (43,21): error CS0412: 'V': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //                 int V() => 0;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "V").WithArguments("V").WithLocation(43, 21),
+                // (54,25): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                //                     int T() => 0;
+                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(54, 25),
+                // (67,32): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'C.M2<T>()'
+                //                     int Local3<T>() => 0;
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(67, 32));
+        }
+
+        [Fact]
+        public void LocalFuncAndTypeParameterOnType()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C2<T>
+{
+    public void M()
+    {
+        {
+            int Local1()
+            {
+                int Local2<T>() => 0;
+                return Local2<int>();
+            }
+            Local1();
+        }
+        {
+            int Local1()
+            {
+                int Local2()
+                {
+                    // Shadows type parameter
+                    int T() => 0;
+
+                    // Type parameter resolves in type only context
+                    T t = default(T); 
+
+                    // Ambiguous context chooses local
+                    T.M();
+
+                    // Call chooses local
+                    return T();
+                }
+                return Local2();
+            }
+            Local1();
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,28): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'C2<T>'
+                //                 int Local2<T>() => 0;
+                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "C2<T>").WithLocation(9, 28),
+                // (26,21): error CS0119: 'T()' is a method, which is not valid in the given context
+                //                     T.M();
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T()", "method").WithLocation(26, 21),
+                // (23,23): warning CS0219: The variable 't' is assigned but its value is never used
+                //                     T t = default(T); 
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t").WithArguments("t").WithLocation(23, 23));
+        }
+
         [Fact]
         public void RefArgsInIteratorLocalFuncs()
         {
@@ -156,9 +320,6 @@ class C
                 // (33,36): error CS1629: Unsafe code may not appear in iterators
                 //     public unsafe IEnumerable<int> M4(int* a)
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "M4").WithLocation(33, 36),
-                // (37,45): error CS1637: Iterators cannot have unsafe parameters or yield types
-                //                 IEnumerable<int> Local(int* b) { yield break; }
-                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45),
                 // (37,40): error CS1629: Unsafe code may not appear in iterators
                 //                 IEnumerable<int> Local(int* b) { yield break; }
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "int*").WithLocation(37, 40),
@@ -167,7 +328,10 @@ class C
                 Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "&x").WithLocation(39, 23),
                 // (39,17): error CS1629: Unsafe code may not appear in iterators
                 //                 Local(&x);
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17));
+                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17),
+                // (37,45): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45));
         }
 
         [Fact]
@@ -777,11 +941,7 @@ class Program
     }
 }
 ";
-            VerifyDiagnostics(source, TestOptions.ReleaseExe.WithAllowUnsafe(true),
-    // (11,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-    //             Console.WriteLine(*&x);
-    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(11, 32)
-    );
+            VerifyDiagnostics(source, TestOptions.ReleaseExe.WithAllowUnsafe(true));
         }
 
         [Fact]
@@ -1415,49 +1575,40 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (6,17): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "operator").WithLocation(6, 17),
-    // (6,17): error CS1513: } expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_RbraceExpected, "operator").WithLocation(6, 17),
-    // (6,36): error CS1026: ) expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_CloseParenExpected, "left").WithLocation(6, 36),
-    // (6,36): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "left").WithLocation(6, 36),
-    // (6,40): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 40),
-    // (6,40): error CS1513: } expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 40),
-    // (6,55): error CS1002: ; expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 55),
-    // (6,55): error CS1513: } expected
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 55),
-    // (6,9): error CS0119: 'Program' is a type, which is not valid in the given context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 9),
-    // (6,28): error CS0119: 'Program' is a type, which is not valid in the given context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 28),
-    // (6,28): error CS0119: 'Program' is a type, which is not valid in the given context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 28),
-    // (6,36): error CS0103: The name 'left' does not exist in the current context
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "left").WithArguments("left").WithLocation(6, 36),
-    // (8,20): error CS0103: The name 'left' does not exist in the current context
-    //             return left;
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "left").WithArguments("left").WithLocation(8, 20),
-    // (6,50): warning CS0168: The variable 'right' is declared but never used
-    //         Program operator +(Program left, Program right)
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "right").WithArguments("right").WithLocation(6, 50)
-    );
+                // (6,17): error CS1002: ; expected
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "operator").WithLocation(6, 17),
+                // (6,17): error CS1513: } expected
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "operator").WithLocation(6, 17),
+                // (6,56): error CS1002: ; expected
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 56),
+                // (6,9): error CS0119: 'Program' is a type, which is not valid in the given context
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 9),
+                // (6,28): error CS8185: A declaration is not allowed in this context.
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "Program left").WithLocation(6, 28),
+                // (6,42): error CS8185: A declaration is not allowed in this context.
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "Program right").WithLocation(6, 42),
+                // (6,27): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(Program left, Program right)").WithArguments("System.ValueTuple`2").WithLocation(6, 27),
+                // (6,26): error CS0023: Operator '+' cannot be applied to operand of type '(Program, Program)'
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+(Program left, Program right)").WithArguments("+", "(Program, Program)").WithLocation(6, 26),
+                // (8,13): error CS0127: Since 'Program.Main(string[])' returns void, a return keyword must not be followed by an object expression
+                //             return left;
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Program.Main(string[])").WithLocation(8, 13),
+                // (6,28): error CS0165: Use of unassigned local variable 'left'
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Program left").WithArguments("left").WithLocation(6, 28),
+                // (6,42): error CS0165: Use of unassigned local variable 'right'
+                //         Program operator +(Program left, Program right)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "Program right").WithArguments("right").WithLocation(6, 42)
+                );
         }
 
         [Fact]
@@ -1919,6 +2070,310 @@ class C
                 //             return 2;
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "return 2;").WithArguments("x").WithLocation(17, 13)
                 );
+        }
+
+        [Fact]
+        [WorkItem(13172, "https://github.com/dotnet/roslyn/issues/13172")]
+        public void InheritUnsafeContext()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Threading.Tasks;
+class C
+{
+    public void M1()
+    {
+        async Task<IntPtr> Local()
+        {
+            await Task.Delay(0);
+            return (IntPtr)(void*)null;
+        }
+        var _ = Local();
+    }
+
+    public void M2()
+    {
+        unsafe
+        {
+            async Task<IntPtr> Local()
+            {
+                await Task.Delay(1);
+                return (IntPtr)(void*)null;
+            }
+            var _ = Local();
+        }
+    }
+
+    public unsafe void M3()
+    {
+        async Task<IntPtr> Local()
+        {
+            await Task.Delay(2);
+            return (IntPtr)(void*)null;
+        }
+        var _ = Local();
+    }
+}
+
+unsafe class D
+{
+    int* p = null;
+    public void M()
+    {
+        async Task<IntPtr> Local()
+        {
+            await Task.Delay(3);
+            return (IntPtr)p;
+        }
+        var _ = Local();
+    }
+
+    public unsafe void M2()
+    {
+        unsafe
+        {
+            async Task<IntPtr> Local()
+            {
+                await Task.Delay(4);
+                return (IntPtr)(void*)null;
+            }
+            var _ = Local();
+        }
+    }
+}", options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(                
+                // (11,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //             return (IntPtr)(void*)null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(11, 29),
+                // (11,28): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //             return (IntPtr)(void*)null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(void*)null").WithLocation(11, 28),
+                // (47,13): error CS4004: Cannot await in an unsafe context
+                //             await Task.Delay(3);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(3)").WithLocation(47, 13),
+                // (22,17): error CS4004: Cannot await in an unsafe context
+                //                 await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(1)").WithLocation(22, 17),
+                // (59,17): error CS4004: Cannot await in an unsafe context
+                //                 await Task.Delay(4);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(4)").WithLocation(59, 17),
+                // (33,13): error CS4004: Cannot await in an unsafe context
+                //             await Task.Delay(2);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(2)").WithLocation(33, 13));
+        }
+
+        [Fact, WorkItem(16167, "https://github.com/dotnet/roslyn/issues/16167")]
+        public void DeclarationInLocalFuncionParameterDefault()
+        {
+            var text = @"
+class C
+{
+    public static void Main(int arg)
+    {
+        void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
+        void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
+        void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
+
+        void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
+        void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
+        void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
+
+        int t = z1 + z2 + z3 + z4 + z5 + z6;
+    }
+    static bool M(out int z) // needed to infer type of z5
+    {
+        z = 1;
+        return true;
+    }
+    static bool M(params object[] args) => true;
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            Item1 = item1;
+            Item2 = item2;
+        }
+    }
+}
+";
+            // the scope of an expression variable introduced in the default expression
+            // of a local function parameter is that default expression.
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                // (6,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(arg is int z1, z1)").WithArguments("b").WithLocation(6, 30),
+                // (6,61): error CS0103: The name 'z1' does not exist in the current context
+                //         void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 61),
+                // (6,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s1").WithArguments("?", "int").WithLocation(6, 56),
+                // (7,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out int z2), z2)").WithArguments("b").WithLocation(7, 30),
+                // (7,61): error CS0103: The name 'z2' does not exist in the current context
+                //         void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 61),
+                // (7,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 56),
+                // (8,35): error CS8185: A declaration is not allowed in this context.
+                //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int z3").WithLocation(8, 35),
+                // (8,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M((int z3, int a2) = (1, 2)), z3)").WithArguments("b").WithLocation(8, 30),
+                // (8,76): error CS0103: The name 'z3' does not exist in the current context
+                //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(8, 76),
+                // (8,71): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "a3").WithArguments("?", "int").WithLocation(8, 71),
+                // (10,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(arg is var z4, z4)").WithArguments("b").WithLocation(10, 30),
+                // (10,61): error CS0103: The name 'z4' does not exist in the current context
+                //         void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z4").WithArguments("z4").WithLocation(10, 61),
+                // (10,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s1").WithArguments("?", "int").WithLocation(10, 56),
+                // (11,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out var z5), z5)").WithArguments("b").WithLocation(11, 30),
+                // (11,61): error CS0103: The name 'z5' does not exist in the current context
+                //         void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z5").WithArguments("z5").WithLocation(11, 61),
+                // (11,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(11, 56),
+                // (12,35): error CS8185: A declaration is not allowed in this context.
+                //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var z6").WithLocation(12, 35),
+                // (12,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
+                //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M((var z6, int a2) = (1, 2)), z6)").WithArguments("b").WithLocation(12, 30),
+                // (12,76): error CS0103: The name 'z6' does not exist in the current context
+                //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(12, 76),
+                // (12,71): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "a3").WithArguments("?", "int").WithLocation(12, 71),
+                // (14,17): error CS0103: The name 'z1' does not exist in the current context
+                //         int t = z1 + z2 + z3 + z4 + z5 + z6;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(14, 17),
+                // (14,22): error CS0103: The name 'z2' does not exist in the current context
+                //         int t = z1 + z2 + z3 + z4 + z5 + z6;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(14, 22),
+                // (14,27): error CS0103: The name 'z3' does not exist in the current context
+                //         int t = z1 + z2 + z3 + z4 + z5 + z6;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(14, 27),
+                // (14,32): error CS0103: The name 'z4' does not exist in the current context
+                //         int t = z1 + z2 + z3 + z4 + z5 + z6;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z4").WithArguments("z4").WithLocation(14, 32),
+                // (14,37): error CS0103: The name 'z5' does not exist in the current context
+                //         int t = z1 + z2 + z3 + z4 + z5 + z6;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z5").WithArguments("z5").WithLocation(14, 37),
+                // (14,42): error CS0103: The name 'z6' does not exist in the current context
+                //         int t = z1 + z2 + z3 + z4 + z5 + z6;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(14, 42),
+                // (6,14): warning CS0168: The variable 'Local1' is declared but never used
+                //         void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local1").WithArguments("Local1").WithLocation(6, 14),
+                // (7,14): warning CS0168: The variable 'Local2' is declared but never used
+                //         void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local2").WithArguments("Local2").WithLocation(7, 14),
+                // (8,14): warning CS0168: The variable 'Local3' is declared but never used
+                //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local3").WithArguments("Local3").WithLocation(8, 14),
+                // (10,14): warning CS0168: The variable 'Local4' is declared but never used
+                //         void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local4").WithArguments("Local4").WithLocation(10, 14),
+                // (11,14): warning CS0168: The variable 'Local5' is declared but never used
+                //         void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local5").WithArguments("Local5").WithLocation(11, 14),
+                // (12,14): warning CS0168: The variable 'Local6' is declared but never used
+                //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local6").WithArguments("Local6").WithLocation(12, 14)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var descendents = tree.GetRoot().DescendantNodes();
+            for (int i = 1; i <= 6; i++)
+            {
+                var name = $"z{i}";
+                var designation = descendents.OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == name).Single();
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(designation);
+                Assert.NotNull(symbol);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+                var refs = descendents.OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == name).ToArray();
+                Assert.Equal(3, refs.Length);
+                Assert.Equal(symbol, model.GetSymbolInfo(refs[0]).Symbol);
+                Assert.Null(model.GetSymbolInfo(refs[1]).Symbol);
+                Assert.Null(model.GetSymbolInfo(refs[2]).Symbol);
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
+        public void RecursiveParameterDefault()
+        {
+            var text = @"
+class C
+{
+    public static void Main(int arg)
+    {
+        int Local(int x = Local()) => 2;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(text);
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void LocalFunctionParameterDefaultUsingConst()
+        {
+            var source = @"
+class C
+{
+    public static void Main(string[] args)
+    {
+        const int N = 2;
+        void Local1(int n = N) { System.Console.Write(n); }
+        Local1();
+        Local1(3);
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "23", sourceSymbolValidator: m =>
+            {
+                var compilation = m.DeclaringCompilation;
+                // See https://github.com/dotnet/roslyn/issues/16454; this should actually produce no errors
+                compilation.VerifyDiagnostics(
+                    // (6,19): warning CS0219: The variable 'N' is assigned but its value is never used
+                    //         const int N = 2;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "N").WithArguments("N").WithLocation(6, 19)
+                    );
+                var tree = compilation.SyntaxTrees[0];
+                var model = compilation.GetSemanticModel(tree);
+                var descendents = tree.GetRoot().DescendantNodes();
+
+                var name = "N";
+                var declarator = descendents.OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == name).Single();
+                var symbol = (ILocalSymbol)model.GetDeclaredSymbol(declarator);
+                Assert.NotNull(symbol);
+                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+                var refs = descendents.OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == name).ToArray();
+                Assert.Equal(1, refs.Length);
+                Assert.Equal(symbol, model.GetSymbolInfo(refs[0]).Symbol);
+            });
         }
     }
 }

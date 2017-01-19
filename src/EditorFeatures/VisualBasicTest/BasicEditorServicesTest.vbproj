@@ -1,9 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{0BE66736-CDAA-4989-88B1-B3F46EBDCA4A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Services.Editor.VisualBasic.UnitTests</AssemblyName>
@@ -33,10 +35,6 @@
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
-      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
-      <Name>VisualStudioEditor</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
       <Project>{3973b09a-4fbf-44a5-8359-3d22ceb71f71}</Project>
@@ -85,6 +83,10 @@
     <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
       <Project>{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D}</Project>
       <Name>BasicFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj">
+      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
+      <Name>TestUtilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj">
       <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
@@ -143,15 +145,8 @@
       <Name>ServicesTestUtilities</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -209,8 +204,8 @@
     <Compile Include="CodeLens\VisualBasicCodeLensTests.vb" />
     <Compile Include="Completion\CompletionServiceTests.vb" />
     <Compile Include="Diagnostics\AddImport\AddImportTests_NuGet.vb" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.vb" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests_FixAllTests.vb" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.vb" />
+    <Compile Include="ImplementInterface\ImplementInterfaceTests_FixAllTests.vb" />
     <Compile Include="Diagnostics\Iterator\IteratorTests.vb" />
     <Compile Include="CommentSelection\VisualBasicCommentSelectionTests.vb" />
     <Compile Include="Completion\CompletionProviders\AbstractContextTests.vb" />
@@ -249,10 +244,10 @@
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests.vb" />
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests_Dialog.vb" />
     <Compile Include="Diagnostics\GenerateVariable\GenerateVariableTests.vb" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassCommandHandlerTests.vb" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests.vb" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceCommandHandlerTests.vb" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests.vb" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassCommandHandlerTests.vb" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests.vb" />
+    <Compile Include="ImplementInterface\ImplementInterfaceCommandHandlerTests.vb" />
+    <Compile Include="ImplementInterface\ImplementInterfaceTests.vb" />
     <Compile Include="Diagnostics\InsertMissingCast\InsertMissingCastTests.vb" />
     <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.vb" />
     <Compile Include="Diagnostics\MoveToTopOfFile\MoveToTopOfFileTests.vb" />
@@ -576,11 +571,11 @@
     <Compile Include="TypeInferrer\TypeInferrerTests.vb" />
     <Compile Include="UseCollectionInitializer\UseCollectionInitializerTests.vb" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.vb" />
+    <Compile Include="UseExplicitTupleName\UseExplicitTupleNameTests.vb" />
     <Compile Include="UseObjectInitializer\UseObjectInitializerTests.vb" />
     <Compile Include="Utilities\CodeSnippets.vb" />
     <Compile Include="Utils.vb" />
     <EmbeddedResource Include="Formatting\XmlLiterals.resx" />
-    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="PerfTests\BasicPerfFindRefs.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

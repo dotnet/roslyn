@@ -292,9 +292,9 @@ class A
                 // (5,37): error CS1002: ; expected
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "const").WithLocation(5, 37),
-                // (5,43): error CS8124: Tuple must contain at least two elements.
+                // (5,44): error CS8124: Tuple must contain at least two elements.
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 43),
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 44),
                 // (5,46): error CS1001: Identifier expected
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(5, 46),
@@ -316,9 +316,12 @@ class A
                 // (5,46): error CS0102: The type 'A' already contains a definition for ''
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
-                // (5,43): error CS8124: Tuple must contain at least two elements.
+                // (5,37): error CS0283: The type '(?, ?)' cannot be declared const
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 43),
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("(?, ?)").WithLocation(5, 37),
+                // (5,43): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(5, 43),
                 // (5,23): error CS0670: Field cannot have void type
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(5, 23),
@@ -357,12 +360,12 @@ class A
                 // (5,37): error CS1002: ; expected
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "const").WithLocation(5, 37),
-                // (5,43): error CS8124: Tuple must contain at least two elements.
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 43),
                 // (5,43): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(5, 43),
+                // (5,44): error CS8124: Tuple must contain at least two elements.
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 44),
                 // (5,46): error CS1001: Identifier expected
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(5, 46),
@@ -384,15 +387,19 @@ class A
                 // (5,46): error CS0102: The type 'A' already contains a definition for ''
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
-                // (5,43): error CS8124: Tuple must contain at least two elements.
+                // (5,37): error CS0283: The type '(?, ?)' cannot be declared const
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 43),
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("(?, ?)").WithLocation(5, 37),
+                // (5,43): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     protected virtual void Finalize const () { }
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(5, 43),
                 // (5,23): error CS0670: Field cannot have void type
                 //     protected virtual void Finalize const () { }
                 Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(5, 23),
                 // (5,28): warning CS0649: Field 'A.Finalize' is never assigned to, and will always have its default value 
                 //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Finalize").WithArguments("A.Finalize", "").WithLocation(5, 28));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Finalize").WithArguments("A.Finalize", "").WithLocation(5, 28)
+                );
         }
 
         [WorkItem(543791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543791")]

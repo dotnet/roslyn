@@ -43,6 +43,7 @@
         <dependency id="System.Threading.Tasks"                        version="$SystemThreadingTasksVersion$"/>
         <dependency id="System.Threading.Tasks.Parallel"               version="$SystemThreadingTasksParallelVersion$"/>
         <dependency id="System.Threading.Thread"                       version="$SystemThreadingThreadVersion$" exclude="Compile" />
+        <dependency id="System.ValueTuple"                             version="$SystemValueTupleVersion$" />
         <dependency id="System.Xml.ReaderWriter"                       version="$SystemXmlReaderWriterVersion$"/>
         <dependency id="System.Xml.XDocument"                          version="$SystemXmlXDocumentVersion$"/>
         <dependency id="System.Xml.XmlDocument"                        version="$SystemXmlXmlDocumentVersion$" exclude="Compile" />

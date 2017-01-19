@@ -983,5 +983,57 @@ CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Warning);
 }",
 CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Error);
         }
+
+        [WorkItem(15325, "https://github.com/dotnet/roslyn/issues/15325")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyInstanceMethodInDelegateCreation()
+        {
+            await TestAsyncWithOption(
+@"using System;
+
+class A
+{
+    int Function(int x) => x + x;
+
+    void Error()
+    { 
+        var func = new Func<int, int>([|Function|]);
+        func(1);
+    }
+}",
+@"using System;
+
+class A
+{
+    int Function(int x) => x + x;
+
+    void Error()
+    { 
+        var func = new Func<int, int>(this.Function);
+        func(1);
+    }
+}",
+CodeStyleOptions.QualifyMethodAccess);
+        }
+
+        [WorkItem(15325, "https://github.com/dotnet/roslyn/issues/15325")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotQualifyStaticMethodInDelegateCreation()
+        {
+            await TestMissingAsyncWithOption(
+@"using System;
+
+class A
+{
+    static int Function(int x) => x + x;
+
+    void Error()
+    { 
+        var func = new Func<int, int>([|Function|]);
+        func(1);
+    }
+}",
+CodeStyleOptions.QualifyMethodAccess);
+        }
     }
 }

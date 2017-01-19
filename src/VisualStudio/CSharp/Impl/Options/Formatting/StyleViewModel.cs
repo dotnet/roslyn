@@ -160,275 +160,319 @@ class Program
 //]
 }";
 
-        private static readonly string s_varForIntrinsicsPreviewFalse = @"
+        private static readonly string s_varForIntrinsicsPreviewFalse = $@"
 using System;
-class C{
+class C{{
     void Method()
-    {
+    {{
 //[
-        int x = 5; // built-in types
+        int x = 5; // {ServicesVSResources.built_in_types}
 //]
-    }
-}";
+    }}
+}}";
 
-        private static readonly string s_varForIntrinsicsPreviewTrue = @"
+        private static readonly string s_varForIntrinsicsPreviewTrue = $@"
 using System;
-class C{
+class C{{
     void Method()
-    {
+    {{
 //[
-        var x = 5; // built-in types
+        var x = 5; // {ServicesVSResources.built_in_types}
 //]
-    }
-}";
+    }}
+}}";
 
-        private static readonly string s_varWhereApparentPreviewFalse = @"
+        private static readonly string s_varWhereApparentPreviewFalse = $@"
 using System;
-class C{
+class C{{
     void Method()
-    {
+    {{
 //[
-        C cobj = new C(); // type is apparent from assignment expression
+        C cobj = new C(); // {ServicesVSResources.type_is_apparent_from_assignment_expression}
 //]
-    }
-}";
+    }}
+}}";
 
-        private static readonly string s_varWhereApparentPreviewTrue = @"
+        private static readonly string s_varWhereApparentPreviewTrue = $@"
 using System;
-class C{
+class C{{
     void Method()
-    {
+    {{
 //[
-        var cobj = new C(); // type is apparent from assignment expression
+        var cobj = new C(); // {ServicesVSResources.type_is_apparent_from_assignment_expression}
 //]
-    }
-}";
+    }}
+}}";
 
-        private static readonly string s_varWherePossiblePreviewFalse = @"
+        private static readonly string s_varWherePossiblePreviewFalse = $@"
 using System;
-class C{
+class C{{
     void Init()
-    {
+    {{
 //[
-        Action f = this.Init(); // everywhere else.
+        Action f = this.Init(); // {ServicesVSResources.everywhere_else}
 //]
-    }
-}";
+    }}
+}}";
 
-        private static readonly string s_varWherePossiblePreviewTrue = @"
+        private static readonly string s_varWherePossiblePreviewTrue = $@"
 using System;
-class C{
+class C{{
     void Init()
-    {
+    {{
 //[
-        var f = this.Init(); // everywhere else.
+        var f = this.Init(); // {ServicesVSResources.everywhere_else}
 //]
-    }
-}";
+    }}
+}}";
 
-        private static readonly string s_preferThrowExpression = @"
+        private static readonly string s_preferThrowExpression = $@"
 using System;
 
 class C
-{
+{{
     private string s;
 
     public C(string s)
-    {
+    {{
 //[
-        // Prefer:
+        // {ServicesVSResources.Prefer_colon}
         this.s = s ?? throw new ArgumentNullException(nameof(s));
 
-        // Over:
+        // {ServicesVSResources.Over_colon}
         if (s == null)
-        {
+        {{
             throw new ArgumentNullException(nameof(s));
-        }
+        }}
 
         this.s = s;
 //]
-    }
-}
+    }}
+}}
 ";
 
-        private static readonly string s_preferCoalesceExpression = @"
+        private static readonly string s_preferCoalesceExpression = $@"
 using System;
 
 class C
-{
+{{
     private string s;
 
     public C(string s)
-    {
+    {{
 //[
-        // Prefer:
+        // {ServicesVSResources.Prefer_colon}
         var v = x ?? y;
 
-        // Over:
-        var v = x != null ? x : y; // or
+        // {ServicesVSResources.Over_colon}
+        var v = x != null ? x : y; // {ServicesVSResources.or}
         var v = x == null ? y : x;
 //]
-    }
-}
+    }}
+}}
 ";
 
-        private static readonly string s_preferConditionalDelegateCall = @"
+        private static readonly string s_preferConditionalDelegateCall = $@"
 using System;
 
 class C
-{
+{{
     private string s;
 
     public C(string s)
-    {
+    {{
 //[
-        // Prefer:
+        // {ServicesVSResources.Prefer_colon}
         func?.Invoke(args);
 
-        // Over:
+        // {ServicesVSResources.Over_colon}
         if (func != null)
-        {
+        {{
             func(args);
-        }
+        }}
 //]
-    }
-}
+    }}
+}}
 ";
 
-    private static readonly string s_preferNullPropagation = @"
+    private static readonly string s_preferNullPropagation = $@"
 using System;
 
 class C
-{
+{{
     public C(object o)
-    {
+    {{
 //[
-        // Prefer:
+        // {ServicesVSResources.Prefer_colon}
         var v = o?.ToString();
 
-        // Over:
-        var v = o == null ? null : o.ToString(); // or
+        // {ServicesVSResources.Over_colon}
+        var v = o == null ? null : o.ToString(); // {ServicesVSResources.or}
         var v = o != null ? o.ToString() : null;
 //]
-    }
-}
+    }}
+}}
 ";
 
-        private static readonly string s_preferPatternMatchingOverAsWithNullCheck = @"
+        private static readonly string s_preferPatternMatchingOverAsWithNullCheck = $@"
 class C
-{
+{{
     void M()
-    {
+    {{
 //[
-        // Prefer:
+        // {ServicesVSResources.Prefer_colon}
         if (o is string s)
-        {
-        }
+        {{
+        }}
 
-        // Over:
+        // {ServicesVSResources.Over_colon}
         var s = o as string;
         if (s != null)
-        {
-        }
+        {{
+        }}
 //]
-    }
-}
+    }}
+}}
 ";
 
-        private static readonly string s_preferPatternMatchingOverIsWithCastCheck = @"
+        private static readonly string s_preferPatternMatchingOverIsWithCastCheck = $@"
 class C
-{
+{{
     void M()
-    {
+    {{
 //[
-        // Prefer:
+        // {ServicesVSResources.Prefer_colon}
         if (o is int i)
-        {
-        }
+        {{
+        }}
 
-        // Over:
+        // {ServicesVSResources.Over_colon}
         if (o is int)
-        {
+        {{
             var i = (int)o;
-        }
+        }}
 //]
-    }
-}
+    }}
+}}
 ";
 
-        private static readonly string s_preferObjectInitializer = @"
+        private static readonly string s_preferObjectInitializer = $@"
 using System;
 
 class Customer
-{
+{{
     private int Age;
 
     public Customer()
-    {
+    {{
 //[
-        // Prefer:
+        // {ServicesVSResources.Prefer_colon}
         var c = new Customer()
-        {
+        {{
             Age = 21
-        };
+        }};
 
-        // Over:
+        // {ServicesVSResources.Over_colon}
         var c = new Customer();
         c.Age = 21;
 //]
-    }
-}
+    }}
+}}
 ";
 
-        private static readonly string s_preferCollectionInitializer = @"
+        private static readonly string s_preferCollectionInitializer = $@"
 using System.Collections.Generic;
 
 class Customer
-{
+{{
     private int Age;
 
     public Customer()
-    {
+    {{
 //[
-        // Prefer:
+        // {ServicesVSResources.Prefer_colon}
         var list = new List<int>
-        {
+        {{
             1,
             2,
             3
-        };
+        }};
 
-        // Over:
+        // {ServicesVSResources.Prefer_colon}
         var list = new List<int>();
         list.Add(1);
         list.Add(2);
         list.Add(3);
 //]
-    }
-}
+    }}
+}}
 ";
 
-        private static readonly string s_preferInlinedVariableDeclaration = @"
+        private static readonly string s_preferExplicitTupleName = $@"
+class Customer
+{{
+    public Customer()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        (string name, int age) customer = GetCustomer();
+        var name = customer.name;
+        var age = customer.age;
+
+        // {ServicesVSResources.Over_colon}
+        (string name, int age) customer = GetCustomer();
+        var name = customer.Item1;
+        var age = customer.Item2;
+//]
+    }}
+}}
+";
+
+        private static readonly string s_preferInlinedVariableDeclaration = $@"
 using System;
 
 class Customer
-{
+{{
     public Customer(string value)
-    {
+    {{
 //[
-        // Prefer:
+        // {ServicesVSResources.Prefer_colon}
         if (int.TryParse(value, out int i))
-        {
-        }
+        {{
+        }}
 
-        // Over:
+        // {ServicesVSResources.Over_colon}
         int i;
         if (int.TryParse(value, out i))
-        {
-        }
+        {{
+        }}
 //]
-    }
-}
+    }}
+}}
+";
+
+        private static readonly string s_preferBraces = $@"
+using System;
+
+class Customer
+{{
+    private int Age;
+
+    public int GetAge()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        if (test)
+        {{
+            this.Display();
+        }}
+        
+        // {ServicesVSResources.Over_colon}
+        if (test)
+            this.Display();
+//]
+    }}
+}}
 ";
 
         private static readonly string s_preferExpressionBodyForMethods = @"
@@ -648,6 +692,7 @@ class List<T>
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.Elsewhere, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
 
             // Code block
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferBraces, ServicesVSResources.Prefer_braces, s_preferBraces, s_preferBraces, this, optionSet, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, ServicesVSResources.For_methods, s_preferExpressionBodyForMethods, s_preferBlockBodyForMethods, this, optionSet, codeBlockPreferencesGroupTitle, codeBlockPreferences));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, ServicesVSResources.For_constructors, s_preferExpressionBodyForConstructors, s_preferBlockBodyForConstructors, this, optionSet, codeBlockPreferencesGroupTitle, codeBlockPreferences));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, ServicesVSResources.For_operators, s_preferExpressionBodyForOperators, s_preferBlockBodyForOperators, this, optionSet, codeBlockPreferencesGroupTitle, codeBlockPreferences));
@@ -660,6 +705,7 @@ class List<T>
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferCollectionInitializer, ServicesVSResources.Prefer_collection_initializer, s_preferCollectionInitializer, s_preferCollectionInitializer, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, CSharpVSResources.Prefer_pattern_matching_over_is_with_cast_check, s_preferPatternMatchingOverIsWithCastCheck, s_preferPatternMatchingOverIsWithCastCheck, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck, CSharpVSResources.Prefer_pattern_matching_over_as_with_null_check, s_preferPatternMatchingOverAsWithNullCheck, s_preferPatternMatchingOverAsWithNullCheck, this, optionSet, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferExplicitTupleNames, ServicesVSResources.Prefer_explicit_tuple_name, s_preferExplicitTupleName, s_preferExplicitTupleName, this, optionSet, expressionPreferencesGroupTitle));
 
             // Variable preferences
             CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.PreferInlinedVariableDeclaration, ServicesVSResources.Prefer_inlined_variable_declaration, s_preferInlinedVariableDeclaration, s_preferInlinedVariableDeclaration, this, optionSet, variablePreferencesGroupTitle));

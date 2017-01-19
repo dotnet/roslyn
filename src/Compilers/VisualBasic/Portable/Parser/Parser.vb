@@ -2947,7 +2947,7 @@ checkNullable:
             Dim unexpected As GreenNode = Nothing
 
             Do
-                Dim identifierNameOpt As IdentifierNameSyntax = Nothing
+                Dim identifierNameOpt As IdentifierTokenSyntax = Nothing
                 Dim asKeywordOpt As KeywordSyntax = Nothing
 
                 ' if there is a type character or As, then this must be a name
@@ -2955,7 +2955,7 @@ checkNullable:
                         (DirectCast(CurrentToken, IdentifierTokenSyntax).TypeCharacter <> TypeCharacter.None OrElse
                         PeekNextToken().Kind = SyntaxKind.AsKeyword) Then
 
-                    identifierNameOpt = SyntaxFactory.IdentifierName(ParseIdentifier())
+                    identifierNameOpt = ParseIdentifier()
                     TryGetToken(SyntaxKind.AsKeyword, asKeywordOpt)
                 End If
 
@@ -3017,6 +3017,15 @@ checkNullable:
 
             If unexpected IsNot Nothing Then
                 closeParen = closeParen.AddLeadingSyntax(unexpected)
+            End If
+
+            If elementBuilder.Count < 2 Then
+                Debug.Assert(elementBuilder.Count > 0)
+                elementBuilder.AddSeparator(InternalSyntaxFactory.MissingToken(SyntaxKind.CommaToken))
+
+                Dim missing = SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier())
+                missing = ReportSyntaxError(missing, ERRID.ERR_TupleTooFewElements)
+                elementBuilder.Add(_syntaxFactory.TypedTupleElement(missing))
             End If
 
             Dim tupleElements = elementBuilder.ToList

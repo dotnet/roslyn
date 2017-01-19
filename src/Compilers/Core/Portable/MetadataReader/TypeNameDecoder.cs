@@ -67,11 +67,6 @@ namespace Microsoft.CodeAnalysis
             return _factory.GetMDArrayTypeSymbol(this.moduleSymbol, rank, elementType, customModifiers, sizes, lowerBounds);
         }
 
-        protected TypeSymbol GetByRefReturnTypeSymbol(TypeSymbol referencedType, ushort countOfCustomModifiersPrecedingByRef)
-        {
-            return _factory.GetByRefReturnTypeSymbol(this.moduleSymbol, referencedType, countOfCustomModifiersPrecedingByRef);
-        }
-
         protected TypeSymbol MakePointerTypeSymbol(TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
             return _factory.MakePointerTypeSymbol(this.moduleSymbol, type, customModifiers);

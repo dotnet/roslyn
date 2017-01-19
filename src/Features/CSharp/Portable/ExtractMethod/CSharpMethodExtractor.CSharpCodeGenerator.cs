@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -27,14 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             private SyntaxToken _methodName;
 
-            public static async Task<GeneratedCode> GenerateAsync(
+            public static Task<GeneratedCode> GenerateAsync(
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
                 CancellationToken cancellationToken)
             {
                 var codeGenerator = Create(insertionPoint, selectionResult, analyzerResult);
-                return await codeGenerator.GenerateAsync(cancellationToken).ConfigureAwait(false);
+                return codeGenerator.GenerateAsync(cancellationToken);
             }
 
             private static CSharpCodeGenerator Create(
@@ -381,13 +382,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // return survived var decls
                     if (list.Count > 0)
                     {
-                        yield return
-                                SyntaxFactory.LocalDeclarationStatement(
-                                    declarationStatement.Modifiers,
-                                        SyntaxFactory.VariableDeclaration(
-                                            declarationStatement.Declaration.Type,
-                                            SyntaxFactory.SeparatedList(list)),
-                                            declarationStatement.SemicolonToken.WithPrependedLeadingTrivia(triviaList));
+                        yield return SyntaxFactory.LocalDeclarationStatement(
+                            declarationStatement.Modifiers,
+                            SyntaxFactory.VariableDeclaration(
+                                declarationStatement.Declaration.Type,
+                                SyntaxFactory.SeparatedList(list)),
+                            declarationStatement.SemicolonToken.WithPrependedLeadingTrivia(triviaList));
                         triviaList.Clear();
                     }
 
@@ -420,44 +420,54 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     switch (node.Kind())
                     {
                         case SyntaxKind.DeclarationExpression:
-
-                            var declaration = (DeclarationExpressionSyntax)node;
-                            if (declaration.Designation.Kind() != SyntaxKind.SingleVariableDesignation)
                             {
+                                var declaration = (DeclarationExpressionSyntax)node;
+                                if (declaration.Designation.Kind() != SyntaxKind.SingleVariableDesignation)
+                                {
+                                    break;
+                                }
+
+                                var designation = (SingleVariableDesignationSyntax)declaration.Designation;
+                                var name = designation.Identifier.ValueText;
+                                if (variablesToRemove.HasSyntaxAnnotation(designation))
+                                {
+                                    var newLeadingTrivia = new SyntaxTriviaList();
+                                    newLeadingTrivia = newLeadingTrivia.AddRange(declaration.Type.GetLeadingTrivia());
+                                    newLeadingTrivia = newLeadingTrivia.AddRange(declaration.Type.GetTrailingTrivia());
+                                    newLeadingTrivia = newLeadingTrivia.AddRange(designation.GetLeadingTrivia());
+
+                                    replacements.Add(declaration, SyntaxFactory.IdentifierName(designation.Identifier)
+                                        .WithLeadingTrivia(newLeadingTrivia));
+                                }
+
                                 break;
                             }
-
-                            var designation = (SingleVariableDesignationSyntax)declaration.Designation;
-                            var name = designation.Identifier.ValueText;
-                            if (variablesToRemove.HasSyntaxAnnotation(designation))
-                            {
-                                var newLeadingTrivia = new SyntaxTriviaList();
-                                newLeadingTrivia = newLeadingTrivia.AddRange(declaration.Type.GetLeadingTrivia());
-                                newLeadingTrivia = newLeadingTrivia.AddRange(declaration.Type.GetTrailingTrivia());
-                                newLeadingTrivia = newLeadingTrivia.AddRange(designation.GetLeadingTrivia());
-
-                                replacements.Add(declaration, SyntaxFactory.IdentifierName(designation.Identifier)
-                                    .WithLeadingTrivia(newLeadingTrivia));
-                            }
-
-                            break;
 
                         case SyntaxKind.DeclarationPattern:
-                            var pattern = (DeclarationPatternSyntax)node;
-                            if (!variablesToRemove.HasSyntaxAnnotation(pattern))
                             {
+                                var pattern = (DeclarationPatternSyntax)node;
+                                if (!variablesToRemove.HasSyntaxAnnotation(pattern))
+                                {
+                                    break;
+                                }
+
+                                // We don't have a good refactoring for this, so we just annotate the conflict
+                                // For instance, when a local declared by a pattern declaration (`3 is int i`) is
+                                // used outside the block we're trying to extract.
+                                var designation = pattern.Designation as SingleVariableDesignationSyntax;
+                                if (designation == null)
+                                {
+                                    break;
+                                }
+
+                                var identifier = designation.Identifier;
+                                var annotation = ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
+                                var newIdentifier = identifier.WithAdditionalAnnotations(annotation);
+                                var newDesignation = designation.WithIdentifier(newIdentifier);
+                                replacements.Add(pattern, pattern.WithDesignation(newDesignation));
+
                                 break;
                             }
-
-                            // We don't have a good refactoring for this, so we just annotate the conflict
-                            // For instance, when a local declared by a pattern declaration (`3 is int i`) is
-                            // used outside the block we're trying to extract.
-                            var identifier = pattern.Identifier;
-                            var annotation = ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
-                            var newIdentifier = identifier.WithAdditionalAnnotations(annotation);
-                            replacements.Add(pattern, pattern.WithIdentifier(newIdentifier));
-
-                            break;
                     }
                 }
 
@@ -603,11 +613,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override StatementSyntax CreateDeclarationStatement(
                 VariableInfo variable,
-                CancellationToken cancellationToken,
-                ExpressionSyntax initialValue = null)
+                ExpressionSyntax initialValue,
+                CancellationToken cancellationToken)
             {
+                // Convert to 'var' if appropriate.  Note: because we're extracting out
+                // to a method, the initialValue will be a method-call.  Types are not
+                // apperant with method calls (i.e. as opposed to a 'new XXX()' expression,
+                // where the type is apperant).
                 var type = variable.GetVariableType(this.SemanticDocument);
-                var typeNode = type.GenerateTypeSyntax();
+                var typeNode = initialValue == null
+                    ? type.GenerateTypeSyntax()
+                    : type.GenerateTypeSyntaxOrVar(
+                          this.SemanticDocument.Document.Project.Solution.Options,
+                          typeIsApperant: false);
 
                 var equalsValueClause = initialValue == null ? null : SyntaxFactory.EqualsValueClause(value: initialValue);
 

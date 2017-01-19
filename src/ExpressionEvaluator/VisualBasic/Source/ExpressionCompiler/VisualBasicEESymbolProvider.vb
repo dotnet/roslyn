@@ -2,7 +2,6 @@
 
 Imports System
 Imports System.Collections.Immutable
-Imports System.Diagnostics
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -66,7 +65,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' <exception cref="BadImageFormatException"></exception>
         Public Overrides Function GetReferencedAssembly(handle As AssemblyReferenceHandle) As IAssemblySymbol
             Dim index As Integer = _metadataDecoder.Module.GetAssemblyReferenceIndexOrThrow(handle)
-            Return _metadataDecoder.ModuleSymbol.GetReferencedAssemblySymbols()(index)
+            Dim assembly = _metadataDecoder.ModuleSymbol.GetReferencedAssemblySymbol(index)
+            ' GetReferencedAssemblySymbol should not return Nothing since this method is
+            ' only used for import aliases in the PDB which are not supported from VB.
+            Return assembly
         End Function
 
         ''' <exception cref="UnsupportedSignatureContent"></exception>

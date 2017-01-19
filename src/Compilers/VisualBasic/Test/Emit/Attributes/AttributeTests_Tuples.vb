@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports System.Reflection.Metadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class AttributeTests_Tuples
@@ -120,6 +121,219 @@ BC37269: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttr
     ]]>
 </errors>)
 
+        End Sub
+
+        <Fact>
+        <WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")>
+        Public Sub AttributesOnTypeConstraints()
+            Dim src = <compilation>
+                          <file src="a.vb">
+                              <![CDATA[
+Public Interface I1(Of T)
+End Interface
+
+Public Interface I2(Of T As I1(Of (a as Integer, b as Integer)))
+End Interface
+Public Interface I3(Of T As I1(Of (c as Integer, d as Integer)))
+End Interface
+]]>
+                          </file>
+                      </compilation>
+
+            Dim validator =
+            Sub(assembly As PEAssembly)
+                Dim reader = assembly.ManifestModule.MetadataReader
+
+                Dim verifyTupleConstraint =
+                Sub(def As TypeDefinition, tupleNames As String())
+                    Dim typeParams = def.GetGenericParameters()
+                    Assert.Equal(1, typeParams.Count)
+                    Dim typeParam = reader.GetGenericParameter(typeParams(0))
+                    Dim constraintHandles = typeParam.GetConstraints()
+                    Assert.Equal(1, constraintHandles.Count)
+                    Dim constraint = reader.GetGenericParameterConstraint(constraintHandles(0))
+
+                    Dim Attributes = constraint.GetCustomAttributes()
+                    Assert.Equal(1, Attributes.Count)
+                    Dim attr = reader.GetCustomAttribute(Attributes.Single())
+
+                    ' Verify that the attribute contains an array of matching tuple names
+                    Dim argsReader = reader.GetBlobReader(attr.Value)
+                    ' Prolog
+                    Assert.Equal(1, argsReader.ReadUInt16())
+                    ' Array size
+                    Assert.Equal(tupleNames.Length, argsReader.ReadInt32())
+
+                    For Each name In tupleNames
+                        Assert.Equal(name, argsReader.ReadSerializedString())
+                    Next
+                End Sub
+
+                For Each typeHandle In reader.TypeDefinitions
+                    Dim def = reader.GetTypeDefinition(typeHandle)
+                    Dim name = reader.GetString(def.Name)
+                    Select Case name
+                        Case "I1`1"
+                        Case "<Module>"
+                            Continue For
+
+                        Case "I2`1"
+                            verifyTupleConstraint(def, {"a", "b"})
+                            Exit For
+
+                        Case "I3`1"
+                            verifyTupleConstraint(def, {"c", "d"})
+                            Exit For
+
+                        Case Else
+                            Throw TestExceptionUtilities.UnexpectedValue(name)
+
+                    End Select
+
+                Next
+            End Sub
+
+            Dim symbolValidator =
+                Sub(m As ModuleSymbol)
+                    Dim verifyTupleImpls =
+                    Sub(t As NamedTypeSymbol, tupleNames As String())
+                        Dim typeParam = t.TypeParameters.Single()
+                        Dim constraint = DirectCast(typeParam.ConstraintTypes.Single(), NamedTypeSymbol)
+                        Dim typeArg = constraint.TypeArguments.Single()
+                        Assert.True(typeArg.IsTupleType)
+                        Assert.Equal(tupleNames, typeArg.TupleElementNames)
+                    End Sub
+
+                    For Each t In m.GlobalNamespace.GetTypeMembers()
+                        Select Case t.Name
+                            Case "I1"
+                            Case "<Module>"
+                                Continue For
+
+                            Case "I2"
+                                verifyTupleImpls(t, {"a", "b"})
+                                Exit For
+
+                            Case "I3"
+                                verifyTupleImpls(t, {"c", "d"})
+                                Exit For
+
+                            Case Else
+                                Throw TestExceptionUtilities.UnexpectedValue(t.Name)
+                        End Select
+                    Next
+                End Sub
+
+            CompileAndVerify(src,
+                             additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                             validator:=validator,
+                             symbolValidator:=symbolValidator)
+        End Sub
+
+        <Fact>
+        <WorkItem(14844, "https://github.com/dotnet/roslyn/issues/14844")>
+        Public Sub AttributesOnInterfaceImplementations()
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+Public Interface I1(Of T)
+End Interface
+
+Public Interface I2
+    Inherits I1(Of (a as Integer, b as Integer))
+End Interface
+Public Interface I3
+    Inherits I1(Of (c as Integer, d as Integer))
+End Interface
+]]>
+
+                          </file>
+                      </compilation>
+
+            Dim validator =
+            Sub(assembly As PEAssembly)
+                Dim reader = assembly.ManifestModule.MetadataReader
+
+                Dim verifyTupleImpls =
+                Sub(def As TypeDefinition, tupleNames As String())
+                    Dim interfaceImpls = def.GetInterfaceImplementations()
+                    Assert.Equal(1, interfaceImpls.Count)
+                    Dim interfaceImpl = reader.GetInterfaceImplementation(interfaceImpls.Single())
+
+                    Dim attributes = interfaceImpl.GetCustomAttributes()
+                    Assert.Equal(1, attributes.Count)
+                    Dim attr = reader.GetCustomAttribute(attributes.Single())
+
+                    ' Verify that the attribute contains an array of matching tuple names
+                    Dim argsReader = reader.GetBlobReader(attr.Value)
+                    ' Prolog
+                    Assert.Equal(1, argsReader.ReadUInt16())
+                    ' Array size
+                    Assert.Equal(tupleNames.Length, argsReader.ReadInt32())
+
+                    For Each name In tupleNames
+                        Assert.Equal(name, argsReader.ReadSerializedString())
+                    Next
+                End Sub
+
+                For Each typeHandle In reader.TypeDefinitions
+                    Dim def = reader.GetTypeDefinition(typeHandle)
+                    Dim name = reader.GetString(def.Name)
+
+                    Select Case name
+                        Case "I1`1"
+                        Case "<Module>"
+                            Continue For
+
+                        Case "I2"
+                            verifyTupleImpls(def, {"a", "b"})
+                            Exit Select
+
+                        Case "I3"
+                            verifyTupleImpls(def, {"c", "d"})
+                            Exit Select
+
+                        Case Else
+                            Throw TestExceptionUtilities.UnexpectedValue(name)
+
+                    End Select
+                Next
+            End Sub
+
+            Dim symbolValidator =
+                Sub(m As ModuleSymbol)
+                    Dim VerifyTupleImpls =
+                    Sub(t As NamedTypeSymbol, tupleNames As String())
+                        Dim interfaceImpl = t.Interfaces.Single()
+                        Dim typeArg = interfaceImpl.TypeArguments.Single()
+                        Assert.True(typeArg.IsTupleType)
+                        Assert.Equal(tupleNames, typeArg.TupleElementNames)
+                    End Sub
+
+                    For Each t In m.GlobalNamespace.GetTypeMembers()
+                        Select Case t.Name
+                            Case "I1"
+                            Case "<Module>"
+                                Continue For
+
+                            Case "I2"
+                                VerifyTupleImpls(t, {"a", "b"})
+                                Exit Select
+
+                            Case "I3"
+                                VerifyTupleImpls(t, {"c", "d"})
+                                Exit Select
+
+                            Case Else
+                                Throw TestExceptionUtilities.UnexpectedValue(t.Name)
+                        End Select
+                    Next
+                End Sub
+
+            CompileAndVerify(src,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                validator:=validator,
+                symbolValidator:=symbolValidator)
         End Sub
     End Class
 End Namespace

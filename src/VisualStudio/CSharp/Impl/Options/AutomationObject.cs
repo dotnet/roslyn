@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -517,13 +518,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpFormattingOptions.SpaceWithinSquareBrackets, value); }
         }
 
-        public string Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration
+        public string Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration_CodeStyle
         {
             get { return GetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration); }
             set { SetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, value); }
         }
 
-        public string Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess
+        public string Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess_CodeStyle
         {
             get { return GetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); }
             set { SetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value); }
@@ -533,12 +534,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get
             {
-                return _workspace.Options.GetOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp);
+                return _workspace.Options.GetOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp).CreateXElement().ToString();
             }
 
             set
             {
-                _workspace.Options = _workspace.Options.WithChangedOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp, value);
+                try
+                {
+                    _workspace.Options = _workspace.Options.WithChangedOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp, NamingStylePreferences.FromXElement(XElement.Parse(value)));
+                }
+                catch (Exception)
+                {
+                }
             }
         }
 

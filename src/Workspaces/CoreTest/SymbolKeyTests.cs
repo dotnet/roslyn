@@ -551,9 +551,7 @@ class C
         }
     }
 }";
-            int position;
-            string text;
-            MarkupTestFile.GetPosition(markup, out text, out position);
+            MarkupTestFile.GetPosition(markup, out var text, out int position);
 
             var sourceText = SourceText.From(text);
             var workspace = new AdhocWorkspace();
@@ -573,8 +571,7 @@ class C
             var basemethod2 = tree2.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<CSharp.Syntax.BaseMethodDeclarationSyntax>();
 
             var service = new CSharp.CSharpSemanticFactsService();
-            SemanticModel testModel;
-            var m = service.TryGetSpeculativeSemanticModel(firstModel, basemethod1, basemethod2, out testModel);
+            var m = service.TryGetSpeculativeSemanticModel(firstModel, basemethod1, basemethod2, out var testModel);
 
             var xSymbol = testModel.LookupSymbols(position).First(s => s.Name == "x");
 

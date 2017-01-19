@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
 
         protected async Task TestAsync(string text, string expectedType, bool testNode = true, bool testPosition = true)
         {
-            TextSpan textSpan;
-            MarkupTestFile.GetSpan(text.NormalizeLineEndings(), out text, out textSpan);
+            MarkupTestFile.GetSpan(text.NormalizeLineEndings(), out text, out var textSpan);
 
             if (testNode)
             {

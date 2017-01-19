@@ -1,10 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorLogger;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
@@ -48,6 +51,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
             var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+
+            var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
+            if (boundedTextSpan != textSpan)
+            {
+                try
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                catch (ArgumentOutOfRangeException e) when (FatalError.ReportWithoutCrash(e))
+                {
+                }
+
+                return false;
+            }
+
             var vsTextSpan = text.GetVsTextSpanForSpan(textSpan);
 
             return CanMapFromSecondaryBufferToPrimaryBuffer(workspace, documentId, vsTextSpan);
@@ -82,6 +100,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
             var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+
+            var boundedPosition = GetPositionWithinDocumentBounds(position, text.Length);
+            if (boundedPosition != position)
+            {
+                try
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                catch (ArgumentOutOfRangeException e) when (FatalError.ReportWithoutCrash(e))
+                {
+                }
+
+                return false;
+            }
+
             var vsTextSpan = text.GetVsTextSpanForPosition(position, virtualSpace);
 
             return CanMapFromSecondaryBufferToPrimaryBuffer(workspace, documentId, vsTextSpan);
@@ -106,7 +139,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             var textBuffer = text.Container.GetTextBuffer();
 
-            var vsTextSpan = text.GetVsTextSpanForSpan(textSpan);
+            var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
+            if (boundedTextSpan != textSpan)
+            {
+                try
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                catch (ArgumentOutOfRangeException e) when (FatalError.ReportWithoutCrash(e))
+                {
+                }
+            }
+
+            var vsTextSpan = text.GetVsTextSpanForSpan(boundedTextSpan);
+
             if (IsSecondaryBuffer(workspace, documentId) &&
                 !vsTextSpan.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out vsTextSpan))
             {
@@ -165,7 +211,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             var textBuffer = text.Container.GetTextBuffer();
 
-            var vsTextSpan = text.GetVsTextSpanForPosition(position, virtualSpace);
+            var boundedPosition = GetPositionWithinDocumentBounds(position, text.Length);
+            if (boundedPosition != position)
+            {
+                try
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                catch (ArgumentOutOfRangeException e) when (FatalError.ReportWithoutCrash(e))
+                {
+                }
+            }
+
+            var vsTextSpan = text.GetVsTextSpanForPosition(boundedPosition, virtualSpace);
 
             if (IsSecondaryBuffer(workspace, documentId) &&
                 !vsTextSpan.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out vsTextSpan))
@@ -174,6 +232,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             return NavigateTo(textBuffer, vsTextSpan);
+        }
+
+        /// <summary>
+        /// It is unclear why, but we are sometimes asked to navigate to a position that is not
+        /// inside the bounds of the associated <see cref="Document"/>. This method returns a
+        /// position that is guaranteed to be inside the <see cref="Document"/> bounds. If the
+        /// returned position is different from the given position, then the worst observable
+        /// behavior is either no navigation or navigation to the end of the document. See the
+        /// following bugs for more details:
+        ///     https://devdiv.visualstudio.com/DevDiv/_workitems?id=112211
+        ///     https://devdiv.visualstudio.com/DevDiv/_workitems?id=136895
+        ///     https://devdiv.visualstudio.com/DevDiv/_workitems?id=224318
+        ///     https://devdiv.visualstudio.com/DevDiv/_workitems?id=235409
+        /// </summary>
+        private static int GetPositionWithinDocumentBounds(int position, int documentLength)
+        {
+            return Math.Min(documentLength, Math.Max(position, 0));
+        }
+
+        /// <summary>
+        /// It is unclear why, but we are sometimes asked to navigate to a <see cref="TextSpan"/>
+        /// that is not inside the bounds of the associated <see cref="Document"/>. This method
+        /// returns a span that is guaranteed to be inside the <see cref="Document"/> bounds. If
+        /// the returned span is different from the given span, then the worst observable behavior
+        /// is either no navigation or navigation to the end of the document.
+        /// See https://github.com/dotnet/roslyn/issues/7660 for more details.
+        /// </summary>
+        private static TextSpan GetSpanWithinDocumentBounds(TextSpan span, int documentLength)
+        {
+            return TextSpan.FromBounds(GetPositionWithinDocumentBounds(span.Start, documentLength), GetPositionWithinDocumentBounds(span.End, documentLength));
         }
 
         private static Document OpenDocument(Workspace workspace, DocumentId documentId, OptionSet options)
@@ -249,8 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private bool CanMapFromSecondaryBufferToPrimaryBuffer(Workspace workspace, DocumentId documentId, VsTextSpan spanInSecondaryBuffer)
         {
-            VsTextSpan spanInPrimaryBuffer;
-            return spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out spanInPrimaryBuffer);
+            return spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out var spanInPrimaryBuffer);
         }
     }
 }

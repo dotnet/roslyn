@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
@@ -24,7 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         private INotificationService _notificationService;
         private IProjectManagementService _projectManagementService;
         private ISyntaxFactsService _syntaxFactsService;
-        private IGeneratedCodeRecognitionService _generatedCodeService;
         private GenerateTypeDialogOptions _generateTypeDialogOptions;
         private string _typeName;
         private bool _isNewFile;
@@ -530,13 +530,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
                 // Populate the rest of the documents for the project
                 _previouslyPopulatedDocumentList.AddRange(_document.Project.Documents
-                    .Where(d => d != _document && !_generatedCodeService.IsGeneratedCode(d, cancellationToken))
+                    .Where(d => d != _document && !d.IsGeneratedCode(cancellationToken))
                     .Select(d => new DocumentSelectItem(d)));
             }
             else
             {
                 _previouslyPopulatedDocumentList.AddRange(_selectedProject.Documents
-                    .Where(d => !_generatedCodeService.IsGeneratedCode(d, cancellationToken))
+                    .Where(d => !d.IsGeneratedCode(cancellationToken))
                     .Select(d => new DocumentSelectItem(d)));
 
                 this.SelectedDocument = _selectedProject.Documents.FirstOrDefault();
@@ -722,7 +722,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             INotificationService notificationService,
             IProjectManagementService projectManagementService,
             ISyntaxFactsService syntaxFactsService,
-            IGeneratedCodeRecognitionService generatedCodeService,
             GenerateTypeDialogOptions generateTypeDialogOptions,
             string typeName,
             string fileExtension,
@@ -758,20 +757,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             this.SelectedProject = document.Project;
             this.SelectedDocument = document;
             _notificationService = notificationService;
-            _generatedCodeService = generatedCodeService;
 
-            this.AccessList = document.Project.Language == LanguageNames.CSharp ?
-                                _csharpAccessList :
-                                _visualBasicAccessList;
-            this.AccessSelectIndex = this.AccessList.Contains(accessSelectString) ?
-                                        this.AccessList.IndexOf(accessSelectString) : 0;
+            this.AccessList = document.Project.Language == LanguageNames.CSharp
+                ? _csharpAccessList 
+                : _visualBasicAccessList;
+            this.AccessSelectIndex = this.AccessList.Contains(accessSelectString) 
+                ? this.AccessList.IndexOf(accessSelectString) : 0;
             this.IsAccessListEnabled = true;
 
-            this.KindList = document.Project.Language == LanguageNames.CSharp ?
-                                _csharpTypeKindList :
-                                _visualBasicTypeKindList;
-            this.KindSelectIndex = this.KindList.Contains(typeKindSelectString) ?
-                                    this.KindList.IndexOf(typeKindSelectString) : 0;
+            this.KindList = document.Project.Language == LanguageNames.CSharp
+                ? _csharpTypeKindList 
+                : _visualBasicTypeKindList;
+            this.KindSelectIndex = this.KindList.Contains(typeKindSelectString)
+                ? this.KindList.IndexOf(typeKindSelectString) : 0;
 
             this.ProjectSelectIndex = 0;
             this.DocumentSelectIndex = 0;

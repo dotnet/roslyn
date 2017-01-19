@@ -18,6 +18,7 @@ if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArgu
 if /I "%1" == "/test32" set Test64=false&&shift&& goto :ParseArguments
 if /I "%1" == "/test64" set Test64=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testDeterminism" set TestDeterminism=true&&shift&& goto :ParseArguments
+if /I "%1" == "/testBuildCorrectness" set TestBuildCorrectness=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testPerfCorrectness" set TestPerfCorrectness=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testPerfRun" set TestPerfRun=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testVsi" set TestVsi=true&&shift&& goto :ParseArguments
@@ -45,12 +46,6 @@ if not "%BuildTimeLimit%" == "" (
     set RunProcessWatchdog=false
 )
 
-powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-branch.ps1" || goto :BuildFailed
-
-REM Output the commit that we're building, for reference in Jenkins logs
-echo Building this commit:
-git show --no-patch --pretty=raw HEAD
-
 REM Restore the NuGet packages
 call "%RoslynRoot%\Restore.cmd" || goto :BuildFailed
 call "%RoslynRoot%SetDevCommandPrompt.cmd" || goto :BuildFailed
@@ -59,22 +54,31 @@ REM Ensure the binaries directory exists because msbuild can fail when part of t
 set bindir=%RoslynRoot%Binaries
 if not exist "%bindir%" mkdir "%bindir%" || goto :BuildFailed
 
+if defined testBuildCorrectness (
+    powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\test-build-correctness.ps1" %RoslynRoot% "%bindir%\%BuildConfiguration%" || goto :BuildFailed
+    call :TerminateBuildProcesses
+    exit /b 0
+)
+
+REM Output the commit that we're building, for reference in Jenkins logs
+echo Building this commit:
+git show --no-patch --pretty=raw HEAD
+
 REM Build with the real assembly version, since that's what's contained in the bootstrap compiler redirects
 msbuild %MSBuildAdditionalCommandLineArgs% /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP "%RoslynRoot%build\Toolset\Toolset.csproj" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Bootstrap.log" || goto :BuildFailed
 
 if not exist "%bindir%\Bootstrap" mkdir "%bindir%\Bootstrap" || goto :BuildFailed
 move "Binaries\%BuildConfiguration%\Exes\Toolset\*" "%bindir%\Bootstrap" || goto :BuildFailed
-copy "build\bootstrap\*" "%bindir%\Bootstrap" || goto :BuildFailed
 
 REM Clean the previous build
 msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset/Toolset.csproj /p:Configuration=%BuildConfiguration%  /fileloggerparameters:LogFile="%bindir%\BootstrapClean.log" || goto :BuildFailed
 
-call :TerminateBuildProcesses
+call :TerminateBuildProcesses || goto :BuildFailed
 
 if defined TestDeterminism (
     powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\test-determinism.ps1" "%bindir%\Bootstrap" || goto :BuildFailed
-    call :TerminateBuildProcesses
+    call :TerminateBuildProcesses || goto :BuildFailed
     exit /b 0
 )
 
@@ -105,6 +109,8 @@ if defined TestPerfRun (
         )
     )
 
+    call :TerminateBuildProcesses || goto :BuildFailed
+
     .\Binaries\%BuildConfiguration%\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe --no-trace-upload !EXTRA_PERF_RUNNER_ARGS! || goto :BuildFailed
     exit /b 0
 )
@@ -112,15 +118,7 @@ if defined TestPerfRun (
 msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:TestVsi=%TestVsi% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic /p:DeployExtension=false || goto :BuildFailed
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Build.log" || goto :BuildFailed
 
-call :TerminateBuildProcesses
-
-REM Verify the state of our project.jsons
-echo Running RepoUtil
-.\Binaries\%BuildConfiguration%\Exes\RepoUtil\RepoUtil.exe verify || goto :BuildFailed
-
-REM Verify the state of our project.jsons
-echo Running BuildBoss
-.\Binaries\%BuildConfiguration%\Exes\BuildBoss\BuildBoss.exe Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln build\Targets || goto :BuildFailed
+call :TerminateBuildProcesses || goto :BuildFailed
 
 REM Ensure caller sees successful exit.
 exit /b 0
@@ -145,5 +143,12 @@ exit /b 1
 @REM Kill any instances of msbuild.exe to ensure that we never reuse nodes (e.g. if a non-roslyn CI run
 @REM left some floating around).
 
-taskkill /F /IM vbcscompiler.exe 2> nul
-taskkill /F /IM msbuild.exe 2> nul
+@REM An error-level of 1 means that the process was found, but could not be killed.
+echo Killing all build-related processes
+taskkill /F /IM msbuild.exe > nul
+if %ERRORLEVEL% == 1 exit /b 1
+
+taskkill /F /IM vbcscompiler.exe > nul
+if %ERRORLEVEL% == 1 exit /b 1
+
+exit /b 0

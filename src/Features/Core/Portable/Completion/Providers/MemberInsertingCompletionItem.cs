@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .Add("Modifiers", modifiers.ToString())
                 .Add("TokenSpanEnd", token.Span.End.ToString());
 
-            return SymbolCompletionItem.Create(
+            return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 symbol: symbol,
                 glyph: glyph,
@@ -40,10 +40,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static DeclarationModifiers GetModifiers(CompletionItem item)
         {
-            string text;
-            DeclarationModifiers modifiers;
-            if (item.Properties.TryGetValue("Modifiers", out text) &&
-                DeclarationModifiers.TryParse(text, out modifiers))
+            if (item.Properties.TryGetValue("Modifiers", out var text) &&
+                DeclarationModifiers.TryParse(text, out var modifiers))
             {
                 return modifiers;
             }
@@ -53,10 +51,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static int GetLine(CompletionItem item)
         {
-            string text;
-            int number;
-            if (item.Properties.TryGetValue("Line", out text)
-                && int.TryParse(text, out number))
+            if (item.Properties.TryGetValue("Line", out var text)
+                && int.TryParse(text, out var number))
             {
                 return number;
             }
@@ -66,10 +62,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static int GetTokenSpanEnd(CompletionItem item)
         {
-            string text;
-            int number;
-            if (item.Properties.TryGetValue("TokenSpanEnd", out text)
-                && int.TryParse(text, out number))
+            if (item.Properties.TryGetValue("TokenSpanEnd", out var text)
+                && int.TryParse(text, out var number))
             {
                 return number;
             }

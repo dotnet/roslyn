@@ -128,6 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return ImmutableArray<CustomModifier>.Empty; }
             }
 
+            public override ImmutableArray<CustomModifier> RefCustomModifiers
+            {
+                get { return ImmutableArray<CustomModifier>.Empty; }
+            }
+
             internal override Microsoft.Cci.CallingConvention CallingConvention
             {
                 get { return Microsoft.Cci.CallingConvention.HasThis; }

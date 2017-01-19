@@ -1,17 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
   <Import Project="..\..\..\..\build\Targets\Settings.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{FE0D4BDD-1C30-488E-A870-854F5B8C5014}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices.Next</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -47,12 +49,8 @@
       <Name>ServicesVisualStudio</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -84,15 +82,15 @@
     <Compile Include="CodeLens\RemoteCodeLensReferencesService.cs" />
     <Compile Include="FindReferences\FindReferencesTableControlEventProcessorProvider.cs" />
     <Compile Include="FindReferences\ISupportsNavigation.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.DisposableToolTip.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.DocumentLocationEntry.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.Entry.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.LazyToolTip.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.RoslynDefinitionBucket.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.SimpleMessageEntry.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableDataSourceFindReferencesContext.cs" />
-    <Compile Include="FindReferences\StreamingFindReferencesPresenter.TableEntriesSnapshot.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.DisposableToolTip.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.DocumentLocationEntry.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.Entry.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.LazyToolTip.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.RoslynDefinitionBucket.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.SimpleMessageEntry.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.TableDataSourceFindUsagesContext.cs" />
+    <Compile Include="FindReferences\StreamingFindUsagesPresenter.TableEntriesSnapshot.cs" />
     <Compile Include="FindReferences\TaggedTextAndHighlightSpan.cs" />
     <Compile Include="ProjectSystem\DeferredProjectWorkspaceService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />

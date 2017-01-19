@@ -13,6 +13,15 @@
     - In the resulting window, press the 'Modify' button
     - Check the "Visual Studio Extensibility Tools Update 3" item and press the 'Next' button
     - Press the 'Update' button
+3. Install the [RC insider VSIX](https://dotnet.myget.org/F/roslyn/vsix/eb2680f2-4e63-44a8-adf6-2e667d9f689c-2.0.0.6110410.vsix).
+
+  - If you need to uninstall this or another version of this VSIX, you must:
+    
+    - Close all instances of VS
+    -	delete %LocalAppdata%\Microsoft\VisualStudio\14.0\ (Note, this will delete all your extensions, not just the Roslyn VSIX)
+    - run `devenv /updateconfiguration` from a developer command prompt
+
+
 
 NOTE: You can also use a [Visual Studio "15" Preview](https://www.visualstudio.com/news/releasenotes/vs15-relnotes). The publicly available version of Visual Studio "15" Preview 4 is a work in progress, and as such, does not fully support developing against the Roslyn solution. If you use Preview 4 with the Roslyn solution, you will see issues that prevent the setup project from building and stop the setup VSIX from getting deployed to the RoslynDev hive even when the build does succeed. As such, we recommend remaining on Visual Studio "15" Preview 3 if you are developing against the Roslyn solution. 
 

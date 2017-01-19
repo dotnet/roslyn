@@ -23,25 +23,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             /// </summary>
             private class SymbolReferenceCodeAction : CodeAction
             {
-                private readonly string _title;
-                private readonly Glyph? _glyph;
-                private readonly CodeActionPriority _priority;
                 private readonly AsyncLazy<CodeActionOperation> _getOperation;
                 private readonly Func<Workspace, bool> _isApplicable;
 
-                public override string Title => _title;
-                internal override int? Glyph => _glyph.HasValue ? (int)_glyph.Value : (int?)null;
-                public override string EquivalenceKey => _title;
-                internal override CodeActionPriority Priority => _priority;
+                public override string Title { get; }
+                public override ImmutableArray<string> Tags { get; }
+                public override string EquivalenceKey => this.Title;
+                internal override CodeActionPriority Priority { get; }
 
                 public SymbolReferenceCodeAction(
-                    string title, Glyph? glyph, CodeActionPriority priority,
+                    string title, ImmutableArray<string> tags,
+                    CodeActionPriority priority,
                     AsyncLazy<CodeActionOperation> getOperation,
                     Func<Workspace, bool> isApplicable)
                 {
-                    _title = title;
-                    _glyph = glyph;
-                    _priority = priority;
+                    Title = title;
+                    Tags = tags;
+                    Priority = priority;
                     _getOperation = getOperation;
                     _isApplicable = isApplicable;
                 }

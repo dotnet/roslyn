@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Some nodes have special binder's for their contents (like Block's)
+        /// Some nodes have special binders for their contents (like Blocks)
         /// </summary>
         internal virtual Binder GetBinder(SyntaxNode node)
         {

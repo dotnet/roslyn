@@ -613,6 +613,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ObjectCreationExpression:
                     var init = (BoundObjectCreationExpression)value;
                     return !init.Constructor.IsImplicitlyDeclared || init.InitializerExpressionOpt != null;
+                case BoundKind.ConvertedTupleLiteral:
+                    return false;
                 default:
                     return true;
             }
@@ -894,37 +896,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// Check that the given variable is definitely assigned.  If not, produce an error.
-        /// </summary>
-        /// <remarks>
-        /// Specifying the slot manually may be necessary if the symbol is a field,
-        /// in which case <see cref="VariableSlot(Symbol, int)"/> will not know
-        /// which containing slot to look for.
-        /// </remarks>
-        private void CheckAssigned(Symbol symbol, SyntaxNode node, int slot)
-        {
-            Debug.Assert(!IsConditionalState);
-            if ((object)symbol != null)
-            {
-                NoteRead(symbol);
-
-                if (this.State.Reachable)
-                {
-                    if (slot >= this.State.Assigned.Capacity)
-                    {
-                        Normalize(ref this.State);
-                    }
-
-                    if (slot > 0 && !this.State.IsAssigned(slot))
-                    {
-                        ReportUnassigned(symbol, node, slot);
-                    }
-                }
-            }
-        }
-
-        private void ReportUnassigned(Symbol symbol, SyntaxNode node, int? slotOpt)
+        /// <param name="symbol">Symbol to variable that is unassigned.</param>
+        /// <param name="node">Syntax where read occurs.</param>
+        /// <param name="slotOpt">Optional slot where variable is located.</param>
+        /// <param name="skipIfUseBeforeDeclaration">
+        /// True if error reporting should consider the location where the
+        /// variable is declared (for instance, eliding errors about reading
+        /// variables that have not yet been declared).
+        /// </param>
+        private void ReportUnassigned(Symbol symbol, SyntaxNode node, int? slotOpt, bool skipIfUseBeforeDeclaration = true)
         {
             int slot = slotOpt ?? VariableSlot(symbol);
             if (slot <= 0) return;
@@ -947,7 +927,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (slot >= _alreadyReported.Capacity) _alreadyReported.EnsureCapacity(nextVariableSlot);
-            if (symbol.Kind == SymbolKind.Local && (symbol.Locations.Length == 0 || node.Span.End < symbol.Locations[0].SourceSpan.Start))
+            if (skipIfUseBeforeDeclaration &&
+                symbol.Kind == SymbolKind.Local &&
+                (symbol.Locations.Length == 0 || node.Span.End < symbol.Locations[0].SourceSpan.Start))
             {
                 // We've already reported the use of a local before its declaration.  No need to emit
                 // another diagnostic for the same issue.
@@ -1239,16 +1221,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.RangeVariable:
                     AssignImpl(((BoundRangeVariable)node).Value, value, refKind, written, read);
                     break;
-
-                case BoundKind.ForEachStatement:
-                    {
-                        var iterationVariable = ((BoundForEachStatement)node).IterationVariableOpt;
-                        Debug.Assert((object)iterationVariable != null);
-                        int slot = GetOrCreateSlot(iterationVariable);
-                        if (slot > 0) SetSlotState(slot, written);
-                        if (written) NoteWrite(iterationVariable, value, read);
-                        break;
-                    }
 
                 case BoundKind.BadExpression:
                     {
@@ -1593,26 +1565,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitForStatement(BoundForStatement node)
         {
             DeclareVariables(node.OuterLocals);
+            DeclareVariables(node.InnerLocals);
             var result = base.VisitForStatement(node);
+            ReportUnusedVariables(node.InnerLocals);
             ReportUnusedVariables(node.OuterLocals);
-            return result;
-        }
-
-        public override BoundNode VisitDoStatement(BoundDoStatement node)
-        {
-            var result = base.VisitDoStatement(node);
-            return result;
-        }
-
-        public override BoundNode VisitWhileStatement(BoundWhileStatement node)
-        {
-            var result = base.VisitWhileStatement(node);
             return result;
         }
 
         public override BoundNode VisitForEachStatement(BoundForEachStatement node)
         {
+            // NOTE: iteration variables are not declared or assigned
+            //       before the collection expression is evaluated 
             var result = base.VisitForEachStatement(node);
+            return result;
+        }
+
+        public override BoundNode VisitDoStatement(BoundDoStatement node)
+        {
+            DeclareVariables(node.Locals);
+            var result = base.VisitDoStatement(node);
+            ReportUnusedVariables(node.Locals);
+            return result;
+        }
+
+        public override BoundNode VisitWhileStatement(BoundWhileStatement node)
+        {
+            DeclareVariables(node.Locals);
+            var result = base.VisitWhileStatement(node);
+            ReportUnusedVariables(node.Locals);
             return result;
         }
 
@@ -1877,11 +1857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
             base.VisitDeconstructionAssignmentOperator(node);
-
-            foreach (BoundExpression variable in node.LeftVariables)
-            {
-                Assign(variable, value: null, refKind: RefKind.None);
-            }
+            node.Left.VisitAllElements((x, self) => self.Assign(x, value: null, refKind: RefKind.None), this);
 
             return null;
         }
@@ -2202,14 +2178,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override void VisitForEachIterationVariable(BoundForEachStatement node)
+        public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
-            var local = node.IterationVariableOpt;
-            if ((object)local != null)
+            // declare and assign all iteration variables
+            foreach (var iterationVariable in node.IterationVariables)
             {
-                GetOrCreateSlot(local);
-                Assign(node, value: null);
-                // TODO: node needed? NoteRead(local); // Never warn about unused foreach variables.
+                Debug.Assert((object)iterationVariable != null);
+                int slot = GetOrCreateSlot(iterationVariable);
+                if (slot > 0) SetSlotAssigned(slot);
+                // NOTE: do not report unused iteration variables. They are always considered used.
+                NoteWrite(iterationVariable, null, read: true);
             }
         }
 

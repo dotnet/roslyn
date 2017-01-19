@@ -207,8 +207,7 @@ namespace Microsoft.CodeAnalysis
                     if (document != null)
                     {
                         // does this document really have the syntax tree?
-                        SyntaxTree documentTree;
-                        if (document.TryGetSyntaxTree(out documentTree) && documentTree == syntaxTree)
+                        if (document.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
                         {
                             return document;
                         }

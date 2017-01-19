@@ -1,16 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences;
 using Microsoft.VisualStudio.PlatformUI;
 
@@ -18,15 +19,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 {
     internal partial class NamingStyleOptionPageControl : AbstractOptionPageControl
     {
+        public static string ReorderHeader => ServicesVSResources.Reorder;
+        public static string SpecificationHeader => ServicesVSResources.Specification;
+        public static string RequiredStyleHeader => ServicesVSResources.Required_Style;
+        public static string SeverityHeader => ServicesVSResources.Severity;
+        public static string ExplanatoryText => ServicesVSResources.For_a_given_symbol_only_the_topmost_rule_with_a_matching_Specification_will_be_applied_Violation_of_that_rules_Required_Style_will_be_reported_at_the_chosen_Severity_level;
+
         private NamingStyleOptionPageViewModel _viewModel;
         private readonly string _languageName;
         private readonly INotificationService _notificationService;
 
-        private readonly ImmutableArray<EnforcementLevel> _notifications = ImmutableArray.Create(
-            new EnforcementLevel(DiagnosticSeverity.Hidden),
-            new EnforcementLevel(DiagnosticSeverity.Info),
-            new EnforcementLevel(DiagnosticSeverity.Warning),
-            new EnforcementLevel(DiagnosticSeverity.Error));
+        private readonly NotificationOptionViewModel[] _notifications = new[]
+        {
+            new NotificationOptionViewModel(NotificationOption.None, KnownMonikers.None),
+            new NotificationOptionViewModel(NotificationOption.Suggestion, KnownMonikers.StatusInformation),
+            new NotificationOptionViewModel(NotificationOption.Warning, KnownMonikers.StatusWarning),
+            new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
+        };
 
         internal NamingStyleOptionPageControl(IServiceProvider serviceProvider, INotificationService notificationService, string languageName)
             : base(serviceProvider)
@@ -43,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             return new NamingStyleOptionPageViewModel.NamingRuleViewModel()
             {
                 Specifications = new ObservableCollection<SymbolSpecification>(_viewModel.Specifications),
-                NamingStyles = new ObservableCollection<NamingStyle>(_viewModel.NamingStyles),
+                NamingStyles = new ObservableCollection<MutableNamingStyle>(_viewModel.NamingStyles),
                 NotificationPreferences = _notifications
             };
         }
@@ -57,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             var viewModel = new ManageSymbolSpecificationsDialogViewModel(_viewModel.Specifications, _viewModel.CodeStyleItems.ToList(), _languageName, _notificationService);
             var dialog = new ManageNamingStylesInfoDialog(viewModel);
-            if (dialog.ShowDialog().Value == true)
+            if (dialog.ShowModal().Value == true)
             {
                 _viewModel.UpdateSpecificationList(viewModel);
             }
@@ -67,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             var viewModel = new ManageNamingStylesDialogViewModel(_viewModel.NamingStyles, _viewModel.CodeStyleItems.ToList(), _notificationService);
             var dialog = new ManageNamingStylesInfoDialog(viewModel);
-            if (dialog.ShowDialog().Value == true)
+            if (dialog.ShowModal().Value == true)
             {
                 _viewModel.UpdateStyleList(viewModel);
             }
@@ -75,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         private void MoveUp_Click(object sender, EventArgs e)
         {
-            int oldSelectedIndex = CodeStyleMembers.SelectedIndex;
+            var oldSelectedIndex = CodeStyleMembers.SelectedIndex;
             if (oldSelectedIndex > 0)
             {
                 _viewModel.MoveItem(oldSelectedIndex, oldSelectedIndex - 1);
@@ -86,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         private void MoveDown_Click(object sender, EventArgs e)
         {
-            int oldSelectedIndex = CodeStyleMembers.SelectedIndex;
+            var oldSelectedIndex = CodeStyleMembers.SelectedIndex;
             if (oldSelectedIndex < CodeStyleMembers.Items.Count - 1)
             {
                 _viewModel.MoveItem(oldSelectedIndex, oldSelectedIndex + 1);
@@ -106,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             if (CodeStyleMembers.SelectedIndex >= 0)
             {
-                DataGridRow row = CodeStyleMembers.ItemContainerGenerator.ContainerFromIndex(CodeStyleMembers.SelectedIndex) as DataGridRow;
+                var row = CodeStyleMembers.ItemContainerGenerator.ContainerFromIndex(CodeStyleMembers.SelectedIndex) as DataGridRow;
                 if (row == null)
                 {
                     CodeStyleMembers.ScrollIntoView(CodeStyleMembers.SelectedItem);
@@ -115,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
                 if (row != null)
                 {
-                    DataGridCell cell = row.FindDescendant<DataGridCell>();
+                    var cell = row.FindDescendant<DataGridCell>();
                     if (cell != null)
                     {
                         cell.Focus();
@@ -126,7 +135,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         internal override void SaveSettings()
         {
-            var info = new SerializableNamingStylePreferencesInfo();
+            var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
+            var namingRules = ArrayBuilder<SerializableNamingRule>.GetInstance();
+            var namingStyles = ArrayBuilder<NamingStyle>.GetInstance();
 
             foreach (var item in _viewModel.CodeStyleItems)
             {
@@ -137,26 +148,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
                 var rule = new SerializableNamingRule()
                 {
-                    EnforcementLevel = item.SelectedNotificationPreference.Value,
+                    EnforcementLevel = item.SelectedNotificationPreference.Notification.Value,
                     NamingStyleID = item.SelectedStyle.ID,
                     SymbolSpecificationID = item.SelectedSpecification.ID
                 };
 
-                info.NamingRules.Add(rule);
+                namingRules.Add(rule);
             }
 
             foreach (var item in _viewModel.Specifications)
             {
-                info.SymbolSpecifications.Add(item);
+                symbolSpecifications.Add(item);
             }
 
             foreach (var item in _viewModel.NamingStyles)
             {
-                info.NamingStyles.Add(item);
+                namingStyles.Add(item.NamingStyle);
             }
 
+            var info = new NamingStylePreferences(
+                symbolSpecifications.ToImmutableAndFree(),
+                namingStyles.ToImmutableAndFree(),
+                namingRules.ToImmutableAndFree());
+
             var oldOptions = OptionService.GetOptions();
-            var newOptions = oldOptions.WithChangedOption(SimplificationOptions.NamingPreferences, _languageName, info.CreateXElement().ToString());
+            var newOptions = oldOptions.WithChangedOption(SimplificationOptions.NamingPreferences, _languageName, info);
             OptionService.SetOptions(newOptions);
             OptionLogger.Log(oldOptions, newOptions);
         }
@@ -165,16 +181,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             base.LoadSettings();
 
-            var options = OptionService.GetOption(SimplificationOptions.NamingPreferences, _languageName);
-            if (string.IsNullOrEmpty(options))
+            var preferences = OptionService.GetOption(SimplificationOptions.NamingPreferences, _languageName);
+            if (preferences == null)
             {
                 return;
             }
 
-            var namingPreferencesXml = this.OptionService.GetOption(SimplificationOptions.NamingPreferences, _languageName);
-            var preferencesInfo = SerializableNamingStylePreferencesInfo.FromXElement(XElement.Parse(namingPreferencesXml));
-            _viewModel = new NamingStyleOptionPageViewModel(preferencesInfo);
-            this.DataContext = _viewModel;
+            _viewModel = new NamingStyleOptionPageViewModel(preferences);
+            DataContext = _viewModel;
         }
 
         internal bool ContainsErrors()

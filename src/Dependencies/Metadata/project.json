@@ -1,9 +1,0 @@
-{
-  "supports": {},
-  "dependencies": {
-    "System.Reflection.Metadata": "1.4.1-beta-24430-01"
-  },
-  "frameworks": {
-    "netstandard1.3": {}
-  }
-}

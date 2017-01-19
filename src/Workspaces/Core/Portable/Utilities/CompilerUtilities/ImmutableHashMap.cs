@@ -344,8 +344,7 @@ namespace Roslyn.Collections.Immutable
         {
             get
             {
-                TValue value;
-                if (this.TryGetValue(key, out value))
+                if (this.TryGetValue(key, out var value))
                 {
                     return value;
                 }
@@ -552,8 +551,7 @@ namespace Roslyn.Collections.Immutable
             {
                 // If the items being added actually come from an ImmutableHashMap<TKey, TValue>
                 // then there is no value in reconstructing it.
-                ImmutableHashMap<TKey, TValue> other;
-                if (TryCastToImmutableMap(pairs, out other))
+                if (TryCastToImmutableMap(pairs, out var other))
                 {
                     return other.WithComparers(_keyComparer, _valueComparer);
                 }

@@ -126,6 +126,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add document &apos;{0}&apos;.
+        /// </summary>
+        internal static string Add_document_0 {
+            get {
+                return ResourceManager.GetString("Add_document_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add missing cases.
         /// </summary>
         internal static string Add_missing_cases {
@@ -492,15 +501,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Awaited_task_returns {
             get {
                 return ResourceManager.GetString("Awaited_task_returns", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Camel Case.
-        /// </summary>
-        internal static string Camel_Case {
-            get {
-                return ResourceManager.GetString("Camel_Case", resourceCulture);
             }
         }
         
@@ -1756,24 +1756,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Missing prefix: &apos;{0}&apos;.
-        /// </summary>
-        internal static string Missing_prefix_colon_0 {
-            get {
-                return ResourceManager.GetString("Missing_prefix_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing suffix: &apos;{0}&apos;.
-        /// </summary>
-        internal static string Missing_suffix_colon_0 {
-            get {
-                return ResourceManager.GetString("Missing_suffix_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a static variable will prevent the debug session from continuing..
         /// </summary>
         internal static string Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing {
@@ -2131,6 +2113,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer explicitly provided tuple element name.
+        /// </summary>
+        internal static string Prefer_explicitly_provided_tuple_element_name {
+            get {
+                return ResourceManager.GetString("Prefer_explicitly_provided_tuple_element_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Project.
         /// </summary>
         internal static string Project {
@@ -2208,6 +2199,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Remarks_colon {
             get {
                 return ResourceManager.GetString("Remarks_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove document &apos;{0}&apos;.
+        /// </summary>
+        internal static string Remove_document_0 {
+            get {
+                return ResourceManager.GetString("Remove_document_0", resourceCulture);
             }
         }
         
@@ -2557,24 +2557,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The first word, &apos;{0}&apos;, must begin with a lower case character.
-        /// </summary>
-        internal static string The_first_word_0_must_begin_with_a_lower_case_character {
-            get {
-                return ResourceManager.GetString("The_first_word_0_must_begin_with_a_lower_case_character", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The first word, &apos;{0}&apos;, must begin with an upper case character.
-        /// </summary>
-        internal static string The_first_word_0_must_begin_with_an_upper_case_character {
-            get {
-                return ResourceManager.GetString("The_first_word_0_must_begin_with_an_upper_case_character", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The member is defined in metadata..
         /// </summary>
         internal static string The_member_is_defined_in_metadata {
@@ -2607,51 +2589,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string The_symbol_does_not_have_an_icon {
             get {
                 return ResourceManager.GetString("The_symbol_does_not_have_an_icon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These non-leading words must begin with a lowercase letter: {0}.
-        /// </summary>
-        internal static string These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0 {
-            get {
-                return ResourceManager.GetString("These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These non-leading words must begin with an upper case letter: {0}.
-        /// </summary>
-        internal static string These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0 {
-            get {
-                return ResourceManager.GetString("These_non_leading_words_must_begin_with_an_upper_case_letter_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These words cannot contain lower case characters: {0}.
-        /// </summary>
-        internal static string These_words_cannot_contain_lower_case_characters_colon_0 {
-            get {
-                return ResourceManager.GetString("These_words_cannot_contain_lower_case_characters_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These words cannot contain upper case characters: {0}.
-        /// </summary>
-        internal static string These_words_cannot_contain_upper_case_characters_colon_0 {
-            get {
-                return ResourceManager.GetString("These_words_cannot_contain_upper_case_characters_colon_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to These words must begin with upper case characters: {0}.
-        /// </summary>
-        internal static string These_words_must_begin_with_upper_case_characters_colon_0 {
-            get {
-                return ResourceManager.GetString("These_words_must_begin_with_upper_case_characters_colon_0", resourceCulture);
             }
         }
         
@@ -3070,6 +3007,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_coalesce_expression {
             get {
                 return ResourceManager.GetString("Use_coalesce_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use explicitly provided tuple name.
+        /// </summary>
+        internal static string Use_explicitly_provided_tuple_name {
+            get {
+                return ResourceManager.GetString("Use_explicitly_provided_tuple_name", resourceCulture);
             }
         }
         

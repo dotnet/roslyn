@@ -144,9 +144,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private TypeKindOptions GetTypeKindOption(State state)
             {
-                TypeKindOptions typeKindValue;
-
-                var gotPreassignedTypeOptions = GetPredefinedTypeKindOption(state, out typeKindValue);
+                var gotPreassignedTypeOptions = GetPredefinedTypeKindOption(state, out var typeKindValue);
                 if (!gotPreassignedTypeOptions)
                 {
                     typeKindValue = state.IsSimpleNameGeneric ? TypeKindOptionsHelper.RemoveOptions(typeKindValue, TypeKindOptions.GenericInCompatibleTypes) : typeKindValue;

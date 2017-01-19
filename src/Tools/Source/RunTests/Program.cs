@@ -60,8 +60,7 @@ namespace RunTests
 
             Console.WriteLine($"Test execution time: {elapsed}");
 
-            Logger.Finish(Path.GetDirectoryName(options.Assemblies.FirstOrDefault() ?? ""));
-
+            WriteLogFile(options);
             DisplayResults(options.Display, result.TestResults);
 
             if (CanUseWebStorage())
@@ -77,6 +76,25 @@ namespace RunTests
 
             Console.WriteLine($"All tests passed");
             return ExitSuccess;
+        }
+
+        private static void WriteLogFile(Options options)
+        {
+            var fileName = Path.Combine(Path.GetDirectoryName(options.Assemblies.First()), "runtests.log");
+            using (var writer = new StreamWriter(fileName, append: false))
+            {
+                Logger.WriteTo(writer);
+            }
+
+            // This is deliberately being checked in on a temporary basis.  Need to see how this data behaves in the commit
+            // queue and the easiest way is to dump to the console.  Once the commit queue behavior is verified this will
+            // be deleted.
+            if (Constants.IsJenkinsRun)
+            {
+                Logger.WriteTo(Console.Out);
+            }
+
+            Logger.Clear();
         }
 
         /// <summary>

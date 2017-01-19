@@ -102,8 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 {
                     // Compare exact texts and verify that the location returned is exactly that
                     // indicated by expected
-                    TextSpan expectedSpan;
-                    MarkupTestFile.GetSpan(expected.TrimStart().TrimEnd(), out expected, out expectedSpan);
+                    MarkupTestFile.GetSpan(expected.TrimStart().TrimEnd(), out expected, out var expectedSpan);
                     Assert.Equal(expectedSpan.Start, actualSpan.Start);
                     Assert.Equal(expectedSpan.End, actualSpan.End);
                 }

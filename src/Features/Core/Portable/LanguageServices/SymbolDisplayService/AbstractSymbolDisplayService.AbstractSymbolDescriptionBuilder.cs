@@ -35,8 +35,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
                     memberOptions:
-                        SymbolDisplayMemberOptions.IncludeParameters |
+                        SymbolDisplayMemberOptions.IncludeRef |
                         SymbolDisplayMemberOptions.IncludeType |
+                        SymbolDisplayMemberOptions.IncludeParameters |
                         SymbolDisplayMemberOptions.IncludeContainingType,
                     kindOptions:
                         SymbolDisplayKindOptions.IncludeMemberKeyword,
@@ -49,7 +50,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         SymbolDisplayParameterOptions.IncludeExtensionThis |
                         SymbolDisplayParameterOptions.IncludeDefaultValue |
                         SymbolDisplayParameterOptions.IncludeOptionalBrackets,
-                    localOptions: SymbolDisplayLocalOptions.IncludeType,
+                    localOptions:
+                        SymbolDisplayLocalOptions.IncludeRef |
+                        SymbolDisplayLocalOptions.IncludeType,
                     miscellaneousOptions:
                         SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                         SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
@@ -616,8 +619,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 var partsList = partsArray.Flatten().ToList();
                 if (partsList.Count > 0)
                 {
-                    IList<SymbolDisplayPart> existingParts;
-                    if (!_groupMap.TryGetValue(group, out existingParts))
+                    if (!_groupMap.TryGetValue(group, out var existingParts))
                     {
                         existingParts = new List<SymbolDisplayPart>();
                         _groupMap.Add(group, existingParts);

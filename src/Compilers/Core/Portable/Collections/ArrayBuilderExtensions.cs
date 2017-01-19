@@ -151,5 +151,14 @@ namespace Microsoft.CodeAnalysis
                 builder.Add(value.Value);
             }
         }
+
+        public static void AddIfNotNull<T>(this ArrayBuilder<T> builder, T value)
+            where T : class
+        {
+            if (value != null)
+            {
+                builder.Add(value);
+            }
+        }
     }
 }

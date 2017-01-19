@@ -226,11 +226,6 @@ recurse:
         End Function
 
         <Extension()>
-        Public Function [With](token As SyntaxToken, leading As SyntaxTriviaList, trailing As SyntaxTriviaList) As SyntaxToken
-            Return token.WithLeadingTrivia(leading).WithTrailingTrivia(trailing)
-        End Function
-
-        <Extension()>
         Public Function IsRightOfIntegerLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
             Return token.Kind = SyntaxKind.IntegerLiteralToken

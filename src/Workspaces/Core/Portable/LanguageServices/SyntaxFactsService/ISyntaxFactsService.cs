@@ -99,9 +99,19 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
 
         SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode node);
-        SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node);
+
+        /// <summary>
+        /// Returns the expression node the member is being accessed off of.  If <paramref name="allowImplicitTarget"/>
+        /// is <code>false</code>, this will be the node directly to the left of the dot-token.  If <paramref name="allowImplicitTarget"/>
+        /// is <code>true</code>, then this can return another node in the tree that the member will be accessed
+        /// off of.  For example, in VB, if you have a member-access-expression of the form ".Length" then this
+        /// may return the expression in the surrounding With-statement.
+        /// </summary>
+        SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget = false);
         SyntaxToken GetOperatorTokenOfMemberAccessExpression(SyntaxNode node);
         void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode name);
+
+        SyntaxNode GetTargetOfMemberBinding(SyntaxNode node);
 
         bool IsSimpleMemberAccessExpression(SyntaxNode node);
         bool IsPointerMemberAccessExpression(SyntaxNode node);
@@ -109,6 +119,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNamedParameter(SyntaxNode node);
 
         bool IsSkippedTokensTrivia(SyntaxNode node);
+
+        bool IsWhitespaceTrivia(SyntaxTrivia trivia);
+        bool IsEndOfLineTrivia(SyntaxTrivia trivia);
 
         SyntaxNode GetExpressionOfConditionalAccessExpression(SyntaxNode node);
 

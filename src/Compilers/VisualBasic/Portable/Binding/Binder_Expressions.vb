@@ -354,13 +354,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
 
                 Dim boundArgument As BoundExpression = BindValue(argumentSyntax.Expression, diagnostics)
-                boundArguments.Add(boundArgument)
+                Dim elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, hasNaturalType)
 
-                Dim elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, hasNaturalType, hasErrors)
                 If elementType Is Nothing Then
                     hasInferredType = False
                 End If
 
+                If boundArgument.Type IsNot Nothing Then
+                    boundArgument = MakeRValue(boundArgument, diagnostics)
+                End If
+
+                boundArguments.Add(boundArgument)
                 elementTypes.Add(elementType)
             Next
 
@@ -370,9 +374,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim elements = elementTypes.ToImmutableAndFree()
             Dim locations = elementLocations.ToImmutableAndFree()
 
-            Dim inferredType = If(hasInferredType,
-                                    TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNamesArray, Me.Compilation, node, diagnostics),
-                                    Nothing)
+            Dim inferredType As TupleTypeSymbol = Nothing
+
+            If hasInferredType Then
+                inferredType = TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNamesArray, Me.Compilation, shouldCheckConstraints:=True, syntax:=node, diagnostics:=diagnostics)
+            End If
 
             If hasNaturalType Then
                 tupleTypeOpt = inferredType
@@ -383,13 +389,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Returns the type to be used as a field type.
-        ''' Generates errors in case the type is not supported for tuple type fields.
         ''' </summary>
         Private Function GetTupleFieldType(expression As BoundExpression,
                                                   errorSyntax As VisualBasicSyntaxNode,
                                                   diagnostics As DiagnosticBag,
-                                                  ByRef hasNaturalType As Boolean,
-                                                  <Out> ByRef hasError As Boolean) As TypeSymbol
+                                                  ByRef hasNaturalType As Boolean) As TypeSymbol
             Dim expressionType As TypeSymbol = expression.Type
 
             If expressionType Is Nothing Then
@@ -418,24 +422,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             End If
 
-            If Not expression.HasErrors Then
-                If expressionType IsNot Nothing Then
-                    If expressionType.SpecialType = SpecialType.System_Void Then
-                        expressionType = ErrorTypeSymbol.UnknownResultType
-                        hasError = True
-                        ReportDiagnostic(diagnostics, errorSyntax, ERRID.ERR_VoidValue)
-
-                    ElseIf (expressionType.IsRestrictedType()) Then
-                        hasError = True
-                        ReportDiagnostic(diagnostics, errorSyntax, ERRID.ERR_RestrictedType1, expressionType)
-
-                    End If
-                End If
-            End If
-
             Return expressionType
         End Function
-
+ 
         Private Shared Sub CollectTupleFieldMemberNames(name As String, position As Integer, tupleSize As Integer, ByRef elementNames As ArrayBuilder(Of String))
             ' add the name to the list
             ' names would typically all be there or none at all
@@ -453,7 +442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Shared Function CheckTupleMemberName(name As String, index As Integer, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, uniqueFieldNames As HashSet(Of String)) As Boolean
+        Private Shared Function CheckTupleMemberName(name As String, index As Integer, syntax As SyntaxNodeOrToken, diagnostics As DiagnosticBag, uniqueFieldNames As HashSet(Of String)) As Boolean
             Dim reserved As Integer = TupleTypeSymbol.IsElementNameReserved(name)
             If reserved = 0 Then
                 Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedElementNameAnyPosition, name)
@@ -612,7 +601,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             node.Argument),
                                          GetInaccessibleErrorInfo(group.Methods.First, useSiteDiagnostics:=Nothing))
 
-                    ElseIf group.ResultKind = LookupResultKind.Good AndAlso group.TypeArgumentsOpt IsNot Nothing
+                    ElseIf group.ResultKind = LookupResultKind.Good AndAlso group.TypeArgumentsOpt IsNot Nothing Then
                         ReportDiagnostic(diagnostics, group.TypeArgumentsOpt.Syntax, ERRID.ERR_MethodTypeArgsUnexpected)
                     End If
 

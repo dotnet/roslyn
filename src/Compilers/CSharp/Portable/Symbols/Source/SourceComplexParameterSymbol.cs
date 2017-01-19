@@ -238,8 +238,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder = binderFactory.GetBinder(defaultSyntax);
             }
 
+            Binder binderForDefault = binder.GetBinder(defaultSyntax);
+            if (binderForDefault == null)
+            {
+                binderForDefault = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax);
+            }
+            Debug.Assert(binderForDefault.InParameterDefaultValue);
+            Debug.Assert(binderForDefault.ContainingMemberOrLambda == ContainingSymbol);
+
             BoundExpression valueBeforeConversion;
-            var convertedExpression = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax).BindParameterDefaultValue(defaultSyntax, parameterType, diagnostics, out valueBeforeConversion);
+            var convertedExpression = binderForDefault.BindParameterDefaultValue(defaultSyntax, parameterType, diagnostics, out valueBeforeConversion);
 
             bool hasErrors = ParameterHelpers.ReportDefaultParameterErrors(binder, ContainingSymbol, parameterSyntax, this, valueBeforeConversion, diagnostics);
             if (hasErrors)
@@ -1038,11 +1046,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
-                return 0;
+                return ImmutableArray<CustomModifier>.Empty;
             }
         }
 
@@ -1058,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceComplexParameterSymbolWithCustomModifiers : SourceComplexParameterSymbol
     {
         private readonly ImmutableArray<CustomModifier> _customModifiers;
-        private readonly ushort _countOfCustomModifiersPrecedingByRef;
+        private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
         internal SourceComplexParameterSymbolWithCustomModifiers(
             Symbol owner,
@@ -1066,7 +1074,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol parameterType,
             RefKind refKind,
             ImmutableArray<CustomModifier> customModifiers,
-            ushort countOfCustomModifiersPrecedingByRef,
+            ImmutableArray<CustomModifier> refCustomModifiers,
             string name,
             ImmutableArray<Location> locations,
             SyntaxReference syntaxRef,
@@ -1075,13 +1083,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExtensionMethodThis)
             : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, defaultSyntaxValue, isParams, isExtensionMethodThis)
         {
-            Debug.Assert(!customModifiers.IsDefaultOrEmpty);
+            Debug.Assert(!customModifiers.IsEmpty || !refCustomModifiers.IsEmpty);
 
             _customModifiers = customModifiers;
-            _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef;
+            _refCustomModifiers = refCustomModifiers;
 
-            Debug.Assert(refKind != RefKind.None || _countOfCustomModifiersPrecedingByRef == 0);
-            Debug.Assert(_countOfCustomModifiersPrecedingByRef <= _customModifiers.Length);
+            Debug.Assert(refKind != RefKind.None || _refCustomModifiers.IsEmpty);
         }
 
         public override ImmutableArray<CustomModifier> CustomModifiers
@@ -1092,11 +1099,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ushort CountOfCustomModifiersPrecedingByRef
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
             {
-                return _countOfCustomModifiersPrecedingByRef;
+                return _refCustomModifiers;
             }
         }
     }

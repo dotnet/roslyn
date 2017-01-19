@@ -76,8 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private void RaiseAnalyzerChangedWarning(ProjectId projectId, string analyzerPath)
         {
             var messageArguments = new string[] { analyzerPath };
-            DiagnosticData diagnostic;
-            if (DiagnosticData.TryCreate(_analyzerChangedRule, messageArguments, projectId, _workspace, out diagnostic))
+            if (DiagnosticData.TryCreate(_analyzerChangedRule, messageArguments, projectId, _workspace, out var diagnostic))
             {
                 _updateSource.UpdateDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath), SpecializedCollections.SingletonEnumerable(diagnostic));
             }
@@ -106,8 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             lock (_guard)
             {
-                FileChangeTracker tracker;
-                if (!_fileChangeTrackers.TryGetValue(filePath, out tracker))
+                if (!_fileChangeTrackers.TryGetValue(filePath, out var tracker))
                 {
                     tracker = new FileChangeTracker(_fileChangeService, filePath);
                     tracker.UpdatedOnDisk += Tracker_UpdatedOnDisk;

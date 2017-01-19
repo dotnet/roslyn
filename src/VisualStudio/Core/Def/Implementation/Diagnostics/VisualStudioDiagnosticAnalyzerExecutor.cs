@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -109,8 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var options = solution.Options;
 
             // we have cached options
-            ValueTuple<OptionSet, CustomAsset> value;
-            if (_lastOptionSetPerLanguage.TryGetValue(language, out value) && value.Item1 == options)
+            if (_lastOptionSetPerLanguage.TryGetValue(language, out var value) && value.Item1 == options)
             {
                 return value.Item2;
             }
@@ -140,8 +140,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             // handling of cancellation and exception
             var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-            using (var reader = new ObjectReader(stream))
+            using (var reader = StreamObjectReader.TryGetReader(stream))
             {
+                Debug.Assert(reader != null,
+@"We only ge a reader for data transmitted between live processes.
+This data should always be correct as we're never persisting the data between sessions.");
                 return DiagnosticResultSerializer.Deserialize(reader, analyzerMap, project, version, cancellationToken);
             }
         }

@@ -59,8 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 
         private CommandState GetCommandState(CommandArgs args, Func<CommandState> nextHandler, Func<IOrganizeImportsService, string> descriptionString)
         {
-            Workspace workspace;
-            if (IsCommandSupported(args, out workspace))
+            if (IsCommandSupported(args, out var workspace))
             {
                 var organizeImportsService = workspace.Services.GetLanguageServices(args.SubjectBuffer).GetService<IOrganizeImportsService>();
                 return new CommandState(isAvailable: true, displayText: descriptionString(organizeImportsService));

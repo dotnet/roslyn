@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BuildBoss
 {
-    internal sealed class TargetsCheckerUtil
+    internal sealed class TargetsCheckerUtil : ICheckerUtil
     {
         private readonly string _targetDir;
 
@@ -16,7 +16,7 @@ namespace BuildBoss
             _targetDir = targetDir;
         }
 
-        internal bool CheckAll(TextWriter textWriter)
+        public bool Check(TextWriter textWriter)
         {
             var allGood = true;
 

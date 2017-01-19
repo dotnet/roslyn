@@ -239,9 +239,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return parent IsNot Nothing AndAlso parent.IsKind(SyntaxKind.ImplementsClause)
         End Function
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As ValueTuple(Of String, String)
+        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, insertionText As String)
             If IsGlobal(symbol) Then
-                Return ValueTuple.Create("Global", "Global")
+                Return ("Global", "Global")
             End If
 
             Dim displayText As String = Nothing
@@ -257,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 insertionText = displayAndInsertionText.Item2
             End If
 
-            Return ValueTuple.Create(displayText, insertionText)
+            Return (displayText, insertionText)
         End Function
 
         Private Shared Function IsGenericType(symbol As ISymbol) As Boolean

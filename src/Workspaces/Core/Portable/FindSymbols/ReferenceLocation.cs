@@ -67,13 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// "Foo()" could show up as an error tolerance location to a method "Foo(int i)" if no
         /// actual "Foo()" method existed.
         /// </summary>
-        public bool IsCandidateLocation
-        {
-            get
-            {
-                return this.CandidateReason != CandidateReason.None;
-            }
-        }
+        public bool IsCandidateLocation => this.CandidateReason != CandidateReason.None;
 
         public static bool operator ==(ReferenceLocation left, ReferenceLocation right)
         {

@@ -17,10 +17,12 @@ namespace RepoUtil
     internal sealed class ChangeCommand : ICommand
     {
         private readonly RepoData _repoData;
+        private readonly string _generateDirectory;
 
-        internal ChangeCommand(RepoData repoData)
+        internal ChangeCommand(RepoData repoData, string generateDir)
         {
             _repoData = repoData;
+            _generateDirectory = generateDir;
         }
 
         public bool Run(TextWriter writer, string[] args)
@@ -177,29 +179,13 @@ namespace RepoUtil
         private void ChangeAllCore(ImmutableDictionary<NuGetPackage, NuGetPackage> changeMap)
         {
             ChangeProjectJsonFiles(changeMap);
-
-            // Calculate the new set of packages based on the changed information.
-            var list = new List<NuGetPackage>();
-            foreach (var cur in _repoData.FloatingBuildPackages)
-            {
-                NuGetPackage newPackage;
-                if (changeMap.TryGetValue(cur, out newPackage))
-                {
-                    list.Add(newPackage);
-                }
-                else
-                {
-                    list.Add(cur);
-                }
-            }
-
-            ChangeGeneratedFiles(list);
+            ChangeGeneratedFiles();
         }
 
         private void ChangeProjectJsonFiles(ImmutableDictionary<NuGetPackage, NuGetPackage> changeMap)
         {
             Console.WriteLine("Changing project.json files");
-            foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(_repoData.SourcesPath))
+            foreach (var filePath in ProjectJsonUtil.GetProjectJsonFiles(_repoData.SourcesDirectory))
             {
                 if (ProjectJsonUtil.ChangeDependencies(filePath, changeMap))
                 {
@@ -208,12 +194,12 @@ namespace RepoUtil
             }
         }
 
-        private void ChangeGeneratedFiles(IEnumerable<NuGetPackage> floatingPackages)
+        private void ChangeGeneratedFiles()
         {
             var msbuildData = _repoData.RepoConfig.MSBuildGenerateData;
             if (msbuildData.HasValue)
             {
-                var fileName = new FileName(_repoData.SourcesPath, msbuildData.Value.RelativeFileName);
+                var fileName = new FileName(_generateDirectory, msbuildData.Value.RelativeFilePath);
                 var packages = GenerateUtil.GetFilteredPackages(msbuildData.Value, _repoData);
                 GenerateUtil.WriteMSBuildContent(fileName, packages);
             }

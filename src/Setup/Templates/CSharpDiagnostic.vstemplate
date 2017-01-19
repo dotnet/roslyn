@@ -9,7 +9,7 @@
     <DefaultName>Analyzer</DefaultName>
     <ProvideDefaultName>true</ProvideDefaultName>
     <Icon>CodeInformation.ico</Icon>
-    <RequiredFrameworkVersion>4.5.2</RequiredFrameworkVersion>
+    <RequiredFrameworkVersion>4.6</RequiredFrameworkVersion>
   </TemplateData>
   <TemplateContent>
     <!-- These projects are created in the order they are listed. 
@@ -28,7 +28,7 @@
     </ProjectCollection>
   </TemplateContent>
   <WizardExtension>
-    <Assembly>Roslyn.Templates, Version=0.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35</Assembly>
+    <Assembly>Roslyn.Templates, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35</Assembly>
     <FullClassName>RoslynSDKRootTemplateWizard</FullClassName>
   </WizardExtension>
 </VSTemplate>

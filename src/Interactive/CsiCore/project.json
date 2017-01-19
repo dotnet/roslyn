@@ -1,6 +1,8 @@
-﻿{
+{
   "dependencies": {
-    "System.ValueTuple": "4.0.1-beta-24425-02"
+    "System.ValueTuple": "4.3.0",
+    "System.Dynamic.Runtime": "4.3.0",
+    "Microsoft.CSharp": "4.3.0"
   },
   "frameworks": {
     // We don't actually target netstandard1.6; this is to work around https://github.com/dotnet/roslyn/issues/12458

@@ -34,6 +34,35 @@ End Class]]></Text>.NormalizedValue()
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function TestReorderParameters_Cascade_ToImplementedMethod_WithTuples() As Task
+            Dim markup = <Text><![CDATA[
+Interface I
+    Sub Foo(x As (Integer, Integer), y As (String, String))
+End Interface
+
+Class C
+    Implements I
+
+    $$Public Sub Foo(x As (Integer, Integer), y As (String, String)) Implements I.Foo
+    End Sub
+End Class]]></Text>.NormalizedValue()
+            Dim permutation = {1, 0}
+            Dim updatedCode = <Text><![CDATA[
+Interface I
+    Sub Foo(y As (String, String), x As (Integer, Integer))
+End Interface
+
+Class C
+    Implements I
+
+    Public Sub Foo(y As (String, String), x As (Integer, Integer)) Implements I.Foo
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestReorderParameters_Cascade_ToImplementingMethod() As Task
             Dim markup = <Text><![CDATA[
 Interface I

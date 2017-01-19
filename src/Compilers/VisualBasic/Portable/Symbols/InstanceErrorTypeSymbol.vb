@@ -123,12 +123,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
-            Get
-                ' This is always the instance type, so the type arguments do not have any modifiers.
-                Return CreateEmptyTypeArgumentsCustomModifiers()
-            End Get
-        End Property
+        Public NotOverridable Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+            ' This is always the instance type, so the type arguments do not have any modifiers.
+            Return GetEmptyTypeArgumentCustomModifiers(ordinal)
+        End Function
 
         Friend NotOverridable Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
             Get

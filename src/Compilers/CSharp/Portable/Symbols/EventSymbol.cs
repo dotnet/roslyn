@@ -81,6 +81,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool IsWindowsRuntimeEvent { get; }
 
         /// <summary>
+        /// True if the event itself is excluded from code covarage instrumentation.
+        /// True for source events marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
+        /// </summary>
+        internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
+
+        /// <summary>
         /// True if this symbol has a special name (metadata flag SpecialName is set).
         /// </summary>
         internal abstract bool HasSpecialName { get; }

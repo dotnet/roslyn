@@ -10,18 +10,6 @@ def branchName = GithubBranchName
 // Folder that the project jobs reside in (project/branch)
 def projectFoldername = Utilities.getFolderName(projectName) + '/' + Utilities.getFolderName(branchName)
 
-// Calls a web hook on Jenkins build events.  Allows our build monitoring jobs to be push notified
-// vs. polling
-static void addBuildEventWebHook(def myJob) {
-  myJob.with {
-    notifications {
-      endpoint('https://jaredpar.azurewebsites.net/api/BuildEvent?code=tts2pvyelahoiliwu7lo6flxr8ps9kaip4hyr4m0ofa3o3l3di77tzcdpk22kf9gex5m6cbrcnmi') {
-        event('all')
-      }
-    }
-  }   
-}
-
 static void addRoslynJob(def myJob, String jobName, String branchName, Boolean isPr, String triggerPhraseExtra, Boolean triggerPhraseOnly = false) {
   def archiveSettings = new ArchivalSettings()
   archiveSettings.addFiles('Binaries/**/*.pdb')
@@ -50,7 +38,7 @@ static void addRoslynJob(def myJob, String jobName, String branchName, Boolean i
     if (triggerPhraseExtra) {
       triggerCore = "${triggerCore}|${triggerPhraseExtra}"
     }
-    def triggerPhrase = "(?i)^\\s*(@?dotnet-bot\\s+)?(re)?test\\s+(${triggerCore})(\\s+please)?\\s*\$";
+    def triggerPhrase = "(?i)^\\s*(@?dotnet-bot\\,?\\s+)?(re)?test\\s+(${triggerCore})(\\s+please\\.?)?\\s*\$";
     def contextName = jobName
     Utilities.addGithubPRTriggerForBranch(myJob, branchName, contextName, triggerPhrase, triggerPhraseOnly)
   } else {
@@ -58,8 +46,6 @@ static void addRoslynJob(def myJob, String jobName, String branchName, Boolean i
     // TODO: Add once external email sending is available again
     // addEmailPublisher(myJob)
   }
-
-  addBuildEventWebHook(myJob)
 }
 
 // True when this is a PR job, false for commit.  On feature branches we do PR jobs only. 
@@ -145,6 +131,25 @@ set TMP=%TEMP%
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
+// Build correctness tests
+commitPullList.each { isPr -> 
+  def jobName = Utilities.getFullJobName(projectName, "windows_build_correctness", isPr)
+  def myJob = job(jobName) {
+    description('Build correctness tests')
+    steps {
+      batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+mkdir %TEMP%
+set TMP=%TEMP%
+.\\cibuild.cmd /testBuildCorrectness""")
+    }
+  }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = ""
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
 // Perf Correctness
 commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "perf_correctness", isPr)
@@ -177,23 +182,28 @@ commitPullList.each { isPr ->
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
-// Open Integration Tests
+// VS Integration Tests
 commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "open-vsi", isPr)
-  def myJob = job(jobName) {
-    description('open integration tests')
-    steps {
-      batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+  ['debug', 'release'].each { configuration ->
+    ['vs-integration'].each { buildTarget ->
+      def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
+      def myJob = job(jobName) {
+        description("Windows ${configuration} tests on ${buildTarget}")
+        steps {
+          batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
 set TMP=%TEMP%
-.\\cibuild.cmd /debug /testVsi""")
+.\\cibuild.cmd ${(configuration == 'debug') ? '/debug' : '/release'} /testVsi""")
+        }
+      }
+
+      def triggerPhraseOnly = true
+      def triggerPhraseExtra = ""
+      Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-rc')
+      Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+      addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
   }
-
-  def triggerPhraseOnly = true
-  def triggerPhraseExtra = "open-vsi"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto-dev15-rc')
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
 JobReport.Report.generateJobReport(out)

@@ -388,19 +388,11 @@
     <Field Name="RefKind" Type="RefKind" Null="NotApplicable"/>
   </Node>
 
-  <Node Name="BoundLocalDeconstructionDeclaration" Base="BoundStatement">
-    <Field Name="Assignment" Type="BoundDeconstructionAssignmentOperator" Null="disallow"/>
-  </Node>
-
   <Node Name="BoundDeconstructionAssignmentOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
-    <Field Name="IsDeclaration" Type="bool"/>
-
-    <!-- Various assignable expressions, in a flat structure (no nesting) -->
-    <Field Name="LeftVariables" Type="ImmutableArray&lt;BoundExpression&gt;" Null="disallow"/>
-
+    <Field Name="Left" Type="BoundTupleExpression"/>
     <Field Name="Right" Type="BoundExpression"/>
 
     <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionDeconstructStep&gt;" Null="disallow" SkipInVisitor="true" />
@@ -423,11 +415,6 @@
   <Node Name="BoundDeconstructionConstructionStep" Base="BoundNode">
     <Field Name="Construct" Type="BoundExpression" Null="disallow"/>
     <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundVoid" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind, but it will always be the void type  -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
   <Node Name="BoundNullCoalescingOperator" Base="BoundExpression">
@@ -855,19 +842,25 @@
   </AbstractNode>
 
   <Node Name="BoundDoStatement" Base="BoundLoopStatement">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Body" Type="BoundStatement"/>
   </Node>
 
   <Node Name="BoundWhileStatement" Base="BoundLoopStatement">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Body" Type="BoundStatement"/>
   </Node>
 
   <Node Name="BoundForStatement" Base="BoundLoopStatement">
-    <!-- OuterLocals are the locals declared within the loop statement and are in scope throughout the whole loop statement, including the Initializer -->
+    <!-- OuterLocals are the locals declared within the loop Initializer statement and are in scope throughout the whole loop statement -->
     <Field Name="OuterLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Initializer" Type="BoundStatement" Null="allow"/>
+    <!-- InnerLocals are the locals declared within the loop Condition and are in scope throughout the Condition, Increment and Body.
+         They are considered to be declared per iteration.
+    -->
+    <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression" Null="allow"/>
     <Field Name="Increment" Type="BoundStatement" Null="allow"/>
     <Field Name="Body" Type="BoundStatement"/>
@@ -882,14 +875,14 @@
     <!-- This is so the binding API can find produce semantic info if the type is "var". -->
     <!-- If there is a deconstruction, there will be no iteration variable (but we'll still have a type for it). -->
     <Field Name="IterationVariableType" Type="BoundTypeExpression"/>
-    <Field Name="IterationVariableOpt" Type="LocalSymbol" Null="allow"/>
+    <Field Name="IterationVariables" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <!-- If this node does not have errors, then this is the foreach expression wrapped
          in a conversion to the collection type used by the foreach loop.  The conversion
          is here so that the binding API can return the correct ConvertedType in semantic 
          info.  It will be stripped off in the rewriter if it is redundant or causes extra
          boxing.  If this node has errors, then the conversion may not be present.-->
     <Field Name="Expression" Type="BoundExpression"/>
-    <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep" Null="allow" SkipInVisitor="true"/>
+    <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep" Null="allow"/>
     <Field Name="Body" Type="BoundStatement"/>
   
     <Field Name="Checked" Type="Boolean"/>
@@ -1012,8 +1005,8 @@
   <Node Name="BoundLocal" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
     <Field Name="LocalSymbol" Type="LocalSymbol"/>
+    <Field Name="IsDeclaration" Type="bool"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
   </Node>
 
@@ -1568,9 +1561,9 @@
 
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">
     <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
-         a field that is a member of the script class. -->
-    <Field Name="Variable" Type="Symbol" Null="disallow"/>
-    <!-- VariableAccess is an access to the declared symbol, suitable for use
+         a field that is a member of the script class. Variable is null if `_` is used. -->
+    <Field Name="Variable" Type="Symbol" Null="allow"/>
+    <!-- VariableAccess is an access to the declared variable, suitable for use
          in the lowered form in either an lvalue or rvalue position. We maintain it separately
          from the Symbol to facilitate lowerings in which the variable is no longer a simple
          variable access (e.g. in the expression evaluator). It is expected to be logically side-effect
@@ -1588,6 +1581,13 @@
   </Node>
 
   <Node Name="BoundWildcardPattern" Base="BoundPattern">
+  </Node>
+
+  <Node Name="BoundDiscardExpression" Base="BoundExpression">
+    <!-- A discarded value, when a designator uses `_`. When the type is given as `var, its Type
+         is null before type inference, and it is replaced by a BoundDiscardExpression with a non-null
+         type after inference. -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
   </Node>
 
   <Node Name="BoundThrowExpression" Base="BoundExpression">

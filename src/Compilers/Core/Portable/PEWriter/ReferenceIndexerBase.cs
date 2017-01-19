@@ -98,7 +98,7 @@ namespace Microsoft.Cci
                 }
             }
 
-            this.Visit(genericTypeInstanceReference.GenericType);
+            this.Visit(genericTypeInstanceReference.GetGenericType(Context));
             this.Visit(genericTypeInstanceReference.GetGenericArguments(Context));
         }
 
@@ -182,7 +182,7 @@ namespace Microsoft.Cci
 
         public override void Visit(INamespaceTypeReference namespaceTypeReference)
         {
-            if (!this.typeReferenceNeedsToken && namespaceTypeReference.TypeCode(Context) != PrimitiveTypeCode.NotPrimitive)
+            if (!this.typeReferenceNeedsToken && namespaceTypeReference.TypeCode != PrimitiveTypeCode.NotPrimitive)
             {
                 return;
             }
@@ -416,12 +416,12 @@ namespace Microsoft.Cci
 
             INestedTypeReference/*?*/ nestedTypeReference = typeReference.AsNestedTypeReference;
             if (this.typeReferenceNeedsToken || nestedTypeReference != null ||
-              (typeReference.TypeCode(Context) == PrimitiveTypeCode.NotPrimitive && typeReference.AsNamespaceTypeReference != null))
+              (typeReference.TypeCode == PrimitiveTypeCode.NotPrimitive && typeReference.AsNamespaceTypeReference != null))
             {
                 ISpecializedNestedTypeReference/*?*/ specializedNestedTypeReference = nestedTypeReference?.AsSpecializedNestedTypeReference;
                 if (specializedNestedTypeReference != null)
                 {
-                    INestedTypeReference unspecializedNestedTypeReference = specializedNestedTypeReference.UnspecializedVersion;
+                    INestedTypeReference unspecializedNestedTypeReference = specializedNestedTypeReference.GetUnspecializedVersion(Context);
                     if (_alreadyHasToken.Add(unspecializedNestedTypeReference))
                     {
                         RecordTypeReference(unspecializedNestedTypeReference);

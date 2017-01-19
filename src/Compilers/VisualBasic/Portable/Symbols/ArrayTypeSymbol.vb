@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property Rank As Integer
 
         ''' <summary>
-        ''' Is this zero-based one-dimensional array, i.e. SZArray in CLR terms.
+        ''' Is this a zero-based one-dimensional array, i.e. SZArray in CLR terms.
         ''' </summary>
         Friend MustOverride ReadOnly Property IsSZArray As Boolean
 
@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Specified lower bounds for dimensions, by position. The length can be less than <see cref="Rank"/>,
         ''' meaning that some trailing dimensions don't have the lower bound specified.
-        ''' The most common case is all dimensions are zero bound - a null array is returned in this case.
+        ''' The most common case is all dimensions are zero bound - a default (Nothing) array is returned in this case.
         ''' </summary>
         Friend Overridable ReadOnly Property LowerBounds As ImmutableArray(Of Integer)
             Get
@@ -402,6 +402,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IArrayTypeSymbol_Rank As Integer Implements IArrayTypeSymbol.Rank
             Get
                 Return Me.Rank
+            End Get
+        End Property
+
+        Private ReadOnly Property IArrayTypeSymbol_IsSZArray As Boolean Implements IArrayTypeSymbol.IsSZArray
+            Get
+                Return Me.IsSZArray
+            End Get
+        End Property
+
+        Private ReadOnly Property IArrayTypeSymbol_Sizes As ImmutableArray(Of Integer) Implements IArrayTypeSymbol.Sizes
+            Get
+                Return Me.Sizes
+            End Get
+        End Property
+
+        Private ReadOnly Property IArrayTypeSymbol_LowerBounds As ImmutableArray(Of Integer) Implements IArrayTypeSymbol.LowerBounds
+            Get
+                Return Me.LowerBounds
             End Get
         End Property
 

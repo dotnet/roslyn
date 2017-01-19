@@ -45,11 +45,10 @@ namespace Microsoft.CodeAnalysis.Navigation
 
             var sourceLocations = GetPreferredSourceLocations(symbol);
 
-            var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
             var candidateLocationGroups = from c in sourceLocations
                                           let doc = solution.GetDocument(c.SourceTree)
                                           where doc != null
-                                          group c by generatedCodeRecognitionService.IsGeneratedCode(doc, cancellationToken);
+                                          group c by doc.IsGeneratedCode(cancellationToken);
 
             var generatedSourceLocations = candidateLocationGroups.SingleOrDefault(g => g.Key) ?? SpecializedCollections.EmptyEnumerable<Location>();
             var nonGeneratedSourceLocations = candidateLocationGroups.SingleOrDefault(g => !g.Key) ?? SpecializedCollections.EmptyEnumerable<Location>();
@@ -74,14 +73,11 @@ namespace Microsoft.CodeAnalysis.Navigation
             IEnumerable<INavigableItem> navigableItems,
             CancellationToken cancellationToken)
         {
-            var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
             navigableItems = navigableItems.Where(n => n.Document != null);
-            var hasNonGeneratedCodeItem = navigableItems.Any(
-                n => !generatedCodeRecognitionService.IsGeneratedCode(n.Document, cancellationToken));
-
+            var hasNonGeneratedCodeItem = navigableItems.Any(n => !n.Document.IsGeneratedCode(cancellationToken));
             return hasNonGeneratedCodeItem
-                ? navigableItems.Where(n => !generatedCodeRecognitionService.IsGeneratedCode(n.Document, cancellationToken))
-                : navigableItems.Where(n => generatedCodeRecognitionService.IsGeneratedCode(n.Document, cancellationToken));
+                ? navigableItems.Where(n => !n.Document.IsGeneratedCode(cancellationToken))
+                : navigableItems.Where(n => n.Document.IsGeneratedCode(cancellationToken));
         }
 
         public static ImmutableArray<TaggedText> GetSymbolDisplayTaggedParts(Project project, ISymbol symbol)

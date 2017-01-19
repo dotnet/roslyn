@@ -200,7 +200,42 @@ namespace Microsoft.CodeAnalysis
         /// Returns a new INamedTypeSymbol representing an error type with the given name and arity
         /// in the given optional container.
         /// </summary>
-        public abstract INamedTypeSymbol CreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity);
+        public INamedTypeSymbol CreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity)
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (arity < 0)
+            {
+                throw new ArgumentException(nameof(arity));
+            }
+
+            return CommonCreateErrorTypeSymbol(container, name, arity);
+        }
+
+        protected abstract INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity);
+
+        /// <summary>
+        /// Returns a new INamespaceSymbol representing an error (missing) namespace with the given name.
+        /// </summary>
+        public INamespaceSymbol CreateErrorNamespaceSymbol(INamespaceSymbol container, string name)
+        {
+            if (container == null)
+            {
+                throw new ArgumentNullException(nameof(container));
+            }
+
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            return CommonCreateErrorNamespaceSymbol(container, name);
+        }
+
+        protected abstract INamespaceSymbol CommonCreateErrorNamespaceSymbol(INamespaceSymbol container, string name);
 
         #region Name
 
@@ -219,15 +254,14 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public string AssemblyName { get; }
 
-        internal static void CheckAssemblyName(string assemblyName)
+        internal void CheckAssemblyName(DiagnosticBag diagnostics)
         {
             // We could only allow name == null if OutputKind is Module. 
-            // However we couldn't check such condition here since one wouldn't be able to call WithName(...).WithOptions(...).
-            // It does no harm that we allow name == null for assemblies as well, so we don't enforce it.
+            // However, it does no harm that we allow name == null for assemblies as well, so we don't enforce it.
 
-            if (assemblyName != null)
+            if (this.AssemblyName != null)
             {
-                MetadataHelpers.ValidateAssemblyOrModuleName(assemblyName, "assemblyName");
+                MetadataHelpers.CheckAssemblyOrModuleName(this.AssemblyName, MessageProvider, MessageProvider.ERR_BadAssemblyName, diagnostics);
             }
         }
 
@@ -501,7 +535,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Maps values of #r references to resolved metadata references.
         /// </summary>
-        internal abstract IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap { get; }
+        internal abstract IDictionary<(string path, string content), MetadataReference> ReferenceDirectiveMap { get; }
 
         /// <summary>
         /// All metadata references -- references passed to the compilation
@@ -876,6 +910,14 @@ namespace Microsoft.CodeAnalysis
                 if (elementNames.Length != cardinality)
                 {
                     throw new ArgumentException(CodeAnalysisResources.TupleElementNameCountMismatch, nameof(elementNames));
+                }
+
+                for (int i = 0; i < elementNames.Length; i++)
+                {
+                    if (elementNames[i] == "")
+                    {
+                        throw new ArgumentException(CodeAnalysisResources.TupleElementNameEmpty, $"{nameof(elementNames)}[{i}]");
+                    }
                 }
 
                 if (elementNames.All(n => n == null))
@@ -1276,8 +1318,25 @@ namespace Microsoft.CodeAnalysis
             if (win32Resources == null)
                 return;
 
-            switch (DetectWin32ResourceForm(win32Resources))
+            Win32ResourceForm resourceForm;
+
+            try
             {
+                resourceForm = DetectWin32ResourceForm(win32Resources);
+            }
+            catch (EndOfStreamException)
+            {
+                diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_BadWin32Resource, NoLocation.Singleton, CodeAnalysisResources.UnrecognizedResourceFileFormat));
+                return;
+            }
+            catch (Exception ex)
+            {
+                diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_BadWin32Resource, NoLocation.Singleton, ex.Message));
+                return;
+            }
+
+            switch (resourceForm)
+            { 
                 case Win32ResourceForm.COFF:
                     moduleBeingBuilt.Win32ResourceSection = MakeWin32ResourcesFromCOFF(win32Resources, diagnostics);
                     break;
@@ -2422,10 +2481,13 @@ namespace Microsoft.CodeAnalysis
             Func<object> testSymWriterFactory,
             CancellationToken cancellationToken)
         {
-            using (var pdbWriter = new Cci.PdbWriter(
-                moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
-                testSymWriterFactory,
-                deterministic: false))
+            var nativePdbWriterOpt = (moduleBeingBuilt.EmitOptions.DebugInformationFormat != DebugInformationFormat.Pdb) ? null :
+                new Cci.PdbWriter(
+                    moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
+                    testSymWriterFactory,
+                    deterministic: false);
+
+            using (nativePdbWriterOpt)
             {
                 var context = new EmitContext(moduleBeingBuilt, null, diagnostics);
                 var encId = Guid.NewGuid();
@@ -2441,11 +2503,16 @@ namespace Microsoft.CodeAnalysis
                         changes,
                         cancellationToken);
 
-                    MetadataSizes metadataSizes;
-                    writer.WriteMetadataAndIL(pdbWriter, metadataStream, ilStream, out metadataSizes);
+                    writer.WriteMetadataAndIL(
+                        nativePdbWriterOpt,
+                        metadataStream, 
+                        ilStream, 
+                        (nativePdbWriterOpt == null) ? pdbStream : null,
+                        out MetadataSizes metadataSizes);
+
                     writer.GetMethodTokens(updatedMethods);
 
-                    pdbWriter.WriteTo(pdbStream);
+                    nativePdbWriterOpt?.WriteTo(pdbStream);
 
                     return diagnostics.HasAnyErrors() ? null : writer.GetDelta(baseline, this, encId, metadataSizes);
                 }
@@ -2660,5 +2727,36 @@ namespace Microsoft.CodeAnalysis
         }
         
         internal abstract bool IsIOperationFeatureEnabled();
+
+        /// <summary>
+        /// Given a <see cref="Diagnostic"/> reporting unreferenced <see cref="AssemblyIdentity"/>s, returns
+        /// the actual <see cref="AssemblyIdentity"/> instances that were not referenced.
+        /// </summary>
+        public ImmutableArray<AssemblyIdentity> GetUnreferencedAssemblyIdentities(Diagnostic diagnostic)
+        {
+            if (diagnostic == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostic));
+            }
+
+            if (!IsUnreferencedAssemblyIdentityDiagnosticCode(diagnostic.Code))
+            {
+                return ImmutableArray<AssemblyIdentity>.Empty;
+            }
+
+            var builder = ArrayBuilder<AssemblyIdentity>.GetInstance();
+
+            foreach (var argument in diagnostic.Arguments)
+            {
+                if (argument is AssemblyIdentity id)
+                {
+                    builder.Add(id);
+                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        internal abstract bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code);
     }
 }

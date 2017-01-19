@@ -169,9 +169,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             get;
         }
 
-        public override INamedTypeSymbol CreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity)
+        protected override INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity)
         {
-            return new ExtendedErrorTypeSymbol((NamespaceOrTypeSymbol)container, name, arity, null);
+            return new ExtendedErrorTypeSymbol(
+                       container.EnsureCSharpSymbolOrNull<INamespaceOrTypeSymbol, NamespaceOrTypeSymbol>(nameof(container)), 
+                       name, arity, errorInfo: null);
+        }
+
+        protected override INamespaceSymbol CommonCreateErrorNamespaceSymbol(INamespaceSymbol container, string name)
+        {
+            return new MissingNamespaceSymbol(
+                       container.EnsureCSharpSymbolOrNull<INamespaceSymbol, NamespaceSymbol>(nameof(container)), 
+                       name);
         }
 
         #region Constructors and Factories
@@ -243,7 +252,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(options != null);
             Debug.Assert(!isSubmission || options.ReferencesSupersedeLowerVersions);
-            CheckAssemblyName(assemblyName);
 
             var validatedReferences = ValidateReferences<CSharpCompilationReference>(references);
 
@@ -400,8 +408,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public new CSharpCompilation WithAssemblyName(string assemblyName)
         {
-            CheckAssemblyName(assemblyName);
-
             // Can't reuse references since the source assembly name changed and the referenced symbols might 
             // have internals-visible-to relationship with this compilation or they might had a circular reference 
             // to this compilation.
@@ -849,13 +855,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap
-        {
-            get
-            {
-                return GetBoundReferenceManager().ReferenceDirectiveMap;
-            }
-        }
+        internal override IDictionary<(string path, string content), MetadataReference> ReferenceDirectiveMap
+            => GetBoundReferenceManager().ReferenceDirectiveMap;
 
         // for testing purposes
         internal IEnumerable<string> ExternAliases
@@ -916,7 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MetadataReference GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
         {
             MetadataReference reference;
-            return ReferenceDirectiveMap.TryGetValue(ValueTuple.Create(directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
+            return ReferenceDirectiveMap.TryGetValue((directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
         }
 
         /// <summary>
@@ -1528,6 +1529,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code)
+            => code == (int)ErrorCode.ERR_NoTypeDef;
+
         internal class EntryPoint
         {
             public readonly MethodSymbol MethodSymbol;
@@ -1946,6 +1950,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (stage == CompilationStage.Declare || stage > CompilationStage.Declare && includeEarlierStages)
             {
+                CheckAssemblyName(builder);
                 builder.AddRange(Options.Errors);
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -2714,8 +2719,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typesBuilder.Add(elementTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(elementTypes)}[{i}]"));
             }
 
-            return TupleTypeSymbol.Create(null, // no location for the type declaration
-                typesBuilder.ToImmutableAndFree(), elementLocations, elementNames, this);
+            return TupleTypeSymbol.Create(
+                locationOpt: null, // no location for the type declaration
+                elementTypes: typesBuilder.ToImmutableAndFree(),
+                elementLocations: elementLocations, 
+                elementNames: elementNames, 
+                compilation: this,
+                shouldCheckConstraints: false);
         }
 
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(

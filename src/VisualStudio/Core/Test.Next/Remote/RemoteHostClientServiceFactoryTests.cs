@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Remote;
-using Microsoft.VisualStudio.Text.Editor;
 using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -22,14 +22,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
     public class RemoteHostClientServiceFactoryTests
     {
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14380"), Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void Creation()
         {
             var service = CreateRemoteHostClientService();
             Assert.NotNull(service);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14380"), Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task Enable_Disable()
         {
             var service = CreateRemoteHostClientService();
@@ -45,7 +45,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Null(disabledClient);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14380"), Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task GlobalAssets()
         {
             var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
@@ -68,14 +68,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Null(noAsset);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14380"), Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task UpdaterService()
         {
-            var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
+            var exportProvider = TestHostServices.CreateMinimalExportProvider();
+
+            var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices(exportProvider));
             workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
 
+            var listener = new Listener();
             var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
-            var service = CreateRemoteHostClientService(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference));
+
+            var service = CreateRemoteHostClientService(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference), listener);
 
             service.Enable();
 
@@ -85,9 +89,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // add solution
             workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
 
-            // TODO: use waiter to make sure workspace events and updater is ready.
-            //       this delay is temporary until I set all .Next unit test hardness to setup correctly
-            await Task.Delay(TimeSpan.FromSeconds(1));
+            var listeners = exportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>();
+            var workspaceListener = listeners.First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
+
+            // wait for listener
+            await workspaceListener.CreateWaitTask();
+            await listener.CreateWaitTask();
 
             // checksum should already exist
             SolutionStateChecksums checksums;
@@ -96,7 +103,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             service.Disable();
         }
 
-        private RemoteHostClientServiceFactory.RemoteHostClientService CreateRemoteHostClientService(Workspace workspace = null, IEnumerable<AnalyzerReference> hostAnalyzerReferences = null)
+        private RemoteHostClientServiceFactory.RemoteHostClientService CreateRemoteHostClientService(
+            Workspace workspace = null,
+            IEnumerable<AnalyzerReference> hostAnalyzerReferences = null,
+            IAsynchronousOperationListener listener = null)
         {
             workspace = workspace ?? new AdhocWorkspace(TestHostServices.CreateHostServices());
             workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
@@ -105,11 +115,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var analyzerService = GetDiagnosticAnalyzerService(hostAnalyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
 
-            var optionMock = new Mock<IEditorOptions>(MockBehavior.Strict);
-            var optionFactoryMock = new Mock<IEditorOptionsFactoryService>(MockBehavior.Strict);
-            optionFactoryMock.SetupGet(i => i.GlobalOptions).Returns(optionMock.Object);
+            var listeners = AsynchronousOperationListener.CreateListeners(FeatureAttribute.RemoteHostClient, listener ?? new Listener());
 
-            var factory = new RemoteHostClientServiceFactory(analyzerService, optionFactoryMock.Object);
+            var factory = new RemoteHostClientServiceFactory(listeners, analyzerService);
             return factory.CreateService(workspace.Services) as RemoteHostClientServiceFactory.RemoteHostClientService;
         }
 
@@ -119,6 +127,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             mock.Setup(a => a.GetHostAnalyzerReferences()).Returns(references);
             return mock.Object;
         }
+
+        private class Listener : AsynchronousOperationListener { }
 
         private class NullAssemblyAnalyzerLoader : IAnalyzerAssemblyLoader
         {

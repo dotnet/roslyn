@@ -7,6 +7,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
     /// </summary>
     internal class AnalyzerActionCounts
     {
+        internal static readonly AnalyzerActionCounts Empty = new AnalyzerActionCounts(null);
+
         internal AnalyzerActionCounts(AnalyzerActions analyzerActions) :
             this(
                 analyzerActions?.CompilationStartActionsCount ?? 0,

@@ -471,7 +471,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        public async Task TestFixAllInDocument()
+        public async Task TestFixAllInDocument1()
         {
             await TestAsync(
 @"using System.Collections.Generic;
@@ -505,6 +505,78 @@ class C
         {
             3,
             4
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestFixAllInDocument2()
+        {
+            await TestAsync(
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var list1 = {|FixAllInDocument:new|} List<int>(() => {
+            var list2 = new List<int>();
+            list2.Add(2);
+        });
+        list1.Add(1);
+    }
+}",
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var list1 = new List<int>(() => {
+            var list2 = new List<int>
+            {
+                2
+            };
+        })
+        {
+            1
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestFixAllInDocument3()
+        {
+            await TestAsync(
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var list1 = {|FixAllInDocument:new|} List<int>();
+        list1.Add(() => {
+            var list2 = new List<int>();
+            list2.Add(2);
+        });
+    }
+}",
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var list1 = new List<int>
+        {
+            () => {
+                var list2 = new List<int>
+                {
+                    2
+                };
+            }
         };
     }
 }");
@@ -573,6 +645,63 @@ class C
                 ""y""
             }
         };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(16158, "https://github.com/dotnet/roslyn/issues/16158")]
+        public async Task TestIncorrectAddName()
+        {
+            await TestAsync(
+@"using System.Collections.Generic;
+
+public class Foo
+{
+    public static void Bar()
+    {
+        string item = null;
+        var items = new List<string>();
+
+        var values = new [||]List<string>(); // Collection initialization can be simplified
+        values.Add(item);
+        values.AddRange(items);
+    }
+}",
+@"using System.Collections.Generic;
+
+public class Foo
+{
+    public static void Bar()
+    {
+        string item = null;
+        var items = new List<string>();
+
+        var values = new List<string>
+        {
+            item
+        }; // Collection initialization can be simplified
+        values.AddRange(items);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(16241, "https://github.com/dotnet/roslyn/issues/16241")]
+        public async Task TestNestedCollectionInitializer()
+        {
+            await TestMissingAsync(
+@"
+        using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var myStringArray = new string[] { ""Test"", ""123"", ""ABC"" };
+        var myStringList = myStringArray?.ToList() ?? new [||]List<string>();
+        myStringList.Add(""Done"");
     }
 }");
         }

@@ -4115,8 +4115,12 @@ class C
             Assert.NotNull(ms.Body);
             Assert.Equal(1, ms.Body.Statements.Count);
             Assert.Equal(SyntaxKind.DoStatement, ms.Body.Statements[0].Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            file.Errors().Verify(
+                // error CS1003: Syntax error, ']' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", ")").WithLocation(1, 1),
+                // error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -4281,8 +4285,12 @@ class C
             Assert.NotNull(ms.Body);
             Assert.Equal(1, ms.Body.Statements.Count);
             Assert.Equal(SyntaxKind.ForStatement, ms.Body.Statements[0].Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            file.Errors().Verify(
+                // error CS1003: Syntax error, ']' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments("]", ")").WithLocation(1, 1),
+                // error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -5300,13 +5308,13 @@ class C
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
-            Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(5, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_TypeExpected, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[3].Code);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[4].Code);
+            Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            file.Errors().Verify(
+                // error CS1525: Invalid expression term ';'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm).WithArguments(";").WithLocation(1, 1),
+                // error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -5391,14 +5399,15 @@ class C
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
-            Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(6, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_TypeExpected, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[3].Code);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[4].Code);
-            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[5].Code);
+            Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            file.Errors().Verify(
+                // error CS1525: Invalid expression term 'while'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm).WithArguments("while").WithLocation(1, 1),
+                // error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected).WithLocation(1, 1),
+                // error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected).WithLocation(1, 1)
+                );
         }
 
         [Fact]

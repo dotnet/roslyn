@@ -301,19 +301,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var statementSyntax = expr.ParseStatement(statementDiagnostics);
                 Debug.Assert((statementSyntax == null) || !statementDiagnostics.HasAnyErrors());
                 statementDiagnostics.Free();
-
-                // Prefer to parse expression statements (except deconstruction-declarations) as expressions.
-                // Once https://github.com/dotnet/roslyn/issues/15049 is fixed, we should parse d-declarations as expressions.
                 var isExpressionStatement = statementSyntax.IsKind(SyntaxKind.ExpressionStatement);
-                var isDeconstructionDeclaration = isExpressionStatement &&
-                                                  IsDeconstructionDeclaration((ExpressionStatementSyntax)statementSyntax);
-
-                if (statementSyntax != null && (!isExpressionStatement || isDeconstructionDeclaration))
+                if (statementSyntax != null && !isExpressionStatement)
                 {
                     formatSpecifiers = null;
 
-                    if (statementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement) ||
-                        isDeconstructionDeclaration)
+                    if (statementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement))
                     {
                         return statementSyntax;
                     }
@@ -324,15 +317,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             return expr.ParseExpression(diagnostics, allowFormatSpecifiers: true, formatSpecifiers: out formatSpecifiers);
-        }
-
-        private static bool IsDeconstructionDeclaration(ExpressionStatementSyntax expressionStatement)
-        {
-            if (!expressionStatement.Expression.IsKind(SyntaxKind.SimpleAssignmentExpression))
-            {
-                return false;
-            }
-            return ((AssignmentExpressionSyntax)expressionStatement.Expression).IsDeconstructionDeclaration();
         }
 
         internal override CompileResult CompileAssignment(

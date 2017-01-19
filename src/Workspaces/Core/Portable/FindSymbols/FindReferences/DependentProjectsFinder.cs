@@ -241,9 +241,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     if (previous != null)
                     {
                         var referencedProject = solution.GetProject(previous.Assembly, cancellationToken);
-                        List<ProjectId> referencingSubmissions = null;
-
-                        if (!projectIdsToReferencingSubmissionIds.TryGetValue(referencedProject.Id, out referencingSubmissions))
+                        if (!projectIdsToReferencingSubmissionIds.TryGetValue(referencedProject.Id, out var referencingSubmissions))
                         {
                             referencingSubmissions = new List<ProjectId>();
                             projectIdsToReferencingSubmissionIds.Add(referencedProject.Id, referencingSubmissions);
