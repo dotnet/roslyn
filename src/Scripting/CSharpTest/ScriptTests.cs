@@ -713,7 +713,7 @@ i", options);
         }
 
         [Fact]
-        public async Task Pdb_CodeFromFile_WithEmitDebugInformation_WithoutFileEncoding_CompilationErrorException()
+        public async Task Pdb_CreateFromString_CodeFromFile_WithEmitDebugInformation_WithoutFileEncoding_CompilationErrorException()
         {
             try
             {
@@ -727,108 +727,80 @@ i", options);
         }
 
         [Fact]
-        public async Task Pdb_CodeFromFile_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
+        public Task Pdb_CreateFromString_CodeFromFile_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
-            try
-            {
-                var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
-                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
-            }
-            catch (Exception ex)
-            {
-                // line information is only available when PDBs have been emitted
-                Assert.EndsWith("debug.csx:line 1", GetStackTraceLine(ex, 0));
-            }
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), "debug.csx:line 1");
         }
 
         [Fact]
-        public async Task Pdb_CodeFromFile_WithoutEmitDebugInformation_WithoutFileEncoding_ResultInPdbNotEmitted()
+        public Task Pdb_CreateFromString_CodeFromFile_WithoutEmitDebugInformation_WithoutFileEncoding_ResultInPdbNotEmitted()
         {
-            try
-            {
-                var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath("debug.csx").WithFileEncoding(null);
-                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
-            }
-            catch (Exception ex)
-            {
-                // line information is only available when PDBs have been emitted
-                Assert.Equal("at Submission#0.<<Initialize>>d__0.MoveNext()", GetStackTraceLine(ex, 0));
-            }
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath(null).WithFileEncoding(null);
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), "at Submission#0.<<Initialize>>d__0.MoveNext()");
         }
 
         [Fact]
-        public async Task Pdb_CodeFromFile_WithoutEmitDebugInformation_WithFileEncoding_ResultInPdbNotEmitted()
+        public Task Pdb_CreateFromString_CodeFromFile_WithoutEmitDebugInformation_WithFileEncoding_ResultInPdbNotEmitted()
         {
-            try
-            {
-                var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
-                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
-            }
-            catch (Exception ex)
-            {
-                // line information is only available when PDBs have been emitted
-                Assert.Equal("at Submission#0.<<Initialize>>d__0.MoveNext()", GetStackTraceLine(ex, 0));
-            }
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), "at Submission#0.<<Initialize>>d__0.MoveNext()");
         }
 
         [Fact]
-        public async Task Pdb_InlineCode_WithEmitDebugInformation_WithoutFileEncoding_ResultInPdbEmitted()
+        public Task Pdb_CreateFromStream_CodeFromFile_WithEmitDebugInformation_ResultInPdbEmitted()
         {
-            try
-            {
-                var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(null);
-                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
-            }
-            catch (Exception ex)
-            {
-                // line information is only available when PDBs have been emitted
-                Assert.Equal("at Submission#0.<<Initialize>>d__0.MoveNext() in :line 1", GetStackTraceLine(ex, 0));
-            }
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx");
+            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts), "debug.csx:line 1");
         }
 
         [Fact]
-        public async Task Pdb_InlineCode_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
+        public Task Pdb_CreateFromStream_CodeFromFile_WithoutEmitDebugInformation_ResultInPdbNotEmitted()
         {
-            try
-            {
-                var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(Encoding.UTF8);
-                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
-            }
-            catch (Exception ex)
-            {
-                // line information is only available when PDBs have been emitted
-                Assert.Equal("at Submission#0.<<Initialize>>d__0.MoveNext() in :line 1", GetStackTraceLine(ex, 0));
-            }
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath("debug.csx");
+            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts), "at Submission#0.<<Initialize>>d__0.MoveNext()");
         }
 
         [Fact]
-        public async Task Pdb_InlineCode_WithoutEmitDebugInformation_WithoutFileEncoding_ResultInPdbNotEmitted()
+        public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithoutFileEncoding_ResultInPdbEmitted()
         {
-            try
-            {
-                var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFileEncoding(null);
-                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
-            }
-            catch (Exception ex)
-            {
-                // line information is only available when PDBs have been emitted
-                Assert.Equal("at Submission#0.<<Initialize>>d__0.MoveNext()", GetStackTraceLine(ex, 0));
-            }
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(null);
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), "at Submission#0.<<Initialize>>d__0.MoveNext() in :line 1");
         }
 
         [Fact]
-        public async Task Pdb_InlineCode_WithoutEmitDebugInformation_WithFileEncoding_ResultInPdbNotEmitted()
+        public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
-            try
-            {
-                var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFileEncoding(Encoding.UTF8);
-                var script = await CSharpScript.RunAsync("throw new System.Exception();", opts);
-            }
-            catch (Exception ex)
-            {
-                // line information is only available when PDBs have been emitted
-                Assert.Equal("at Submission#0.<<Initialize>>d__0.MoveNext()", GetStackTraceLine(ex, 0));
-            }
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(Encoding.UTF8);
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), "at Submission#0.<<Initialize>>d__0.MoveNext() in :line 1");
+        }
+
+        [Fact]
+        public Task Pdb_CreateFromString_InlineCode_WithoutEmitDebugInformation_WithoutFileEncoding_ResultInPdbNotEmitted()
+        {
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFileEncoding(null);
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), "at Submission#0.<<Initialize>>d__0.MoveNext()");
+        }
+
+        [Fact]
+        public Task Pdb_CreateFromString_InlineCode_WithoutEmitDebugInformation_WithFileEncoding_ResultInPdbNotEmitted()
+        {
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFileEncoding(Encoding.UTF8);
+            return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), "at Submission#0.<<Initialize>>d__0.MoveNext()");
+        }
+
+        [Fact]
+        public Task Pdb_CreateFromStream_InlineCode_WithEmitDebugInformation_ResultInPdbEmitted()
+        {
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(true);
+            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts), "at Submission#0.<<Initialize>>d__0.MoveNext() in :line 1");
+        }
+
+        [Fact]
+        public Task Pdb_CreateFromStream_InlineCode_WithoutEmitDebugInformation_ResultInPdbNotEmitted()
+        {
+            var opts = ScriptOptions.Default.WithEmitDebugInformation(false);
+            return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts), "at Submission#0.<<Initialize>>d__0.MoveNext()");
         }
 
         [WorkItem(12348, "https://github.com/dotnet/roslyn/issues/12348")]
@@ -895,6 +867,20 @@ i", options);
             }
 
             return null;
+        }
+
+        private async Task VerifyStackTraceAsync(Func<Script<object>> scriptProvider, string expectedFirstLineEnding)
+        {
+            try
+            {
+                var script = scriptProvider();
+                await script.RunAsync();
+            }
+            catch (Exception ex)
+            {
+                // line information is only available when PDBs have been emitted
+                Assert.EndsWith(expectedFirstLineEnding, GetStackTraceLine(ex, 0));
+            }
         }
     }
 }
