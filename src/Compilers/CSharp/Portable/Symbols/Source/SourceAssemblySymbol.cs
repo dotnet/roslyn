@@ -2583,9 +2583,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var peModuleSymbol = (Metadata.PE.PEModuleSymbol)_modules[i];
 
-                    var forwardedToAssembly = peModuleSymbol.GetAssemblyForForwardedType(ref emittedName);
-                    if ((object)forwardedToAssembly != null)
+                    var forwardedToAssemblies = peModuleSymbol.GetAssembliesForForwardedType(ref emittedName);
+
+                    if (!forwardedToAssemblies.IsDefaultOrEmpty)
                     {
+                        if (forwardedToAssemblies.Length > 1)
+                        {
+                            return new MultipleForwardedTypeSymbol(emittedName, forwardedToAssemblies[0], forwardedToAssemblies[1]);
+                        }
+
+                        AssemblySymbol forwardedToAssembly = forwardedToAssemblies.First();
+
                         // Don't bother to check the forwarded-to assembly if we've already seen it.
                         if (visitedAssemblies != null && visitedAssemblies.Contains(forwardedToAssembly))
                         {

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         private MetadataReader _lazyMetadataReader;
 
         private ImmutableArray<AssemblyIdentity> _lazyAssemblyReferences;
-        private Dictionary<string, AssemblyReferenceHandle> _lazyForwardedTypesToAssemblyMap;
+        private Dictionary<string, HashSet<AssemblyReferenceHandle>> _lazyForwardedTypesToAssemblyMap;
 
         private readonly Lazy<IdentifierCollection> _lazyTypeNameCollection;
         private readonly Lazy<IdentifierCollection> _lazyNamespaceNameCollection;
@@ -2822,7 +2822,7 @@ namespace Microsoft.CodeAnalysis
             return ConstantValue.Bad;
         }
 
-        internal AssemblyReferenceHandle GetAssemblyForForwardedType(string fullName, bool ignoreCase, out string matchedName)
+        internal HashSet<AssemblyReferenceHandle> GetAssemblyRefsForForwardedType(string fullName, bool ignoreCase, out string matchedName)
         {
             EnsureForwardTypeToAssemblyMap();
 
@@ -2843,19 +2843,19 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                AssemblyReferenceHandle assemblyRef;
-                if (_lazyForwardedTypesToAssemblyMap.TryGetValue(fullName, out assemblyRef))
+                HashSet<AssemblyReferenceHandle> assemblyRefs;
+                if (_lazyForwardedTypesToAssemblyMap.TryGetValue(fullName, out assemblyRefs))
                 {
                     matchedName = fullName;
-                    return assemblyRef;
+                    return assemblyRefs;
                 }
             }
 
             matchedName = null;
-            return default(AssemblyReferenceHandle);
+            return default(HashSet<AssemblyReferenceHandle>);
         }
 
-        internal IEnumerable<KeyValuePair<string, AssemblyReferenceHandle>> GetForwardedTypes()
+        internal IEnumerable<KeyValuePair<string, HashSet<AssemblyReferenceHandle>>> GetForwardedTypes()
         {
             EnsureForwardTypeToAssemblyMap();
             return _lazyForwardedTypesToAssemblyMap;
@@ -2865,7 +2865,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (_lazyForwardedTypesToAssemblyMap == null)
             {
-                var typesToAssemblyMap = new Dictionary<string, AssemblyReferenceHandle>();
+                var typesToAssemblyMap = new Dictionary<string, HashSet<AssemblyReferenceHandle>>();
 
                 try
                 {
@@ -2873,23 +2873,41 @@ namespace Microsoft.CodeAnalysis
                     foreach (var handle in forwarders)
                     {
                         ExportedType exportedType = MetadataReader.GetExportedType(handle);
+
                         if (!exportedType.IsForwarder)
                         {
                             continue;
                         }
 
-                        string name = MetadataReader.GetString(exportedType.Name);
-                        StringHandle ns = exportedType.Namespace;
-                        if (!ns.IsNil)
+                        AssemblyReferenceHandle newReference = (AssemblyReferenceHandle)exportedType.Implementation;
+
+                        if (newReference.IsNil)
                         {
-                            string namespaceString = MetadataReader.GetString(ns);
+                            continue;
+                        }
+
+                        string name = MetadataReader.GetString(exportedType.Name);
+                        if (!exportedType.Namespace.IsNil)
+                        {
+                            string namespaceString = MetadataReader.GetString(exportedType.Namespace);
                             if (namespaceString.Length > 0)
                             {
                                 name = namespaceString + "." + name;
                             }
                         }
 
-                        typesToAssemblyMap.Add(name, (AssemblyReferenceHandle)exportedType.Implementation);
+                        HashSet<AssemblyReferenceHandle> references;
+
+                        if (typesToAssemblyMap.TryGetValue(name, out references))
+                        {
+                            references.Add(newReference);
+                        }
+                        else
+                        {
+                            references = new HashSet<AssemblyReferenceHandle>();
+                            references.Add(newReference);
+                            typesToAssemblyMap.Add(name, references);
+                        }
                     }
                 }
                 catch (BadImageFormatException)

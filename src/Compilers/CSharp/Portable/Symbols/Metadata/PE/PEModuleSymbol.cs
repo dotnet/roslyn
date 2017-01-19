@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Roslyn.Utilities;
 using System.Reflection.PortableExecutable;
 using System.Reflection;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -641,32 +642,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         /// <summary>
-        /// If this module forwards the given type to another assembly, return that assembly;
-        /// otherwise, return null.
+        /// Returns a list of the assemblies this module forwards the given type to.
         /// </summary>
         /// <param name="fullName">Type to look up.</param>
-        /// <returns>Assembly symbol or null.</returns>
+        /// <returns>An <see cref="ImmutableArray"/> of the forwarded to assemblies.</returns>
         /// <remarks>
-        /// The returned assembly may also forward the type.
+        /// The returned assemblies may also forward the type.
         /// </remarks>
-        internal AssemblySymbol GetAssemblyForForwardedType(ref MetadataTypeName fullName)
+        internal ImmutableArray<AssemblySymbol> GetAssembliesForForwardedType(ref MetadataTypeName fullName)
         {
             string matchedName;
-            AssemblyReferenceHandle assemblyRef = Module.GetAssemblyForForwardedType(fullName.FullName, ignoreCase: false, matchedName: out matchedName);
-            return assemblyRef.IsNil ? null : this.GetReferencedAssemblySymbol(assemblyRef);
+            HashSet<AssemblyReferenceHandle> assemblyRefs = Module.GetAssemblyRefsForForwardedType(fullName.FullName, ignoreCase: false, matchedName: out matchedName);
+            var assemblies = ArrayBuilder<AssemblySymbol>.GetInstance();
+
+            if (assemblyRefs != null)
+            {
+                foreach (var reference in assemblyRefs)
+                {
+                    var assembly = this.GetReferencedAssemblySymbol(reference);
+                    if (assembly != null)
+                    {
+                        assemblies.Add(assembly);
+                    }
+                }
+            }
+
+            return assemblies.ToImmutableAndFree();
         }
 
         internal IEnumerable<NamedTypeSymbol> GetForwardedTypes()
         {
-            foreach (KeyValuePair<string, AssemblyReferenceHandle> forwarder in Module.GetForwardedTypes())
+            foreach (KeyValuePair<string, HashSet<AssemblyReferenceHandle>> forwarder in Module.GetForwardedTypes())
             {
-                var assemblySymbol = this.GetReferencedAssemblySymbol(forwarder.Value);
-                if ((object)assemblySymbol == null)
+                foreach (AssemblyReferenceHandle assemblyRef in forwarder.Value)
                 {
-                    continue;
+                    var assemblySymbol = this.GetReferencedAssemblySymbol(assemblyRef);
+                    if ((object)assemblySymbol == null)
+                    {
+                        continue;
+                    }
+                    var name = MetadataTypeName.FromFullName(forwarder.Key);
+                    yield return assemblySymbol.LookupTopLevelMetadataType(ref name, digThroughForwardedTypes: true);
                 }
-                var name = MetadataTypeName.FromFullName(forwarder.Key);
-                yield return assemblySymbol.LookupTopLevelMetadataType(ref name, digThroughForwardedTypes: true);
             }
         }
 

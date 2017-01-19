@@ -1693,9 +1693,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Similar to attributes, type forwarders from the second added module should override type forwarders from the first added module, etc. 
                 For i As Integer = _modules.Length - 1 To 1 Step -1
                     Dim peModuleSymbol = DirectCast(_modules(i), PEModuleSymbol)
+                    Dim forwardedToAssemblies = peModuleSymbol.GetAssembliesForForwardedType(emittedName, ignoreCase, matchedName)
 
-                    Dim forwardedToAssembly = peModuleSymbol.GetAssemblyForForwardedType(emittedName, ignoreCase, matchedName)
-                    If forwardedToAssembly IsNot Nothing Then
+                    If (Not forwardedToAssemblies.IsDefaultOrEmpty) Then
+                        If (forwardedToAssemblies.Length > 1) Then
+                            Return New MultipleForwardedTypeSymbol(emittedName, forwardedToAssemblies(0), forwardedToAssemblies(1))
+                        End If
+
+                        Dim forwardedToAssembly = forwardedToAssemblies.First()
+
                         ' Don't bother to check the forwarded-to assembly if we've already seen it.
                         If visitedAssemblies IsNot Nothing AndAlso visitedAssemblies.Contains(forwardedToAssembly) Then
                             Return CreateCycleInTypeForwarderErrorTypeSymbol(emittedName)

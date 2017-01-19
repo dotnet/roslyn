@@ -5002,4 +5002,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadAssemblyName" xml:space="preserve">
     <value>Invalid assembly name: {0}</value>
   </data>
+  <data name="ERR_TypeForwardedToMultipleAssemblies" xml:space="preserve">
+    <value>Type '{0}' is forwarded to multiple assemblies: '{1}' and '{2}'</value>
+  </data>
 </root>

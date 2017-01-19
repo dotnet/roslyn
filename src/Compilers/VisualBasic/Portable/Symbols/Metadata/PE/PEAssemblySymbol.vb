@@ -141,32 +141,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        ''' <summary>
-        ''' Look up the assembly to which the given metadata type Is forwarded.
-        ''' </summary>
-        ''' <param name="emittedName"></param>
-        ''' <param name="ignoreCase">Pass true to look up fullName case-insensitively.  WARNING: more expensive.</param>
-        ''' <param name="matchedName">Returns the actual casing of the matching name.</param>
-        ''' <returns>
-        ''' The assembly to which the given type Is forwarded Or null, if there isn't one.
-        ''' </returns>
-        ''' <remarks>
-        ''' The returned assembly may also forward the type.
-        ''' </remarks>
-        Friend Function LookupAssemblyForForwardedMetadataType(ByRef emittedName As MetadataTypeName, ignoreCase As Boolean, <Out> ByRef matchedName As String) As AssemblySymbol
-            ' Look in the type forwarders of the primary module of this assembly, clr does not honor type forwarder
-            ' in non-primary modules.
+        ''' <summary>		
+        ''' Look up the assemblies to which the given metadata type Is forwarded.		
+        ''' </summary>		
+        ''' <param name="emittedName"></param>		
+        ''' <param name="ignoreCase">Pass true to look up fullName case-insensitively.  WARNING: more expensive.</param>		
+        ''' <param name="matchedName">Returns the actual casing of the matching name.</param>		
+        ''' <returns>		
+        ''' The assemblies to which the given type Is forwarded Or null, if there isn't one.		
+        ''' </returns>		
+        ''' <remarks>		
+        ''' The returned assemblies may also forward the type.		
+        ''' </remarks>		
+        Friend Function LookupAssembliesForForwardedMetadataType(ByRef emittedName As MetadataTypeName, ignoreCase As Boolean, <Out> ByRef matchedName As String) As ImmutableArray(Of AssemblySymbol)
+            ' Look in the type forwarders of the primary module of this assembly, clr does not honor type forwarder		
+            ' in non-primary modules.		
 
-            ' Examine the type forwarders, but only from the primary module.
-            Return PrimaryModule.GetAssemblyForForwardedType(emittedName, ignoreCase, matchedName)
+            ' Examine the type forwarders, but only from the primary module.		
+            Return PrimaryModule.GetAssembliesForForwardedType(emittedName, ignoreCase, matchedName)
         End Function
 
         Friend Overrides Function TryLookupForwardedMetadataTypeWithCycleDetection(ByRef emittedName As MetadataTypeName, visitedAssemblies As ConsList(Of AssemblySymbol), ignoreCase As Boolean) As NamedTypeSymbol
             ' Check if it is a forwarded type.
             Dim matchedName As String = Nothing
-            Dim forwardedToAssembly = LookupAssemblyForForwardedMetadataType(emittedName, ignoreCase, matchedName)
-            ' Don't bother to check the forwarded-to assembly if we've already seen it.
-            If forwardedToAssembly IsNot Nothing Then
+            Dim forwardedToAssemblies = LookupAssembliesForForwardedMetadataType(emittedName, ignoreCase, matchedName)
+
+            If (Not forwardedToAssemblies.IsDefaultOrEmpty) Then
+                If (forwardedToAssemblies.Length > 1) Then
+                    Return New MultipleForwardedTypeSymbol(emittedName, forwardedToAssemblies(0), forwardedToAssemblies(1))
+                End If
+
+                Dim forwardedToAssembly = forwardedToAssemblies.First()
+
+                ' Don't bother to check the forwarded-to assembly if we've already seen it.
                 If visitedAssemblies IsNot Nothing AndAlso visitedAssemblies.Contains(forwardedToAssembly) Then
                     Return CreateCycleInTypeForwarderErrorTypeSymbol(emittedName)
                 Else

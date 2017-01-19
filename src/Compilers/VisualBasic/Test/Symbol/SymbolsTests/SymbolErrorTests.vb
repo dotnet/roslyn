@@ -23746,5 +23746,156 @@ Friend MustOverride ReadOnly Property P
 </expected>)
         End Sub
 
+        <Fact>
+        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        Public Sub MultipleForwardsToTheSameAssemblyShouldIgnoreDuplicate()
+            Dim forwardedToCode = "
+Namespace Destination
+    Public Class TestClass
+       Public Const Value = ""TEST VALUE""
+    End Class
+End Namespace
+"
+            Dim forwardedToCompilation = CreateCompilationWithMscorlib(
+                source:=forwardedToCode,
+                assemblyName:="Destination",
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Dim forwardedToReference = forwardedToCompilation.EmitToImageReference()
+
+            Dim forwardingCode =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Module Program
+   Sub Main()
+     System.Console.WriteLine(Destination.TestClass.Value)
+   End Sub
+End Module
+]]></file>
+</compilation>
+            Dim forwardingIL = "
+.assembly extern Destination { }
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination
+}"
+            Dim forwardingCompilation = CreateCompilationWithCustomILSource(
+                sources:=forwardingCode,
+                ilSource:=forwardingIL,
+                additionalReferences:={forwardedToReference, MsvbRef},
+                options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
+
+            CompileAndVerify(forwardingCompilation, expectedOutput:="TEST VALUE")
+        End Sub
+
+        <Fact>
+        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        Public Sub MultipleForwardsToDifferentAssembliesWithoutReferencingThemShouldIgnoreIt()
+
+            Dim forwardingCode = <compilation></compilation>
+
+            Dim forwardingIL = <![CDATA[
+.assembly extern Destination1 { }
+.assembly extern Destination2 { }
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination1
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination2
+}]]>
+            Dim forwardingCompilation = CreateCompilationWithCustomILSource(forwardingCode, forwardingIL)
+
+            CompilationUtils.AssertTheseDiagnostics(forwardingCompilation)
+        End Sub
+
+        <Fact>
+        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        Public Sub MultipleForwardsToDifferentAssembliesWhileReferencingThemShouldErrorOut()
+            Dim forwardingCode =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Module Program
+    Public Sub Main()
+        Dim obj = New Destination.TestClass()
+    End Sub
+End Module
+]]></file>
+</compilation>
+            Dim forwardingIL = "
+.assembly extern Destination1 { }
+.assembly extern Destination2 { }
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination1
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination2
+}"
+            Dim forwardingCompilation = CreateCompilationWithCustomILSource(forwardingCode, forwardingIL, additionalReferences:={MsvbRef})
+
+            CompilationUtils.AssertTheseDiagnostics(forwardingCompilation,
+            <errors><![CDATA[
+BC37208: Type 'Destination.TestClass' is forwarded to multiple assemblies: 'Destination1' and 'Destination2'
+        Dim obj = New Destination.TestClass()
+                      ~~~~~~~~~~~~~~~~~~~~~
+]]></errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        Public Sub MultipleForwardsThatResultInTheSameAssemblyDoNotErrorOut()
+            Dim forwardedToCode1 = "
+Namespace Destination
+    Public Class TestClass
+    End Class
+End Namespace
+"
+            Dim forwardedToCompilation1 = CreateCompilationWithMscorlib(
+                source:=forwardedToCode1,
+                assemblyName:="Destination1",
+                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Dim forwardedToReference1 = forwardedToCompilation1.EmitToImageReference()
+
+            Dim forwardedToCode2 = <compilation></compilation>
+            Dim forwardedToIL2 = "
+.assembly extern Destination1 { }
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination1
+}"
+            Dim forwardedToCompilation2 = CreateCompilationWithCustomILSource(forwardedToCode2, forwardedToIL2, additionalReferences:={forwardedToReference1}, assemblyName:="Destination2")
+            Dim forwardedToReference2 = forwardedToCompilation2.EmitToImageReference()
+
+            Dim forwardingCode =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Module Program
+    Public Sub Main()
+        Dim obj = New Destination.TestClass()
+    End Sub
+End Module
+]]></file>
+</compilation>
+            Dim forwardingIL = "
+.assembly extern Destination1 { }
+.assembly extern Destination2 { }
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination1
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination2
+}"
+            Dim forwardingCompilation = CreateCompilationWithCustomILSource(forwardingCode, forwardingIL, additionalReferences:={forwardedToReference1, forwardedToReference2, MsvbRef})
+
+            CompilationUtils.AssertTheseDiagnostics(forwardingCompilation)
+        End Sub
     End Class
 End Namespace

@@ -1895,7 +1895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // as a type forwarder.  We'll look for type forwarders in the containing and
             // referenced assemblies and report more specific diagnostics if they are found.
             AssemblySymbol forwardedToAssembly;
-            bool encounteredForwardingCycle;
+            DiagnosticInfo encounteredForwardingError;
             string fullName;
 
             // for attributes, suggest both, but not for verbatim name
@@ -1929,12 +1929,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         fullName = qualifierOpt.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat) + "." + fullName;
                     }
 
-                    forwardedToAssembly = GetForwardedToAssembly(fullName, arity, out encounteredForwardingCycle);
+                    forwardedToAssembly = GetForwardedToAssembly(fullName, arity, out encounteredForwardingError);
 
-                    if (encounteredForwardingCycle)
+                    if (encounteredForwardingError != null)
                     {
-                        Debug.Assert((object)forwardedToAssembly != null, "How did we find a cycle if there was no forwarding?");
-                        diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, fullName, forwardedToAssembly.Name);
+                        if (encounteredForwardingError.Code == (int)ErrorCode.ERR_CycleInTypeForwarder)
+                        {
+                            Debug.Assert((object)forwardedToAssembly != null, "How did we find a cycle if there was no forwarding?");
+                            diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, fullName, forwardedToAssembly.Name);
+                        }
+                        else if (encounteredForwardingError.Code == (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies)
+                        {
+                            return diagnostics.Add(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, location, encounteredForwardingError.Arguments);
+                        }
                     }
 
                     if (qualifierIsCompilationGlobalNamespace)
@@ -1974,12 +1981,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(simpleName, arity);
-            forwardedToAssembly = GetForwardedToAssembly(fullName, arity, out encounteredForwardingCycle);
+            forwardedToAssembly = GetForwardedToAssembly(fullName, arity, out encounteredForwardingError);
 
-            if (encounteredForwardingCycle)
+            if (encounteredForwardingError != null)
             {
-                Debug.Assert((object)forwardedToAssembly != null, "How did we find a cycle if there was no forwarding?");
-                diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, fullName, forwardedToAssembly.Name);
+                if (encounteredForwardingError.Code == (int)ErrorCode.ERR_CycleInTypeForwarder)
+                {
+                    Debug.Assert((object)forwardedToAssembly != null, "How did we find a cycle if there was no forwarding?");
+                    diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, fullName, forwardedToAssembly.Name);
+                }
+                else if (encounteredForwardingError.Code == (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies)
+                {
+                    return diagnostics.Add(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, location, encounteredForwardingError.Arguments);
+                }
             }
 
             return (object)forwardedToAssembly == null
@@ -1993,17 +2007,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="fullName">The metadata name of the (potentially) forwarded type, including the arity (if non-zero).</param>
         /// <param name="arity">The arity of the forwarded type.</param>
-        /// <param name="encounteredCycle">Set to true if a cycle was found in the type forwarders.</param>
+        /// <param name="encounteredForwardingError">Will not be null if an error was found during look up.</param>
         /// <returns></returns>
         /// <remarks>
         /// Since this method is intended to be used for error reporting, it stops as soon as it finds
-        /// any type forwarder - it does not check other assemblies for consistency or better results.
+        /// any type forwarder (or an error to report). It does not check other assemblies for consistency or better results.
         /// </remarks>
-        private AssemblySymbol GetForwardedToAssembly(string fullName, int arity, out bool encounteredCycle)
+        private AssemblySymbol GetForwardedToAssembly(string fullName, int arity, out DiagnosticInfo encounteredForwardingError)
         {
             Debug.Assert(arity == 0 || fullName.EndsWith("`" + arity, StringComparison.Ordinal));
 
-            encounteredCycle = false;
+            encounteredForwardingError = null;
 
             // If we are in the process of binding assembly level attributes, we might get into an infinite cycle
             // if any of the referenced assemblies forwards type to this assembly. Since forwarded types
@@ -2054,11 +2068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (forwardedType.Kind == SymbolKind.ErrorType)
                 {
-                    DiagnosticInfo diagInfo = ((ErrorTypeSymbol)forwardedType).ErrorInfo;
-                    if (diagInfo.Code == (int)ErrorCode.ERR_CycleInTypeForwarder)
-                    {
-                        encounteredCycle = true;
-                    }
+                    encounteredForwardingError = ((ErrorTypeSymbol)forwardedType).ErrorInfo;
                 }
 
                 return forwardedType.ContainingAssembly;

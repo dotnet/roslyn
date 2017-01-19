@@ -402,6 +402,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Function NotFound(typeSyntax As TypeSyntax, diagName As String, binder As Binder, diagBag As DiagnosticBag, reportedAnError As Boolean) As DiagnosticInfo
                 Dim diagInfo As DiagnosticInfo
 
+
                 If diagName = "Any" AndAlso IsParameterTypeOfDeclareMethod(typeSyntax) Then
                     diagInfo = ErrorFactory.ErrorInfo(ERRID.ERR_ObsoleteAsAny, diagName)
 
@@ -413,14 +414,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim forwardedToAssembly As AssemblySymbol = Nothing
-                Dim encounteredForwardingCycle As Boolean = False
+                Dim encounteredForwardingError As DiagnosticInfo = Nothing
 
                 If diagName.Length > 0 Then
-                    CheckForForwardedType(binder.Compilation.Assembly, typeSyntax, diagName, forwardedToAssembly, encounteredForwardingCycle)
+                    CheckForForwardedType(binder.Compilation.Assembly, typeSyntax, diagName, forwardedToAssembly, encounteredForwardingError)
                 Else
                     Debug.Assert(typeSyntax.IsMissing OrElse typeSyntax.HasErrors)
                     Return Nothing
                 End If
+
+                If Not reportedAnError Then
+                    If Not encounteredForwardingError Is Nothing Then
+                        If encounteredForwardingError.Code = ERRID.ERR_TypeFwdCycle2 Then
+                            Debug.Assert(forwardedToAssembly IsNot Nothing, "How did we find a cycle if there is no forwarding?")
+                            Binder.ReportDiagnostic(diagBag, typeSyntax, ERRID.ERR_TypeFwdCycle2, diagName, forwardedToAssembly)
+                        ElseIf encounteredForwardingError.Code = ERRID.ERR_TypeForwardedToMultipleAssemblies Then
+                            Binder.ReportDiagnostic(diagBag, typeSyntax, ERRID.ERR_TypeForwardedToMultipleAssemblies, encounteredForwardingError.Arguments)
+                            Return encounteredForwardingError
+                        End If
+                    End If
+                End If
+
 
                 If forwardedToAssembly Is Nothing Then
                     diagInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UndefinedType1, diagName)
@@ -429,12 +443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If Not reportedAnError Then
-                    Binder.ReportDiagnostic(diagBag, typeSyntax, diagInfo)
-
-                    If encounteredForwardingCycle Then
-                        Debug.Assert(forwardedToAssembly IsNot Nothing, "How did we find a cycle if there is no forwarding?")
-                        Binder.ReportDiagnostic(diagBag, typeSyntax, ERRID.ERR_TypeFwdCycle2, diagName, forwardedToAssembly)
-                    End If
+                    binder.ReportDiagnostic(diagBag, typeSyntax, diagInfo)
                 End If
 
                 Return diagInfo
@@ -448,8 +457,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <param name="typeSyntax">Full name of type that failed lookup.  Shortened as different prefixes are checked.</param>
             ''' <param name="diagName">GetBaseNamesForDiagnostic(typeSyntax) (basically dot-delimited list of names).  Shortened as different prefixes are checked.</param>
             ''' <param name="forwardedToAssembly">Set if some prefix matches a forwarded type.</param>
-            ''' <param name="encounteredForwardingCycle">True if forwardedToAssembly is non-null and the type indicated by typeSyntax/diagName is in a forwarder cycle.</param>
-            Private Shared Sub CheckForForwardedType(containingAssembly As AssemblySymbol, ByRef typeSyntax As TypeSyntax, ByRef diagName As String, ByRef forwardedToAssembly As AssemblySymbol, ByRef encounteredForwardingCycle As Boolean)
+            ''' <param name="encounteredForwardingError">Will not be null if an error was found during look up.</param>
+            Private Shared Sub CheckForForwardedType(containingAssembly As AssemblySymbol, ByRef typeSyntax As TypeSyntax, ByRef diagName As String, ByRef forwardedToAssembly As AssemblySymbol, ByRef encounteredForwardingError As DiagnosticInfo)
                 Dim currTypeSyntax As TypeSyntax = typeSyntax
                 Dim currDiagName As String = diagName
 
@@ -467,7 +476,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(currDiagName, arity)
                     End If
 
-                    forwardedToAssembly = GetForwardedToAssembly(containingAssembly, fullName, arity, encounteredForwardingCycle)
+                    forwardedToAssembly = GetForwardedToAssembly(containingAssembly, fullName, arity, encounteredForwardingError)
 
                     If forwardedToAssembly IsNot Nothing Then
                         typeSyntax = currTypeSyntax
@@ -489,18 +498,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <param name="containingAssembly">The assembly in which to look for the type forwarder.</param>
             ''' <param name="fullName">The metadata name of the (potentially) forwarded type, including the arity (if non-zero).</param>
             ''' <param name="arity">The arity of the forwarded type.</param>
-            ''' <param name="encounteredCycle">Set to true if a cycle was found in the type forwarders.</param>
+            ''' <param name="encounteredForwardingError">Will Not be null if an error was found during look up.</param>
             ''' <returns></returns>
             ''' <remarks>
             ''' Since this method is intended to be used for error reporting, it stops as soon as it finds
-            ''' any type forwarder - it does not check other assemblies for consistency or better results.
+            ''' any type forwarder (or an error to report). It does not check other assemblies for consistency or better results.
             ''' 
             ''' NOTE: unlike in C#, this method searches for type forwarders case-insensitively.
             ''' </remarks>
-            Private Shared Function GetForwardedToAssembly(containingAssembly As AssemblySymbol, fullName As String, arity As Integer, ByRef encounteredCycle As Boolean) As AssemblySymbol
+            Private Shared Function GetForwardedToAssembly(containingAssembly As AssemblySymbol, fullName As String, arity As Integer, ByRef encounteredForwardingError As DiagnosticInfo) As AssemblySymbol
                 Debug.Assert(arity = 0 OrElse fullName.EndsWith("`" & arity, StringComparison.Ordinal))
-
-                encounteredCycle = False
 
                 ' NOTE: This won't work if the type isn't using CLS-style generic naming (i.e. `arity), but this code is
                 ' only intended to improve diagnostic messages, so false negatives in corner cases aren't a big deal.
@@ -517,10 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If forwardedType IsNot Nothing Then
                     If forwardedType.IsErrorType Then
-                        Dim diagInfo As DiagnosticInfo = DirectCast(forwardedType, ErrorTypeSymbol).ErrorInfo
-                        If diagInfo.Code = ERRID.ERR_TypeFwdCycle2 Then
-                            encounteredCycle = True
-                        End If
+                        encounteredForwardingError = DirectCast(forwardedType, ErrorTypeSymbol).ErrorInfo
                     End If
 
                     Return forwardedType.ContainingAssembly

@@ -19412,6 +19412,142 @@ internal abstract event System.EventHandler E;";
                 // internal abstract event System.EventHandler E;
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
         }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void MultipleForwardsToTheSameAssemblyShouldIgnoreDuplicate()
+        {
+            var forwardedToCode = @"
+namespace Destination
+{
+    public class TestClass
+    {
+        public const string Value = ""TEST VALUE"";
+    }
+}";
+            var forwardedToReference = CreateCompilationWithMscorlib(forwardedToCode, assemblyName: "Destination").EmitToImageReference();
+
+            var forwardingCode = @"
+namespace ForwardingNamespace
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            System.Console.WriteLine(Destination.TestClass.Value);
+        }
+    }
+}";
+            var forwardingIL = @"
+.assembly extern Destination { }
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination
+}";
+            var forwardingCompilation = CreateCompilationWithCustomILSource(
+                source: forwardingCode,
+                ilSource: forwardingIL,
+                references: new MetadataReference[] { forwardedToReference },
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+
+            CompileAndVerify(forwardingCompilation, expectedOutput: "TEST VALUE");
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void MultipleForwardsToDifferentAssembliesWithoutReferencingThemShouldIgnoreIt()
+        {
+            var forwardingIL = @"
+.assembly extern Destination1 { }
+.assembly extern Destination2 { }
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination1
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination2
+}";
+            var forwardingCompilation = CreateCompilationWithCustomILSource(string.Empty, forwardingIL);
+
+            forwardingCompilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void MultipleForwardsToDifferentAssembliesWhileReferencingThemShouldErrorOut()
+        {
+            var forwardingCode = @"
+namespace ForwardingNamespace
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            new Destination.TestClass();
+        }
+    }
+}";
+            var forwardingIL = @"
+.assembly extern Destination1 { }
+.assembly extern Destination2 { }
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination1
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination2
+}";
+            var forwardingCompilation = CreateCompilationWithCustomILSource(forwardingCode, forwardingIL);
+
+            forwardingCompilation.VerifyDiagnostics(
+                // (8,29): error CS1577: Type 'Destination.TestClass' is forwarded to multiple assemblies: 'Destination1' and 'Destination2'
+                //             new Destination.TestClass();
+                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestClass").WithArguments("Destination.TestClass", "Destination1", "Destination2").WithLocation(8, 29));
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void MultipleForwardsThatResultInTheSameAssemblyDoNotErrorOut()
+        {
+            var forwardedToCode1 = @"
+namespace Destination
+{
+    public class TestClass {}
+}";
+            var forwardedToReference1 = CreateCompilationWithMscorlib(forwardedToCode1, assemblyName: "Destination1").EmitToImageReference();
+
+            var forwardedToCode2 = @"[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Destination.TestClass))]";
+            var forwardedToCompilation2 = CreateCompilationWithMscorlib(forwardedToCode2, new MetadataReference[] { forwardedToReference1 }, assemblyName: "Destination2");
+            var forwardedToReference2 = forwardedToCompilation2.EmitToImageReference();
+
+            var forwardingCode = @"
+namespace ForwardingNamespace
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            new Destination.TestClass();
+        }
+    }
+}";
+            var forwardingIL = @"
+.assembly extern Destination1 { }
+.assembly extern Destination2 { }
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination1
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination2
+}";
+            var forwardingCompilation = CreateCompilationWithCustomILSource(forwardingCode, forwardingIL, new MetadataReference[] { forwardedToReference1, forwardedToReference2 });
+
+            forwardingCompilation.VerifyDiagnostics();
+        }
     }
 }
 

@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_BadXMLRef = 1574,
         ERR_BadStackAllocExpr = 1575,
         ERR_InvalidLineNumber = 1576,
-        //ERR_ALinkFailed = 1577,               No alink usage in Roslyn
+        ERR_TypeForwardedToMultipleAssemblies = 1577,
         ERR_MissingPPFile = 1578,
         ERR_ForEachMissingMember = 1579,
         WRN_BadXMLRefParamType = 1580,

@@ -137,8 +137,9 @@ Friend Module CompilationUtils
     Public Function CreateCompilationWithMscorlibAndReferences(sources As XElement,
                                                                references As IEnumerable(Of MetadataReference),
                                                                Optional options As VisualBasicCompilationOptions = Nothing,
-                                                               Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Return CreateCompilationWithReferences(sources, {MscorlibRef}.Concat(references), options, parseOptions:=parseOptions)
+                                                               Optional parseOptions As VisualBasicParseOptions = Nothing,
+                                                               Optional assemblyName As String = Nothing) As VisualBasicCompilation
+        Return CreateCompilationWithReferences(sources, {MscorlibRef}.Concat(references), options, parseOptions:=parseOptions, assemblyName:=assemblyName)
     End Function
 
     ''' <summary>
@@ -244,8 +245,8 @@ Friend Module CompilationUtils
     Public Function CreateCompilationWithReferences(sources As XElement,
                                                     references As IEnumerable(Of MetadataReference),
                                                     Optional options As VisualBasicCompilationOptions = Nothing,
-                                                    Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Dim assemblyName As String = Nothing
+                                                    Optional parseOptions As VisualBasicParseOptions = Nothing,
+                                                    Optional assemblyName As String = Nothing) As VisualBasicCompilation
         Dim sourceTrees = ParseSouceXml(sources, parseOptions, assemblyName)
         Return CreateCompilationWithReferences(sourceTrees, references, options, assemblyName)
     End Function
@@ -385,7 +386,8 @@ Friend Module CompilationUtils
                                                         Optional parseOptions As VisualBasicParseOptions = Nothing,
                                                         Optional additionalReferences As IEnumerable(Of MetadataReference) = Nothing,
                                                         <Out> Optional ByRef ilReference As MetadataReference = Nothing,
-                                                        <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing
+                                                        <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing,
+                                                        Optional assemblyName As String = Nothing
     ) As VisualBasicCompilation
         Dim references = If(additionalReferences IsNot Nothing, New List(Of MetadataReference)(additionalReferences), New List(Of MetadataReference))
         If includeVbRuntime Then
@@ -396,13 +398,13 @@ Friend Module CompilationUtils
         End If
 
         If ilSource Is Nothing Then
-            Return CreateCompilationWithMscorlibAndReferences(sources, references, options, parseOptions)
+            Return CreateCompilationWithMscorlibAndReferences(sources, references, options, parseOptions, assemblyName)
         End If
 
         ilReference = CreateReferenceFromIlCode(ilSource, appendDefaultHeader, ilImage)
         references.Add(ilReference)
 
-        Return CreateCompilationWithMscorlibAndReferences(sources, references, options, parseOptions)
+        Return CreateCompilationWithMscorlibAndReferences(sources, references, options, parseOptions, assemblyName)
     End Function
 
     Public Function CreateReferenceFromIlCode(ilSource As String, Optional appendDefaultHeader As Boolean = True, <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing) As MetadataReference

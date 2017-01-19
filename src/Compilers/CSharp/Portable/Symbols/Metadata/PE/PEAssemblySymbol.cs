@@ -128,32 +128,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
             return _lazyCustomAttributes;
         }
-
-        /// <summary>
-        /// Look up the assembly to which the given metadata type is forwarded.
-        /// </summary>
-        /// <param name="emittedName"></param>
-        /// <returns>
-        /// The assembly to which the given type is forwarded or null, if there isn't one.
-        /// </returns>
-        /// <remarks>
-        /// The returned assembly may also forward the type.
-        /// </remarks>
-        internal AssemblySymbol LookupAssemblyForForwardedMetadataType(ref MetadataTypeName emittedName)
-        {
-            // Look in the type forwarders of the primary module of this assembly, clr does not honor type forwarder
-            // in non-primary modules.
-
-            // Examine the type forwarders, but only from the primary module.
-            return this.PrimaryModule.GetAssemblyForForwardedType(ref emittedName);
+        		 
+        /// <summary>		
+        /// Look up the assemblies to which the given metadata type is forwarded.		
+        /// </summary>		
+        /// <param name="emittedName"></param>		
+        /// <returns>		
+        /// The assemblies to which the given type is forwarded.		
+        /// </returns>		
+        /// <remarks>		
+        /// The returned assemblies may also forward the type.		
+        /// </remarks>		
+        internal ImmutableArray<AssemblySymbol> LookupAssembliesForForwardedMetadataType(ref MetadataTypeName emittedName)
+        {		
+            // Look in the type forwarders of the primary module of this assembly, clr does not honor type forwarder		
+            // in non-primary modules.		
+		
+            // Examine the type forwarders, but only from the primary module.		
+            return this.PrimaryModule.GetAssembliesForForwardedType(ref emittedName);		
         }
 
-        internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
+    internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
         {
             // Check if it is a forwarded type.
-            var forwardedToAssembly = LookupAssemblyForForwardedMetadataType(ref emittedName);
-            if ((object)forwardedToAssembly != null)
+            var forwardedToAssemblies = LookupAssembliesForForwardedMetadataType(ref emittedName);
+
+            if (!forwardedToAssemblies.IsDefaultOrEmpty)
             {
+                if (forwardedToAssemblies.Length > 1)
+                {
+                    return new MultipleForwardedTypeSymbol(emittedName, forwardedToAssemblies[0], forwardedToAssemblies[1]);
+                }
+
+                AssemblySymbol forwardedToAssembly = forwardedToAssemblies.First();
+
                 // Don't bother to check the forwarded-to assembly if we've already seen it.
                 if (visitedAssemblies != null && visitedAssemblies.Contains(forwardedToAssembly))
                 {
