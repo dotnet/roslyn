@@ -191,7 +191,51 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
 
                     var allActionSets = InlineActionSetsIfDesirable(result);
-                    return allActionSets;
+                    var filteredSets = FilterActionSetsByTitle(allActionSets);
+
+                    return filteredSets;
+                }
+            }
+
+            private ImmutableArray<SuggestedActionSet> FilterActionSetsByTitle(ImmutableArray<SuggestedActionSet> allActionSets)
+            {
+                var result = ArrayBuilder<SuggestedActionSet>.GetInstance();
+
+                var seenTitles = new HashSet<string>();
+
+                foreach (var set in allActionSets)
+                {
+                    var filteredSet = FilterActionSetByTitle(set, seenTitles);
+                    if (filteredSet != null)
+                    {
+                        result.Add(filteredSet);
+                    }
+                }
+
+                return result.ToImmutableAndFree();
+            }
+
+            private SuggestedActionSet FilterActionSetByTitle(SuggestedActionSet set, HashSet<string> seenTitles)
+            {
+                var actions = ArrayBuilder<ISuggestedAction>.GetInstance();
+
+                foreach (var action in set.Actions)
+                {
+                    if (seenTitles.Add(action.DisplayText))
+                    {
+                        actions.Add(action);
+                    }
+                }
+
+                try
+                {
+                    return actions.Count == 0
+                        ? null
+                        : new SuggestedActionSet(actions.ToImmutable(), set.Title, set.Priority, set.ApplicableToSpan);
+                }
+                finally
+                {
+                    actions.Free();
                 }
             }
 
