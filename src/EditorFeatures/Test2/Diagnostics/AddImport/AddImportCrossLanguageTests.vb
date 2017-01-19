@@ -442,11 +442,40 @@ class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WorkItem(16022, "https://github.com/dotnet/roslyn/issues/16022")>
+        Public Async Function TestAddProjectReference_EvenWithExistingUsing() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language='C#' AssemblyName='CSAssembly1' CommonReferences='true'>
+                        <Document FilePath='Test1.cs'>
+using A;
+
+class C
+{
+    $$B b;
+}
+                        </Document>
+                    </Project>
+                    <Project Language='C#' AssemblyName='CSAssembly2' CommonReferences='true'>
+                        <CompilationOptions></CompilationOptions>
+                        <Document FilePath="Test2.cs">
+namespace A
+{
+    public class B { }
+}
+
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Await TestMissing(input)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddProjectReferenceMissingForCircularReference() As Task
             Dim input =
                 <Workspace>
                     <Project Language='C#' AssemblyName='CSAssembly1' CommonReferences='true'>
-                        <ProjectReference>CSAssembly2</ProjectReference>
                         <Document FilePath='Test1.cs'>
 using System.Collections.Generic;
 namespace CSAssembly1
@@ -471,7 +500,8 @@ namespace CSAssembly2
                     </Project>
                 </Workspace>
 
-            Await TestMissing(input)
+            Await TestAsync(input,
+                            addedReference:="CSAssembly1")
         End Function
 
         Friend Overloads Async Function TestAsync(definition As XElement,

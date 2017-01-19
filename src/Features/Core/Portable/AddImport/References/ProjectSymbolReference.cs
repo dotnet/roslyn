@@ -39,6 +39,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     : WellKnownTagArrays.AddReference;
             }
 
+            protected override bool ShouldAddWithExistingImport(Document document)
+                => document.Project.Id != _project.Id;
+
             protected override CodeActionPriority GetPriority(Document document)
             {
                 // The only normal priority fix we have is when we find a hit in our
@@ -74,20 +77,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return newProject.Solution;
             }
 
-            protected override string TryGetDescription(
-                Document document, SyntaxNode node, 
+            protected override (string description, bool hasExistingImport) GetDescription(
+                Document document, SyntaxNode node,
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                var description = base.TryGetDescription(document, node, semanticModel, cancellationToken);
+                var (description, hasExistingImport) = base.GetDescription(document, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
-                    return null;
+                    return (null, false);
                 }
 
                 var project = document.Project;
-                return project.Id == _project.Id
+                description = project.Id == _project.Id
                     ? description
                     : string.Format(FeaturesResources.Add_reference_to_0, _project.Name);
+
+                return (description, hasExistingImport);
             }
 
             protected override Func<Workspace, bool> GetIsApplicableCheck(Project contextProject)
@@ -101,8 +106,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return workspace => workspace.CanAddProjectReference(contextProject.Id, _project.Id);
             }
 
-            protected override bool CheckForExistingImport(Project project) => project.Id == _project.Id;
-
             public override bool Equals(object obj)
             {
                 var reference = obj as ProjectSymbolReference;
@@ -111,9 +114,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             public override int GetHashCode()
-            {
-                return Hash.Combine(_project.Id, base.GetHashCode());
-            }
+                => Hash.Combine(_project.Id, base.GetHashCode());
         }
     }
 }
