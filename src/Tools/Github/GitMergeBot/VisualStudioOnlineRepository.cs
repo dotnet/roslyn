@@ -98,6 +98,26 @@ Once all conflicts are resolved and all the tests pass, you are free to merge th
 
             var pullRequestId = (string)result["pullRequestId"];
 
+            // close the PR if there are no commits
+            // https://www.visualstudio.com/en-us/docs/integrate/api/git/pull-requests/pull-requests#get-commits-for-the-pull-request
+            result = await GetJsonAsync($"DefaultCollection/_apis/git/repositories/{_repositoryId}/pullRequests/{pullRequestId}/commits?api-version={ApiVersion}");
+            var commits = result["value"] as JArray;
+            if (commits?.Count == 0)
+            {
+                // https://www.visualstudio.com/en-us/docs/integrate/api/git/pull-requests/pull-requests#status
+                var completeRequest = new JObject()
+                {
+                    ["status"] = "abandoned"
+                };
+
+                result = await GetJsonAsync(
+                    $"DefaultCollection/_apis/git/repositories/{_repositoryId}/pullRequests/{pullRequestId}?api-version={ApiVersion}",
+                    body: completeRequest,
+                    method: "PATCH");
+
+                return;
+            }
+
             // mark the PR to auto complete
             // https://www.visualstudio.com/en-us/docs/integrate/api/git/pull-requests/pull-requests#auto-complete
             var autoCompleteRequest = new JObject()
