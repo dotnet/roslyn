@@ -3,7 +3,7 @@ Quickstart guide for deconstructions (C# 7.0)
 ----------------------------------------------
 1. Install dev15 preview 4
 2. Start a C# project
-3. Add a reference to the `System.ValueTuple` package from NuGet (pre-release)
+3. Add a reference to the `System.ValueTuple` package from NuGet
 ![Install the ValueTuple package](img/install-valuetuple.png)
 4. Use deconstructions:
     ```C#
@@ -65,7 +65,7 @@ class C
 ###Deconstruction-assignment (deconstruction into existing variables):
 
 This doesn't introduce any changes to the language grammar. We have an *assignment-expression* (also simply called *assignment* in the C# grammar) where the *unary-expression* (the left-hand-side) is a *tuple-expression*.
-In short, what this does in the general case is find a `Deconstruct` method on the expression on the right-hand-side of the assignment, invoke it with the appropriate number of `out var` parameters, converts those output values (if needed) and assign them to the variables on the left-hand-side. And in the special case where the expression on the right-hand-side is a tuple (tuple expression or tuple type), then the elements of the tuple can be assigned to the variables on the left-hand-side without needing to call `Deconstruct`.
+In short, what this does in the general case is find a `Deconstruct` method on the expression on the right-hand-side of the assignment, invoke it with the appropriate number of `out var` parameters, converts those output values (if needed) and assign them to the variables on the left-hand-side. But in the special case where the expression on the right-hand-side is a tuple (tuple expression or tuple type), then the elements of the tuple are assigned to the variables on the left-hand-side without calling Deconstruct.
 
 If the left-hand-side is nested the process will be repeated. For instance, in `(x, (y, z)) = deconstructable;`, `deconstructable` will be deconstructed into two parts and its second part will be further deconstructed. 
 
