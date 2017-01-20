@@ -65,7 +65,7 @@ namespace Microsoft.Cci
                     sb.Append(name);
                     sb.Append('.');
                 }
-                
+
                 sb.Append(GetMangledAndEscapedName(namespaceType));
                 goto done;
             }

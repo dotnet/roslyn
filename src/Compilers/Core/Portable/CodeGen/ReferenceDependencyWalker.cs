@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 VisitTypeReference(pointerType.GetTargetType(context), context);
                 return;
             }
-            
+
             //Cci.IManagedPointerTypeReference managedPointerType = typeReference as Cci.IManagedPointerTypeReference;
             //if (managedPointerType != null)
             //{
