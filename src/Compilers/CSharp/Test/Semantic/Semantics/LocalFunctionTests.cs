@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16652")]
         public void FetchLocalFunctionSymbolThroughLocal()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(@"
