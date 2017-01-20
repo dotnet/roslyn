@@ -448,6 +448,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var hasErrors = localSymbol.ScopeBinder
                 .ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
+            foreach (var p in node.ParameterList.Parameters)
+            {
+                if (p.IsArgList)
+                {
+                    diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, p.Location);
+                }
+            }
+
             BoundBlock block;
             if (node.Body != null)
             {
