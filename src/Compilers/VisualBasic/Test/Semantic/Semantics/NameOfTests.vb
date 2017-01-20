@@ -3576,7 +3576,7 @@ Imports System.Linq
 
 Module Program
     Sub DoSomething(ByRef x As Integer)
-        Dim f = from x in {1, 2, 3}
+        Dim f = from y in {1, 2, 3}
                 select nameof(x)
         System.Console.WriteLine(f.Aggregate("", Function(a, b) a + b))
     End Sub
