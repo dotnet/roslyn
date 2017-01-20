@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -160,7 +162,11 @@ namespace Microsoft.CodeAnalysis.Remote
             // changed compilation options
             if (oldProjectChecksums.CompilationOptions != newProjectChecksums.CompilationOptions)
             {
-                project = project.WithCompilationOptions(await _assetService.GetAssetAsync<CompilationOptions>(newProjectChecksums.CompilationOptions, _cancellationToken).ConfigureAwait(false));
+                project = project.WithCompilationOptions(
+                    FixUpCompilationOptions(
+                        project.State.ProjectInfo.Attributes,
+                        await _assetService.GetAssetAsync<CompilationOptions>(
+                            newProjectChecksums.CompilationOptions, _cancellationToken).ConfigureAwait(false)));
             }
 
             // changed parse options
@@ -424,7 +430,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Contract.ThrowIfFalse(_baseSolution.Workspace.Services.IsSupported(projectInfo.Language));
 
-            var compilationOptions = await _assetService.GetAssetAsync<CompilationOptions>(projectSnapshot.CompilationOptions, _cancellationToken).ConfigureAwait(false);
+            var compilationOptions = FixUpCompilationOptions(
+                projectInfo,
+                await _assetService.GetAssetAsync<CompilationOptions>(
+                    projectSnapshot.CompilationOptions, _cancellationToken).ConfigureAwait(false));
+
             var parseOptions = await _assetService.GetAssetAsync<ParseOptions>(projectSnapshot.ParseOptions, _cancellationToken).ConfigureAwait(false);
 
             var p2p = await CreateCollectionAsync<ProjectReference>(projectSnapshot.ProjectReferences).ConfigureAwait(false);
@@ -496,6 +506,50 @@ namespace Microsoft.CodeAnalysis.Remote
         private Project AddDocument(Project project, DocumentInfo documentInfo)
         {
             return project.Solution.AddDocument(documentInfo).GetProject(project.Id);
+        }
+
+        private CompilationOptions FixUpCompilationOptions(ProjectInfo.ProjectAttributes info, CompilationOptions compilationOptions)
+        {
+            return compilationOptions.WithXmlReferenceResolver(new XmlFileResolver(GetXmlResolverBasePath(info.FilePath)))
+                                     .WithStrongNameProvider(new DesktopStrongNameProvider(GetStrongNameKeyPaths(info)));
+        }
+
+        private static string GetXmlResolverBasePath(string filePath)
+        {
+            if (!PathUtilities.IsAbsolute(filePath))
+            {
+                // xmlFileResolver can only deal with absolute path
+                // return null if file path is not something xml file resolver can handle.
+                // it knows how to handle null
+                return null;
+            }
+
+            return PathUtilities.GetDirectoryName(filePath);
+        }
+
+        private ImmutableArray<string> GetStrongNameKeyPaths(ProjectInfo.ProjectAttributes info)
+        {
+            if (info.FilePath == null && info.OutputFilePath == null)
+            {
+                // return empty since that is what IDE does for this case
+                // see AbstractProject.GetStrongNameKeyPaths
+                return ImmutableArray<string>.Empty;
+            }
+
+            var builder = ArrayBuilder<string>.GetInstance();
+            if (info.FilePath != null && PathUtilities.IsAbsolute(info.FilePath))
+            {
+                // desktop strong name provider only knows how to deal with absolute path
+                builder.Add(PathUtilities.GetDirectoryName(info.FilePath));
+            }
+
+            if (info.OutputFilePath != null && PathUtilities.IsAbsolute(info.OutputFilePath))
+            {
+                // desktop strong name provider only knows how to deal with absolute path
+                builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath));
+            }
+
+            return builder.ToImmutableAndFree();
         }
     }
 }
