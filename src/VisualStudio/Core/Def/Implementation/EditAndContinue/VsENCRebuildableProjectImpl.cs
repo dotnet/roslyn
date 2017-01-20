@@ -153,6 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             }
 
             // NotifyEncEditDisallowedByProject is broken if the project isn't built at the time the debugging starts (debugger bug 877586).
+            // TODO: localize messages https://github.com/dotnet/roslyn/issues/16656
 
             string message;
             if (sessionReason == SessionReadOnlyReason.Running)
@@ -166,6 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 switch (projectReason)
                 {
                     case ProjectReadOnlyReason.MetadataNotAvailable:
+                        // TODO: Remove once https://github.com/dotnet/roslyn/issues/16657 is addressed
                         bool deferredLoad = (_vsProject.ServiceProvider.GetService(typeof(SVsSolution)) as IVsSolution7)?.IsSolutionLoadDeferred() == true;
                         if (deferredLoad)
                         {
