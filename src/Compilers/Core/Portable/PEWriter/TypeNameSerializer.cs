@@ -56,6 +56,21 @@ namespace Microsoft.Cci
                 goto done;
             }
 
+            INamespaceTypeReference namespaceType = typeReference.AsNamespaceTypeReference;
+            if (namespaceType != null)
+            {
+                var name = namespaceType.NamespaceName;
+                if (name.Length != 0)
+                {
+                    sb.Append(name);
+                    sb.Append('.');
+                }
+                
+                sb.Append(GetMangledAndEscapedName(namespaceType));
+                goto done;
+            }
+
+
             if (typeReference.IsTypeSpecification())
             {
                 ITypeReference uninstantiatedTypeReference = typeReference.GetUninstantiatedGenericType(context);
