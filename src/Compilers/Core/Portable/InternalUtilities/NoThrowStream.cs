@@ -1,7 +1,9 @@
-﻿
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Diagnostics;
 using System.IO;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -10,11 +12,17 @@ namespace Roslyn.Utilities
         private bool? _failed; // Nullable to assert that this is only checked after dispose
         private readonly string _filePath;
         private readonly TextWriter _writer;
-        private readonly Action<Exception, string, TextWriter> _exceptionHandler;
+        private readonly CommonMessageProvider _messageProvider;
 
+        /// <summary>
+        /// Underlying stream
+        /// </summary>
         public Stream Stream { get; }
 
-        public bool Failed
+        /// <summary>
+        /// True iff an exception was thrown during a call to <see cref="Dispose"/>
+        /// </summary>
+        public bool HasFailedToDispose
         {
             get
             {
@@ -27,25 +35,27 @@ namespace Roslyn.Utilities
             Stream stream,
             string filePath,
             TextWriter writer,
-            Action<Exception, string, TextWriter> exceptionHandler)
+            CommonMessageProvider messageProvider)
         {
             Stream = stream;
             _failed = null;
             _filePath = filePath;
             _writer = writer;
-            _exceptionHandler = exceptionHandler;
+            _messageProvider = messageProvider;
         }
 
         public void Dispose()
         {
+            Debug.Assert(_failed == null);
             try
             {
                 Stream.Dispose();
-                _failed = false;
+                if (_failed == null) _failed = false;
             }
             catch (Exception e)
             {
-                _exceptionHandler(e, _filePath, _writer);
+                _messageProvider.ReportStreamWriteException(e, _filePath, _writer);
+                // Record if any exceptions are thrown during dispose
                 _failed = true;
             }
         }

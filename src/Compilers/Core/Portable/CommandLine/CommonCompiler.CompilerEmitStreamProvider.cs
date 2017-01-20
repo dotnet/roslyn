@@ -13,26 +13,23 @@ namespace Microsoft.CodeAnalysis
         /// This implementation of <see cref="Compilation.EmitStreamProvider"/> will delay the creation
         /// of the PE / PDB file until the compiler determines the compilation has succeeded.  This prevents
         /// the compiler from deleting output from the previous compilation when a new compilation 
-        /// fails.
+        /// fails. The <see cref="Close"/> method must be called to retrieve all diagnostics.
         /// </summary>
-        private sealed class CompilerEmitStreamProvider : Compilation.EmitStreamProvider, IDisposable
+        private sealed class CompilerEmitStreamProvider : Compilation.EmitStreamProvider
         {
             private readonly CommonCompiler _compiler;
             private readonly string _filePath;
             private Stream _streamToDispose;
-            private readonly DiagnosticBag _diagnostics;
 
             internal CompilerEmitStreamProvider(
                 CommonCompiler compiler,
-                string filePath,
-                DiagnosticBag diagnostics)
+                string filePath)
             {
                 _compiler = compiler;
                 _filePath = filePath;
-                _diagnostics = diagnostics;
             }
 
-            public void Dispose()
+            public void Close(DiagnosticBag diagnostics)
             {
                 try
                 {
@@ -40,7 +37,9 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e)
                 {
-                    ReportOpenFileDiagnostic(_diagnostics, e);
+                    var messageProvider = _compiler.MessageProvider;
+                    var diagnosticInfo = new DiagnosticInfo(messageProvider, messageProvider.ERR_OutputWriteFailed, _filePath, e.Message);
+                    diagnostics.Add(messageProvider.CreateDiagnostic(diagnosticInfo));
                 }
             }
 

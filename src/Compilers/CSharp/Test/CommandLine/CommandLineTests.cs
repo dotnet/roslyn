@@ -7088,7 +7088,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             Assert.Equal(1, csc.Run(outWriter));
-            Assert.Contains($"error CS2012: Cannot open '{exePath}' for writing", outWriter.ToString());
+            Assert.Contains($"error CS0016: Could not write to output file '{exePath}' -- 'Fake IOException'{Environment.NewLine}", outWriter.ToString());
         }
 
         [Fact]
@@ -7111,7 +7111,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             Assert.Equal(1, csc.Run(outWriter));
-            Assert.Contains($"error CS2012: Cannot open '{pdbPath}' for writing", outWriter.ToString());
+            Assert.Contains($"error CS0016: Could not write to output file '{pdbPath}' -- 'Fake IOException'{Environment.NewLine}", outWriter.ToString());
         }
 
         [Fact]

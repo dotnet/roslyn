@@ -588,7 +588,6 @@ namespace Microsoft.CodeAnalysis
 
                 var diagnosticBag = DiagnosticBag.GetInstance();
                 NoThrowStreamDisposer sourceLinkStreamDisposerOpt = null;
-                Action<Exception, string, TextWriter> reportExceptionDelegate = ReportExceptionAsDiagnostic;
 
                 try
                 {
@@ -625,7 +624,7 @@ namespace Microsoft.CodeAnalysis
                                 sourceLinkStreamOpt,
                                 Arguments.SourceLink,
                                 consoleOutput,
-                                reportExceptionDelegate);
+                                MessageProvider);
                         }
                     }
 
@@ -676,7 +675,7 @@ namespace Microsoft.CodeAnalysis
                                         xmlStreamOpt,
                                         finalXmlFilePath,
                                         consoleOutput,
-                                        reportExceptionDelegate);
+                                        MessageProvider);
                                 }
 
                                 using (xmlStreamDisposerOpt)
@@ -698,7 +697,7 @@ namespace Microsoft.CodeAnalysis
                                     }
                                 }
 
-                                if (xmlStreamDisposerOpt?.Failed == true)
+                                if (xmlStreamDisposerOpt?.HasFailedToDispose == true)
                                 {
                                     return Failed;
                                 }
@@ -734,28 +733,28 @@ namespace Microsoft.CodeAnalysis
                         {
                             bool emitPdbFile = Arguments.EmitPdb && emitOptions.DebugInformationFormat != Emit.DebugInformationFormat.Embedded;
 
-                            using (var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath, diagnosticBag))
-                            using (var pdbStreamProviderOpt = emitPdbFile
-                                ? new CompilerEmitStreamProvider(this, finalPdbFilePath, diagnosticBag)
-                                : null)
-                            {
-                                success = compilation.SerializeToPeStream(
-                                    moduleBeingBuilt,
-                                    peStreamProvider,
-                                    pdbStreamProviderOpt,
-                                    testSymWriterFactory: null,
-                                    diagnostics: diagnosticBag,
-                                    metadataOnly: emitOptions.EmitMetadataOnly,
-                                    cancellationToken: cancellationToken);
+                            var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath);
+                            var pdbStreamProviderOpt = emitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
 
-                                if (success && touchedFilesLogger != null)
+                            success = compilation.SerializeToPeStream(
+                                moduleBeingBuilt,
+                                peStreamProvider,
+                                pdbStreamProviderOpt,
+                                testSymWriterFactory: null,
+                                diagnostics: diagnosticBag,
+                                metadataOnly: emitOptions.EmitMetadataOnly,
+                                cancellationToken: cancellationToken);
+
+                            peStreamProvider.Close(diagnosticBag);
+                            pdbStreamProviderOpt?.Close(diagnosticBag);
+
+                            if (success && touchedFilesLogger != null)
+                            {
+                                if (pdbStreamProviderOpt != null)
                                 {
-                                    if (pdbStreamProviderOpt != null)
-                                    {
-                                        touchedFilesLogger.AddWritten(finalPdbFilePath);
-                                    }
-                                    touchedFilesLogger.AddWritten(finalPeFilePath);
+                                    touchedFilesLogger.AddWritten(finalPdbFilePath);
                                 }
+                                touchedFilesLogger.AddWritten(finalPeFilePath);
                             }
                         }
                     }
@@ -772,7 +771,7 @@ namespace Microsoft.CodeAnalysis
                     sourceLinkStreamDisposerOpt?.Dispose();
                 }
 
-                if (sourceLinkStreamDisposerOpt?.Failed == true)
+                if (sourceLinkStreamDisposerOpt?.HasFailedToDispose == true)
                 {
                     return Failed;
                 }
@@ -814,6 +813,7 @@ namespace Microsoft.CodeAnalysis
 
                     var readStream = OpenFile(readFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
                     var writtenStream = OpenFile(writtenFilesPath, consoleOutput, mode: FileMode.OpenOrCreate);
+
                     if (readStream == null || writtenStream == null)
                     {
                         return Failed;
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis
                     catch (Exception e)
                     {
                         Debug.Assert(filePath != null);
-                        ReportExceptionAsDiagnostic(e, filePath, consoleOutput);
+                        MessageProvider.ReportStreamWriteException(e, filePath, consoleOutput);
                         return Failed;
                     }
                 }
@@ -969,15 +969,6 @@ namespace Microsoft.CodeAnalysis
         }
         private Func<string, FileMode, FileAccess, FileShare, Stream> _fileOpen;
 
-        private void ReportExceptionAsDiagnostic(Exception e, string filePath, TextWriter consoleOutput)
-        {
-            if (consoleOutput != null)
-            {
-                var diagnosticInfo = new DiagnosticInfo(MessageProvider, (int)MessageProvider.ERR_OutputWriteFailed, filePath, e.Message);
-                consoleOutput.WriteLine(diagnosticInfo.ToString(Culture));
-            }
-        }
-
         private Stream OpenFile(
             string filePath,
             TextWriter consoleOutput,
@@ -991,7 +982,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e)
             {
-                ReportExceptionAsDiagnostic(e, filePath, consoleOutput);
+                MessageProvider.ReportStreamWriteException(e, filePath, consoleOutput);
                 return null;
             }
         }
