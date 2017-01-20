@@ -31,6 +31,189 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
         [Fact]
+        public void FetchLocalFunctionSymbolThroughLocal()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+class C
+{
+    public void M()
+    {
+        void Local<[A, B, CLSCompliant, D]T>() 
+        {
+            var x = new object(); 
+        }
+        Local<int>();
+    }
+}");
+            var comp = CreateCompilationWithMscorlib(tree);
+            comp.DeclarationDiagnostics.Verify();
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A, B, CLSCompliant, D]").WithLocation(7, 20),
+                // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
+                // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
+                // (7,24): error CS0246: The type or namespace name 'BAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("BAttribute").WithLocation(7, 24),
+                // (7,24): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 24),
+                // (7,41): error CS0246: The type or namespace name 'DAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("DAttribute").WithLocation(7, 41),
+                // (7,41): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(7, 41),
+                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
+
+
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.ValueText == "x").Single();
+            var localSymbol = (LocalFunctionSymbol)model.GetDeclaredSymbol(x).ContainingSymbol;
+            var typeParam = localSymbol.TypeParameters.Single();
+            var attrs = typeParam.GetAttributes();
+
+            Assert.True(attrs[0].AttributeClass.IsErrorType());
+            Assert.True(attrs[1].AttributeClass.IsErrorType());
+            Assert.False(attrs[2].AttributeClass.IsErrorType());
+            Assert.Equal(comp.GlobalNamespace
+                             .GetMember<NamespaceSymbol>("System")
+                             .GetMember<NamedTypeSymbol>("CLSCompliantAttribute"),
+                attrs[2].AttributeClass);
+            Assert.True(attrs[3].AttributeClass.IsErrorType());
+            comp.DeclarationDiagnostics.Verify();
+        }
+
+        [Fact]
+        public void TypeParameterAttributesInSemanticModel()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+class C
+{
+    public void M()
+    {
+        void Local<[A]T, [CLSCompliant]U>() { }
+    }
+}");
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+
+            var model = comp.GetSemanticModel(tree);
+
+            var a = root.DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(id => id.Identifier.ValueText == "A")
+                .Single();
+
+            Assert.Null(model.GetDeclaredSymbol(a));
+
+            var aSymbolInfo = model.GetSymbolInfo(a);
+            Assert.Equal(0, aSymbolInfo.CandidateSymbols.Length);
+            Assert.Null(aSymbolInfo.Symbol);
+
+            var aTypeInfo = model.GetTypeInfo(a);
+            Assert.Equal(TypeKind.Error, aTypeInfo.Type.TypeKind);
+
+            Assert.Null(model.GetAliasInfo(a));
+
+            Assert.Empty(model.LookupNamespacesAndTypes(a.SpanStart, name: "A"));
+
+            var clsCompliant = root.DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(id => id.Identifier.ValueText == "CLSCompliant")
+                .Single();
+            var clsCompliantSymbol = comp.GlobalNamespace
+                .GetMember<NamespaceSymbol>("System")
+                .GetTypeMember("CLSCompliantAttribute");
+
+            Assert.Null(model.GetDeclaredSymbol(clsCompliant));
+
+            var clsCompliantSymbolInfo = model.GetSymbolInfo(clsCompliant);
+            Assert.Null(clsCompliantSymbolInfo.Symbol);
+            Assert.Equal(clsCompliantSymbol.GetMember<MethodSymbol>(".ctor"),
+                clsCompliantSymbolInfo.CandidateSymbols.Single());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, clsCompliantSymbolInfo.CandidateReason);
+
+            Assert.Equal(clsCompliantSymbol, model.GetTypeInfo(clsCompliant).Type);
+
+            Assert.Null(model.GetAliasInfo(clsCompliant));
+
+            Assert.Equal(clsCompliantSymbol,
+                model.LookupNamespacesAndTypes(clsCompliant.SpanStart, name: "CLSCompliantAttribute").Single());
+            comp.DeclarationDiagnostics.Verify();
+        }
+
+        [Fact]
+        public void ParameterAttributesInSemanticModel()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+class C
+{
+    public void M()
+    {
+        void Local([A]int x, [CLSCompliant]int y) { }
+    }
+}");
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+
+            var model = comp.GetSemanticModel(tree);
+
+            var a = root.DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(id => id.Identifier.ValueText == "A")
+                .Single();
+
+            Assert.Null(model.GetDeclaredSymbol(a));
+
+            var aSymbolInfo = model.GetSymbolInfo(a);
+            Assert.Equal(0, aSymbolInfo.CandidateSymbols.Length);
+            Assert.Null(aSymbolInfo.Symbol);
+
+            var aTypeInfo = model.GetTypeInfo(a);
+            Assert.Equal(TypeKind.Error, aTypeInfo.Type.TypeKind);
+
+            Assert.Null(model.GetAliasInfo(a));
+
+            Assert.Empty(model.LookupNamespacesAndTypes(a.SpanStart, name: "A"));
+
+            var clsCompliant = root.DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(id => id.Identifier.ValueText == "CLSCompliant")
+                .Single();
+            var clsCompliantSymbol = comp.GlobalNamespace
+                .GetMember<NamespaceSymbol>("System")
+                .GetTypeMember("CLSCompliantAttribute");
+
+            Assert.Null(model.GetDeclaredSymbol(clsCompliant));
+
+            var clsCompliantSymbolInfo = model.GetSymbolInfo(clsCompliant);
+            Assert.Null(clsCompliantSymbolInfo.Symbol);
+            Assert.Equal(clsCompliantSymbol.GetMember<MethodSymbol>(".ctor"),
+                clsCompliantSymbolInfo.CandidateSymbols.Single());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, clsCompliantSymbolInfo.CandidateReason);
+
+            Assert.Equal(clsCompliantSymbol, model.GetTypeInfo(clsCompliant).Type);
+
+            Assert.Null(model.GetAliasInfo(clsCompliant));
+
+            Assert.Equal(clsCompliantSymbol,
+                model.LookupNamespacesAndTypes(clsCompliant.SpanStart, name: "CLSCompliantAttribute").Single());
+            comp.DeclarationDiagnostics.Verify();
+        }
+
+        [Fact]
         public void LocalFunctionAttributeOnTypeParameter()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(@"
