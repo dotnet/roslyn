@@ -736,17 +736,22 @@ namespace Microsoft.CodeAnalysis
                             var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath);
                             var pdbStreamProviderOpt = emitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
 
-                            success = compilation.SerializeToPeStream(
-                                moduleBeingBuilt,
-                                peStreamProvider,
-                                pdbStreamProviderOpt,
-                                testSymWriterFactory: null,
-                                diagnostics: diagnosticBag,
-                                metadataOnly: emitOptions.EmitMetadataOnly,
-                                cancellationToken: cancellationToken);
-
-                            peStreamProvider.Close(diagnosticBag);
-                            pdbStreamProviderOpt?.Close(diagnosticBag);
+                            try
+                            {
+                                success = compilation.SerializeToPeStream(
+                                    moduleBeingBuilt,
+                                    peStreamProvider,
+                                    pdbStreamProviderOpt,
+                                    testSymWriterFactory: null,
+                                    diagnostics: diagnosticBag,
+                                    metadataOnly: emitOptions.EmitMetadataOnly,
+                                    cancellationToken: cancellationToken);
+                            }
+                            finally
+                            {
+                                peStreamProvider.Close(diagnosticBag);
+                                pdbStreamProviderOpt?.Close(diagnosticBag);
+                            }
 
                             if (success && touchedFilesLogger != null)
                             {
