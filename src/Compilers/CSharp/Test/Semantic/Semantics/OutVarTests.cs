@@ -28711,6 +28711,34 @@ public static class S
                 Diagnostic(ErrorCode.ERR_BadArgType, "A _").WithArguments("2", "out A", "out B").WithLocation(8, 18)
                 );
         }
+
+        [Fact]
+        public void GetForEachSymbolInfoWithOutVar()
+        {
+            var source =
+@"using System.Collections.Generic;
+public class C
+{
+    void M()
+    {
+        foreach (var x in M2(out int i)) { }
+    }
+    IEnumerable<object> M2(out int j)
+    {
+        throw null;
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var foreachStatement = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachStatement);
+            Assert.Equal("System.Object", info.ElementType.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.IEnumerator<System.Object> System.Collections.Generic.IEnumerable<System.Object>.GetEnumerator()",
+                info.GetEnumeratorMethod.ToTestDisplayString());
+        }
     }
 
     internal static class OutVarTestsExtensions
