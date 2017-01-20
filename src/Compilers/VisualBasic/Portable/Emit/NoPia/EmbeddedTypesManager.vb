@@ -494,15 +494,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Return compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor)
         End Function
 
-        Protected Overrides Function CreateComVisibleAttribute() As VisualBasicAttributeData
-            Dim compilation = ModuleBeingBuilt.Compilation
-            Return compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_InteropServices_ComVisibleAttribute__ctor,
-                                                      ImmutableArray.Create(New TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean),
-                                                                                              TypedConstantKind.Primitive,
-                                                                                              value:=True)),
-                                                      isOptionalUse:=True)
-        End Function
-
     End Class
 
 End Namespace
