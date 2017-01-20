@@ -1317,7 +1317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(type.SpecialType != SpecialType.System_Void);
 
             var arity = type.Arity;
-            if (arity < 2)
+            if (arity < 2 && ((object)type.ContainingType == null || !type.ContainingType.IsGenericType))
             {
                 // Find the AsyncBuilder attribute.
                 foreach (var attr in type.GetAttributes())
