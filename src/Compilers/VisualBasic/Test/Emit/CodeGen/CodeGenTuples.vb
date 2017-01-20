@@ -12373,7 +12373,7 @@ second
 second")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/14529")>
+        <Fact>
         <WorkItem(14529, "https://github.com/dotnet/roslyn/issues/14529")>
         <WorkItem(14530, "https://github.com/dotnet/roslyn/issues/14530")>
         Public Sub AnonymousDelegate_02()
