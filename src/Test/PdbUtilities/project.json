@@ -3,8 +3,8 @@
   "dependencies": {
     "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
     "Microsoft.DiaSymReader.Native": "1.5.0-beta1",
-    "Microsoft.DiaSymReader": "1.1.0-rc3-61303-01",
-    "Microsoft.DiaSymReader.PortablePdb": "1.2.0-rc3-61304-09",
+    "Microsoft.DiaSymReader": "1.1.0",
+    "Microsoft.DiaSymReader.PortablePdb": "1.2.0",
     "System.Collections.Immutable": "1.3.1",
     "System.Reflection.Metadata": "1.4.2",
     "System.Xml.ReaderWriter": "4.3.0"
