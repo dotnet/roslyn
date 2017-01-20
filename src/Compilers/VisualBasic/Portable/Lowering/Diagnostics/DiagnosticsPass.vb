@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' cannot access ByRef parameters in Lambdas
                 Dim parameterSymbolContainingSymbol As Symbol = parameterSymbol.ContainingSymbol
 
-                If _containingSymbol IsNot parameterSymbolContainingSymbol And Not _insideNameof Then
+                If _containingSymbol IsNot parameterSymbolContainingSymbol AndAlso Not _insideNameof Then
                     ' Need to go up the chain of containers and see if the last lambda we see
                     ' is a QueryLambda, before we reach parameter's container. 
                     If Binder.IsTopMostEnclosingLambdaAQueryLambda(_containingSymbol, parameterSymbolContainingSymbol) Then
