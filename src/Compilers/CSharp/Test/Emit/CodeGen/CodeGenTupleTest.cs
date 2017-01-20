@@ -15036,6 +15036,38 @@ class C
         }
 
         [Fact]
+        [WorkItem(14600, "https://github.com/dotnet/roslyn/issues/14600")]
+        public void GetSymbolInfo_01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        bar x1 = (Alice: 1, ""hello"");
+
+        var Alice = x1.Alice;
+    }
+}
+" + trivial2uple + trivial3uple + tupleattributes_cs;
+
+            var tree = Parse(source, options: TestOptions.Regular);
+            var comp = CreateCompilationWithMscorlib(tree);
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var nc = nodes.OfType<NameColonSyntax>().ElementAt(0);
+
+            var sym = model.GetSymbolInfo(nc.Name);
+
+            Assert.Equal(SymbolKind.Field, sym.Symbol.Kind);
+            Assert.Equal("Alice", sym.Symbol.Name);
+            Assert.Equal(nc.Name.GetLocation(), sym.Symbol.Locations[0]);
+        }
+
+
+        [Fact]
         public void CompileTupleLib()
         {
             string additionalSource = @"

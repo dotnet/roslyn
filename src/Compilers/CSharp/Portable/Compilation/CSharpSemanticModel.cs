@@ -2687,6 +2687,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract INamedTypeSymbol GetDeclaredSymbol(AnonymousObjectCreationExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Given a syntax node of a tuple expression, get the tuple type symbol.
+        /// </summary>
+        /// <param name="declaratorSyntax">The tuple expression node.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public abstract INamedTypeSymbol GetDeclaredSymbol(TupleExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Given a syntax node of an argument expression, get the declared symbol.
+        /// </summary>
+        /// <param name="declaratorSyntax">The argument syntax node.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public abstract ISymbol GetDeclaredSymbol(ArgumentSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Given a syntax node that declares a property or member accessor, get the corresponding
         /// symbol.
         /// </summary>
@@ -3963,7 +3979,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (argumentName.Length == 0)
                 return SymbolInfo.None;    // missing name.
 
-            CSharpSyntaxNode containingInvocation = identifierNameSyntax.Parent.Parent.Parent.Parent;
+            // argument could be an argument of a tuple expression
+            // var x = (Identifier: 1, AnotherIdentifier: 2);
+            var parent3 = identifierNameSyntax.Parent.Parent.Parent;        
+            if (parent3.IsKind(SyntaxKind.TupleExpression))
+            {
+                var tupleArgument = (ArgumentSyntax)identifierNameSyntax.Parent.Parent;
+                var typleElement = GetDeclaredSymbol(tupleArgument, cancellationToken);
+                return (object)typleElement == null ? SymbolInfo.None : new SymbolInfo(typleElement, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
+            }
+
+            CSharpSyntaxNode containingInvocation = parent3.Parent;
             SymbolInfo containingInvocationInfo = GetSymbolInfoWorker(containingInvocation, SymbolInfoOptions.PreferConstructorsToType | SymbolInfoOptions.ResolveAliases, cancellationToken);
 
 
@@ -4609,6 +4635,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol((AnonymousObjectCreationExpressionSyntax)node, cancellationToken);
                 case SyntaxKind.AnonymousObjectMemberDeclarator:
                     return this.GetDeclaredSymbol((AnonymousObjectMemberDeclaratorSyntax)node, cancellationToken);
+                case SyntaxKind.TupleExpression:
+                    return this.GetDeclaredSymbol((TupleExpressionSyntax)node, cancellationToken);
+                case SyntaxKind.Argument:
+                    return this.GetDeclaredSymbol((ArgumentSyntax)node, cancellationToken);
                 case SyntaxKind.VariableDeclarator:
                     return this.GetDeclaredSymbol((VariableDeclaratorSyntax)node, cancellationToken);
                 case SyntaxKind.SingleVariableDesignation:

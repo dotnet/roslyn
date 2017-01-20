@@ -217,23 +217,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Copy this tuple, but modify it to use the new element names.
         /// </summary>
-        internal TupleTypeSymbol WithElementNames(ImmutableArray<string> newElementNames)
+        internal TupleTypeSymbol WithElementNames(ImmutableArray<string> newElementNames,
+                                                  Location location,
+                                                  ImmutableArray<Location> elementLocations)
         {
             Debug.Assert(newElementNames.IsDefault || this._elementTypes.Length == newElementNames.Length);
 
-            if (this._elementNames.IsDefault)
-            {
-                if (newElementNames.IsDefault)
-                {
-                    return this;
-                }
-            }
-            else if (!newElementNames.IsDefault && this._elementNames.SequenceEqual(newElementNames))
-            {
-                return this;
-            }
-
-            return new TupleTypeSymbol(null, _underlyingType, default(ImmutableArray<Location>), newElementNames, _elementTypes);
+            return new TupleTypeSymbol(location, _underlyingType, elementLocations, newElementNames, _elementTypes);
         }
 
         /// <summary>

@@ -4727,6 +4727,231 @@ public class S
         }
 
         [Fact]
+        public void TupleLiteral001()
+        {
+            var source =
+@"
+
+using System;
+
+class C
+{
+    static void Main() 
+    { 
+        var t = (1, 2);
+    }
+}
+
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            var tree = compilation.SyntaxTrees[0];
+            var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
+            var model = compilation.GetSemanticModel(tree);
+            var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(int, int)");
+            Assert.Equal(type.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "(1, 2)");
+            Assert.Equal(type.Locations.Single().IsInSource, true);
+
+        }
+
+        [Fact]
+        public void TupleLiteral002()
+        {
+            var source =
+@"
+
+using System;
+
+class C
+{
+    static void Main() 
+    { 
+        var t = (Alice: 1, Bob: 2);
+    }
+}
+
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            var tree = compilation.SyntaxTrees[0];
+            var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
+            var model = compilation.GetSemanticModel(tree);
+            var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(int Alice, int Bob)");
+            Assert.Equal(type.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "(Alice: 1, Bob: 2)");
+            Assert.Equal(type.Locations.Single().IsInSource, true);
+        }
+
+        [Fact]
+        public void TupleLiteral003()
+        {
+            var source =
+@"
+
+using System;
+
+class C
+{
+    static void Main() 
+    { 
+        (short Alice, int Bob) t = (1, 1);
+    }
+}
+
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            var tree = compilation.SyntaxTrees[0];
+            var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
+            var model = compilation.GetSemanticModel(tree);
+            var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short, int)");
+            Assert.Equal(type.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "(1, 1)");
+            Assert.Equal(type.Locations.Single().IsInSource, true);
+        }
+
+        [Fact]
+        public void TupleLiteral004()
+        {
+            var source =
+@"
+
+using System;
+
+class C
+{
+    static void Main() 
+    { 
+        (short Alice, string Bob) t = (1, null);
+    }
+}
+
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            var tree = compilation.SyntaxTrees[0];
+            var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
+            var model = compilation.GetSemanticModel(tree);
+            var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short, string)");
+            Assert.Equal(type.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "(1, null)");
+            Assert.Equal(type.Locations.Single().IsInSource, true);
+        }
+
+        [Fact]
+        public void TupleLiteral005()
+        {
+            var source =
+@"
+
+using System;
+
+class C
+{
+    static void Main() 
+    { 
+        (short, string) t = (Alice:1, Bob:null);
+    }
+}
+
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            var tree = compilation.SyntaxTrees[0];
+            var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
+            var model = compilation.GetSemanticModel(tree);
+            var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob)");
+            Assert.Equal(type.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "(Alice:1, Bob:null)");
+            Assert.Equal(type.Locations.Single().IsInSource, true);
+        }
+
+        [Fact]
+        public void TupleLiteralElement001()
+        {
+            var source =
+@"
+
+using System;
+
+class C
+{
+    static void Main() 
+    { 
+        var t = (Alice: 1, Bob: 2);
+    }
+}
+
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            var tree = compilation.SyntaxTrees[0];
+            var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
+            var model = compilation.GetSemanticModel(tree);
+            var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(int Alice, int Bob).Bob");
+            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
+            Assert.Equal(element.Locations.Single().IsInSource, true);
+        }
+
+        [Fact]
+        public void TupleLiteralElement002()
+        {
+            var source =
+@"
+
+using System;
+
+class C
+{
+    static void Main() 
+    { 
+        (int X, short Y) t = (Alice: 1, Bob: 2);
+    }
+}
+
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            var tree = compilation.SyntaxTrees[0];
+            var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
+            var model = compilation.GetSemanticModel(tree);
+            var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(int Alice, short Bob).Bob");
+            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
+            Assert.Equal(element.Locations.Single().IsInSource, true);
+        }
+
+        [Fact]
+        public void TupleLiteralElement003()
+        {
+            var source =
+@"
+
+using System;
+
+class C
+{
+    static void Main() 
+    { 
+        (short X, string Y) t = (Alice: 1, Bob: null);
+    }
+}
+
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            var tree = compilation.SyntaxTrees[0];
+            var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
+            var model = compilation.GetSemanticModel(tree);
+            var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob).Bob");
+            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
+            Assert.Equal(element.Locations.Single().IsInSource, true);
+        }
+
+        [Fact]
         public void TestIncompleteMemberNode_Visitor()
         {
             var compilation = CreateCompilationWithMscorlib(@"u");

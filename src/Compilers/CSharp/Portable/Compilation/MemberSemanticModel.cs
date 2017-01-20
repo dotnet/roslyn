@@ -885,6 +885,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (bound == null) ? null : bound.Type as NamedTypeSymbol;
         }
 
+        public override INamedTypeSymbol GetDeclaredSymbol(TupleExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declaratorSyntax);
+            return GetTypeOfTupleLiteral(declaratorSyntax);
+        }
+
+        public override ISymbol GetDeclaredSymbol(ArgumentSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declaratorSyntax);
+
+            var tupleLiteral = declaratorSyntax?.Parent as TupleExpressionSyntax;
+
+            // for now only arguments of a tuple literal may declare symbols
+            if (tupleLiteral == null)
+            {
+                return null;
+            }
+
+            var tupleLiteralType = GetTypeOfTupleLiteral(tupleLiteral);
+
+            if ((object)tupleLiteralType != null)
+            {
+                var elements = tupleLiteralType.TupleElements;
+
+                if(!elements.IsDefault)
+                {
+                    var idx = tupleLiteral.Arguments.IndexOf(declaratorSyntax);
+                    return elements[idx];
+                }
+            }
+
+            return null;
+        }
+
+        private NamedTypeSymbol GetTypeOfTupleLiteral(TupleExpressionSyntax declaratorSyntax)
+        {
+            var bound = this.GetLowerBoundNode(declaratorSyntax);
+
+            return (bound as BoundTupleExpression)?.Type as NamedTypeSymbol;
+        }
+
         public override SyntaxTree SyntaxTree
         {
             get

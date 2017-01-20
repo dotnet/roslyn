@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -353,12 +354,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (targetType.IsTupleType)
             {
                 var destTupleType = (TupleTypeSymbol)targetType;
-                // do not lose the original element names in the literal if different from names in the target
 
                 TupleTypeSymbol.ReportNamesMismatchesIfAny(targetType, sourceTuple, diagnostics);
 
                 // Come back to this, what about locations? (https://github.com/dotnet/roslyn/issues/11013)
-                targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt);
+
+                // do not lose the original element names and locatins in the literal if different from names in the target
+                //
+                // the tuple has changed the type of elements due to target-typing, 
+                // but element names has not changed and locations of their declarations 
+                // should not be confused with element locations on the target type.
+                var sourceType = sourceTuple.Type as TupleTypeSymbol;
+
+                if ((object)sourceType != null)
+                {
+                    targetType = sourceType.WithUnderlyingType(destTupleType.UnderlyingNamedType);
+                }
+                else
+                {
+                    var tupleSyntax = (TupleExpressionSyntax)sourceTuple.Syntax;
+                    var locationBuilder = ArrayBuilder<Location>.GetInstance();
+
+                    foreach (var argument in tupleSyntax.Arguments)
+                    {
+                        locationBuilder.Add(argument.NameColon?.Name.Location);
+                    }
+
+                    targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt,
+                                                                tupleSyntax.Location,
+                                                                locationBuilder.ToImmutableAndFree());
+                }
             }
 
             var arguments = sourceTuple.Arguments;

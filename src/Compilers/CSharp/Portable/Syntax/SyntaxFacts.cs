@@ -259,7 +259,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
 
             var parent3 = parent2.Parent;
-            if (parent3 == null || !(parent3 is BaseArgumentListSyntax || parent3.IsKind(AttributeArgumentList)))
+            if (parent3 == null) 
+                return false;
+
+            if (parent3.IsKind(SyntaxKind.TupleExpression))
+                return true;
+
+            if (!(parent3 is BaseArgumentListSyntax || parent3.IsKind(AttributeArgumentList)))
                 return false;
 
             var parent4 = parent3.Parent;
@@ -269,6 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (parent4.Kind())
             {
                 case InvocationExpression:
+                case TupleExpression:
                 case ObjectCreationExpression:
                 case ObjectInitializerExpression:
                 case ElementAccessExpression:
