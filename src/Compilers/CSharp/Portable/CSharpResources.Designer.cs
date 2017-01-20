@@ -917,6 +917,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to For type &apos;{0}&apos; to be used as an AsyncMethodBuilder for type &apos;{1}&apos;, its Task property should return type &apos;{1}&apos; instead of type &apos;{2}&apos;..
+        /// </summary>
+        internal static string ERR_BadAsyncMethodBuilderTaskProperty {
+            get {
+                return ResourceManager.GetString("ERR_BadAsyncMethodBuilderTaskProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The return type of an async method must be void, Task or Task&lt;T&gt;.
         /// </summary>
         internal static string ERR_BadAsyncReturn {
