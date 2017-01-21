@@ -112,12 +112,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        public override int GetHashCode()
+        public abstract override int GetHashCode();
+
+        internal int GetHashCodeInternal()
         {
             return Hash.Combine(_containingTuple.GetHashCode(), _tupleElementIndex.GetHashCode());
         }
 
-        public override bool Equals(object obj)
+        public abstract override bool Equals(object obj);
+
+        internal bool EqualsInternal(object obj)
         {
             var other = obj as TupleFieldSymbol;
 
@@ -148,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override int GetHashCode()
         {
-            return base.GetHashCode();
+            return GetHashCodeInternal();
         }
 
         public sealed override bool Equals(object obj)
@@ -158,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return base.Equals(obj);
+            return EqualsInternal(obj);
         }
     }
 
@@ -273,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override int GetHashCode()
         {
-            return base.GetHashCode();
+            return GetHashCodeInternal();
         }
 
         public sealed override bool Equals(object obj)
@@ -283,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return base.Equals(obj);
+            return EqualsInternal(obj);
         }
     }
 
@@ -358,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override int GetHashCode()
         {
-            return base.GetHashCode();
+            return GetHashCodeInternal();
         }
 
         public sealed override bool Equals(object obj)
@@ -368,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return base.Equals(obj);
+            return EqualsInternal(obj);
         }
     }
 }
