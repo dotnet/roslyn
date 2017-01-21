@@ -2082,6 +2082,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { return SynthesizedLocalKind.OptimizerTemp; }
         }
 
+        internal override SyntaxNode ScopeDesignatorOpt
+        {
+            get { return null; }
+        }
+
         internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
         {
             throw new NotImplementedException();

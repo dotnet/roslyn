@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal sealed class CrefCompletionProvider : AbstractCrefCompletionProvider
     {
-
         public static readonly SymbolDisplayFormat QualifiedCrefFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,

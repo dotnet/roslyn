@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
     internal abstract class AbstractUseExpressionBodyDiagnosticAnalyzer<TDeclaration> :
-        AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+        AbstractCodeStyleDiagnosticAnalyzer
         where TDeclaration : SyntaxNode
     {
         private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private readonly LocalizableString _expressionBodyTitle;
         private readonly LocalizableString _blockBodyTitle;
 
-        public bool OpenFileOnly(Workspace workspace) => false;
+        public override bool OpenFileOnly(Workspace workspace) => false;
 
         protected AbstractUseExpressionBodyDiagnosticAnalyzer(
             string diagnosticId,
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             _blockBodyTitle = blockBodyTitle;
         }
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, _syntaxKinds);
