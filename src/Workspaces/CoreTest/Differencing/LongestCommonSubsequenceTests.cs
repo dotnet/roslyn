@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Text;
 using Xunit;
 using System.Collections.Generic;
 
@@ -33,16 +34,15 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             }
         }
 
-        private void VerifyMatchingPairs(IEnumerable<KeyValuePair<int, int>> actualPairs, Dictionary<int, int> expectedPairs)
+        private void VerifyMatchingPairs(IEnumerable<KeyValuePair<int, int>> actualPairs, string expectedPairsStr)
         {
-            int actPairsCount = 0;
+            StringBuilder sb = new StringBuilder(expectedPairsStr.Length);
             foreach (KeyValuePair<int, int> actPair in actualPairs)
             {
-                Assert.True(expectedPairs.TryGetValue(actPair.Key, out int expValue));
-                Assert.Equal(actPair.Value, expValue);
-                actPairsCount++;
+                sb.AppendFormat("[{0},{1}]", actPair.Key, actPair.Value);
             }
-            Assert.Equal(actPairsCount, expectedPairs.Count);
+            string actualPairsStr = sb.ToString();
+            Assert.Equal(expectedPairsStr, actualPairsStr);
         }
 
         private void VerifyEdits(string oldStr, string newStr, IEnumerable<SequenceEdit> edits)
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "";
             string str2 = "";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>(){ });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "";
             string str2 = "ABC";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "ABC";
             string str2 = "XYZABC";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 3 }, { 1, 4 }, { 2, 5 } });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[2,5][1,4][0,3]");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "ABC";
             string str2 = "ABCXYZ";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 0 }, { 1, 1 }, { 2, 2 } });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[2,2][1,1][0,0]");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "ABC";
             string str2 = "ABXYC";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 0 }, { 1, 1 }, { 2, 4 } });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[2,4][1,1][0,0]");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "ABC";
             string str2 = "";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "ABCD";
             string str2 = "C";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 2, 0 } });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[2,0]");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "ABCD";
             string str2 = "AB";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 0 }, { 1, 1 } });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[1,1][0,0]");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "ABCDE";
             string str2 = "ADE";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 0 }, { 3, 1 }, { 4, 2 } });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[4,2][3,1][0,0]");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "ABC";
             string str2 = "XYZ";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "ABCD";
             string str2 = "XYD";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 3, 2 } });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[3,2]");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "ABCD";
             string str2 = "ABXYZ";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 0 }, { 1, 1 } });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[1,1][0,0]");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "ABCDE";
             string str2 = "AXDE";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 0 }, { 3, 2 }, { 4, 3 } });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[4,3][3,2][0,0]");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "ABBCDEFIJ";
             string str2 = "AABDEEGH";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 0 }, { 1, 2 }, { 4, 3 }, { 5, 4 } });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[5,4][4,3][1,2][0,0]");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "AAABBCCDDD";
             string str2 = "ABXCD";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 0 }, { 3, 1 }, { 5, 3 }, { 7, 4 } });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[7,4][5,3][3,1][0,0]");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -283,9 +283,9 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str2 = "CBABAC";
 
             // 2 possible matches:
-            // { { 1, 1 }, { 3, 2 }, { 4, 3 }, { 6, 4 } }
-            // { { 2, 0 }, { 3, 2 }, { 4, 3 }, { 6, 4 } }
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 1, 1 }, { 3, 2 }, { 4, 3 }, { 6, 4 } });
+            // "[6,4][4,3][3,2][1,1]" <- this one is backwards compatible
+            // "[6,4][4,3][3,2][2,0]"
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[6,4][4,3][3,2][1,1]");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -298,7 +298,10 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "AB";
             string str2 = "BA";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 1 } });
+            // 2 possible matches:
+            // "[0,1]" <- this one is backwards compatible
+            // "[1,0]"
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), "[0,1]");
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
