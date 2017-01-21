@@ -268,6 +268,31 @@ index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateClassFromObjectCreationWithTuple()
+        {
+            await TestAsync(
+@"class Class
+{
+    var f = new [|Generated|]((1, 2));
+}",
+@"class Class
+{
+    var f = new Generated((1, 2));
+
+    private class Generated
+    {
+        private (int, int) p;
+
+        public Generated((int, int) p)
+        {
+            this.p = p;
+        }
+    }
+}",
+index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromBaseList()
         {
             await TestAsync(
