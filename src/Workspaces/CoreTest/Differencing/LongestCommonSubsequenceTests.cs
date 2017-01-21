@@ -94,10 +94,10 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         }
 
         [Fact]
-        public void InsertOnly1()
+        public void InsertToEmpty()
         {
             string str1 = "";
-            string str2 = "ABCDE";
+            string str2 = "ABC";
 
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { });
 
@@ -106,13 +106,14 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             Assert.Equal(lcs.ComputeDistance(str1, str2), 1.0);
         }
 
+
         [Fact]
-        public void InsertOnly2()
+        public void InsertAtBeginning()
         {
             string str1 = "ABC";
-            string str2 = "ABXYZC";
+            string str2 = "XYZABC";
 
-            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 0 }, { 1, 1 }, { 2, 5 } });
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 3 }, { 1, 4 }, { 2, 5 } });
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
@@ -120,7 +121,33 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         }
 
         [Fact]
-        public void DeleteOnly1()
+        public void InsertAtEnd()
+        {
+            string str1 = "ABC";
+            string str2 = "ABCXYZ";
+
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 0 }, { 1, 1 }, { 2, 2 } });
+
+            VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
+
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.5);
+        }
+
+        [Fact]
+        public void InsertInMidlle()
+        {
+            string str1 = "ABC";
+            string str2 = "ABXYC";
+
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 0 }, { 1, 1 }, { 2, 4 } });
+
+            VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
+
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.4);
+        }
+
+        [Fact]
+        public void DeleteToEmpty()
         {
             string str1 = "ABC";
             string str2 = "";
@@ -133,7 +160,33 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         }
 
         [Fact]
-        public void DeleteOnly2()
+        public void DeleteAtBeginning()
+        {
+            string str1 = "ABCD";
+            string str2 = "C";
+
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 2, 0 } });
+
+            VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
+
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.75);
+        }
+
+        [Fact]
+        public void DeleteAtEnd()
+        {
+            string str1 = "ABCD";
+            string str2 = "AB";
+
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 0 }, { 1, 1 } });
+
+            VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
+
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.5);
+        }
+
+        [Fact]
+        public void DeleteInMiddle()
         {
             string str1 = "ABCDE";
             string str2 = "ADE";
@@ -146,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         }
 
         [Fact]
-        public void Replace1()
+        public void ReplaceAll()
         {
             string str1 = "ABC";
             string str2 = "XYZ";
@@ -159,7 +212,33 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         }
 
         [Fact]
-        public void Replace2()
+        public void ReplaceAtBeginning()
+        {
+            string str1 = "ABCD";
+            string str2 = "XYD";
+
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 3, 2 } });
+
+            VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
+
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.75);
+        }
+
+        [Fact]
+        public void ReplaceAtEnd()
+        {
+            string str1 = "ABCD";
+            string str2 = "ABXYZ";
+
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 0 }, { 1, 1 } });
+
+            VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
+
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.6);
+        }
+
+        [Fact]
+        public void ReplaceInMiddle()
         {
             string str1 = "ABCDE";
             string str2 = "AXDE";
@@ -203,11 +282,27 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             string str1 = "ABCABBA";
             string str2 = "CBABAC";
 
+            // 2 possible matches:
+            // { { 1, 1 }, { 3, 2 }, { 4, 3 }, { 6, 4 } }
+            // { { 2, 0 }, { 3, 2 }, { 4, 3 }, { 6, 4 } }
             VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 1, 1 }, { 3, 2 }, { 4, 3 }, { 6, 4 } });
 
             VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
 
             Assert.Equal(lcs.ComputeDistance(str1, str2), 0.429, 3);
+        }
+
+        [Fact]
+        public void Reorder1()
+        {
+            string str1 = "AB";
+            string str2 = "BA";
+
+            VerifyMatchingPairs(lcs.GetMatchingPairs(str1, str2), new Dictionary<int, int>() { { 0, 1 } });
+
+            VerifyEdits(str1, str2, lcs.GetEdits(str1, str2));
+
+            Assert.Equal(lcs.ComputeDistance(str1, str2), 0.5);
         }
     }
 }
