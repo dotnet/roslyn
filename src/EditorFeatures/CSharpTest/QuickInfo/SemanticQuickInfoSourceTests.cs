@@ -2524,6 +2524,99 @@ class C
                 MainDescription("Foo"));
         }
 
+        [WorkItem(16662, "https://github.com/dotnet/roslyn/issues/16662")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestShortDiscardInAssignment()
+        {
+            await TestAsync(
+@"class C
+{
+    int M()
+    {
+        $$_ = M();
+    }
+}",
+                MainDescription("int _"));
+        }
+
+        [WorkItem(16662, "https://github.com/dotnet/roslyn/issues/16662")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestUnderscoreLocalInAssignment()
+        {
+            await TestAsync(
+@"class C
+{
+    int M()
+    {
+        var $$_ = M();
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) int _"));
+        }
+
+        [WorkItem(16662, "https://github.com/dotnet/roslyn/issues/16662")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestShortDiscardInOutVar()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(out int i)
+    {
+        M(out $$_);
+        i = 0;
+    }
+}",
+                MainDescription($"int _"));
+        }
+
+        [WorkItem(16667, "https://github.com/dotnet/roslyn/issues/16667")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDiscardInOutVar()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(out int i)
+    {
+        M(out var $$_);
+        i = 0;
+    }
+}"); // No quick info (see issue #16667)
+        }
+
+        [WorkItem(16667, "https://github.com/dotnet/roslyn/issues/16667")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDiscardInIsPattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        if (3 is int $$_) { }
+    }
+}"); // No quick info (see issue #16667)
+        }
+
+        [WorkItem(16667, "https://github.com/dotnet/roslyn/issues/16667")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDiscardInSwitchPattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        switch (3)
+        {
+            case int $$_:
+                return;
+        }
+    }
+}"); // No quick info (see issue #16667)
+        }
+
         [WorkItem(540871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540871")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestLiterals()
