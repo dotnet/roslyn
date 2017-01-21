@@ -268,7 +268,7 @@ index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task TestGenerateClassFromObjectCreationWithTuple()
+        public async Task TestGenerateClassWithCtorFromObjectCreationWithTuple()
         {
             await TestAsync(
 @"class Class
