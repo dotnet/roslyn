@@ -175,6 +175,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                                       Environment.NewLine +
                                       "'Lightweight solution load' is enabled for the current solution. " +
                                       "Disable it to ensure that all projects are loaded when debugging starts.";
+
+                            s_encDebuggingSessionInfo?.LogReadOnlyEditAttemptedProjectNotBuiltOrLoaded();
                         }
                         else
                         {
