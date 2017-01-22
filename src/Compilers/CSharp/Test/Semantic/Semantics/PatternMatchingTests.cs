@@ -4664,5 +4664,60 @@ public class Program{0}
             var program = string.Format(body, dt, statement);
             CreateCompilationWithMscorlib45(program).GetDiagnostics();
         }
+
+        [Fact]
+        public void TypeParameterSubsumption()
+        {
+            var program = @"
+using System;
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        PatternMatching<Base, Derived>(new Base());
+        PatternMatching<Base, Derived>(new Derived());
+        PatternMatching<Base, Derived>(null);
+        PatternMatching<object, int>(new object());
+        PatternMatching<object, int>(2);
+        PatternMatching<object, int>(null);
+        PatternMatching<object, int?>(new object());
+        PatternMatching<object, int?>(2);
+        PatternMatching<object, int?>(null);
+    }
+    static void PatternMatching<TBase, TDerived>(TBase o) where TDerived : TBase
+    {
+        switch (o)
+        {
+            case TDerived td:
+                Console.WriteLine(nameof(TDerived));
+                break;
+            case TBase tb:
+                Console.WriteLine(nameof(TBase));
+                break;
+            default:
+                Console.WriteLine(""Neither"");
+                break;
+        }
+    }
+}
+class Base
+{
+}
+class Derived : Base
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe).VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"TBase
+TDerived
+Neither
+TBase
+TDerived
+Neither
+TBase
+TDerived
+Neither");
+        }
     }
 }
