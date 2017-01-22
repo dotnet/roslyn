@@ -4547,7 +4547,7 @@ public class Program1717
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16559")]
+        [Fact, WorkItem(16559, "https://github.com/dotnet/roslyn/issues/16559")]
         public void Fuzz5815()
         {
             var program = @"
@@ -4565,20 +4565,24 @@ public class Program5815
     private static object M() => null;
 }";
             CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (9,18): error CS0150: A constant value is expected
+                //             case true ? x3 : 4:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "true ? x3 : 4").WithLocation(9, 18)
                 );
         }
 
-        [Fact(Skip = "This test generator is capable of producing crashes that are not yet fixed; see, for example, Fuzz5815")]
+        [Fact(Skip = "This test generator runs too long to use frequently")]
         public void Fuzz()
         {
-            int dt = Math.Abs(new DateTime().Ticks.GetHashCode() % 10000000);
-            for (int i = 1; i < 100000; i++)
+            const int numTests = 1000000;
+            int dt = (int)Math.Abs(DateTime.Now.Ticks % 1000000000);
+            for (int i = 1; i < numTests; i++)
             {
                 PatternMatchingFuzz(i + dt);
             }
         }
 
-        public void PatternMatchingFuzz(int dt)
+        private static void PatternMatchingFuzz(int dt)
         {
             Random r = new Random(dt);
 
