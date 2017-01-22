@@ -4666,7 +4666,7 @@ public class Program{0}
         }
 
         [Fact]
-        public void TypeParameterSubsumption()
+        public void TypeParameterSubsumption01()
         {
             var program = @"
 using System;
@@ -4718,6 +4718,46 @@ Neither
 TBase
 TDerived
 Neither");
+        }
+
+        [Fact]
+        public void TypeParameterSubsumption02()
+        {
+            var program = @"
+using System;
+public class Program
+{
+    static void PatternMatching<TBase, TDerived>(TBase o) where TDerived : TBase
+    {
+        switch (o)
+        {
+            case TBase tb:
+                Console.WriteLine(nameof(TBase));
+                break;
+            case TDerived td:
+                Console.WriteLine(nameof(TDerived));
+                break;
+            default:
+                Console.WriteLine(""Neither"");
+                break;
+        }
+    }
+}
+class Base
+{
+}
+class Derived : Base
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (12,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case TDerived td:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "TDerived td").WithLocation(12, 18),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 Console.WriteLine(nameof(TDerived));
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 17)
+                );
         }
     }
 }
