@@ -21,13 +21,13 @@ class C {
         private static string s_methodPreview = @"class c {
 //[
     void Foo(){
-        int bar = 42;
+        Console.WriteLine();
 
         int LocalFunction(int x) {
             return 2 * x;
         }
 
-        var baz = 9.75;
+        Console.ReadLine();
     }
 //]
 }";
