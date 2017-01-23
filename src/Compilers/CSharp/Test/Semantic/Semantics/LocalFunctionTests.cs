@@ -105,6 +105,26 @@ class C
         void Local<[A]T, [CLSCompliant]U>() { }
     }
 }");
+            comp.VerifyDiagnostics(
+                // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A]T, [CLSCompliant]U>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
+                // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local<[A]T, [CLSCompliant]U>() { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
+                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                //         void Local<[A]T, [CLSCompliant]U>() { }
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27),
+                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local<[A]T, [CLSCompliant]U>() { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A]").WithLocation(7, 20),
+                // (7,26): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local<[A]T, [CLSCompliant]U>() { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CLSCompliant]").WithLocation(7, 26),
+                // (7,14): warning CS0168: The variable 'Local' is declared but never used
+                //         void Local<[A]T, [CLSCompliant]U>() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(7, 14));
+
             var tree = comp.SyntaxTrees[0];
             var root = tree.GetRoot();
 
@@ -138,6 +158,7 @@ class C
 
             Assert.Null(model.GetDeclaredSymbol(clsCompliant));
 
+            // This should be null because there is no CLSCompliant ctor with no args
             var clsCompliantSymbolInfo = model.GetSymbolInfo(clsCompliant);
             Assert.Null(clsCompliantSymbolInfo.Symbol);
             Assert.Equal(clsCompliantSymbol.GetMember<MethodSymbol>(".ctor"),
@@ -165,6 +186,26 @@ class C
         void Local([A]int x, [CLSCompliant]int y) { }
     }
 }");
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local([A]int x, [CLSCompliant]int y) { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A]").WithLocation(7, 20),
+                // (7,30): error CS8204: Attributes are not allowed on local function parameters or type parameters
+                //         void Local([A]int x, [CLSCompliant]int y) { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CLSCompliant]").WithLocation(7, 30),
+                // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local([A]int x, [CLSCompliant]int y) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
+                // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                //         void Local([A]int x, [CLSCompliant]int y) { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
+                // (7,31): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                //         void Local([A]int x, [CLSCompliant]int y) { }
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 31),
+                // (7,14): warning CS0168: The variable 'Local' is declared but never used
+                //         void Local([A]int x, [CLSCompliant]int y) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(7, 14));
+
             var tree = comp.SyntaxTrees[0];
             var root = tree.GetRoot();
 
@@ -198,6 +239,7 @@ class C
 
             Assert.Null(model.GetDeclaredSymbol(clsCompliant));
 
+            // This should be null because there is no CLSCompliant ctor with no args
             var clsCompliantSymbolInfo = model.GetSymbolInfo(clsCompliant);
             Assert.Null(clsCompliantSymbolInfo.Symbol);
             Assert.Equal(clsCompliantSymbol.GetMember<MethodSymbol>(".ctor"),
