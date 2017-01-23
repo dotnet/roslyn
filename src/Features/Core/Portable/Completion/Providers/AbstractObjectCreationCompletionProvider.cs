@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using System;
+using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -44,13 +45,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
 
-        protected override Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(
+        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(
             SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var newExpression = this.GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);
             if (newExpression == null)
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             var typeInferenceService = context.GetLanguageService<ITypeInferenceService>();
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (type == null)
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             // Unwrap nullable
@@ -79,17 +80,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (type.SpecialType == SpecialType.System_Void)
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             if (type.ContainsAnonymousType())
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             if (!type.CanBeReferencedByName)
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
+            }
+
+            if (type.IsInterfaceType())
+            {
+                var typeArity = type.GetArity();
+
+                var implementations = (await SymbolFinder
+                                        .FindImplementationsAsync(type, context.Workspace.CurrentSolution, cancellationToken: cancellationToken).ConfigureAwait(false))
+                                        .Where(impl => !impl.IsAbstract && impl.GetArity() == typeArity);
+
+                return implementations.ToImmutableArray();
             }
 
             // Normally the user can't say things like "new IList".  Except for "IList[] x = new |".
@@ -97,30 +109,29 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // list even if they can't new them directly.
             if (!isArray)
             {
-                if (type.TypeKind == TypeKind.Interface ||
-                    type.TypeKind == TypeKind.Pointer ||
+                if (type.TypeKind == TypeKind.Pointer ||
                     type.TypeKind == TypeKind.Dynamic ||
                     type.IsAbstract)
                 {
-                    return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                    return ImmutableArray<ISymbol>.Empty;
                 }
 
                 if (type.TypeKind == TypeKind.TypeParameter &&
                     !((ITypeParameterSymbol)type).HasConstructorConstraint)
                 {
-                    return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                    return ImmutableArray<ISymbol>.Empty;
                 }
             }
 
             if (!type.IsEditorBrowsable(options.GetOption(RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language), context.SemanticModel.Compilation))
             {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+                return ImmutableArray<ISymbol>.Empty;
             }
 
-            return Task.FromResult(ImmutableArray.Create((ISymbol)type));
+            return ImmutableArray.Create((ISymbol)type);
         }
 
-        protected override(string displayText, string insertionText) GetDisplayAndInsertionText(
+        protected override (string displayText, string insertionText) GetDisplayAndInsertionText(
             ISymbol symbol, SyntaxContext context)
         {
             var displayService = context.GetLanguageService<ISymbolDisplayService>();
