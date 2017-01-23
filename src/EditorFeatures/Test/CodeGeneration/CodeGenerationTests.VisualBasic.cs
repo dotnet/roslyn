@@ -271,8 +271,13 @@ End Namespace";
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public async Task AddEvent()
             {
-                var input = "Class [|C|] \n End Class";
-                var expected = "Class C \n Public Event E As Action \n End Class";
+                var input = @"
+Class [|C|]
+End Class";
+                var expected = @"
+Class C
+    Public Event E As Action
+End Class";
                 await TestAddEventAsync(input, expected,
                     codeGenerationOptions: new CodeGenerationOptions(addImports: false));
             }
