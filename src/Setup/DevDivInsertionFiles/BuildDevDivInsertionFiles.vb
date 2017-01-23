@@ -110,7 +110,6 @@ Public Class BuildDevDivInsertionFiles
         "System.IO.FileSystem.DriveInfo.dll",
         "System.IO.FileSystem.Primitives.dll",
         "System.IO.Pipes.dll",
-        "System.Runtime.InteropServices.RuntimeInformation.dll",
         "System.Security.AccessControl.dll",
         "System.Security.Claims.dll",
         "System.Security.Cryptography.Algorithms.dll",
@@ -869,7 +868,6 @@ Public Class BuildDevDivInsertionFiles
         add("Vsix\CompilerExtension\System.IO.FileSystem.DriveInfo.dll")
         add("Vsix\CompilerExtension\System.IO.FileSystem.Primitives.dll")
         add("Vsix\CompilerExtension\System.IO.Pipes.dll")
-        add("Vsix\CompilerExtension\System.Runtime.InteropServices.RuntimeInformation.dll")
         add("Vsix\CompilerExtension\System.Security.AccessControl.dll")
         add("Vsix\CompilerExtension\System.Security.Claims.dll")
         add("Vsix\CompilerExtension\System.Security.Cryptography.Algorithms.dll")

@@ -136,14 +136,14 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         private static string Substring(string name, TextSpan wordSpan)
             => name.Substring(wordSpan.Start, wordSpan.Length);
 
-        private static Func<string, TextSpan, bool> s_firstCharIsLowerCase = (val, span) => char.IsLower(val[span.Start]);
-        private static Func<string, TextSpan, bool> s_firstCharIsUpperCase = (val, span) => char.IsUpper(val[span.Start]);
+        private static Func<string, TextSpan, bool> s_firstCharIsLowerCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsLower(val[span.Start]);
+        private static Func<string, TextSpan, bool> s_firstCharIsUpperCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsUpper(val[span.Start]);
 
         private static Func<string, TextSpan, bool> s_wordIsAllUpperCase = (val, span) =>
         {
             for (int i = span.Start, n = span.End; i < n; i++)
             {
-                if (!char.IsUpper(val[i]))
+                if (DoesCharacterHaveCasing(val[i]) && !char.IsUpper(val[i]))
                 {
                     return false;
                 }
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         {
             for (int i = span.Start, n = span.End; i < n; i++)
             {
-                if (!char.IsLower(val[i]))
+                if (DoesCharacterHaveCasing(val[i]) && !char.IsLower(val[i]))
                 {
                     return false;
                 }
@@ -263,6 +263,8 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 WorkspacesResources.The_first_word_0_must_begin_with_an_upper_case_character,
                 WorkspacesResources.These_non_leading_words_must_begin_with_a_lowercase_letter_colon_0,
                 out reason);
+
+        private static bool DoesCharacterHaveCasing(char c) => char.ToLower(c) != char.ToUpper(c);
 
         private string CreateCompliantNameDirectly(string name)
         {

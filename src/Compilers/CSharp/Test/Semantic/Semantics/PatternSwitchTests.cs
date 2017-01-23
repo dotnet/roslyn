@@ -1997,5 +1997,547 @@ static class Program {
 @"not null
 null");
         }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithLambda_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {                           
+        switch((object)new A())
+        {
+            case A a:
+                System.Action print = () => System.Console.WriteLine(a);
+                print();
+                break;
+        }
+    }
+}
+
+class A{}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = "A";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithLambda_02()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        int val = 3; 
+        var l = new System.Collections.Generic.List<System.Action>();
+        int i = 1;                          
+        switch(val)
+        {
+            case int a when a == 3:
+            case 1:
+                System.Console.WriteLine(""case 1: {0}"", i);
+                a = i++;
+                l.Add(() => System.Console.WriteLine(a));
+                goto case 2;
+            case int a when a == 4:
+            case 2:
+                System.Console.WriteLine(""case 2: {0}"", i);
+                a = i++;
+                l.Add(() => System.Console.WriteLine(a));
+
+                if (i < 4)
+                {
+                    goto case 1;
+                }
+                break;
+        }
+
+        foreach (var a in l)
+        {
+            a();
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case 1: 1
+case 2: 2
+case 1: 3
+case 2: 4
+3
+4
+3
+4");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithYield_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        foreach (var a in Test())
+        {
+            System.Console.WriteLine(a);
+        }
+    }
+
+    static System.Collections.Generic.IEnumerable<string> Test()
+    {
+        int val = 3; 
+        var l = new System.Collections.Generic.List<System.Action>();
+        int i = 1;                          
+        switch(val)
+        {
+            case int a when a == 3:
+            case 1:
+                yield return string.Format(""case 1: {0}"", i);
+                a = i++;
+                l.Add(() => System.Console.WriteLine(a));
+                goto case 2;
+            case int a when a == 4:
+            case 2:
+                yield return string.Format(""case 2: {0}"", i);
+                a = i++;
+                l.Add(() => System.Console.WriteLine(a));
+
+                if (i < 4)
+                {
+                    goto case 1;
+                }
+                break;
+        }
+
+        foreach (var a in l)
+        {
+            a();
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case 1: 1
+case 2: 2
+case 1: 3
+case 2: 4
+3
+4
+3
+4");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithYield_02()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        foreach (var a in Test())
+        {
+            System.Console.WriteLine(a);
+        }
+    }
+
+    static System.Collections.Generic.IEnumerable<string> Test()
+    {
+        int val = 3; 
+        int i = 1;                          
+        switch(val)
+        {
+            case int a when a == 3:
+            case 1:
+                yield return string.Format(""case 1: {0}"", i);
+                a = i++;
+                System.Console.WriteLine(a);
+                goto case 2;
+            case int a when a == 4:
+            case 2:
+                yield return string.Format(""case 2: {0}"", i);
+                a = i++;
+                System.Console.WriteLine(a);
+
+                if (i < 4)
+                {
+                    goto case 1;
+                }
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case 1: 1
+1
+case 2: 2
+2
+case 1: 3
+3
+case 2: 4
+4");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithYield_03()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        foreach (var a in Test())
+        {
+            System.Console.WriteLine(a);
+        }
+    }
+
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        int val = 3; 
+        int i = 1;                          
+        switch(val)
+        {
+            case int a when a == 3:
+            case 1:
+                System.Console.WriteLine(""case 1: {0}"", i);
+                a = i++;
+                System.Console.WriteLine(a);
+                goto case 2;
+            case int a when a == 4:
+            case 2:
+                System.Console.WriteLine(""case 2: {0}"", i);
+                a = i++;
+                System.Console.WriteLine(a);
+
+                if (i < 4)
+                {
+                    goto case 1;
+                }
+                break;
+        }
+
+        yield return i;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case 1: 1
+1
+case 2: 2
+2
+case 1: 3
+3
+case 2: 4
+4
+5");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithYield_04()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        foreach (var a in Test())
+        {
+            System.Console.WriteLine(a);
+        }
+    }
+
+    static System.Collections.Generic.IEnumerable<string> Test()
+    {
+        int val = 3; 
+        switch(val)
+        {
+            case int a when TakeOutVar(out var b) && a == b:
+                yield return string.Format(""case: {0}"", val);
+                System.Console.WriteLine(a);
+                break;
+        }
+    }
+
+    static bool TakeOutVar(out int x)
+    {
+        x = 3;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case: 3
+3");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithAwait_01()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(Test().Result);
+    }
+
+    static async Task<int> Test()
+    {
+        int val = 3; 
+        var l = new System.Collections.Generic.List<System.Action>();
+        int i = 1;                          
+        switch(val)
+        {
+            case int a when a == 3:
+            case 1:
+                System.Console.WriteLine(await GetTask(string.Format(""case 1: {0}"", i)));
+                a = i++;
+                l.Add(() => System.Console.WriteLine(a));
+                goto case 2;
+            case int a when a == 4:
+            case 2:
+                System.Console.WriteLine(await GetTask(string.Format(""case 2: {0}"", i)));
+                a = i++;
+                l.Add(() => System.Console.WriteLine(a));
+
+                if (i < 4)
+                {
+                    goto case 1;
+                }
+                break;
+        }
+
+        foreach (var a in l)
+        {
+            a();
+        }
+
+        return i;
+    }
+
+    static async Task<string> GetTask(string val)
+    {
+        await Task.Yield();
+        return val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case 1: 1
+case 2: 2
+case 1: 3
+case 2: 4
+3
+4
+3
+4
+5");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithAwait_02()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(Test().Result);
+    }
+
+    static async Task<int> Test()
+    {
+        int val = 3; 
+        int i = 1;                          
+        switch(val)
+        {
+            case int a when a == 3:
+            case 1:
+                System.Console.WriteLine(await GetTask(string.Format(""case 1: {0}"", i)));
+                a = i++;
+                System.Console.WriteLine(a);
+                goto case 2;
+            case int a when a == 4:
+            case 2:
+                System.Console.WriteLine(await GetTask(string.Format(""case 2: {0}"", i)));
+                a = i++;
+                System.Console.WriteLine(a);
+
+                if (i < 4)
+                {
+                    goto case 1;
+                }
+                break;
+        }
+
+        return i;
+    }
+
+    static async Task<string> GetTask(string val)
+    {
+        await Task.Yield();
+        return val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case 1: 1
+1
+case 2: 2
+2
+case 1: 3
+3
+case 2: 4
+4
+5");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithAwait_03()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(Test().Result);
+    }
+
+    static async Task<int> Test()
+    {
+        int val = 3; 
+        int i = 1;                          
+        switch(val)
+        {
+            case int a when a == 3:
+            case 1:
+                System.Console.WriteLine(""case 1: {0}"", i);
+                a = i++;
+                System.Console.WriteLine(a);
+                goto case 2;
+            case int a when a == 4:
+            case 2:
+                System.Console.WriteLine(""case 2: {0}"", i);
+                a = i++;
+                System.Console.WriteLine(a);
+
+                if (i < 4)
+                {
+                    goto case 1;
+                }
+                break;
+        }
+
+        await Task.Yield();
+        return i;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case 1: 1
+1
+case 2: 2
+2
+case 1: 3
+3
+case 2: 4
+4
+5");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        public void SwitchSectionWithAwait_04()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(Test().Result);
+    }
+
+    static async Task<int> Test()
+    {
+        int val = 3; 
+        switch(val)
+        {
+            case int a when TakeOutVar(out var b) && a == b:
+                System.Console.WriteLine(await GetTask(string.Format(""case: {0}"", val)));
+                return a;
+        }
+
+        return 0;
+    }
+
+    static bool TakeOutVar(out int x)
+    {
+        x = 3;
+        return true;
+    }
+
+    static async Task<string> GetTask(string val)
+    {
+        await Task.Yield();
+        return val;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"case: 3
+3");
+        }
     }
 }

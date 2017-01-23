@@ -517,13 +517,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpFormattingOptions.SpaceWithinSquareBrackets, value); }
         }
 
-        public string Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration
+        public string Style_PreferIntrinsicPredefinedTypeKeywordInDeclaration_CodeStyle
         {
             get { return GetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration); }
             set { SetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, value); }
         }
 
-        public string Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess
+        public string Style_PreferIntrinsicPredefinedTypeKeywordInMemberAccess_CodeStyle
         {
             get { return GetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); }
             set { SetXmlOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value); }
