@@ -56,7 +56,10 @@ namespace Roslyn.Utilities
             try
             {
                 Stream.Dispose();
-                if (_failed == null) _failed = false;
+                if (_failed == null)
+                {
+                    _failed = false;
+                }
             }
             catch (Exception e)
             {
