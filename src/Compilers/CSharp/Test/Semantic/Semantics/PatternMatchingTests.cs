@@ -4548,6 +4548,39 @@ public class Program1717
         }
 
         [Fact, WorkItem(16559, "https://github.com/dotnet/roslyn/issues/16559")]
+        public void CasePatternVariableUsedInCaseExpression()
+        {
+            var program = @"
+public class Program5815
+{
+    public static void Main(object o)
+    {
+        switch (o)
+        {
+            case Color Color:
+            case Color? Color2:
+                break;
+        }
+    }
+    private static object M() => null;
+}";
+            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (9,32): error CS1525: Invalid expression term 'break'
+                //             case Color? Color2:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(9, 32),
+                // (9,32): error CS1003: Syntax error, ':' expected
+                //             case Color? Color2:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "break").WithLocation(9, 32),
+                // (8,18): error CS0118: 'Color' is a variable but is used like a type
+                //             case Color Color:
+                Diagnostic(ErrorCode.ERR_BadSKknown, "Color").WithArguments("Color", "variable", "type").WithLocation(8, 18),
+                // (9,25): error CS0103: The name 'Color2' does not exist in the current context
+                //             case Color? Color2:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Color2").WithArguments("Color2").WithLocation(9, 25)
+                );
+        }
+
+        [Fact, WorkItem(16559, "https://github.com/dotnet/roslyn/issues/16559")]
         public void Fuzz5815()
         {
             var program = @"
