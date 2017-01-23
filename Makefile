@@ -81,7 +81,7 @@ $(TOOLSET_PATH): $(BINARIES_PATH)/dotnet-cli
 	pushd $(TOOLSET_SRC_PATH) ; \
 	$(BINARIES_PATH)/dotnet-cli/dotnet restore && \
 	$(BINARIES_PATH)/dotnet-cli/dotnet publish -o $(TOOLSET_PATH) && \
-	sed -i -e 's/Microsoft.CSharp.Targets/Microsoft.CSharp.targets/g' $(TOOLSET_PATH)/Extensions/Microsoft/Portable/v5.0/Microsoft.Portable.CSharp.targets
+	sed -i -e 's/Microsoft.CSharp.Targets/Microsoft.CSharp.targets/g' $(TOOLSET_PATH)/Microsoft/Portable/v5.0/Microsoft.Portable.CSharp.targets
 # https://github.com/dotnet/roslyn/issues/9641
 
 $(BINARIES_PATH)/dotnet-cli:

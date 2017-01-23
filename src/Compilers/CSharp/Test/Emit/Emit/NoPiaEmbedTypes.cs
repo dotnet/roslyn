@@ -1201,10 +1201,9 @@ class UsePia4
                     Assert.Equal(TypeAttributes.Public | TypeAttributes.SequentialLayout | TypeAttributes.Class | TypeAttributes.Sealed | TypeAttributes.AnsiClass | TypeAttributes.BeforeFieldInit, test2.Flags);
 
                     attributes = test2.GetAttributes();
-                    Assert.Equal(3, attributes.Length);
+                    Assert.Equal(2, attributes.Length);
                     Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", attributes[0].ToString());
                     Assert.Equal(@"System.Runtime.InteropServices.TypeIdentifierAttribute(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"", ""Test2"")", attributes[1].ToString());
-                    Assert.Equal("System.Runtime.InteropServices.ComVisibleAttribute(true)", attributes[2].ToString());
 
                     var itest3 = module.GlobalNamespace.GetTypeMembers("ITest3").Single();
                     Assert.Equal(TypeKind.Interface, itest3.TypeKind);
@@ -1262,10 +1261,9 @@ class UsePia4
                     Assert.Equal(TypeAttributes.Public | TypeAttributes.AutoLayout | TypeAttributes.Class | TypeAttributes.Sealed | TypeAttributes.AnsiClass, test9.Flags);
 
                     attributes = test9.GetAttributes();
-                    Assert.Equal(3, attributes.Length);
+                    Assert.Equal(2, attributes.Length);
                     Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", attributes[0].ToString());
                     Assert.Equal(@"System.Runtime.InteropServices.TypeIdentifierAttribute(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"", ""Test9"")", attributes[1].ToString());
-                    Assert.Equal("System.Runtime.InteropServices.ComVisibleAttribute(true)", attributes[2].ToString());
 
                     var fieldToEmit = test9.GetFieldsToEmit().ToArray().AsImmutableOrNull();
                     Assert.Equal(3, fieldToEmit.Length);

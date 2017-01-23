@@ -40,7 +40,7 @@ try
 
     switch ($branchName)
     {
-        "dev15-rc2" { } 
+        "dev15-rc3" { } 
         "master" { } 
         default
         {
