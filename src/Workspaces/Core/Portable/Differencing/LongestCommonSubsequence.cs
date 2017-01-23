@@ -11,51 +11,53 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// </summary>
     internal abstract class LongestCommonSubsequence<TSequence>
     {
-        // VArray class enables array indexing in range [-d...d].
-        private class VArray
+        // VArray struct enables array indexing in range [-d...d].
+        private struct VArray
         {
-            private int[] array;
-            private int offset;
-
-            public VArray(int d, VArray previousVArray) : this(d)
-            {
-                if (previousVArray != null)
-                {
-                    int copyDelta= offset - previousVArray.offset;
-                    if (copyDelta >= 0)
-                    {
-                        Debug.Assert(previousVArray.array.Length + 2 * copyDelta == array.Length);
-                        Array.Copy(previousVArray.array, 0, array, copyDelta, previousVArray.array.Length);
-                    }
-                    else
-                    {
-                        Debug.Assert(previousVArray.array.Length + 2 * copyDelta == array.Length);
-                        Array.Copy(previousVArray.array, -copyDelta, array, 0, array.Length);
-                    }
-                }
-            }
+            private readonly int[] _array;
 
             public VArray(int d)
             {
-                offset = d;
-                array = new int[2 * d + 1];
+                _array = new int[2 * d + 1];
+            }
+
+            public void CopyFrom(VArray otherVArray)
+            {
+                int copyDelta = Offset - otherVArray.Offset;
+                if (copyDelta >= 0)
+                {
+                    Array.Copy(otherVArray._array, 0, _array, copyDelta, otherVArray._array.Length);
+                }
+                else
+                {
+                    Array.Copy(otherVArray._array, -copyDelta, _array, 0, _array.Length);
+                }
             }
 
             public int this[int index]
             {
                 get
                 {
-                    return array[index + offset];
+                    return _array[index + Offset];
                 }
                 set
                 {
-                    array[index + offset] = value;
+                    _array[index + Offset] = value;
+                }
+            }
+
+            private int Offset
+            {
+                get
+                {
+                    return _array.Length / 2;
                 }
             }
         }
 
         protected abstract bool ItemsEqual(TSequence oldSequence, int oldIndex, TSequence newSequence, int newIndex);
 
+        // TODO: Consolidate return types between GetMatchingPairs and GetEdit to avoid duplicated code (https://github.com/dotnet/roslyn/issues/16864)
         protected IEnumerable<KeyValuePair<int, int>> GetMatchingPairs(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
             Stack<VArray> stackOfVs = ComputeEditPaths(oldSequence, oldLength, newSequence, newLength);
@@ -63,9 +65,10 @@ namespace Microsoft.CodeAnalysis.Differencing
             int x = oldLength;
             int y = newLength;
 
-            for (int d = stackOfVs.Count - 1; x > 0 || y > 0; d--)
+            while (x > 0 || y > 0)
             {
                 VArray currentV = stackOfVs.Pop();
+                int d = stackOfVs.Count;
                 int k = x - y;
 
                 // "snake" == single delete or insert followed by 0 or more diagonals
@@ -107,9 +110,10 @@ namespace Microsoft.CodeAnalysis.Differencing
             int x = oldLength;
             int y = newLength;
 
-            for (int d = stackOfVs.Count - 1; x > 0 || y > 0; d--)
+            while (x > 0 || y > 0)
             {
                 VArray currentV = stackOfVs.Pop();
+                int d = stackOfVs.Count;
                 int k = x - y;
 
                 // "snake" == single delete or insert followed by 0 or more diagonals
@@ -191,6 +195,10 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// </summary>
         /// <remarks>
         /// 
+        /// The algorithm was inspired by Myers' Diff Algorithm described in an article by Nicolas Butler:
+        /// https://www.codeproject.com/articles/42279/investigating-myers-diff-algorithm-part-of
+        /// The author has approved the use of his code from the article under the Apache 2.0 license.
+        /// 
         /// The algorithm works on an imaginary edit graph for A and B which has a vertex at each point in the grid(i, j), i in [0, lengthA] and j in [0, lengthB].
         /// The vertices of the edit graph are connected by horizontal, vertical, and diagonal directed edges to form a directed acyclic graph.
         /// Horizontal edges connect each vertex to its right neighbor. 
@@ -206,10 +214,8 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// A "V array" is a list of end points of so called "snakes". 
         /// A "snake" is a path with a single horizontal (delete) or vertical (insert) move followed by 0 or more diagonals (matching pairs).
         /// 
-        /// See https://www.codeproject.com/articles/42279/investigating-myers-diff-algorithm-part-of.
-        /// 
-        /// (Unlike the algorithm in the article this implementation stores 'y' indexed and prefers 'right' moves instead of 'down' moves in ambiguous situations
-        /// to preserve the behavior of the original diff algorithm (deletes first, inserts after)).
+        /// Unlike the algorithm in the article this implementation stores 'y' indexes and prefers 'right' moves instead of 'down' moves in ambiguous situations
+        /// to preserve the behavior of the original diff algorithm (deletes first, inserts after).
         /// 
         /// The number of items in the list is the length of the shortest edit script = the number of inserts/edits between the two sequences = D. 
         /// The list can be used to determine the matching pairs in the sequences (GetMatchingPairs method) or the full editing script (GetEdits method).
@@ -221,15 +227,25 @@ namespace Microsoft.CodeAnalysis.Differencing
         private Stack<VArray> ComputeEditPaths(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
             Stack<VArray> stackOfVs = new Stack<VArray>();
-            VArray previousV = null;
-            VArray currentV = null;
+
+            // special-case: the first "snake" to start at (-1,0 )
+            VArray previousV = new VArray(1);
+            VArray currentV;
+
             bool reachedEnd= false;
 
             for (int d = 0; d <= oldLength + newLength && !reachedEnd; d++)
             {
-                previousV = currentV;
                 // V is in range [-d...d] => use d to offset the k-based array indices to non-negative values
-                currentV = new VArray(d == 0 ? 1 : d, previousV);
+                if (d == 0)
+                {
+                    currentV = previousV;
+                }
+                else
+                {
+                    currentV = new VArray(d);
+                    currentV.CopyFrom(previousV);
+                }
 
                 for (int k = -d; k <= d; k += 2)
                 {
@@ -267,6 +283,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                     }
                 }
                 stackOfVs.Push(currentV);
+                previousV = currentV;
             }
             return stackOfVs;
         }
