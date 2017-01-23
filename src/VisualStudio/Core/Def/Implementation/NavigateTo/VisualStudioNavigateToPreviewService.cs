@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -30,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
                 return false;
             }
 
-            return !(visualStudioWorkspace.GetHostDocument(document.Id) is ContainedDocument);
+            return !document.IsContained();
         }
 
         public void PreviewItem(INavigateToItemDisplay itemDisplay)

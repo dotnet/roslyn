@@ -1186,6 +1186,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return result != (uint)__VSREFERENCEQUERYRESULT.REFERENCE_DENY;
         }
 
+        internal override bool IsContained(CodeAnalysis.Document document)
+        {
+            var containedDocument = this.GetHostDocument(document.Id);
+            return containedDocument is Venus.ContainedDocument;
+        }
+
         /// <summary>
         /// A trivial implementation of <see cref="IVisualStudioWorkspaceHost" /> that just
         /// forwards the calls down to the underlying Workspace.

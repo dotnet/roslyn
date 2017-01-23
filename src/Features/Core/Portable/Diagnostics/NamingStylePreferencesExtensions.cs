@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal static class SymbolAnalysisContextExtensions
+    internal static class NamingStylePreferencesExtensions
     {
         public static async Task<NamingStylePreferences> GetNamingStylePreferencesAsync(
             this SymbolAnalysisContext context)

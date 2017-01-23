@@ -294,6 +294,8 @@ namespace Microsoft.CodeAnalysis
             ((IWorkspaceOptionService)this.Services.GetService<IOptionService>()).OnWorkspaceDisposed(this);
         }
 
+        internal virtual bool IsContained(Document document) => false;
+
         #region Host API
         /// <summary>
         /// Call this method to respond to a solution being opened in the host environment.

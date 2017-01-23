@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -55,7 +56,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private void SymbolAction(
             SymbolAnalysisContext context,
             ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult)
-        { 
+        {
+            // For now, disable naming rules in .cshtml/.aspx files.  The issues may be in
+            // hidden code, and we don't want to report issues there.
+            if (context.IsInContainedDocument())
+            {
+                return;
+            }
+
             var namingPreferences = context.GetNamingStylePreferencesAsync().GetAwaiter().GetResult();
             if (namingPreferences == null)
             {
