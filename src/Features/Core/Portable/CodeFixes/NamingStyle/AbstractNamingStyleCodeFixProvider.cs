@@ -36,6 +36,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             var model = await document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             var symbol = model.GetDeclaredSymbol(node, context.CancellationToken);
 
+            // The symbol can be null in certain error code cases. For example, trying to get the
+            // declared symbol on a field declared as "const readonly int i" (which gets turned 
+            // into a FieldDeclaration of "readonly int i") will give a null result. See
+            // https://github.com/dotnet/roslyn/issues/15788 for a full repro case.
+            if (symbol == null)
+            {
+                return;
+            }
+
             var fixedNames = style.MakeCompliant(symbol.Name);
             foreach (var fixedName in fixedNames)
             {
