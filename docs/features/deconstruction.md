@@ -155,7 +155,7 @@ In C#7.0, *deconstruction-declarations* are only allowed as top-level statements
 ```ANTLR
 expression
 	: ... // existing
-	| declaration_expression // new
+	| declaration_expression // new (only allowed in C#7.0 in certain contexts, such as out var, deconstruction and pattern declarations)
 	;
 
 declaration_expression // new
