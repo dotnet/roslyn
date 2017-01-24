@@ -24,6 +24,7 @@ if /I "%1" == "/testPerfCorrectness" set TestPerfCorrectness=true&&shift&& goto 
 if /I "%1" == "/testPerfRun" set TestPerfRun=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testVsi" set TestVsi=true&&shift&& goto :ParseArguments
 if /I "%1" == "/skipTests" set BuildAndTestBuildTarget=Build&&shift&&goto :ParseArguments
+if /I "%1" == "/skipCommitPrinting" set SkipCommitPrinting=1&&shift&&goto :ParseArguments
 
 REM /buildTimeLimit is the time limit, measured in minutes, for the Jenkins job that runs
 REM the build. The Jenkins script netci.groovy passes the time limit to this script.
@@ -63,8 +64,10 @@ if defined testBuildCorrectness (
 )
 
 REM Output the commit that we're building, for reference in Jenkins logs
-echo Building this commit:
-git show --no-patch --pretty=raw HEAD
+if not "%SkipCommitPrinting" == "1" (
+    echo Building this commit:
+    git show --no-patch --pretty=raw HEAD
+)
 
 REM Build with the real assembly version, since that's what's contained in the bootstrap compiler redirects
 msbuild %MSBuildAdditionalCommandLineArgs% /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP "%RoslynRoot%build\Toolset\Toolset.csproj" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
