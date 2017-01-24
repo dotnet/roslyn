@@ -894,6 +894,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             int arg)
         {
             BoundExpression argument = arguments.Argument(arg);
+            if (argument.HasAnyErrors)
+            {
+                // If the argument had an error reported then do not report further errors for 
+                // overload resolution failure.
+                return;
+            }
+
             int parm = badArg.Result.ParameterFromArgument(arg);
             SourceLocation sourceLocation = new SourceLocation(argument.Syntax);
 

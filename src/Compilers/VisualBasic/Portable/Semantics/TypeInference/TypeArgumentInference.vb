@@ -1408,11 +1408,13 @@ HandleAsAGeneralExpression:
 
 
                 Dim parameterElementTypes As ImmutableArray(Of TypeSymbol) = Nothing
-                If parameterType.TryGetElementTypesIfTupleOrCompatible(parameterElementTypes) Then
+                Dim argumentElementTypes As ImmutableArray(Of TypeSymbol) = Nothing
 
-                    Dim argumentElementTypes As ImmutableArray(Of TypeSymbol) = Nothing
-                    If Not argumentType.TryGetElementTypesIfTupleOrCompatible(argumentElementTypes) OrElse
-                            parameterElementTypes.Length <> argumentElementTypes.Length Then
+                If parameterType.GetNullableUnderlyingTypeOrSelf().TryGetElementTypesIfTupleOrCompatible(parameterElementTypes) AndAlso
+                   If(parameterType.IsNullableType(), argumentType.GetNullableUnderlyingTypeOrSelf(), argumentType).
+                       TryGetElementTypesIfTupleOrCompatible(argumentElementTypes) Then
+
+                    If parameterElementTypes.Length <> argumentElementTypes.Length Then
                         Return False
                     End If
 
