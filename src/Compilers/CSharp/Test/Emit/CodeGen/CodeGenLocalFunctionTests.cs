@@ -631,25 +631,6 @@ NamedOptional();
             VerifyOutputInMain(source, "3 2", "System");
         }
 
-        [Fact]
-        public void CallerMemberName()
-        {
-            var source = @"
-void CallerMemberName([CallerMemberName] string s = null)
-{
-    Console.Write(s);
-}
-void LocalFuncName()
-{
-    CallerMemberName();
-}
-LocalFuncName();
-Console.Write(' ');
-CallerMemberName();
-";
-            VerifyOutputInMain(source, "Main Main", "System", "System.Runtime.CompilerServices");
-        }
-
 
         [Fact]
         [CompilerTrait(CompilerFeature.Dynamic)]
