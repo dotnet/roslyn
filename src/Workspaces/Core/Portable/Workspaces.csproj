@@ -285,12 +285,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs">
       <Link>Serialization\ObjectWriter.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectReader.cs">
-      <Link>Serialization\StreamObjectReader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.cs">
-      <Link>Serialization\StreamObjectWriter.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\TypeKey.cs">
       <Link>Serialization\TypeKey.cs</Link>
     </Compile>
