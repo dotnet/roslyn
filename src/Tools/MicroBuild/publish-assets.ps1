@@ -42,7 +42,7 @@ try
     {
         "dev15-rc3" { } 
         "master" { } 
-        "treePerf2" { }
+        "treePerf3" { }
         default
         {
             if (-not $test)
