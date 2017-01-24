@@ -23,7 +23,7 @@ if /I "%1" == "/testBuildCorrectness" set TestBuildCorrectness=true&&shift&& got
 if /I "%1" == "/testPerfCorrectness" set TestPerfCorrectness=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testPerfRun" set TestPerfRun=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testVsi" set TestVsi=true&&shift&& goto :ParseArguments
-if /I "%1" == "/skipTests" set BuildAndTestBuildTarget=Build&&shift&&goto :ParseArguments
+if /I "%1" == "/skipTest" set BuildAndTestBuildTarget=Build&&shift&&goto :ParseArguments
 if /I "%1" == "/skipCommitPrinting" set SkipCommitPrinting=1&&shift&&goto :ParseArguments
 
 REM /buildTimeLimit is the time limit, measured in minutes, for the Jenkins job that runs
