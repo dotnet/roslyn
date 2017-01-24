@@ -1798,46 +1798,26 @@ namespace Roslyn.Utilities
             {
                 switch (this.Kind)
                 {
-                    case VariantKind.Array:
-                        return this.AsArray();
-                    case VariantKind.Boolean:
-                        return this.AsBoolean();
-                    case VariantKind.BoxedEnum:
-                        return this.AsBoxedEnum();
-                    case VariantKind.Byte:
-                        return this.AsByte();
-                    case VariantKind.Char:
-                        return this.AsChar();
-                    case VariantKind.DateTime:
-                        return this.AsDateTime();
-                    case VariantKind.Decimal:
-                        return this.AsDecimal();
-                    case VariantKind.Float4:
-                        return this.AsSingle();
-                    case VariantKind.Float8:
-                        return this.AsDouble();
-                    case VariantKind.Int16:
-                        return this.AsInt16();
-                    case VariantKind.Int32:
-                        return this.AsInt32();
-                    case VariantKind.Int64:
-                        return this.AsInt64();
-                    case VariantKind.Null:
-                        return null;
-                    case VariantKind.Object:
-                        return this.AsObject();
-                    case VariantKind.SByte:
-                        return this.AsSByte();
-                    case VariantKind.String:
-                        return this.AsString();
-                    case VariantKind.Type:
-                        return this.AsType();
-                    case VariantKind.UInt16:
-                        return this.AsUInt16();
-                    case VariantKind.UInt32:
-                        return this.AsUInt32();
-                    case VariantKind.UInt64:
-                        return this.AsUInt64();
+                    case VariantKind.Array: return this.AsArray();
+                    case VariantKind.Boolean: return this.AsBoolean();
+                    case VariantKind.BoxedEnum: return this.AsBoxedEnum();
+                    case VariantKind.Byte: return this.AsByte();
+                    case VariantKind.Char: return this.AsChar();
+                    case VariantKind.DateTime: return this.AsDateTime();
+                    case VariantKind.Decimal: return this.AsDecimal();
+                    case VariantKind.Float4: return this.AsSingle();
+                    case VariantKind.Float8: return this.AsDouble();
+                    case VariantKind.Int16: return this.AsInt16();
+                    case VariantKind.Int32: return this.AsInt32();
+                    case VariantKind.Int64: return this.AsInt64();
+                    case VariantKind.Null: return null;
+                    case VariantKind.Object: return this.AsObject();
+                    case VariantKind.SByte: return this.AsSByte();
+                    case VariantKind.String: return this.AsString();
+                    case VariantKind.Type: return this.AsType();
+                    case VariantKind.UInt16: return this.AsUInt16();
+                    case VariantKind.UInt32: return this.AsUInt32();
+                    case VariantKind.UInt64: return this.AsUInt64();
                     default:
                         throw ExceptionUtilities.UnexpectedValue(this.Kind);
                 }
