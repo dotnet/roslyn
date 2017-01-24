@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
@@ -33,6 +34,61 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
             }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestStrongNameProvider()
+        {
+            var workspace = new AdhocWorkspace();
+
+            var filePath = typeof(SolutionServiceTests).Assembly.Location;
+
+            workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(), VersionStamp.Create(), "test", "test.dll", LanguageNames.CSharp,
+                    filePath: filePath, outputFilePath: filePath));
+
+            var service = await GetSolutionServiceAsync(workspace.CurrentSolution);
+
+            var solutionChecksum = await workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None);
+            var solution = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
+
+            var compilationOptions = solution.Projects.First().CompilationOptions;
+
+            Assert.True(compilationOptions.StrongNameProvider is DesktopStrongNameProvider);
+            Assert.True(compilationOptions.XmlReferenceResolver is XmlFileResolver);
+
+            var dirName = PathUtilities.GetDirectoryName(filePath);
+            var array = new[] { dirName, dirName };
+            Assert.Equal(Hash.CombineValues(array, StringComparer.Ordinal), compilationOptions.StrongNameProvider.GetHashCode());
+            Assert.Equal(((XmlFileResolver)compilationOptions.XmlReferenceResolver).BaseDirectory, dirName);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestStrongNameProviderEmpty()
+        {
+            var workspace = new AdhocWorkspace();
+
+            var filePath = "testLocation";
+
+            workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(), VersionStamp.Create(), "test", "test.dll", LanguageNames.CSharp,
+                    filePath: filePath, outputFilePath: filePath));
+
+            var service = await GetSolutionServiceAsync(workspace.CurrentSolution);
+
+            var solutionChecksum = await workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None);
+            var solution = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
+
+            var compilationOptions = solution.Projects.First().CompilationOptions;
+
+            Assert.True(compilationOptions.StrongNameProvider is DesktopStrongNameProvider);
+            Assert.True(compilationOptions.XmlReferenceResolver is XmlFileResolver);
+
+            var array = new string[] { };
+            Assert.Equal(Hash.CombineValues(array, StringComparer.Ordinal), compilationOptions.StrongNameProvider.GetHashCode());
+            Assert.Equal(((XmlFileResolver)compilationOptions.XmlReferenceResolver).BaseDirectory, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]

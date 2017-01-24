@@ -510,11 +510,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private CompilationOptions FixUpCompilationOptions(ProjectInfo.ProjectAttributes info, CompilationOptions compilationOptions)
         {
-            return compilationOptions.WithXmlReferenceResolver(new XmlFileResolver(GetXmlResolverBasePath(info.FilePath)))
+            return compilationOptions.WithXmlReferenceResolver(GetXmlResolver(info.FilePath))
                                      .WithStrongNameProvider(new DesktopStrongNameProvider(GetStrongNameKeyPaths(info)));
         }
 
-        private static string GetXmlResolverBasePath(string filePath)
+        private static XmlFileResolver GetXmlResolver(string filePath)
         {
             // Given filePath can be any arbitary string project is created with.
             // for primary solution in host such as VSWorkspace, ETA or MSBuildWorkspace
@@ -524,12 +524,11 @@ namespace Microsoft.CodeAnalysis.Remote
             if (!PathUtilities.IsAbsolute(filePath))
             {
                 // xmlFileResolver can only deal with absolute path
-                // return null if file path is not something xml file resolver can handle.
-                // it knows how to handle null
-                return null;
+                // return Default
+                return XmlFileResolver.Default;
             }
 
-            return PathUtilities.GetDirectoryName(filePath);
+            return new XmlFileResolver(PathUtilities.GetDirectoryName(filePath));
         }
 
         private ImmutableArray<string> GetStrongNameKeyPaths(ProjectInfo.ProjectAttributes info)
