@@ -4564,7 +4564,7 @@ public class Program5815
     }
     private static object M() => null;
 }";
-            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
                 // (9,32): error CS1525: Invalid expression term 'break'
                 //             case Color? Color2:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(9, 32),
@@ -4578,6 +4578,15 @@ public class Program5815
                 //             case Color? Color2:
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Color2").WithArguments("Color2").WithLocation(9, 25)
                 );
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var colorDecl = GetPatternDeclarations(tree, "Color").ToArray();
+            var colorRef = GetReferences(tree, "Color").ToArray();
+            Assert.Equal(1, colorDecl.Length);
+            Assert.Equal(2, colorRef.Length);
+            Assert.Null(model.GetSymbolInfo(colorRef[0]).Symbol);
+            VerifyModelForDeclarationPattern(model, colorDecl[0], colorRef[1]);
         }
 
         [Fact, WorkItem(16559, "https://github.com/dotnet/roslyn/issues/16559")]
@@ -4597,14 +4606,22 @@ public class Program5815
     }
     private static object M() => null;
 }";
-            CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
                 // (9,18): error CS0150: A constant value is expected
                 //             case true ? x3 : 4:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "true ? x3 : 4").WithLocation(9, 18)
                 );
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = GetPatternDeclarations(tree, "x3").ToArray();
+            var x3Ref = GetReferences(tree, "x3").ToArray();
+            Assert.Equal(1, x3Decl.Length);
+            Assert.Equal(1, x3Ref.Length);
+            VerifyModelForDeclarationPattern(model, x3Decl[0], x3Ref);
         }
 
-        [Fact(Skip = "This test generator runs too long to use frequently")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16721")]
         public void Fuzz()
         {
             const int numTests = 1000000;
