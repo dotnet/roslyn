@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 var fieldSymbol = field.AsMember(currentUnderlying);
 
                                 // Add a field with default name. It should be present regardless.
-                                TupleElementFieldSymbol defaultTupleField;
+                                TupleElementFieldSymbolBase defaultTupleField;
                                 if (currentNestingLevel != 0)
                                 {
                                     // This is a matching field, but it is in the extension tuple
@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else if (currentNestingLevel == 0)
                             {
                                 // field at the top level didn't match a tuple backing field, simply add.
-                                members.Add(new TupleFieldSymbol(this, field.AsMember(currentUnderlying), -members.Count - 1));
+                                members.Add(new TupleNonElementFieldSymbol(this, field.AsMember(currentUnderlying), -members.Count - 1));
                             }
                             break;
 
@@ -1032,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             Debug.Assert((object)underlyingAssociatedField.ContainingSymbol == _underlyingType);
                             Debug.Assert(_underlyingType.GetMembers(underlyingAssociatedField.Name).IndexOf(underlyingAssociatedField) < 0);
-                            map.Add(underlyingAssociatedField.OriginalDefinition, new TupleFieldSymbol(this, underlyingAssociatedField, -i - 1));
+                            map.Add(underlyingAssociatedField.OriginalDefinition, new TupleNonElementFieldSymbol(this, underlyingAssociatedField, -i - 1));
                         }
 
                         map.Add(underlyingEvent.OriginalDefinition, member);

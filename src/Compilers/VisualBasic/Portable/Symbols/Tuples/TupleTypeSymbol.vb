@@ -705,7 +705,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 Dim FieldSymbol = field.AsMember(currentUnderlying)
 
                                 ' Add a field with default name. It should be present regardless.
-                                Dim defaultTupleField As TupleElementFieldSymbol
+                                Dim defaultTupleField As TupleElementFieldSymbolBase
                                 If currentNestingLevel <> 0 Then
                                     ' This is a matching field, but it is in the extension tuple
                                     ' Make it virtual since we are not at the top level
@@ -745,7 +745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 elementsMatchedByFields(tupleFieldIndex) = True ' mark as handled
                             ElseIf currentNestingLevel = 0 Then
                                 ' field at the top level didn't match a tuple backing field, simply add.
-                                members.Add(New TupleFieldSymbol(Me, field.AsMember(currentUnderlying), -members.Count - 1))
+                                members.Add(New TupleNonElementFieldSymbol(Me, field.AsMember(currentUnderlying), -members.Count - 1))
                             End If
 
                         Case SymbolKind.NamedType
@@ -863,7 +863,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         If associatedField IsNot Nothing Then
                             Debug.Assert(associatedField.ContainingSymbol Is Me._underlyingType)
                             Debug.Assert(Me._underlyingType.GetMembers(associatedField.Name).IndexOf(associatedField) < 0)
-                            smallDictionary.Add(associatedField.OriginalDefinition, New TupleFieldSymbol(Me, associatedField, -i - 1))
+                            smallDictionary.Add(associatedField.OriginalDefinition, New TupleNonElementFieldSymbol(Me, associatedField, -i - 1))
                         End If
 
                         smallDictionary.Add(tupleUnderlyingEvent.OriginalDefinition, symbol)

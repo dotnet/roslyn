@@ -21708,5 +21708,51 @@ class C
             var tupleType = model.GetTypeInfo(tuple);
             Assert.Equal("(System.Int32 Alice, ?)", tupleType.Type.ToTestDisplayString());
         }
+
+        [Fact]
+        [WorkItem(12637, "https://github.com/dotnet/roslyn/issues/12637")]
+        public void EqualityBetweenTupleFields()
+        {
+            var source = @"
+class C
+{
+    (int Alice, int Item2, int, int, int, int, int, int Bob, int Item9) M()
+    {
+        throw null;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var c = comp.GetTypeByMetadataName("C");
+            var mTuple = (NamedTypeSymbol)c.GetMember<MethodSymbol>("M").ReturnType;
+
+            Assert.Equal(new string[] { "Alice", "Item2", null, null, null, null, null, "Bob", "Item9" }, mTuple.TupleElementNames);
+            var elements = mTuple.TupleElements;
+
+            var alice = elements[0];
+            var item1 = alice.CorrespondingTupleField;
+            Assert.True(alice.Equals(alice));
+            Assert.False(alice.Equals(item1.CorrespondingTupleField));
+            Assert.True(item1.Equals(item1.CorrespondingTupleField));
+
+            var item2 = elements[1];
+            Assert.True(item2.Equals(item2));
+            Assert.True(item2.Equals(item2.CorrespondingTupleField));
+
+            var bob = elements[7];
+            var item8 = alice.CorrespondingTupleField;
+            Assert.True(bob.Equals(bob));
+            Assert.False(bob.Equals(item8.CorrespondingTupleField));
+            Assert.True(item8.Equals(item8.CorrespondingTupleField));
+
+            var item9 = elements[8];
+            Assert.True(item9.Equals(item9));
+            Assert.True(item9.Equals(item9.CorrespondingTupleField));
+        }
     }
 }

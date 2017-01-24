@@ -6,11 +6,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    /// <summary>
-    /// Represents a non-element field of a tuple type (such as (int, byte).Rest)
-    /// that is backed by a real field within the tuple underlying type.
-    /// </summary>
-    internal class TupleFieldSymbol : WrappedFieldSymbol
+    internal abstract class TupleFieldSymbol : WrappedFieldSymbol
     {
         protected readonly TupleTypeSymbol _containingTuple;
 
@@ -63,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 // not negative and even
-                return (_tupleElementIndex & ((1<<31) | 1)) == 0 ;
+                return (_tupleElementIndex & ((1 << 31) | 1)) == 0;
             }
         }
 
@@ -116,12 +112,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        public override sealed int GetHashCode()
+        public abstract override int GetHashCode();
+
+        internal int GetHashCodeInternal()
         {
             return Hash.Combine(_containingTuple.GetHashCode(), _tupleElementIndex.GetHashCode());
         }
 
-        public override sealed bool Equals(object obj)
+        public abstract override bool Equals(object obj);
+
+        internal bool EqualsInternal(object obj)
         {
             var other = obj as TupleFieldSymbol;
 
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            // note we have to compare both index and name because 
+            // note we have to compare both index and name because
             // in nameless tuple there could be fields that differ only by index
             // and in named tupoles there could be fields that differ only by name
             return (object)other != null &&
@@ -140,25 +140,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     }
 
     /// <summary>
-    /// Represents an element field of a tuple type (such as (int, byte).Item1)
-    /// that is backed by a real field with the same name within the tuple underlying type.
+    /// Represents a non-element field of a tuple type (such as (int, byte).Rest)
+    /// that is backed by a real field within the tuple underlying type.
     /// </summary>
-    internal class TupleElementFieldSymbol : TupleFieldSymbol
+    internal sealed class TupleNonElementFieldSymbol : TupleFieldSymbol
+    {
+        public TupleNonElementFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, int tupleElementIndex)
+            : base(container, underlyingField, tupleElementIndex)
+        {
+        }
+
+        public sealed override int GetHashCode()
+        {
+            return GetHashCodeInternal();
+        }
+
+        public sealed override bool Equals(object obj)
+        {
+            if (!(obj is TupleNonElementFieldSymbol))
+            {
+                return false;
+            }
+
+            return EqualsInternal(obj);
+        }
+    }
+
+    /// <summary>
+    /// Represents an element field of a tuple type (such as (int, byte).Item1, (int a, byte).a, or (..., int j).Item10).
+    /// </summary>
+    internal abstract class TupleElementFieldSymbolBase : TupleFieldSymbol
     {
         private readonly ImmutableArray<Location> _locations;
-        private readonly TupleElementFieldSymbol _correspondingDefaultField;
+        private readonly TupleElementFieldSymbolBase _correspondingDefaultField;
 
         // default tuple elements like Item1 or Item20 could be provided by the user or
         // otherwise implicitly declared by compiler
         private readonly bool _isImplicitlyDeclared;
 
-        public TupleElementFieldSymbol(
-            TupleTypeSymbol container, 
-            FieldSymbol underlyingField, 
-            int tupleElementIndex, 
-            Location location, 
-            bool isImplicitlyDeclared, 
-            TupleElementFieldSymbol correspondingDefaultFieldOpt)
+        public TupleElementFieldSymbolBase(
+            TupleTypeSymbol container,
+            FieldSymbol underlyingField,
+            int tupleElementIndex,
+            Location location,
+            bool isImplicitlyDeclared,
+            TupleElementFieldSymbolBase correspondingDefaultFieldOpt)
 
             : base(container, underlyingField, (object)correspondingDefaultFieldOpt == null ? tupleElementIndex << 1 : (tupleElementIndex << 1) + 1)
         {
@@ -183,8 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _isImplicitlyDeclared ? 
-                    ImmutableArray<SyntaxReference>.Empty : 
+                return _isImplicitlyDeclared ?
+                    ImmutableArray<SyntaxReference>.Empty :
                     GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(_locations);
             }
         }
@@ -233,32 +259,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     }
 
     /// <summary>
-    /// Represents an element field of a tuple type that is not backed by a real field 
+    /// Represents an element field of a tuple type (such as (int, byte).Item1)
+    /// that is backed by a real field with the same name within the tuple underlying type.
+    /// </summary>
+    internal sealed class TupleElementFieldSymbol : TupleElementFieldSymbolBase
+    {
+        public TupleElementFieldSymbol(
+            TupleTypeSymbol container,
+            FieldSymbol underlyingField,
+            int tupleElementIndex,
+            Location location,
+            bool isImplicitlyDeclared,
+            TupleElementFieldSymbol correspondingDefaultFieldOpt)
+            : base(container, underlyingField, tupleElementIndex, location, isImplicitlyDeclared, correspondingDefaultFieldOpt)
+        {
+        }
+
+        public sealed override int GetHashCode()
+        {
+            return GetHashCodeInternal();
+        }
+
+        public sealed override bool Equals(object obj)
+        {
+            if (!(obj is TupleElementFieldSymbol))
+            {
+                return false;
+            }
+
+            return EqualsInternal(obj);
+        }
+    }
+
+    /// <summary>
+    /// Represents an element field of a tuple type that is not backed by a real field
     /// with the same name within the tuple underlying type.
-    /// 
+    ///
     /// Examples
     ///     // alias to Item1 with a different name
-    ///     (int a, byte b).a                           
+    ///     (int a, byte b).a
     ///
     ///     // not backed directly by the underlying type
     ///     (int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8).i8
-    ///     
+    ///
     /// NOTE: For any virtual element, there is a nonvirtual way to access the same underlying field.
-    ///       In scenarios where we need to enumerate actual fields of a struct, 
+    ///       In scenarios where we need to enumerate actual fields of a struct,
     ///       virtual fields should be ignored.
     /// </summary>
-    internal sealed class TupleVirtualElementFieldSymbol : TupleElementFieldSymbol
+    internal sealed class TupleVirtualElementFieldSymbol : TupleElementFieldSymbolBase
     {
         private readonly string _name;
 
         public TupleVirtualElementFieldSymbol(
-            TupleTypeSymbol container, 
-            FieldSymbol underlyingField, 
-            string name, 
-            int tupleElementIndex, 
-            Location location, 
-            bool isImplicitlyDeclared, 
-            TupleElementFieldSymbol correspondingDefaultFieldOpt)
+            TupleTypeSymbol container,
+            FieldSymbol underlyingField,
+            string name,
+            int tupleElementIndex,
+            Location location,
+            bool isImplicitlyDeclared,
+            TupleElementFieldSymbolBase correspondingDefaultFieldOpt)
 
             : base(container, underlyingField, tupleElementIndex, location, isImplicitlyDeclared, correspondingDefaultFieldOpt)
         {
@@ -299,6 +358,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
+        }
+
+        public sealed override int GetHashCode()
+        {
+            return GetHashCodeInternal();
+        }
+
+        public sealed override bool Equals(object obj)
+        {
+            if (!(obj is TupleVirtualElementFieldSymbol))
+            {
+                return false;
+            }
+
+            return EqualsInternal(obj);
         }
     }
 }

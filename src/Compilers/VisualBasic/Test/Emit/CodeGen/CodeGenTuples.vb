@@ -19119,6 +19119,52 @@ BC37259: Tuple must contain at least two elements.
             Assert.Equal("(Alice As System.Int32, ?)", tupleType.Type.ToTestDisplayString())
         End Sub
 
+        <Fact()>
+        <WorkItem(12637, "https://github.com/dotnet/roslyn/issues/12637")>
+        Public Sub EqualityBetweenTupleFields()
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class C
+    Function M() As (Alice As Integer, Item2 As Integer, Integer, Integer, Integer, Integer, Integer, Bob As Integer, Item9 As Integer)
+        Throw New System.Exception()
+    End Function
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics()
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+
+            Dim c = comp.GetTypeByMetadataName("C")
+            Dim mTuple = DirectCast(c.GetMember(Of MethodSymbol)("M").ReturnType, NamedTypeSymbol)
+
+            Assert.Equal({"Alice", "Item2", Nothing, Nothing, Nothing, Nothing, Nothing, "Bob", "Item9"}, mTuple.TupleElementNames)
+            Dim elements = mTuple.TupleElements
+
+            Dim alice = elements(0)
+            Dim item1 = alice.CorrespondingTupleField
+            Assert.True(alice.Equals(alice))
+            Assert.False(alice.Equals(item1.CorrespondingTupleField))
+            Assert.True(item1.Equals(item1.CorrespondingTupleField))
+
+            Dim item2 = elements(1)
+            Assert.True(item2.Equals(item2))
+            Assert.True(item2.Equals(item2.CorrespondingTupleField))
+
+            Dim bob = elements(7)
+            Dim item8 = alice.CorrespondingTupleField
+            Assert.True(bob.Equals(bob))
+            Assert.False(bob.Equals(item8.CorrespondingTupleField))
+            Assert.True(item8.Equals(item8.CorrespondingTupleField))
+
+            Dim item9 = elements(8)
+            Assert.True(item9.Equals(item9))
+            Assert.True(item9.Equals(item9.CorrespondingTupleField))
+        End Sub
+
     End Class
 
 End Namespace
