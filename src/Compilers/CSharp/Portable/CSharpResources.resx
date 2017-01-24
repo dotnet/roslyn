@@ -1179,6 +1179,9 @@
   <data name="ERR_BadRetType" xml:space="preserve">
     <value>'{1} {0}' has the wrong return type</value>
   </data>
+  <data name="ERR_DelegateRefMismatch" xml:space="preserve">
+    <value>Ref mismatch between '{0}' and delegate '{1}'</value>
+  </data>
   <data name="ERR_DuplicateConstraintClause" xml:space="preserve">
     <value>A constraint clause has already been specified for type parameter '{0}'. All of the constraints for a type parameter must be specified in a single where clause.</value>
   </data>

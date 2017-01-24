@@ -3266,6 +3266,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ref mismatch between &apos;{0}&apos; and delegate &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_DelegateRefMismatch {
+            get {
+                return ResourceManager.GetString("ERR_DelegateRefMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The best overloaded Add method &apos;{0}&apos; for the collection initializer element is obsolete. {1}.
         /// </summary>
         internal static string ERR_DeprecatedCollectionInitAddStr {
