@@ -684,51 +684,27 @@ namespace Roslyn.Utilities
             Debug.Assert(ObjectWriter.s_reverseTypeMap[(int)kind] == type);
 
             // optimizations for supported array type by binary reader
-            if (type == typeof(byte))
-            {
-                return _reader.ReadBytes(length);
-            }
-
-            if (type == typeof(char))
-            {
-                return _reader.ReadChars(length);
-            }
+            if (type == typeof(byte)) { return _reader.ReadBytes(length); }
+            if (type == typeof(char)) { return _reader.ReadChars(length); }
 
             // optimizations for string where object reader/writer has its own mechanism to
             // reduce duplicated strings
-            if (type == typeof(string))
-            {
-                return ReadStringArrayElements(CreateArray<string>(length));
-            }
-
-            if (type == typeof(bool))
-            {
-                return ReadBooleanArrayElements(CreateArray<bool>(length));
-            }
+            if (type == typeof(string)) { return ReadStringArrayElements(CreateArray<string>(length)); }
+            if (type == typeof(bool)) { return ReadBooleanArrayElements(CreateArray<bool>(length)); }
 
             // otherwise, read elements directly from underlying binary writer
             switch (kind)
             {
-                case EncodingKind.Int8:
-                    return ReadInt8ArrayElements(CreateArray<sbyte>(length));
-                case EncodingKind.Int16:
-                    return ReadInt16ArrayElements(CreateArray<short>(length));
-                case EncodingKind.Int32:
-                    return ReadInt32ArrayElements(CreateArray<int>(length));
-                case EncodingKind.Int64:
-                    return ReadInt64ArrayElements(CreateArray<long>(length));
-                case EncodingKind.UInt16:
-                    return ReadUInt16ArrayElements(CreateArray<ushort>(length));
-                case EncodingKind.UInt32:
-                    return ReadUInt32ArrayElements(CreateArray<uint>(length));
-                case EncodingKind.UInt64:
-                    return ReadUInt64ArrayElements(CreateArray<ulong>(length));
-                case EncodingKind.Float4:
-                    return ReadFloat4ArrayElements(CreateArray<float>(length));
-                case EncodingKind.Float8:
-                    return ReadFloat8ArrayElements(CreateArray<double>(length));
-                case EncodingKind.Decimal:
-                    return ReadDecimalArrayElements(CreateArray<decimal>(length));
+                case EncodingKind.Int8: return ReadInt8ArrayElements(CreateArray<sbyte>(length));
+                case EncodingKind.Int16: return ReadInt16ArrayElements(CreateArray<short>(length));
+                case EncodingKind.Int32: return ReadInt32ArrayElements(CreateArray<int>(length));
+                case EncodingKind.Int64: return ReadInt64ArrayElements(CreateArray<long>(length));
+                case EncodingKind.UInt16: return ReadUInt16ArrayElements(CreateArray<ushort>(length));
+                case EncodingKind.UInt32: return ReadUInt32ArrayElements(CreateArray<uint>(length));
+                case EncodingKind.UInt64: return ReadUInt64ArrayElements(CreateArray<ulong>(length));
+                case EncodingKind.Float4: return ReadFloat4ArrayElements(CreateArray<float>(length));
+                case EncodingKind.Float8: return ReadFloat8ArrayElements(CreateArray<double>(length));
+                case EncodingKind.Decimal: return ReadDecimalArrayElements(CreateArray<decimal>(length));
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
