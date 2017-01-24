@@ -157,6 +157,40 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await VerifySolutionUpdate(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, new[] { "test" }));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestHasAllInformation()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            await VerifySolutionUpdate(code, s => s.WithHasAllInformation(s.ProjectIds.First(), false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestAddUpdateRemoveProjects()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            await VerifySolutionUpdate(code, s =>
+            {
+                var existingProjectId = s.ProjectIds.First();
+
+                s = s.AddProject("newProject", "newProject", LanguageNames.CSharp).Solution;
+
+                var project = s.GetProject(existingProjectId);
+                project = project.WithCompilationOptions(project.CompilationOptions.WithModuleName("modified"));
+
+                var existingDocumentId = project.DocumentIds.First();
+
+                project = project.AddDocument("newDocument", SourceText.From("// new text")).Project;
+
+                var document = project.GetDocument(existingDocumentId);
+
+                document = document.WithSourceCodeKind(SourceCodeKind.Script);
+
+                return document.Project.Solution;
+            });
+        }
+
         private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(code))

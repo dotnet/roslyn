@@ -86,7 +86,10 @@ namespace Microsoft.CodeAnalysis
                 ? CreateRecoverableText(info.TextLoader, info.Id, services, reportInvalidDataException: false)
                 : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath));
 
-            // remove any initial loader so we don't keep source alive
+            // ownership of TextLoader information has moved to document state. clear out textloader the info is
+            // holding on. otherwise, these information will be held onto unnecesarily by documentInfo even after
+            // the info has changed by DocumentState.
+            // we hold onto the info so that we don't need to duplicate all information info already has in the state
             info = info.WithTextLoader(null);
 
             return new TextDocumentState(

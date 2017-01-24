@@ -3,7 +3,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 
 namespace Roslyn.Utilities
 {
@@ -14,12 +13,12 @@ namespace Roslyn.Utilities
     {
         // We consider '/' a directory separator on Unix like systems. 
         // On Windows both / and \ are equally accepted.
-        internal static readonly char DirectorySeparatorChar = IsUnixLikePlatform ? '/' : '\\';
+        internal static readonly char DirectorySeparatorChar = PlatformInformation.IsUnix ? '/' : '\\';
         internal static readonly char AltDirectorySeparatorChar = '/';
         internal static readonly string DirectorySeparatorStr = new string(DirectorySeparatorChar, 1);
         internal const char VolumeSeparatorChar = ':';
 
-        internal static bool IsUnixLikePlatform => !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        internal static bool IsUnixLikePlatform => PlatformInformation.IsUnix;
 
         internal static bool IsDirectorySeparator(char c)
         {

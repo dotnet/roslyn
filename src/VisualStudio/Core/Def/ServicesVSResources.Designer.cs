@@ -1187,6 +1187,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move down.
+        /// </summary>
+        internal static string Move_down {
+            get {
+                return ResourceManager.GetString("Move_down", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move up.
+        /// </summary>
+        internal static string Move_up {
+            get {
+                return ResourceManager.GetString("Move_up", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name:.
         /// </summary>
         internal static string Name_colon1 {
@@ -1676,6 +1694,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Remarks_colon {
             get {
                 return ResourceManager.GetString("Remarks_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove.
+        /// </summary>
+        internal static string Remove {
+            get {
+                return ResourceManager.GetString("Remove", resourceCulture);
             }
         }
         

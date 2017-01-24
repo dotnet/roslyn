@@ -114,6 +114,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
       <Link>InternalUtilities\ExceptionUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs">
+      <Link>InternalUtilities\PlatformInformation.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReaderWriterLockSlimExtensions.cs">
       <Link>InternalUtilities\ReaderWriterLockSlimExtensions.cs</Link>
     </Compile>
