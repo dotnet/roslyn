@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.VisualStudio.Text.Editor;
@@ -62,9 +63,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // Find UI doesn't exist in ETA.
             }
 
+            // Once the Dashboard is loaded, the visual tree is completely created and the 
+            // UIAutomation system has discovered and connected the AutomationPeer to the tree,
+            // allowing us to raise the AutomationFocusChanged event and have it process correctly.
+            // for us to set up the AutomationPeer
+            this.Loaded += Dashboard_Loaded;
+
             this.Focus();
             textView.Caret.IsHidden = false;
             ShouldReceiveKeyboardNavigation = false;
+        }
+
+        private void Dashboard_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Move automation focus to the Dashboard so that screenreaders will announce that the
+            // session has begun.
+            if (AutomationPeer.ListenerExists(AutomationEvents.AutomationFocusChanged))
+            {
+                UIElementAutomationPeer.CreatePeerForElement(this)?.RaiseAutomationEvent(AutomationEvents.AutomationFocusChanged);
+            }
         }
 
         private void ShowCaret()
@@ -178,6 +195,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
+        protected override AutomationPeer OnCreateAutomationPeer()
+        {
+            return new DashboardAutomationPeer(this);
+        }
+
         private void DisconnectFromPresentationSource()
         {
             if (_rootInputElement != null)
@@ -271,6 +293,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 ((UIElement)_findAdornmentLayer).LayoutUpdated -= FindAdornmentCanvas_LayoutUpdated;
             }
+
+            this.Loaded -= Dashboard_Loaded;
 
             _model.Dispose();
             PresentationSource.RemoveSourceChangedHandler(this, OnPresentationSourceChanged);

@@ -2501,6 +2501,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     best = MergeTupleNames(MergeDynamic(best, candidate, _conversions.CorLibrary), candidate);
                 }
+                else
+                {
+                    // best candidate is not unique
+                    return false;
+                }
 
                 OuterBreak:
                 ;

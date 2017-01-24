@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  builderType.DeclaredAccessibility == desiredAccessibility)
             {
                 bool isArityOk = isGeneric
-                                 ? builderType.IsUnboundGenericType && builderType.ContainingType?.IsGenericType != true
+                                 ? builderType.IsUnboundGenericType && builderType.ContainingType?.IsGenericType != true && builderType.Arity == 1
                                  : !builderType.IsGenericType;
                 if (isArityOk)
                 {

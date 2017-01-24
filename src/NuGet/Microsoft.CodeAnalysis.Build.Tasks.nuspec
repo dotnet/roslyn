@@ -20,7 +20,6 @@
         <dependency id="System.IO.FileSystem"                               version="$SystemIOFileSystemVersion$"/>
         <dependency id="System.IO.FileSystem.DriveInfo"                     version="$SystemIOFileSystemDriveInfoVersion$"/>
         <dependency id="System.IO.Pipes"                                    version="$SystemIOPipesVersion$" />
-        <dependency id="System.Runtime.InteropServices.RuntimeInformation"  version="$SystemRuntimeInteropServicesRuntimeInformationVersion$"/>
         <dependency id="System.Security.AccessControl"                      version="$SystemSecurityAccessControlVersion$" />
         <dependency id="System.Security.Cryptography.Algorithms"            version="$SystemSecurityCryptographyAlgorithmsVersion$"/>
         <dependency id="System.Security.Principal.Windows"                  version="$SystemSecurityPrincipalWindowsVersion$" />

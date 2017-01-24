@@ -2150,7 +2150,7 @@ class Program
         }
 
         [Fact]
-        public void SwitchWithPattern()
+        public void SwitchWithPattern_01()
         {
             string source = @"
 using System;
@@ -2203,11 +2203,11 @@ class Student : Person { public double GPA; }
           <slot kind=""temp"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
-          <slot kind=""1"" offset=""11"" />
           <slot kind=""0"" offset=""59"" />
-          <slot kind=""21"" offset=""0"" />
           <slot kind=""0"" offset=""163"" />
           <slot kind=""0"" offset=""250"" />
+          <slot kind=""1"" offset=""11"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -2226,13 +2226,109 @@ class Student : Person { public double GPA; }
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xcc"">
         <scope startOffset=""0x36"" endOffset=""0x6e"">
-          <local name=""s"" il_index=""6"" il_start=""0x36"" il_end=""0x6e"" attributes=""0"" />
+          <local name=""s"" il_index=""5"" il_start=""0x36"" il_end=""0x6e"" attributes=""0"" />
         </scope>
         <scope startOffset=""0x6e"" endOffset=""0x94"">
-          <local name=""s"" il_index=""8"" il_start=""0x6e"" il_end=""0x94"" attributes=""0"" />
+          <local name=""s"" il_index=""6"" il_start=""0x6e"" il_end=""0x94"" attributes=""0"" />
         </scope>
         <scope startOffset=""0x94"" endOffset=""0xb5"">
-          <local name=""t"" il_index=""9"" il_start=""0x94"" il_end=""0xb5"" attributes=""0"" />
+          <local name=""t"" il_index=""7"" il_start=""0x94"" il_end=""0xb5"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>"
+);
+        }
+
+        [Fact]
+        public void SwitchWithPattern_02()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    private static List<List<int>> l = new List<List<int>>();
+
+    static void Main(string[] args)
+    {
+        Student s = new Student();
+        s.Name = ""Bozo"";
+        s.GPA = 2.3;
+        Operate(s);  
+    }
+
+    static System.Func<string> Operate(Person p)
+    {
+        switch (p)
+        {
+            case Student s when s.GPA > 3.5:
+                return () => $""Student {s.Name} ({s.GPA:N1})"";
+            case Student s:
+                return () => $""Student {s.Name} ({s.GPA:N1})"";
+            case Teacher t:
+                return () => $""Teacher {t.Name} of {t.Subject}"";
+            default:
+                return () => $""Person {p.Name}"";
+        }
+    }
+}
+
+class Person { public string Name; }
+class Teacher : Person { public string Subject; }
+class Student : Person { public double GPA; }
+";
+            // we just want this to compile without crashing/asserting
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("Program.Operate",
+@"<symbols>
+  <methods>
+    <method containingType=""Program"" name=""Operate"" parameterNames=""p"">
+      <customDebugInfo>
+        <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""0"" />
+          <slot kind=""30"" offset=""383"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+          <slot kind=""1"" offset=""11"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>2</methodOrdinal>
+          <closure offset=""383"" />
+          <closure offset=""0"" />
+          <lambda offset=""109"" closure=""0"" />
+          <lambda offset=""202"" closure=""0"" />
+          <lambda offset=""295"" closure=""0"" />
+          <lambda offset=""383"" closure=""1"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0xd"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
+        <entry offset=""0xe"" hidden=""true"" />
+        <entry offset=""0x20"" hidden=""true"" />
+        <entry offset=""0x50"" hidden=""true"" />
+        <entry offset=""0x57"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" />
+        <entry offset=""0x6f"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""63"" />
+        <entry offset=""0x7f"" hidden=""true"" />
+        <entry offset=""0x89"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""63"" />
+        <entry offset=""0x99"" hidden=""true"" />
+        <entry offset=""0xa3"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""65"" />
+        <entry offset=""0xb3"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""49"" />
+        <entry offset=""0xc3"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xc6"">
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0xc6"" attributes=""0"" />
+        <scope startOffset=""0xe"" endOffset=""0xc3"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0xe"" il_end=""0xc3"" attributes=""0"" />
         </scope>
       </scope>
     </method>
