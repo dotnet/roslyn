@@ -1458,6 +1458,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
         #region Expressions
 
+        internal abstract SyntaxToken NumericLiteralToken(string text, ulong value);
+
         internal abstract SyntaxToken InterpolatedStringTextToken(string content);
         internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);
         internal abstract SyntaxNode Interpolation(SyntaxNode syntaxNode);

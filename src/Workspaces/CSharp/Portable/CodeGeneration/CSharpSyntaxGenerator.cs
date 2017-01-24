@@ -3644,6 +3644,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode Interpolation(SyntaxNode syntaxNode)
             => SyntaxFactory.Interpolation((ExpressionSyntax)syntaxNode);
 
+        internal override SyntaxToken NumericLiteralToken(string text, ulong value)
+            => SyntaxFactory.Literal(text, value);
+
         public override SyntaxNode DefaultExpression(SyntaxNode type)
         {
             return SyntaxFactory.DefaultExpression((TypeSyntax)type);
