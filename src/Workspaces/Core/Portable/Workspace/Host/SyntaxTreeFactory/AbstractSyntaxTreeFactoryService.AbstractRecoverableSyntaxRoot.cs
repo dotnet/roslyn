@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -67,6 +68,16 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly IRecoverableSyntaxTree<TRoot> _containingTree;
             private readonly AbstractSyntaxTreeFactoryService _service;
 
+            /// <summary>
+            /// If we get a very large tree, it may be the case that we can't actually persist
+            /// it to a stream without blowing the stack.  In this case, we hold onto the tree 
+            /// so that it can be recovered properly. Because ths value will also be inside
+            /// <see cref="RecoverableWeakValueSource{T}._weakInstance"/>, the strong reference
+            /// here will prevent it from going away.  Future calls to get the value will then
+            /// always succeed.
+            /// </summary>
+            private TRoot _rootStrongReference;
+
             public RecoverableSyntaxRoot(
                 AbstractSyntaxTreeFactoryService service,
                 TRoot root,
@@ -108,7 +119,19 @@ namespace Microsoft.CodeAnalysis.Host
                 // tree will be always held alive in memory, but nodes come and go. serialize nodes to storage
                 using (var stream = SerializableBytes.CreateWritableStream())
                 {
-                    root.SerializeTo(stream, cancellationToken);
+                    try
+                    {
+                        root.SerializeTo(stream, cancellationToken);
+                    }
+                    catch (Exception e) when (e is ObjectWriter.RecursionDepthExceeded || StackGuard.IsInsufficientExecutionStackException(e))
+                    {
+                        // If we couldn't serialize out this tree (because it was too large). Then 
+                        // just hold onto it in memory.  This will keep it alive in the weak references
+                        // above us.
+                        _rootStrongReference = root;
+                        return;
+                    }
+
                     stream.Position = 0;
 
                     _storage = _service.LanguageServices.WorkspaceServices.GetService<ITemporaryStorageService>().CreateTemporaryStreamStorage(cancellationToken);

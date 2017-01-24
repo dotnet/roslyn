@@ -25,17 +25,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Null(reader);
         }
 
-        private void RoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction, bool recursive)
+        private void RoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction)
         {
             var stream = new MemoryStream();
             var binder = new ObjectBinder();
-            var writer = new ObjectWriter(stream, binder: binder, recursive: recursive);
+            var writer = new ObjectWriter(stream, binder: binder);
 
             writeAction(writer);
             writer.Dispose();
-
-            stream.Position = 2;
-            Assert.Equal(recursive, ObjectReader.IsRecursive(stream));
 
             stream.Position = 0;
             using (var reader = ObjectReader.TryGetReader(stream, binder: binder))
@@ -46,21 +43,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private void TestRoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction)
         {
-            RoundTrip(writeAction, readAction, recursive: true);
-            RoundTrip(writeAction, readAction, recursive: false);
+            RoundTrip(writeAction, readAction);
         }
 
-        private T RoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
+        private T RoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction)
         {
             var stream = new MemoryStream();
             var binder = new ObjectBinder();
-            var writer = new ObjectWriter(stream, binder: binder, recursive: recursive);
+            var writer = new ObjectWriter(stream, binder: binder);
 
             writeAction(writer, value);
             writer.Dispose();
-
-            stream.Position = 2;
-            Assert.Equal(recursive, ObjectReader.IsRecursive(stream));
 
             stream.Position = 0;
             using (var reader = ObjectReader.TryGetReader(stream, binder: binder))
@@ -69,19 +62,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
+        private void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction)
         {
-            var newValue = RoundTrip(value, writeAction, readAction, recursive);
+            var newValue = RoundTrip(value, writeAction, readAction);
             Assert.True(Equalish(value, newValue));
         }
 
-        private void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction)
-        {
-            TestRoundTrip(value, writeAction, readAction, recursive: true);
-            TestRoundTrip(value, writeAction, readAction, recursive: false);
-        }
-
-        private T RoundTripValue<T>(T value, bool recursive)
+        private T RoundTripValue<T>(T value)
         {
             return RoundTrip(value, 
                 (w, v) =>
@@ -97,19 +84,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 },
                 r => value != null && value.GetType().IsEnum 
                     ? (T)Enum.ToObject(typeof(T), r.ReadInt64()) 
-                    : (T)r.ReadValue(), recursive);
-        }
-
-        private void TestRoundTripValue<T>(T value, bool recursive)
-        {
-            var newValue = RoundTripValue(value, recursive);
-            Assert.True(Equalish(value, newValue));
+                    : (T)r.ReadValue());
         }
 
         private void TestRoundTripValue<T>(T value)
         {
-            TestRoundTripValue(value, recursive: true);
-            TestRoundTripValue(value, recursive: false);
+            var newValue = RoundTripValue(value);
+            Assert.True(Equalish(value, newValue));
         }
 
         private static bool Equalish<T>(T value1, T value2)
@@ -1121,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             int id = 0;
             var graph = ConstructGraph(ref id, 1, 1000);
-            TestRoundTripValue(graph, recursive: false);
+            TestRoundTripValue(graph);
         }
 
         private Node ConstructGraph(ref int id, int width, int depth)

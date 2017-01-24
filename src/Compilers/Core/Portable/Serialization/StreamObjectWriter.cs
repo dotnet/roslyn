@@ -27,7 +27,6 @@ namespace Roslyn.Utilities
     {
         private readonly BinaryWriter _writer;
         private readonly ObjectBinder _binderOpt;
-        private readonly bool _recursive;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -37,17 +36,6 @@ namespace Roslyn.Utilities
         /// </summary>
         private readonly WriterReferenceMap _objectReferenceMap;
         private readonly WriterReferenceMap _stringReferenceMap;
-
-        /// <summary>
-        /// The stack of values (object members or array elements) in order to be emitted.
-        /// </summary>
-        private readonly Stack<Variant> _valueStack;
-
-        /// <summary>
-        /// The list of member values written by the member writer
-        /// </summary>
-        private readonly ImmutableArray<Variant>.Builder _memberList;
-        private bool _writingMembers = false;
 
         // collection pools to reduce GC overhead
         internal static readonly ObjectPool<ImmutableArray<Variant>.Builder> s_variantListPool
@@ -62,13 +50,11 @@ namespace Roslyn.Utilities
         /// <param name="stream">The stream to write to.</param>
         /// <param name="knownObjects">An optional list of objects assumed known by the corresponding <see cref="ObjectReader"/>.</param>
         /// <param name="binder">A binder that provides object and type encoding.</param>
-        /// <param name="recursive">True if the writer encodes objects recursively.</param>
         /// <param name="cancellationToken"></param>
         public ObjectWriter(
             Stream stream,
             ObjectData knownObjects = null,
             ObjectBinder binder = null,
-            bool recursive = true,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             // String serialization assumes both reader and writer to be of the same endianness.
@@ -79,21 +65,9 @@ namespace Roslyn.Utilities
             _objectReferenceMap = new WriterReferenceMap(knownObjects, valueEquality: false);
             _stringReferenceMap = new WriterReferenceMap(knownObjects, valueEquality: true);
             _binderOpt = binder;
-            _recursive = recursive;
             _cancellationToken = cancellationToken;
-            _memberList = s_variantListPool.Allocate();
 
             WriteVersion();
-
-            if (_recursive)
-            {
-                _writer.Write((byte)EncodingKind.Recursive);
-            }
-            else
-            {
-                _writer.Write((byte)EncodingKind.NonRecursive);
-                _valueStack = s_variantStackPool.Allocate();
-            }
         }
 
         private void WriteVersion()
@@ -106,224 +80,27 @@ namespace Roslyn.Utilities
         {
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
-
-            _memberList.Clear();
-            s_variantListPool.Free(_memberList);
-            _writingMembers = false;
-
-            if (!_recursive)
-            {
-                _valueStack.Clear();
-                s_variantStackPool.Free(_valueStack);
-            }
         }
 
-        public void WriteBoolean(bool value)
-        {
-            if (_writingMembers)
-            {
-                _memberList.Add(Variant.FromBoolean(value));
-            }
-            else
-            {
-                _writer.Write(value);
-            }
-        }
-
-        public void WriteByte(byte value)
-        {
-            if (_writingMembers)
-            {
-                _memberList.Add(Variant.FromByte(value));
-            }
-            else
-            {
-                _writer.Write(value);
-            }
-        }
-
-        public void WriteChar(char ch)
-        {
-            if (_writingMembers)
-            {
-                _memberList.Add(Variant.FromChar(ch));
-            }
-            else
-            {
-                // written as ushort because BinaryWriter fails on chars that are unicode surrogates
-                _writer.Write((ushort)ch);
-            }
-        }
-
-        public void WriteDecimal(decimal value)
-        {
-            if (_writingMembers)
-            {
-                _memberList.Add(Variant.FromDecimal(value));
-            }
-            else
-            {
-                _writer.Write(value);
-            }
-        }
-
-        public void WriteDouble(double value)
-        {
-            if (_writingMembers)
-            {
-                _memberList.Add(Variant.FromDouble(value));
-            }
-            else
-            {
-                _writer.Write(value);
-            }
-        }
-
-        public void WriteSingle(float value)
-        {
-            if (_writingMembers)
-            {
-                _memberList.Add(Variant.FromSingle(value));
-            }
-            else
-            {
-                _writer.Write(value);
-            }
-        }
-
-        public void WriteInt32(int value)
-        {
-            if (_writingMembers)
-            {
-                _memberList.Add(Variant.FromInt32(value));
-            }
-            else
-            {
-                _writer.Write(value);
-            }
-        }
-
-        public void WriteInt64(long value)
-        {
-            if (_writingMembers)
-            {
-                _memberList.Add(Variant.FromInt64(value));
-            }
-            else
-            {
-                _writer.Write(value);
-            }
-        }
-
-        public void WriteSByte(sbyte value)
-        {
-            if (_writingMembers)
-            {
-                _memberList.Add(Variant.FromSByte(value));
-            }
-            else
-            {
-                _writer.Write(value);
-            }
-        }
-
-        public void WriteInt16(short value)
-        {
-            if (_writingMembers)
-            {
-                _memberList.Add(Variant.FromInt16(value));
-            }
-            else
-            {
-                _writer.Write(value);
-            }
-        }
-
-        public void WriteUInt32(uint value)
-        {
-            if (_writingMembers)
-            {
-                _memberList.Add(Variant.FromUInt32(value));
-            }
-            else
-            {
-                _writer.Write(value);
-            }
-        }
-
-        public void WriteUInt64(ulong value)
-        {
-            if (_writingMembers)
-            {
-                _memberList.Add(Variant.FromUInt64(value));
-            }
-            else
-            {
-                _writer.Write(value);
-            }
-        }
-
-        public void WriteUInt16(ushort value)
-        {
-            if (_writingMembers)
-            {
-                _memberList.Add(Variant.FromUInt16(value));
-            }
-            else
-            {
-                _writer.Write(value);
-            }
-        }
-
-        public void WriteString(string value)
-        {
-            if (_writingMembers)
-            {
-                if (value == null)
-                {
-                    _memberList.Add(Variant.Null);
-                }
-                else
-                {
-                    _memberList.Add(Variant.FromString(value));
-                }
-            }
-            else
-            {
-                WriteStringValue(value);
-            }
-        }
-
+        public void WriteBoolean(bool value) => _writer.Write(value);
+        public void WriteByte(byte value) => _writer.Write(value);
+        // written as ushort because BinaryWriter fails on chars that are unicode surrogates
+        public void WriteChar(char ch) => _writer.Write((ushort)ch);
+        public void WriteDecimal(decimal value) => _writer.Write(value);
+        public void WriteDouble(double value) => _writer.Write(value);
+        public void WriteSingle(float value) => _writer.Write(value);
+        public void WriteInt32(int value) => _writer.Write(value);
+        public void WriteInt64(long value) => _writer.Write(value);
+        public void WriteSByte(sbyte value) => _writer.Write(value);
+        public void WriteInt16(short value) => _writer.Write(value);
+        public void WriteUInt32(uint value) => _writer.Write(value);
+        public void WriteUInt64(ulong value) => _writer.Write(value);
+        public void WriteUInt16(ushort value) => _writer.Write(value);
+        public void WriteString(string value) => WriteStringValue(value);
         public void WriteValue(object value)
         {
-            if (_writingMembers)
-            {
-                _memberList.Add(Variant.FromBoxedObject(value));
-            }
-            else
-            {
-                Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
-                if (_recursive)
-                {
-                    WriteVariant(Variant.FromBoxedObject(value));
-                }
-                else
-                {
-                    _valueStack.Push(Variant.FromBoxedObject(value));
-                    Emit();
-                }
-            }
-        }
-
-        private void Emit()
-        {
-            // emit all values on the stack
-            while (_valueStack.Count > 0)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-                var value = _valueStack.Pop();
-                WriteVariant(value);
-            }
+            Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
+            WriteVariant(Variant.FromBoxedObject(value));
         }
 
         private void WriteVariant(Variant value)
@@ -737,31 +514,20 @@ namespace Roslyn.Utilities
                 // emit header up front
                 this.WriteType(elementType);
 
-                if (_recursive)
+                // recursive: write elements now
+                _recursionDepth++;
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                if (_recursionDepth > MaxRecursionDepth)
                 {
-                    // recursive: write elements now
-                    _recursionDepth++;
-                    StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-                    if (_recursionDepth > MaxRecursionDepth)
-                    {
-                        throw new RecursionDepthExceeded();
-                    }
-
-                    for (int i = 0; i < array.Length; i++)
-                    {
-                        this.WriteValue(array.GetValue(i));
-                    }
-
-                    _recursionDepth--;
+                    throw new RecursionDepthExceeded();
                 }
-                else
+
+                for (int i = 0; i < array.Length; i++)
                 {
-                    // non-recursive: push elements in reverse order so we later emit first element first
-                    for (int i = array.Length - 1; i >= 0; i--)
-                    {
-                        _valueStack.Push(Variant.FromBoxedObject(array.GetValue(i)));
-                    }
+                    this.WriteValue(array.GetValue(i));
                 }
+
+                _recursionDepth--;
             }
         }
 
@@ -1023,50 +789,23 @@ namespace Roslyn.Utilities
                     throw NoSerializationWriterException(instance.GetType().FullName);
                 }
 
-                if (_recursive)
+                _recursionDepth++;
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+                if (_recursionDepth > MaxRecursionDepth)
                 {
-                    _recursionDepth++;
-                    StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-                    if (_recursionDepth > MaxRecursionDepth)
-                    {
-                        throw new RecursionDepthExceeded();
-                    }
-
-                    // emit object header up front
-                    this.WriteObjectHeader(instance, 0);
-
-                    typeWriter(this, instance);
-
-                    _recursionDepth--;
+                    throw new RecursionDepthExceeded();
                 }
-                else
-                {
-                    // gather instance members by writing them into a list of variants
-                    Debug.Assert(_memberList.Count == 0);
-                    Debug.Assert(!_writingMembers);
-                    _writingMembers = true;
 
-                    typeWriter(this, instance);
+                // emit object header up front
+                this.WriteObjectHeader(instance);
 
-                    Debug.Assert(_writingMembers);
-                    _writingMembers = false;
+                typeWriter(this, instance);
 
-                    // emit object header up front
-                    this.WriteObjectHeader(instance, (uint)_memberList.Count);
-
-                    // all object members are emitted as variant values (tagged in stream) so we can later read them non-recursively.
-                    // push all members in reverse order so we later emit the first member written first
-                    for (int i = _memberList.Count - 1; i >= 0; i--)
-                    {
-                        _valueStack.Push(_memberList[i]);
-                    }
-
-                    _memberList.Clear();
-                }
+                _recursionDepth--;
             }
         }
 
-        private void WriteObjectHeader(object instance, uint memberCount)
+        private void WriteObjectHeader(object instance)
         {
             _objectReferenceMap.Add(instance);
 
@@ -1074,11 +813,6 @@ namespace Roslyn.Utilities
 
             Type type = instance.GetType();
             this.WriteType(type);
-
-            if (!_recursive)
-            {
-                this.WriteCompressedUInt(memberCount);
-            }
         }
 
         private static Exception NoSerializationTypeException(string typeName)
@@ -1156,16 +890,6 @@ namespace Roslyn.Utilities
         /// </summary>
         internal enum EncodingKind : byte
         {
-            /// <summary>
-            /// The stream is encoding using recursive object serialization
-            /// </summary>
-            Recursive,
-
-            /// <summary>
-            /// The stream is encoded using non-recursive object serialzation
-            /// </summary>
-            NonRecursive,
-
             /// <summary>
             /// The null value
             /// </summary>
