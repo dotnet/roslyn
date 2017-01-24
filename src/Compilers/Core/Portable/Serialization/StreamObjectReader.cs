@@ -91,11 +91,12 @@ namespace Roslyn.Utilities
             _binderOpt = binder;
             _cancellationToken = cancellationToken;
 
+            _memberList = SOW.s_variantListPool.Allocate();
+
             if (!_recursive)
             {
                 _valueStack = SOW.s_variantStackPool.Allocate();
                 _constructionStack = s_constructionStackPool.Allocate();
-                _memberList = SOW.s_variantListPool.Allocate();
             }
         }
 
@@ -143,6 +144,9 @@ namespace Roslyn.Utilities
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
 
+            ResetMemberList();
+            SOW.s_variantListPool.Free(_memberList);
+
             if (!_recursive)
             {
                 _valueStack.Clear();
@@ -150,9 +154,6 @@ namespace Roslyn.Utilities
 
                 _constructionStack.Clear();
                 s_constructionStackPool.Free(_constructionStack);
-
-                _memberList.Clear();
-                SOW.s_variantListPool.Free(_memberList);
             }
         }
 
