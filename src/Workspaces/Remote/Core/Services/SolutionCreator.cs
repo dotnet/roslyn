@@ -516,6 +516,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static string GetXmlResolverBasePath(string filePath)
         {
+            // Given filePath can be any arbitary string project is created with.
+            // for primary solution in host such as VSWorkspace, ETA or MSBuildWorkspace
+            // filePath will point to actual file on disk, but in memory solultion, or
+            // one from AdhocWorkspace and etc, FilePath can be a random string.
+            // Make sure we return only if given filePath is in right form.
             if (!PathUtilities.IsAbsolute(filePath))
             {
                 // xmlFileResolver can only deal with absolute path
@@ -529,6 +534,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private ImmutableArray<string> GetStrongNameKeyPaths(ProjectInfo.ProjectAttributes info)
         {
+            // Given FilePath/OutputFilePath can be any arbitary strings project is created with.
+            // for primary solution in host such as VSWorkspace, ETA or MSBuildWorkspace
+            // filePath will point to actual file on disk, but in memory solultion, or
+            // one from AdhocWorkspace and etc, FilePath/OutputFilePath can be a random string.
+            // Make sure we return only if given filePath is in right form.
             if (info.FilePath == null && info.OutputFilePath == null)
             {
                 // return empty since that is what IDE does for this case
