@@ -238,8 +238,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder = binderFactory.GetBinder(defaultSyntax);
             }
 
+            Binder binderForDefault = binder.GetBinder(defaultSyntax);
+            if (binderForDefault == null)
+            {
+                binderForDefault = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax);
+            }
+            Debug.Assert(binderForDefault.InParameterDefaultValue);
+            Debug.Assert(binderForDefault.ContainingMemberOrLambda == ContainingSymbol);
+
             BoundExpression valueBeforeConversion;
-            var convertedExpression = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax).BindParameterDefaultValue(defaultSyntax, parameterType, diagnostics, out valueBeforeConversion);
+            var convertedExpression = binderForDefault.BindParameterDefaultValue(defaultSyntax, parameterType, diagnostics, out valueBeforeConversion);
 
             bool hasErrors = ParameterHelpers.ReportDefaultParameterErrors(binder, ContainingSymbol, parameterSyntax, this, valueBeforeConversion, diagnostics);
             if (hasErrors)

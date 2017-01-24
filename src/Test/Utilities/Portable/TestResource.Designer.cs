@@ -93,37 +93,6 @@ namespace Roslyn.Test.Utilities {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to #error Error message
-        ///#warning Warning message
-        ///#pragma warning disable 414, 3021
-        ///#pragma warning restore 3021
-        ///#pragma checksum &quot;file.txt&quot; &quot;{00000000-0000-0000-0000-000000000000}&quot; &quot;2453&quot;
-        ///#define foo
-        ///#if foo
-        ///#else
-        ///#endif
-        ///#undef foo
-        ///
-        ///extern alias Foo;
-        ///
-        ///using System;
-        ///using System.Collections.Generic;
-        ///using System.Linq;
-        ///using System.Linq.Expressions;
-        ///using System.Text;
-        ///using M = System.Math;
-        ///
-        ///#if DEBUG || TRACE
-        ///using System.Diagnostics;
-        ///#elif SILVERLIGHT &amp;&amp; WINDOWS_PHONE || DEBUG || foo == t [rest of string was truncated]&quot;;.
-        /// </summary>
-        public static string AllInOneCSharpCodeVersion6 {
-            get {
-                return ResourceManager.GetString("AllInOneCSharpCodeVersion6", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Option Infer On
         ///Option Explicit Off
         ///

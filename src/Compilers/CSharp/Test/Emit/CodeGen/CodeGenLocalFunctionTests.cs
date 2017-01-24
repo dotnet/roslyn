@@ -31,6 +31,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(16399, "https://github.com/dotnet/roslyn/issues/16399")]
+        public void RecursiveGenericLocalFunctionIterator()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+public static class EnumerableExtensions
+{
+    static void Main(string[] args)
+    {
+        GetLeaves<object>(new List<object>(), list => null);
+
+        var results = GetLeaves<object>(
+            new object[] {
+                new[] { ""a"", ""b""},
+                new[] { ""c"" },
+                new[] { new[] { ""d"" } }
+            }, node => node is string ? null : (IEnumerable<object>)node);
+
+        foreach (var i in results)
+        {
+            Console.WriteLine(i);
+        }
+    }
+
+
+    public static IEnumerable<T> GetLeaves<T>(T root, Func<T, IEnumerable<T>> getChildren)
+    {
+        return GetLeaves(root);
+
+        IEnumerable<T> GetLeaves(T node)
+        {
+            var children = getChildren(node);
+            if (children == null)
+            {
+                return new[] { node };
+            }
+            else
+            {
+                return children.SelectMany(GetLeaves);
+            }
+        }
+    }
+}";
+            VerifyOutput(src, @"a
+b
+c
+d");
+        }
+
+        [Fact]
         [WorkItem(243633, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/243633")]
         public void CaptureGenericFieldAndParameter()
         {

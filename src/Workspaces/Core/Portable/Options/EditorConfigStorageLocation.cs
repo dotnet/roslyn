@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         private Func<string, Type, object> _parseValue;
 
-        private Func<IReadOnlyDictionary<string, object>, Type, object> _parseDictionary;
+        private Func<IReadOnlyDictionary<string, object>, Type, (object result, bool succeeded)> _tryParseDictionary;
 
         public bool TryParseReadonlyDictionary(IReadOnlyDictionary<string, object> allRawConventions, Type type, out object result)
         {
@@ -29,10 +30,11 @@ namespace Microsoft.CodeAnalysis.Options
                     return true;
                 }
             }
-            else if (_parseDictionary != null)
+            else if (_tryParseDictionary != null)
             {
-                result = _parseDictionary(allRawConventions, type);
-                return true;
+                var tuple = _tryParseDictionary(allRawConventions, type);
+                result = tuple.result;
+                return tuple.succeeded;
             }
 
             result = null;
@@ -75,11 +77,19 @@ namespace Microsoft.CodeAnalysis.Options
         public EditorConfigStorageLocation()
         {
             // If the user didn't pass a keyName assume we need to parse the entire dictionary
-            _parseDictionary = (dictionary, type) =>
+            _tryParseDictionary = (dictionary, type) =>
             {
                 if (type == typeof(NamingStylePreferences))
                 {
-                    return EditorConfigNamingStyleParser.GetNamingStylesFromDictionary(dictionary);
+                    var result = EditorConfigNamingStyleParser.GetNamingStylesFromDictionary(dictionary);
+                    if (!result.NamingRules.Any() &&
+                        !result.NamingStyles.Any() &&
+                        !result.SymbolSpecifications.Any())
+                    {
+                        return (result: result, succeeded: false);
+                    }
+
+                    return (result: result, succeeded: true);
                 }
                 else
                 {
@@ -88,10 +98,10 @@ namespace Microsoft.CodeAnalysis.Options
             };
         }
 
-        public EditorConfigStorageLocation(Func<IReadOnlyDictionary<string, object>, object> parseDictionary)
+        public EditorConfigStorageLocation(Func<IReadOnlyDictionary<string, object>, (object result, bool succeeded)> tryParseDictionary)
         {
             // If we're explicitly given a parsing function we can throw away the type when parsing
-            _parseDictionary = (dictionary, type) => parseDictionary(dictionary);
+            _tryParseDictionary = (dictionary, type) => tryParseDictionary(dictionary);
         }
     }
 }

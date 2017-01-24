@@ -15,11 +15,17 @@
 
     <Grid>
         <Grid.Resources>
+            <options:ColumnToTabStopConverter x:Key="ColumnToTabStopConverter" />
             <Style x:Key="DataGridStyle" TargetType="DataGrid">
                 <Setter Property="CellStyle">
                     <Setter.Value>
                         <Style TargetType="DataGridCell">
                             <Setter Property="BorderThickness" Value="1" />
+                            <Setter Property="IsTabStop" 
+                                    Value="{Binding 
+                                        Path=Column, 
+                                        Converter={StaticResource ColumnToTabStopConverter},
+                                        RelativeSource={RelativeSource Self}}"/>
                         </Style>
                     </Setter.Value>
                 </Setter>
@@ -93,6 +99,7 @@
                             <Setter Property="VerticalAlignment" Value="Center"/>
                             <Setter Property="HorizontalAlignment" Value="Left" />
                             <Setter Property="TextWrapping" Value="Wrap" />
+                            <Setter Property="AutomationProperties.Name" Value="{Binding GroupName}" />
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
@@ -107,7 +114,13 @@
                                     DisplayMemberPath="Name"
                                     SelectedItem="{Binding SelectedPreference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                     VerticalContentAlignment="Center"
-                                    HorizontalContentAlignment="Left"/>
+                                    HorizontalContentAlignment="Left">
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                            </ComboBox>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
@@ -142,6 +155,11 @@
                                         </Grid>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
                             </ComboBox>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
