@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
     public class EndToEndTests: EmitMetadataTestBase
     {
+        // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
+        // the compiler can handle.
         [WorkItem(16669, "https://github.com/dotnet/roslyn/issues/16669")]
         [Fact]
         public void OverflowOnFluentCall()
