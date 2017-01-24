@@ -81,6 +81,7 @@ namespace Roslyn.Utilities
             _binderOpt = binder;
             _recursive = recursive;
             _cancellationToken = cancellationToken;
+            _memberList = s_variantListPool.Allocate();
 
             WriteVersion();
 
@@ -92,7 +93,6 @@ namespace Roslyn.Utilities
             {
                 _writer.Write((byte)EncodingKind.NonRecursive);
                 _valueStack = s_variantStackPool.Allocate();
-                _memberList = s_variantListPool.Allocate();
             }
         }
 
@@ -107,11 +107,12 @@ namespace Roslyn.Utilities
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
 
+            _memberList.Clear();
+            s_variantListPool.Free(_memberList);
+            _writingMembers = false;
+
             if (!_recursive)
             {
-                _memberList.Clear();
-                s_variantListPool.Free(_memberList);
-
                 _valueStack.Clear();
                 s_variantStackPool.Free(_valueStack);
             }
