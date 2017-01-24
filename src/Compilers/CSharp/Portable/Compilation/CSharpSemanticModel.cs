@@ -2670,6 +2670,59 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+        // Anonymous types and Tuple expressions are an interesting case here because they declare their own types
+        //
+        // In both cases there is no distinct syntax that creates the type and the syntax that describes the type is the literal itself.
+        // Surely - if you need to modify the anonymous type or a type of a tuple literal, you would be modifying these expressions.
+        //
+        // As a result we support GetDeclaredSymbol on the whole AnonymousObjectCreationExpressionSyntax/TupleExpressionSyntax.
+        // The implementation returns the type of the expression.
+        //
+        // In addition to that GetDeclaredSymbol works on the AnonymousObjectMemberDeclaratorSyntax/ArgumentSyntax
+        // The implementation returns the property/field symbol that is declared by the corresponding syntax.
+        //
+        // Example:
+        //              GetDeclaredSymbol => Type: (int Alice, int Bob) 
+        //             _____ |__________
+        //            [                 ]
+        // var tuple = (Alice: 1, Bob: 2);
+        //                        [     ]
+        //                           \GetDeclaredSymbol => Field: (int Alice, int Bob).Bob
+        //
+        // A special note must be made about the locations of the corresponding symbols - they refer to the actual syntax
+        // of the literal or the anonymous type creation expression
+        // 
+        // This way IDEs can unambiguously implement such services as "Go to definition"
+        //
+        // I.E. GetSymbolInfo for "tuple.Alice" should point to the same field as returned by GetDeclaredSymbol when applied to 
+        // the ArgumentSyntax "Bob: 2", since that is where the field was declared, where renames should be applied and so on.
+        //                 
+        //
+        // In comparison to anonymous types, tuples have one special behavior. 
+        // It is permitted for tuple literals to not have a natural type as long as there is a target type which determines the types of the fields.
+        // As, such for the purpose of GetDeclaredSymbol, the type symbol that is returned for tuple literals has target-typed fields, 
+        // but yet with the original names.
+        //
+        //                               GetDeclaredSymbol => Type: (string Alice, short Bob) 
+        //                         ________ |__________
+        //                         [                   ]
+        // (string, short) tuple = (Alice: null, Bob: 2);
+        //                         [           ]
+        //                              \GetDeclaredSymbol => Field: (string Alice, short Bob).Alice
+        //
+        // In partiucular, the location of the field declaration is "Alice: null" and not the "string"
+        //                 the location of the type is "(Alice: null, Bob: 2)" and not the "(string, short)"
+        //
+        // The reason for this behavior is that, even though there might not be other references to "Alice" field in the code, 
+        // the name "Alice" itself evidently refers to something named "Alice" and should still work with
+        // all the related APIs and services such as "Find all References", "Go to definition", "symbolic rename" etc... 
+        // 
+        //                         GetSymbolInfo => Field: (string Alice, short Bob).Alice 
+        //                         __ |__
+        //                         [     ]
+        // (string, short) tuple = (Alice: null, Bob: 2);
+        //
+
         /// <summary>
         /// Given a syntax node of anonymous object creation initializer, get the anonymous object property symbol.
         /// </summary>
