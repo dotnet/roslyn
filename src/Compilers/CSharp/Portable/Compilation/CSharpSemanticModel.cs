@@ -4038,8 +4038,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parent3.IsKind(SyntaxKind.TupleExpression))
             {
                 var tupleArgument = (ArgumentSyntax)identifierNameSyntax.Parent.Parent;
-                var typleElement = GetDeclaredSymbol(tupleArgument, cancellationToken);
-                return (object)typleElement == null ? SymbolInfo.None : new SymbolInfo(typleElement, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
+                var tupleElement = GetDeclaredSymbol(tupleArgument, cancellationToken);
+                return (object)tupleElement == null ? SymbolInfo.None : new SymbolInfo(tupleElement, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
             }
 
             CSharpSyntaxNode containingInvocation = parent3.Parent;

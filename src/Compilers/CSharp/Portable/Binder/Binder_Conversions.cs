@@ -357,9 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TupleTypeSymbol.ReportNamesMismatchesIfAny(targetType, sourceTuple, diagnostics);
 
-                // Come back to this, what about locations? (https://github.com/dotnet/roslyn/issues/11013)
-
-                // do not lose the original element names and locatins in the literal if different from names in the target
+                // do not lose the original element names and locations in the literal if different from names in the target
                 //
                 // the tuple has changed the type of elements due to target-typing, 
                 // but element names has not changed and locations of their declarations 

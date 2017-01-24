@@ -15044,7 +15044,8 @@ class C
 {
     static void Main()
     {
-        bar x1 = (Alice: 1, ""hello"");
+        // error is intentional. GetSymbolInfo should still work
+        DummyType x1 = (Alice: 1, ""hello"");
 
         var Alice = x1.Alice;
     }
@@ -15065,7 +15066,6 @@ class C
             Assert.Equal("Alice", sym.Symbol.Name);
             Assert.Equal(nc.Name.GetLocation(), sym.Symbol.Locations[0]);
         }
-
 
         [Fact]
         public void CompileTupleLib()

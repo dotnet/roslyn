@@ -4952,6 +4952,111 @@ class C
         }
 
         [Fact]
+        public void TupleLiteralElement004()
+        {
+            var source =
+@"
+
+using System;
+
+class C
+{
+    static void Main() 
+    { 
+        (short X, string Y) = (Alice: 1, Bob: null);
+    }
+}
+
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            var tree = compilation.SyntaxTrees[0];
+            var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
+            var model = compilation.GetSemanticModel(tree);
+            var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob).Bob");
+            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
+            Assert.Equal(element.Locations.Single().IsInSource, true);
+        }
+
+        [Fact]
+        public void TupleLiteralElement005()
+        {
+            var source =
+@"
+
+using System;
+
+class C
+{
+    static void Main() 
+    { 
+        ValueTuple<short, string> vt = (Alice: 1, Bob: null);
+    }
+}
+
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+    }
+}
+
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            var tree = compilation.SyntaxTrees[0];
+            var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
+            var model = compilation.GetSemanticModel(tree);
+            var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob).Bob");
+            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
+            Assert.Equal(element.Locations.Single().IsInSource, true);
+        }
+
+        [Fact]
+        public void TupleLiteralElement006()
+        {
+            var source =
+@"
+
+using System;
+
+class C
+{
+    static void Main() 
+    { 
+        (short X, string) t = (1, Bob: null);
+    }
+}
+
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+            var tree = compilation.SyntaxTrees[0];
+            var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
+            var model = compilation.GetSemanticModel(tree);
+            var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short, string Bob).Bob");
+            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
+            Assert.Equal(element.Locations.Single().IsInSource, true);
+        }
+
+        [Fact]
         public void TestIncompleteMemberNode_Visitor()
         {
             var compilation = CreateCompilationWithMscorlib(@"u");
