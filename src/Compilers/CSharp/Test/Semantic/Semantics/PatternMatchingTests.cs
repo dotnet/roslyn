@@ -4665,7 +4665,7 @@ public class Program{0}
             CreateCompilationWithMscorlib45(program).GetDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem(16671, "https://github.com/dotnet/roslyn/issues/16671")]
         public void TypeParameterSubsumption01()
         {
             var program = @"
@@ -4720,7 +4720,7 @@ TDerived
 Neither");
         }
 
-        [Fact]
+        [Fact, WorkItem(16671, "https://github.com/dotnet/roslyn/issues/16671")]
         public void TypeParameterSubsumption02()
         {
             var program = @"

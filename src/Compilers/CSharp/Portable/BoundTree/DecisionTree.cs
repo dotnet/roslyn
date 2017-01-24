@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expression = new BoundLocal(expression.Syntax, temp, null, type);
             }
 
-            if (!expression.Type.IsValueType || expression.Type.IsNullableType()) // is it possible the input may be null?
+            if (expression.Type.CanContainNull())
             {
                 // We need the ByType decision tree to separate null from non-null values.
                 // Note that, for the purpose of the decision tree (and subsumption), we
