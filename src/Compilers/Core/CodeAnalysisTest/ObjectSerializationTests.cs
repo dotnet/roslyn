@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             stream.Position = 0;
 
-            var reader = StreamObjectReader.TryGetReader(stream);
+            var reader = ObjectReader.TryGetReader(stream);
             Assert.Null(reader);
         }
 
@@ -29,16 +29,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var stream = new MemoryStream();
             var binder = new ObjectBinder();
-            var writer = new StreamObjectWriter(stream, binder: binder, recursive: recursive);
+            var writer = new ObjectWriter(stream, binder: binder, recursive: recursive);
 
             writeAction(writer);
             writer.Dispose();
 
             stream.Position = 2;
-            Assert.Equal(recursive, StreamObjectReader.IsRecursive(stream));
+            Assert.Equal(recursive, ObjectReader.IsRecursive(stream));
 
             stream.Position = 0;
-            using (var reader = StreamObjectReader.TryGetReader(stream, binder: binder))
+            using (var reader = ObjectReader.TryGetReader(stream, binder: binder))
             {
                 readAction(reader);
             }
@@ -54,16 +54,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var stream = new MemoryStream();
             var binder = new ObjectBinder();
-            var writer = new StreamObjectWriter(stream, binder: binder, recursive: recursive);
+            var writer = new ObjectWriter(stream, binder: binder, recursive: recursive);
 
             writeAction(writer, value);
             writer.Dispose();
 
             stream.Position = 2;
-            Assert.Equal(recursive, StreamObjectReader.IsRecursive(stream));
+            Assert.Equal(recursive, ObjectReader.IsRecursive(stream));
 
             stream.Position = 0;
-            using (var reader = StreamObjectReader.TryGetReader(stream, binder: binder))
+            using (var reader = ObjectReader.TryGetReader(stream, binder: binder))
             {
                 return (T)readAction(reader);
             }
@@ -380,36 +380,36 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestInt32EncodingKinds()
         {
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_1, StreamObjectWriter.EncodingKind.Int32_0 + 1);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_2, StreamObjectWriter.EncodingKind.Int32_0 + 2);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_3, StreamObjectWriter.EncodingKind.Int32_0 + 3);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_4, StreamObjectWriter.EncodingKind.Int32_0 + 4);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_5, StreamObjectWriter.EncodingKind.Int32_0 + 5);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_6, StreamObjectWriter.EncodingKind.Int32_0 + 6);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_7, StreamObjectWriter.EncodingKind.Int32_0 + 7);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_8, StreamObjectWriter.EncodingKind.Int32_0 + 8);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_9, StreamObjectWriter.EncodingKind.Int32_0 + 9);
-            Assert.Equal(StreamObjectWriter.EncodingKind.Int32_10, StreamObjectWriter.EncodingKind.Int32_0 + 10);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_1, ObjectWriter.EncodingKind.Int32_0 + 1);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_2, ObjectWriter.EncodingKind.Int32_0 + 2);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_3, ObjectWriter.EncodingKind.Int32_0 + 3);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_4, ObjectWriter.EncodingKind.Int32_0 + 4);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_5, ObjectWriter.EncodingKind.Int32_0 + 5);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_6, ObjectWriter.EncodingKind.Int32_0 + 6);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_7, ObjectWriter.EncodingKind.Int32_0 + 7);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_8, ObjectWriter.EncodingKind.Int32_0 + 8);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_9, ObjectWriter.EncodingKind.Int32_0 + 9);
+            Assert.Equal(ObjectWriter.EncodingKind.Int32_10, ObjectWriter.EncodingKind.Int32_0 + 10);
         }
 
         [Fact]
         public void TestUInt32EncodingKinds()
         {
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_1, StreamObjectWriter.EncodingKind.UInt32_0 + 1);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_2, StreamObjectWriter.EncodingKind.UInt32_0 + 2);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_3, StreamObjectWriter.EncodingKind.UInt32_0 + 3);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_4, StreamObjectWriter.EncodingKind.UInt32_0 + 4);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_5, StreamObjectWriter.EncodingKind.UInt32_0 + 5);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_6, StreamObjectWriter.EncodingKind.UInt32_0 + 6);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_7, StreamObjectWriter.EncodingKind.UInt32_0 + 7);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_8, StreamObjectWriter.EncodingKind.UInt32_0 + 8);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_9, StreamObjectWriter.EncodingKind.UInt32_0 + 9);
-            Assert.Equal(StreamObjectWriter.EncodingKind.UInt32_10, StreamObjectWriter.EncodingKind.UInt32_0 + 10);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_1, ObjectWriter.EncodingKind.UInt32_0 + 1);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_2, ObjectWriter.EncodingKind.UInt32_0 + 2);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_3, ObjectWriter.EncodingKind.UInt32_0 + 3);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_4, ObjectWriter.EncodingKind.UInt32_0 + 4);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_5, ObjectWriter.EncodingKind.UInt32_0 + 5);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_6, ObjectWriter.EncodingKind.UInt32_0 + 6);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_7, ObjectWriter.EncodingKind.UInt32_0 + 7);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_8, ObjectWriter.EncodingKind.UInt32_0 + 8);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_9, ObjectWriter.EncodingKind.UInt32_0 + 9);
+            Assert.Equal(ObjectWriter.EncodingKind.UInt32_10, ObjectWriter.EncodingKind.UInt32_0 + 10);
         }
 
         private void TestRoundTripCompressedUint(uint value)
         {
-            TestRoundTrip(value, (w, v) => ((StreamObjectWriter)w).WriteCompressedUInt(v), r => ((StreamObjectReader)r).ReadCompressedUInt());
+            TestRoundTrip(value, (w, v) => ((ObjectWriter)w).WriteCompressedUInt(v), r => ((ObjectReader)r).ReadCompressedUInt());
         }
 
         [Fact]
@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
 
                 var binder = new ObjectBinder();
-                var writer = new StreamObjectWriter(stream, binder: binder);
+                var writer = new ObjectWriter(stream, binder: binder);
                 // Write each instance twice. The second time around, they'll become ObjectRefs
                 for (int pass = 0; pass < 2; pass++)
                 {
@@ -1076,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 writer.Dispose();
 
                 stream.Position = 0;
-                using (var reader = StreamObjectReader.TryGetReader(stream, binder: binder))
+                using (var reader = ObjectReader.TryGetReader(stream, binder: binder))
                 {
                     for (int pass = 0; pass < 2; pass++)
                     {
@@ -1113,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             int id = 0;
             var graph = ConstructGraph(ref id, 1, 1000);
-            Assert.Throws<StreamObjectWriter.RecursionDepthExceeded>(() => TestRoundTripValue(graph));
+            Assert.Throws<ObjectWriter.RecursionDepthExceeded>(() => TestRoundTripValue(graph));
         }
 
         [Fact]

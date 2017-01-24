@@ -23,7 +23,7 @@ namespace Roslyn.Utilities
     /// <summary>
     /// An <see cref="ObjectWriter"/> that serializes objects to a byte stream.
     /// </summary>
-    internal sealed partial class StreamObjectWriter : ObjectWriter, IDisposable
+    internal sealed partial class ObjectWriter : IDisposable
     {
         private readonly BinaryWriter _writer;
         private readonly ObjectBinder _binderOpt;
@@ -46,29 +46,25 @@ namespace Roslyn.Utilities
         /// <summary>
         /// The list of member values written by the member writer
         /// </summary>
-        private readonly List<Variant> _memberList;
-
-        /// <summary>
-        /// An <see cref="ObjectWriter"/> that is used to write object members into a list of variants.
-        /// </summary>
-        private readonly VariantListWriter _memberWriter;
+        private readonly ImmutableArray<Variant>.Builder _memberList;
+        private bool _writingMembers = false;
 
         // collection pools to reduce GC overhead
-        internal static readonly ObjectPool<List<Variant>> s_variantListPool
-            = new ObjectPool<List<Variant>>(() => new List<Variant>(20));
+        internal static readonly ObjectPool<ImmutableArray<Variant>.Builder> s_variantListPool
+            = new ObjectPool<ImmutableArray<Variant>.Builder>(() => ImmutableArray.CreateBuilder<Variant>(20));
 
         internal static readonly ObjectPool<Stack<Variant>> s_variantStackPool
             = new ObjectPool<Stack<Variant>>(() => new Stack<Variant>(20));
 
         /// <summary>
-        /// Creates a new instance of a <see cref="StreamObjectWriter"/>.
+        /// Creates a new instance of a <see cref="ObjectWriter"/>.
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
-        /// <param name="knownObjects">An optional list of objects assumed known by the corresponding <see cref="StreamObjectReader"/>.</param>
+        /// <param name="knownObjects">An optional list of objects assumed known by the corresponding <see cref="ObjectReader"/>.</param>
         /// <param name="binder">A binder that provides object and type encoding.</param>
         /// <param name="recursive">True if the writer encodes objects recursively.</param>
         /// <param name="cancellationToken"></param>
-        public StreamObjectWriter(
+        public ObjectWriter(
             Stream stream,
             ObjectData knownObjects = null,
             ObjectBinder binder = null,
@@ -97,14 +93,13 @@ namespace Roslyn.Utilities
                 _writer.Write((byte)EncodingKind.NonRecursive);
                 _valueStack = s_variantStackPool.Allocate();
                 _memberList = s_variantListPool.Allocate();
-                _memberWriter = new VariantListWriter(_memberList);
             }
         }
 
         private void WriteVersion()
         {
-            _writer.Write(StreamObjectReader.VersionByte1);
-            _writer.Write(StreamObjectReader.VersionByte2);
+            _writer.Write(ObjectReader.VersionByte1);
+            _writer.Write(ObjectReader.VersionByte2);
         }
 
         public void Dispose()
@@ -122,88 +117,200 @@ namespace Roslyn.Utilities
             }
         }
 
-        public override void WriteBoolean(bool value)
+        public void WriteBoolean(bool value)
         {
-            _writer.Write(value);
-        }
-
-        public override void WriteByte(byte value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteChar(char ch)
-        {
-            // written as ushort because BinaryWriter fails on chars that are unicode surrogates
-            _writer.Write((ushort)ch);
-        }
-
-        public override void WriteDecimal(decimal value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteDouble(double value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteSingle(float value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteInt32(int value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteInt64(long value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteSByte(sbyte value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteInt16(short value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteUInt32(uint value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteUInt64(ulong value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteUInt16(ushort value)
-        {
-            _writer.Write(value);
-        }
-
-        public override void WriteString(string value)
-        {
-            WriteStringValue(value);
-        }
-
-        public override void WriteValue(object value)
-        {
-            Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
-            if (_recursive)
+            if (_writingMembers)
             {
-                WriteVariant(Variant.FromBoxedObject(value));
+                _memberList.Add(Variant.FromBoolean(value));
             }
             else
             {
-                _valueStack.Push(Variant.FromBoxedObject(value));
-                Emit();
+                _writer.Write(value);
+            }
+        }
+
+        public void WriteByte(byte value)
+        {
+            if (_writingMembers)
+            {
+                _memberList.Add(Variant.FromByte(value));
+            }
+            else
+            {
+                _writer.Write(value);
+            }
+        }
+
+        public void WriteChar(char ch)
+        {
+            if (_writingMembers)
+            {
+                _memberList.Add(Variant.FromChar(ch));
+            }
+            else
+            {
+                // written as ushort because BinaryWriter fails on chars that are unicode surrogates
+                _writer.Write((ushort)ch);
+            }
+        }
+
+        public void WriteDecimal(decimal value)
+        {
+            if (_writingMembers)
+            {
+                _memberList.Add(Variant.FromDecimal(value));
+            }
+            else
+            {
+                _writer.Write(value);
+            }
+        }
+
+        public void WriteDouble(double value)
+        {
+            if (_writingMembers)
+            {
+                _memberList.Add(Variant.FromDouble(value));
+            }
+            else
+            {
+                _writer.Write(value);
+            }
+        }
+
+        public void WriteSingle(float value)
+        {
+            if (_writingMembers)
+            {
+                _memberList.Add(Variant.FromSingle(value));
+            }
+            else
+            {
+                _writer.Write(value);
+            }
+        }
+
+        public void WriteInt32(int value)
+        {
+            if (_writingMembers)
+            {
+                _memberList.Add(Variant.FromInt32(value));
+            }
+            else
+            {
+                _writer.Write(value);
+            }
+        }
+
+        public void WriteInt64(long value)
+        {
+            if (_writingMembers)
+            {
+                _memberList.Add(Variant.FromInt64(value));
+            }
+            else
+            {
+                _writer.Write(value);
+            }
+        }
+
+        public void WriteSByte(sbyte value)
+        {
+            if (_writingMembers)
+            {
+                _memberList.Add(Variant.FromSByte(value));
+            }
+            else
+            {
+                _writer.Write(value);
+            }
+        }
+
+        public void WriteInt16(short value)
+        {
+            if (_writingMembers)
+            {
+                _memberList.Add(Variant.FromInt16(value));
+            }
+            else
+            {
+                _writer.Write(value);
+            }
+        }
+
+        public void WriteUInt32(uint value)
+        {
+            if (_writingMembers)
+            {
+                _memberList.Add(Variant.FromUInt32(value));
+            }
+            else
+            {
+                _writer.Write(value);
+            }
+        }
+
+        public void WriteUInt64(ulong value)
+        {
+            if (_writingMembers)
+            {
+                _memberList.Add(Variant.FromUInt64(value));
+            }
+            else
+            {
+                _writer.Write(value);
+            }
+        }
+
+        public void WriteUInt16(ushort value)
+        {
+            if (_writingMembers)
+            {
+                _memberList.Add(Variant.FromUInt16(value));
+            }
+            else
+            {
+                _writer.Write(value);
+            }
+        }
+
+        public void WriteString(string value)
+        {
+            if (_writingMembers)
+            {
+                if (value == null)
+                {
+                    _memberList.Add(Variant.Null);
+                }
+                else
+                {
+                    _memberList.Add(Variant.FromString(value));
+                }
+            }
+            else
+            {
+                WriteStringValue(value);
+            }
+        }
+
+        public void WriteValue(object value)
+        {
+            if (_writingMembers)
+            {
+                _memberList.Add(Variant.FromBoxedObject(value));
+            }
+            else
+            {
+                Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
+                if (_recursive)
+                {
+                    WriteVariant(Variant.FromBoxedObject(value));
+                }
+                else
+                {
+                    _valueStack.Push(Variant.FromBoxedObject(value));
+                    Emit();
+                }
             }
         }
 
@@ -355,101 +462,6 @@ namespace Roslyn.Utilities
                 case VariantKind.Object:
                     WriteObject(value.AsObject());
                     break;
-            }
-        }
-
-        /// <summary>
-        /// An <see cref="ObjectWriter"/> that writes into a list of <see cref="Variant"/>.
-        /// </summary>
-        private class VariantListWriter : ObjectWriter
-        {
-            private readonly List<Variant> _list;
-
-            public VariantListWriter(List<Variant> list)
-            {
-                _list = list;
-            }
-
-            public override void WriteBoolean(bool value)
-            {
-                _list.Add(Variant.FromBoolean(value));
-            }
-
-            public override void WriteByte(byte value)
-            {
-                _list.Add(Variant.FromByte(value));
-            }
-
-            public override void WriteChar(char ch)
-            {
-                _list.Add(Variant.FromChar(ch));
-            }
-
-            public override void WriteDecimal(decimal value)
-            {
-                _list.Add(Variant.FromDecimal(value));
-            }
-
-            public override void WriteDouble(double value)
-            {
-                _list.Add(Variant.FromDouble(value));
-            }
-
-            public override void WriteSingle(float value)
-            {
-                _list.Add(Variant.FromSingle(value));
-            }
-
-            public override void WriteInt32(int value)
-            {
-                _list.Add(Variant.FromInt32(value));
-            }
-
-            public override void WriteInt64(long value)
-            {
-                _list.Add(Variant.FromInt64(value));
-            }
-
-            public override void WriteSByte(sbyte value)
-            {
-                _list.Add(Variant.FromSByte(value));
-            }
-
-            public override void WriteInt16(short value)
-            {
-                _list.Add(Variant.FromInt16(value));
-            }
-
-            public override void WriteUInt32(uint value)
-            {
-                _list.Add(Variant.FromUInt32(value));
-            }
-
-            public override void WriteUInt64(ulong value)
-            {
-                _list.Add(Variant.FromUInt64(value));
-            }
-
-            public override void WriteUInt16(ushort value)
-            {
-                _list.Add(Variant.FromUInt16(value));
-            }
-
-            public override void WriteString(string value)
-            {
-                if (value == null)
-                {
-                    _list.Add(Variant.Null);
-                }
-                else
-                {
-                    _list.Add(Variant.FromString(value));
-                }
-            }
-
-            public override void WriteValue(object value)
-            {
-                _list.Add(Variant.FromBoxedObject(value));
             }
         }
 
@@ -1029,8 +1041,14 @@ namespace Roslyn.Utilities
                 else
                 {
                     // gather instance members by writing them into a list of variants
-                    _memberList.Clear();
-                    typeWriter(_memberWriter, instance);
+                    Debug.Assert(_memberList.Count == 0);
+                    Debug.Assert(!_writingMembers);
+                    _writingMembers = true;
+
+                    typeWriter(this, instance);
+
+                    Debug.Assert(_writingMembers);
+                    _writingMembers = false;
 
                     // emit object header up front
                     this.WriteObjectHeader(instance, (uint)_memberList.Count);
@@ -1041,6 +1059,8 @@ namespace Roslyn.Utilities
                     {
                         _valueStack.Push(_memberList[i]);
                     }
+
+                    _memberList.Clear();
                 }
             }
         }
@@ -1080,7 +1100,7 @@ namespace Roslyn.Utilities
         /// </summary>
         internal static readonly ImmutableArray<Type> s_reverseTypeMap;
 
-        static StreamObjectWriter()
+        static ObjectWriter()
         {
             s_typeMap = new Dictionary<Type, EncodingKind>
             {

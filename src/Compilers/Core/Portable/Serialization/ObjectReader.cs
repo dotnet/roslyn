@@ -2,6 +2,7 @@
 
 namespace Roslyn.Utilities
 {
+#if false
     /// <summary>
     /// An abstract of a stream of values that can be read from.
     /// </summary>
@@ -23,4 +24,5 @@ namespace Roslyn.Utilities
         public abstract string ReadString();
         public abstract object ReadValue();
     }
+#endif
 }

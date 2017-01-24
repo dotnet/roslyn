@@ -2,6 +2,7 @@
 
 namespace Roslyn.Utilities
 {
+#if false
     /// <summary>
     /// An abstraction of a stream of values that can be written to.
     /// </summary>
@@ -23,4 +24,5 @@ namespace Roslyn.Utilities
         public abstract void WriteString(string value);
         public abstract void WriteValue(object value);
     }
+#endif
 }

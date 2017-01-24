@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -17,15 +18,15 @@ namespace Roslyn.Utilities
     using Resources = WorkspacesResources;
 #endif
 
-    using SOW = StreamObjectWriter;
-    using EncodingKind = StreamObjectWriter.EncodingKind;
-    using Variant = StreamObjectWriter.Variant;
-    using VariantKind = StreamObjectWriter.VariantKind;
+    using SOW = ObjectWriter;
+    using EncodingKind = ObjectWriter.EncodingKind;
+    using Variant = ObjectWriter.Variant;
+    using VariantKind = ObjectWriter.VariantKind;
 
     /// <summary>
     /// An <see cref="ObjectReader"/> that deserializes objects from a byte stream.
     /// </summary>
-    internal sealed partial class StreamObjectReader : ObjectReader, IDisposable
+    internal sealed partial class ObjectReader : IDisposable
     {
         /// <summary>
         /// We start the version at something reasonably random.  That way an older file, with 
@@ -59,24 +60,20 @@ namespace Roslyn.Utilities
         /// <summary>
         /// List of member values that object deserializers read from.
         /// </summary>
-        private readonly List<Variant> _memberList;
-
-        /// <summary>
-        /// Used to provide member values when reading and constructing objects.
-        /// </summary>
-        private readonly VariantListReader _memberReader;
+        private readonly ImmutableArray<Variant>.Builder _memberList;
+        private int _indexInMemberList;
 
         private static readonly ObjectPool<Stack<Construction>> s_constructionStackPool
             = new ObjectPool<Stack<Construction>>(() => new Stack<Construction>(20));
 
         /// <summary>
-        /// Creates a new instance of a <see cref="StreamObjectReader"/>.
+        /// Creates a new instance of a <see cref="ObjectReader"/>.
         /// </summary>
         /// <param name="stream">The stream to read objects from.</param>
-        /// <param name="knownObjects">An optional list of objects assumed known by the corresponding <see cref="StreamObjectWriter"/>.</param>
+        /// <param name="knownObjects">An optional list of objects assumed known by the corresponding <see cref="ObjectWriter"/>.</param>
         /// <param name="binder">A binder that provides object and type decoding.</param>
         /// <param name="cancellationToken"></param>
-        private StreamObjectReader(
+        private ObjectReader(
             Stream stream,
             ObjectData knownObjects,
             ObjectBinder binder,
@@ -99,16 +96,15 @@ namespace Roslyn.Utilities
                 _valueStack = SOW.s_variantStackPool.Allocate();
                 _constructionStack = s_constructionStackPool.Allocate();
                 _memberList = SOW.s_variantListPool.Allocate();
-                _memberReader = new VariantListReader(_memberList);
             }
         }
 
         /// <summary>
-        /// Attempts to create a <see cref="StreamObjectReader"/> from the provided <paramref name="stream"/>.
+        /// Attempts to create a <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
         /// If the <paramref name="stream"/> does not start with a valid header, then <code>null</code> will
         /// be returned.
         /// </summary>
-        public static StreamObjectReader TryGetReader(
+        public static ObjectReader TryGetReader(
             Stream stream,
             ObjectData knownObjects = null,
             ObjectBinder binder = null,
@@ -125,7 +121,7 @@ namespace Roslyn.Utilities
                 return null;
             }
 
-            return new StreamObjectReader(stream, knownObjects, binder, cancellationToken);
+            return new ObjectReader(stream, knownObjects, binder, cancellationToken);
         }
 
         internal static bool IsRecursive(Stream stream)
@@ -160,79 +156,95 @@ namespace Roslyn.Utilities
             }
         }
 
-        public override bool ReadBoolean()
+        private void ResetMemberList()
         {
-            return _reader.ReadBoolean();
+            _memberList.Clear();
+            _indexInMemberList = 0;
         }
 
-        public override byte ReadByte()
-        {
-            return _reader.ReadByte();
-        }
+        private Variant NextFromMemberList()
+            => _memberList[_indexInMemberList++];
 
-        public override char ReadChar()
-        {
-            // read as ushort because BinaryWriter fails on chars that are unicode surrogates
-            return (char)_reader.ReadUInt16();
-        }
+        private bool ShouldReadFromMemberList => _memberList.Count > 0;
 
-        public override decimal ReadDecimal()
-        {
-            return _reader.ReadDecimal();
-        }
+        public bool ReadBoolean()
+            => ShouldReadFromMemberList
+                ? NextFromMemberList().AsBoolean()
+                : _reader.ReadBoolean();
 
-        public override double ReadDouble()
-        {
-            return _reader.ReadDouble();
-        }
+        public byte ReadByte()
+            => ShouldReadFromMemberList
+                ? NextFromMemberList().AsByte()
+                : _reader.ReadByte();
 
-        public override float ReadSingle()
-        {
-            return _reader.ReadSingle();
-        }
+        // read as ushort because BinaryWriter fails on chars that are unicode surrogates
+        public char ReadChar()
+            => ShouldReadFromMemberList
+                ? NextFromMemberList().AsChar()
+                : (char)_reader.ReadUInt16();
 
-        public override int ReadInt32()
-        {
-            return _reader.ReadInt32();
-        }
+        public decimal ReadDecimal()
+            => ShouldReadFromMemberList
+                ? NextFromMemberList().AsDecimal()
+                : _reader.ReadDecimal();
 
-        public override long ReadInt64()
-        {
-            return _reader.ReadInt64();
-        }
+        public double ReadDouble()
+            => ShouldReadFromMemberList
+                ? NextFromMemberList().AsDouble()
+                : _reader.ReadDouble();
 
-        public override sbyte ReadSByte()
-        {
-            return _reader.ReadSByte();
-        }
+        public float ReadSingle()
+            => ShouldReadFromMemberList
+                ? NextFromMemberList().AsSingle()
+                : _reader.ReadSingle();
 
-        public override short ReadInt16()
-        {
-            return _reader.ReadInt16();
-        }
+        public int ReadInt32()
+            => ShouldReadFromMemberList
+                ? NextFromMemberList().AsInt32()
+                : _reader.ReadInt32();
 
-        public override uint ReadUInt32()
-        {
-            return _reader.ReadUInt32();
-        }
+        public long ReadInt64()
+            => ShouldReadFromMemberList
+                ? NextFromMemberList().AsInt64()
+                : _reader.ReadInt64();
 
-        public override ulong ReadUInt64()
-        {
-            return _reader.ReadUInt64();
-        }
+        public sbyte ReadSByte()
+            => ShouldReadFromMemberList
+                ? NextFromMemberList().AsSByte()
+                : _reader.ReadSByte();
 
-        public override ushort ReadUInt16()
-        {
-            return _reader.ReadUInt16();
-        }
+        public short ReadInt16()
+            => ShouldReadFromMemberList
+                ? NextFromMemberList().AsInt16()
+                : _reader.ReadInt16();
 
-        public override string ReadString()
-        {
-            return ReadStringValue();
-        }
+        public uint ReadUInt32()
+            => ShouldReadFromMemberList
+                ? NextFromMemberList().AsUInt32()
+                : _reader.ReadUInt32();
 
-        public override object ReadValue()
+        public ulong ReadUInt64()
+            => ShouldReadFromMemberList
+                ? NextFromMemberList().AsUInt64()
+                : _reader.ReadUInt64();
+
+        public ushort ReadUInt16()
+            => ShouldReadFromMemberList
+                ? NextFromMemberList().AsUInt16()
+                : _reader.ReadUInt16();
+
+        public string ReadString()
+            => ShouldReadFromMemberList
+                ? ReadStringFromMemberList()
+                : ReadStringValue();
+
+        public object ReadValue()
         {
+            if (ShouldReadFromMemberList)
+            {
+                return ReadValueFromMemberList();
+            }
+
             var v = ReadVariant();
 
             // if we didn't get anything, it must have been an object or array header
@@ -243,6 +255,17 @@ namespace Roslyn.Utilities
 
             return v.ToBoxedObject();
         }
+
+        private string ReadStringFromMemberList()
+        {
+            var next = NextFromMemberList();
+            return next.Kind == VariantKind.Null
+                ? null
+                : next.AsString();
+        }
+
+        private object ReadValueFromMemberList()
+            => NextFromMemberList().ToBoxedObject();
 
         private Variant ConstructFromValues()
         {
@@ -333,7 +356,7 @@ namespace Roslyn.Utilities
                 return new Construction(elementType, elementCount, stackStart, reader: null, id: 0);
             }
 
-            public Variant Construct(StreamObjectReader reader)
+            public Variant Construct(ObjectReader reader)
             {
                 if (_reader != null)
                 {
@@ -448,113 +471,6 @@ namespace Roslyn.Utilities
             }
         }
 
-        private class VariantListReader : ObjectReader
-        {
-            private readonly List<Variant> _list;
-            private int _index;
-
-            public VariantListReader(List<Variant> list)
-            {
-                _list = list;
-            }
-
-            public void Reset()
-            {
-                _list.Clear();
-                _index = 0;
-            }
-
-            public int Position => _index;
-
-            private Variant Next()
-            {
-                return _list[_index++];
-            }
-
-            public override bool ReadBoolean()
-            {
-                return Next().AsBoolean();
-            }
-
-            public override byte ReadByte()
-            {
-                return Next().AsByte();
-            }
-
-            public override char ReadChar()
-            {
-                return Next().AsChar();
-            }
-
-            public override decimal ReadDecimal()
-            {
-                return Next().AsDecimal();
-            }
-
-            public override double ReadDouble()
-            {
-                return Next().AsDouble();
-            }
-
-            public override float ReadSingle()
-            {
-                return Next().AsSingle();
-            }
-
-            public override int ReadInt32()
-            {
-                return Next().AsInt32();
-            }
-
-            public override long ReadInt64()
-            {
-                return Next().AsInt64();
-            }
-
-            public override sbyte ReadSByte()
-            {
-                return Next().AsSByte();
-            }
-
-            public override short ReadInt16()
-            {
-                return Next().AsInt16();
-            }
-
-            public override uint ReadUInt32()
-            {
-                return Next().AsUInt32();
-            }
-
-            public override ulong ReadUInt64()
-            {
-                return Next().AsUInt64();
-            }
-
-            public override ushort ReadUInt16()
-            {
-                return Next().AsUInt16();
-            }
-
-            public override String ReadString()
-            {
-                var next = Next();
-                if (next.Kind == VariantKind.Null)
-                {
-                    return null;
-                }
-                else
-                {
-                    return next.AsString();
-                }
-            }
-
-            public override Object ReadValue()
-            {
-                return Next().ToBoxedObject();
-            }
-        }
-
         /// <summary>
         /// An reference-id to object map, that can share base data efficiently.
         /// </summary>
@@ -614,21 +530,21 @@ namespace Roslyn.Utilities
         internal uint ReadCompressedUInt()
         {
             var info = _reader.ReadByte();
-            byte marker = (byte)(info & StreamObjectWriter.ByteMarkerMask);
-            byte byte0 = (byte)(info & ~StreamObjectWriter.ByteMarkerMask);
+            byte marker = (byte)(info & ObjectWriter.ByteMarkerMask);
+            byte byte0 = (byte)(info & ~ObjectWriter.ByteMarkerMask);
 
-            if (marker == StreamObjectWriter.Byte1Marker)
+            if (marker == ObjectWriter.Byte1Marker)
             {
                 return byte0;
             }
 
-            if (marker == StreamObjectWriter.Byte2Marker)
+            if (marker == ObjectWriter.Byte2Marker)
             {
                 var byte1 = _reader.ReadByte();
                 return (((uint)byte0) << 8) | byte1;
             }
 
-            if (marker == StreamObjectWriter.Byte4Marker)
+            if (marker == ObjectWriter.Byte4Marker)
             {
                 var byte1 = _reader.ReadByte();
                 var byte2 = _reader.ReadByte();
@@ -716,7 +632,7 @@ namespace Roslyn.Utilities
             // SUBTLE: If it was a primitive array, only the EncodingKind byte of the element type was written, instead of encoding as a type.
             var elementKind = (EncodingKind)_reader.ReadByte();
 
-            var elementType = StreamObjectWriter.s_reverseTypeMap[(int)elementKind];
+            var elementType = ObjectWriter.s_reverseTypeMap[(int)elementKind];
             if (elementType != null)
             {
                 return Variant.FromArray(this.ReadPrimitiveTypeArrayElements(elementType, elementKind, length));
@@ -764,7 +680,7 @@ namespace Roslyn.Utilities
 
         private Array ReadPrimitiveTypeArrayElements(Type type, EncodingKind kind, int length)
         {
-            Debug.Assert(StreamObjectWriter.s_reverseTypeMap[(int)kind] == type);
+            Debug.Assert(ObjectWriter.s_reverseTypeMap[(int)kind] == type);
 
             // optimizations for supported array type by binary reader
             if (type == typeof(byte))
@@ -1087,24 +1003,30 @@ namespace Roslyn.Utilities
 
         private Variant ConstructObject(Type type, int memberCount, Func<ObjectReader, object> reader, int id)
         {
-            _memberReader.Reset();
+            Debug.Assert(_memberList.Count == 0);
+            Debug.Assert(_indexInMemberList == 0);
+
+            _memberList.Count = memberCount;
 
             // take members from the stack
             for (int i = 0; i < memberCount; i++)
             {
-                _memberList.Add(_valueStack.Pop());
+                _memberList[memberCount - i - 1] = _valueStack.Pop();
+                // _memberList.Add(_valueStack.Pop());
             }
 
             // reverse list so that first member to be read is first
-            Reverse(_memberList);
+            // Reverse(_memberList);
 
             // invoke the deserialization constructor to create instance and read & assign members           
-            var instance = reader(_memberReader);
+            var instance = reader(this);
 
-            if (_memberReader.Position != memberCount)
+            if (_indexInMemberList != memberCount)
             {
                 throw DeserializationReadIncorrectNumberOfValuesException(type.Name);
             }
+
+            ResetMemberList();
 
             _objectReferenceMap.SetValue(id, instance);
 
