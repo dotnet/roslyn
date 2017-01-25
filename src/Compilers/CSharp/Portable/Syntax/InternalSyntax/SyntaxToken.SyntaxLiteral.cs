@@ -37,10 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             static SyntaxTokenWithValue()
             {
-                ObjectBinder.RegisterTypeReader(typeof(SyntaxTokenWithValue<string>), r => new SyntaxTokenWithValue<string>(r));
-                ObjectBinder.RegisterTypeReader(typeof(SyntaxTokenWithValue<int>), r => new SyntaxTokenWithValue<int>(r));
-                ObjectBinder.RegisterTypeReader(typeof(SyntaxTokenWithValue<long>), r => new SyntaxTokenWithValue<long>(r));
-                ObjectBinder.RegisterTypeReader(typeof(SyntaxTokenWithValue<double>), r => new SyntaxTokenWithValue<double>(r));
+                ObjectBinder.RegisterTypeReader(typeof(SyntaxTokenWithValue<T>), r => new SyntaxTokenWithValue<T>(r));
             }
 
             internal override void WriteTo(ObjectWriter writer)

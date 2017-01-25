@@ -11,10 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             static SyntaxTokenWithValueAndTrivia()
             {
-                ObjectBinder.RegisterTypeReader(typeof(SyntaxTokenWithValueAndTrivia<string>), r => new SyntaxTokenWithValueAndTrivia<string>(r));
-                ObjectBinder.RegisterTypeReader(typeof(SyntaxTokenWithValueAndTrivia<int>), r => new SyntaxTokenWithValueAndTrivia<int>(r));
-                ObjectBinder.RegisterTypeReader(typeof(SyntaxTokenWithValueAndTrivia<long>), r => new SyntaxTokenWithValueAndTrivia<long>(r));
-                ObjectBinder.RegisterTypeReader(typeof(SyntaxTokenWithValueAndTrivia<double>), r => new SyntaxTokenWithValueAndTrivia<double>(r));
+                ObjectBinder.RegisterTypeReader(typeof(SyntaxTokenWithValueAndTrivia<T>), r => new SyntaxTokenWithValueAndTrivia<T>(r));
             }
 
             private readonly GreenNode _leading;
