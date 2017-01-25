@@ -728,6 +728,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (method.ReturnsByRef != delegateMethod.ReturnsByRef)
+            {
+                Error(diagnostics, ErrorCode.ERR_DelegateRefMismatch, errorLocation, method, delegateType);
+                diagnostics.Add(errorLocation, useSiteDiagnostics);
+                return false;
+            }
+
             diagnostics.Add(errorLocation, useSiteDiagnostics);
             return true;
         }

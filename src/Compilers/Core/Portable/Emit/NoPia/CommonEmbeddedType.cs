@@ -203,11 +203,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 builder.AddOptional(CreateTypeIdentifierAttribute(hasGuid && IsInterface, syntaxNodeOpt, diagnostics));
 
-                if (UnderlyingNamedType.IsValueType)
-                {
-                    builder.AddOptional(TypeManager.CreateComVisibleAttribute());
-                }
-
                 return builder.ToImmutableAndFree();
             }
 

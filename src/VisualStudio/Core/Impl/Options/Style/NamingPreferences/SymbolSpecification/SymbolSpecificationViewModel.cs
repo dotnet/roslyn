@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         public SymbolSpecificationViewModel(
             string languageName,
             bool canBeDeleted,
-            INotificationService notificationService) : this(languageName, SymbolSpecification.All, canBeDeleted, notificationService) { }
+            INotificationService notificationService) : this(languageName, CreateDefaultSymbolSpecification(), canBeDeleted, notificationService) { }
 
         public SymbolSpecificationViewModel(string languageName, SymbolSpecification specification, bool canBeDeleted, INotificationService notificationService)
         {

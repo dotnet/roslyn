@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConstantPattern:
                     {
                         var constantPattern = (BoundConstantPattern)pattern;
-                        if (constantPattern.Value.HasErrors || constantPattern.Value.ConstantValue == null)
+                        if (constantPattern.Value.HasErrors || constantPattern.Value.ConstantValue == null || constantPattern.Value.ConstantValue.IsBad)
                         {
                             // since this will have been reported earlier, we use ErrorCode.ERR_NoImplicitConvCast
                             // as a flag to suppress errors in subsumption analysis.

@@ -13,33 +13,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal class SymbolSpecification
     {
-        public static readonly SymbolSpecification All = new SymbolSpecification(
-            id: Guid.NewGuid(),
-            symbolSpecName: null,
-            symbolKindList: ImmutableArray.Create(
-                new SymbolKindOrTypeKind(SymbolKind.Namespace),
-                new SymbolKindOrTypeKind(TypeKind.Class),
-                new SymbolKindOrTypeKind(TypeKind.Struct),
-                new SymbolKindOrTypeKind(TypeKind.Interface),
-                new SymbolKindOrTypeKind(TypeKind.Delegate),
-                new SymbolKindOrTypeKind(TypeKind.Enum),
-                new SymbolKindOrTypeKind(TypeKind.Module),
-                new SymbolKindOrTypeKind(TypeKind.Pointer),
-                new SymbolKindOrTypeKind(TypeKind.TypeParameter),
-                new SymbolKindOrTypeKind(SymbolKind.Property),
-                new SymbolKindOrTypeKind(SymbolKind.Method),
-                new SymbolKindOrTypeKind(SymbolKind.Field),
-                new SymbolKindOrTypeKind(SymbolKind.Event),
-                new SymbolKindOrTypeKind(SymbolKind.Parameter)),
-            accessibilityList: ImmutableArray.Create(
-                Accessibility.Public,
-                Accessibility.Internal,
-                Accessibility.Private,
-                Accessibility.Protected,
-                Accessibility.ProtectedAndInternal,
-                Accessibility.ProtectedOrInternal),
-            modifiers: ImmutableArray<ModifierKind>.Empty);
-
         public Guid ID { get; }
         public string Name { get; }
 
@@ -58,6 +31,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             ApplicableAccessibilityList = accessibilityList;
             RequiredModifierList = modifiers;
             ApplicableSymbolKindList = symbolKindList;
+        }
+
+        public static SymbolSpecification CreateDefaultSymbolSpecification()
+        {
+            // This is used to create new, empty symbol specifications for users to then customize.
+            // Since these customized specifications will eventually coexist with all the other
+            // existing specifications, always use a new, distinct guid.
+
+            return new SymbolSpecification(
+                id: Guid.NewGuid(),
+                symbolSpecName: null,
+                symbolKindList: ImmutableArray.Create(
+                    new SymbolKindOrTypeKind(SymbolKind.Namespace),
+                    new SymbolKindOrTypeKind(TypeKind.Class),
+                    new SymbolKindOrTypeKind(TypeKind.Struct),
+                    new SymbolKindOrTypeKind(TypeKind.Interface),
+                    new SymbolKindOrTypeKind(TypeKind.Delegate),
+                    new SymbolKindOrTypeKind(TypeKind.Enum),
+                    new SymbolKindOrTypeKind(TypeKind.Module),
+                    new SymbolKindOrTypeKind(TypeKind.Pointer),
+                    new SymbolKindOrTypeKind(TypeKind.TypeParameter),
+                    new SymbolKindOrTypeKind(SymbolKind.Property),
+                    new SymbolKindOrTypeKind(SymbolKind.Method),
+                    new SymbolKindOrTypeKind(SymbolKind.Field),
+                    new SymbolKindOrTypeKind(SymbolKind.Event),
+                    new SymbolKindOrTypeKind(SymbolKind.Parameter)),
+                accessibilityList: ImmutableArray.Create(
+                    Accessibility.Public,
+                    Accessibility.Internal,
+                    Accessibility.Private,
+                    Accessibility.Protected,
+                    Accessibility.ProtectedAndInternal,
+                    Accessibility.ProtectedOrInternal),
+                modifiers: ImmutableArray<ModifierKind>.Empty);
         }
 
         internal bool AppliesTo(ISymbol symbol)

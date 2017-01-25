@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New SynthesizedAttributeData(constructorSymbol, arguments, namedStringArguments)
         End Function
 
-        Private Function ReturnNothingOrThrowIfAttributeNonOptional(constructor As WellKnownMember, Optional isOptionalUse As Boolean = False) As SynthesizedAttributeData
+        Private Shared Function ReturnNothingOrThrowIfAttributeNonOptional(constructor As WellKnownMember, Optional isOptionalUse As Boolean = False) As SynthesizedAttributeData
             If isOptionalUse OrElse WellKnownMembers.IsSynthesizedAttributeOptional(constructor) Then
                 Return Nothing
             Else
