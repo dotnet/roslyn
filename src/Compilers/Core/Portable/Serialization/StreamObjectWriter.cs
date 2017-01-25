@@ -60,7 +60,6 @@ namespace Roslyn.Utilities
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
         /// <param name="knownObjects">An optional list of objects assumed known by the corresponding <see cref="ObjectReader"/>.</param>
-        /// <param name="binder">A binder that provides object and type encoding.</param>
         /// <param name="recursive">True if the writer encodes objects recursively.</param>
         /// <param name="cancellationToken"></param>
         public ObjectWriter(

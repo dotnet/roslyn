@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
 
 namespace Roslyn.Utilities
 {
@@ -18,84 +15,16 @@ namespace Roslyn.Utilities
     /// </remarks>
     internal static class ObjectBinder
     {
-#if false
-        private readonly ConcurrentDictionary<Type, Func<ObjectReader, object>> _readerMap =
-            new ConcurrentDictionary<Type, Func<ObjectReader, object>>(concurrencyLevel: 2, capacity: 64);
-
-        private readonly object _gate = new object();
-        private readonly Dictionary<Type, int> _typeToIndex = new Dictionary<Type, int>();
-        private readonly List<Type> _types = new List<Type>();
-
-        public bool TryGetReader(Type type, out Func<ObjectReader, object> reader)
-            => _readerMap.TryGetValue(type, out reader);
-
-        private void RecordReader(object instance)
-        {
-            if (instance != null)
-            {
-                var type = instance.GetType();
-                var typeKey = GetOrCreateTypeId(type);
-
-                if (!_readerMap.ContainsKey(type))
-                {
-                    var readable = instance as IObjectReadable;
-                    _readerMap.TryAdd(type, readable?.GetReader());
-                }
-            }
-        }
-        
-        public int GetOrCreateTypeId(Type type)
-        {
-            lock (_gate)
-            {
-                if (!_typeToIndex.TryGetValue(type, out var index))
-                {
-                    index = _types.Count;
-                    _types.Add(type);
-                }
-
-                return index;
-            }
-        }
-
-        public Type GetType(int index)
-        {
-            lock (_gate)
-            {
-                return _types[index];
-            }
-        }
-
-        private static readonly Action<ObjectWriter, object> s_writer
-            = (w, i) => ((IObjectWritable)i).WriteTo(w);
-
-        /// <summary>
-        /// Gets a function that writes an object's members to a <see cref="ObjectWriter"/>.
-        /// Returns false if the type cannot be serialized.
-        /// </summary>
-        public bool TryGetWriter(object instance, out Action<ObjectWriter, object> writer)
-        {
-            RecordReader(instance);
-
-            if (instance is IObjectWritable)
-            {
-                writer = s_writer;
-                return true;
-            }
-            else
-            {
-                writer = null;
-                return false;
-            }
-        }
-#endif
-        private static object s_gate = new object();
+        private static object s_typesGate = new object();
         private static readonly Dictionary<Type, int> s_typeToIndex = new Dictionary<Type, int>();
-        private static readonly List<Type> s_types;
+        private static readonly List<Type> s_types = new List<Type>();
+
+        private static object s_readerGate = new object();
+        private static Dictionary<Type, Func<ObjectReader, object>> s_typeToReader = new Dictionary<Type, Func<ObjectReader, object>>();
 
         public static int GetTypeId(Type type)
         {
-            lock (s_gate)
+            lock (s_typesGate)
             {
                 if (!s_typeToIndex.TryGetValue(type, out var index))
                 {
@@ -110,7 +39,7 @@ namespace Roslyn.Utilities
 
         public static Type GetTypeFromId(int typeId)
         {
-            lock (s_gate)
+            lock (s_typesGate)
             {
                 return s_types[typeId];
             }
@@ -118,7 +47,18 @@ namespace Roslyn.Utilities
 
         public static Func<ObjectReader, object> GetTypeReader(Type type)
         {
-            throw new NotImplementedException();
+            lock (s_readerGate)
+            {
+                return s_typeToReader[type];
+            }
+        }
+
+        public static void RegisterTypeReader(Type type, Func<ObjectReader, object> typeReader)
+        {
+            lock (s_readerGate)
+            {
+                s_typeToReader[type] = typeReader;
+            }
         }
     }
 }
