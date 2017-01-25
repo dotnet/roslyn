@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         return null;
                     }
 
-                    using (var reader = new StreamObjectReader(stream))
+                    using (var reader = new ObjectReader(stream))
                     {
                         if (TryReadVersion(reader, formatVersion, out var persistVersion) &&
                             document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion))
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
                 using (var stream = SerializableBytes.CreateWritableStream())
-                using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                 {
                     data.WriteVersion(writer, formatVersion);
                     data.WriteTo(writer);
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     if (stream != null)
                     {
-                        using (var reader = new StreamObjectReader(stream))
+                        using (var reader = new ObjectReader(stream))
                         {
                             return TryReadVersion(reader, formatVersion, out var persistVersion) &&
                                    document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion);
