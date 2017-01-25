@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Versions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -58,19 +59,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 using (var stream = await storage.ReadStreamAsync(document, persistenceName, cancellationToken).ConfigureAwait(false))
                 using (var reader = ObjectReader.TryGetReader(stream))
                 {
-                    if (reader == null)
+                    if (reader != null)
                     {
-                        return null;
-                    }
-
-                    if (TryReadVersion(reader, formatVersion, out var persistVersion) &&
-                        document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion))
-                    {
-                        return readFrom(reader, syntaxVersion);
+                        if (TryReadVersion(reader, formatVersion, out var persistVersion) &&
+                            document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion))
+                        {
+                            return readFrom(reader, syntaxVersion);
+                        }
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
             {
                 // Storage APIs can throw arbitrary exceptions.
             }
@@ -98,7 +97,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return await storage.WriteStreamAsync(document, persistenceName, stream, cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (Exception)
+            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
             {
                 // Storage APIs can throw arbitrary exceptions.
             }
@@ -127,7 +126,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
             {
                 // Storage APIs can throw arbitrary exceptions.
             }
