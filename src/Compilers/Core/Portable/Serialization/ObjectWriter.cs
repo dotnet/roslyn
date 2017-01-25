@@ -22,6 +22,16 @@ namespace Roslyn.Utilities
         private readonly RecordingObjectBinder _binder;
         private readonly CancellationToken _cancellationToken;
 
+        private int _recursionDepth;
+        private const int MaxRecursionDepth = 50;
+
+        internal class RecursionDepthExceeded : Exception
+        {
+            public RecursionDepthExceeded()
+            {
+            }
+        }
+
         internal ObjectWriter(
             Stream stream,
             ObjectWriterData defaultData = null,
@@ -45,6 +55,7 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
+            _recursionDepth = 0;
             _dataMap.Dispose();
         }
 
@@ -441,6 +452,30 @@ namespace Roslyn.Utilities
 
         private void WriteArray(Array instance)
         {
+            _recursionDepth++;
+            StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+            if (_recursionDepth > MaxRecursionDepth)
+            {
+                throw new RecursionDepthExceeded();
+            }
+            WriteArrayWorker(instance);
+            _recursionDepth--;
+        }
+
+        private void WriteObject(object instance)
+        {
+            _recursionDepth++;
+            StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+            if (_recursionDepth > MaxRecursionDepth)
+            {
+                throw new RecursionDepthExceeded();
+            }
+            WriteObjectWorker(instance);
+            _recursionDepth--;
+        }
+
+        private void WriteArrayWorker(Array instance)
+        {
             if (instance.Rank > 1)
             {
 #if COMPILERCORE
@@ -634,7 +669,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void WriteObject(object instance)
+        private void WriteObjectWorker(object instance)
         {
             _cancellationToken.ThrowIfCancellationRequested();
 

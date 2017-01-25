@@ -168,6 +168,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs">
       <Link>InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StackGuard.cs">
+      <Link>Utilities\CompilerUtilities\StackGuard.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs">
       <Link>InternalUtilities\StringExtensions.cs</Link>
     </Compile>
