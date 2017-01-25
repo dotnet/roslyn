@@ -115,14 +115,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var stream = new MemoryStream();
             var bloomFilter = new BloomFilter(0.001, false, new[] { "Hello, World" });
 
-            using (var writer = new StreamObjectWriter(stream))
+            using (var writer = new ObjectWriter(stream))
             {
                 bloomFilter.WriteTo(writer);
             }
 
             stream.Position = 0;
 
-            using (var reader = new StreamObjectReader(stream))
+            using (var reader = new ObjectReader(stream))
             {
                 var rehydratedFilter = BloomFilter.ReadFrom(reader);
                 Assert.True(bloomFilter.IsEquivalent(rehydratedFilter));

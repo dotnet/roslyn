@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 var list = SharedPools.Default<List<TodoItem>>().AllocateAndClear();
                 try
                 {
-                    using (var reader = new StreamObjectReader(stream))
+                    using (var reader = new ObjectReader(stream))
                     {
                         var format = reader.ReadString();
                         if (!string.Equals(format, FormatVersion))
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
             protected override void WriteTo(Stream stream, Data data, CancellationToken cancellationToken)
             {
-                using (var writer = new StreamObjectWriter(stream, cancellationToken: cancellationToken))
+                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                 {
                     writer.WriteString(FormatVersion);
                     data.TextVersion.WriteTo(writer);
