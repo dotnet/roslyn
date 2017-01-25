@@ -59,17 +59,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var result = await base.GetPreselectedSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
-            if (result.Any())
+            var builder = ArrayBuilder<ISymbol>.GetInstance();
+
+            foreach (var symbol in result)
             {
-                var type = (ITypeSymbol)result.Single();
-                var alias = await type.FindApplicableAlias(position, context.SemanticModel, cancellationToken).ConfigureAwait(false);
-                if (alias != null)
-                {
-                    return ImmutableArray.Create(alias);
-                }
+                var alias = await symbol.FindApplicableAliasAsync(position, context.SemanticModel, cancellationToken).ConfigureAwait(false);
+                builder.Add(alias ?? symbol);
             }
 
-            return result;
+            return builder.ToImmutableAndFree();
         }
 
         protected override (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)

@@ -97,11 +97,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var typeArity = type.GetArity();
 
-                var implementations = (await SymbolFinder
-                                        .FindImplementationsAsync(type, context.Workspace.CurrentSolution, cancellationToken: cancellationToken).ConfigureAwait(false))
-                                        .Where(impl => !impl.IsAbstract && impl.GetArity() == typeArity);
+                var implementations = await SymbolFinder.FindImplementationsAsync(
+                    type, context.Workspace.CurrentSolution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                return implementations.ToImmutableArray();
+                var matchingImplementations = implementations.Where(
+                    impl => !impl.IsAbstract && impl.GetArity() == typeArity);
+
+                return matchingImplementations.ToImmutableArray();
             }
 
             // Normally the user can't say things like "new IList".  Except for "IList[] x = new |".
