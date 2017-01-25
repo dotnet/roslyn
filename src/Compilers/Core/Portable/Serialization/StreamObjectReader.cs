@@ -34,7 +34,7 @@ namespace Roslyn.Utilities
         /// this version, just change VersionByte2.
         /// </summary>
         internal const byte VersionByte1 = 0b10101010;
-        internal const byte VersionByte2 = 0b00000001;
+        internal const byte VersionByte2 = 0b00000100;
 
         private readonly BinaryReader _reader;
         private readonly ObjectBinder _binderOpt;
@@ -877,15 +877,14 @@ namespace Roslyn.Utilities
 
                 case EncodingKind.Type:
                     int id = _objectReferenceMap.GetNextReferenceId();
-                    var assemblyName = this.ReadStringValue();
-                    var typeName = this.ReadStringValue();
+                    var typeId = this.ReadInt32();
 
-                    Type type;
-                    if (_binderOpt == null || !_binderOpt.TryGetType(new TypeKey(assemblyName, typeName), out type))
+                    if (_binderOpt == null)
                     {
-                        throw NoSerializationTypeException(typeName);
+                        throw NoSerializationTypeException("");
                     }
 
+                    var type = _binderOpt.GetType(typeId);
                     _objectReferenceMap.SetValue(id, type);
                     return type;
 

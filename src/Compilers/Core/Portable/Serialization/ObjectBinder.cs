@@ -18,73 +18,51 @@ namespace Roslyn.Utilities
     /// </remarks>
     internal sealed class ObjectBinder
     {
-        private readonly Dictionary<TypeKey, Type> _typeMap_mustLock = new Dictionary<TypeKey, Type>();
-
         private readonly ConcurrentDictionary<Type, Func<ObjectReader, object>> _readerMap =
             new ConcurrentDictionary<Type, Func<ObjectReader, object>>(concurrencyLevel: 2, capacity: 64);
 
-        /// <summary>
-        /// Gets the <see cref="Type"/> corresponding to the specified <see cref="TypeKey"/>.
-        /// Returns false if no type corresponds to the key.
-        /// </summary>
-        public bool TryGetType(TypeKey key, out Type type)
-        {
-            lock (_typeMap_mustLock)
-            {
-                return _typeMap_mustLock.TryGetValue(key, out type);
-            }
-        }
+        private readonly object _gate = new object();
+        private readonly Dictionary<Type, int> _typeToIndex = new Dictionary<Type, int>();
+        private readonly List<Type> _types = new List<Type>();
 
         public bool TryGetReader(Type type, out Func<ObjectReader, object> reader)
             => _readerMap.TryGetValue(type, out reader);
-
-        private void RecordType(Type type, TypeKey key)
-        {
-            if (type != null)
-            {
-                lock (_typeMap_mustLock)
-                {
-                    _typeMap_mustLock[key] = type;
-                }
-            }
-        }
 
         private void RecordReader(object instance)
         {
             if (instance != null)
             {
                 var type = instance.GetType();
+                var typeKey = GetOrCreateTypeId(type);
 
-                var key = GetAndRecordTypeKey(type);
-
-                var readable = instance as IObjectReadable;
-                if (readable != null)
+                if (!_readerMap.ContainsKey(type))
                 {
-                    if (_readerMap.ContainsKey(type))
-                    {
-#if DEBUG
-                        lock (_typeMap_mustLock)
-                        {
-                            Debug.Assert(_typeMap_mustLock.ContainsKey(key));
-                        }
-#endif
-                    }
-                    else
-                    {
-                        _readerMap.TryAdd(type, readable.GetReader());
-                    }
+                    var readable = instance as IObjectReadable;
+                    _readerMap.TryAdd(type, readable?.GetReader());
                 }
             }
         }
-
-        /// <summary>
-        /// Gets the <see cref="TypeKey"/> for the specified <see cref="Type"/>.
-        /// </summary>
-        public TypeKey GetAndRecordTypeKey(Type type)
+        
+        public int GetOrCreateTypeId(Type type)
         {
-            var key = new TypeKey(type.GetTypeInfo().Assembly.FullName, type.FullName); ;
-            RecordType(type, key);
-            return key;
+            lock (_gate)
+            {
+                if (!_typeToIndex.TryGetValue(type, out var index))
+                {
+                    index = _types.Count;
+                    _types.Add(type);
+                }
+
+                return index;
+            }
+        }
+
+        public Type GetType(int index)
+        {
+            lock (_gate)
+            {
+                return _types[index];
+            }
         }
 
         private static readonly Action<ObjectWriter, object> s_writer
@@ -94,7 +72,7 @@ namespace Roslyn.Utilities
         /// Gets a function that writes an object's members to a <see cref="ObjectWriter"/>.
         /// Returns false if the type cannot be serialized.
         /// </summary>
-        public bool TryGetWriter(Object instance, out Action<ObjectWriter, object> writer)
+        public bool TryGetWriter(object instance, out Action<ObjectWriter, object> writer)
         {
             RecordReader(instance);
 

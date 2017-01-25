@@ -973,10 +973,8 @@ namespace Roslyn.Utilities
                     throw NoSerializationTypeException(type.FullName);
                 }
 
-                var key = _binderOpt.GetAndRecordTypeKey(type);
-
-                this.WriteStringValue(key.AssemblyName);
-                this.WriteStringValue(key.TypeName);
+                var typeId = _binderOpt.GetOrCreateTypeId(type);
+                this.WriteInt32(typeId);
             }
         }
 
