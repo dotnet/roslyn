@@ -4796,11 +4796,11 @@ public class Program
 using System.Collections.Generic;
 public class Program
 {
-    private static void Pattern<T, TDerived>(object thing) where T : class where TDerived : T
+    private static void Pattern<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
     {
         switch (thing)
         {
-            case IEnumerable<T> sequence:
+            case IEnumerable<TBase> sequence:
                 break;
             case IEnumerable<TDerived> derivedSequence:
                 break;
@@ -4825,7 +4825,7 @@ public class Program
 using System.Collections.Generic;
 public class Program
 {
-    private static void Pattern<T, TDerived>(object thing) where T : class where TDerived : T
+    private static void Pattern<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
     {
         switch (thing)
         {
