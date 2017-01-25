@@ -51,6 +51,7 @@ namespace Roslyn.Utilities
                 {
                     index = _types.Count;
                     _types.Add(type);
+                    _typeToIndex.Add(type, index);
                 }
 
                 return index;
