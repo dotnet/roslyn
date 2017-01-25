@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits DiagnosticInfo
 
             Shared Sub New()
-                ObjectBinder.RegisterTypeReader(GetType(DiagnosticInfo), Function(r) New ImportDiagnosticInfo(r))
+                ObjectBinder.RegisterTypeReader(GetType(ImportDiagnosticInfo), Function(r) New ImportDiagnosticInfo(r))
             End Sub
 
             Private ReadOnly _importText As String
