@@ -42,7 +42,7 @@ try
     {
         "dev15-rc3" { } 
         "master" { } 
-        "treePerf2" { }
+        "treePerf_optimize_removeTypeKey_fixedBinder" { }
         default
         {
             if (-not $test)
