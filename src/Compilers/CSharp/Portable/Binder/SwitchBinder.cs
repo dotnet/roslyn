@@ -223,6 +223,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundLabelExpression = ConvertCaseExpression(labelSyntax, boundLabelExpression, sectionBinder, ref boundLabelConstantOpt, tempDiagnosticBag);
                         break;
 
+                    case SyntaxKind.CasePatternSwitchLabel:
+                        // bind the pattern, to cause its pattern variables to be inferred if necessary
+                        var matchLabel = (CasePatternSwitchLabelSyntax)labelSyntax;
+                        var pattern = sectionBinder.BindPattern(
+                            matchLabel.Pattern, SwitchGoverningExpression, SwitchGoverningType, labelSyntax.HasErrors, tempDiagnosticBag, wasSwitchCase: true);
+                        break;
+
                     default:
                         // No constant value
                         break;
