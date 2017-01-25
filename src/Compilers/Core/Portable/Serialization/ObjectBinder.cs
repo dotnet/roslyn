@@ -57,7 +57,7 @@ namespace Roslyn.Utilities
         {
             lock (s_readerGate)
             {
-                s_typeToReader[type] = typeReader;
+                s_typeToReader.Add(type, typeReader);
             }
         }
     }

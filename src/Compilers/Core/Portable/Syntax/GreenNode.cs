@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract class GreenNode : IObjectWritable, IObjectReadable
+    internal abstract class GreenNode : IObjectWritable
     {
         private string GetDebuggerDisplay()
         {
@@ -460,12 +460,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        Func<ObjectReader, object> IObjectReadable.GetReader()
-        {
-            return this.GetReader();
-        }
-
-        internal abstract Func<ObjectReader, object> GetReader();
         #endregion
 
         #region Annotations 
