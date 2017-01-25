@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         protected override SyntaxTree SyntaxTreeCore => this.Parent.SyntaxTree;
 
-        internal override ObjectData GetSerializationObjectData()
+        internal override ObjectWriterData GetDefaultObjectWriterData()
         {
             throw ExceptionUtilities.Unreachable;
         }

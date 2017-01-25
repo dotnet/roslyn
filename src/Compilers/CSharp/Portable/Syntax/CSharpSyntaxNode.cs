@@ -204,25 +204,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom);
             }
 
-            using (var reader = new StreamObjectReader(stream, knownObjects: GetDeserializationObjectData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
+            using (var reader = new ObjectReader(stream, defaultData: GetDefaultObjectReaderData(), binder: s_defaultBinder))
             {
                 var root = (Syntax.InternalSyntax.CSharpSyntaxNode)reader.ReadValue();
                 return root.CreateRed();
             }
         }
 
-        internal override ObjectData GetSerializationObjectData()
+        private static ObjectWriterData s_defaultObjectWriterData;
+        internal override ObjectWriterData GetDefaultObjectWriterData()
         {
-            return GetDeserializationObjectData();
+            if (s_defaultObjectWriterData == null)
+            {
+                var data = new ObjectWriterData(GetSerializationData());
+                Interlocked.CompareExchange(ref s_defaultObjectWriterData, data, null);
+            }
+
+            return s_defaultObjectWriterData;
         }
 
-        private static ObjectData s_serializationObjectData;
-
-        private static ObjectData GetDeserializationObjectData()
+        private static ObjectReaderData s_defaultObjectReaderData;
+        private static ObjectReaderData GetDefaultObjectReaderData()
         {
-            if (s_serializationObjectData == null)
+            if (s_defaultObjectReaderData == null)
             {
-                var data = new ObjectData(
+                var data = new ObjectReaderData(GetSerializationData());
+                Interlocked.CompareExchange(ref s_defaultObjectReaderData, data, null);
+            }
+
+            return s_defaultObjectReaderData;
+        }
+
+        private static IEnumerable<object> s_serializationData;
+
+        private static IEnumerable<object> GetSerializationData()
+        {
+            if (s_serializationData == null)
+            {
+                var data =
                     // known assemblies names and types (not in generated list)
                     new object[] {
                         typeof(object).GetTypeInfo().Assembly.FullName, // mscorlib
@@ -268,12 +287,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             "offset",
                             "width",
                         })
-                    .ToImmutableArray());
+                    .ToImmutableArray();
 
-                System.Threading.Interlocked.CompareExchange(ref s_serializationObjectData, data, null);
+                System.Threading.Interlocked.CompareExchange(ref s_serializationData, data, null);
             }
 
-            return s_serializationObjectData;
+            return s_serializationData;
         }
 #endregion
 
