@@ -20,9 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim stream = New MemoryStream()
             root.SerializeTo(stream)
 
-            stream.Position = 2
-            Assert.Equal(expectRecursive, Roslyn.Utilities.ObjectReader.IsRecursive(stream))
-
             stream.Position = 0
             Dim droot = VisualBasicSyntaxNode.DeserializeFrom(stream)
             Dim dtext = droot.ToFullString()
