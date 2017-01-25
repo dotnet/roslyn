@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 await asset.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                using (var reader = new StreamObjectReader(stream))
                 {
                     var recovered = serializer.Deserialize<OptionSet>(asset.Kind, reader, CancellationToken.None);
                     var assetFromStorage = assetBuilder.Build(recovered, language, CancellationToken.None);
@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 await asset.WriteObjectToAsync(writer, CancellationToken.None).ConfigureAwait(false);
 
                 stream.Position = 0;
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                using (var reader = new StreamObjectReader(stream))
                 {
                     var recovered = serializer.Deserialize<object>(asset.Kind, reader, CancellationToken.None);
                     var assetFromStorage = SolutionAsset.Create(serializer.CreateChecksum(recovered, CancellationToken.None), recovered, serializer);

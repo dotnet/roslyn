@@ -2,7 +2,6 @@
 
 using System;
 using System.Composition;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
 
@@ -123,31 +121,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Versions
                 return false;
             }
 
-            try
+            using (var storage = service.GetStorage(project.Solution))
+            using (var stream = storage.ReadStreamAsync(keyName, CancellationToken.None).WaitAndGetResult(CancellationToken.None))
             {
-                using (var storage = service.GetStorage(project.Solution))
-                using (var stream = storage.ReadStreamAsync(keyName, CancellationToken.None).WaitAndGetResult(CancellationToken.None))
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                if (stream == null)
                 {
-                    if (reader != null)
+                    return false;
+                }
+
+                try
+                {
+                    using (var reader = new StreamObjectReader(stream))
                     {
                         var formatVersion = reader.ReadInt32();
-                        if (formatVersion == SerializationFormat)
+                        if (formatVersion != SerializationFormat)
                         {
-                            var persistedProjectVersion = VersionStamp.ReadFrom(reader);
-                            var persistedSemanticVersion = VersionStamp.ReadFrom(reader);
-
-                            versions = new Versions(persistedProjectVersion, persistedSemanticVersion);
-                            return true;
+                            return false;
                         }
+
+                        var persistedProjectVersion = VersionStamp.ReadFrom(reader);
+                        var persistedSemanticVersion = VersionStamp.ReadFrom(reader);
+
+                        versions = new Versions(persistedProjectVersion, persistedSemanticVersion);
+                        return true;
                     }
                 }
+                catch (Exception)
+                {
+                    return false;
+                }
             }
-            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
-            {
-            }
-
-            return false;
         }
 
         public async Task RecordSemanticVersionsAsync(Project project, CancellationToken cancellationToken)

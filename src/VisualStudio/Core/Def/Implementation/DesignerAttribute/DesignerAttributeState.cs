@@ -31,23 +31,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             protected override Data TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
             {
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                try
                 {
-                    if (reader != null)
+                    using (var reader = new StreamObjectReader(stream))
                     {
                         var format = reader.ReadString();
-                        if (string.Equals(format, FormatVersion, StringComparison.InvariantCulture))
+                        if (!string.Equals(format, FormatVersion, StringComparison.InvariantCulture))
                         {
-                            var textVersion = VersionStamp.ReadFrom(reader);
-                            var dataVersion = VersionStamp.ReadFrom(reader);
-                            var designerAttributeArgument = reader.ReadString();
-
-                            return new Data(textVersion, dataVersion, designerAttributeArgument);
+                            return null;
                         }
+
+                        var textVersion = VersionStamp.ReadFrom(reader);
+                        var dataVersion = VersionStamp.ReadFrom(reader);
+                        var designerAttributeArgument = reader.ReadString();
+
+                        return new Data(textVersion, dataVersion, designerAttributeArgument);
                     }
                 }
-
-                return null;
+                catch (Exception)
+                {
+                    return null;
+                }
             }
 
             protected override void WriteTo(Stream stream, Data data, CancellationToken cancellationToken)

@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken)
-                => CSharpSyntaxNode.DeserializeFrom(stream, cancellationToken);
+            {
+                return CSharpSyntaxNode.DeserializeFrom(stream, cancellationToken);
+            }
 
             public override bool CanCreateRecoverableTree(SyntaxNode root)
             {

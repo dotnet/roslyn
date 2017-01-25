@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Versions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -57,9 +56,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // attempt to load from persisted state
                 using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
                 using (var stream = await storage.ReadStreamAsync(document, persistenceName, cancellationToken).ConfigureAwait(false))
-                using (var reader = StreamObjectReader.TryGetReader(stream))
                 {
-                    if (reader != null)
+                    if (stream == null)
+                    {
+                        return null;
+                    }
+
+                    using (var reader = new StreamObjectReader(stream))
                     {
                         if (TryReadVersion(reader, formatVersion, out var persistVersion) &&
                             document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion))
@@ -69,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
             }
-            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
+            catch (Exception)
             {
                 // Storage APIs can throw arbitrary exceptions.
             }
@@ -97,7 +100,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return await storage.WriteStreamAsync(document, persistenceName, stream, cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
+            catch (Exception)
             {
                 // Storage APIs can throw arbitrary exceptions.
             }
@@ -117,16 +120,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 using (var storage = persistentStorageService.GetStorage(document.Project.Solution))
                 using (var stream = await storage.ReadStreamAsync(document, persistenceName, cancellationToken).ConfigureAwait(false))
-                using (var reader = StreamObjectReader.TryGetReader(stream))
                 {
-                    if (reader != null)
+                    if (stream != null)
                     {
-                        return TryReadVersion(reader, formatVersion, out var persistVersion) &&
-                               document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion);
+                        using (var reader = new StreamObjectReader(stream))
+                        {
+                            return TryReadVersion(reader, formatVersion, out var persistVersion) &&
+                                   document.CanReusePersistedSyntaxTreeVersion(syntaxVersion, persistVersion);
+                        }
                     }
                 }
             }
-            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
+            catch (Exception)
             {
                 // Storage APIs can throw arbitrary exceptions.
             }

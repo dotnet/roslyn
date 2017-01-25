@@ -1,12 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler.State
@@ -56,22 +54,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
             var solution = GetSolution(value);
             var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
 
-            try
+            using (var storage = persistService.GetStorage(solution))
+            using (var stream = await ReadStreamAsync(storage, value, cancellationToken).ConfigureAwait(false))
             {
-                using (var storage = persistService.GetStorage(solution))
-                using (var stream = await ReadStreamAsync(storage, value, cancellationToken).ConfigureAwait(false))
+                if (stream == null)
                 {
-                    if (stream != null)
-                    {
-                        return TryGetExistingData(stream, value, cancellationToken);
-                    }
+                    return default(TData);
                 }
-            }
-            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
-            {
-            }
 
-            return default(TData);
+                return TryGetExistingData(stream, value, cancellationToken);
+            }
         }
 
         public async Task PersistAsync(TValue value, TData data, CancellationToken cancellationToken)

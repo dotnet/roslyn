@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
@@ -30,25 +32,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
             protected override Data TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
             {
-                using (var reader = StreamObjectReader.TryGetReader(stream))
+                var list = SharedPools.Default<List<TodoItem>>().AllocateAndClear();
+                try
                 {
-                    if (reader != null)
+                    using (var reader = new StreamObjectReader(stream))
                     {
                         var format = reader.ReadString();
-                        if (string.Equals(format, FormatVersion))
+                        if (!string.Equals(format, FormatVersion))
                         {
-                            var textVersion = VersionStamp.ReadFrom(reader);
-                            var dataVersion = VersionStamp.ReadFrom(reader);
-
-                            var list = ArrayBuilder<TodoItem>.GetInstance();
-                            AppendItems(reader, value, list, cancellationToken);
-
-                            return new Data(textVersion, dataVersion, list.ToImmutableAndFree());
+                            return null;
                         }
+
+                        var textVersion = VersionStamp.ReadFrom(reader);
+                        var dataVersion = VersionStamp.ReadFrom(reader);
+
+                        AppendItems(reader, value, list, cancellationToken);
+
+                        return new Data(textVersion, dataVersion, list.ToImmutableArray<TodoItem>());
                     }
                 }
-
-                return null;
+                catch (Exception)
+                {
+                    return null;
+                }
+                finally
+                {
+                    SharedPools.Default<List<TodoItem>>().ClearAndFree(list);
+                }
             }
 
             protected override void WriteTo(Stream stream, Data data, CancellationToken cancellationToken)
@@ -94,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 return ImmutableArray<TodoItem>.Empty;
             }
 
-            private void AppendItems(ObjectReader reader, Document document, ArrayBuilder<TodoItem> list, CancellationToken cancellationToken)
+            private void AppendItems(ObjectReader reader, Document document, List<TodoItem> list, CancellationToken cancellationToken)
             {
                 var count = reader.ReadInt32();
                 for (var i = 0; i < count; i++)

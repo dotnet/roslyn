@@ -62,16 +62,18 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
             using (var storage = persistService.GetStorage(solution))
             using (var stream = await ReadStreamAsync(storage, key, documentOrProject, cancellationToken).ConfigureAwait(false))
-            using (var reader = StreamObjectReader.TryGetReader(stream))
             {
-                if (reader == null)
+                if (stream == null)
                 {
                     return null;
                 }
 
-                // we return StrongBox rather than ImmutableArray due to task lib's issue with allocations
-                // when returning default(value type)
-                return ReadFrom(reader, documentOrProject, cancellationToken);
+                using (var reader = new StreamObjectReader(stream))
+                {
+                    // we return StrongBox rather than ImmutableArray due to task lib's issue with allocations
+                    // when returning default(value type)
+                    return ReadFrom(reader, documentOrProject, cancellationToken);
+                }
             }
         }
 
