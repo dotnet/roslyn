@@ -271,8 +271,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (!oldMap.ContainsKey(kv.Key))
                 {
-                    // we have new project added
-                    project = AddDocument(project, await CreateDocumentInfoAsync(kv.Value.Checksum).ConfigureAwait(false));
+                    // we have new document added
+                    project = AddDocument(project, await CreateDocumentInfoAsync(kv.Value.Checksum).ConfigureAwait(false), additionalText);
                 }
             }
 
@@ -288,7 +288,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 var newDocumentChecksums = kv.Value;
                 Contract.ThrowIfTrue(oldDocumentChecksums.Checksum == newDocumentChecksums.Checksum);
 
-                project = await UpdateDocumentAsync(project.GetDocument(kv.Key), oldDocumentChecksums, newDocumentChecksums).ConfigureAwait(false);
+                var document = additionalText ? project.GetAdditionalDocument(kv.Key) : project.GetDocument(kv.Key);
+                project = await UpdateDocumentAsync(document, oldDocumentChecksums, newDocumentChecksums, additionalText).ConfigureAwait(false);
             }
 
             // removed project
@@ -296,33 +297,48 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (!newMap.ContainsKey(kv.Key))
                 {
-                    // we have a project removed
-                    project = project.RemoveDocument(kv.Key);
+                    // we have a document removed
+                    if (additionalText)
+                    {
+                        project = project.RemoveAdditionalDocument(kv.Key);
+                    }
+                    else
+                    {
+                        project = project.RemoveDocument(kv.Key);
+                    }
                 }
             }
 
             return project;
         }
 
-        private async Task<Project> UpdateDocumentAsync(Document document, DocumentStateChecksums oldDocumentChecksums, DocumentStateChecksums newDocumentChecksums)
+        private async Task<Project> UpdateDocumentAsync(TextDocument document, DocumentStateChecksums oldDocumentChecksums, DocumentStateChecksums newDocumentChecksums, bool additionalText)
         {
             // changed info
             if (oldDocumentChecksums.Info != newDocumentChecksums.Info)
             {
-                document = await UpdateDocumentInfoAsync(document, newDocumentChecksums.Info).ConfigureAwait(false);
+                document = await UpdateDocumentInfoAsync(document, newDocumentChecksums.Info, additionalText).ConfigureAwait(false);
             }
 
             // changed text
             if (oldDocumentChecksums.Text != newDocumentChecksums.Text)
             {
                 var sourceText = await _assetService.GetAssetAsync<SourceText>(newDocumentChecksums.Text, _cancellationToken).ConfigureAwait(false);
-                document = document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id);
+
+                if (additionalText)
+                {
+                    document = document.Project.Solution.WithAdditionalDocumentText(document.Id, sourceText).GetAdditionalDocument(document.Id);
+                }
+                else
+                {
+                    document = document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id);
+                }
             }
 
             return document.Project;
         }
 
-        private async Task<Document> UpdateDocumentInfoAsync(Document document, Checksum infoChecksum)
+        private async Task<TextDocument> UpdateDocumentInfoAsync(TextDocument document, Checksum infoChecksum, bool additionalText)
         {
             var newDocumentInfo = await _assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(infoChecksum, _cancellationToken).ConfigureAwait(false);
 
@@ -334,11 +350,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (document.State.Info.Attributes.Folders != newDocumentInfo.Folders)
             {
+                // additional document can't change folder once created
+                Contract.ThrowIfTrue(additionalText);
                 document = document.Project.Solution.WithDocumentFolders(document.Id, newDocumentInfo.Folders).GetDocument(document.Id);
             }
 
             if (document.State.Info.Attributes.SourceCodeKind != newDocumentInfo.SourceCodeKind)
             {
+                // additional document can't change sourcecode kind once created
+                Contract.ThrowIfTrue(additionalText);
                 document = document.Project.Solution.WithDocumentSourceCodeKind(document.Id, newDocumentInfo.SourceCodeKind).GetDocument(document.Id);
             }
 
@@ -503,8 +523,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 documentInfo.IsGenerated);
         }
 
-        private Project AddDocument(Project project, DocumentInfo documentInfo)
+        private Project AddDocument(Project project, DocumentInfo documentInfo, bool additionalText)
         {
+            if (additionalText)
+            {
+                return project.Solution.AddAdditionalDocument(documentInfo).GetProject(project.Id);
+            }
+
             return project.Solution.AddDocument(documentInfo).GetProject(project.Id);
         }
 
