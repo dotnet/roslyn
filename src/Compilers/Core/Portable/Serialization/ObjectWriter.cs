@@ -23,7 +23,7 @@ namespace Roslyn.Utilities
         private readonly CancellationToken _cancellationToken;
 
         private int _recursionDepth;
-        private const int MaxRecursionDepth = 50;
+        private const int MaxRecursionDepth = 128;
 
         internal class RecursionDepthExceeded : Exception
         {
