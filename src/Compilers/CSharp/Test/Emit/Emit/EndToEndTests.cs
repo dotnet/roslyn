@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
             var thread = new System.Threading.Thread(() =>
             {
-                var compilation = CreateCompilationWithMscorlib(source);
+                var options = new CSharpCompilationOptions(outputKind: OutputKind.DynamicallyLinkedLibrary, concurrentBuild: false);
+                var compilation = CreateCompilationWithMscorlib(source, options: options);
                 compilation.VerifyDiagnostics();
                 compilation.EmitToArray();
             }, 0);
