@@ -108,6 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal Binder ScopeBinder { get; }
 
+        /// <summary>
+        /// Binder used to bind local function parameters.
+        /// </summary>
+        internal Binder ParameterBinder => _binder;
+
         internal void GetDeclarationDiagnostics(DiagnosticBag addTo)
         {
             // Force attribute binding for diagnostics

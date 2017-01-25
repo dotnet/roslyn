@@ -59,8 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, locations);
             }
 
-            var useExistingBinder = owner is MethodSymbol method && method.MethodKind == MethodKind.LocalFunction;
-
             return new SourceComplexParameterSymbol(
                 owner,
                 ordinal,
@@ -71,8 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.GetReference(),
                 ConstantValue.Unset,
                 isParams,
-                isExtensionMethodThis,
-                parameterBinderOpt: useExistingBinder ? context : null);
+                isExtensionMethodThis);
         }
 
         protected SourceParameterSymbol(

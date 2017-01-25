@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ThreeState _lazyHasOptionalAttribute;
         private ConstantValue _lazyDefaultSyntaxValue;
 
+        private Binder LocalFunctionParameterBinder
+            => (ContainingSymbol as LocalFunctionSymbol)?.ParameterBinder;
+
         internal SourceComplexParameterSymbol(
             Symbol owner,
             int ordinal,
@@ -42,8 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxRef,
             ConstantValue defaultSyntaxValue,
             bool isParams,
-            bool isExtensionMethodThis,
-            Binder parameterBinderOpt = null)
+            bool isExtensionMethodThis)
             : base(owner, parameterType, ordinal, refKind, name, locations)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
@@ -68,10 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _lazyDefaultSyntaxValue = defaultSyntaxValue;
-            ParameterBinder = parameterBinderOpt;
         }
-
-        protected virtual Binder ParameterBinder { get; }
 
         internal override SyntaxReference SyntaxReference
         {
@@ -200,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var diagnostics = DiagnosticBag.GetInstance();
                 if (Interlocked.CompareExchange(
                         ref _lazyDefaultSyntaxValue,
-                        MakeDefaultExpression(diagnostics, ParameterBinder),
+                        MakeDefaultExpression(diagnostics, LocalFunctionParameterBinder),
                         ConstantValue.Unset)
                     == ConstantValue.Unset)
                 {
@@ -457,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     var attributeSyntax = this.GetAttributeDeclarations();
-                    bagCreatedOnThisThread = LoadAndValidateAttributes(attributeSyntax, ref _lazyCustomAttributesBag, addToDiagnostics: diagnosticsOpt, binderOpt: ParameterBinder);
+                    bagCreatedOnThisThread = LoadAndValidateAttributes(attributeSyntax, ref _lazyCustomAttributesBag, addToDiagnostics: diagnosticsOpt, binderOpt: LocalFunctionParameterBinder);
                 }
 
                 if (bagCreatedOnThisThread)
