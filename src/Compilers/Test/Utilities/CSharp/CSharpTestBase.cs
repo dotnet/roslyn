@@ -247,11 +247,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         private static SyntaxTree CheckSerializable(SyntaxTree tree)
         {
-            var stream = new MemoryStream();
-            var root = tree.GetRoot();
-            root.SerializeTo(stream);
-            stream.Position = 0;
-            var deserializedRoot = CSharpSyntaxNode.DeserializeFrom(stream);
+            try
+            {
+                var stream = new MemoryStream();
+                var root = tree.GetRoot();
+                root.SerializeTo(stream);
+                stream.Position = 0;
+                var deserializedRoot = CSharpSyntaxNode.DeserializeFrom(stream);
+            }
+            catch (Exception e) when (e.GetType().Name.Contains("RecursionDepthExceeded") || StackGuard.IsInsufficientExecutionStackException(e))
+            {
+            }
+
             return tree;
         }
 
