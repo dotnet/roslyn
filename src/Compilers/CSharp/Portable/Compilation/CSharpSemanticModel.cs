@@ -2694,7 +2694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // 
         // This way IDEs can unambiguously implement such services as "Go to definition"
         //
-        // I.E. GetSymbolInfo for "tuple.Alice" should point to the same field as returned by GetDeclaredSymbol when applied to 
+        // I.E. GetSymbolInfo for "Bob" in "tuple.Bob" should point to the same field as returned by GetDeclaredSymbol when applied to 
         // the ArgumentSyntax "Bob: 2", since that is where the field was declared, where renames should be applied and so on.
         //                 
         //
@@ -2753,6 +2753,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="declaratorSyntax">The argument syntax node.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The symbol that was declared.</returns>
+        /// <remarks>
+        /// Generally ArgumentSyntax nodes do not declare symbols, except when used as aarguments of a tuple literal.
+        /// Example:  var x = (Alice: 1, Bob: 2);
+        ///           ArgumentSyntax "Alice: 1" declares a tuple element field "(int Alice, int Bob).Alice"
+        /// </remarks>
         public abstract ISymbol GetDeclaredSymbol(ArgumentSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
