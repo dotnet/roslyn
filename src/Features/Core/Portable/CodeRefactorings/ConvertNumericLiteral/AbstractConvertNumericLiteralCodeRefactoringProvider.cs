@@ -94,15 +94,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ConvertNumericLiteral
             {
                 switch (kind)
                 {
-                    case NumericKind.Decimal:
+                    case NumericKind.Decimal when number.Length > 3:
                         RegisterRefactoringWithResult(AddSeparators(number, 3), FeaturesResources.Separate_thousands);
                         break;
 
-                    case NumericKind.Hexadecimal:
+                    case NumericKind.Hexadecimal when number.Length > 4:
                         RegisterRefactoringWithResult(hexPrefix + AddSeparators(number, 4), FeaturesResources.Separate_words);
                         break;
 
-                    case NumericKind.Binary:
+                    case NumericKind.Binary when number.Length > 4:
                         RegisterRefactoringWithResult(binaryPrefix + AddSeparators(number, 4), FeaturesResources.Separate_nibbles);
                         break;
                 }
