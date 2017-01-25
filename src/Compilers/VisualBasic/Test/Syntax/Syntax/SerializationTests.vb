@@ -421,7 +421,7 @@ Module Module15
 End Module
 ]]>
                        </Foo>.Value
-            RoundTrip(text)
+            Assert.Throws(Of ObjectWriter.RecursionDepthExceeded)(Sub() RoundTrip(text))
         End Sub
 
         <Fact>
