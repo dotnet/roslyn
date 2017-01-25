@@ -37,7 +37,6 @@ namespace Roslyn.Utilities
         internal const byte VersionByte2 = 0b00000100;
 
         private readonly BinaryReader _reader;
-        private readonly ObjectBinder _binderOpt;
         private readonly bool _recursive;
         private readonly CancellationToken _cancellationToken;
 
@@ -71,12 +70,10 @@ namespace Roslyn.Utilities
         /// </summary>
         /// <param name="stream">The stream to read objects from.</param>
         /// <param name="knownObjects">An optional list of objects assumed known by the corresponding <see cref="ObjectWriter"/>.</param>
-        /// <param name="binder">A binder that provides object and type decoding.</param>
         /// <param name="cancellationToken"></param>
         private ObjectReader(
             Stream stream,
             ObjectData knownObjects,
-            ObjectBinder binder,
             CancellationToken cancellationToken)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
@@ -88,7 +85,6 @@ namespace Roslyn.Utilities
             _reader = new BinaryReader(stream, Encoding.UTF8);
             _objectReferenceMap = new ReaderReferenceMap<object>(knownObjects);
             _stringReferenceMap = new ReaderReferenceMap<string>(knownObjects);
-            _binderOpt = binder;
             _cancellationToken = cancellationToken;
 
             _memberList = SOW.s_variantListPool.Allocate();
@@ -108,7 +104,6 @@ namespace Roslyn.Utilities
         public static ObjectReader TryGetReader(
             Stream stream,
             ObjectData knownObjects = null,
-            ObjectBinder binder = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (stream == null)
@@ -122,7 +117,7 @@ namespace Roslyn.Utilities
                 return null;
             }
 
-            return new ObjectReader(stream, knownObjects, binder, cancellationToken);
+            return new ObjectReader(stream, knownObjects, cancellationToken);
         }
 
         internal static bool IsRecursive(Stream stream)
@@ -878,13 +873,7 @@ namespace Roslyn.Utilities
                 case EncodingKind.Type:
                     int id = _objectReferenceMap.GetNextReferenceId();
                     var typeId = this.ReadInt32();
-
-                    if (_binderOpt == null)
-                    {
-                        throw NoSerializationTypeException("");
-                    }
-
-                    var type = _binderOpt.GetType(typeId);
+                    var type = ObjectBinder.GetTypeFromId(typeId);
                     _objectReferenceMap.SetValue(id, type);
                     return type;
 
@@ -945,13 +934,8 @@ namespace Roslyn.Utilities
         {
             int id = _objectReferenceMap.GetNextReferenceId();
 
-            Type type = this.ReadType();
-
-            Func<ObjectReader, object> typeReader;
-            if (_binderOpt == null || !_binderOpt.TryGetReader(type, out typeReader))
-            {
-                throw NoSerializationReaderException(type.FullName);
-            }
+            var type = this.ReadType();
+            var typeReader = ObjectBinder.GetTypeReader(type);
 
             if (_recursive)
             {

@@ -26,7 +26,6 @@ namespace Roslyn.Utilities
     internal sealed partial class ObjectWriter : IDisposable
     {
         private readonly BinaryWriter _writer;
-        private readonly ObjectBinder _binderOpt;
         private readonly bool _recursive;
         private readonly CancellationToken _cancellationToken;
 
@@ -67,7 +66,6 @@ namespace Roslyn.Utilities
         public ObjectWriter(
             Stream stream,
             ObjectData knownObjects = null,
-            ObjectBinder binder = null,
             bool recursive = true,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -78,7 +76,6 @@ namespace Roslyn.Utilities
             _writer = new BinaryWriter(stream, Encoding.UTF8);
             _objectReferenceMap = new WriterReferenceMap(knownObjects, valueEquality: false);
             _stringReferenceMap = new WriterReferenceMap(knownObjects, valueEquality: true);
-            _binderOpt = binder;
             _recursive = recursive;
             _cancellationToken = cancellationToken;
             _memberList = s_variantListPool.Allocate();
@@ -967,14 +964,7 @@ namespace Roslyn.Utilities
                 _objectReferenceMap.Add(type);
 
                 _writer.Write((byte)EncodingKind.Type);
-
-                if (_binderOpt == null)
-                {
-                    throw NoSerializationTypeException(type.FullName);
-                }
-
-                var typeId = _binderOpt.GetOrCreateTypeId(type);
-                this.WriteInt32(typeId);
+                this.WriteInt32(ObjectBinder.GetTypeId((Type)type));
             }
         }
 
@@ -1015,10 +1005,10 @@ namespace Roslyn.Utilities
             }
             else
             {
-                Action<ObjectWriter, object> typeWriter;
-                if (_binderOpt == null || !_binderOpt.TryGetWriter(instance, out typeWriter))
+                var writable = instance as IObjectWritable;
+                if (writable == null)
                 {
-                    throw NoSerializationWriterException(instance.GetType().FullName);
+                    throw NoSerializationWriterException($"{instance.GetType()} must implement {nameof(IObjectWritable)}");
                 }
 
                 if (_recursive)
@@ -1032,8 +1022,7 @@ namespace Roslyn.Utilities
 
                     // emit object header up front
                     this.WriteObjectHeader(instance, 0);
-
-                    typeWriter(this, instance);
+                    writable.WriteTo(this);
 
                     _recursionDepth--;
                 }
@@ -1044,7 +1033,7 @@ namespace Roslyn.Utilities
                     Debug.Assert(!_writingMembers);
                     _writingMembers = true;
 
-                    typeWriter(this, instance);
+                    writable.WriteTo(this);
 
                     Debug.Assert(_writingMembers);
                     _writingMembers = false;

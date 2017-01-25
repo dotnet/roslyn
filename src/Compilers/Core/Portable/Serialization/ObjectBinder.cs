@@ -16,8 +16,9 @@ namespace Roslyn.Utilities
     /// This binder records runtime types an object readers as a way to avoid needing to describe all serialization types up front
     /// or using reflection to determine them on demand.
     /// </remarks>
-    internal sealed class ObjectBinder
+    internal static class ObjectBinder
     {
+#if false
         private readonly ConcurrentDictionary<Type, Func<ObjectReader, object>> _readerMap =
             new ConcurrentDictionary<Type, Func<ObjectReader, object>>(concurrencyLevel: 2, capacity: 64);
 
@@ -86,6 +87,38 @@ namespace Roslyn.Utilities
                 writer = null;
                 return false;
             }
+        }
+#endif
+        private static object s_gate = new object();
+        private static readonly Dictionary<Type, int> s_typeToIndex = new Dictionary<Type, int>();
+        private static readonly List<Type> s_types;
+
+        public static int GetTypeId(Type type)
+        {
+            lock (s_gate)
+            {
+                if (!s_typeToIndex.TryGetValue(type, out var index))
+                {
+                    index = s_types.Count;
+                    s_types.Add(type);
+                    s_typeToIndex.Add(type, index);
+                }
+
+                return index;
+            }
+        }
+
+        public static Type GetTypeFromId(int typeId)
+        {
+            lock (s_gate)
+            {
+                return s_types[typeId];
+            }
+        }
+
+        public static Func<ObjectReader, object> GetTypeReader(Type type)
+        {
+            throw new NotImplementedException();
         }
     }
 }

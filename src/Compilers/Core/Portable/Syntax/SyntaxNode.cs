@@ -1234,8 +1234,6 @@ namespace Microsoft.CodeAnalysis
             return IsEquivalentToCore(node, topLevel);
         }
 
-        internal static readonly ObjectBinder s_defaultBinder = new ObjectBinder();
-
         public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (stream == null)
@@ -1252,7 +1250,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                using (var writer = new ObjectWriter(stream, GetSerializationObjectData(), binder: s_defaultBinder, cancellationToken: cancellationToken))
+                using (var writer = new ObjectWriter(stream, GetSerializationObjectData(), cancellationToken: cancellationToken))
                 {
                     writer.WriteValue(this.Green);
                 }
@@ -1261,7 +1259,7 @@ namespace Microsoft.CodeAnalysis
             {
                 stream.Position = start;
 
-                using (var writer = new ObjectWriter(stream, GetSerializationObjectData(), binder: s_defaultBinder, recursive: false, cancellationToken: cancellationToken))
+                using (var writer = new ObjectWriter(stream, GetSerializationObjectData(), recursive: false, cancellationToken: cancellationToken))
                 {
                     writer.WriteValue(this.Green);
                 }
