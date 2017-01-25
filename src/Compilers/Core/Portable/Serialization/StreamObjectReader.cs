@@ -372,8 +372,6 @@ namespace Roslyn.Utilities
                     return Variant.FromType(ReadType(kind));
                 case EncodingKind.Enum:
                     return Variant.FromBoxedEnum(ReadBoxedEnum());
-                case EncodingKind.DateTime:
-                    return Variant.FromDateTime(DateTime.FromBinary(_reader.ReadInt64()));
                 case EncodingKind.Array:
                 case EncodingKind.Array_0:
                 case EncodingKind.Array_1:

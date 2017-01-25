@@ -302,11 +302,6 @@ namespace Roslyn.Utilities
                     WriteBoxedEnum(e, e.GetType());
                     break;
 
-                case VariantKind.DateTime:
-                    _writer.Write((byte)EncodingKind.DateTime);
-                    _writer.Write(value.AsDateTime().ToBinary());
-                    break;
-
                 case VariantKind.Type:
                     WriteType(value.AsType());
                     break;
@@ -1289,11 +1284,6 @@ namespace Roslyn.Utilities
             Enum,
 
             /// <summary>
-            /// A DateTime value
-            /// </summary>
-            DateTime,
-
-            /// <summary>
             /// An array with length encoded as compressed uint
             /// </summary>
             Array,
@@ -1349,7 +1339,6 @@ namespace Roslyn.Utilities
             String,
             Object,
             BoxedEnum,
-            DateTime,
             Array,
             Type
         }
@@ -1443,11 +1432,6 @@ namespace Roslyn.Utilities
             public static Variant FromBoxedEnum(object value)
             {
                 return new Variant(VariantKind.BoxedEnum, image: 0, instance: value);
-            }
-
-            public static Variant FromDateTime(DateTime value)
-            {
-                return new Variant(VariantKind.DateTime, image: value.ToBinary(), instance: null);
             }
 
             public static Variant FromType(Type value)
@@ -1561,12 +1545,6 @@ namespace Roslyn.Utilities
                 return _instance;
             }
 
-            public DateTime AsDateTime()
-            {
-                Debug.Assert(Kind == VariantKind.DateTime);
-                return DateTime.FromBinary((long)_image);
-            }
-
             public Type AsType()
             {
                 Debug.Assert(Kind == VariantKind.Type);
@@ -1650,10 +1628,6 @@ namespace Roslyn.Utilities
                     {
                         return FromDouble((double)value);
                     }
-                    else if (type == typeof(DateTime))
-                    {
-                        return FromDateTime((DateTime)value);
-                    }
                     else if (type.IsArray)
                     {
                         var instance = (Array)value;
@@ -1690,8 +1664,6 @@ namespace Roslyn.Utilities
                         return this.AsByte();
                     case VariantKind.Char:
                         return this.AsChar();
-                    case VariantKind.DateTime:
-                        return this.AsDateTime();
                     case VariantKind.Decimal:
                         return this.AsDecimal();
                     case VariantKind.Float4:
