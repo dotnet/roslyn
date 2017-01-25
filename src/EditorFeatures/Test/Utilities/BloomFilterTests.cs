@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             stream.Position = 0;
 
-            using (var reader = new ObjectReader(stream))
+            using (var reader = ObjectReader.TryGetReader(stream))
             {
                 var rehydratedFilter = BloomFilter.ReadFrom(reader);
                 Assert.True(bloomFilter.IsEquivalent(rehydratedFilter));
