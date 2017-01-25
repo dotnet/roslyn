@@ -133,6 +133,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shared Function DeserializeFrom(stream As IO.Stream, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode
             Using reader = ObjectReader.TryGetReader(stream, defaultData:=GetDefaultObjectReaderData(), binder:=s_defaultBinder)
+                If reader Is Nothing Then
+                    Throw New ArgumentException(CodeAnalysisResources.Stream_contains_invalid_data, NameOf(stream))
+                End If
+
                 Return DirectCast(reader.ReadValue(), InternalSyntax.VisualBasicSyntaxNode).CreateRed(Nothing, 0)
             End Using
         End Function
