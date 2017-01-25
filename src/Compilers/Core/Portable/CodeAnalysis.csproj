@@ -39,7 +39,6 @@
     <Compile Include="Serialization\ObjectData.cs" />
     <Compile Include="Serialization\StreamObjectReader.cs" />
     <Compile Include="Serialization\StreamObjectWriter.cs" />
-    <Compile Include="Serialization\TypeKey.cs" />
     <Compile Include="Symbols\IDiscardSymbol.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />

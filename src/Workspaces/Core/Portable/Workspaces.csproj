@@ -285,9 +285,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectWriter.cs">
       <Link>Serialization\StreamObjectWriter.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\TypeKey.cs">
-      <Link>Serialization\TypeKey.cs</Link>
-    </Compile>
     <Compile Include="AddImports\AbstractAddImportsService.cs" />
     <Compile Include="AddImports\IAddImportsService.cs" />
     <Compile Include="CaseCorrection\AbstractCaseCorrectionService.cs" />
