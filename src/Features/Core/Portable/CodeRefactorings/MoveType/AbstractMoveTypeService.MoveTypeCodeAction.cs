@@ -69,6 +69,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 throw ExceptionUtilities.Unreachable;
             }
+
+            internal override bool PerformFinalApplicabilityCheck => true;
+
+            internal override bool IsApplicable(Workspace workspace)
+            {
+                switch (_operationKind)
+                {
+                    case OperationKind.RenameFile:
+                        return workspace.CanRenameFilesDuringCodeActions(_state.SemanticDocument.Document.Project);
+                }
+
+                return true;
+            }
         }
     }
 }

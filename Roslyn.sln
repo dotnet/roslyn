@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26014.0
+VisualStudioVersion = 15.0.26109.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "src\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -365,6 +365,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RazorServiceHub", "src\Workspaces\Remote\Razor\RazorServiceHub.csproj", "{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtilities.CoreClr", "src\Test\Utilities\CoreClr\TestUtilities.CoreClr.csproj", "{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSetup.Dependencies", "src\VisualStudio\Setup.Dependencies\VisualStudioSetup.Dependencies.csproj", "{1688E1E5-D510-4E06-86F3-F8DB10B1393D}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -990,6 +992,10 @@ Global
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1688E1E5-D510-4E06-86F3-F8DB10B1393D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1688E1E5-D510-4E06-86F3-F8DB10B1393D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1688E1E5-D510-4E06-86F3-F8DB10B1393D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1688E1E5-D510-4E06-86F3-F8DB10B1393D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1163,5 +1169,6 @@ Global
 		{0C0EEB55-4B6D-4F2B-B0BB-B9EB2BA9E980} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{B6FC05F2-0E49-4BE2-8030-ACBB82B7F431} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{67CA3EEE-37F1-4EDF-BD9B-C11911748F37} = {CAD2965A-19AB-489F-BE2E-7649957F914A}
+		{1688E1E5-D510-4E06-86F3-F8DB10B1393D} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 	EndGlobalSection
 EndGlobal

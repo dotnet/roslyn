@@ -12,7 +12,6 @@
     "System.IO.FileSystem": "4.3.0",
     "System.IO.FileSystem.Primitives": "4.3.0",
     "System.Reflection.Metadata": "1.4.2",
-    "System.Runtime.InteropServices.RuntimeInformation": "4.3.0",
     "System.Runtime.Numerics": "4.3.0",
     "System.Security.Cryptography.Algorithms": "4.3.0",
     "System.Security.Cryptography.Encoding": "4.3.0",

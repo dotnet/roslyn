@@ -18,16 +18,16 @@ namespace Microsoft.CodeAnalysis.Navigation
             public ImmutableArray<TaggedText> DisplayTaggedParts => _lazyDisplayTaggedParts.Value; 
 
             public Document Document { get; }
-            public Glyph Glyph => Symbol?.GetGlyph() ?? Glyph.Error;
+            public Glyph Glyph => this.SymbolOpt?.GetGlyph() ?? Glyph.Error;
             public TextSpan SourceSpan => _declaredSymbolInfo.Span;
-            public ISymbol Symbol => _lazySymbol.Value;
+            public ISymbol SymbolOpt => _lazySymbolOpt.Value;
             public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
 
             public bool DisplayFileLocation => false;
 
             private readonly DeclaredSymbolInfo _declaredSymbolInfo;
             private readonly Lazy<ImmutableArray<TaggedText>> _lazyDisplayTaggedParts;
-            private readonly Lazy<ISymbol> _lazySymbol;
+            private readonly Lazy<ISymbol> _lazySymbolOpt;
 
             /// <summary>
             /// DeclaredSymbolInfos always come from some actual declaration in source.  So they're
@@ -40,18 +40,18 @@ namespace Microsoft.CodeAnalysis.Navigation
                 Document = document;
                 _declaredSymbolInfo = declaredSymbolInfo;
 
-                _lazySymbol = new Lazy<ISymbol>(FindSymbol);
+                _lazySymbolOpt = new Lazy<ISymbol>(TryFindSymbol);
 
                 _lazyDisplayTaggedParts = new Lazy<ImmutableArray<TaggedText>>(() =>
                 {
                     try
                     {
-                        if (Symbol == null)
+                        if (this.SymbolOpt == null)
                         {
                             return default(ImmutableArray<TaggedText>);
                         }
 
-                        return GetSymbolDisplayTaggedParts(Document.Project, Symbol);
+                        return GetSymbolDisplayTaggedParts(Document.Project, this.SymbolOpt);
                     }
                     catch (Exception e) when (FatalError.Report(e))
                     {
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Navigation
                 });
             }
 
-            private ISymbol FindSymbol()
+            private ISymbol TryFindSymbol()
             {
                 // Here, we will use partial semantics. We are going to use this symbol to get a glyph, display string,
                 // and potentially documentation comments. The first two should work fine even if we don't have full
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Navigation
                 // CancellationToken.None.
                 var semanticModel = Document.GetPartialSemanticModelAsync(CancellationToken.None).GetAwaiter().GetResult();
 
-                return _declaredSymbolInfo.Resolve(semanticModel, CancellationToken.None);
+                return _declaredSymbolInfo.TryResolve(semanticModel, CancellationToken.None);
             }
         }
     }

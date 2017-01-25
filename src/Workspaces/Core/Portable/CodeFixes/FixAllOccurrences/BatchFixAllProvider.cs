@@ -46,34 +46,54 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
-            if (documentsAndDiagnosticsToFixMap != null && documentsAndDiagnosticsToFixMap.Any())
+            if (documentsAndDiagnosticsToFixMap?.Any() == true)
             {
                 FixAllLogger.LogDiagnosticsStats(documentsAndDiagnosticsToFixMap);
 
-                var fixesBag = new ConcurrentBag<(Diagnostic diagnostic, CodeAction action)>();
+                var diagnosticsAndCodeActions = await GetDiagnosticsAndCodeActions(
+                    documentsAndDiagnosticsToFixMap, fixAllState, cancellationToken).ConfigureAwait(false);
 
-                using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Fixes, cancellationToken))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var documents = documentsAndDiagnosticsToFixMap.Keys;
-                    var tasks = documents.Select(d => AddDocumentFixesAsync(
-                        d, documentsAndDiagnosticsToFixMap[d], fixesBag, fixAllState, cancellationToken)).ToArray();
-                    await Task.WhenAll(tasks).ConfigureAwait(false);
-                }
-
-                if (fixesBag.Count > 0)
+                if (diagnosticsAndCodeActions.Length > 0)
                 {
                     using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Merge, cancellationToken))
                     {
-                        FixAllLogger.LogFixesToMergeStats(fixesBag.Count);
+                        FixAllLogger.LogFixesToMergeStats(diagnosticsAndCodeActions.Length);
                         return await TryGetMergedFixAsync(
-                            fixesBag.ToImmutableArray(), fixAllState, cancellationToken).ConfigureAwait(false);
+                            diagnosticsAndCodeActions, fixAllState, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
 
             return null;
+        }
+
+        private async Task<ImmutableArray<(Diagnostic diagnostic, CodeAction action)>> GetDiagnosticsAndCodeActions(
+            ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
+            FixAllState fixAllState, CancellationToken cancellationToken)
+        {
+            var fixesBag = new ConcurrentBag<(Diagnostic diagnostic, CodeAction action)>();
+            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Fixes, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var tasks = new List<Task>();
+
+                foreach (var kvp in documentsAndDiagnosticsToFixMap)
+                {
+                    var document = kvp.Key;
+                    var diagnosticsToFix = kvp.Value;
+                    Debug.Assert(!diagnosticsToFix.IsDefaultOrEmpty);
+                    if (!diagnosticsToFix.IsDefaultOrEmpty)
+                    {
+                        tasks.Add(AddDocumentFixesAsync(
+                            document, diagnosticsToFix, fixesBag, fixAllState, cancellationToken));
+                    }
+                }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
+
+            return fixesBag.ToImmutableArray();
         }
 
         protected async virtual Task AddDocumentFixesAsync(

@@ -166,13 +166,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            public void Reanalyze(IIncrementalAnalyzer analyzer, IEnumerable<DocumentId> documentIds, bool highPriority = false)
+            public void Reanalyze(IIncrementalAnalyzer analyzer, ISet<DocumentId> documentIds, bool highPriority = false)
             {
                 var asyncToken = _listener.BeginAsyncOperation("Reanalyze");
                 _eventProcessingQueue.ScheduleTask(
                     () => EnqueueWorkItemAsync(analyzer, documentIds, highPriority), _shutdownToken).CompletesAsyncOperation(asyncToken);
 
-                SolutionCrawlerLogger.LogReanalyze(CorrelationId, analyzer, documentIds, highPriority);
+                if (documentIds?.Count > 1)
+                {
+                    // log big reanalysis request from things like fix all, suppress all or option changes
+                    // we are not interested in 1 file re-analysis request which can happen from like venus typing
+                    SolutionCrawlerLogger.LogReanalyze(CorrelationId, analyzer, documentIds, highPriority);
+                }
             }
 
             private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)

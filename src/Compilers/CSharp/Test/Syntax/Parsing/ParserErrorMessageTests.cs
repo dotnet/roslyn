@@ -1712,7 +1712,10 @@ namespace x
                 Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "b").WithLocation(9, 15),
                 // (9,15): error CS0103: The name 'b' does not exist in the current context
                 //     [Foo(a=5, b)]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(9, 15));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(9, 15),
+                //(9,6): error CS1729: 'FooAttribute' does not contain a constructor that takes 1 arguments
+                //     [Foo(a=5, b)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Foo(a=5, b)").WithArguments("x.FooAttribute", "1").WithLocation(9, 6));
         }
 
         [Fact]

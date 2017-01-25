@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
         private const string SessionCount = nameof(SessionCount);
         private const string EmptySessionCount = nameof(EmptySessionCount);
+        private const string ReadOnlyEditAttemptedProjectNotBuiltOrLoaded = nameof(ReadOnlyEditAttemptedProjectNotBuiltOrLoaded);
 
         private const string HadCompilationErrors = nameof(HadCompilationErrors);
         private const string HadRudeEdits = nameof(HadRudeEdits);
@@ -61,6 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             map[SessionId] = sessionId;
             map[SessionCount] = session.EditSessions.Count;
             map[EmptySessionCount] = session.EmptyEditSessions;
+            map[ReadOnlyEditAttemptedProjectNotBuiltOrLoaded] = session.ReadOnlyEditAttemptedProjectNotBuiltOrLoaded;
         }
 
         private static void CreateSessionEditKeyValue(Dictionary<string, object> map, int sessionId, int editSessionId, EncEditSessionInfo editSession)

@@ -136,8 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _factory.StaticCall(
                 _factory.SpecialType(SpecialType.System_Object),
                 "Equals",
-                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), input),
-                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), boundConstant)
+                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), boundConstant),
+                _factory.Convert(_factory.SpecialType(SpecialType.System_Object), input)
                 );
         }
 

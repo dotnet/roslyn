@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -160,7 +162,11 @@ namespace Microsoft.CodeAnalysis.Remote
             // changed compilation options
             if (oldProjectChecksums.CompilationOptions != newProjectChecksums.CompilationOptions)
             {
-                project = project.WithCompilationOptions(await _assetService.GetAssetAsync<CompilationOptions>(newProjectChecksums.CompilationOptions, _cancellationToken).ConfigureAwait(false));
+                project = project.WithCompilationOptions(
+                    FixUpCompilationOptions(
+                        project.State.ProjectInfo.Attributes,
+                        await _assetService.GetAssetAsync<CompilationOptions>(
+                            newProjectChecksums.CompilationOptions, _cancellationToken).ConfigureAwait(false)));
             }
 
             // changed parse options
@@ -265,8 +271,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (!oldMap.ContainsKey(kv.Key))
                 {
-                    // we have new project added
-                    project = AddDocument(project, await CreateDocumentInfoAsync(kv.Value.Checksum).ConfigureAwait(false));
+                    // we have new document added
+                    project = AddDocument(project, await CreateDocumentInfoAsync(kv.Value.Checksum).ConfigureAwait(false), additionalText);
                 }
             }
 
@@ -282,7 +288,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 var newDocumentChecksums = kv.Value;
                 Contract.ThrowIfTrue(oldDocumentChecksums.Checksum == newDocumentChecksums.Checksum);
 
-                project = await UpdateDocumentAsync(project.GetDocument(kv.Key), oldDocumentChecksums, newDocumentChecksums).ConfigureAwait(false);
+                var document = additionalText ? project.GetAdditionalDocument(kv.Key) : project.GetDocument(kv.Key);
+                project = await UpdateDocumentAsync(document, oldDocumentChecksums, newDocumentChecksums, additionalText).ConfigureAwait(false);
             }
 
             // removed project
@@ -290,33 +297,48 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (!newMap.ContainsKey(kv.Key))
                 {
-                    // we have a project removed
-                    project = project.RemoveDocument(kv.Key);
+                    // we have a document removed
+                    if (additionalText)
+                    {
+                        project = project.RemoveAdditionalDocument(kv.Key);
+                    }
+                    else
+                    {
+                        project = project.RemoveDocument(kv.Key);
+                    }
                 }
             }
 
             return project;
         }
 
-        private async Task<Project> UpdateDocumentAsync(Document document, DocumentStateChecksums oldDocumentChecksums, DocumentStateChecksums newDocumentChecksums)
+        private async Task<Project> UpdateDocumentAsync(TextDocument document, DocumentStateChecksums oldDocumentChecksums, DocumentStateChecksums newDocumentChecksums, bool additionalText)
         {
             // changed info
             if (oldDocumentChecksums.Info != newDocumentChecksums.Info)
             {
-                document = await UpdateDocumentInfoAsync(document, newDocumentChecksums.Info).ConfigureAwait(false);
+                document = await UpdateDocumentInfoAsync(document, newDocumentChecksums.Info, additionalText).ConfigureAwait(false);
             }
 
             // changed text
             if (oldDocumentChecksums.Text != newDocumentChecksums.Text)
             {
                 var sourceText = await _assetService.GetAssetAsync<SourceText>(newDocumentChecksums.Text, _cancellationToken).ConfigureAwait(false);
-                document = document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id);
+
+                if (additionalText)
+                {
+                    document = document.Project.Solution.WithAdditionalDocumentText(document.Id, sourceText).GetAdditionalDocument(document.Id);
+                }
+                else
+                {
+                    document = document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id);
+                }
             }
 
             return document.Project;
         }
 
-        private async Task<Document> UpdateDocumentInfoAsync(Document document, Checksum infoChecksum)
+        private async Task<TextDocument> UpdateDocumentInfoAsync(TextDocument document, Checksum infoChecksum, bool additionalText)
         {
             var newDocumentInfo = await _assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(infoChecksum, _cancellationToken).ConfigureAwait(false);
 
@@ -328,11 +350,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (document.State.Info.Attributes.Folders != newDocumentInfo.Folders)
             {
+                // additional document can't change folder once created
+                Contract.ThrowIfTrue(additionalText);
                 document = document.Project.Solution.WithDocumentFolders(document.Id, newDocumentInfo.Folders).GetDocument(document.Id);
             }
 
             if (document.State.Info.Attributes.SourceCodeKind != newDocumentInfo.SourceCodeKind)
             {
+                // additional document can't change sourcecode kind once created
+                Contract.ThrowIfTrue(additionalText);
                 document = document.Project.Solution.WithDocumentSourceCodeKind(document.Id, newDocumentInfo.SourceCodeKind).GetDocument(document.Id);
             }
 
@@ -424,7 +450,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Contract.ThrowIfFalse(_baseSolution.Workspace.Services.IsSupported(projectInfo.Language));
 
-            var compilationOptions = await _assetService.GetAssetAsync<CompilationOptions>(projectSnapshot.CompilationOptions, _cancellationToken).ConfigureAwait(false);
+            var compilationOptions = FixUpCompilationOptions(
+                projectInfo,
+                await _assetService.GetAssetAsync<CompilationOptions>(
+                    projectSnapshot.CompilationOptions, _cancellationToken).ConfigureAwait(false));
+
             var parseOptions = await _assetService.GetAssetAsync<ParseOptions>(projectSnapshot.ParseOptions, _cancellationToken).ConfigureAwait(false);
 
             var p2p = await CreateCollectionAsync<ProjectReference>(projectSnapshot.ProjectReferences).ConfigureAwait(false);
@@ -453,7 +483,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 projectInfo.Id, projectInfo.Version, projectInfo.Name, projectInfo.AssemblyName,
                 projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
                 compilationOptions, parseOptions,
-                documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission);
+                documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission).WithHasAllInformation(projectInfo.HasAllInformation);
         }
 
         private async Task<List<T>> CreateCollectionAsync<T>(ChecksumCollection collections)
@@ -493,9 +523,67 @@ namespace Microsoft.CodeAnalysis.Remote
                 documentInfo.IsGenerated);
         }
 
-        private Project AddDocument(Project project, DocumentInfo documentInfo)
+        private Project AddDocument(Project project, DocumentInfo documentInfo, bool additionalText)
         {
+            if (additionalText)
+            {
+                return project.Solution.AddAdditionalDocument(documentInfo).GetProject(project.Id);
+            }
+
             return project.Solution.AddDocument(documentInfo).GetProject(project.Id);
+        }
+
+        private CompilationOptions FixUpCompilationOptions(ProjectInfo.ProjectAttributes info, CompilationOptions compilationOptions)
+        {
+            return compilationOptions.WithXmlReferenceResolver(GetXmlResolver(info.FilePath))
+                                     .WithStrongNameProvider(new DesktopStrongNameProvider(GetStrongNameKeyPaths(info)));
+        }
+
+        private static XmlFileResolver GetXmlResolver(string filePath)
+        {
+            // Given filePath can be any arbitary string project is created with.
+            // for primary solution in host such as VSWorkspace, ETA or MSBuildWorkspace
+            // filePath will point to actual file on disk, but in memory solultion, or
+            // one from AdhocWorkspace and etc, FilePath can be a random string.
+            // Make sure we return only if given filePath is in right form.
+            if (!PathUtilities.IsAbsolute(filePath))
+            {
+                // xmlFileResolver can only deal with absolute path
+                // return Default
+                return XmlFileResolver.Default;
+            }
+
+            return new XmlFileResolver(PathUtilities.GetDirectoryName(filePath));
+        }
+
+        private ImmutableArray<string> GetStrongNameKeyPaths(ProjectInfo.ProjectAttributes info)
+        {
+            // Given FilePath/OutputFilePath can be any arbitary strings project is created with.
+            // for primary solution in host such as VSWorkspace, ETA or MSBuildWorkspace
+            // filePath will point to actual file on disk, but in memory solultion, or
+            // one from AdhocWorkspace and etc, FilePath/OutputFilePath can be a random string.
+            // Make sure we return only if given filePath is in right form.
+            if (info.FilePath == null && info.OutputFilePath == null)
+            {
+                // return empty since that is what IDE does for this case
+                // see AbstractProject.GetStrongNameKeyPaths
+                return ImmutableArray<string>.Empty;
+            }
+
+            var builder = ArrayBuilder<string>.GetInstance();
+            if (info.FilePath != null && PathUtilities.IsAbsolute(info.FilePath))
+            {
+                // desktop strong name provider only knows how to deal with absolute path
+                builder.Add(PathUtilities.GetDirectoryName(info.FilePath));
+            }
+
+            if (info.OutputFilePath != null && PathUtilities.IsAbsolute(info.OutputFilePath))
+            {
+                // desktop strong name provider only knows how to deal with absolute path
+                builder.Add(PathUtilities.GetDirectoryName(info.OutputFilePath));
+            }
+
+            return builder.ToImmutableAndFree();
         }
     }
 }

@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -79,48 +81,52 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static DeclaredSymbolInfo ReadFrom(ObjectReader reader)
+        internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(ObjectReader reader)
         {
-            try
-            {
-                var name = reader.ReadString();
-                var immediateContainer = reader.ReadString();
-                var entireContainer = reader.ReadString();
-                var kind = (DeclaredSymbolInfoKind)reader.ReadByte();
-                var spanStart = reader.ReadInt32();
-                var spanLength = reader.ReadInt32();
-                var parameterCount = reader.ReadUInt16();
-                var typeParameterCount = reader.ReadUInt16();
+            var name = reader.ReadString();
+            var immediateContainer = reader.ReadString();
+            var entireContainer = reader.ReadString();
+            var kind = (DeclaredSymbolInfoKind)reader.ReadByte();
+            var spanStart = reader.ReadInt32();
+            var spanLength = reader.ReadInt32();
+            var parameterCount = reader.ReadUInt16();
+            var typeParameterCount = reader.ReadUInt16();
 
-                var inheritanceNamesLength = reader.ReadInt32();
-                var builder = ImmutableArray.CreateBuilder<string>(inheritanceNamesLength);
-                for (var i = 0; i < inheritanceNamesLength; i++)
-                {
-                    builder.Add(reader.ReadString());
-                }
-
-                return new DeclaredSymbolInfo(
-                    name, immediateContainer, entireContainer, kind, new TextSpan(spanStart, spanLength),
-                    builder.MoveToImmutable(),
-                    parameterCount, typeParameterCount);
-            }
-            catch
+            var inheritanceNamesLength = reader.ReadInt32();
+            var builder = ImmutableArray.CreateBuilder<string>(inheritanceNamesLength);
+            for (var i = 0; i < inheritanceNamesLength; i++)
             {
-                return default(DeclaredSymbolInfo);
+                builder.Add(reader.ReadString());
             }
+
+            return new DeclaredSymbolInfo(
+                name, immediateContainer, entireContainer, kind, new TextSpan(spanStart, spanLength),
+                builder.MoveToImmutable(), parameterCount, typeParameterCount);
         }
 
-        public async Task<ISymbol> ResolveAsync(Document document, CancellationToken cancellationToken)
+        public async Task<ISymbol> TryResolveAsync(Document document, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return Resolve(semanticModel, cancellationToken);
+            return TryResolve(semanticModel, cancellationToken);
         }
 
-        public ISymbol Resolve(SemanticModel semanticModel, CancellationToken cancellationToken)
+        public ISymbol TryResolve(SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var node = root.FindNode(this.Span);
-            return semanticModel.GetDeclaredSymbol(node, cancellationToken);
+            if (root.FullSpan.Contains(this.Span))
+            {
+                var node = root.FindNode(this.Span);
+                return semanticModel.GetDeclaredSymbol(node, cancellationToken);
+            }
+            else
+            {
+                var message =
+$@"Invalid span in {nameof(DeclaredSymbolInfo)}.
+{nameof(this.Span)} = {this.Span}
+{nameof(root.FullSpan)} = {root.FullSpan}";
+                FatalError.ReportWithoutCrash(new InvalidOperationException(message));
+                return null;
+            }
         }
     }
 }

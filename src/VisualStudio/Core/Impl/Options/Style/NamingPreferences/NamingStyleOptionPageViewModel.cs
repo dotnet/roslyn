@@ -275,6 +275,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                 }
             }
 
+            public string MoveUpAutomationText => ServicesVSResources.Move_up;
+            public string MoveDownAutomationText => ServicesVSResources.Move_down;
+
+            public string RemoveAutomationText => ServicesVSResources.Remove;
+
             public bool IsComplete()
             {
                 return SelectedSpecification != null && SelectedStyle != null && SelectedNotificationPreference != null;
