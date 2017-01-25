@@ -20,7 +20,7 @@ namespace Roslyn.Utilities
         /// this version, just change VersionByte2.
         /// </summary>
         internal const byte VersionByte1 = 0b10101010;
-        internal const byte VersionByte2 = 0b00000001;
+        internal const byte VersionByte2 = 0b00000011;
 
         private readonly BinaryReader _reader;
         private readonly ObjectReaderData _dataMap;
@@ -41,7 +41,7 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Attempts to create a <see cref="StreamObjectReader"/> from the provided <paramref name="stream"/>.
+        /// Attempts to create a <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
         /// If the <paramref name="stream"/> does not start with a valid header, then <code>null</code> will
         /// be returned.
         /// </summary>
