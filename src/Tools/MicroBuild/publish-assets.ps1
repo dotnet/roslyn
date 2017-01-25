@@ -42,7 +42,7 @@ try
     {
         "dev15-rc3" { } 
         "master" { } 
-        "treePerf3" { }
+        "treePerf_noSubclassing_removeTypeKey" { }
         default
         {
             if (-not $test)
