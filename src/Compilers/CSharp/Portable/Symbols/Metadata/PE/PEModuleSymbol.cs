@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Roslyn.Utilities;
 using System.Reflection.PortableExecutable;
 using System.Reflection;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -642,65 +641,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         /// <summary>
-        /// Returns a list of the assemblies this module forwards the given type to.
+        /// Returns a tuple of the assemblies this module forwards the given type to.
         /// </summary>
         /// <param name="fullName">Type to look up.</param>
-        /// <returns>An <see cref="ImmutableArray"/> of the forwarded to assemblies.</returns>
+        /// <returns>A tuple of the forwarded to assemblies.</returns>
         /// <remarks>
         /// The returned assemblies may also forward the type.
         /// </remarks>
-        internal ImmutableArray<AssemblySymbol> GetAssembliesForForwardedType(ref MetadataTypeName fullName)
+        internal (AssemblySymbol FirstSymbol, AssemblySymbol SecondSymbol) GetAssembliesForForwardedType(ref MetadataTypeName fullName)
         {
             string matchedName;
-            HashSet<AssemblyReferenceHandle> assemblyRefs = Module.GetAssemblyRefsForForwardedType(fullName.FullName, ignoreCase: false, matchedName: out matchedName);
-            var assemblies = ArrayBuilder<AssemblySymbol>.GetInstance();
+            (int FirstIndex, int SecondIndex) indices = this.Module.GetAssemblyRefsForForwardedType(fullName.FullName, ignoreCase: false, matchedName: out matchedName);
 
-            if (assemblyRefs != null)
-            {
-                foreach (var reference in assemblyRefs)
-                {
-                    var assembly = this.GetReferencedAssemblySymbol(reference);
-                    if (assembly != null)
-                    {
-                        assemblies.Add(assembly);
-                    }
-                }
-            }
+            var firstSymbol = indices.FirstIndex < 0 ? null : GetReferencedAssemblySymbol(indices.FirstIndex);
+            var secondSymbol = indices.SecondIndex < 0 ? null : GetReferencedAssemblySymbol(indices.SecondIndex);
 
-            return assemblies.ToImmutableAndFree();
+            return (firstSymbol, secondSymbol);
         }
 
         internal IEnumerable<NamedTypeSymbol> GetForwardedTypes()
         {
-            foreach (KeyValuePair<string, HashSet<AssemblyReferenceHandle>> forwarder in Module.GetForwardedTypes())
+            foreach (KeyValuePair<string, (int FirstIndex, int SecondIndex)> forwarder in Module.GetForwardedTypes())
             {
-                foreach (AssemblyReferenceHandle assemblyRef in forwarder.Value)
+                if (forwarder.Value.FirstIndex < 0)
                 {
-                    var assemblySymbol = this.GetReferencedAssemblySymbol(assemblyRef);
-                    if ((object)assemblySymbol == null)
+                    continue;
+                }
+
+                var name = MetadataTypeName.FromFullName(forwarder.Key);
+                AssemblySymbol firstSymbol = this.GetReferencedAssemblySymbol(forwarder.Value.FirstIndex);
+
+                if ((object)firstSymbol == null)
+                {
+                    continue;
+                }
+
+                if (forwarder.Value.SecondIndex >= 0)
+                {
+                    var secondSymbol = this.GetReferencedAssemblySymbol(forwarder.Value.SecondIndex);
+
+                    if ((object)secondSymbol != null)
                     {
+                        var forwardingErrorInfo = new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies, forwarder.Key, firstSymbol.Name, secondSymbol.Name);
+                        yield return new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this, ref name, forwardingErrorInfo);
                         continue;
                     }
-                    var name = MetadataTypeName.FromFullName(forwarder.Key);
-                    yield return assemblySymbol.LookupTopLevelMetadataType(ref name, digThroughForwardedTypes: true);
                 }
+
+                yield return firstSymbol.LookupTopLevelMetadataType(ref name, digThroughForwardedTypes: true);
             }
         }
-
-        private AssemblySymbol GetReferencedAssemblySymbol(AssemblyReferenceHandle assemblyRef)
-        {
-            int referencedAssemblyIndex;
-            try
-            {
-                referencedAssemblyIndex = Module.GetAssemblyReferenceIndexOrThrow(assemblyRef);
-            }
-            catch (BadImageFormatException)
-            {
-                return null;
-            }
-            return this.GetReferencedAssemblySymbol(referencedAssemblyIndex);
-        }
-
+        
         public override ModuleMetadata GetMetadata() => _module.GetNonDisposableMetadata();
     }
 }

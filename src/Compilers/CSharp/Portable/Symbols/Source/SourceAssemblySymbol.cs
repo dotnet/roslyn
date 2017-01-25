@@ -2583,26 +2583,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var peModuleSymbol = (Metadata.PE.PEModuleSymbol)_modules[i];
 
-                    var forwardedToAssemblies = peModuleSymbol.GetAssembliesForForwardedType(ref emittedName);
+                    (AssemblySymbol FirstSymbol, AssemblySymbol SecondSymbol) forwardedToAssemblies = peModuleSymbol.GetAssembliesForForwardedType(ref emittedName);
 
-                    if (!forwardedToAssemblies.IsDefaultOrEmpty)
+                    if ((object)forwardedToAssemblies.FirstSymbol != null)
                     {
-                        if (forwardedToAssemblies.Length > 1)
+                        if ((object)forwardedToAssemblies.SecondSymbol != null)
                         {
-                            return new MultipleForwardedTypeSymbol(emittedName, forwardedToAssemblies[0], forwardedToAssemblies[1]);
+                            var forwardingErrorInfo = new DiagnosticInfo(
+                                MessageProvider.Instance,
+                                (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies,
+                                emittedName.FullName,
+                                forwardedToAssemblies.FirstSymbol.Name,
+                                forwardedToAssemblies.SecondSymbol.Name);
+                            return new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(SourceModule, ref emittedName, forwardingErrorInfo);
                         }
 
-                        AssemblySymbol forwardedToAssembly = forwardedToAssemblies.First();
-
                         // Don't bother to check the forwarded-to assembly if we've already seen it.
-                        if (visitedAssemblies != null && visitedAssemblies.Contains(forwardedToAssembly))
+                        if (visitedAssemblies != null && visitedAssemblies.Contains(forwardedToAssemblies.FirstSymbol))
                         {
                             return CreateCycleInTypeForwarderErrorTypeSymbol(ref emittedName);
                         }
                         else
                         {
                             visitedAssemblies = new ConsList<AssemblySymbol>(this, visitedAssemblies ?? ConsList<AssemblySymbol>.Empty);
-                            return forwardedToAssembly.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
+                            return forwardedToAssemblies.FirstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
                         }
                     }
                 }

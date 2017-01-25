@@ -668,7 +668,6 @@
     <Compile Include="Symbols\MissingModuleSymbol.vb" />
     <Compile Include="Symbols\MissingNamespaceSymbol.vb" />
     <Compile Include="Symbols\ModuleSymbol.vb" />
-    <Compile Include="Symbols\MultipleForwardedTypeSymbol.vb" />
     <Compile Include="Symbols\NamedTypeSymbol.vb" />
     <Compile Include="Symbols\NamedTypeSymbolExtensions.vb" />
     <Compile Include="Symbols\NamespaceExtent.vb" />

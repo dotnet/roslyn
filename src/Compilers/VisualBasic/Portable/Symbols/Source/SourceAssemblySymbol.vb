@@ -1695,15 +1695,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim peModuleSymbol = DirectCast(_modules(i), PEModuleSymbol)
                     Dim forwardedToAssemblies = peModuleSymbol.GetAssembliesForForwardedType(emittedName, ignoreCase, matchedName)
 
-                    If (Not forwardedToAssemblies.IsDefaultOrEmpty) Then
-                        If (forwardedToAssemblies.Length > 1) Then
-                            Return New MultipleForwardedTypeSymbol(emittedName, forwardedToAssemblies(0), forwardedToAssemblies(1))
+                    If DirectCast(forwardedToAssemblies.FirstSymbol, Object) IsNot Nothing Then
+                        If DirectCast(forwardedToAssemblies.SecondSymbol, Object) IsNot Nothing Then
+                            Dim forwardingErrorInfo = New DiagnosticInfo(MessageProvider.Instance, ERRID.ERR_TypeForwardedToMultipleAssemblies, emittedName.FullName, forwardedToAssemblies.FirstSymbol.Name, forwardedToAssemblies.SecondSymbol.Name)
+                            Return New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(SourceModule, emittedName, forwardingErrorInfo)
                         End If
 
-                        Dim forwardedToAssembly = forwardedToAssemblies.First()
-
                         ' Don't bother to check the forwarded-to assembly if we've already seen it.
-                        If visitedAssemblies IsNot Nothing AndAlso visitedAssemblies.Contains(forwardedToAssembly) Then
+                        If visitedAssemblies IsNot Nothing AndAlso visitedAssemblies.Contains(forwardedToAssemblies.FirstSymbol) Then
                             Return CreateCycleInTypeForwarderErrorTypeSymbol(emittedName)
                         Else
                             visitedAssemblies = New ConsList(Of AssemblySymbol)(Me, If(visitedAssemblies, ConsList(Of AssemblySymbol).Empty))
@@ -1712,7 +1711,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 emittedName = MetadataTypeName.FromFullName(matchedName, emittedName.UseCLSCompliantNameArityEncoding, emittedName.ForcedArity)
                             End If
 
-                            Return forwardedToAssembly.LookupTopLevelMetadataTypeWithCycleDetection(emittedName, visitedAssemblies, digThroughForwardedTypes:=True)
+                            Return forwardedToAssemblies.FirstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(emittedName, visitedAssemblies, digThroughForwardedTypes:=True)
                         End If
                     End If
                 Next

@@ -423,42 +423,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         ''' <summary>
-        ''' Returns a list of the assemblies this module forwards the given type to.
+        ''' Returns a tuple of the assemblies this module forwards the given type to.
         ''' </summary>
         ''' <param name="fullName">Type to look up.</param>
         ''' <param name="ignoreCase">Pass true to look up fullName case-insensitively.  WARNING: more expensive.</param>
         ''' <param name="matchedName">Returns the actual casing of the matching name.</param>
-        ''' <returns>An <see cref="ImmutableArray"/> of the forwarded to assemblies.</returns>
+        ''' <returns>A tuple of the forwarded to assemblies.</returns>
         ''' <remarks>
         ''' The returned assemblies may also forward the type.
         ''' </remarks>
-        Friend Function GetAssembliesForForwardedType(ByRef fullName As MetadataTypeName, ignoreCase As Boolean, <Out> ByRef matchedName As String) As ImmutableArray(Of AssemblySymbol)
-            Dim assemblyRefs As IEnumerable(Of AssemblyReferenceHandle) = Me.Module.GetAssemblyRefsForForwardedType(fullName.FullName, ignoreCase, matchedName)
-            Dim assemblies = ArrayBuilder(Of AssemblySymbol).GetInstance()
+        Friend Function GetAssembliesForForwardedType(ByRef fullName As MetadataTypeName, ignoreCase As Boolean, <Out> ByRef matchedName As String) As (FirstSymbol As AssemblySymbol, SecondSymbol As AssemblySymbol)
+            Dim indices = Me.Module.GetAssemblyRefsForForwardedType(fullName.FullName, ignoreCase, matchedName)
+            
+            Dim firstSymbol = If(indices.FirstIndex < 0, Nothing, GetReferencedAssemblySymbol(indices.FirstIndex))
+            Dim secondSymbol = If(indices.SecondIndex < 0, Nothing, GetReferencedAssemblySymbol(indices.SecondIndex))
 
-            If Not assemblyRefs Is Nothing Then
-                For Each reference As AssemblyReferenceHandle In assemblyRefs
-                    Dim Assembly = GetReferencedAssemblySymbol(reference)
-                    If Not Assembly Is Nothing Then
-                        assemblies.Add(Assembly)
-                    End If
-                Next
-            End If
-
-            Return assemblies.ToImmutableAndFree()
+            return (firstSymbol, secondSymbol)
         End Function
 
         Friend Iterator Function GetForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
-            For Each forwarder As KeyValuePair(Of String, HashSet(Of AssemblyReferenceHandle)) In Me.Module.GetForwardedTypes()
-                For Each assemblyRef As AssemblyReferenceHandle In forwarder.Value
-                    Dim assembly As AssemblySymbol = GetReferencedAssemblySymbol(assemblyRef)
-                    If assembly Is Nothing Then
+            For Each forwarder As KeyValuePair(Of String, (FirstIndex As Integer, SecondIndex As Integer)) In Me.Module.GetForwardedTypes()
+                If forwarder.Value.FirstIndex < 0 Then
+                    Continue For
+                End If
+
+                Dim name = MetadataTypeName.FromFullName(forwarder.Key)
+                Dim firstSymbol = GetReferencedAssemblySymbol(forwarder.Value.FirstIndex)
+
+                If DirectCast(firstSymbol, Object) Is Nothing
+                    Continue For
+                End If
+
+                If forwarder.Value.SecondIndex >= 0 Then
+                    Dim secondSymbol = GetReferencedAssemblySymbol(forwarder.Value.SecondIndex)
+
+                    If DirectCast(secondSymbol, Object) IsNot Nothing
+                        Dim forwardingErrorInfo = New DiagnosticInfo(MessageProvider.Instance, ERRID.ERR_TypeForwardedToMultipleAssemblies, forwarder.Key, firstSymbol.Name, secondSymbol.Name)
+                        Yield New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(Me, name, forwardingErrorInfo)
                         Continue For
                     End If
+                End If
 
-                    Dim name = MetadataTypeName.FromFullName(forwarder.Key)
-                    Yield assembly.LookupTopLevelMetadataType(name, digThroughForwardedTypes:=True)
-                Next
+                Yield firstSymbol.LookupTopLevelMetadataType(name, digThroughForwardedTypes:= true)
             Next
         End Function
 

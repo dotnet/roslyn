@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_BadXMLRef = 1574,
         ERR_BadStackAllocExpr = 1575,
         ERR_InvalidLineNumber = 1576,
-        ERR_TypeForwardedToMultipleAssemblies = 1577,
+        //ERR_ALinkFailed = 1577,               No alink usage in Roslyn
         ERR_MissingPPFile = 1578,
         ERR_ForEachMissingMember = 1579,
         WRN_BadXMLRefParamType = 1580,
@@ -1452,6 +1452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionVariableInQueryClause = 8201,
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
+        ERR_TypeForwardedToMultipleAssemblies = 8204,
         #endregion more stragglers for C# 7
     }
 }

@@ -722,7 +722,6 @@
     <Compile Include="Symbols\TypeUnification.cs" />
     <Compile Include="Symbols\TypeWithModifiers.cs" />
     <Compile Include="Symbols\UnboundGenericType.cs" />
-    <Compile Include="Symbols\MultipleForwardedTypeSymbol.cs" />
     <Compile Include="Symbols\UnsupportedMetadataTypeSymbol.cs" />
     <Compile Include="Symbols\VarianceSafety.cs" />
     <Compile Include="Symbols\Wrapped\WrappedParameterSymbol.cs" />

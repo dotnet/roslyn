@@ -19412,56 +19412,30 @@ internal abstract event System.EventHandler E;";
                 // internal abstract event System.EventHandler E;
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
         }
-
+        
         [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
-        public void MultipleForwardsToTheSameAssemblyShouldIgnoreDuplicate()
+        public void MultipleForwardsOfATypeToDifferentAssembliesWithoutUsingItShouldNotReportAnError()
         {
-            var forwardedToCode = @"
-namespace Destination
-{
-    public class TestClass
-    {
-        public const string Value = ""TEST VALUE"";
-    }
-}";
-            var forwardedToReference = CreateCompilationWithMscorlib(forwardedToCode, assemblyName: "Destination").EmitToImageReference();
-
-            var forwardingCode = @"
-namespace ForwardingNamespace
-{
-    public class Program
-    {
-        public static void Main()
-        {
-            System.Console.WriteLine(Destination.TestClass.Value);
-        }
-    }
-}";
             var forwardingIL = @"
-.assembly extern Destination { }
-.class extern forwarder Destination.TestClass
+.assembly extern mscorlib
 {
-	.assembly extern Destination
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )
+  .ver 4:0:0:0
 }
-.class extern forwarder Destination.TestClass
+
+.assembly Forwarding
 {
-	.assembly extern Destination
-}";
-            var forwardingCompilation = CreateCompilationWithCustomILSource(
-                source: forwardingCode,
-                ilSource: forwardingIL,
-                references: new MetadataReference[] { forwardedToReference },
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+}
 
-            CompileAndVerify(forwardingCompilation, expectedOutput: "TEST VALUE");
-        }
+.module Forwarding.dll
 
-        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
-        public void MultipleForwardsToDifferentAssembliesWithoutReferencingThemShouldIgnoreIt()
-        {
-            var forwardingIL = @"
-.assembly extern Destination1 { }
-.assembly extern Destination2 { }
+.assembly extern Destination1
+{
+}
+.assembly extern Destination2
+{
+}
+
 .class extern forwarder Destination.TestClass
 {
 	.assembly extern Destination1
@@ -19469,16 +19443,48 @@ namespace ForwardingNamespace
 .class extern forwarder Destination.TestClass
 {
 	.assembly extern Destination2
-}";
-            var forwardingCompilation = CreateCompilationWithCustomILSource(string.Empty, forwardingIL);
+}
 
-            forwardingCompilation.VerifyDiagnostics();
+.class public auto ansi beforefieldinit TestSpace.ExistingReference
+       extends [mscorlib]System.Object
+{
+  .field public static literal string Value = ""TEST VALUE""
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+        {
+            // Code size       8 (0x8)
+            .maxstack  8
+            IL_0000:  ldarg.0
+            IL_0001:  call instance void[mscorlib] System.Object::.ctor()
+            IL_0006:  nop
+            IL_0007:  ret
+        }
+}";
+            var ilReference = CompileIL(forwardingIL, appendDefaultHeader: false);
+
+            var code = @"
+using TestSpace;
+namespace UserSpace
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            System.Console.WriteLine(ExistingReference.Value);
+        }
+    }
+}";
+
+            CompileAndVerify(
+                source: code,
+                additionalRefs: new MetadataReference[] { ilReference },
+                expectedOutput: "TEST VALUE");
         }
 
         [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
-        public void MultipleForwardsToDifferentAssembliesWhileReferencingThemShouldErrorOut()
+        public void MultipleForwardsOfFullyQualifiedTypeToDifferentAssembliesWhileReferencingItShouldErrorOut()
         {
-            var forwardingCode = @"
+            var userCode = @"
 namespace ForwardingNamespace
 {
     public class Program
@@ -19490,8 +19496,18 @@ namespace ForwardingNamespace
     }
 }";
             var forwardingIL = @"
-.assembly extern Destination1 { }
-.assembly extern Destination2 { }
+.assembly extern Destination1
+{
+    .ver 1:0:0:0
+}
+.assembly extern Destination2
+{
+    .ver 1:0:0:0
+}
+.assembly Forwarder
+{
+    .ver 1:0:0:0
+}
 .class extern forwarder Destination.TestClass
 {
 	.assembly extern Destination1
@@ -19500,29 +19516,21 @@ namespace ForwardingNamespace
 {
 	.assembly extern Destination2
 }";
-            var forwardingCompilation = CreateCompilationWithCustomILSource(forwardingCode, forwardingIL);
+            var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
 
-            forwardingCompilation.VerifyDiagnostics(
-                // (8,29): error CS1577: Type 'Destination.TestClass' is forwarded to multiple assemblies: 'Destination1' and 'Destination2'
+            compilation.VerifyDiagnostics(
+                // (8,29): error CS8204: Type 'Destination.TestClass' is forwarded to multiple assemblies: 'Destination1' and 'Destination2'
                 //             new Destination.TestClass();
-                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestClass").WithArguments("Destination.TestClass", "Destination1", "Destination2").WithLocation(8, 29));
+                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestClass").WithArguments("Destination.TestClass", "Destination1", "Destination2").WithLocation(8, 29),
+                // (8,29): error CS0234: The type or namespace name 'TestClass' does not exist in the namespace 'Destination' (are you missing an assembly reference?)
+                //             new Destination.TestClass();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestClass").WithArguments("TestClass", "Destination").WithLocation(8, 29));
         }
-
+        
         [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
-        public void MultipleForwardsThatResultInTheSameAssemblyDoNotErrorOut()
+        public void MultipleForwardsToManyAssembliesShouldJustReportTheFirstTwo()
         {
-            var forwardedToCode1 = @"
-namespace Destination
-{
-    public class TestClass {}
-}";
-            var forwardedToReference1 = CreateCompilationWithMscorlib(forwardedToCode1, assemblyName: "Destination1").EmitToImageReference();
-
-            var forwardedToCode2 = @"[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(Destination.TestClass))]";
-            var forwardedToCompilation2 = CreateCompilationWithMscorlib(forwardedToCode2, new MetadataReference[] { forwardedToReference1 }, assemblyName: "Destination2");
-            var forwardedToReference2 = forwardedToCompilation2.EmitToImageReference();
-
-            var forwardingCode = @"
+            var userCode = @"
 namespace ForwardingNamespace
 {
     public class Program
@@ -19534,8 +19542,14 @@ namespace ForwardingNamespace
     }
 }";
             var forwardingIL = @"
+.assembly Forwarder
+{
+}
 .assembly extern Destination1 { }
 .assembly extern Destination2 { }
+.assembly extern Destination3 { }
+.assembly extern Destination4 { }
+.assembly extern Destination5 { }
 .class extern forwarder Destination.TestClass
 {
 	.assembly extern Destination1
@@ -19543,10 +19557,164 @@ namespace ForwardingNamespace
 .class extern forwarder Destination.TestClass
 {
 	.assembly extern Destination2
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination3
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination4
+}
+.class extern forwarder Destination.TestClass
+{
+	.assembly extern Destination5
 }";
-            var forwardingCompilation = CreateCompilationWithCustomILSource(forwardingCode, forwardingIL, new MetadataReference[] { forwardedToReference1, forwardedToReference2 });
+            var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
 
-            forwardingCompilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (8,29): error CS8204: Type 'Destination.TestClass' is forwarded to multiple assemblies: 'Destination1' and 'Destination2'
+                //             new Destination.TestClass();
+                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestClass").WithArguments("Destination.TestClass", "Destination1", "Destination2").WithLocation(8, 29),
+                // (8,29): error CS0234: The type or namespace name 'TestClass' does not exist in the namespace 'Destination' (are you missing an assembly reference?)
+                //             new Destination.TestClass();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestClass").WithArguments("TestClass", "Destination").WithLocation(8, 29));
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void RequiredExternalTypesForAMethodSignatureWillReportErrorsIfForwardedToMultipleAssemblies()
+        {
+            // The scenario is that assembly A is calling a method from assembly B. This method has a parameter of a type that lives
+            // in assembly C. If A is compiled against B and C, it should compile successfully.
+            // Now if assembly C is replaced with assembly C2, that forwards the type to both D1 and D2, it should fail with the appropriate error.
+
+            var codeC = @"
+namespace C
+{
+    public class ClassC {}
+}";
+            var referenceC = CreateCompilationWithMscorlib(codeC, assemblyName: "C") .EmitToImageReference();
+
+            var codeB = @"
+using C;
+
+namespace B
+{
+    public static class ClassB
+    {
+        public static void MethodB(ClassC obj)
+        {
+            System.Console.WriteLine(obj.GetHashCode());
+        }
+    }
+}";
+            var referenceB = CreateCompilationWithMscorlib(codeB, references: new MetadataReference[] { referenceC }, assemblyName: "B").EmitToImageReference();
+
+            var codeA = @"
+using B;
+
+namespace A
+{
+    public class ClassA
+    {
+        public void MethodA()
+        {
+            ClassB.MethodB(null);
+        }
+    }
+}";
+
+            CreateCompilationWithMscorlib(codeA, references: new MetadataReference[] { referenceB, referenceC }, assemblyName: "A").VerifyDiagnostics(); // No Errors
+            
+            var codeC2 = @"
+.assembly C
+{
+	.ver 0:0:0:0
+}
+.assembly extern D1 { }
+.assembly extern D2 { }
+.class extern forwarder C.ClassC
+{
+	.assembly extern D1
+}
+.class extern forwarder C.ClassC
+{
+	.assembly extern D2
+}";
+
+            var referenceC2 = CompileIL(codeC2, appendDefaultHeader: false);
+
+            CreateCompilationWithMscorlib(codeA, references: new MetadataReference[] { referenceB, referenceC2 }, assemblyName: "A").VerifyDiagnostics(
+                // (10,13): error CS8204: Type 'C.ClassC' is forwarded to multiple assemblies: 'D1' and 'D2'
+                //             ClassB.MethodB(null);
+                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("C.ClassC", "D1", "D2").WithLocation(10, 13));
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void MultipleTypeForwardersToTheSameAssemblyShouldNotResultInMultipleForwardError()
+        {
+            var codeC = @"
+namespace C
+{
+    public class ClassC {}
+}";
+            var referenceC = CreateCompilationWithMscorlib(codeC, assemblyName: "C").EmitToImageReference();
+
+            var codeB = @"
+using C;
+
+namespace B
+{
+    public static class ClassB
+    {
+        public static string MethodB(ClassC obj)
+        {
+            return ""obj is "" + (obj == null ? ""null"" : obj.ToString());
+        }
+    }
+}";
+            var referenceB = CreateCompilationWithMscorlib(codeB, references: new MetadataReference[] { referenceC }, assemblyName: "B").EmitToImageReference();
+
+            var codeA = @"
+using B;
+
+namespace A
+{
+    public class ClassA
+    {
+        public static void Main()
+        {
+            System.Console.WriteLine(ClassB.MethodB(null));
+        }
+    }
+}";
+
+            CompileAndVerify(
+                source: codeA,
+                additionalRefs: new MetadataReference[] { referenceB, referenceC },
+                expectedOutput: "obj is null");
+
+            var codeC2 = @"
+.assembly C
+{
+	.ver 0:0:0:0
+}
+.assembly extern D { }
+.class extern forwarder C.ClassC
+{
+	.assembly extern D
+}
+.class extern forwarder C.ClassC
+{
+	.assembly extern D
+}";
+
+            var referenceC2 = CompileIL(codeC2, appendDefaultHeader: false);
+
+            CreateCompilationWithMscorlib(codeA, references: new MetadataReference[] { referenceB, referenceC2 }).VerifyDiagnostics(
+                // (10,38): error CS0012: The type 'ClassC' is defined in an assembly that is not referenced. You must add a reference to assembly 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             System.Console.WriteLine(ClassB.MethodB(null));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "ClassB.MethodB").WithArguments("C.ClassC", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 38));
         }
     }
 }
