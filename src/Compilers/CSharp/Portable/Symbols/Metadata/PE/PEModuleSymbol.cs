@@ -651,10 +651,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal (AssemblySymbol FirstSymbol, AssemblySymbol SecondSymbol) GetAssembliesForForwardedType(ref MetadataTypeName fullName)
         {
             string matchedName;
-            (int FirstIndex, int SecondIndex) indices = this.Module.GetAssemblyRefsForForwardedType(fullName.FullName, ignoreCase: false, matchedName: out matchedName);
+            (int firstIndex, int secondIndex) = this.Module.GetAssemblyRefsForForwardedType(fullName.FullName, ignoreCase: false, matchedName: out matchedName);
 
-            var firstSymbol = indices.FirstIndex < 0 ? null : GetReferencedAssemblySymbol(indices.FirstIndex);
-            var secondSymbol = indices.SecondIndex < 0 ? null : GetReferencedAssemblySymbol(indices.SecondIndex);
+            var firstSymbol = firstIndex < 0 ? null : GetReferencedAssemblySymbol(firstIndex);
+            var secondSymbol = secondIndex < 0 ? null : GetReferencedAssemblySymbol(secondIndex);
 
             return (firstSymbol, secondSymbol);
         }

@@ -151,30 +151,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
         {
             // Check if it is a forwarded type.
-            (AssemblySymbol FirstSymbol, AssemblySymbol SecondSymbol) forwardedToAssemblies = LookupAssembliesForForwardedMetadataType(ref emittedName);
+            (AssemblySymbol firstSymbol, AssemblySymbol secondSymbol) = LookupAssembliesForForwardedMetadataType(ref emittedName);
 
-            if ((object)forwardedToAssemblies.FirstSymbol != null)
+            if ((object)firstSymbol != null)
             {
-                if ((object)forwardedToAssemblies.SecondSymbol != null)
+                if ((object)secondSymbol != null)
                 {
                     var forwardingErrorInfo = new DiagnosticInfo(
                         MessageProvider.Instance,
                         (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies,
                         emittedName.FullName,
-                        forwardedToAssemblies.FirstSymbol.Name,
-                        forwardedToAssemblies.SecondSymbol.Name);
+                        firstSymbol.Name,
+                        secondSymbol.Name);
                     return new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(PrimaryModule, ref emittedName, forwardingErrorInfo);
                 }
                 
                 // Don't bother to check the forwarded-to assembly if we've already seen it.
-                if (visitedAssemblies != null && visitedAssemblies.Contains(forwardedToAssemblies.FirstSymbol))
+                if (visitedAssemblies != null && visitedAssemblies.Contains(firstSymbol))
                 {
                     return CreateCycleInTypeForwarderErrorTypeSymbol(ref emittedName);
                 }
                 else
                 {
                     visitedAssemblies = new ConsList<AssemblySymbol>(this, visitedAssemblies ?? ConsList<AssemblySymbol>.Empty);
-                    return forwardedToAssemblies.FirstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
+                    return firstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies, digThroughForwardedTypes: true);
                 }
             }
 
