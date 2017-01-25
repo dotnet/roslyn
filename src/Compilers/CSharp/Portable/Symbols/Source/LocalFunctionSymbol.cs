@@ -118,6 +118,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // force lazy init
             ComputeParameters();
+
+            foreach (var p in _syntax.ParameterList.Parameters)
+            {
+                if (p.IsArgList)
+                {
+                    addTo.Add(ErrorCode.ERR_IllegalVarArgs, p.Location);
+                }
+            }
+
             ComputeReturnType();
 
             var diags = ImmutableInterlocked.InterlockedExchange(ref _diagnostics, default(ImmutableArray<Diagnostic>));
