@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.Options
         /// clients.  Also takes the <see cref="IGlobalOptionService.OptionChanged"/> notifications
         /// and forwards them along using the same <see cref="IWorkspaceTaskScheduler"/> used by the
         /// <see cref="Workspace"/> this is connected to.  i.e. instead of synchronously just passing
-        /// along the underlying events, these will be enqueued onto the workspaces eventing queue.
+        /// along the underlying events, these will be enqueued onto the workspace's eventing queue.
         /// </summary>
         // Internal for testing purposes.
         internal class OptionService : IWorkspaceOptionService
         {
             private readonly IGlobalOptionService _globalOptionService;
-            private readonly Lazy<IWorkspaceTaskScheduler> _taskQueue;
+            private readonly IWorkspaceTaskScheduler _taskQueue;
 
             /// <summary>
             /// Gate guarding <see cref="_eventHandlers"/> and <see cref="_documentOptionsProviders"/>.
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Options
                 _globalOptionService = globalOptionService;
 
                 var workspaceTaskSchedulerFactory = workspaceServices.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
-                _taskQueue = new Lazy<IWorkspaceTaskScheduler>(() => workspaceTaskSchedulerFactory.CreateEventingTaskQueue());
+                _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
 
                 _globalOptionService.OptionChanged += OnGlobalOptionServiceOptionChanged;
             }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             private void OnGlobalOptionServiceOptionChanged(object sender, OptionChangedEventArgs e)
             {
-                _taskQueue.Value.ScheduleTask(() =>
+                _taskQueue.ScheduleTask(() =>
                 {
                     // Ensure we grab the event handlers inside the scheduled task to prevent a race of people unsubscribing
                     // but getting the event later on the UI thread
