@@ -253,7 +253,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
 
             var stringText = StringText.From(text, Encoding.UTF8);
-            return SyntaxFactory.ParseSyntaxTree(stringText, options, filename);
+            return CheckSerializable(SyntaxFactory.ParseSyntaxTree(stringText, options, filename));
+        }
+
+        private static SyntaxTree CheckSerializable(SyntaxTree tree)
+        {
+            var stream = new MemoryStream();
+            var root = tree.GetRoot();
+            root.SerializeTo(stream);
+            stream.Position = 0;
+            var deserializedRoot = CSharpSyntaxNode.DeserializeFrom(stream);
+            return tree;
         }
 
         public static SyntaxTree[] Parse(IEnumerable<string> sources, CSharpParseOptions options = null)

@@ -42,13 +42,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void VersionStamp_RoundTripText()
         {
             using (var writerStream = new MemoryStream())
-            using (var writer = new ObjectWriter(writerStream))
+            using (var writer = new StreamObjectWriter(writerStream))
             {
                 var versionStamp = VersionStamp.Create();
                 versionStamp.WriteTo(writer);
 
                 using (var readerStream = new MemoryStream(writerStream.ToArray()))
-                using (var reader = new ObjectReader(readerStream))
+                using (var reader = new StreamObjectReader(readerStream))
                 {
                     var deserializedVersionStamp = VersionStamp.ReadFrom(reader);
 
