@@ -267,9 +267,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>InternalUtilities\UnicodeCharacterUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\IObjectReadable.cs">
-      <Link>Serialization\IObjectReadable.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\IObjectWritable.cs">
       <Link>Serialization\IObjectWritable.cs</Link>
     </Compile>

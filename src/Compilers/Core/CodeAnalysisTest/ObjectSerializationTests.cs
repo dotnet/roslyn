@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private void RoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction, bool recursive)
         {
             var stream = new MemoryStream();
-            var binder = new ObjectBinder();
-            var writer = new ObjectWriter(stream, binder: binder, recursive: recursive);
+            var writer = new ObjectWriter(stream, recursive: recursive);
 
             writeAction(writer);
             writer.Dispose();
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(recursive, ObjectReader.IsRecursive(stream));
 
             stream.Position = 0;
-            using (var reader = ObjectReader.TryGetReader(stream, binder: binder))
+            using (var reader = ObjectReader.TryGetReader(stream))
             {
                 readAction(reader);
             }
@@ -53,8 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private T RoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
         {
             var stream = new MemoryStream();
-            var binder = new ObjectBinder();
-            var writer = new ObjectWriter(stream, binder: binder, recursive: recursive);
+            var writer = new ObjectWriter(stream, recursive: recursive);
 
             writeAction(writer, value);
             writer.Dispose();
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(recursive, ObjectReader.IsRecursive(stream));
 
             stream.Position = 0;
-            using (var reader = ObjectReader.TryGetReader(stream, binder: binder))
+            using (var reader = ObjectReader.TryGetReader(stream))
             {
                 return (T)readAction(reader);
             }
@@ -145,7 +143,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return true;
         }
 
-        private class TypeWithOneMember<T> : IObjectWritable, IObjectReadable, IEquatable<TypeWithOneMember<T>>
+        private class TypeWithOneMember<T> : IObjectWritable, IEquatable<TypeWithOneMember<T>>
         {
             private T _member;
 
@@ -173,7 +171,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             }
 
-            Func<ObjectReader, object> IObjectReadable.GetReader() => (r) => new TypeWithOneMember<T>(r);
+            static TypeWithOneMember()
+            {
+                ObjectBinder.RegisterTypeReader(typeof(TypeWithOneMember<T>), r => new TypeWithOneMember<T>(r));
+            }
 
             public override Int32 GetHashCode()
             {
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private class TypeWithTwoMembers<T, S> : IObjectWritable, IObjectReadable, IEquatable<TypeWithTwoMembers<T, S>>
+        private class TypeWithTwoMembers<T, S> : IObjectWritable, IEquatable<TypeWithTwoMembers<T, S>>
         {
             private T _member1;
             private S _member2;
@@ -221,7 +222,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 writer.WriteValue(_member2);
             }
 
-            Func<ObjectReader, object> IObjectReadable.GetReader() => (r) => new TypeWithTwoMembers<T, S>(r);
+            static TypeWithTwoMembers()
+            {
+                ObjectBinder.RegisterTypeReader(typeof(TypeWithTwoMembers<T, S>), r => new TypeWithTwoMembers<T, S>(r));
+            }
 
             public override int GetHashCode()
             {
@@ -250,7 +254,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         // this type simulates a class with many members.. 
         // it serializes each member individually, not as an array.
-        private class TypeWithManyMembers<T> : IObjectWritable, IObjectReadable, IEquatable<TypeWithManyMembers<T>>
+        private class TypeWithManyMembers<T> : IObjectWritable, IEquatable<TypeWithManyMembers<T>>
         {
             private T[] _members;
 
@@ -280,7 +284,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             }
 
-            Func<ObjectReader, object> IObjectReadable.GetReader() => (r) => new TypeWithManyMembers<T>(r);
+            static TypeWithManyMembers()
+            {
+                ObjectBinder.RegisterTypeReader(typeof(TypeWithManyMembers<T>), r => new TypeWithManyMembers<T>(r));
+            }
 
             public override int GetHashCode()
             {
@@ -478,7 +485,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTrip(w => w.WriteValue(new PrimitiveArrayMemberTest()), r => r.ReadValue());
         }
 
-        public class PrimitiveArrayMemberTest : IObjectWritable, IObjectReadable
+        public class PrimitiveArrayMemberTest : IObjectWritable
         {
             public PrimitiveArrayMemberTest()
             {
@@ -494,7 +501,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 TestWritingPrimitiveArrays(writer);
             }
 
-            Func<ObjectReader, object> IObjectReadable.GetReader() => (r) => new PrimitiveArrayMemberTest(r);
+            static PrimitiveArrayMemberTest()
+            {
+                ObjectBinder.RegisterTypeReader(typeof(PrimitiveArrayMemberTest), r => new PrimitiveArrayMemberTest(r));
+            }
         }
 
         private static void TestWritingPrimitiveArrays(ObjectWriter writer)
@@ -770,7 +780,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTrip(w => w.WriteValue(new PrimitiveMemberTest()), r => r.ReadValue());
         }
 
-        public class PrimitiveMemberTest : IObjectWritable, IObjectReadable
+        public class PrimitiveMemberTest : IObjectWritable
         {
             public PrimitiveMemberTest()
             {
@@ -786,7 +796,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 TestWritingPrimitiveAPIs(writer);
             }
 
-            Func<ObjectReader, object> IObjectReadable.GetReader() => (r) => new PrimitiveMemberTest(r);
+            static PrimitiveMemberTest()
+            {
+                ObjectBinder.RegisterTypeReader(typeof(PrimitiveMemberTest), r => new PrimitiveMemberTest(r));
+            }
         }
 
         private static void TestWritingPrimitiveAPIs(ObjectWriter writer)
@@ -849,7 +862,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTrip(w => w.WriteValue(new PrimitiveValueTest()), r => r.ReadValue());
         }
 
-        public class PrimitiveValueTest : IObjectWritable, IObjectReadable
+        public class PrimitiveValueTest : IObjectWritable
         {
             public PrimitiveValueTest()
             {
@@ -865,7 +878,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 TestWritingPrimitiveValues(writer);
             }
 
-            Func<ObjectReader, object> IObjectReadable.GetReader() => (r) => new PrimitiveValueTest(r);
+            static PrimitiveValueTest()
+            {
+                ObjectBinder.RegisterTypeReader(typeof(PrimitiveValueTest), r => new PrimitiveValueTest(r));
+            }
         }
 
         private static void TestWritingPrimitiveValues(ObjectWriter writer)
@@ -1062,8 +1078,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     instances.Add(new TypeWithTwoMembers<int, string>(i, i.ToString()));
                 }
 
-                var binder = new ObjectBinder();
-                var writer = new ObjectWriter(stream, binder: binder);
+                var writer = new ObjectWriter(stream);
                 // Write each instance twice. The second time around, they'll become ObjectRefs
                 for (int pass = 0; pass < 2; pass++)
                 {
@@ -1076,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 writer.Dispose();
 
                 stream.Position = 0;
-                using (var reader = ObjectReader.TryGetReader(stream, binder: binder))
+                using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     for (int pass = 0; pass < 2; pass++)
                     {
@@ -1147,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new Node(name, children);
         }
 
-        private class Node : IObjectWritable, IObjectReadable, IEquatable<Node>
+        private class Node : IObjectWritable, IEquatable<Node>
         {
             internal readonly string Name;
             internal readonly Node[] Children;
@@ -1172,7 +1187,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 writer.WriteValue(this.Children);
             }
 
-            Func<ObjectReader, object> IObjectReadable.GetReader() => (r) => new Node(r);
+            static Node()
+            {
+                ObjectBinder.RegisterTypeReader(typeof(Node), r => new Node(r));
+            }
 
             public override Int32 GetHashCode()
             {
