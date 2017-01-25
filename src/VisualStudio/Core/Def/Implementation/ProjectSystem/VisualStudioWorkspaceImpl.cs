@@ -91,7 +91,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             get
             {
-                _foregroundObject.AssertIsForeground();
                 return GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider);
             }
         }
