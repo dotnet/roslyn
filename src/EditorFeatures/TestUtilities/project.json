@@ -7,6 +7,7 @@
     "Newtonsoft.Json": "8.0.3",
     "Nerdbank.FullDuplexStream": "1.0.1",
     "BasicUndo": "0.9.3",
+    "Microsoft.ServiceHub.Client": "1.0.177-rc-g56d40a8a02",
     "Microsoft.VisualStudio.Platform.VSEditor": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Platform.VSEditor.Interop": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Composition": "15.0.66-rc",
@@ -16,7 +17,7 @@
     "Microsoft.VisualStudio.Language.CallHierarchy": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Language.NavigateTo.Interfaces": "15.0.26014-alpha",
     "Microsoft.VisualStudio.Text.UI": "15.0.26014-alpha",
-    "Microsoft.VisualStudio.Text.UI.Wpf": "15.0.26014-alpha",
+    "Microsoft.VisualStudio.Text.UI.Wpf": "15.0.26014-alpha"
   },
   "frameworks": {
     "net46": { }

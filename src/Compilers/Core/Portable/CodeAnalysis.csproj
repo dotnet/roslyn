@@ -31,7 +31,9 @@
     </Content>
     <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerExecutionContext.cs" />
     <Compile Include="InternalUtilities\CommandLineUtilities.cs" />
+    <Compile Include="InternalUtilities\NoThrowStreamDisposer.cs" />
     <Compile Include="InternalUtilities\OrderedMultiDictionary.cs" />
+    <Compile Include="InternalUtilities\PlatformInformation.cs" />
     <Compile Include="Serialization\FixedObjectBinder.cs" />
     <Compile Include="Serialization\IObjectReadable.cs" />
     <Compile Include="Serialization\IObjectWritable.cs" />

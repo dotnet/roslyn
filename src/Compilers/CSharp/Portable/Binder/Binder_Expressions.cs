@@ -984,7 +984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression BindQualifiedName(QualifiedNameSyntax node, DiagnosticBag diagnostics)
         {
-            return BindMemberAccessWithBoundLeft(node, this.BindExpression(node.Left, diagnostics), node.Right, node.DotToken, invoked: false, indexed: false, diagnostics: diagnostics);
+            return BindMemberAccessWithBoundLeft(node, this.BindLeftOfPotentialColorColorMemberAccess(node.Left, diagnostics), node.Right, node.DotToken, invoked: false, indexed: false, diagnostics: diagnostics);
         }
 
         private BoundExpression BindParenthesizedExpression(ExpressionSyntax innerExpression, DiagnosticBag diagnostics)
@@ -5358,7 +5358,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (boundLeft.Kind == BoundKind.TypeExpression ||
+
+                if ((object)boundLeft.Type == null)
+                {
+                    Error(diagnostics, ErrorCode.ERR_NoSuchMember, name, boundLeft.Display, plainName);
+                }
+                else if (boundLeft.Kind == BoundKind.TypeExpression ||
                     boundLeft.Kind == BoundKind.BaseReference ||
                     node.Kind() == SyntaxKind.AwaitExpression && plainName == WellKnownMemberNames.GetResult)
                 {

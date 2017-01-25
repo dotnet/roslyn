@@ -4830,5 +4830,47 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await task; }").WithArguments("System.Runtime.CompilerServices.IAsyncStateMachine", "SetStateMachine").WithLocation(62, 37));
         }
 
+        [Fact, WorkItem(16531, "https://github.com/dotnet/roslyn/issues/16531")]
+        public void ArityMismatch()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+
+public class Program
+{
+    public async MyAwesomeType<string> CustomTask() { await Task.Delay(1000); return string.Empty; }
+}
+
+[AsyncMethodBuilder(typeof(CustomAsyncTaskMethodBuilder<,>))]
+public struct MyAwesomeType<T>
+{
+    public T Result { get; set; }
+}
+
+public class CustomAsyncTaskMethodBuilder<T, V>
+{
+    public MyAwesomeType<T> Task => default(MyAwesomeType<T>);
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public static CustomAsyncTaskMethodBuilder<T, V> Create() { return default(CustomAsyncTaskMethodBuilder<T, V>); }
+    public void SetException(Exception exception) { }
+    public void SetResult(T t) { }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(Type type) { } }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyEmitDiagnostics(
+                // (8,53): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     public async MyAwesomeType<string> CustomTask() { await Task.Delay(1000); return string.Empty; }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ await Task.Delay(1000); return string.Empty; }").WithLocation(8, 53)
+                );
+        }
     }
 }

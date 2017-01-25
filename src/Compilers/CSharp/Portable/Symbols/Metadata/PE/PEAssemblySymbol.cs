@@ -128,27 +128,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
             return _lazyCustomAttributes;
         }
-        		 
-        /// <summary>		
-        /// Look up the assemblies to which the given metadata type is forwarded.		
-        /// </summary>		
-        /// <param name="emittedName"></param>		
-        /// <returns>		
-        /// The assemblies to which the given type is forwarded.		
-        /// </returns>		
-        /// <remarks>		
-        /// The returned assemblies may also forward the type.		
-        /// </remarks>		
+
+        /// <summary>
+        /// Look up the assemblies to which the given metadata type is forwarded.
+        /// </summary>
+        /// <param name="emittedName"></param>
+        /// <returns>
+        /// The assemblies to which the given type is forwarded.
+        /// </returns>
+        /// <remarks>
+        /// The returned assemblies may also forward the type.
+        /// </remarks>
         internal (AssemblySymbol FirstSymbol, AssemblySymbol SecondSymbol) LookupAssembliesForForwardedMetadataType(ref MetadataTypeName emittedName)
-        {		
-            // Look in the type forwarders of the primary module of this assembly, clr does not honor type forwarder		
-            // in non-primary modules.		
-		
-            // Examine the type forwarders, but only from the primary module.		
-            return this.PrimaryModule.GetAssembliesForForwardedType(ref emittedName);		
+        {
+            // Look in the type forwarders of the primary module of this assembly, clr does not honor type forwarder
+            // in non-primary modules.
+
+            // Examine the type forwarders, but only from the primary module.
+            return this.PrimaryModule.GetAssembliesForForwardedType(ref emittedName);
         }
 
-    internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
+        internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
         {
             // Check if it is a forwarded type.
             (AssemblySymbol FirstSymbol, AssemblySymbol SecondSymbol) forwardedToAssemblies = LookupAssembliesForForwardedMetadataType(ref emittedName);

@@ -178,19 +178,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 }
             }
 
-#if DEBUG
-            foreach (var project in workspace.CurrentSolution.Projects)
-            {
-                foreach (var document in project.Documents)
-                {
-                    if (documentErrorLookup.Contains(document.Id))
-                    {
-                        document.VerifyNoErrorsAsync("CodeAction introduced error in error-free code", cancellationToken).Wait(cancellationToken);
-                    }
-                }
-            }
-#endif
-
             var updatedSolution = operations.OfType<ApplyChangesOperation>().FirstOrDefault()?.ChangedSolution ?? oldSolution;
             TryStartRenameSession(workspace, oldSolution, updatedSolution, cancellationToken);
         }

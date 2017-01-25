@@ -159,10 +159,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            return this.GetAttributesBag().Attributes;
+            return this.GetAttributesBag(null).Attributes;
         }
 
-        internal override CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
+        /// <summary>
+        /// Returns a bag of applied custom attributes and data decoded from well-known attributes. Returns null if there are no attributes applied on the symbol.
+        /// </summary>
+        /// <remarks>
+        /// Forces binding and decoding of attributes.
+        /// </remarks>
+        internal virtual CustomAttributesBag<CSharpAttributeData> GetAttributesBag(DiagnosticBag diagnosticsOpt)
         {
             if (_lazyCustomAttributesBag == null || !_lazyCustomAttributesBag.IsSealed)
             {
@@ -171,12 +177,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var sourceMethod = this.ContainingSymbol as SourceMemberMethodSymbol;
                 if ((object)sourceMethod == null || (object)sourceMethod.SourcePartialDefinition == null)
                 {
-                    lazyAttributesStored = LoadAndValidateAttributes(OneOrMany.Create(this.MergedAttributeDeclarationSyntaxLists), ref _lazyCustomAttributesBag);
+                    lazyAttributesStored = LoadAndValidateAttributes(
+                        OneOrMany.Create(this.MergedAttributeDeclarationSyntaxLists),
+                        ref _lazyCustomAttributesBag,
+                        addToDiagnostics: diagnosticsOpt);
                 }
                 else
                 {
                     var typeParameter = (SourceTypeParameterSymbolBase)sourceMethod.SourcePartialDefinition.TypeParameters[_ordinal];
-                    CustomAttributesBag<CSharpAttributeData> attributesBag = typeParameter.GetAttributesBag();
+                    CustomAttributesBag<CSharpAttributeData> attributesBag = typeParameter.GetAttributesBag(diagnosticsOpt);
 
                     lazyAttributesStored = Interlocked.CompareExchange(ref _lazyCustomAttributesBag, attributesBag, null) == null;
                 }

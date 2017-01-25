@@ -719,6 +719,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Attributes are not allowed on local function parameters or type parameters.
+        /// </summary>
+        internal static string ERR_AttributesInLocalFuncDecl {
+            get {
+                return ResourceManager.GetString("ERR_AttributesInLocalFuncDecl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Attributes are not valid in this context..
         /// </summary>
         internal static string ERR_AttributesNotAllowed {
@@ -3253,6 +3262,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DelegateOnNullable {
             get {
                 return ResourceManager.GetString("ERR_DelegateOnNullable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ref mismatch between &apos;{0}&apos; and delegate &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_DelegateRefMismatch {
+            get {
+                return ResourceManager.GetString("ERR_DelegateRefMismatch", resourceCulture);
             }
         }
         

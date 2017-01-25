@@ -28,6 +28,8 @@
         "Microsoft.VisualBasic",
         "Microsoft.Composition",
         "Microsoft.CSharp",
+        "Microsoft.VisualStudio.InteractiveWindow",
+        "Microsoft.VisualStudio.VsInteractiveWindow",
         "MicroBuild.*",
         "ManagedEsent",
         "Microsoft.CodeAnalysis.Elfie",

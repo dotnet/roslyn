@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        /// <summary>
+        /// Syntax node that is used as the scope designator. Otherwise, null.
+        /// </summary>
+        internal abstract SyntaxNode ScopeDesignatorOpt { get; }
+
         internal abstract LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax);
 
         internal abstract bool IsImportedFromMetadata
