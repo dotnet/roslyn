@@ -4718,5 +4718,187 @@ public class Program{0}
             var program = string.Format(body, dt, statement);
             CreateCompilationWithMscorlib45(program).GetDiagnostics();
         }
+
+        [Fact, WorkItem(16671, "https://github.com/dotnet/roslyn/issues/16671")]
+        public void TypeParameterSubsumption01()
+        {
+            var program = @"
+using System;
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        PatternMatching<Base, Derived>(new Base());
+        PatternMatching<Base, Derived>(new Derived());
+        PatternMatching<Base, Derived>(null);
+        PatternMatching<object, int>(new object());
+        PatternMatching<object, int>(2);
+        PatternMatching<object, int>(null);
+        PatternMatching<object, int?>(new object());
+        PatternMatching<object, int?>(2);
+        PatternMatching<object, int?>(null);
+    }
+    static void PatternMatching<TBase, TDerived>(TBase o) where TDerived : TBase
+    {
+        switch (o)
+        {
+            case TDerived td:
+                Console.WriteLine(nameof(TDerived));
+                break;
+            case TBase tb:
+                Console.WriteLine(nameof(TBase));
+                break;
+            default:
+                Console.WriteLine(""Neither"");
+                break;
+        }
+    }
+}
+class Base
+{
+}
+class Derived : Base
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe).VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"TBase
+TDerived
+Neither
+TBase
+TDerived
+Neither
+TBase
+TDerived
+Neither");
+        }
+
+        [Fact, WorkItem(16671, "https://github.com/dotnet/roslyn/issues/16671")]
+        public void TypeParameterSubsumption02()
+        {
+            var program = @"
+using System;
+public class Program
+{
+    static void PatternMatching<TBase, TDerived>(TBase o) where TDerived : TBase
+    {
+        switch (o)
+        {
+            case TBase tb:
+                Console.WriteLine(nameof(TBase));
+                break;
+            case TDerived td:
+                Console.WriteLine(nameof(TDerived));
+                break;
+            default:
+                Console.WriteLine(""Neither"");
+                break;
+        }
+    }
+}
+class Base
+{
+}
+class Derived : Base
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (12,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case TDerived td:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "TDerived td").WithLocation(12, 18),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 Console.WriteLine(nameof(TDerived));
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Console").WithLocation(13, 17)
+                );
+        }
+
+        [Fact, WorkItem(16688, "https://github.com/dotnet/roslyn/issues/16688")]
+        public void TypeParameterSubsumption03()
+        {
+            var program = @"
+using System.Collections.Generic;
+public class Program
+{
+    private static void Pattern<T>(T thing) where T : class
+    {
+        switch (thing)
+        {
+            case T tThing:
+                break;
+            case IEnumerable<object> s:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case IEnumerable<object> s:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<object> s").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16696")]
+        public void TypeParameterSubsumption04()
+        {
+            var program = @"
+using System.Collections.Generic;
+public class Program
+{
+    private static void Pattern<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
+    {
+        switch (thing)
+        {
+            case IEnumerable<TBase> sequence:
+                break;
+            case IEnumerable<TDerived> derivedSequence:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case IEnumerable<TDerived> derivedSequence:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<TDerived> derivedSequence").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16696")]
+        public void TypeParameterSubsumption05()
+        {
+            var program = @"
+using System.Collections.Generic;
+public class Program
+{
+    private static void Pattern<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
+    {
+        switch (thing)
+        {
+            case IEnumerable<object> s:
+                break;
+            case IEnumerable<TDerived> derivedSequence:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case IEnumerable<TDerived> derivedSequence:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<TDerived> derivedSequence").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+                );
+        }
     }
 }
