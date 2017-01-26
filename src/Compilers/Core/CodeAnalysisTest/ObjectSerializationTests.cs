@@ -633,7 +633,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripValue(EUInt.Value);
             TestRoundTripValue(ELong.Value);
             TestRoundTripValue(EULong.Value);
-            TestRoundTripValue(typeof(object));
             TestRoundTripValue(_testNow);
         }
 
@@ -764,7 +763,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripMember(EUInt.Value);
             TestRoundTripMember(ELong.Value);
             TestRoundTripMember(EULong.Value);
-            TestRoundTripMember(typeof(object));
             TestRoundTripMember(_testNow);
         }
 
@@ -919,7 +917,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 writer.WriteInt64((long)ELong.Value);
                 writer.WriteInt64((long)EULong.Value);
             }
-            writer.WriteValue(typeof(object));
             writer.WriteValue(_testNow);
         }
 
@@ -960,7 +957,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal((long)EULong.Value, reader.ReadInt64());
             }
 
-            Assert.Equal(typeof(object), (Type)reader.ReadValue());
             Assert.Equal(_testNow, (DateTime)reader.ReadValue());
         }
 
@@ -1051,12 +1047,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestRoundTripArrays()
         {
-            TestRoundTripArray(new object[] { });
-            TestRoundTripArray(new object[] { "hello" });
-            TestRoundTripArray(new object[] { "hello", "world" });
-            TestRoundTripArray(new object[] { "hello", "world", "good" });
-            TestRoundTripArray(new object[] { "hello", "world", "good", "bye" });
-            TestRoundTripArray(new object[] { "hello", 123, 45m, 99.9, 'c' });
+            //TestRoundTripArray(new object[] { });
+            //TestRoundTripArray(new object[] { "hello" });
+            //TestRoundTripArray(new object[] { "hello", "world" });
+            //TestRoundTripArray(new object[] { "hello", "world", "good" });
+            //TestRoundTripArray(new object[] { "hello", "world", "good", "bye" });
+            //TestRoundTripArray(new object[] { "hello", 123, 45m, 99.9, 'c' });
             TestRoundTripArray(new string[] { "hello", null, "world" });
         }
 
