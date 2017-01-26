@@ -449,8 +449,6 @@ namespace Roslyn.Utilities
                     return ReadObject();
                 case EncodingKind.Type:
                     return Variant.FromType(ReadType());
-                case EncodingKind.Enum:
-                    return Variant.FromBoxedEnum(ReadBoxedEnum());
                 case EncodingKind.DateTime:
                     return Variant.FromDateTime(DateTime.FromBinary(_reader.ReadInt64()));
                 case EncodingKind.Array:
@@ -860,54 +858,6 @@ namespace Roslyn.Utilities
             var kind = (EncodingKind)_reader.ReadByte();
             var typeId = this.ReadInt32();
             return ObjectBinder.GetTypeAndReaderFromId(typeId);
-        }
-
-        private object ReadBoxedEnum()
-        {
-            var enumType = this.ReadType();
-            var type = Enum.GetUnderlyingType(enumType);
-
-            if (type == typeof(int))
-            {
-                return Enum.ToObject(enumType, _reader.ReadInt32());
-            }
-
-            if (type == typeof(short))
-            {
-                return Enum.ToObject(enumType, _reader.ReadInt16());
-            }
-
-            if (type == typeof(byte))
-            {
-                return Enum.ToObject(enumType, _reader.ReadByte());
-            }
-
-            if (type == typeof(long))
-            {
-                return Enum.ToObject(enumType, _reader.ReadInt64());
-            }
-
-            if (type == typeof(sbyte))
-            {
-                return Enum.ToObject(enumType, _reader.ReadSByte());
-            }
-
-            if (type == typeof(ushort))
-            {
-                return Enum.ToObject(enumType, _reader.ReadUInt16());
-            }
-
-            if (type == typeof(uint))
-            {
-                return Enum.ToObject(enumType, _reader.ReadUInt32());
-            }
-
-            if (type == typeof(ulong))
-            {
-                return Enum.ToObject(enumType, _reader.ReadUInt64());
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(enumType);
         }
 
         private Variant ReadObject()

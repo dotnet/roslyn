@@ -438,11 +438,6 @@ namespace Roslyn.Utilities
                     WriteStringValue(value.AsString());
                     break;
 
-                case VariantKind.BoxedEnum:
-                    var e = value.AsBoxedEnum();
-                    WriteBoxedEnum(e, e.GetType());
-                    break;
-
                 case VariantKind.DateTime:
                     _writer.Write((byte)EncodingKind.DateTime);
                     _writer.Write(value.AsDateTime().ToBinary());
@@ -648,51 +643,6 @@ namespace Roslyn.Utilities
                         _writer.Write(bytes);
                     }
                 }
-            }
-        }
-
-        private void WriteBoxedEnum(object value, Type enumType)
-        {
-            _writer.Write((byte)EncodingKind.Enum);
-            this.WriteType(enumType);
-
-            var type = Enum.GetUnderlyingType(enumType);
-
-            if (type == typeof(int))
-            {
-                _writer.Write((int)value);
-            }
-            else if (type == typeof(short))
-            {
-                _writer.Write((short)value);
-            }
-            else if (type == typeof(byte))
-            {
-                _writer.Write((byte)value);
-            }
-            else if (type == typeof(long))
-            {
-                _writer.Write((long)value);
-            }
-            else if (type == typeof(sbyte))
-            {
-                _writer.Write((sbyte)value);
-            }
-            else if (type == typeof(ushort))
-            {
-                _writer.Write((ushort)value);
-            }
-            else if (type == typeof(uint))
-            {
-                _writer.Write((uint)value);
-            }
-            else if (type == typeof(ulong))
-            {
-                _writer.Write((ulong)value);
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(type);
             }
         }
 
@@ -1383,11 +1333,6 @@ namespace Roslyn.Utilities
             Decimal,
 
             /// <summary>
-            /// An enum value
-            /// </summary>
-            Enum,
-
-            /// <summary>
             /// A DateTime value
             /// </summary>
             DateTime,
@@ -1450,7 +1395,6 @@ namespace Roslyn.Utilities
             Char,
             String,
             Object,
-            BoxedEnum,
             DateTime,
             Array,
             Type,
@@ -1540,11 +1484,6 @@ namespace Roslyn.Utilities
             public static Variant FromDecimal(Decimal value)
             {
                 return new Variant(VariantKind.Decimal, image: 0, instance: value);
-            }
-
-            public static Variant FromBoxedEnum(object value)
-            {
-                return new Variant(VariantKind.BoxedEnum, image: 0, instance: value);
             }
 
             public static Variant FromDateTime(DateTime value)
@@ -1657,12 +1596,6 @@ namespace Roslyn.Utilities
                 return _instance;
             }
 
-            public object AsBoxedEnum()
-            {
-                Debug.Assert(Kind == VariantKind.BoxedEnum);
-                return _instance;
-            }
-
             public DateTime AsDateTime()
             {
                 Debug.Assert(Kind == VariantKind.DateTime);
@@ -1746,7 +1679,6 @@ namespace Roslyn.Utilities
                 {
                     case VariantKind.Array: return this.AsArray();
                     case VariantKind.Boolean: return this.AsBoolean();
-                    case VariantKind.BoxedEnum: return this.AsBoxedEnum();
                     case VariantKind.Byte: return this.AsByte();
                     case VariantKind.Char: return this.AsChar();
                     case VariantKind.DateTime: return this.AsDateTime();
