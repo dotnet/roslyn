@@ -181,23 +181,17 @@ namespace Roslyn.Utilities
             {
                 _writer.Write((byte)EncodingKind.Decimal);
                 _writer.Write((decimal)value);
-                return;
             }
-
-            if (value.GetType() == typeof(DateTime))
+            else if (value.GetType() == typeof(DateTime))
             {
                 _writer.Write((byte)EncodingKind.DateTime);
                 _writer.Write(((DateTime)value).ToBinary());
-                return;
             }
-
-            if (value.GetType() == typeof(string))
+            else if (value.GetType() == typeof(string))
             {
                 WriteStringValue((string)value);
-                return;
             }
-
-            if (type.IsArray)
+            else if (type.IsArray)
             {
                 var instance = (Array)value;
 
@@ -207,16 +201,15 @@ namespace Roslyn.Utilities
                 }
 
                 WriteArray(instance);
-                return;
             }
-
-            if (value is Type t)
+            else if (value is Type t)
             {
                 WriteType(t);
-                return;
             }
-
-            WriteObject(value);
+            else
+            {
+                WriteObject(value);
+            }
         }
 
         private void WriteEncodedInt32(int v)
