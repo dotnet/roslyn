@@ -34,7 +34,7 @@ namespace Roslyn.Utilities
         /// this version, just change VersionByte2.
         /// </summary>
         internal const byte VersionByte1 = 0b10101010;
-        internal const byte VersionByte2 = 0b00000100;
+        internal const byte VersionByte2 = 0b00000110;
 
         private readonly BinaryReader _reader;
         private readonly bool _recursive;
