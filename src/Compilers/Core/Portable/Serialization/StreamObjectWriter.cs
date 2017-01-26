@@ -176,8 +176,7 @@ namespace Roslyn.Utilities
                     throw ExceptionUtilities.UnexpectedValue(value.GetType());
                 }
             }
-
-            if (value.GetType() == typeof(decimal))
+            else if (value.GetType() == typeof(decimal))
             {
                 _writer.Write((byte)EncodingKind.Decimal);
                 _writer.Write((decimal)value);
