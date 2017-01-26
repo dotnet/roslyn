@@ -127,8 +127,7 @@ namespace Roslyn.Utilities
                 {
                     _writer.Write((byte)((bool)value ? EncodingKind.Boolean_True : EncodingKind.Boolean_False));
                 }
-
-                if (value.GetType() == typeof(char))
+                else if (value.GetType() == typeof(char))
                 {
                     _writer.Write((byte)EncodingKind.Char);
                     _writer.Write((ushort)(char)value);  // written as ushort because BinaryWriter fails on chars that are unicode surrogates
@@ -669,8 +668,7 @@ namespace Roslyn.Utilities
             _cancellationToken.ThrowIfCancellationRequested();
 
             // write object ref if we already know this instance
-            int id;
-            if (_objectReferenceMap.TryGetReferenceId(instance, out id))
+            if (_objectReferenceMap.TryGetReferenceId(instance, out var id))
             {
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
@@ -730,9 +728,10 @@ namespace Roslyn.Utilities
 
         private void WriteObjectHeader(object instance, uint memberCount)
         {
-            _objectReferenceMap.Add(instance);
+            var id = _objectReferenceMap.Add(instance);
 
             _writer.Write((byte)EncodingKind.Object);
+            _writer.Write(id);
             this.WriteType(instance.GetType());
         }
 
