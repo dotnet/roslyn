@@ -448,10 +448,7 @@ namespace Roslyn.Utilities
                 case EncodingKind.Object:
                     return ReadObject();
                 case EncodingKind.Type:
-                case EncodingKind.TypeRef_4Bytes:
-                case EncodingKind.TypeRef_1Byte:
-                case EncodingKind.TypeRef_2Bytes:
-                    return Variant.FromType(ReadType(kind));
+                    return Variant.FromType(ReadType());
                 case EncodingKind.Enum:
                     return Variant.FromBoxedEnum(ReadBoxedEnum());
                 case EncodingKind.DateTime:
@@ -636,7 +633,7 @@ namespace Roslyn.Utilities
             else
             {
                 // custom type case
-                elementType = this.ReadType(elementKind);
+                elementType = this.ReadType();
 
                 if (_recursive)
                 {
@@ -854,32 +851,15 @@ namespace Roslyn.Utilities
         private Type ReadType()
         {
             var kind = (EncodingKind)_reader.ReadByte();
-            return ReadType(kind);
+            var typeId = this.ReadInt32();
+            return ObjectBinder.GetTypeFromId(typeId);
         }
 
-        private Type ReadType(EncodingKind kind)
+        private (Type, Func<ObjectReader, object>) ReadTypeAndReader()
         {
-            switch (kind)
-            {
-                case EncodingKind.TypeRef_1Byte:
-                    return (Type)_objectReferenceMap.GetValue(_reader.ReadByte());
-
-                case EncodingKind.TypeRef_2Bytes:
-                    return (Type)_objectReferenceMap.GetValue(_reader.ReadUInt16());
-
-                case EncodingKind.TypeRef_4Bytes:
-                    return (Type)_objectReferenceMap.GetValue(_reader.ReadInt32());
-
-                case EncodingKind.Type:
-                    int id = _objectReferenceMap.GetNextReferenceId();
-                    var typeId = this.ReadInt32();
-                    var type = ObjectBinder.GetTypeFromId(typeId);
-                    _objectReferenceMap.SetValue(id, type);
-                    return type;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
-            }
+            var kind = (EncodingKind)_reader.ReadByte();
+            var typeId = this.ReadInt32();
+            return ObjectBinder.GetTypeAndReaderFromId(typeId);
         }
 
         private object ReadBoxedEnum()
@@ -934,8 +914,7 @@ namespace Roslyn.Utilities
         {
             int id = _objectReferenceMap.GetNextReferenceId();
 
-            var type = this.ReadType();
-            var typeReader = ObjectBinder.GetTypeReader(type);
+            var (type, typeReader) = this.ReadTypeAndReader();
 
             if (_recursive)
             {

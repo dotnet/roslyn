@@ -938,33 +938,8 @@ namespace Roslyn.Utilities
 
         private void WriteType(Type type)
         {
-            int id;
-            if (_objectReferenceMap.TryGetReferenceId(type, out id))
-            {
-                Debug.Assert(id >= 0);
-                if (id <= byte.MaxValue)
-                {
-                    _writer.Write((byte)EncodingKind.TypeRef_1Byte);
-                    _writer.Write((byte)id);
-                }
-                else if (id <= ushort.MaxValue)
-                {
-                    _writer.Write((byte)EncodingKind.TypeRef_2Bytes);
-                    _writer.Write((ushort)id);
-                }
-                else
-                {
-                    _writer.Write((byte)EncodingKind.TypeRef_4Bytes);
-                    _writer.Write(id);
-                }
-            }
-            else
-            {
-                _objectReferenceMap.Add(type);
-
-                _writer.Write((byte)EncodingKind.Type);
-                this.WriteInt32(ObjectBinder.GetTypeId((Type)type));
-            }
+            _writer.Write((byte)EncodingKind.Type);
+            this.WriteInt32(ObjectBinder.GetTypeId(type));
         }
 
         private int _recursionDepth;
@@ -1161,21 +1136,6 @@ namespace Roslyn.Utilities
             /// A type
             /// </summary>
             Type,
-
-            /// <summary>
-            /// A type reference with the id encoded as 1 byte. 
-            /// </summary>
-            TypeRef_1Byte,
-
-            /// <summary>
-            /// A Type reference with the id encoded as 2 bytes.
-            /// </summary>
-            TypeRef_2Bytes,
-
-            /// <summary>
-            /// A type reference with the id encoded as 4 bytes.
-            /// </summary>
-            TypeRef_4Bytes,
 
             /// <summary>
             /// An object with member values encoded as variants

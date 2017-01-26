@@ -15,49 +15,52 @@ namespace Roslyn.Utilities
     /// </remarks>
     internal static class ObjectBinder
     {
-        private static object s_typesGate = new object();
+        private static object s_gate = new object();
         private static readonly Dictionary<Type, int> s_typeToIndex = new Dictionary<Type, int>();
-        private static readonly List<Type> s_types = new List<Type>();
 
-        private static object s_readerGate = new object();
-        private static Dictionary<Type, Func<ObjectReader, object>> s_typeToReader = new Dictionary<Type, Func<ObjectReader, object>>();
+        private static readonly List<Type> s_types = new List<Type>();
+        private static readonly List<Func<ObjectReader, object>> s_typeReaders = new List<Func<ObjectReader, object>>();
 
         public static int GetTypeId(Type type)
         {
-            lock (s_typesGate)
+            lock (s_gate)
             {
-                if (!s_typeToIndex.TryGetValue(type, out var index))
-                {
-                    index = s_types.Count;
-                    s_types.Add(type);
-                    s_typeToIndex.Add(type, index);
-                }
-
-                return index;
+                return s_typeToIndex[type];
             }
         }
 
         public static Type GetTypeFromId(int typeId)
         {
-            lock (s_typesGate)
+            lock (s_gate)
             {
                 return s_types[typeId];
             }
         }
 
-        public static Func<ObjectReader, object> GetTypeReader(Type type)
+        public static (Type, Func<ObjectReader, object>) GetTypeAndReaderFromId(int typeId)
         {
-            lock (s_readerGate)
+            lock (s_gate)
             {
-                return s_typeToReader[type];
+                return (s_types[typeId], s_typeReaders[typeId]);
+            }
+        }
+
+        public static Func<ObjectReader, object> GetTypeReader(int index)
+        {
+            lock (s_gate)
+            {
+                return s_typeReaders[index];
             }
         }
 
         public static void RegisterTypeReader(Type type, Func<ObjectReader, object> typeReader)
         {
-            lock (s_readerGate)
+            lock (s_gate)
             {
-                s_typeToReader.Add(type, typeReader);
+                int index = s_typeReaders.Count;
+                s_types.Add(type);
+                s_typeReaders.Add(typeReader);
+                s_typeToIndex.Add(type, index);
             }
         }
     }
