@@ -127,8 +127,7 @@ namespace Roslyn.Utilities
                 {
                     _writer.Write((byte)((bool)value ? EncodingKind.Boolean_True : EncodingKind.Boolean_False));
                 }
-
-                if (value.GetType() == typeof(char))
+                else if (value.GetType() == typeof(char))
                 {
                     _writer.Write((byte)EncodingKind.Char);
                     _writer.Write((ushort)(char)value);  // written as ushort because BinaryWriter fails on chars that are unicode surrogates
