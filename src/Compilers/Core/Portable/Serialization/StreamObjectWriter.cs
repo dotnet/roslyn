@@ -106,7 +106,9 @@ namespace Roslyn.Utilities
             // Perf: Note that JIT optimizes each expression value.GetType() == typeof(T) to a single register comparison.
             // Also the checks are sorted by commonality of the checked types.
 
-            // The primitive types are Boolean, Byte, SByte, Int16, UInt16, Int32, UInt32, Int64, UInt64, IntPtr, UIntPtr, Char, Double, and Single.
+            // The primitive types are 
+            // Boolean, Byte, SByte, Int16, UInt16, Int32, UInt32,
+            // Int64, UInt64, IntPtr, UIntPtr, Char, Double, and Single.
             if (typeInfo.IsPrimitive)
             {
                 // Note: int, double, bool, char, have been chosen to go first as they're they
@@ -115,82 +117,64 @@ namespace Roslyn.Utilities
                 if (value.GetType() == typeof(int))
                 {
                     WriteEncodedInt32((int)value);
-                    return;
                 }
-
-                if (value.GetType() == typeof(double))
+                else if (value.GetType() == typeof(double))
                 {
                     _writer.Write((byte)EncodingKind.Float8);
                     _writer.Write((double)value);
-                    return;
                 }
-
-                if (value.GetType() == typeof(bool))
+                else if (value.GetType() == typeof(bool))
                 {
                     _writer.Write((byte)((bool)value ? EncodingKind.Boolean_True : EncodingKind.Boolean_False));
-                    return;
                 }
 
                 if (value.GetType() == typeof(char))
                 {
                     _writer.Write((byte)EncodingKind.Char);
                     _writer.Write((ushort)(char)value);  // written as ushort because BinaryWriter fails on chars that are unicode surrogates
-                    return;
                 }
-
-                if (value.GetType() == typeof(byte))
+                else if (value.GetType() == typeof(byte))
                 {
                     _writer.Write((byte)EncodingKind.UInt8);
                     _writer.Write((byte)value);
-                    return;
                 }
-
-                if (value.GetType() == typeof(short))
+                else if (value.GetType() == typeof(short))
                 {
                     _writer.Write((byte)EncodingKind.Int16);
                     _writer.Write((short)value);
-                    return;
                 }
-
-                if (value.GetType() == typeof(long))
+                else if (value.GetType() == typeof(long))
                 {
                     _writer.Write((byte)EncodingKind.Int64);
                     _writer.Write((long)value);
-                    return;
                 }
-
-                if (value.GetType() == typeof(sbyte))
+                else if (value.GetType() == typeof(sbyte))
                 {
                     _writer.Write((byte)EncodingKind.Int8);
                     _writer.Write((sbyte)value);
-                    return;
                 }
-
-                if (value.GetType() == typeof(float))
+                else if (value.GetType() == typeof(float))
                 {
                     _writer.Write((byte)EncodingKind.Float4);
                     _writer.Write((float)value);
-                    return;
                 }
-
-                if (value.GetType() == typeof(ushort))
+                else if (value.GetType() == typeof(ushort))
                 {
                     _writer.Write((byte)EncodingKind.UInt16);
                     _writer.Write((ushort)value);
-                    return;
                 }
-
-                if (value.GetType() == typeof(uint))
+                else if (value.GetType() == typeof(uint))
                 {
                     WriteEncodedUInt32((uint)value);
-                    return;
                 }
-
-                if (value.GetType() == typeof(ulong))
+                else if (value.GetType() == typeof(ulong))
                 {
                     _writer.Write((byte)EncodingKind.UInt64);
                     _writer.Write((ulong)value);
-                    return;
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(value.GetType());
                 }
             }
 
