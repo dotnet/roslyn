@@ -129,8 +129,8 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ThrowExpressionSyntax.WithThrowKeyword(Micr
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax.Identifier.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax.WithIdentifier(Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax.WithIdentifier(Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax.AddArguments(params Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax
@@ -254,8 +254,10 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.Accept(Microsoft.C
 override Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.WhenClauseSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax declaratorSyntax, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.ISymbol
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.SingleVariableDesignationSyntax designationSyntax, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.ISymbol
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax declarationSyntax, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.ISymbol
+static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax declaratorSyntax, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetForEachStatementInfo(this Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax forEachStatement) -> Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AccessorDeclaration(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind) -> Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AccessorDeclaration(Microsoft.CodeAnalysis.CSharp.SyntaxKind kind, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax body) -> Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax

@@ -437,6 +437,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (model == null) ? null : model.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
         }
 
+        public override INamedTypeSymbol GetDeclaredSymbol(TupleExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declaratorSyntax);
+            var model = this.GetMemberModel(declaratorSyntax);
+            return (model == null) ? null : model.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
+        }
+
+        public override ISymbol GetDeclaredSymbol(ArgumentSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(declaratorSyntax);
+            var model = this.GetMemberModel(declaratorSyntax);
+            return (model == null) ? null : model.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
+        }
+
         public override IRangeVariableSymbol GetDeclaredSymbol(QueryClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(node);
