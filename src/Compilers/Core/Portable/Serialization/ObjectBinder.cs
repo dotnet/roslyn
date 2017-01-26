@@ -29,6 +29,20 @@ namespace Roslyn.Utilities
             }
         }
 
+        public static int GetOrAddTypeId(Type type)
+        {
+            lock (s_gate)
+            {
+                if (!s_typeToIndex.TryGetValue(type, out var index))
+                {
+                    RegisterTypeReader(type, typeReader: null);
+                    index = s_typeToIndex[type];
+                }
+
+                return index;
+            }
+        }
+
         public static Type GetTypeFromId(int typeId)
         {
             lock (s_gate)

@@ -203,7 +203,7 @@ namespace Roslyn.Utilities
             }
             else if (value is Type t)
             {
-                WriteType(t);
+                WritePossiblyUnknownType(t);
             }
             else
             {
@@ -439,7 +439,7 @@ namespace Roslyn.Utilities
             else
             {
                 // emit header up front
-                this.WriteType(elementType);
+                this.WriteKnownType(elementType);
 
                 // recursive: write elements now
                 var oldDepth = _recursionDepth;
@@ -649,7 +649,13 @@ namespace Roslyn.Utilities
             _writer.Write((byte)kind);
         }
 
-        private void WriteType(Type type)
+        private void WritePossiblyUnknownType(Type type)
+        {
+            _writer.Write((byte)EncodingKind.Type);
+            this.WriteInt32(ObjectBinder.GetOrAddTypeId(type));
+        }
+
+        private void WriteKnownType(Type type)
         {
             _writer.Write((byte)EncodingKind.Type);
             this.WriteInt32(ObjectBinder.GetTypeId(type));
@@ -724,7 +730,7 @@ namespace Roslyn.Utilities
             _objectReferenceMap.Add(instance);
 
             _writer.Write((byte)EncodingKind.Object);
-            this.WriteType(instance.GetType());
+            this.WriteKnownType(instance.GetType());
         }
 
         private static Exception NoSerializationTypeException(string typeName)
