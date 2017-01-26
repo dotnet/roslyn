@@ -102,6 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override MemberSemanticModel GetMemberModel(SyntaxNode node)
         {
+            // We do have to override this method, but should never call it because it might not do the right thing. 
+            Debug.Assert(false); 
             return IsInTree(node) ? this : null;
         }
 
@@ -658,10 +660,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override IParameterSymbol GetDeclaredSymbol(ParameterSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // Could be parameter of lambda.
+            // Could be parameter of a lambda or a local function.
             CheckSyntaxNode(declarationSyntax);
 
-            return GetLambdaParameterSymbol(declarationSyntax, cancellationToken);
+            return GetLambdaOrLocalFunctionParameterSymbol(declarationSyntax, cancellationToken);
         }
 
         internal override ImmutableArray<ISymbol> GetDeclaredSymbols(BaseFieldDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -670,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray.Create<ISymbol>();
         }
 
-        private ParameterSymbol GetLambdaParameterSymbol(
+        private ParameterSymbol GetLambdaOrLocalFunctionParameterSymbol(
             ParameterSyntax parameter,
             CancellationToken cancellationToken)
         {
@@ -683,17 +685,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var paramList = parameter.Parent as ParameterListSyntax;
-            if (paramList == null)
+            if (paramList == null || paramList.Parent == null)
             {
                 return null;
             }
 
-            if (paramList.Parent == null || !paramList.Parent.IsAnonymousFunction())
+            if (paramList.Parent.IsAnonymousFunction())
             {
-                return null;
+                return GetLambdaParameterSymbol(parameter, (ExpressionSyntax)paramList.Parent, cancellationToken);
+            }
+            else if (paramList.Parent.Kind() == SyntaxKind.LocalFunctionStatement)
+            {
+                var localFunction = (MethodSymbol)GetDeclaredSymbol((LocalFunctionStatementSyntax)paramList.Parent, cancellationToken);
+                if ((object)localFunction != null)
+                {
+                    return GetParameterSymbol(localFunction.Parameters, parameter, cancellationToken);
+                }
             }
 
-            return GetLambdaParameterSymbol(parameter, (ExpressionSyntax)paramList.Parent, cancellationToken);
+            return null;
         }
 
         private ParameterSymbol GetLambdaParameterSymbol(
