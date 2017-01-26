@@ -73,8 +73,8 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _writer = new BinaryWriter(stream, Encoding.UTF8);
-            _objectReferenceMap = new WriterReferenceMap(knownObjects, valueEquality: false);
-            _stringReferenceMap = new WriterReferenceMap(knownObjects, valueEquality: true);
+            _objectReferenceMap = new WriterReferenceMap(valueEquality: false);
+            _stringReferenceMap = new WriterReferenceMap(valueEquality: true);
             _recursive = recursive;
             _cancellationToken = cancellationToken;
             _memberList = s_variantListPool.Allocate();
@@ -462,7 +462,6 @@ namespace Roslyn.Utilities
         /// </summary>
         private class WriterReferenceMap
         {
-            private readonly Dictionary<object, int> _baseMap;
             private readonly Dictionary<object, int> _valueToIdMap;
             private readonly bool _valueEquality;
             private int _nextId;
@@ -473,51 +472,15 @@ namespace Roslyn.Utilities
             private static readonly ObjectPool<Dictionary<object, int>> s_valueDictionaryPool =
                 new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128));
 
-            private WriterReferenceMap(Dictionary<object, int> baseMap, bool valueEquality)
+            public WriterReferenceMap(bool valueEquality)
             {
-                _baseMap = baseMap;
                 _valueEquality = valueEquality;
                 _valueToIdMap = GetDictionaryPool().Allocate();
-                _nextId = _baseMap != null ? _baseMap.Count : 0;
+                _nextId = 0;
             }
 
             private ObjectPool<Dictionary<object, int>> GetDictionaryPool()
                 => _valueEquality ? s_valueDictionaryPool : s_referenceDictionaryPool;
-
-            public WriterReferenceMap(ObjectData data, bool valueEquality)
-                : this(data != null ? GetBaseMap(data, valueEquality) : null, valueEquality)
-            {
-            }
-
-            private static readonly ConditionalWeakTable<ObjectData, Dictionary<object, int>> s_referenceBaseDataMap
-                = new ConditionalWeakTable<ObjectData, Dictionary<object, int>>();
-
-            private static readonly ConditionalWeakTable<ObjectData, Dictionary<object, int>> s_valueBaseDataMap
-                = new ConditionalWeakTable<ObjectData, Dictionary<object, int>>();
-
-            private static Dictionary<object, int> GetBaseMap(ObjectData data, bool valueEquality)
-            {
-                var dataMap = valueEquality ? s_valueBaseDataMap : s_referenceBaseDataMap;
-
-                Dictionary<object, int> baseData;
-                if (!dataMap.TryGetValue(data, out baseData))
-                {
-                    baseData = dataMap.GetValue(data, CreateBaseMap);
-                }
-
-                return baseData;
-            }
-
-            private static Dictionary<object, int> CreateBaseMap(ObjectData data)
-            {
-                var builder = new Dictionary<object, int>();
-                for (int i = 0; i < data.Objects.Length; i++)
-                {
-                    builder.Add(data.Objects[i], i);
-                }
-
-                return builder;
-            }
 
             public void Dispose()
             {
@@ -538,11 +501,6 @@ namespace Roslyn.Utilities
 
             public bool TryGetReferenceId(object value, out int referenceId)
             {
-                if (_baseMap != null && _baseMap.TryGetValue(value, out referenceId))
-                {
-                    return true;
-                }
-
                 return _valueToIdMap.TryGetValue(value, out referenceId);
             }
 

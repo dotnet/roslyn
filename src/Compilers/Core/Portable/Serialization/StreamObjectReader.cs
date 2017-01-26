@@ -83,8 +83,8 @@ namespace Roslyn.Utilities
             _recursive = IsRecursive(stream);
 
             _reader = new BinaryReader(stream, Encoding.UTF8);
-            _objectReferenceMap = new ReaderReferenceMap<object>(knownObjects);
-            _stringReferenceMap = new ReaderReferenceMap<string>(knownObjects);
+            _objectReferenceMap = new ReaderReferenceMap<object>();
+            _stringReferenceMap = new ReaderReferenceMap<string>();
             _cancellationToken = cancellationToken;
 
             _memberList = SOW.s_variantListPool.Allocate();
@@ -467,17 +467,13 @@ namespace Roslyn.Utilities
         /// </summary>
         private class ReaderReferenceMap<T> where T : class
         {
-            private readonly ObjectData _baseData;
-            private readonly int _baseDataCount;
             private readonly List<T> _values;
 
             internal static readonly ObjectPool<List<T>> s_objectListPool
                 = new ObjectPool<List<T>>(() => new List<T>(20));
 
-            public ReaderReferenceMap(ObjectData baseData)
+            public ReaderReferenceMap()
             {
-                _baseData = baseData;
-                _baseDataCount = baseData != null ? _baseData.Objects.Length : 0;
                 _values = s_objectListPool.Allocate();
             }
 
@@ -490,31 +486,17 @@ namespace Roslyn.Utilities
             public int GetNextReferenceId()
             {
                 _values.Add(null);
-                return _baseDataCount + _values.Count - 1;
+                return _values.Count - 1;
             }
 
             public void SetValue(int referenceId, T value)
             {
-                _values[referenceId - _baseDataCount] = value;
+                _values[referenceId] = value;
             }
 
             public T GetValue(int referenceId)
             {
-                if (_baseData != null)
-                {
-                    if (referenceId < _baseDataCount)
-                    {
-                        return (T)_baseData.Objects[referenceId];
-                    }
-                    else
-                    {
-                        return _values[referenceId - _baseDataCount];
-                    }
-                }
-                else
-                {
-                    return _values[referenceId];
-                }
+                return _values[referenceId];
             }
         }
 
