@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                using (var writer = new ObjectWriter(stream, GetSerializationObjectData(), cancellationToken: cancellationToken))
+                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                 {
                     writer.WriteValue(this.Green);
                 }
@@ -1259,14 +1259,12 @@ namespace Microsoft.CodeAnalysis
             {
                 stream.Position = start;
 
-                using (var writer = new ObjectWriter(stream, GetSerializationObjectData(), recursive: false, cancellationToken: cancellationToken))
+                using (var writer = new ObjectWriter(stream, recursive: false, cancellationToken: cancellationToken))
                 {
                     writer.WriteValue(this.Green);
                 }
             }
         }
-
-        internal abstract ObjectData GetSerializationObjectData();
 
         #region Core Methods
 

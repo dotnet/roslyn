@@ -35,7 +35,6 @@
     <Compile Include="InternalUtilities\PlatformInformation.cs" />
     <Compile Include="Serialization\IObjectWritable.cs" />
     <Compile Include="Serialization\ObjectBinder.cs" />
-    <Compile Include="Serialization\ObjectData.cs" />
     <Compile Include="Serialization\StreamObjectReader.cs" />
     <Compile Include="Serialization\StreamObjectWriter.cs" />
     <Compile Include="Symbols\IDiscardSymbol.cs" />

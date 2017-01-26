@@ -69,11 +69,9 @@ namespace Roslyn.Utilities
         /// Creates a new instance of a <see cref="ObjectReader"/>.
         /// </summary>
         /// <param name="stream">The stream to read objects from.</param>
-        /// <param name="knownObjects">An optional list of objects assumed known by the corresponding <see cref="ObjectWriter"/>.</param>
         /// <param name="cancellationToken"></param>
         private ObjectReader(
             Stream stream,
-            ObjectData knownObjects,
             CancellationToken cancellationToken)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
@@ -103,7 +101,6 @@ namespace Roslyn.Utilities
         /// </summary>
         public static ObjectReader TryGetReader(
             Stream stream,
-            ObjectData knownObjects = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (stream == null)
@@ -117,7 +114,7 @@ namespace Roslyn.Utilities
                 return null;
             }
 
-            return new ObjectReader(stream, knownObjects, cancellationToken);
+            return new ObjectReader(stream, cancellationToken);
         }
 
         internal static bool IsRecursive(Stream stream)

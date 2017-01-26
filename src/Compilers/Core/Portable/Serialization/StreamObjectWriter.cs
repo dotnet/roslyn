@@ -59,12 +59,10 @@ namespace Roslyn.Utilities
         /// Creates a new instance of a <see cref="ObjectWriter"/>.
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
-        /// <param name="knownObjects">An optional list of objects assumed known by the corresponding <see cref="ObjectReader"/>.</param>
         /// <param name="recursive">True if the writer encodes objects recursively.</param>
         /// <param name="cancellationToken"></param>
         public ObjectWriter(
             Stream stream,
-            ObjectData knownObjects = null,
             bool recursive = true,
             CancellationToken cancellationToken = default(CancellationToken))
         {

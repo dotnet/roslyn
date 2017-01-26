@@ -273,9 +273,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectBinder.cs">
       <Link>Serialization\ObjectBinder.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\ObjectData.cs">
-      <Link>Serialization\ObjectData.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Serialization\StreamObjectReader.cs">
       <Link>Serialization\StreamObjectReader.cs</Link>
     </Compile>
