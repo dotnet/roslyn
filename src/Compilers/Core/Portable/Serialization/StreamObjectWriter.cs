@@ -89,12 +89,20 @@ namespace Roslyn.Utilities
         public void WriteUInt16(ushort value) => _writer.Write(value);
         public void WriteString(string value) => WriteStringValue(value);
 
-        public void WriteValue(object value)
+        public void WriteValue(IObjectWritable value)
         {
             Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
-            WriteVariant(Variant.FromBoxedObject(value));
+            if (value == null)
+            {
+                _writer.Write((byte)EncodingKind.Null);
+            }
+            else
+            {
+                WriteObject(value);
+            }
         }
 
+#if false
         private void WriteVariant(Variant value)
         {
             switch (value.Kind)
@@ -229,6 +237,7 @@ namespace Roslyn.Utilities
                     break;
             }
         }
+#endif
 
         /// <summary>
         /// An object reference to reference-id map, that can share base data efficiently.
@@ -377,7 +386,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void WriteArray(Array array)
+        public void WriteArray(Array array)
         {
             int length = array.GetLength(0);
 
@@ -403,8 +412,7 @@ namespace Roslyn.Utilities
 
             var elementType = array.GetType().GetElementType();
 
-            EncodingKind elementKind;
-            if (s_typeMap.TryGetValue(elementType, out elementKind))
+            if (s_typeMap.TryGetValue(elementType, out var elementKind))
             {
                 this.WritePrimitiveType(elementType, elementKind);
                 this.WritePrimitiveTypeArrayElements(elementType, elementKind, array);
@@ -443,7 +451,7 @@ namespace Roslyn.Utilities
         {
             for (int i = 0; i < array.Length; i++)
             {
-                this.WriteValue(array.GetValue(i));
+                this.WriteValue((IObjectWritable)array.GetValue(i));
             }
         }
 
@@ -622,13 +630,13 @@ namespace Roslyn.Utilities
             _writer.Write((byte)kind);
         }
 
-        private void WriteType(Type type)
+        public void WriteType(Type type)
         {
             _writer.Write((byte)EncodingKind.Type);
             this.WriteInt32(ObjectBinder.GetTypeId(type));
         }
 
-        private void WriteObject(object instance)
+        private void WriteObject(IObjectWritable instance)
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -655,12 +663,6 @@ namespace Roslyn.Utilities
             }
             else
             {
-                var writable = instance as IObjectWritable;
-                if (writable == null)
-                {
-                    throw NoSerializationWriterException($"{instance.GetType()} must implement {nameof(IObjectWritable)}");
-                }
-
                 var oldDepth = _recursionDepth;
                 _recursionDepth++;
 
@@ -669,7 +671,7 @@ namespace Roslyn.Utilities
                     // If we're recursing too deep, move the work to another thread to do so we
                     // don't blow the stack.
                     var task = Task.Factory.StartNew(
-                        () => WriteObjectWorker(instance, writable), 
+                        () => WriteObjectWorker(instance), 
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Default);
@@ -677,7 +679,7 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    WriteObjectWorker(instance, writable);
+                    WriteObjectWorker(instance);
                 }
 
                 _recursionDepth--;
@@ -685,14 +687,14 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void WriteObjectWorker(object instance, IObjectWritable writable)
+        private void WriteObjectWorker(IObjectWritable writable)
         {
             // emit object header up front
-            this.WriteObjectHeader(instance, 0);
+            this.WriteObjectHeader(writable, 0);
             writable.WriteTo(this);
         }
 
-        private void WriteObjectHeader(object instance, uint memberCount)
+        private void WriteObjectHeader(IObjectWritable instance, uint memberCount)
         {
             _objectReferenceMap.Add(instance);
 
@@ -770,9 +772,6 @@ namespace Roslyn.Utilities
         /// </summary>
         internal static readonly byte Byte4Marker = 2 << 6;
 
-        /// <summary>
-        /// The encoding prefix byte used when encoding <see cref="Variant"/> values.
-        /// </summary>
         internal enum EncodingKind : byte
         {
             /// <summary>
@@ -1074,6 +1073,7 @@ namespace Roslyn.Utilities
             Last = StringType + 1,
         }
 
+#if false
         internal enum VariantKind
         {
             None = 0,
@@ -1399,5 +1399,6 @@ namespace Roslyn.Utilities
                 }
             }
         }
+#endif
     }
 }

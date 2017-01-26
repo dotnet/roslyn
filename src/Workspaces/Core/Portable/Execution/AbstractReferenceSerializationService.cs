@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Execution
             var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
             var guid = metadataReader.GetGuid(mvidHandle);
 
-            writer.WriteValue(guid.ToByteArray());
+            writer.WriteArray(guid.ToByteArray());
         }
 
         private void WritePortableExecutableReferenceTo(
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Execution
             cancellationToken.ThrowIfCancellationRequested();
 
             writer.WriteInt32((int)properties.Kind);
-            writer.WriteValue(properties.Aliases.ToArray());
+            writer.WriteArray(properties.Aliases.ToArray());
             writer.WriteBoolean(properties.EmbedInteropTypes);
         }
 
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Execution
             var bytes = new byte[length];
             Marshal.Copy((IntPtr)reader.MetadataPointer, bytes, 0, length);
 
-            writer.WriteValue(bytes);
+            writer.WriteArray(bytes);
         }
 
         private void WriteTo(AnalyzerReference reference, ObjectWriter writer, bool checksum, CancellationToken cancellationToken)

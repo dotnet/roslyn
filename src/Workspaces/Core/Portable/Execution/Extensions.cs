@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         public static T[] ReadArray<T>(this ObjectReader reader)
         {
-            return (T[])reader.ReadValue();
+            return (T[])reader.ReadArray();
         }
 
         public static string GetWellKnownSynchronizationKind(this object value)

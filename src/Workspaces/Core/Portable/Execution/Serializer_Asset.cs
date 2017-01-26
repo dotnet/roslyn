@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             reference.ProjectId.WriteTo(writer);
-            writer.WriteValue(reference.Aliases.ToArray());
+            writer.WriteArray(reference.Aliases.ToArray());
             writer.WriteBoolean(reference.EmbedInteropTypes);
         }
 

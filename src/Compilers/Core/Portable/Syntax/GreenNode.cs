@@ -420,14 +420,14 @@ namespace Microsoft.CodeAnalysis
 
             if ((kindBits & ExtendedSerializationInfoMask) != 0)
             {
-                var diagnostics = (DiagnosticInfo[])reader.ReadValue();
+                var diagnostics = (DiagnosticInfo[])reader.ReadArray();
                 if (diagnostics != null && diagnostics.Length > 0)
                 {
                     this.flags |= NodeFlags.ContainsDiagnostics;
                     s_diagnosticsTable.Add(this, diagnostics);
                 }
 
-                var annotations = (SyntaxAnnotation[])reader.ReadValue();
+                var annotations = (SyntaxAnnotation[])reader.ReadArray();
                 if (annotations != null && annotations.Length > 0)
                 {
                     this.flags |= NodeFlags.ContainsAnnotations;
@@ -451,8 +451,8 @@ namespace Microsoft.CodeAnalysis
             {
                 kindBits |= ExtendedSerializationInfoMask;
                 writer.WriteUInt16(kindBits);
-                writer.WriteValue(hasDiagnostics ? this.GetDiagnostics() : null);
-                writer.WriteValue(hasAnnotations ? this.GetAnnotations() : null);
+                writer.WriteArray(hasDiagnostics ? this.GetDiagnostics() : null);
+                writer.WriteArray(hasAnnotations ? this.GetAnnotations() : null);
             }
             else
             {

@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
         {
             ProjectId.WriteTo(writer);
 
-            writer.WriteValue(Id.ToByteArray());
+            writer.WriteArray(Id.ToByteArray());
             writer.WriteString(DebugName);
         }
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
         {
             var projectId = ProjectId.ReadFrom(reader);
 
-            var guid = new Guid((byte[])reader.ReadValue());
+            var guid = new Guid((byte[])reader.ReadArray());
             var debugName = reader.ReadString();
 
             return CreateFromSerialized(projectId, guid, debugName);

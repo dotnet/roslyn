@@ -20,7 +20,6 @@ namespace Roslyn.Utilities
 #endif
 
     using EncodingKind = ObjectWriter.EncodingKind;
-    using Variant = ObjectWriter.Variant;
 
     /// <summary>
     /// An <see cref="ObjectReader"/> that deserializes objects from a byte stream.
@@ -41,7 +40,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Map of reference id's to deserialized objects.
         /// </summary>
-        private readonly ReaderReferenceMap<object> _objectReferenceMap;
+        private readonly ReaderReferenceMap<IObjectWritable> _objectReferenceMap;
         private readonly ReaderReferenceMap<string> _stringReferenceMap;
 
         private int _recursionDepth;
@@ -60,7 +59,7 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _reader = new BinaryReader(stream, Encoding.UTF8);
-            _objectReferenceMap = new ReaderReferenceMap<object>();
+            _objectReferenceMap = new ReaderReferenceMap<IObjectWritable>();
             _stringReferenceMap = new ReaderReferenceMap<string>();
             _cancellationToken = cancellationToken;
         }
@@ -111,12 +110,12 @@ namespace Roslyn.Utilities
         public ushort ReadUInt16() => _reader.ReadUInt16();
         public string ReadString() => ReadStringValue();
 
-        public object ReadValue()
+        public IObjectWritable ReadValue()
         {
             var oldDepth = _recursionDepth;
             _recursionDepth++;
 
-            object value;
+            IObjectWritable value;
             if (_recursionDepth % ObjectWriter.MaxRecursionDepth == 0)
             {
                 // If we're recursing too deep, move the work to another thread to do so we
@@ -140,12 +139,44 @@ namespace Roslyn.Utilities
             return value;
         }
 
-        private object ReadValueWorker()
+        public Array ReadArray()
         {
-            var v = ReadVariant();
-            return v.ToBoxedObject();
+            var kind = (EncodingKind)_reader.ReadByte();
+            switch (kind)
+            {
+                case EncodingKind.Array:
+                case EncodingKind.Array_0:
+                case EncodingKind.Array_1:
+                case EncodingKind.Array_2:
+                case EncodingKind.Array_3:
+                    return ReadArray(kind);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
         }
 
+        private IObjectWritable ReadValueWorker()
+        {
+            var kind = (EncodingKind)_reader.ReadByte();
+            switch (kind)
+            {
+                case EncodingKind.Null:
+                    return null;
+                case EncodingKind.ObjectRef_4Bytes:
+                    return _objectReferenceMap.GetValue(_reader.ReadInt32());
+                case EncodingKind.ObjectRef_1Byte:
+                    return _objectReferenceMap.GetValue(_reader.ReadByte());
+                case EncodingKind.ObjectRef_2Bytes:
+                    return _objectReferenceMap.GetValue(_reader.ReadUInt16());
+                case EncodingKind.Object:
+                    return ReadObject();
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
+
+#if false
         private Variant ReadVariant()
         {
             var kind = (EncodingKind)_reader.ReadByte();
@@ -242,10 +273,11 @@ namespace Roslyn.Utilities
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
+#endif
 
-        /// <summary>
-        /// An reference-id to object map, that can share base data efficiently.
-        /// </summary>
+            /// <summary>
+            /// An reference-id to object map, that can share base data efficiently.
+            /// </summary>
         private class ReaderReferenceMap<T> where T : class
         {
             private readonly List<T> _values;
@@ -361,7 +393,7 @@ namespace Roslyn.Utilities
             return value;
         }
 
-        private Variant ReadArray(EncodingKind kind)
+        private Array ReadArray(EncodingKind kind)
         {
             int length;
             switch (kind)
@@ -389,7 +421,7 @@ namespace Roslyn.Utilities
             var elementType = ObjectWriter.s_reverseTypeMap[(int)elementKind];
             if (elementType != null)
             {
-                return Variant.FromArray(this.ReadPrimitiveTypeArrayElements(elementType, elementKind, length));
+                return this.ReadPrimitiveTypeArrayElements(elementType, elementKind, length);
             }
             else
             {
@@ -405,7 +437,7 @@ namespace Roslyn.Utilities
                     array.SetValue(value, i);
                 }
 
-                return Variant.FromObject(array);
+                return array;
             }
         }
 
@@ -605,16 +637,16 @@ namespace Roslyn.Utilities
             return ObjectBinder.GetTypeAndReaderFromId(typeId);
         }
 
-        private Variant ReadObject()
+        private IObjectWritable ReadObject()
         {
             int id = _objectReferenceMap.GetNextReferenceId();
 
             var (type, typeReader) = this.ReadTypeAndReader();
 
             // recursive: read and construct instance immediately from member elements encoding next in the stream
-            var instance = typeReader(this);
+            var instance = (IObjectWritable)typeReader(this);
             _objectReferenceMap.SetValue(id, instance);
-            return Variant.FromObject(instance);
+            return instance;
         }
 
         private static Exception DeserializationReadIncorrectNumberOfValuesException(string typeName)

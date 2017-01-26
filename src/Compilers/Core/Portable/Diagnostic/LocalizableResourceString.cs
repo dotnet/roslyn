@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
-            writer.WriteValue(_resourceSource);
+            writer.WriteType(_resourceSource);
             writer.WriteString(_nameOfLocalizableResource);
             var length = _formatArguments.Length;
             writer.WriteInt32(length);
