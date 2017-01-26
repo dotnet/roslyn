@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
 
         private LocalizableResourceString(ObjectReader reader)
         {
-            _resourceSource = (Type)reader.ReadValue();
+            _resourceSource = reader.ReadType();
             _nameOfLocalizableResource = reader.ReadString();
             _resourceManager = new ResourceManager(_resourceSource);
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
-            writer.WriteValue(_resourceSource);
+            writer.WriteType(_resourceSource);
             writer.WriteString(_nameOfLocalizableResource);
             var length = _formatArguments.Length;
             writer.WriteInt32(length);

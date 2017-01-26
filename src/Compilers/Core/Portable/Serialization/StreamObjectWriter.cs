@@ -201,10 +201,6 @@ namespace Roslyn.Utilities
 
                 WriteArray(instance);
             }
-            else if (value is Type t)
-            {
-                WritePossiblyUnknownType(t);
-            }
             else
             {
                 WriteObject(value);
@@ -649,7 +645,7 @@ namespace Roslyn.Utilities
             _writer.Write((byte)kind);
         }
 
-        private void WritePossiblyUnknownType(Type type)
+        public void WriteType(Type type)
         {
             _writer.Write((byte)EncodingKind.Type);
             this.WriteInt32(ObjectBinder.GetOrAddTypeId(type));

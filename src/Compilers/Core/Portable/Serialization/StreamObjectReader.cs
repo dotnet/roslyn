@@ -199,7 +199,6 @@ namespace Roslyn.Utilities
                 case EncodingKind.ObjectRef_1Byte: return _objectReferenceMap.GetValue(_reader.ReadByte());
                 case EncodingKind.ObjectRef_2Bytes: return _objectReferenceMap.GetValue(_reader.ReadUInt16());
                 case EncodingKind.Object: return ReadObject();
-                case EncodingKind.Type: return ReadTypeAfterTag();
                 case EncodingKind.DateTime: return DateTime.FromBinary(_reader.ReadInt64());
                 case EncodingKind.Array:
                 case EncodingKind.Array_0:
@@ -555,7 +554,7 @@ namespace Roslyn.Utilities
             return array;
         }
 
-        private Type ReadType()
+        public Type ReadType()
         {
             _reader.ReadByte();
             return ReadTypeAfterTag();
