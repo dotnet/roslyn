@@ -557,21 +557,17 @@ namespace Roslyn.Utilities
 
         private Type ReadType()
         {
-            var kind = (EncodingKind)_reader.ReadByte();
+            _reader.ReadByte();
             return ReadTypeAfterTag();
         }
 
         private Type ReadTypeAfterTag()
-        {
-            var typeId = this.ReadInt32();
-            return ObjectBinder.GetTypeFromId(typeId);
-        }
+            => ObjectBinder.GetTypeFromId(this.ReadInt32());
 
         private (Type, Func<ObjectReader, object>) ReadTypeAndReader()
         {
-            var kind = (EncodingKind)_reader.ReadByte();
-            var typeId = this.ReadInt32();
-            return ObjectBinder.GetTypeAndReaderFromId(typeId);
+            _reader.ReadByte();
+            return ObjectBinder.GetTypeAndReaderFromId(this.ReadInt32());
         }
 
         private object ReadObject()
