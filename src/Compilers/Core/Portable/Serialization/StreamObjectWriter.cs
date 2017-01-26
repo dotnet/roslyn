@@ -92,141 +92,193 @@ namespace Roslyn.Utilities
         public void WriteValue(object value)
         {
             Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
-            WriteVariant(Variant.FromBoxedObject(value));
+
+            if (value == null)
+            {
+                _writer.Write((byte)EncodingKind.Null);
+                return;
+            }
+
+            var type = value.GetType();
+            var typeInfo = type.GetTypeInfo();
+            Debug.Assert(!typeInfo.IsEnum, "Enums should not be written with WriteObject.  Write them out as integers instead.");
+
+            // Perf: Note that JIT optimizes each expression value.GetType() == typeof(T) to a single register comparison.
+            // Also the checks are sorted by commonality of the checked types.
+
+            // The primitive types are Boolean, Byte, SByte, Int16, UInt16, Int32, UInt32, Int64, UInt64, IntPtr, UIntPtr, Char, Double, and Single.
+            if (typeInfo.IsPrimitive)
+            {
+                // Note: int, double, bool, char, have been chosen to go first as they're they
+                // common values of literals in code, and so would be hte likely hits if we do
+                // have a primitive type we're serializing out.
+                if (value.GetType() == typeof(int))
+                {
+                    WriteEncodedInt32((int)value);
+                    return;
+                }
+
+                if (value.GetType() == typeof(double))
+                {
+                    _writer.Write((byte)EncodingKind.Float8);
+                    _writer.Write((double)value);
+                    return;
+                }
+
+                if (value.GetType() == typeof(bool))
+                {
+                    _writer.Write((byte)((bool)value ? EncodingKind.Boolean_True : EncodingKind.Boolean_False));
+                    return;
+                }
+
+                if (value.GetType() == typeof(char))
+                {
+                    _writer.Write((byte)EncodingKind.Char);
+                    _writer.Write((ushort)(char)value);  // written as ushort because BinaryWriter fails on chars that are unicode surrogates
+                    return;
+                }
+
+                if (value.GetType() == typeof(byte))
+                {
+                    _writer.Write((byte)EncodingKind.UInt8);
+                    _writer.Write((byte)value);
+                    return;
+                }
+
+                if (value.GetType() == typeof(short))
+                {
+                    _writer.Write((byte)EncodingKind.Int16);
+                    _writer.Write((short)value);
+                    return;
+                }
+
+                if (value.GetType() == typeof(long))
+                {
+                    _writer.Write((byte)EncodingKind.Int64);
+                    _writer.Write((long)value);
+                    return;
+                }
+
+                if (value.GetType() == typeof(sbyte))
+                {
+                    _writer.Write((byte)EncodingKind.Int8);
+                    _writer.Write((sbyte)value);
+                    return;
+                }
+
+                if (value.GetType() == typeof(float))
+                {
+                    _writer.Write((byte)EncodingKind.Float4);
+                    _writer.Write((float)value);
+                    return;
+                }
+
+                if (value.GetType() == typeof(ushort))
+                {
+                    _writer.Write((byte)EncodingKind.UInt16);
+                    _writer.Write((ushort)value);
+                    return;
+                }
+
+                if (value.GetType() == typeof(uint))
+                {
+                    WriteEncodedUInt32((uint)value);
+                    return;
+                }
+
+                if (value.GetType() == typeof(ulong))
+                {
+                    _writer.Write((byte)EncodingKind.UInt64);
+                    _writer.Write((ulong)value);
+                    return;
+                }
+            }
+
+            if (value.GetType() == typeof(decimal))
+            {
+                _writer.Write((byte)EncodingKind.Decimal);
+                _writer.Write((decimal)value);
+                return;
+            }
+
+            if (value.GetType() == typeof(DateTime))
+            {
+                _writer.Write((byte)EncodingKind.DateTime);
+                _writer.Write(((DateTime)value).ToBinary());
+                return;
+            }
+
+            if (value.GetType() == typeof(string))
+            {
+                WriteStringValue((string)value);
+                return;
+            }
+
+            if (type.IsArray)
+            {
+                var instance = (Array)value;
+
+                if (instance.Rank > 1)
+                {
+                    throw new InvalidOperationException(Resources.Arrays_with_more_than_one_dimension_cannot_be_serialized);
+                }
+
+                WriteArray(instance);
+                return;
+            }
+
+            if (value is Type t)
+            {
+                WriteType(t);
+                return;
+            }
+
+            WriteObject(value);
         }
 
-        private void WriteVariant(Variant value)
+        private void WriteEncodedInt32(int v)
         {
-            switch (value.Kind)
+            if (v >= 0 && v <= 10)
             {
-                case VariantKind.Null:
-                    _writer.Write((byte)EncodingKind.Null);
-                    break;
+                _writer.Write((byte)((int)EncodingKind.Int32_0 + v));
+            }
+            else if (v >= 0 && v < byte.MaxValue)
+            {
+                _writer.Write((byte)EncodingKind.Int32_1Byte);
+                _writer.Write((byte)v);
+            }
+            else if (v >= 0 && v < ushort.MaxValue)
+            {
+                _writer.Write((byte)EncodingKind.Int32_2Bytes);
+                _writer.Write((ushort)v);
+            }
+            else
+            {
+                _writer.Write((byte)EncodingKind.Int32);
+                _writer.Write(v);
+            }
+        }
 
-                case VariantKind.Boolean:
-                    _writer.Write((byte)(value.AsBoolean() ? EncodingKind.Boolean_True : EncodingKind.Boolean_False));
-                    break;
-
-                case VariantKind.Byte:
-                    _writer.Write((byte)EncodingKind.UInt8);
-                    _writer.Write(value.AsByte());
-                    break;
-
-                case VariantKind.SByte:
-                    _writer.Write((byte)EncodingKind.Int8);
-                    _writer.Write(value.AsSByte());
-                    break;
-
-                case VariantKind.Int16:
-                    _writer.Write((byte)EncodingKind.Int16);
-                    _writer.Write(value.AsInt16());
-                    break;
-
-                case VariantKind.UInt16:
-                    _writer.Write((byte)EncodingKind.UInt16);
-                    _writer.Write(value.AsUInt16());
-                    break;
-
-                case VariantKind.Int32:
-                    {
-                        var v = value.AsInt32();
-                        if (v >= 0 && v <= 10)
-                        {
-                            _writer.Write((byte)((int)EncodingKind.Int32_0 + v));
-                        }
-                        else if (v >= 0 && v < byte.MaxValue)
-                        {
-                            _writer.Write((byte)EncodingKind.Int32_1Byte);
-                            _writer.Write((byte)v);
-                        }
-                        else if (v >= 0 && v < ushort.MaxValue)
-                        {
-                            _writer.Write((byte)EncodingKind.Int32_2Bytes);
-                            _writer.Write((ushort)v);
-                        }
-                        else
-                        {
-                            _writer.Write((byte)EncodingKind.Int32);
-                            _writer.Write(v);
-                        }
-                    }
-                    break;
-
-                case VariantKind.UInt32:
-                    {
-                        var v = value.AsUInt32();
-                        if (v >= 0 && v <= 10)
-                        {
-                            _writer.Write((byte)((int)EncodingKind.UInt32_0 + v));
-                        }
-                        else if (v >= 0 && v < byte.MaxValue)
-                        {
-                            _writer.Write((byte)EncodingKind.UInt32_1Byte);
-                            _writer.Write((byte)v);
-                        }
-                        else if (v >= 0 && v < ushort.MaxValue)
-                        {
-                            _writer.Write((byte)EncodingKind.UInt32_2Bytes);
-                            _writer.Write((ushort)v);
-                        }
-                        else
-                        {
-                            _writer.Write((byte)EncodingKind.UInt32);
-                            _writer.Write(v);
-                        }
-                    }
-                    break;
-
-                case VariantKind.Int64:
-                    _writer.Write((byte)EncodingKind.Int64);
-                    _writer.Write(value.AsInt64());
-                    break;
-
-                case VariantKind.UInt64:
-                    _writer.Write((byte)EncodingKind.UInt64);
-                    _writer.Write(value.AsUInt64());
-                    break;
-
-                case VariantKind.Decimal:
-                    _writer.Write((byte)EncodingKind.Decimal);
-                    _writer.Write(value.AsDecimal());
-                    break;
-
-                case VariantKind.Float4:
-                    _writer.Write((byte)EncodingKind.Float4);
-                    _writer.Write(value.AsSingle());
-                    break;
-
-                case VariantKind.Float8:
-                    _writer.Write((byte)EncodingKind.Float8);
-                    _writer.Write(value.AsDouble());
-                    break;
-
-                case VariantKind.Char:
-                    _writer.Write((byte)EncodingKind.Char);
-                    _writer.Write((ushort)value.AsChar());  // written as ushort because BinaryWriter fails on chars that are unicode surrogates
-                    break;
-
-                case VariantKind.String:
-                    WriteStringValue(value.AsString());
-                    break;
-
-                case VariantKind.DateTime:
-                    _writer.Write((byte)EncodingKind.DateTime);
-                    _writer.Write(value.AsDateTime().ToBinary());
-                    break;
-
-                case VariantKind.Type:
-                    WriteType(value.AsType());
-                    break;
-
-                case VariantKind.Array:
-                    WriteArray(value.AsArray());
-                    break;
-
-                case VariantKind.Object:
-                    WriteObject(value.AsObject());
-                    break;
+        private void WriteEncodedUInt32(uint v)
+        {
+            if (v >= 0 && v <= 10)
+            {
+                _writer.Write((byte)((int)EncodingKind.UInt32_0 + v));
+            }
+            else if (v >= 0 && v < byte.MaxValue)
+            {
+                _writer.Write((byte)EncodingKind.UInt32_1Byte);
+                _writer.Write((byte)v);
+            }
+            else if (v >= 0 && v < ushort.MaxValue)
+            {
+                _writer.Write((byte)EncodingKind.UInt32_2Bytes);
+                _writer.Write((ushort)v);
+            }
+            else
+            {
+                _writer.Write((byte)EncodingKind.UInt32);
+                _writer.Write(v);
             }
         }
 
@@ -770,9 +822,6 @@ namespace Roslyn.Utilities
         /// </summary>
         internal static readonly byte Byte4Marker = 2 << 6;
 
-        /// <summary>
-        /// The encoding prefix byte used when encoding <see cref="Variant"/> values.
-        /// </summary>
         internal enum EncodingKind : byte
         {
             /// <summary>
@@ -1074,6 +1123,7 @@ namespace Roslyn.Utilities
             Last = StringType + 1,
         }
 
+#if false
         internal enum VariantKind
         {
             None = 0,
@@ -1399,5 +1449,6 @@ namespace Roslyn.Utilities
                 }
             }
         }
+#endif
     }
 }

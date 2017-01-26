@@ -20,7 +20,6 @@ namespace Roslyn.Utilities
 #endif
 
     using EncodingKind = ObjectWriter.EncodingKind;
-    using Variant = ObjectWriter.Variant;
 
     /// <summary>
     /// An <see cref="ObjectReader"/> that deserializes objects from a byte stream.
@@ -142,35 +141,19 @@ namespace Roslyn.Utilities
 
         private object ReadValueWorker()
         {
-            var v = ReadVariant();
-            return v.ToBoxedObject();
-        }
-
-        private Variant ReadVariant()
-        {
             var kind = (EncodingKind)_reader.ReadByte();
             switch (kind)
             {
-                case EncodingKind.Null:
-                    return Variant.Null;
-                case EncodingKind.Boolean_True:
-                    return Variant.FromBoolean(true);
-                case EncodingKind.Boolean_False:
-                    return Variant.FromBoolean(false);
-                case EncodingKind.Int8:
-                    return Variant.FromSByte(_reader.ReadSByte());
-                case EncodingKind.UInt8:
-                    return Variant.FromByte(_reader.ReadByte());
-                case EncodingKind.Int16:
-                    return Variant.FromInt16(_reader.ReadInt16());
-                case EncodingKind.UInt16:
-                    return Variant.FromUInt16(_reader.ReadUInt16());
-                case EncodingKind.Int32:
-                    return Variant.FromInt32(_reader.ReadInt32());
-                case EncodingKind.Int32_1Byte:
-                    return Variant.FromInt32((int)_reader.ReadByte());
-                case EncodingKind.Int32_2Bytes:
-                    return Variant.FromInt32((int)_reader.ReadUInt16());
+                case EncodingKind.Null: return null;
+                case EncodingKind.Boolean_True: return true;
+                case EncodingKind.Boolean_False: return false;
+                case EncodingKind.Int8: return _reader.ReadSByte();
+                case EncodingKind.UInt8: return _reader.ReadByte();
+                case EncodingKind.Int16: return _reader.ReadInt16();
+                case EncodingKind.UInt16: return _reader.ReadUInt16();
+                case EncodingKind.Int32: return _reader.ReadInt32();
+                case EncodingKind.Int32_1Byte: return (int)_reader.ReadByte();
+                case EncodingKind.Int32_2Bytes: return (int)_reader.ReadUInt16();
                 case EncodingKind.Int32_0:
                 case EncodingKind.Int32_1:
                 case EncodingKind.Int32_2:
@@ -182,13 +165,10 @@ namespace Roslyn.Utilities
                 case EncodingKind.Int32_8:
                 case EncodingKind.Int32_9:
                 case EncodingKind.Int32_10:
-                    return Variant.FromInt32((int)kind - (int)EncodingKind.Int32_0);
-                case EncodingKind.UInt32:
-                    return Variant.FromUInt32(_reader.ReadUInt32());
-                case EncodingKind.UInt32_1Byte:
-                    return Variant.FromUInt32((uint)_reader.ReadByte());
-                case EncodingKind.UInt32_2Bytes:
-                    return Variant.FromUInt32((uint)_reader.ReadUInt16());
+                    return (int)kind - (int)EncodingKind.Int32_0;
+                case EncodingKind.UInt32: return _reader.ReadUInt32();
+                case EncodingKind.UInt32_1Byte: return (uint)_reader.ReadByte();
+                case EncodingKind.UInt32_2Bytes: return (uint)_reader.ReadUInt16();
                 case EncodingKind.UInt32_0:
                 case EncodingKind.UInt32_1:
                 case EncodingKind.UInt32_2:
@@ -200,38 +180,27 @@ namespace Roslyn.Utilities
                 case EncodingKind.UInt32_8:
                 case EncodingKind.UInt32_9:
                 case EncodingKind.UInt32_10:
-                    return Variant.FromUInt32((uint)((int)kind - (int)EncodingKind.UInt32_0));
-                case EncodingKind.Int64:
-                    return Variant.FromInt64(_reader.ReadInt64());
-                case EncodingKind.UInt64:
-                    return Variant.FromUInt64(_reader.ReadUInt64());
-                case EncodingKind.Float4:
-                    return Variant.FromSingle(_reader.ReadSingle());
-                case EncodingKind.Float8:
-                    return Variant.FromDouble(_reader.ReadDouble());
-                case EncodingKind.Decimal:
-                    return Variant.FromDecimal(_reader.ReadDecimal());
+                    return (uint)((int)kind - (int)EncodingKind.UInt32_0);
+                case EncodingKind.Int64: return _reader.ReadInt64();
+                case EncodingKind.UInt64: return _reader.ReadUInt64();
+                case EncodingKind.Float4: return _reader.ReadSingle();
+                case EncodingKind.Float8: return _reader.ReadDouble();
+                case EncodingKind.Decimal: return _reader.ReadDecimal();
                 case EncodingKind.Char:
                     // read as ushort because BinaryWriter fails on chars that are unicode surrogates
-                    return Variant.FromChar((char)_reader.ReadUInt16());
+                    return (char)_reader.ReadUInt16();
                 case EncodingKind.StringUtf8:
                 case EncodingKind.StringUtf16:
                 case EncodingKind.StringRef_4Bytes:
                 case EncodingKind.StringRef_1Byte:
                 case EncodingKind.StringRef_2Bytes:
-                    return Variant.FromString(ReadStringValue(kind));
-                case EncodingKind.ObjectRef_4Bytes:
-                    return Variant.FromObject(_objectReferenceMap.GetValue(_reader.ReadInt32()));
-                case EncodingKind.ObjectRef_1Byte:
-                    return Variant.FromObject(_objectReferenceMap.GetValue(_reader.ReadByte()));
-                case EncodingKind.ObjectRef_2Bytes:
-                    return Variant.FromObject(_objectReferenceMap.GetValue(_reader.ReadUInt16()));
-                case EncodingKind.Object:
-                    return ReadObject();
-                case EncodingKind.Type:
-                    return Variant.FromType(ReadTypeAfterTag());
-                case EncodingKind.DateTime:
-                    return Variant.FromDateTime(DateTime.FromBinary(_reader.ReadInt64()));
+                    return ReadStringValue(kind);
+                case EncodingKind.ObjectRef_4Bytes: return _objectReferenceMap.GetValue(_reader.ReadInt32());
+                case EncodingKind.ObjectRef_1Byte: return _objectReferenceMap.GetValue(_reader.ReadByte());
+                case EncodingKind.ObjectRef_2Bytes: return _objectReferenceMap.GetValue(_reader.ReadUInt16());
+                case EncodingKind.Object: return ReadObject();
+                case EncodingKind.Type: return ReadTypeAfterTag();
+                case EncodingKind.DateTime: return DateTime.FromBinary(_reader.ReadInt64());
                 case EncodingKind.Array:
                 case EncodingKind.Array_0:
                 case EncodingKind.Array_1:
@@ -361,7 +330,7 @@ namespace Roslyn.Utilities
             return value;
         }
 
-        private Variant ReadArray(EncodingKind kind)
+        private Array ReadArray(EncodingKind kind)
         {
             int length;
             switch (kind)
@@ -389,7 +358,7 @@ namespace Roslyn.Utilities
             var elementType = ObjectWriter.s_reverseTypeMap[(int)elementKind];
             if (elementType != null)
             {
-                return Variant.FromArray(this.ReadPrimitiveTypeArrayElements(elementType, elementKind, length));
+                return this.ReadPrimitiveTypeArrayElements(elementType, elementKind, length);
             }
             else
             {
@@ -405,7 +374,7 @@ namespace Roslyn.Utilities
                     array.SetValue(value, i);
                 }
 
-                return Variant.FromObject(array);
+                return array;
             }
         }
 
@@ -605,7 +574,7 @@ namespace Roslyn.Utilities
             return ObjectBinder.GetTypeAndReaderFromId(typeId);
         }
 
-        private Variant ReadObject()
+        private object ReadObject()
         {
             int id = _objectReferenceMap.GetNextReferenceId();
 
@@ -614,7 +583,7 @@ namespace Roslyn.Utilities
             // recursive: read and construct instance immediately from member elements encoding next in the stream
             var instance = typeReader(this);
             _objectReferenceMap.SetValue(id, instance);
-            return Variant.FromObject(instance);
+            return instance;
         }
 
         private static Exception DeserializationReadIncorrectNumberOfValuesException(string typeName)
