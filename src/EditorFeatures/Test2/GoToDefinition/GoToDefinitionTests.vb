@@ -765,6 +765,245 @@ class C
 
             Await TestAsync(workspace)
         End Function
+#End Region
+
+#Region "CSharp TupleTests"
+        Dim tuple2Doc As XElement =
+            <Document>
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple&lt;T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+    }
+}
+            </Document>
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldEqualTuples01() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var x = ([|Alice|]: 1, Bob: 2);
+
+            var y = (Alice: 1, Bob: 2);
+
+            var z1 = x.$$Alice;
+            var z2 = y.Alice;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldEqualTuples02() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <!-- intentionally not including tuple2, shoudl still work -->
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var x = (Alice: 1, Bob: 2);
+
+            var y = ([|Alice|]: 1, Bob: 2);
+
+            var z1 = x.Alice;
+            var z2 = y.$$Alice;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldMatchToOuter01() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var x = ([|Program|]: 1, Main: 2);
+
+            var z = x.$$Program;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldMatchToOuter02() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var x = ([|Pro$$gram|]: 1, Main: 2);
+
+            var z = x.Program;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldMatchToOuter03() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var x = (1,2,3,4,5,6,7,8,9,10, [|Program|]: 1, Main: 2);
+
+            var z = x.$$Program;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldRedeclared01() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            (int [|Alice|], int Bob) x = (Alice: 1, Bob: 2);
+
+             var z1 = x.$$Alice;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldRedeclared02() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            (string Alice, int Bob) x = ([|Al$$ice|]: null, Bob: 2);
+
+             var z1 = x.Alice;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldItem01() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var x = ([|1|], Bob: 2);
+
+             var z1 = x.$$Item1;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestCSharpGotoDefinitionTupleFieldItem02() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <%= tuple2Doc %>
+        <Document>
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var x = ([|Alice|]: 1, Bob: 2);
+
+             var z1 = x.$$Item1;
+        }
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
 
 #End Region
 
