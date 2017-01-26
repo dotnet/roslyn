@@ -448,7 +448,7 @@ namespace Roslyn.Utilities
                 case EncodingKind.Object:
                     return ReadObject();
                 case EncodingKind.Type:
-                    return Variant.FromType(ReadType());
+                    return Variant.FromType(ReadTypeAfterTag());
                 case EncodingKind.DateTime:
                     return Variant.FromDateTime(DateTime.FromBinary(_reader.ReadInt64()));
                 case EncodingKind.Array:
@@ -631,7 +631,7 @@ namespace Roslyn.Utilities
             else
             {
                 // custom type case
-                elementType = this.ReadType();
+                elementType = this.ReadTypeAfterTag();
 
                 if (_recursive)
                 {
@@ -849,6 +849,11 @@ namespace Roslyn.Utilities
         private Type ReadType()
         {
             var kind = (EncodingKind)_reader.ReadByte();
+            return ReadTypeAfterTag();
+        }
+
+        private Type ReadTypeAfterTag()
+        {
             var typeId = this.ReadInt32();
             return ObjectBinder.GetTypeFromId(typeId);
         }
