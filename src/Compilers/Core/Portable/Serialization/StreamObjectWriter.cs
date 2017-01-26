@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -14,6 +13,7 @@ using Microsoft.CodeAnalysis;
 namespace Roslyn.Utilities
 {
     using System.Collections.Immutable;
+    using System.Threading.Tasks;
 #if COMPILERCORE
     using Resources = CodeAnalysisResources;
 #else
@@ -36,12 +36,8 @@ namespace Roslyn.Utilities
         private readonly WriterReferenceMap _objectReferenceMap;
         private readonly WriterReferenceMap _stringReferenceMap;
 
-        // collection pools to reduce GC overhead
-        internal static readonly ObjectPool<ImmutableArray<Variant>.Builder> s_variantListPool
-            = new ObjectPool<ImmutableArray<Variant>.Builder>(() => ImmutableArray.CreateBuilder<Variant>(20));
-
-        internal static readonly ObjectPool<Stack<Variant>> s_variantStackPool
-            = new ObjectPool<Stack<Variant>>(() => new Stack<Variant>(20));
+        private int _recursionDepth;
+        internal const int MaxRecursionDepth = 50;
 
         /// <summary>
         /// Creates a new instance of a <see cref="ObjectWriter"/>.
@@ -74,6 +70,7 @@ namespace Roslyn.Utilities
         {
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
+            _recursionDepth = 0;
         }
 
         public void WriteBoolean(bool value) => _writer.Write(value);
@@ -420,19 +417,33 @@ namespace Roslyn.Utilities
                 // recursive: write elements now
                 var oldDepth = _recursionDepth;
                 _recursionDepth++;
-                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-                if (_recursionDepth > MaxRecursionDepth)
-                {
-                    throw new RecursionDepthExceeded();
-                }
 
-                for (int i = 0; i < array.Length; i++)
+                if (_recursionDepth % MaxRecursionDepth == 0)
                 {
-                    this.WriteValue(array.GetValue(i));
+                    // If we're recursing too deep, move the work to another thread to do so we
+                    // don't blow the stack.
+                    var task = Task.Factory.StartNew(
+                        () => WriteArrayValues(array), 
+                        _cancellationToken,
+                        TaskCreationOptions.LongRunning,
+                        TaskScheduler.Default);
+                    task.Wait();
+                }
+                else
+                {
+                    WriteArrayValues(array);
                 }
 
                 _recursionDepth--;
                 Debug.Assert(_recursionDepth == oldDepth);
+            }
+        }
+
+        private void WriteArrayValues(Array array)
+        {
+            for (int i = 0; i < array.Length; i++)
+            {
+                this.WriteValue(array.GetValue(i));
             }
         }
 
@@ -617,16 +628,6 @@ namespace Roslyn.Utilities
             this.WriteInt32(ObjectBinder.GetTypeId(type));
         }
 
-        private int _recursionDepth;
-        private const int MaxRecursionDepth = 50;
-
-        internal class RecursionDepthExceeded : Exception
-        {
-            public RecursionDepthExceeded()
-            {
-            }
-        }
-
         private void WriteObject(object instance)
         {
             _cancellationToken.ThrowIfCancellationRequested();
@@ -662,19 +663,33 @@ namespace Roslyn.Utilities
 
                 var oldDepth = _recursionDepth;
                 _recursionDepth++;
-                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-                if (_recursionDepth > MaxRecursionDepth)
-                {
-                    throw new RecursionDepthExceeded();
-                }
 
-                // emit object header up front
-                this.WriteObjectHeader(instance, 0);
-                writable.WriteTo(this);
+                if (_recursionDepth % MaxRecursionDepth == 0)
+                {
+                    // If we're recursing too deep, move the work to another thread to do so we
+                    // don't blow the stack.
+                    var task = Task.Factory.StartNew(
+                        () => WriteObjectWorker(instance, writable), 
+                        _cancellationToken,
+                        TaskCreationOptions.LongRunning,
+                        TaskScheduler.Default);
+                    task.Wait(_cancellationToken);
+                }
+                else
+                {
+                    WriteObjectWorker(instance, writable);
+                }
 
                 _recursionDepth--;
                 Debug.Assert(_recursionDepth == oldDepth);
             }
+        }
+
+        private void WriteObjectWorker(object instance, IObjectWritable writable)
+        {
+            // emit object header up front
+            this.WriteObjectHeader(instance, 0);
+            writable.WriteTo(this);
         }
 
         private void WriteObjectHeader(object instance, uint memberCount)

@@ -1114,11 +1114,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestDeepObjectGraph_RecursiveFails()
+        public void TestDeepObjectGraph_RecursiveSucceeds()
         {
             int id = 0;
             var graph = ConstructGraph(ref id, 1, 1000);
-            Assert.Throws<ObjectWriter.RecursionDepthExceeded>(() => TestRoundTripValue(graph));
+            TestRoundTripValue(graph);
         }
 
         [Fact]

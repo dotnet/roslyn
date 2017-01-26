@@ -8,6 +8,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
@@ -18,10 +19,8 @@ namespace Roslyn.Utilities
     using Resources = WorkspacesResources;
 #endif
 
-    using SOW = ObjectWriter;
     using EncodingKind = ObjectWriter.EncodingKind;
     using Variant = ObjectWriter.Variant;
-    using VariantKind = ObjectWriter.VariantKind;
 
     /// <summary>
     /// An <see cref="ObjectReader"/> that deserializes objects from a byte stream.
@@ -45,14 +44,7 @@ namespace Roslyn.Utilities
         private readonly ReaderReferenceMap<object> _objectReferenceMap;
         private readonly ReaderReferenceMap<string> _stringReferenceMap;
 
-        /// <summary>
-        /// List of member values that object deserializers read from.
-        /// </summary>
-        private readonly ImmutableArray<Variant>.Builder _memberList;
-        private int _indexInMemberList;
-
-        private static readonly ObjectPool<Stack<Construction>> s_constructionStackPool
-            = new ObjectPool<Stack<Construction>>(() => new Stack<Construction>(20));
+        private int _recursionDepth;
 
         /// <summary>
         /// Creates a new instance of a <see cref="ObjectReader"/>.
@@ -71,8 +63,6 @@ namespace Roslyn.Utilities
             _objectReferenceMap = new ReaderReferenceMap<object>();
             _stringReferenceMap = new ReaderReferenceMap<string>();
             _cancellationToken = cancellationToken;
-
-            _memberList = SOW.s_variantListPool.Allocate();
         }
 
         /// <summary>
@@ -102,173 +92,58 @@ namespace Roslyn.Utilities
         {
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
-
-            ResetMemberList();
-            SOW.s_variantListPool.Free(_memberList);
+            _recursionDepth = 0;
         }
 
-        private void ResetMemberList()
-        {
-            _memberList.Clear();
-            _indexInMemberList = 0;
-        }
-
-        private Variant NextFromMemberList()
-            => _memberList[_indexInMemberList++];
-
-        private bool ShouldReadFromMemberList => _memberList.Count > 0;
-
-        public bool ReadBoolean()
-            => ShouldReadFromMemberList
-                ? NextFromMemberList().AsBoolean()
-                : _reader.ReadBoolean();
-
-        public byte ReadByte()
-            => ShouldReadFromMemberList
-                ? NextFromMemberList().AsByte()
-                : _reader.ReadByte();
-
+        public bool ReadBoolean() => _reader.ReadBoolean();
+        public byte ReadByte() => _reader.ReadByte();
         // read as ushort because BinaryWriter fails on chars that are unicode surrogates
-        public char ReadChar()
-            => ShouldReadFromMemberList
-                ? NextFromMemberList().AsChar()
-                : (char)_reader.ReadUInt16();
-
-        public decimal ReadDecimal()
-            => ShouldReadFromMemberList
-                ? NextFromMemberList().AsDecimal()
-                : _reader.ReadDecimal();
-
-        public double ReadDouble()
-            => ShouldReadFromMemberList
-                ? NextFromMemberList().AsDouble()
-                : _reader.ReadDouble();
-
-        public float ReadSingle()
-            => ShouldReadFromMemberList
-                ? NextFromMemberList().AsSingle()
-                : _reader.ReadSingle();
-
-        public int ReadInt32()
-            => ShouldReadFromMemberList
-                ? NextFromMemberList().AsInt32()
-                : _reader.ReadInt32();
-
-        public long ReadInt64()
-            => ShouldReadFromMemberList
-                ? NextFromMemberList().AsInt64()
-                : _reader.ReadInt64();
-
-        public sbyte ReadSByte()
-            => ShouldReadFromMemberList
-                ? NextFromMemberList().AsSByte()
-                : _reader.ReadSByte();
-
-        public short ReadInt16()
-            => ShouldReadFromMemberList
-                ? NextFromMemberList().AsInt16()
-                : _reader.ReadInt16();
-
-        public uint ReadUInt32()
-            => ShouldReadFromMemberList
-                ? NextFromMemberList().AsUInt32()
-                : _reader.ReadUInt32();
-
-        public ulong ReadUInt64()
-            => ShouldReadFromMemberList
-                ? NextFromMemberList().AsUInt64()
-                : _reader.ReadUInt64();
-
-        public ushort ReadUInt16()
-            => ShouldReadFromMemberList
-                ? NextFromMemberList().AsUInt16()
-                : _reader.ReadUInt16();
-
-        public string ReadString()
-            => ShouldReadFromMemberList
-                ? ReadStringFromMemberList()
-                : ReadStringValue();
+        public char ReadChar() => (char)_reader.ReadUInt16();
+        public decimal ReadDecimal() => _reader.ReadDecimal();
+        public double ReadDouble() => _reader.ReadDouble();
+        public float ReadSingle() => _reader.ReadSingle();
+        public int ReadInt32() => _reader.ReadInt32();
+        public long ReadInt64() => _reader.ReadInt64();
+        public sbyte ReadSByte() => _reader.ReadSByte();
+        public short ReadInt16() => _reader.ReadInt16();
+        public uint ReadUInt32() => _reader.ReadUInt32();
+        public ulong ReadUInt64() => _reader.ReadUInt64();
+        public ushort ReadUInt16() => _reader.ReadUInt16();
+        public string ReadString() => ReadStringValue();
 
         public object ReadValue()
         {
-            if (ShouldReadFromMemberList)
+            var oldDepth = _recursionDepth;
+            _recursionDepth++;
+
+            object value;
+            if (_recursionDepth % ObjectWriter.MaxRecursionDepth == 0)
             {
-                return ReadValueFromMemberList();
+                // If we're recursing too deep, move the work to another thread to do so we
+                // don't blow the stack.
+                var task = Task.Factory.StartNew(
+                    () => ReadValueWorker(),
+                    _cancellationToken,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default);
+                task.Wait(_cancellationToken);
+                value = task.Result;
+            }
+            else
+            {
+                value = ReadValueWorker();
             }
 
+            _recursionDepth--;
+            Debug.Assert(oldDepth == _recursionDepth);
+
+            return value;
+        }
+
+        private object ReadValueWorker()
+        {
             var v = ReadVariant();
             return v.ToBoxedObject();
-        }
-
-        private string ReadStringFromMemberList()
-        {
-            var next = NextFromMemberList();
-            return next.Kind == VariantKind.Null
-                ? null
-                : next.AsString();
-        }
-
-        private object ReadValueFromMemberList()
-            => NextFromMemberList().ToBoxedObject();
-
-        /// <summary>
-        /// Represents either a pending object or array construction.
-        /// </summary>
-        private struct Construction
-        {
-            /// <summary>
-            /// The type of the object or the element type of the array.
-            /// </summary>
-            private readonly Type _type;
-
-            /// <summary>
-            /// The number of values that must appear on the value stack (beyond the stack start) in order to 
-            /// trigger construction of the object or array instance.
-            /// </summary>
-            private readonly int _valueCount;
-
-            /// <summary>
-            /// The size of the value stack before we started this construction.
-            /// Only new values pushed onto the stack are used for this construction.
-            /// </summary>
-            private readonly int _stackStart;
-
-            /// <summary>
-            /// The reader that constructs the object. Null if the construction is for an array.
-            /// </summary>
-            private readonly Func<ObjectReader, object> _reader;
-
-            /// <summary>
-            /// The reference id of the object being constructed.
-            /// </summary>
-            private readonly int _id;
-
-            private Construction(Type type, int valueCount, int stackStart, Func<ObjectReader, object> reader, int id)
-            {
-                _type = type;
-                _valueCount = valueCount;
-                _stackStart = stackStart;
-                _reader = reader;
-                _id = id;
-            }
-
-            public bool CanConstruct(int stackCount)
-            {
-                return stackCount == _stackStart + _valueCount;
-            }
-
-            public static Construction CreateObjectConstruction(Type type, int memberCount, int stackStart, Func<ObjectReader, object> reader, int id)
-            {
-                Debug.Assert(type != null);
-                Debug.Assert(reader != null);
-                return new Construction(type, memberCount, stackStart, reader, id);
-            }
-
-            public static Construction CreateArrayConstruction(Type elementType, int elementCount, int stackStart)
-            {
-                Debug.Assert(elementType != null);
-                return new Construction(elementType, elementCount, stackStart, reader: null, id: 0);
-            }
         }
 
         private Variant ReadVariant()
