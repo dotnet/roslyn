@@ -1246,23 +1246,9 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
             }
 
-            var start = stream.Position;
-
-            try
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
             {
-                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-                {
-                    writer.WriteValue(this.Green);
-                }
-            }
-            catch (Exception e) when (e is ObjectWriter.RecursionDepthExceeded || StackGuard.IsInsufficientExecutionStackException(e))
-            {
-                stream.Position = start;
-
-                using (var writer = new ObjectWriter(stream, recursive: false, cancellationToken: cancellationToken))
-                {
-                    writer.WriteValue(this.Green);
-                }
+                writer.WriteValue(this.Green);
             }
         }
 

@@ -34,10 +34,9 @@ namespace Roslyn.Utilities
         /// this version, just change VersionByte2.
         /// </summary>
         internal const byte VersionByte1 = 0b10101010;
-        internal const byte VersionByte2 = 0b00000110;
+        internal const byte VersionByte2 = 0b00000111;
 
         private readonly BinaryReader _reader;
-        private readonly bool _recursive;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -45,16 +44,6 @@ namespace Roslyn.Utilities
         /// </summary>
         private readonly ReaderReferenceMap<object> _objectReferenceMap;
         private readonly ReaderReferenceMap<string> _stringReferenceMap;
-
-        /// <summary>
-        /// Stack of values used to construct objects and arrays
-        /// </summary>
-        private readonly Stack<Variant> _valueStack;
-
-        /// <summary>
-        /// Stack of pending object and array constructions
-        /// </summary>
-        private readonly Stack<Construction> _constructionStack;
 
         /// <summary>
         /// List of member values that object deserializers read from.
@@ -78,20 +67,12 @@ namespace Roslyn.Utilities
             // It can be adjusted for BigEndian if needed.
             Debug.Assert(BitConverter.IsLittleEndian);
 
-            _recursive = IsRecursive(stream);
-
             _reader = new BinaryReader(stream, Encoding.UTF8);
             _objectReferenceMap = new ReaderReferenceMap<object>();
             _stringReferenceMap = new ReaderReferenceMap<string>();
             _cancellationToken = cancellationToken;
 
             _memberList = SOW.s_variantListPool.Allocate();
-
-            if (!_recursive)
-            {
-                _valueStack = SOW.s_variantStackPool.Allocate();
-                _constructionStack = s_constructionStackPool.Allocate();
-            }
         }
 
         /// <summary>
@@ -117,20 +98,6 @@ namespace Roslyn.Utilities
             return new ObjectReader(stream, cancellationToken);
         }
 
-        internal static bool IsRecursive(Stream stream)
-        {
-            var recursionKind = (EncodingKind)stream.ReadByte(); 
-            switch (recursionKind)
-            {
-                case EncodingKind.Recursive:
-                    return true;
-                case EncodingKind.NonRecursive:
-                    return false;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(recursionKind);
-            }
-        }
-
         public void Dispose()
         {
             _objectReferenceMap.Dispose();
@@ -138,15 +105,6 @@ namespace Roslyn.Utilities
 
             ResetMemberList();
             SOW.s_variantListPool.Free(_memberList);
-
-            if (!_recursive)
-            {
-                _valueStack.Clear();
-                SOW.s_variantStackPool.Free(_valueStack);
-
-                _constructionStack.Clear();
-                s_constructionStackPool.Free(_constructionStack);
-            }
         }
 
         private void ResetMemberList()
@@ -239,13 +197,6 @@ namespace Roslyn.Utilities
             }
 
             var v = ReadVariant();
-
-            // if we didn't get anything, it must have been an object or array header
-            if (!_recursive && v.Kind == VariantKind.None)
-            {
-                v = ConstructFromValues();
-            }
-
             return v.ToBoxedObject();
         }
 
@@ -259,36 +210,6 @@ namespace Roslyn.Utilities
 
         private object ReadValueFromMemberList()
             => NextFromMemberList().ToBoxedObject();
-
-        private Variant ConstructFromValues()
-        {
-            Debug.Assert(_constructionStack.Count > 0);
-
-            // keep reading until we've got all the values needed to construct the object or array
-            while (_constructionStack.Count > 0)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-
-                var construction = _constructionStack.Peek();
-                if (construction.CanConstruct(_valueStack.Count))
-                {
-                    construction = _constructionStack.Pop();
-                    var constructed = construction.Construct(this);
-                    _valueStack.Push(constructed);
-                }
-                else
-                {
-                    var element = ReadVariant();
-                    if (element.Kind != VariantKind.None)
-                    {
-                        _valueStack.Push(element);
-                    }
-                }
-            }
-
-            Debug.Assert(_valueStack.Count == 1);
-            return _valueStack.Pop();
-        }
 
         /// <summary>
         /// Represents either a pending object or array construction.
@@ -347,18 +268,6 @@ namespace Roslyn.Utilities
             {
                 Debug.Assert(elementType != null);
                 return new Construction(elementType, elementCount, stackStart, reader: null, id: 0);
-            }
-
-            public Variant Construct(ObjectReader reader)
-            {
-                if (_reader != null)
-                {
-                    return reader.ConstructObject(_type, _valueCount, _reader, _id);
-                }
-                else
-                {
-                    return reader.ConstructArray(_type, _valueCount);
-                }
             }
         }
 
@@ -612,40 +521,17 @@ namespace Roslyn.Utilities
                 // custom type case
                 elementType = this.ReadTypeAfterTag();
 
-                if (_recursive)
+                // recursive: create instance and read elements next in stream
+                Array array = Array.CreateInstance(elementType, length);
+
+                for (int i = 0; i < length; ++i)
                 {
-                    // recursive: create instance and read elements next in stream
-                    Array array = Array.CreateInstance(elementType, length);
-
-                    for (int i = 0; i < length; ++i)
-                    {
-                        var value = this.ReadValue();
-                        array.SetValue(value, i);
-                    }
-
-                    return Variant.FromObject(array);
+                    var value = this.ReadValue();
+                    array.SetValue(value, i);
                 }
-                else
-                {
-                    // non-recursive: remember construction info to be used later when all elements are available
-                    _constructionStack.Push(Construction.CreateArrayConstruction(elementType, length, _valueStack.Count));
-                    return Variant.None;
-                }
+
+                return Variant.FromObject(array);
             }
-        }
-
-        private Variant ConstructArray(Type elementType, int length)
-        {
-            Array array = Array.CreateInstance(elementType, length);
-
-            // values are on stack in reverse order
-            for (int i = length - 1; i >= 0; i--)
-            {
-                var value = _valueStack.Pop().ToBoxedObject();
-                array.SetValue(value, i);
-            }
-
-            return Variant.FromArray(array);
         }
 
         private Array ReadPrimitiveTypeArrayElements(Type type, EncodingKind kind, int length)
@@ -850,80 +736,10 @@ namespace Roslyn.Utilities
 
             var (type, typeReader) = this.ReadTypeAndReader();
 
-            if (_recursive)
-            {
-                // recursive: read and construct instance immediately from member elements encoding next in the stream
-                var instance = typeReader(this);
-                _objectReferenceMap.SetValue(id, instance);
-                return Variant.FromObject(instance);
-            }
-            else
-            {
-                uint memberCount = this.ReadCompressedUInt();
-
-                if (memberCount == 0)
-                {
-                    return ConstructObject(type, (int)memberCount, typeReader, id);
-                }
-                else
-                {
-                    // non-recursive: remember construction information to invoke later when member elements available on the stack
-                    _constructionStack.Push(Construction.CreateObjectConstruction(type, (int)memberCount, _valueStack.Count, typeReader, id));
-                    return Variant.None;
-                }
-            }
-        }
-
-        private Variant ConstructObject(Type type, int memberCount, Func<ObjectReader, object> reader, int id)
-        {
-            Debug.Assert(_memberList.Count == 0);
-            Debug.Assert(_indexInMemberList == 0);
-
-            _memberList.Count = memberCount;
-
-            // take members from the stack
-            for (int i = 0; i < memberCount; i++)
-            {
-                _memberList[memberCount - i - 1] = _valueStack.Pop();
-                // _memberList.Add(_valueStack.Pop());
-            }
-
-            // reverse list so that first member to be read is first
-            // Reverse(_memberList);
-
-            // invoke the deserialization constructor to create instance and read & assign members           
-            var instance = reader(this);
-
-            if (_indexInMemberList != memberCount)
-            {
-                throw DeserializationReadIncorrectNumberOfValuesException(type.Name);
-            }
-
-            ResetMemberList();
-
+            // recursive: read and construct instance immediately from member elements encoding next in the stream
+            var instance = typeReader(this);
             _objectReferenceMap.SetValue(id, instance);
-
             return Variant.FromObject(instance);
-        }
-
-        private static void Reverse(List<Variant> memberList)
-            => Reverse(memberList, 0, memberList.Count);
-
-        private static void Reverse(List<Variant> memberList, int index, int length)
-        {
-            // Note: we do not call List<T>.Reverse as that causes boxing of elements when
-            // T is a struct type:
-            // https://github.com/dotnet/coreclr/issues/7986
-            int i = index;
-            int j = index + length - 1;
-            while (i < j)
-            {
-                var temp = memberList[i];
-                memberList[i] = memberList[j];
-                memberList[j] = temp;
-                i++;
-                j--;
-            }
         }
 
         private static Exception DeserializationReadIncorrectNumberOfValuesException(string typeName)
