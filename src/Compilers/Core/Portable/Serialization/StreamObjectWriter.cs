@@ -379,8 +379,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                int id;
-                if (_stringReferenceMap.TryGetReferenceId(value, out id))
+                if (_stringReferenceMap.TryGetReferenceId(value, out var id))
                 {
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
@@ -401,7 +400,8 @@ namespace Roslyn.Utilities
                 }
                 else
                 {
-                    _stringReferenceMap.Add(value);
+                    id = _stringReferenceMap.Add(value);
+                    _writer.Write(id);
 
                     if (value.IsValidUnicodeString())
                     {
