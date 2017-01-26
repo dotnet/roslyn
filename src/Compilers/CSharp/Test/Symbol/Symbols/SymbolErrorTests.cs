@@ -19716,6 +19716,57 @@ namespace A
                 //             System.Console.WriteLine(ClassB.MethodB(null));
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "ClassB.MethodB").WithArguments("C.ClassC", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 38));
         }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void AddingReferenceToModuleWithMultipleForwardersToDifferentAssembliesShouldErrorOut()
+        {
+            var ilSource = @"
+.assembly extern D1 { }
+.assembly extern D2 { }
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D1
+}
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D2
+}";
+
+            ImmutableArray<byte> ilBytes;
+            ImmutableArray<byte> pdbBytes;
+            EmitILToArray(ilSource, appendDefaultHeader: false, includePdb: false, assemblyBytes: out ilBytes, pdbBytes: out pdbBytes);
+
+            var ilModule = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
+
+            CreateCompilationWithMscorlib(string.Empty, references: new MetadataReference[] { ilModule }).VerifyDiagnostics(
+                // error CS8205: Type 'Testspace.TestType' is forwarded to multiple assemblies: 'D1' and 'D2'
+                Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies).WithArguments("Testspace.TestType", "D1", "D2").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
+        public void AddingReferenceToModuleWithMultipleForwardersToTheSameAssemblyShouldNotProduceMultipleForwardingErrors()
+        {
+            var ilSource = @"
+.assembly extern D1 { }
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D1
+}
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D1
+}";
+
+            ImmutableArray<byte> ilBytes;
+            ImmutableArray<byte> pdbBytes;
+            EmitILToArray(ilSource, appendDefaultHeader: false, includePdb: false, assemblyBytes: out ilBytes, pdbBytes: out pdbBytes);
+
+            var ilModule = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
+
+            CreateCompilationWithMscorlib(string.Empty, references: new MetadataReference[] { ilModule }).VerifyDiagnostics(
+                // error CS0012: The type 'TestType' is defined in an assembly that is not referenced. You must add a reference to assembly 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("Testspace.TestType", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+        }
     }
 }
 

@@ -669,26 +669,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 var name = MetadataTypeName.FromFullName(forwarder.Key);
-                AssemblySymbol firstSymbol = this.GetReferencedAssemblySymbol(forwarder.Value.FirstIndex);
 
-                if ((object)firstSymbol == null)
-                {
-                    continue;
-                }
+                AssemblySymbol firstSymbol = this.GetReferencedAssemblySymbol(forwarder.Value.FirstIndex);
+                Debug.Assert((object)firstSymbol != null, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()");
 
                 if (forwarder.Value.SecondIndex >= 0)
                 {
                     var secondSymbol = this.GetReferencedAssemblySymbol(forwarder.Value.SecondIndex);
+                    Debug.Assert((object)secondSymbol != null, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()");
 
-                    if ((object)secondSymbol != null)
-                    {
-                        var forwardingErrorInfo = new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies, forwarder.Key, firstSymbol.Name, secondSymbol.Name);
-                        yield return new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this, ref name, forwardingErrorInfo);
-                        continue;
-                    }
+                    var forwardingErrorInfo = new DiagnosticInfo(MessageProvider.Instance, (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies, forwarder.Key, firstSymbol.Name, secondSymbol.Name);
+                    yield return new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this, ref name, forwardingErrorInfo);
                 }
-
-                yield return firstSymbol.LookupTopLevelMetadataType(ref name, digThroughForwardedTypes: true);
+                else
+                {
+                    yield return firstSymbol.LookupTopLevelMetadataType(ref name, digThroughForwardedTypes: true);
+                }
             }
         }
 

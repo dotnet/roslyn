@@ -448,23 +448,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End If
 
                 Dim name = MetadataTypeName.FromFullName(forwarder.Key)
-                Dim firstSymbol = GetReferencedAssemblySymbol(forwarder.Value.FirstIndex)
 
-                If DirectCast(firstSymbol, Object) Is Nothing
-                    Continue For
-                End If
+                Dim firstSymbol = GetReferencedAssemblySymbol(forwarder.Value.FirstIndex)
+                Debug.Assert(DirectCast(firstSymbol, Object) IsNot Nothing, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()")
 
                 If forwarder.Value.SecondIndex >= 0 Then
                     Dim secondSymbol = GetReferencedAssemblySymbol(forwarder.Value.SecondIndex)
+                    Debug.Assert(DirectCast(secondSymbol, Object) IsNot Nothing, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()")
 
-                    If DirectCast(secondSymbol, Object) IsNot Nothing
-                        Dim forwardingErrorInfo = New DiagnosticInfo(MessageProvider.Instance, ERRID.ERR_TypeForwardedToMultipleAssemblies, forwarder.Key, firstSymbol.Name, secondSymbol.Name)
-                        Yield New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(Me, name, forwardingErrorInfo)
-                        Continue For
-                    End If
+                    Dim forwardingErrorInfo = New DiagnosticInfo(MessageProvider.Instance, ERRID.ERR_TypeForwardedToMultipleAssemblies, forwarder.Key, firstSymbol.Name, secondSymbol.Name)
+                    Yield New MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(Me, name, forwardingErrorInfo)
+                Else
+                    Yield firstSymbol.LookupTopLevelMetadataType(name, digThroughForwardedTypes:= true)
                 End If
-
-                Yield firstSymbol.LookupTopLevelMetadataType(name, digThroughForwardedTypes:= true)
             Next
         End Function
 

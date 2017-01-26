@@ -24090,5 +24090,60 @@ BC30652: Reference required to assembly 'D, Version=0.0.0.0, Culture=neutral, Pu
  ]]></errors>)
         End Sub
 
+        <Fact>
+        <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        Public Sub AddingReferenceToModuleWithMultipleForwardersToDifferentAssembliesShouldErrorOut()
+            Dim ilSource = "
+.assembly extern D1 { }
+.assembly extern D2 { }
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D1
+}
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D2
+}"
+
+            Dim ilBytes As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
+            EmitILToArray(ilSource, appendDefaultHeader:=False, includePdb:=False, assemblyBytes:=ilBytes, pdbBytes:=pdbBytes)
+
+            Dim ilModule = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
+
+            Dim compilation = CreateCompilationWithMscorlib(String.Empty, references:={ilModule}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
+BC37208: Type 'Testspace.TestType' is forwarded to multiple assemblies: 'D1' and 'D2'
+]]></errors>)
+        End Sub
+
+        <Fact>
+                                      <WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")>
+        Public Sub AddingReferenceToModuleWithMultipleForwardersToTheSameAssemblyShouldNotProduceMultipleForwardingErrors()
+            Dim ilSource = "
+.assembly extern D1 { }
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D1
+}
+.class extern forwarder Testspace.TestType
+{
+	.assembly extern D1
+}"
+
+            Dim ilBytes As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
+            EmitILToArray(ilSource, appendDefaultHeader:=False, includePdb:=False, assemblyBytes:=ilBytes, pdbBytes:=pdbBytes)
+
+            Dim ilModule = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
+
+            Dim compilation = CreateCompilationWithMscorlib(String.Empty, references:={ilModule}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
+BC30652: Reference required to assembly 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'TestType'. Add one to your project.
+]]></errors>)
+        End Sub
+
     End Class
 End Namespace

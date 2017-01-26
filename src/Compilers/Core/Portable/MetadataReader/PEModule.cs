@@ -2901,6 +2901,11 @@ namespace Microsoft.CodeAnalysis
                             continue;
                         }
 
+                        if (referencedAssemblyIndex >= this.ReferencedAssemblies.Length)
+                        {
+                            continue;
+                        }
+
                         string name = MetadataReader.GetString(exportedType.Name);
                         StringHandle ns = exportedType.Namespace;
                         if (!ns.IsNil)
