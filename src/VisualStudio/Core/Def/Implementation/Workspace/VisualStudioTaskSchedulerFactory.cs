@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 // At this point, we have to know what the UI thread is.
                 Contract.ThrowIfTrue(ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown);
-                return new WorkspaceTaskQueue(_factory, ForegroundThreadAffinitizedObject.ForegroundTaskScheduler);
+                return new WorkspaceTaskQueue(_factory, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler);
             }
 
             public Task ScheduleTask(Action taskAction, string taskName, CancellationToken cancellationToken = default(CancellationToken))

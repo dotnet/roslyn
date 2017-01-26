@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     {
         private static readonly ForegroundThreadData s_fallbackForegroundThreadData;
         private static ForegroundThreadData s_currentForegroundThreadData;
+        private readonly ForegroundThreadData _foregroundThreadDataWhenCreated;
 
         internal static ForegroundThreadData CurrentForegroundThreadData
         {
@@ -65,14 +66,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        internal static Thread ForegroundThread
+        internal Thread ForegroundThread
         {
-            get { return CurrentForegroundThreadData.Thread; }
+            get { return _foregroundThreadDataWhenCreated.Thread; }
         }
 
-        internal static TaskScheduler ForegroundTaskScheduler
+        internal TaskScheduler ForegroundTaskScheduler
         {
-            get { return CurrentForegroundThreadData.TaskScheduler; }
+            get { return _foregroundThreadDataWhenCreated.TaskScheduler; }
         }
 
         // HACK: This is a dangerous way of establishing the 'foreground' thread affinity of an 
@@ -86,6 +87,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public ForegroundThreadAffinitizedObject(bool assertIsForeground = false)
         {
+            _foregroundThreadDataWhenCreated = CurrentForegroundThreadData;
+
             // For sanity's sake, ensure that our idea of "foreground" is the same as WPF's. But we won't assert
             // anything if we haven't figured it out yet.
             Contract.ThrowIfFalse(

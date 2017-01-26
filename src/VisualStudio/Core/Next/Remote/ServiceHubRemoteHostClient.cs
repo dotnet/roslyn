@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             await Task.Factory.SafeStartNew(() =>
             {
                 vsWorkspace.DeferredState.ProjectTracker.RegisterWorkspaceHost(host);
-            }, CancellationToken.None, ForegroundThreadAffinitizedObject.ForegroundTaskScheduler).ConfigureAwait(false);
+            }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
         }
 
         private ServiceHubRemoteHostClient(
