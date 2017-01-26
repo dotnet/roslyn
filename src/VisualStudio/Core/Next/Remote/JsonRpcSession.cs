@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var remotableData = PinnedScope.GetRemotableData(new Checksum(checksum), _source.Token) ?? RemotableData.Null;
                 writer.WriteInt32(1);
 
-                writer.WriteValue(checksum);
+                writer.WriteArray(checksum);
                 writer.WriteString(remotableData.Kind);
 
                 await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
@@ -220,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var checksum = kv.Key;
                     var remotableData = kv.Value;
 
-                    writer.WriteValue(checksum.ToArray());
+                    writer.WriteArray(checksum.ToArray());
                     writer.WriteString(remotableData.Kind);
 
                     await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);

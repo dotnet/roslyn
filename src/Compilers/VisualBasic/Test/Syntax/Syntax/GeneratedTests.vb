@@ -43,6 +43,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Friend Class MyMessageProvider
         Inherits TestMessageProvider
 
+        Public Overrides Sub WriteTo(writer As ObjectWriter)
+            Throw New NotImplementedException()
+        End Sub
+
         Public Overrides ReadOnly Property CodePrefix As String
             Get
                 Return String.Empty

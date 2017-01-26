@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub New()
         End Sub
 
-        Private Sub WriteTo(writer As ObjectWriter) Implements IObjectWritable.WriteTo
+        Public Overrides Sub WriteTo(writer As ObjectWriter) Implements IObjectWritable.WriteTo
             ' don't write anything since we always return the shared 'Instance' when read.
         End Sub
 

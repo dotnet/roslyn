@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
 
                 // write data out
-                writer.WriteValue(value);
+                writer.WriteArray(value);
             }
 
             public override Encoding ReadEncodingFrom(ObjectReader reader, CancellationToken cancellationToken)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 var serialized = reader.ReadByte();
                 if (serialized == EncodingSerialization)
                 {
-                    var array = (byte[])reader.ReadValue();
+                    var array = (byte[])reader.ReadArray();
                     var formatter = new BinaryFormatter();
 
                     return (Encoding)formatter.Deserialize(new MemoryStream(array));

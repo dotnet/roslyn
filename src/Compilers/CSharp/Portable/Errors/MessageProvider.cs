@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        void IObjectWritable.WriteTo(ObjectWriter writer)
+        public override void WriteTo(ObjectWriter writer)
         {
             // write nothing, always read/deserialized as global Instance
         }

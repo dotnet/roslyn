@@ -176,9 +176,9 @@ namespace Roslyn.Utilities
             }
         }
 
-            /// <summary>
-            /// An reference-id to object map, that can share base data efficiently.
-            /// </summary>
+        /// <summary>
+        /// An reference-id to object map, that can share base data efficiently.
+        /// </summary>
         private class ReaderReferenceMap<T> where T : class
         {
             private readonly List<T> _values;

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -2381,6 +2382,11 @@ class Program
 
         internal class MockMessageProvider : TestMessageProvider
         {
+            public override void WriteTo(ObjectWriter writer)
+            {
+                throw new NotImplementedException();
+            }
+
             public override DiagnosticSeverity GetSeverity(int code)
             {
                 if (code >= 1000)
