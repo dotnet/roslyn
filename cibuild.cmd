@@ -9,6 +9,7 @@ REM Because override the C#/VB toolset to build against our LKG package, it is i
 REM that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
 REM we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
 set MSBuildAdditionalCommandLineArgs=/nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal
+set BuildAndTestBuildTarget=BuildAndTest
 
 :ParseArguments
 if "%1" == "" goto :DoneParsing
@@ -22,6 +23,8 @@ if /I "%1" == "/testBuildCorrectness" set TestBuildCorrectness=true&&shift&& got
 if /I "%1" == "/testPerfCorrectness" set TestPerfCorrectness=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testPerfRun" set TestPerfRun=true&&shift&& goto :ParseArguments
 if /I "%1" == "/testVsi" set TestVsi=true&&shift&& goto :ParseArguments
+if /I "%1" == "/skipTest" set BuildAndTestBuildTarget=Build&&shift&&goto :ParseArguments
+if /I "%1" == "/skipCommitPrinting" set SkipCommitPrinting=1&&shift&&goto :ParseArguments
 
 REM /buildTimeLimit is the time limit, measured in minutes, for the Jenkins job that runs
 REM the build. The Jenkins script netci.groovy passes the time limit to this script.
@@ -61,8 +64,10 @@ if defined testBuildCorrectness (
 )
 
 REM Output the commit that we're building, for reference in Jenkins logs
-echo Building this commit:
-git show --no-patch --pretty=raw HEAD
+if not "%SkipCommitPrinting" == "1" (
+    echo Building this commit:
+    git show --no-patch --pretty=raw HEAD
+)
 
 REM Build with the real assembly version, since that's what's contained in the bootstrap compiler redirects
 msbuild %MSBuildAdditionalCommandLineArgs% /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP "%RoslynRoot%build\Toolset\Toolset.csproj" /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration% /fileloggerparameters:LogFile="%bindir%\Bootstrap.log" || goto :BuildFailed
@@ -115,7 +120,7 @@ if defined TestPerfRun (
     exit /b 0
 )
 
-msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:TestVsi=%TestVsi% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic /p:DeployExtension=false || goto :BuildFailed
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath="%bindir%\Bootstrap" BuildAndTest.proj /t:%BuildAndTestBuildTarget% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64% /p:TestVsi=%TestVsi% /p:RunProcessWatchdog=%RunProcessWatchdog% /p:BuildStartTime=%BuildStartTime% /p:"ProcDumpExe=%ProcDumpExe%" /p:BuildTimeLimit=%BuildTimeLimit% /p:PathMap="%RoslynRoot%=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="%bindir%\Build.log";verbosity=diagnostic /p:DeployExtension=false || goto :BuildFailed
 powershell -noprofile -executionPolicy RemoteSigned -file "%RoslynRoot%\build\scripts\check-msbuild.ps1" "%bindir%\Build.log" || goto :BuildFailed
 
 call :TerminateBuildProcesses || goto :BuildFailed
@@ -145,10 +150,16 @@ exit /b 1
 
 @REM An error-level of 1 means that the process was found, but could not be killed.
 echo Killing all build-related processes
-taskkill /F /IM msbuild.exe > nul
-if %ERRORLEVEL% == 1 exit /b 1
+taskkill /F /IM msbuild.exe > nul 2>&1
+if %ERRORLEVEL% == 1 (
+  echo ERROR: taskkill for msbuild.exe failed
+  exit /b 1
+)
 
-taskkill /F /IM vbcscompiler.exe > nul
-if %ERRORLEVEL% == 1 exit /b 1
+taskkill /F /IM vbcscompiler.exe > nul 2>&1
+if %ERRORLEVEL% == 1 (
+  echo ERROR: taskkill for vbcscompiler.exe failed
+  exit /b 1
+)
 
 exit /b 0
