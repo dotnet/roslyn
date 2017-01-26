@@ -28,13 +28,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private void RoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction, bool recursive)
         {
             var stream = new MemoryStream();
-            var writer = new ObjectWriter(stream, recursive: recursive);
+            var writer = new ObjectWriter(stream);
 
             writeAction(writer);
             writer.Dispose();
-
-            stream.Position = 2;
-            Assert.Equal(recursive, ObjectReader.IsRecursive(stream));
 
             stream.Position = 0;
             using (var reader = ObjectReader.TryGetReader(stream))
@@ -52,13 +49,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private T RoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
         {
             var stream = new MemoryStream();
-            var writer = new ObjectWriter(stream, recursive: recursive);
+            var writer = new ObjectWriter(stream);
 
             writeAction(writer, value);
             writer.Dispose();
-
-            stream.Position = 2;
-            Assert.Equal(recursive, ObjectReader.IsRecursive(stream));
 
             stream.Position = 0;
             using (var reader = ObjectReader.TryGetReader(stream))
