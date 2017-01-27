@@ -30,6 +30,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
+        [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
+        public void RecursiveDefaultParameter()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    public static void Main()
+    {
+        int Local(int j = Local()) => 0;
+        Local();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,27): error CS1736: Default parameter value for 'j' must be a compile-time constant
+                //         int Local(int j = Local()) => 0;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Local()").WithArguments("j").WithLocation(6, 27));
+            comp.DeclarationDiagnostics.Verify();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
+        [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
+        public void RecursiveDefaultParameter2()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+class C
+{
+    void M()
+    {
+        int Local(Action a = Local) => 0;
+        Local();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,30): error CS1736: Default parameter value for 'a' must be a compile-time constant
+                //         int Local(Action a = Local) => 0;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Local").WithArguments("a").WithLocation(7, 30));
+            comp.DeclarationDiagnostics.Verify();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
+        [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
+        public void MutuallyRecursiveDefaultParameters()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    void M()
+    {
+        int Local1(int p = Local2()) => 0;
+        int Local2(int p = Local1()) => 0;
+        Local1();
+        Local2();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,28): error CS1736: Default parameter value for 'p' must be a compile-time constant
+                //         int Local1(int p = Local2()) => 0;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Local2()").WithArguments("p").WithLocation(6, 28),
+                // (7,28): error CS1736: Default parameter value for 'p' must be a compile-time constant
+                //         int Local2(int p = Local1()) => 0;
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Local1()").WithArguments("p").WithLocation(7, 28));
+            comp.DeclarationDiagnostics.Verify();
+        }
+
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16652")]
         public void FetchLocalFunctionSymbolThroughLocal()
         {
