@@ -444,7 +444,8 @@ namespace Roslyn.Utilities
                 if (_recursionDepth % MaxRecursionDepth == 0)
                 {
                     // If we're recursing too deep, move the work to another thread to do so we
-                    // don't blow the stack.
+                    // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
+                    // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
                         () => WriteArrayValues(array), 
                         _cancellationToken,
@@ -696,7 +697,8 @@ namespace Roslyn.Utilities
                 if (_recursionDepth % MaxRecursionDepth == 0)
                 {
                     // If we're recursing too deep, move the work to another thread to do so we
-                    // don't blow the stack.
+                    // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
+                    // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
                         () => WriteObjectWorker(instance, writable), 
                         _cancellationToken,
